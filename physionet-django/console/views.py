@@ -45,12 +45,14 @@ from project.models import (
     Publication,
     PublishedProject,
     Reference,
+    Section,
     StorageRequest,
     SubmissionInfo,
     Topic,
     exists_project_slug,
 )
 from project.projectfiles import ProjectFiles
+import project.forms as project_forms
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
@@ -2082,3 +2084,43 @@ def complete_credential_applications_mailto(request):
                                                              comments=False)
 
     return JsonResponse({'mailtolink': mailto})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def static_page_sections(request, page):
+    if request.method == 'POST':
+        section_form = forms.SectionForm(data=request.POST, page=page)
+        if section_form.is_valid():
+            section_form.save()
+
+        up = request.POST.get('up')
+        if up is not None:
+            section = get_object_or_404(Section, pk=up)
+            section.move_up()
+        
+        down = request.POST.get('down')
+        if down is not None:
+            section = get_object_or_404(Section, pk=down)
+            section.move_down()
+    
+    section_form = forms.SectionForm(page=page)
+
+    sections = Section.objects.filter(page=page)
+
+    return render(request, 'console/static_page_sections.html', {
+        'sections': sections, 'page': page,
+        'section_form': section_form
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def static_page_sections_delete(request, page, pk):
+    if request.method == 'POST':
+        section = get_object_or_404(Section, page=page, pk=pk)
+        order = section.order
+        section.delete()
+        Section.objects.filter(page=page, order__gt=section.order).update(order=F('order') - 1)
+
+    return redirect('static_page_sections', page=page)

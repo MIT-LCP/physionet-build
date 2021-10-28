@@ -96,4 +96,10 @@ urlpatterns = [
     path('usage/credentialing/stats/', views.credentialing_stats,
          name='credentialing_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
+
+    # static pages
+    path('pages/<str:page>/', views.static_page_sections,
+        name='static_page_sections'),
+    path('pages/<str:page>/<int:pk>/delete/', views.static_page_sections_delete,
+        name='static_page_sections_delete')
 ]

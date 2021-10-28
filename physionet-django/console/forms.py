@@ -19,11 +19,13 @@ from project.models import (
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
+    Section,
     exists_project_slug,
 )
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CredentialApplication, CredentialReview, User
+from console.utility import generate_doi_payload, register_doi
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -936,3 +938,22 @@ class CreateLegacyAuthorForm(forms.ModelForm):
 
         affiliation.save()
         return affiliation
+
+
+class SectionForm(forms.ModelForm):
+    
+    class Meta:
+        model = Section
+        fields = ('title', 'content')
+
+    def __init__(self, page, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.page = page
+    
+    def save(self):
+        section = super().save(commit=False)
+        section.page = self.page
+        section.order = Section.objects.filter(page=self.page).count() + 1
+        section.save()
+        return section
+

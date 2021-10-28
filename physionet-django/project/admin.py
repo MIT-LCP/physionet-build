@@ -107,6 +107,7 @@ admin.site.register(models.PublishedPublication)
 admin.site.register(models.PublishedReference)
 admin.site.register(models.StorageRequest)
 admin.site.register(models.GCP)
+admin.site.register(models.Section)
 
 # Add the custom tasks to the admin page
 admin.site.register(Task, TaskAdmin)
