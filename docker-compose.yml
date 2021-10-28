@@ -20,6 +20,7 @@ networks:
 x-env: &default-env
   DJANGO_SETTINGS_MODULE: physionet.settings.settings
   DB_HOST: db
+  GCS_HOST: gcs
   MEDIA_ROOT: /data/pn-media
   STATIC_ROOT: /data/pn-static
 
@@ -47,7 +48,6 @@ services:
     environment:
       <<: *default-env
       DB_NAME: physionet_test
-      GCS_HOST: gcs
     env_file: .env.example
     command: ['sleep']
     volumes:

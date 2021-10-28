@@ -533,11 +533,9 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']
-            
-            make_zip = publish_form.cleaned_data.get('make_zip')
-            make_zip = int(make_zip) if make_zip else False
+            published_project = project.publish(slug=slug,
+                make_zip=int(publish_form.cleaned_data['make_zip']))
 
-            published_project = project.publish(slug=slug, make_zip=make_zip)
             notification.publish_notify(request, published_project)
 
             # update the core and project DOIs with latest metadata
@@ -557,7 +555,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
 
             return render(request, 'console/publish_complete.html',
                 {'published_project': published_project, 'editor_home': True})
-
+        
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
     publish_form = forms.PublishForm(project=project)

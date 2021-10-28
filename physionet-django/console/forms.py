@@ -10,10 +10,10 @@ from django.conf import settings
 from dal import autocomplete
 
 from notification.models import News
-from physionet.settings.base import StorageTypes
 from project.models import (ActiveProject, EditLog, CopyeditLog, Contact,
                             PublishedProject, exists_project_slug, DataAccess,
                             PublishedAffiliation, PublishedAuthor)
+from project.projectfiles import ProjectFiles
 from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH, validate_doi
 from user.models import User, CredentialApplication, CredentialReview
 from console.utility import generate_doi_payload, register_doi
@@ -275,8 +275,10 @@ class PublishForm(forms.Form):
         else:
             self.fields['slug'].initial = project.slug
 
-        if settings.STORAGE_TYPE == StorageTypes.GCP:
-            del self.fields['make_zip']
+        if not ProjectFiles().can_make_zip():
+            self.fields['make_zip'].disabled = True
+            self.fields['make_zip'].required = False
+            self.fields['make_zip'].initial = 0
 
     def clean_slug(self):
         """

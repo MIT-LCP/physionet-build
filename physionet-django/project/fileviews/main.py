@@ -36,7 +36,7 @@ def display_project_file(request, project, file_path):
     try:
         abs_path = os.path.join(project.file_root(), file_path)
 
-        infile, size = ProjectFiles().open(abs_path)
+        infile = ProjectFiles().open(abs_path)
     except IsADirectoryError:
         return redirect(request.path + '/')
     except (FileNotFoundError, NotADirectoryError):
@@ -50,5 +50,5 @@ def display_project_file(request, project, file_path):
         else:
             (_, suffix) = os.path.splitext(file_path)
             cls = _suffixes.get(suffix, TextFileView)
-        view = cls(project, file_path, infile, size)
+        view = cls(project, file_path, infile)
         return view.render(request)

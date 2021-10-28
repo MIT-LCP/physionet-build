@@ -40,9 +40,9 @@ class LocalProjectFiles(BaseProjectFiles):
 
     def open(self, path, mode='rb'):
         infile = open(path, mode)
-        size = os.stat(infile.fileno()).st_size
+        infile.size = os.stat(infile.fileno()).st_size
 
-        return infile, size
+        return infile
 
     def get_project_directory_content(self, path, subdir, file_display_url, file_url):
         file_names, dir_names = list_items(path)

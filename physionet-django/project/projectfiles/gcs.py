@@ -63,8 +63,7 @@ class GCSProjectFiles(BaseProjectFiles):
             GCSObject(self._dir_path(source_path)).mv(GCSObject(target_path))
 
     def open(self, path, mode='rb'):
-        infile = GCSObject(path).open(mode)
-        return infile, infile.size
+        return GCSObject(path).open(mode)
 
     def get_project_directory_content(self, path, subdir, file_display_url, file_url):
         files, dirs = self._list_dir(path)

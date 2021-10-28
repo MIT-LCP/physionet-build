@@ -23,12 +23,12 @@ class FileView:
     display something more useful.
     """
 
-    def __init__(self, project, path, file, size=0):
+    def __init__(self, project, path, file):
         self.project = project
         self.path = path
         self.file = file
         self._basename = os.path.basename(path)
-        self._size = size
+        self._size = file.size
         self._url = project.file_url('', path)
 
     def render(self, request, template='project/file_view.html',
