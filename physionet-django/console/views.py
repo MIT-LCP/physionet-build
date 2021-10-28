@@ -30,6 +30,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from notification.models import News
+from physionet.enums import Page
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.settings.base import StorageTypes
@@ -2088,9 +2089,16 @@ def complete_credential_applications_mailto(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
+def static_pages(request):
+    return render(request, 'console/static_pages.html', {
+        'pages': Page.choices(), 'static_pages_nav': True
+    })
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
 def static_page_sections(request, page):
     if request.method == 'POST':
-        section_form = forms.SectionForm(data=request.POST, page=page)
+        section_form = forms.SectionForm(data=request.POST, page=Page(page))
         if section_form.is_valid():
             section_form.save()
 
@@ -2104,13 +2112,14 @@ def static_page_sections(request, page):
             section = get_object_or_404(Section, pk=down)
             section.move_down()
     
-    section_form = forms.SectionForm(page=page)
+    section_form = forms.SectionForm(page=Page(page))
 
-    sections = Section.objects.filter(page=page)
+    sections = Section.objects.filter(page=Page(page))
 
     return render(request, 'console/static_page_sections.html', {
         'sections': sections, 'page': page,
-        'section_form': section_form
+        'section_form': section_form,
+        'static_pages_nav': True
     })
 
 
@@ -2118,7 +2127,7 @@ def static_page_sections(request, page):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_page_sections_delete(request, page, pk):
     if request.method == 'POST':
-        section = get_object_or_404(Section, page=page, pk=pk)
+        section = get_object_or_404(Section, page=Page(page), pk=pk)
         order = section.order
         section.delete()
         Section.objects.filter(page=page, order__gt=section.order).update(order=F('order') - 1)

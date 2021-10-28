@@ -2,8 +2,8 @@ from enum import Enum
 
 
 class Page(Enum):
-    ABOUT = 'Abount'
-    SHARE = 'Share'
+    ABOUT = 'about'
+    SHARE = 'share'
 
     @classmethod
     def choices(cls):

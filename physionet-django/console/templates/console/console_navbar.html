@@ -194,6 +194,14 @@
         </ul>
       </li>
 
+      <!-- static pages -->
+      <li class="nav-item {% if static_pages_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_console_news" class="nav-link" href="{% url 'static_pages' %}">
+          <i class="far fa-window-maximize"></i>
+          <span class="nav-link-text">Static Pages</span>
+        </a>
+      </li>
+
     <!-- end of menu items -->
     </ul>
 
