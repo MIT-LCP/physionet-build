@@ -43,7 +43,7 @@ If you use the <button>Save pending edits</button> button, the LightWAVE scribe
 copies the edits for the currently open annotation file from local storage to
 the LightWAVE host, and it sets a cookie (<b>LWURL</b>) that specifies the URL
 on the LightWAVE host where your edits have been backed up.  If you use the
-public PhysioNet-hosted LightWAVE scribe, your edits are backed up to an
+public {{ PLATFORM_NAME }}-hosted LightWAVE scribe, your edits are backed up to an
 unpublished private URL; although the URL is difficult to guess, this storage is
 not secure.  If you use the PhysioNetWorks-hosted LightWAVE scribe, your edits
 are backed up to your personal workspace on PhysioNetWorks.
@@ -70,9 +70,9 @@ custom LightWAVE clients for the use of project members.
 
 <p>
 Alternatively, you can edit existing PhysioBank records anonymously by
-launching <a href="http://physionet.org/lightwave/">PhysioNet's public LightWAVE
+launching <a href="http://physionet.org/lightwave/">{{ PLATFORM_NAME }}'s public LightWAVE
 client</a>.  Using this service, you can save your edits temporarily on
-PhysioNet for up to 10 days, and download them to your computer for
+{{ PLATFORM_NAME }} for up to 10 days, and download them to your computer for
 permanent storage at your convenience.
 
 <p>
@@ -447,7 +447,7 @@ writes the results to a PhysioBank-compatible (binary) annotation file on the
 LightWAVE server's host file system.
 
 <p>
-<em>If you have used PhysioNet's public LightWAVE client</em>, a status message
+<em>If you have used {{ PLATFORM_NAME }}'s public LightWAVE client</em>, a status message
 appears within a few seconds below the <button>Save pending edits</button>, like
 this:
 
