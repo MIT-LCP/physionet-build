@@ -2128,7 +2128,6 @@ def static_page_sections(request, page):
 def static_page_sections_delete(request, page, pk):
     if request.method == 'POST':
         section = get_object_or_404(Section, page=Page(page), pk=pk)
-        order = section.order
         section.delete()
         Section.objects.filter(page=page, order__gt=section.order).update(order=F('order') - 1)
 
