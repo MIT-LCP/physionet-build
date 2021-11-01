@@ -441,7 +441,7 @@ LOGGING = {
             'level': 'CRITICAL',
             'propagate': True,
         },
-       'django.request': {
+        'django.request': {
             'handlers': ['verbose_console', 'mail_admins'],
             'level': 'ERROR',
             'propagate': False,
