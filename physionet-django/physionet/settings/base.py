@@ -436,7 +436,12 @@ LOGGING = {
             'handlers': ['custom_logging'],
             'propagate': False,
         },
-       'django.request': {
+        'django.security.DisallowedHost': {
+            'handlers': ['mail_admins'],
+            'level': 'CRITICAL',
+            'propagate': True,
+        },
+        'django.request': {
             'handlers': ['verbose_console', 'mail_admins'],
             'level': 'ERROR',
             'propagate': False,
