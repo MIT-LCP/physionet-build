@@ -3,14 +3,12 @@
 {% load static %}
 
 {% block title %}
-Challenges Overview
+Community Challenges
 {% endblock %}
-
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}">
 {% endblock %}
-
 
 {% block content %}
 
@@ -19,20 +17,18 @@ Challenges Overview
     <div class="main-side">
 
       <div class="card">
-        <h2 class="card-header">Challenges Overview</h2>
+        <h2 class="card-header">Community Challenges</h2>
         <div class="card-body">
 
             <!-- Challenges -->
             <ul>
-              <li><a href="#challenges-overview">Challenges Overview</a></li>
-              <li><a href="#moody-challenges">Moody Challenges</a></li>
-              <li><a href="#community-challenges">Community Challenges</a></li>
+              <li><a href="#challenge">Community Challenges</a></li>
             </ul>
 
         </div>
       </div>
     </div><div class="main-content">
-      <div>{% include "about/challenge_content.html" %}</div>
+      <div>{% include "about/community_challenges_content.html" %}</div>
     </div>
   </div>
 </div>
