@@ -1,0 +1,26 @@
+<section id="community-challenges">
+  <h1>Community Challenges</h1>
+  <p>
+    PhysioNet provides support to Community challenges, organized independently of the annual George B. Moody PhysioNet
+    Challenge. More information on these challenges can be found
+    <a href="/about/challenge/#community-challenges">here</a>. Past challenges are listed here:
+  </p>
+  {% if community_challenges %}
+    <table align="left">
+      <thead>
+      <tr>
+        <th>Title</th>
+        <th>Date</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for c_challenge in community_challenges %}
+        <tr>
+          <td><a href="{% url 'published_project_latest' c_challenge.slug %}">{{ c_challenge.title }}</a></td>
+          <td>{{ c_challenge.publish_datetime|date }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</section>
