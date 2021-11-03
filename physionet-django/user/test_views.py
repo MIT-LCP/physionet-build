@@ -39,6 +39,18 @@ def prevent_request_warnings(original_function):
     return new_function
 
 
+def _force_delete_tree(path):
+    """
+    Recursively delete a directory tree, including read-only directories.
+    """
+    if os.path.exists(path):
+        # Make each (recursive) subdirectory writable, so that we can
+        # delete files from it.
+        for subdir, _, _ in os.walk(path):
+            os.chmod(subdir, 0o700)
+        shutil.rmtree(path)
+
+
 class TestMixin(TestCase):
     """
     Mixin for test methods
@@ -61,12 +73,12 @@ class TestMixin(TestCase):
         Does not run collectstatic. The StaticLiveServerTestCase should
         do that automatically for tests that need it.
         """
-        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        _force_delete_tree(settings.MEDIA_ROOT)
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'media')),
             settings.MEDIA_ROOT)
 
         self.test_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
-        shutil.rmtree(self.test_static_root, ignore_errors=True)
+        _force_delete_tree(self.test_static_root)
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'static')),
             self.test_static_root)
 
@@ -88,19 +100,8 @@ class TestMixin(TestCase):
         """
         Remove the testing media root
         """
-        for root, dirs, files in os.walk(settings.MEDIA_ROOT):
-            for d in dirs:
-                os.chmod(os.path.join(root, d), 0o755)
-            for f in files:
-                os.chmod(os.path.join(root, f), 0o755)
-        for root, dirs, files in os.walk(self.test_static_root):
-            for d in dirs:
-                os.chmod(os.path.join(root, d), 0o755)
-            for f in files:
-                os.chmod(os.path.join(root, f), 0o755)
-
-        shutil.rmtree(settings.MEDIA_ROOT)
-        shutil.rmtree(self.test_static_root)
+        _force_delete_tree(settings.MEDIA_ROOT)
+        _force_delete_tree(self.test_static_root)
 
     def assertMessage(self, response, level):
         """
