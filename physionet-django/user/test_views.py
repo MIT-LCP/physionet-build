@@ -70,6 +70,11 @@ class TestMixin(TestCase):
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'static')),
             self.test_static_root)
 
+        raise ValueError(
+            'exists(%r) = %r, exists(%r) = %r'
+            % (DBCAL_FILE, os.path.exists(DBCAL_FILE),
+               ORIGINAL_DBCAL_FILE, os.path.exists(ORIGINAL_DBCAL_FILE)))
+
         if os.path.exists(ORIGINAL_DBCAL_FILE):
             os.symlink(ORIGINAL_DBCAL_FILE, DBCAL_FILE)
 
