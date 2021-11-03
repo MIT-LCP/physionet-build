@@ -238,13 +238,10 @@ class Metadata(models.Model):
                         prefix_map={old_display_url: new_display_url,
                                     old_file_url: new_file_url})
 
-        for field in ('abstract', 'background', 'methods',
-                      'content_description', 'usage_notes',
-                      'installation', 'acknowledgements',
-                      'conflicts_of_interest', 'release_notes'):
-            text = getattr(self, field)
-            text = lf.convert(text)
-            setattr(self, field, text)
+        project_content = self.project_content.all()
+        for section in project_content:
+            text = lf.convert(section.section_content)
+            section.section_content = text
 
     def file_base_url(self):
         """
