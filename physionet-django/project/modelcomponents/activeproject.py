@@ -302,6 +302,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if value is None or not text or text.isspace():
                 l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
+        
+        # Approvals
+        if self.access_policy == 2:
+            if not self.reb_approval_letter and not self.explanation:
+                self.integrity_errors.append('You should at least upload REB approval letter or enter the explanation.')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:

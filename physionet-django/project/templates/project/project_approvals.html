@@ -1,0 +1,34 @@
+{% extends "project/project.html" %}
+
+{% load static %}
+
+{% block title %}Project Approvals - {{ project }}{% endblock %}
+
+{% block main_content %}
+<h2 class="form-signin-heading">7. Approvals</h2>
+<hr>
+
+{% include 'about/access_policies.html'%}
+
+{% if not project.author_editable %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>The project cannot be edited right now.</strong>
+  </div>
+{% elif not is_submitting %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>Only the submitting author may edit the access information.</strong>
+  </div>
+{% endif %}
+
+<form enctype="multipart/form-data" action="{% url 'project_approvals' project.slug %}" method="post" class="no-pd">
+  {% include "project/content_inline_form_snippet.html" with form=approvals_form %}
+  {% if is_submitting and project.author_editable %}
+  <hr>
+  <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Approvals</button>
+  {% endif %}
+</form>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}

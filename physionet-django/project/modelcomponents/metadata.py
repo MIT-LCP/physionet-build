@@ -75,6 +75,10 @@ class Metadata(models.Model):
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
 
+    reb_approval_letter = models.FileField(upload_to='approvals/', blank=True, null=True)
+    data_sharing_agreement = models.FileField(upload_to='approvals/', blank=True, null=True)
+    explanation = SafeHTMLField(blank=True)
+
     class Meta:
         abstract = True
 
