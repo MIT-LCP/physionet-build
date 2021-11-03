@@ -75,6 +75,10 @@ class Metadata(models.Model):
                                      on_delete=models.CASCADE)
     allow_file_downloads = models.BooleanField(default=True)
 
+    reb_approval_letter = models.FileField(upload_to='approvals/', blank=True, null=True)
+    data_sharing_agreement = models.FileField(upload_to='approvals/', blank=True, null=True)
+    explanation = SafeHTMLField(blank=True)
+
     class Meta:
         abstract = True
 

@@ -1053,3 +1053,13 @@ class InviteDataAccessReviewerForm(forms.ModelForm):
         invitation.added_date = timezone.now()
         invitation.save()
         return invitation
+
+
+class ApprovalsForm(forms.ModelForm):
+
+    class Meta:
+        model = ActiveProject
+        fields = ('reb_approval_letter', 'data_sharing_agreement', 'explanation')
+
+
+

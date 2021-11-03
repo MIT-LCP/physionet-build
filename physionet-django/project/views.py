@@ -1343,6 +1343,23 @@ def project_submission(request, project_slug, **kwargs):
         'awaiting_user_approval':awaiting_user_approval})
 
 
+@project_auth(auth_mode=0, post_auth_mode=2)
+def project_approvals(request, project_slug, **kwargs):
+    project = kwargs['project']
+
+    if request.method == 'POST':
+        approvals_form = forms.ApprovalsForm(data=request.POST, files=request.FILES, instance=project)
+        if approvals_form.is_valid():
+            project = approvals_form.save()
+            
+    approvals_form = forms.ApprovalsForm(instance=project)
+
+    return render(request, 'project/project_approvals.html', {
+        'project': kwargs['project'], 'approvals_form': approvals_form,
+        'is_submitting': kwargs['is_submitting']
+    })
+
+
 @login_required
 def rejected_submission_history(request, project_slug):
     """

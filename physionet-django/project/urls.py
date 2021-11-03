@@ -95,6 +95,11 @@ urlpatterns = [
         name='project_submission',
     ),
     path(
+        '<project_slug>/approvals/',
+        views.project_approvals,
+        name='project_approvals',
+    ),
+    path(
         '<project_slug>/<version>/request_access/<int:access_type>',
         views.published_project_request_access,
         name='published_project_request_access',
