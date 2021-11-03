@@ -95,10 +95,11 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           git rev-parse --verify ${{ github.event.pull_request.base.sha }}
-          git diff ${{ github.event.pull_request.base.sha }} HEAD | flake8 --diff
+          git diff -U0 ${{ github.event.pull_request.base.sha }} HEAD | \
+              flake8 --diff
 
       - name: Run code style check relative to local dev branch
         if: github.event_name != 'pull_request'
         run: |
           git fetch origin dev
-          git diff origin/dev HEAD | flake8 --diff
+          git diff -U0 origin/dev HEAD | flake8 --diff
