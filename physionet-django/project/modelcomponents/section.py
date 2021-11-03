@@ -32,7 +32,11 @@ class SectionContent(models.Model):
     """
     project_section = models.ForeignKey(
         'project.ProjectSection', db_column='project_section',
-        related_name='%(class)ss', on_delete=models.PROTECT)
+        related_name='%(class)ss', on_delete=models.PROTECT,
+        null=True)
+
+    custom_title = models.CharField(max_length=30, null=True)
+    custom_order = models.PositiveSmallIntegerField(null=True)
     section_content = SafeHTMLField(blank=True)
 
     class Meta:
