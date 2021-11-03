@@ -16,7 +16,7 @@ def unparse_legacy(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0044_auto_20200221_1957'),
+        ('project', '0049_auto_20200221_1957'),
     ]
 
     operations = [

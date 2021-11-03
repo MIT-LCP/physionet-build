@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0043_remove_fixed_content_fields'),
+        ('project', '0048_remove_fixed_content_fields'),
     ]
 
     operations = [
