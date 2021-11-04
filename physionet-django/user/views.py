@@ -63,6 +63,26 @@ class LoginView(auth_views.LoginView):
     redirect_authenticated_user = True
 
 
+from django.contrib.auth import get_user_model
+UserModel = get_user_model()
+
+def sso_login(request):
+    # If the given user exists => authenticate the user, redirect to desired page
+    # If the given user does not exists => redirect to sso/register
+    remote_shibboleth_id = request.META.get('HTTP_REMOTE_USER')
+
+    # REMOTE_USER should be set by Shibboleth (if it's not then it's a config issue)
+    if not remote_shibboleth_id:
+        return redirect('login')
+
+    try:
+        user = UserModel._default_manager.get(shibboleth_id = remote_shibboleth_id)
+    except UserModel.DoesNotExist:
+        return redirect('sso_register')
+
+    return HttpResponse(f"Logged in as: {request.META['HTTP_REMOTE_USER']}")
+
+
 class LogoutView(auth_views.LogoutView):
     pass
 
@@ -498,6 +518,31 @@ def register(request):
     return render(request, 'user/register.html', {'form': form})
 
 
+def sso_register(request):
+    user = request.user
+    if user.is_authenticated:
+        return redirect('home')
+
+    remote_shibboleth_id = request.META.get('HTTP_REMOTE_USER')
+
+    # REMOTE_USER should be set by Shibboleth (if it's not then it's a config issue)
+    if not remote_shibboleth_id:
+        return redirect('login')
+
+    if request.method == 'POST':
+        form = forms.SSORegistrationForm(request.POST, shibboleth_id = remote_shibboleth_id)
+
+        if form.is_valid():
+            user = form.save()
+            return HttpResponse('OK')
+        else:
+            return HttpResponse('Not OK')
+    else:
+        form = forms.RegistrationForm()
+
+    return render(request, 'user/sso_register.html', {'form': form})
+
+
 @login_required
 def user_settings(request):
     """
@@ -647,7 +692,7 @@ def credential_application(request):
 
     return render(request, 'user/credential_application.html', {'form':form,
         'personal_form':personal_form, 'training_form':training_form,
-        'reference_form':reference_form, 'license':license, 
+        'reference_form':reference_form, 'license':license,
         'research_form':research_form})
 
 
@@ -720,7 +765,7 @@ def credential_reference(request, application_slug):
 @login_required
 def edit_cloud(request):
     """
-    Page to add the information for cloud usage. 
+    Page to add the information for cloud usage.
     """
     user = request.user
     cloud_info = CloudInformation.objects.get_or_create(user=user)[0]

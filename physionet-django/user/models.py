@@ -331,6 +331,7 @@ class User(AbstractBaseUser):
         validators=[validators.UsernameValidator()],
         error_messages={
             'unique': "A user with that username already exists."})
+    shibboleth_id = models.CharField(max_length=50, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
@@ -543,7 +544,7 @@ class LegacyCredential(models.Model):
     migrated = models.BooleanField(default=False)
     migration_date = models.DateTimeField(null=True)
     migrated_user = models.ForeignKey('user.User', null=True, on_delete=models.CASCADE)
-    
+
     reference_email = models.CharField(max_length=255, blank=True, default='')
 
     revoked_datetime = models.DateTimeField(null=True)
@@ -643,6 +644,11 @@ class Orcid(models.Model):
     @staticmethod
     def get_orcid_url():
         return settings.ORCID_DOMAIN
+
+class CustomRemoteUserBackend():
+    def authenticate(self, request, remote_user=None):
+        print("Authenticating as:", remote_user)
+        return None
 
 class DualAuthModelBackend():
     """

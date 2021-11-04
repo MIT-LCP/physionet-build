@@ -63,6 +63,8 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'CustomHeaderMiddleware',
+    'physionet.middleware.auth.CustomHeaderMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -107,7 +109,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['user.models.DualAuthModelBackend']
+# AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.RemoteUserBackend']
+AUTHENTICATION_BACKENDS = ['user.models.CustomRemoteUserBackend']
+    # 'user.models.DualAuthModelBackend'
 
 AUTH_USER_MODEL = 'user.User'
 
