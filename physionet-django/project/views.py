@@ -1328,13 +1328,16 @@ def project_submission(request, project_slug, **kwargs):
 @project_auth(auth_mode=0, post_auth_mode=2)
 def project_approvals(request, project_slug, **kwargs):
     project = kwargs['project']
+    is_submitting = kwargs['is_submitting']
+
+    editable = is_submitting and project.author_editable()
 
     if request.method == 'POST':
-        approvals_form = forms.ApprovalsForm(data=request.POST, files=request.FILES, instance=project)
+        approvals_form = forms.ApprovalsForm(data=request.POST, files=request.FILES, instance=project, editable=editable)
         if approvals_form.is_valid():
             project = approvals_form.save()
             
-    approvals_form = forms.ApprovalsForm(instance=project)
+    approvals_form = forms.ApprovalsForm(instance=project, editable=editable)
 
     return render(request, 'project/project_approvals.html', {
         'project': kwargs['project'], 'approvals_form': approvals_form,

@@ -115,7 +115,7 @@ class EditSubmissionForm(forms.ModelForm):
         model = EditLog
         fields = ('soundly_produced', 'well_described', 'open_format',
             'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable',
-            'editor_comments', 'auto_doi', 'decision')
+            'necessary_approvals', 'editor_comments', 'auto_doi', 'decision')
 
         labels = EditLog.COMMON_LABELS
 
@@ -131,7 +131,8 @@ class EditSubmissionForm(forms.ModelForm):
             'pn_suitable': forms.Select(choices=YES_NO_UNDETERMINED),
             'editor_comments': forms.Textarea(),
             'decision': forms.Select(choices=SUBMISSION_RESPONSE_CHOICES),
-            'auto_doi': forms.HiddenInput()
+            'necessary_approvals': forms.Select(choices=YES_NO_UNDETERMINED),
+            'auto_doi': forms.HiddenInput(),
         }
 
     def __init__(self, resource_type, *args, **kwargs):

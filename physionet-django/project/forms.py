@@ -1049,5 +1049,9 @@ class ApprovalsForm(forms.ModelForm):
         model = ActiveProject
         fields = ('reb_approval_letter', 'data_sharing_agreement', 'explanation')
 
+    def __init__(self, editable=True, **kwargs):
+        super().__init__(**kwargs)
 
-
+        if not editable:
+            for field in self.fields.values():
+                field.disabled = True
