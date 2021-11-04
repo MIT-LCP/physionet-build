@@ -13,13 +13,11 @@ from project.views import project_auth
 
 
 # PUBLIC_ROOT: chroot directory for public databases
-if settings.STATIC_ROOT:
-    PUBLIC_ROOT = settings.STATIC_ROOT
-else:
-    PUBLIC_ROOT = os.path.join(settings.BASE_DIR, 'static')
+# (note that all files located within this directory are treated as public)
+PUBLIC_ROOT = os.path.dirname(PublishedProject.PUBLIC_FILE_ROOT)
 
 # PUBLIC_DBPATH: path to main database directory within PUBLIC_ROOT
-PUBLIC_DBPATH = 'published-projects'
+PUBLIC_DBPATH = os.path.basename(PublishedProject.PUBLIC_FILE_ROOT)
 
 # ORIGINAL_DBCAL_FILE: absolute path to the wfdbcal file from WFDB
 ORIGINAL_DBCAL_FILE = '/usr/local/database/wfdbcal'
