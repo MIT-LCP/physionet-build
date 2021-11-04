@@ -12,7 +12,7 @@
         <th scope="col">Title</th>
         <th scope="col">Date</th>
         <th scope="col">Papers</th>
-        <th scope="col">Contributed Software</th>
+        <th scope="col">Software</th>
       </tr>
       </thead>
       <tbody>
@@ -23,16 +23,19 @@
           <td>
             {% if md_challenge.papers %}
               <a href="{% url 'serve_published_project_file' md_challenge.slug md_challenge.version 'papers/index.html' %}"
-                 class="btn btn-sm btn-primary" role="button">View papers</a>
+                 class="btn btn-sm btn-primary" role="button">{{ md_challenge.get_paper_count }}
+                <div class="fa fa-file-alt"></div></a>
             {% endif %}
           </td>
           <td>
             {% if md_challenge.sources and md_challenge.sources_index %}
               <a href="{% url 'serve_published_project_file' md_challenge.slug md_challenge.version 'sources/index.html' %}"
-                 class="btn btn-sm btn-primary" role="button">View software</a>
+                 class="btn btn-sm btn-primary" role="button">{{ md_challenge.get_program_count }}
+                <div class="fa fa-code"></div></a>
             {% elif md_challenge.sources %}
               <a href="{% url 'serve_published_project_file' md_challenge.slug md_challenge.version 'sources' %}"
-                 class="btn btn-sm btn-primary" role="button">View software</a>
+                 class="btn btn-sm btn-primary" role="button">{{ md_challenge.get_program_count }}
+                <div class="fa fa-code"></div></a>
             {% endif %}
           </td>
         </tr>

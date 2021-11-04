@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from os import path
+from os import path, listdir
 from re import fullmatch
 
 from django.contrib import messages
@@ -194,7 +194,6 @@ def moody_challenges(request):
                 md_challenge.sources_index = True
         if path.exists(path.join(md_challenge.file_root() , 'papers/index.html')):
             md_challenge.papers = True
-
     return render(request,'about/moody_challenges_index.html', {'moody_challenges': moody_challenges})
 
 def community_challenges(request):
