@@ -64,18 +64,25 @@ def send_contact_message(contact_form):
 
 # ---------- Project App ---------- #
 
-def get_url_prefix(request):
+def get_url_prefix(request, bulk_download=False):
     """
     Return a URL protocol and host, such as 'https://example.com'.
 
     django.contrib.sites.shortcuts is used to look up a "canonical"
     hostname, if one is defined.
+
+    If bulk_download is true, settings.BULK_DOWNLOAD_HOSTNAME (if
+    defined) is used instead.
     """
-    site = get_current_site(request)
-    if request and not request.is_secure():
-        return 'http://' + site.domain
+    if bulk_download and settings.BULK_DOWNLOAD_HOSTNAME:
+        hostname = settings.BULK_DOWNLOAD_HOSTNAME
     else:
-        return 'https://' + site.domain
+        site = get_current_site(request)
+        hostname = site.domain
+    if request and not request.is_secure():
+        return 'http://' + hostname
+    else:
+        return 'https://' + hostname
 
 def email_project_info(project):
     """
