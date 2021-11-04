@@ -9,7 +9,6 @@ from project.projectfiles.local import LocalProjectFiles
 
 
 class TestProjectFiles(TestCase):
-
     @override_settings(STORAGE_TYPE=StorageTypes.LOCAL)
     def test_project_files_if_local_storage_type(self):
         self.assertIsInstance(ProjectFiles(), LocalProjectFiles)

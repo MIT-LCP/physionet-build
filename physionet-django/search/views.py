@@ -165,13 +165,18 @@ def content_index(request, resource_type=None):
 
     querystring = params.urlencode()
 
-    return render(request, 'search/content_index.html',
-                  {'form_order': form_order,
-                   'projects': projects,
-                   'form_type': form_type,
-                   'form_topic': form_topic,
-                   'querystring': querystring,
-                   'is_lightwave_supported': ProjectFiles().is_lightwave_supported()})
+    return render(
+        request,
+        'search/content_index.html',
+        {
+            'form_order': form_order,
+            'projects': projects,
+            'form_type': form_type,
+            'form_topic': form_topic,
+            'querystring': querystring,
+            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+        },
+    )
 
 
 def database_index(request):

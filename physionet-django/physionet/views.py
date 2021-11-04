@@ -24,11 +24,17 @@ def home(request):
     news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
     front_page_banner = News.objects.filter(front_page_banner=True)
 
-    return render(request, 'home.html', {'featured': featured,
-                                         'latest': latest,
-                                         'news_pieces': news_pieces,
-                                         'front_page_banner': front_page_banner,
-                                         'storage_type': settings.STORAGE_TYPE})
+    return render(
+        request,
+        'home.html',
+        {
+            'featured': featured,
+            'latest': latest,
+            'news_pieces': news_pieces,
+            'front_page_banner': front_page_banner,
+            'storage_type': settings.STORAGE_TYPE,
+        },
+    )
 
 
 def ping(request):

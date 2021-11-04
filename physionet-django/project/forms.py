@@ -74,7 +74,9 @@ class ActiveProjectFilesForm(forms.Form):
         data = self.cleaned_data['subdir']
         file_dir = os.path.join(self.project.file_root(), data)
 
-        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(file_dir):
+        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(
+            file_dir
+        ):
             raise forms.ValidationError('Invalid directory')
         self.file_dir = file_dir
 
@@ -280,11 +282,18 @@ class MoveItemsForm(EditItemsForm):
                 'Cannot move folder <i>{}</i> into itself',
                 destination_folder))
 
-        self.dest_dir = os.path.normpath(os.path.join(self.file_dir, destination_folder))
-        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(self.dest_dir):
-            raise forms.ValidationError(format_html(
-                'Destination folder <i>{}</i> does not exist',
-                destination_folder))
+        self.dest_dir = os.path.normpath(
+            os.path.join(self.file_dir, destination_folder)
+        )
+        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(
+            self.dest_dir
+        ):
+            raise forms.ValidationError(
+                format_html(
+                    'Destination folder <i>{}</i> does not exist',
+                    destination_folder,
+                )
+            )
 
         return cleaned_data
 
@@ -426,7 +435,9 @@ class NewProjectVersionForm(forms.ModelForm):
 
         ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
 
-        ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
+        ProjectFiles().cp_dir(
+            older_file_root, current_file_root, ignored_files=ignored_files
+        )
         return project
 
 

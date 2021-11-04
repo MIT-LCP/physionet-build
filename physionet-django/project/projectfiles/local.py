@@ -6,8 +6,17 @@ from django.conf import settings
 
 from physionet.utility import zip_dir, sorted_tree_files
 from project.projectfiles.base import BaseProjectFiles
-from project.utility import remove_items, write_uploaded_file, rename_file, move_items, list_items, get_file_info, \
-    get_directory_info, clear_directory, get_tree_size
+from project.utility import (
+    remove_items,
+    write_uploaded_file,
+    rename_file,
+    move_items,
+    list_items,
+    get_file_info,
+    get_directory_info,
+    clear_directory,
+    get_tree_size,
+)
 
 
 class LocalProjectFiles(BaseProjectFiles):
@@ -44,7 +53,9 @@ class LocalProjectFiles(BaseProjectFiles):
 
         return infile
 
-    def get_project_directory_content(self, path, subdir, file_display_url, file_url):
+    def get_project_directory_content(
+        self, path, subdir, file_display_url, file_url
+    ):
         file_names, dir_names = list_items(path)
         display_files, display_dirs = [], []
 
@@ -77,11 +88,13 @@ class LocalProjectFiles(BaseProjectFiles):
             for f in files:
                 # Skip linking files that are automatically generated
                 # during publication.
-                if (directory == source_path and f in ignored_files):
+                if directory == source_path and f in ignored_files:
                     continue
                 try:
-                    os.link(os.path.join(directory, f),
-                            os.path.join(destination, f))
+                    os.link(
+                        os.path.join(directory, f),
+                        os.path.join(destination, f),
+                    )
                 except FileExistsError:
                     pass
 
@@ -111,7 +124,9 @@ class LocalProjectFiles(BaseProjectFiles):
 
     def storage_used(self, path, zip_name):
         main = get_tree_size(path)
-        compressed = os.path.getsize(zip_name) if os.path.isfile(zip_name) else 0
+        compressed = (
+            os.path.getsize(zip_name) if os.path.isfile(zip_name) else 0
+        )
         return main, compressed
 
     def make_zip(self, project):
@@ -119,7 +134,11 @@ class LocalProjectFiles(BaseProjectFiles):
         if os.path.isfile(fname):
             os.remove(fname)
 
-        zip_dir(zip_name=fname, target_dir=project.file_root(), enclosing_folder=project.slugged_label())
+        zip_dir(
+            zip_name=fname,
+            target_dir=project.file_root(),
+            enclosing_folder=project.slugged_label(),
+        )
 
         project.compressed_storage_size = os.path.getsize(fname)
         project.save()
@@ -133,7 +152,9 @@ class LocalProjectFiles(BaseProjectFiles):
             for f in sorted_tree_files(project.file_root()):
                 if f != 'SHA256SUMS.txt':
                     h = hashlib.sha256()
-                    with open(os.path.join(project.file_root(), f), 'rb') as fp:
+                    with open(
+                        os.path.join(project.file_root(), f), 'rb'
+                    ) as fp:
                         block = fp.read(h.block_size)
                         while block:
                             h.update(block)
@@ -141,12 +162,12 @@ class LocalProjectFiles(BaseProjectFiles):
                     outfile.write('{} {}\n'.format(h.hexdigest(), f))
 
         project.set_storage_info()
-    
+
     def can_make_zip(self):
         return True
 
     def can_make_checksum(self):
         return True
-    
+
     def is_lightwave_supported(self):
         return True

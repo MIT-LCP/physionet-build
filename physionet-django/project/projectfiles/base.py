@@ -45,7 +45,9 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_project_directory_content(self, path, subdir, file_display_url, file_url):
+    def get_project_directory_content(
+        self, path, subdir, file_display_url, file_url
+    ):
         """
         Return information for displaying files and directories from
         the project's file root.
@@ -101,17 +103,17 @@ class BaseProjectFiles(abc.ABC):
     def make_checksum_file(self, project):
         """Make the checksums file for the main files."""
         raise NotImplementedError
-    
+
     @abc.abstractmethod
     def can_make_zip(self):
         """Check if zip file is supported."""
         raise NotImplementedError
-    
+
     @abc.abstractmethod
     def can_make_checksum(self):
         """Check if zip file is supported."""
         raise NotImplementedError
-    
+
     @abc.abstractmethod
     def is_lightwave_supported(self):
         """Check if lightwave is supported."""

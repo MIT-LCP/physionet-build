@@ -235,16 +235,22 @@ def project_home(request):
         project__in=[p for p in published_projects if p.can_approve_requests(user)],
         status=0)
 
-    return render(request, 'project/project_home.html', {
-        'projects': projects, 'published_projects': published_projects,
-        'rejected_projects': rejected_projects,
-        'missing_affiliations': missing_affiliations,
-        'pending_author_approvals': pending_author_approvals,
-        'invitation_response_formset': invitation_response_formset,
-        'data_access_requests': data_access_requests,
-        'pending_revisions': pending_revisions,
-        'storage_type': settings.STORAGE_TYPE,
-    })
+    return render(
+        request,
+        'project/project_home.html',
+        {
+            'projects': projects,
+            'published_projects': published_projects,
+            'rejected_projects': rejected_projects,
+            'missing_affiliations': missing_affiliations,
+            'pending_author_approvals': pending_author_approvals,
+            'invitation_response_formset': invitation_response_formset,
+            'data_access_requests': data_access_requests,
+            'pending_revisions': pending_revisions,
+            'storage_type': settings.STORAGE_TYPE,
+        },
+    )
+
 
 @login_required
 def create_project(request):
@@ -1039,22 +1045,35 @@ def project_files(request, project_slug, subdir='', **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
-    return render(request, 'project/project_files.html', {'project':project,
-        'individual_size_limit':utility.readable_size(
-            ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
-        'subdir':subdir, 'parent_dir':parent_dir,
-        'display_files':display_files, 'display_dirs':display_dirs,
-        'storage_info':storage_info,
-        'storage_request':storage_request,
-        'storage_request_form':storage_request_form,
-        'upload_files_form':upload_files_form,
-        'create_folder_form':create_folder_form,
-        'rename_item_form':rename_item_form, 'move_items_form':move_items_form,
-        'delete_items_form':delete_items_form, 'is_submitting':is_submitting,
-        'dir_breadcrumbs':dir_breadcrumbs, 'file_error':file_error,
-        'file_warning':file_warning, 'files_editable':files_editable,
-        'maintenance_message':maintenance_message,
-        'is_lightwave_supported': ProjectFiles().is_lightwave_supported()})
+    return render(
+        request,
+        'project/project_files.html',
+        {
+            'project': project,
+            'individual_size_limit': utility.readable_size(
+                ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT
+            ),
+            'subdir': subdir,
+            'parent_dir': parent_dir,
+            'display_files': display_files,
+            'display_dirs': display_dirs,
+            'storage_info': storage_info,
+            'storage_request': storage_request,
+            'storage_request_form': storage_request_form,
+            'upload_files_form': upload_files_form,
+            'create_folder_form': create_folder_form,
+            'rename_item_form': rename_item_form,
+            'move_items_form': move_items_form,
+            'delete_items_form': delete_items_form,
+            'is_submitting': is_submitting,
+            'dir_breadcrumbs': dir_breadcrumbs,
+            'file_error': file_error,
+            'file_warning': file_warning,
+            'files_editable': files_editable,
+            'maintenance_message': maintenance_message,
+            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+        },
+    )
 
 
 @project_auth(auth_mode=3)
@@ -1154,17 +1173,34 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
 
-    return render(request, 'project/project_preview.html', {'project':project,
-        'display_files':display_files, 'display_dirs':display_dirs,
-        'authors':authors, 'corresponding_author':corresponding_author,
-        'invitations':invitations, 'references':references,
-        'publication':publication, 'topics':topics, 'languages':languages,
-        'passes_checks':passes_checks, 'dir_breadcrumbs':dir_breadcrumbs,
-        'files_panel_url':files_panel_url, 'citations': citations,
-        'subdir':subdir, 'parent_dir':parent_dir, 'file_error':file_error, 
-        'file_warning':file_warning, 'platform_citations': platform_citations,
-        'parent_projects':parent_projects, 'has_passphrase':has_passphrase,
-        'is_lightwave_supported': ProjectFiles().is_lightwave_supported()})
+    return render(
+        request,
+        'project/project_preview.html',
+        {
+            'project': project,
+            'display_files': display_files,
+            'display_dirs': display_dirs,
+            'authors': authors,
+            'corresponding_author': corresponding_author,
+            'invitations': invitations,
+            'references': references,
+            'publication': publication,
+            'topics': topics,
+            'languages': languages,
+            'passes_checks': passes_checks,
+            'dir_breadcrumbs': dir_breadcrumbs,
+            'files_panel_url': files_panel_url,
+            'citations': citations,
+            'subdir': subdir,
+            'parent_dir': parent_dir,
+            'file_error': file_error,
+            'file_warning': file_warning,
+            'platform_citations': platform_citations,
+            'parent_projects': parent_projects,
+            'has_passphrase': has_passphrase,
+            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+        },
+    )
 
 
 @project_auth(auth_mode=3)
@@ -1593,17 +1629,28 @@ def published_project(request, project_slug, version, subdir=''):
     current_site = get_current_site(request)
     url_prefix = notification.get_url_prefix(request)
     all_project_versions = PublishedProject.objects.filter(
-        slug=project_slug).order_by('version_order')
-    context = {'project': project, 'authors': authors,
-               'references': references, 'publication': publication,
-               'topics': topics, 'languages': languages, 'contact': contact,
-               'has_access': has_access, 'current_site': current_site,
-               'url_prefix': url_prefix, 'citations': citations, 'news': news, 
-               'all_project_versions': all_project_versions,
-               'parent_projects':parent_projects, 'data_access':data_access,
-               'messages':messages.get_messages(request), 
-               'platform_citations': platform_citations,
-               'is_lightwave_supported': ProjectFiles().is_lightwave_supported()}
+        slug=project_slug
+    ).order_by('version_order')
+    context = {
+        'project': project,
+        'authors': authors,
+        'references': references,
+        'publication': publication,
+        'topics': topics,
+        'languages': languages,
+        'contact': contact,
+        'has_access': has_access,
+        'current_site': current_site,
+        'url_prefix': url_prefix,
+        'citations': citations,
+        'news': news,
+        'all_project_versions': all_project_versions,
+        'parent_projects': parent_projects,
+        'data_access': data_access,
+        'messages': messages.get_messages(request),
+        'platform_citations': platform_citations,
+        'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+    }
     # The file and directory contents
     if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
@@ -1618,13 +1665,22 @@ def published_project(request, project_slug, version, subdir=''):
         files_panel_url = reverse('published_files_panel',
             args=(project.slug, project.version))
 
-        context = {**context, **{'dir_breadcrumbs': dir_breadcrumbs,
-            'main_size': main_size, 'compressed_size': compressed_size,
-            'display_files': display_files, 'display_dirs': display_dirs,
-            'files_panel_url': files_panel_url, 'subdir': subdir,
-            'parent_dir': parent_dir, 'file_error': file_error,
-            'current_site': get_current_site(request),
-            'data_access': data_access}}
+        context = {
+            **context,
+            **{
+                'dir_breadcrumbs': dir_breadcrumbs,
+                'main_size': main_size,
+                'compressed_size': compressed_size,
+                'display_files': display_files,
+                'display_dirs': display_dirs,
+                'files_panel_url': files_panel_url,
+                'subdir': subdir,
+                'parent_dir': parent_dir,
+                'file_error': file_error,
+                'current_site': get_current_site(request),
+                'data_access': data_access,
+            },
+        }
     elif subdir:
         status = 403
     else:

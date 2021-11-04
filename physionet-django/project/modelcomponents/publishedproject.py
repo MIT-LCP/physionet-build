@@ -77,7 +77,9 @@ class PublishedProject(Metadata, SubmissionInfo):
         This is the parent directory of the main and special file
         directories.
         """
-        return ProjectFiles().get_project_file_root(self.slug, self.access_policy, PublishedProject)
+        return ProjectFiles().get_project_file_root(
+            self.slug, self.access_policy, PublishedProject
+        )
 
     def file_root(self):
         """
@@ -89,7 +91,9 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Bytes of storage used by main files and compressed file if any
         """
-        return ProjectFiles().storage_used(self.file_root(), self.zip_name(full=True))
+        return ProjectFiles().storage_used(
+            self.file_root(), self.zip_name(full=True)
+        )
 
     def set_storage_info(self):
         """

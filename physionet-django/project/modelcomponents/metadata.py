@@ -344,7 +344,9 @@ class Metadata(models.Model):
         the project's file root.
         """
         inspect_dir = self.get_inspect_dir(subdir)
-        return ProjectFiles().get_project_directory_content(inspect_dir, subdir, self.file_display_url, self.file_url)
+        return ProjectFiles().get_project_directory_content(
+            inspect_dir, subdir, self.file_display_url, self.file_url
+        )
 
     def schema_org_resource_type(self):
         """

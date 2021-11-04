@@ -13,10 +13,15 @@ from physionet.gcs import GCSObject, GCSObjectException
 from physionet.settings.base import StorageTypes
 
 
-SKIP_GCS_INTEGRATION = not config('TEST_GCS_INTEGRATION', default=True, cast=bool)
+SKIP_GCS_INTEGRATION = not config(
+    'TEST_GCS_INTEGRATION', default=True, cast=bool
+)
 
 
-@skipIf(SKIP_GCS_INTEGRATION, 'Test GCS-backend integration only on dockerized CI/CD pipeline.')
+@skipIf(
+    SKIP_GCS_INTEGRATION,
+    'Test GCS-backend integration only on dockerized CI/CD pipeline.',
+)
 @override_settings(
     STORAGE_TYPE=StorageTypes.GCP,
     DEFAULT_FILE_STORAGE='physionet.storage.MediaStorage',
@@ -29,7 +34,9 @@ SKIP_GCS_INTEGRATION = not config('TEST_GCS_INTEGRATION', default=True, cast=boo
 class TestGCSObject(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.gcs_server_endpoint = f'http://{config("GCS_HOST", default="gcs")}:4443'
+        cls.gcs_server_endpoint = (
+            f'http://{config("GCS_HOST", default="gcs")}:4443'
+        )
         cls.bucket_name = 'test'
         cls.path = 'physionet/users/admin/profile.jpg'
 
@@ -43,7 +50,13 @@ class TestGCSObject(TestCase):
         self._get_gcs_client().get_bucket(name).delete(force=True)
 
     def _get_gcs_client(self):
-        return Client(project="test_project_id", credentials=AnonymousCredentials(), client_options=ClientOptions(api_endpoint=self.gcs_server_endpoint))
+        return Client(
+            project="test_project_id",
+            credentials=AnonymousCredentials(),
+            client_options=ClientOptions(
+                api_endpoint=self.gcs_server_endpoint
+            ),
+        )
 
     def _monkeypatch_gcsobject(self, gcs_object):
         gcs_object._storage._client = self._get_gcs_client()
@@ -63,7 +76,10 @@ class TestGCSObject(TestCase):
     def test_repr(self):
         gcs_object = self._monkeypatch_gcsobject(GCSObject(self.path))
 
-        self.assertEqual(repr(gcs_object), 'GCSObject(Bucket=physionet, Object="users/admin/profile.jpg")')
+        self.assertEqual(
+            repr(gcs_object),
+            'GCSObject(Bucket=physionet, Object="users/admin/profile.jpg")',
+        )
 
     def test_bucket_property_return_bucket_proper_object(self):
         gcs_object = self._monkeypatch_gcsobject(GCSObject(self.path))
@@ -99,7 +115,9 @@ class TestGCSObject(TestCase):
 
     def test_size_when_object_is_file(self):
         # GIVEN
-        gcs_object = self._monkeypatch_gcsobject(GCSObject('test/dir1/notes.txt'))
+        gcs_object = self._monkeypatch_gcsobject(
+            GCSObject('test/dir1/notes.txt')
+        )
         gcs_object.client.create_bucket('test')
         gcs_object.upload_from_string('content')
 
@@ -109,8 +127,12 @@ class TestGCSObject(TestCase):
     def test_size_when_object_is_directory(self):
         # GIVEN
         gcs_object = self._monkeypatch_gcsobject(GCSObject('test/dir1/'))
-        gcs_object_1 = self._monkeypatch_gcsobject(GCSObject('test/dir1/notes1.txt'))
-        gcs_object_2 = self._monkeypatch_gcsobject(GCSObject('test/dir1/notes2.txt'))
+        gcs_object_1 = self._monkeypatch_gcsobject(
+            GCSObject('test/dir1/notes1.txt')
+        )
+        gcs_object_2 = self._monkeypatch_gcsobject(
+            GCSObject('test/dir1/notes2.txt')
+        )
 
         # create a bucket
         gcs_object.client.create_bucket('test')
@@ -125,8 +147,12 @@ class TestGCSObject(TestCase):
     def test_rm_deletes_all_files_in_directory_when_object_is_directory(self):
         # GIVEN
         gcs_object = self._monkeypatch_gcsobject(GCSObject('test/dir1/'))
-        gcs_object_1 = self._monkeypatch_gcsobject(GCSObject('test/dir1/notes1.txt'))
-        gcs_object_2 = self._monkeypatch_gcsobject(GCSObject('test/dir1/notes2.txt'))
+        gcs_object_1 = self._monkeypatch_gcsobject(
+            GCSObject('test/dir1/notes1.txt')
+        )
+        gcs_object_2 = self._monkeypatch_gcsobject(
+            GCSObject('test/dir1/notes2.txt')
+        )
 
         # create a bucket
         gcs_object.client.create_bucket('test')
@@ -143,7 +169,9 @@ class TestGCSObject(TestCase):
 
     def test_rm_removes_file_when_object_is_file(self):
         # GIVEN
-        gcs_object = self._monkeypatch_gcsobject(GCSObject('test/dir/file.jpg'))
+        gcs_object = self._monkeypatch_gcsobject(
+            GCSObject('test/dir/file.jpg')
+        )
         gcs_object.client.create_bucket('test')
         gcs_object.upload_from_string('content')
 
@@ -151,12 +179,16 @@ class TestGCSObject(TestCase):
         gcs_object.rm()
 
         # THEN
-        dir_ = self._monkeypatch_gcsobject(self._monkeypatch_gcsobject(GCSObject('test/dir/')))
+        dir_ = self._monkeypatch_gcsobject(
+            self._monkeypatch_gcsobject(GCSObject('test/dir/'))
+        )
         self.assertEqual(dir_.size(), 0)
 
     def test_cp_copies_file_to_directory(self):
         # GIVEN
-        gcs_object = self._monkeypatch_gcsobject(GCSObject('test/dir/file.jpg'))
+        gcs_object = self._monkeypatch_gcsobject(
+            GCSObject('test/dir/file.jpg')
+        )
         gcs_object_1 = self._monkeypatch_gcsobject(GCSObject('test/dir/'))
 
         # create a bucket
@@ -166,7 +198,9 @@ class TestGCSObject(TestCase):
         gcs_object.upload_from_string('content')
 
         # WHEN
-        gcs_object_1.cp(self._monkeypatch_gcsobject(GCSObject('test/dir_copied/')))
+        gcs_object_1.cp(
+            self._monkeypatch_gcsobject(GCSObject('test/dir_copied/'))
+        )
 
         # THEN
         self.assertEqual(gcs_object_1.size(), len('content'))
@@ -174,9 +208,13 @@ class TestGCSObject(TestCase):
 
     def test_mv_moves_file_when_object_is_file(self):
         # GIVEN
-        gcs_object = self._monkeypatch_gcsobject(GCSObject('test/dir/file.jpg'))
+        gcs_object = self._monkeypatch_gcsobject(
+            GCSObject('test/dir/file.jpg')
+        )
         gcs_object_1 = self._monkeypatch_gcsobject(GCSObject('test/dir/'))
-        gcs_object_2 = self._monkeypatch_gcsobject(GCSObject('test/dir_copied/'))
+        gcs_object_2 = self._monkeypatch_gcsobject(
+            GCSObject('test/dir_copied/')
+        )
 
         # create a bucket
         gcs_object.client.create_bucket('test')
@@ -185,7 +223,9 @@ class TestGCSObject(TestCase):
         gcs_object.upload_from_string('content')
 
         # WHEN
-        gcs_object_1.mv(self._monkeypatch_gcsobject(GCSObject('test/dir_copied/')))
+        gcs_object_1.mv(
+            self._monkeypatch_gcsobject(GCSObject('test/dir_copied/'))
+        )
 
         # THEN
         self.assertEqual(gcs_object_2.size(), len('content'))
@@ -197,7 +237,9 @@ class TestGCSObject(TestCase):
         gcs_object.client.create_bucket('test')
         gcs_object.upload_from_string('content')
 
-        gcs_object_renamed = self._monkeypatch_gcsobject(GCSObject('test/renamed.jpg'))
+        gcs_object_renamed = self._monkeypatch_gcsobject(
+            GCSObject('test/renamed.jpg')
+        )
 
         # WHEN
         gcs_object.rename(gcs_object_renamed)

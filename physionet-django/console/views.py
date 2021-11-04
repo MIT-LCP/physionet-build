@@ -553,9 +553,12 @@ def publish_submission(request, project_slug, *args, **kwargs):
                                                        event="publish")
                 utility.update_doi(published_project.doi, payload)
 
-            return render(request, 'console/publish_complete.html',
-                {'published_project': published_project, 'editor_home': True})
-        
+            return render(
+                request,
+                'console/publish_complete.html',
+                {'published_project': published_project, 'editor_home': True},
+            )
+
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
     publish_form = forms.PublishForm(project=project)
@@ -823,20 +826,35 @@ def manage_published_project(request, project_slug, version):
 
     url_prefix = notification.get_url_prefix(request)
 
-    return render(request, 'console/manage_published_project.html',
-        {'project': project, 'authors': authors, 'author_emails': author_emails,
-         'storage_info': storage_info, 'edit_logs': edit_logs,
-         'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
-         'published': True, 'topic_form': topic_form,
-         'deprecate_form': deprecate_form, 'has_credentials': has_credentials, 
-         'data_access_form': data_access_form, 'data_access': data_access,
-         'rw_tasks': rw_tasks, 'ro_tasks': ro_tasks,
-         'anonymous_url': anonymous_url, 'passphrase': passphrase,
-         'published_projects_nav': True, 'url_prefix': url_prefix,
-         'contact_form': contact_form,
-         'legacy_author_form': legacy_author_form,
-         'can_make_zip': ProjectFiles().can_make_zip(),
-         'can_make_checksum': ProjectFiles().can_make_checksum()})
+    return render(
+        request,
+        'console/manage_published_project.html',
+        {
+            'project': project,
+            'authors': authors,
+            'author_emails': author_emails,
+            'storage_info': storage_info,
+            'edit_logs': edit_logs,
+            'copyedit_logs': copyedit_logs,
+            'latest_version': latest_version,
+            'published': True,
+            'topic_form': topic_form,
+            'deprecate_form': deprecate_form,
+            'has_credentials': has_credentials,
+            'data_access_form': data_access_form,
+            'data_access': data_access,
+            'rw_tasks': rw_tasks,
+            'ro_tasks': ro_tasks,
+            'anonymous_url': anonymous_url,
+            'passphrase': passphrase,
+            'published_projects_nav': True,
+            'url_prefix': url_prefix,
+            'contact_form': contact_form,
+            'legacy_author_form': legacy_author_form,
+            'can_make_zip': ProjectFiles().can_make_zip(),
+            'can_make_checksum': ProjectFiles().can_make_checksum(),
+        },
+    )
 
 
 def gcp_bucket_management(request, project, user):

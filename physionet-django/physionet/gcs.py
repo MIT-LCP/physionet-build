@@ -30,13 +30,16 @@ class GCSObject:
             bucket = physionet
             object = projectfiles/
     """
+
     def __init__(self, path, storage_klass=None):
         if settings.STORAGE_TYPE != StorageTypes.GCP and storage_klass is None:
             raise GCSObjectException(
                 f"The default `STORAGE_TYPE` is not set to GCP. You can pass custom `storage_klass`."
                 f"{self.__class__.__name__} works only with Storage class that can manage files stored in GCS."
             )
-        self._storage, self._object_name = self._retrieve_data_from_path(path, storage_klass)
+        self._storage, self._object_name = self._retrieve_data_from_path(
+            path, storage_klass
+        )
 
     def __repr__(self):
         return f'{self.__class__.__name__}(Bucket={self.bucket.name}, Object="{self.name}")'
@@ -79,14 +82,18 @@ class GCSObject:
             raise GCSObjectException(f'The {repr(self)} is not a directory.')
 
         if self.exists():
-            raise GCSObjectException(f'The name `{self.name}` is already taken.')
+            raise GCSObjectException(
+                f'The name `{self.name}` is already taken.'
+            )
 
         self.blob.upload_from_string('')
 
     def size(self):
-        """Size of the object/all objects in the dictionary, in bytes. """
+        """Size of the object/all objects in the dictionary, in bytes."""
         if self.is_dir():
-            return sum(obj.size for obj in self.bucket.list_blobs(prefix=self.name))
+            return sum(
+                obj.size for obj in self.bucket.list_blobs(prefix=self.name)
+            )
 
         file = self.bucket.get_blob(self.blob.name)
         if not file:
@@ -108,10 +115,14 @@ class GCSObject:
 
     def cp(self, gcs_obj, ignored_files=None):
         if not gcs_obj.is_dir():
-            raise GCSObjectException('The target path must point on directory.')
+            raise GCSObjectException(
+                'The target path must point on directory.'
+            )
 
         if not self.is_dir() and ignored_files:
-            raise GCSObjectException('`ignored_files` does not work when copying a file.')
+            raise GCSObjectException(
+                '`ignored_files` does not work when copying a file.'
+            )
 
         if self.is_dir():
             self._cp_dir(gcs_obj, ignored_files)
@@ -148,7 +159,11 @@ class GCSObject:
         return self.name.split('/')[-1]
 
     def _cp_file(self, gcs_obj):
-        self.bucket.copy_blob(self.blob, gcs_obj.bucket, new_name=gcs_obj.name + self.get_filename())
+        self.bucket.copy_blob(
+            self.blob,
+            gcs_obj.bucket,
+            new_name=gcs_obj.name + self.get_filename(),
+        )
 
     def cp_dir_content(self, gcs_obj, ignored_files):
         """Copies only the content of the directory."""
@@ -173,7 +188,11 @@ class GCSObject:
                 self.bucket.copy_blob(
                     blob,
                     gcs_obj.bucket,
-                    new_name=gcs_obj.name + relative_dir + blob.name.replace(os.path.commonprefix([self.name, blob.name]), ''),
+                    new_name=gcs_obj.name
+                    + relative_dir
+                    + blob.name.replace(
+                        os.path.commonprefix([self.name, blob.name]), ''
+                    ),
                 )
         except ValueError:
             pass
@@ -194,13 +213,18 @@ class GCSObject:
         except ValueError:
             bucket_name = path[0]
             if not add_slash:
-                raise GCSObjectException('The provided path does not indicate a resource in the bucket.')
+                raise GCSObjectException(
+                    'The provided path does not indicate a resource in the bucket.'
+                )
             object_name = '/'
         else:
             if add_slash:
                 object_name += '/'
 
-        return get_storage_class(storage_klass)(bucket_name=bucket_name), object_name
+        return (
+            get_storage_class(storage_klass)(bucket_name=bucket_name),
+            object_name,
+        )
 
 
 def create_bucket(name):
