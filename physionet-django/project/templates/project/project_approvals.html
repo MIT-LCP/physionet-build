@@ -8,7 +8,7 @@
 <h2 class="form-signin-heading">7. Approvals</h2>
 <hr>
 
-{% include 'about/access_policies.html'%}
+<p>Upload the necessary approvals. For credentialed projects you should at least upload REB Approval Letter or enter the explanation.</p>
 
 {% if not project.author_editable %}
   <div class="alert alert-form alert-warning alert-dismissible">
@@ -16,7 +16,7 @@
   </div>
 {% elif not is_submitting %}
   <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>Only the submitting author may edit the access information.</strong>
+    <strong>Only the submitting author may edit the approvals.</strong>
   </div>
 {% endif %}
 
