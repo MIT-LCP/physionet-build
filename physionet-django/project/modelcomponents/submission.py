@@ -13,16 +13,16 @@ class EditLog(models.Model):
     QUALITY_ASSURANCE_FIELDS = (
         # 0: Database
         ('soundly_produced', 'well_described', 'open_format',
-         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable', 'necessary_approvals'),
         # 1: Software
         ('soundly_produced', 'well_described', 'open_format', 'no_phi',
-            'reusable', 'pn_suitable'),
+            'reusable', 'pn_suitable', 'necessary_approvals'),
         # 2: Challenge
         ('soundly_produced', 'well_described', 'open_format',
-         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable', 'necessary_approvals'),
         # 3: Model
         ('soundly_produced', 'well_described', 'open_format',
-         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable', 'necessary_approvals'),
     )
     # The editor's free input fields
     EDITOR_FIELDS = ('editor_comments', 'decision', 'auto_doi')
@@ -32,7 +32,8 @@ class EditLog(models.Model):
         'pn_suitable': 'Is the content suitable for PhysioNet?',
         'editor_comments': 'Comments to authors',
         'no_phi': 'Is the project free of protected health information?',
-        'data_machine_readable': 'Are all files machine-readable?'
+        'data_machine_readable': 'Are all files machine-readable?',
+        'necessary_approvals': 'Does the submission contain the necessary approvals?',
     }
 
     LABELS = (
@@ -86,6 +87,7 @@ class EditLog(models.Model):
     reusable = models.NullBooleanField(null=True)
     no_phi = models.NullBooleanField(null=True)
     pn_suitable = models.NullBooleanField(null=True)
+    necessary_approvals = models.NullBooleanField(null=True)
     # Editor decision. 0 1 2 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)

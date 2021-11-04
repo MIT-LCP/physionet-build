@@ -198,6 +198,23 @@
         </div>
       </div>
 
+      <div class="card my-4">
+        <h5 class="card-header">Approvals</h5>
+        <div class="card-body">
+            <p>
+              {% if project.reb_approval_letter %}
+                <a href="{{ project.reb_approval_letter.url }}">REB approval letter</a>
+              {% endif %}
+              {% if project.data_agreement_letter %}
+                <a href="{{ project.data_agreement_letter.url }}">Data agreement letter</a>
+              {% endif %}
+              {% if project.explanation %}
+                {{ project.explanation|safe }}
+              {% endif %}
+            </p>
+        </div>
+      </div>
+
     </div>
     <!-- /.sidebar -->
   </div>
