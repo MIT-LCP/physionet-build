@@ -13,6 +13,16 @@ from project.utility import LinkFilter, get_file_info, get_directory_info, list_
 from project.validators import validate_version, validate_title, validate_topic
 
 
+def reb_approval_letter_path(instance, filename):
+    extension = filename.split('.')[-1]
+    return f'approvals/REB_Approval_Letter_{instance.slug}.{extension}'
+
+
+def data_sharing_agreement_path(instance, filename):
+    extension = filename.split('.')[-1]
+    return f'approvals/Data_Sharing_Agreement_{instance.slug}.{extension}'
+
+
 class Metadata(models.Model):
     """
     Visible content of a published or unpublished project.
@@ -75,8 +85,8 @@ class Metadata(models.Model):
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
 
-    reb_approval_letter = models.FileField(upload_to='approvals/', blank=True, null=True)
-    data_sharing_agreement = models.FileField(upload_to='approvals/', blank=True, null=True)
+    reb_approval_letter = models.FileField(upload_to=reb_approval_letter_path, blank=True, null=True)
+    data_sharing_agreement = models.FileField(upload_to=data_sharing_agreement_path, blank=True, null=True)
     explanation = SafeHTMLField(blank=True)
 
     class Meta:

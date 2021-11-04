@@ -902,7 +902,6 @@ class InvitationResponseForm(forms.ModelForm):
         Invitation must be active, user must be invited
         """
         cleaned_data = super().clean()
-
         if not self.instance.is_active:
             raise forms.ValidationError('Invalid invitation.')
 
@@ -1044,11 +1043,23 @@ class InviteDataAccessReviewerForm(forms.ModelForm):
         return invitation
 
 
+class CustomClearableFileInput(forms.ClearableFileInput):
+    template_name = 'project/custom_clearable_file_input.html'
+    initial_text = 'Current file'
+    clear_checkbox_label = 'Remove file'
+
+
 class ApprovalsForm(forms.ModelForm):
+    reb_approval_letter = forms.FileField(widget=CustomClearableFileInput, required=False)
+    data_sharing_agreement = forms.FileField(widget=CustomClearableFileInput, required=False)
 
     class Meta:
         model = ActiveProject
         fields = ('reb_approval_letter', 'data_sharing_agreement', 'explanation')
+        help_texts = {
+            'reb_approval_letter': 'REB Approval Letter',
+            'data_sharing_agreement': 'Data Sharing Agreement'
+        }
 
     def __init__(self, editable=True, **kwargs):
         super().__init__(**kwargs)

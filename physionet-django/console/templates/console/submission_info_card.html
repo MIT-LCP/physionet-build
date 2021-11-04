@@ -60,16 +60,23 @@
       </div>
       {# Approvals #}
       <div class="tab-pane fade" id="approvals" role="tabpanel" aria-labelledby="timeline-tab">
-        {% if project.reb_approval_letter %}
-          <a href="{{ project.reb_approval_letter.url }}">REB Approval Letter</a>
-        {% endif %}
-        {% if project.data_agreement_letter %}
-          <a href="{{ project.reb_approval_letter.url }}">Data Agreement Letter</a>
-        {% endif %}
-        {% if project.explanation %}
-          {{ project.explanation|safe }}
-        {% endif %}
-
+        <p>
+          {% if project.reb_approval_letter or project.data_agreement_letter or project.explanation %}
+          {% if project.reb_approval_letter %}
+            <a href="{{ project.reb_approval_letter.url }}">REB Approval Letter</a>
+          {% endif %}
+          {% if project.data_agreement_letter %}
+            <a href="{{ project.reb_approval_letter.url }}">Data Agreement Letter</a>
+          {% endif %}
+          {% if project.explanation %}
+            <h6>Explanation</h6>
+            <hr>
+            {{ project.explanation|safe }}
+          {% endif %}
+          {% else %}
+            The author didn't submit any approvals.
+          {% endif %}
+        </p>
       </div>
       {# Anonymous Access #}
       <div class="tab-pane fade {% if passphrase %} show active {% endif %}" id="anonymous" role="tabpanel" aria-labelledby="anonymous-tab">
