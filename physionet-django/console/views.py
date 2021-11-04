@@ -266,12 +266,14 @@ def submission_info(request, project_slug):
                         reassign_editor_form.cleaned_data['editor']))
 
     url_prefix = notification.get_url_prefix(request)
+    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     return render(request, 'console/submission_info.html',
         {'project': project, 'authors': authors,
          'author_emails': author_emails, 'storage_info': storage_info,
          'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
          'latest_version': latest_version, 'passphrase': passphrase,
          'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
+         'bulk_url_prefix': bulk_url_prefix,
          'reassign_editor_form': reassign_editor_form,
          'project_info_nav': True})
 
@@ -318,12 +320,14 @@ def edit_submission(request, project_slug, *args, **kwargs):
 
     authors, author_emails, storage_info, edit_logs, _, latest_version = project.info_card()
     url_prefix = notification.get_url_prefix(request)
+    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
 
     return render(request, 'console/edit_submission.html',
         {'project': project, 'edit_submission_form': edit_submission_form,
          'authors': authors, 'author_emails': author_emails,
          'storage_info': storage_info, 'edit_logs': edit_logs,
          'latest_version': latest_version, 'url_prefix': url_prefix,
+         'bulk_url_prefix': bulk_url_prefix,
          'editor_home': True, 'reassign_editor_form': reassign_editor_form})
 
 
@@ -434,6 +438,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     edit_url = reverse('edit_content_item', args=[project.slug])
     url_prefix = notification.get_url_prefix(request)
+    bulk_url_prefix = notification.get_url_prefix(request)
 
     response = render(request, 'console/copyedit_submission.html', {
         'project': project, 'description_form': description_form,
@@ -456,6 +461,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
         'add_item_url': edit_url, 'remove_item_url': edit_url,
         'discovery_form': discovery_form, 'url_prefix': url_prefix,
+        'bulk_url_prefix': bulk_url_prefix,
         'reassign_editor_form': reassign_editor_form})
     if description_form_saved:
         set_saved_fields_cookie(description_form, request.path, response)
@@ -494,6 +500,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
             project.save()
 
     url_prefix = notification.get_url_prefix(request)
+    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     yesterday = timezone.now() + timezone.timedelta(days=-1)
 
     return render(request, 'console/awaiting_authors.html',
@@ -501,6 +508,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
          'storage_info': storage_info, 'edit_logs': edit_logs,
          'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
          'outstanding_emails': outstanding_emails, 'url_prefix': url_prefix,
+         'bulk_url_prefix': bulk_url_prefix,
          'yesterday': yesterday, 'editor_home': True,
          'reassign_editor_form': reassign_editor_form})
 
@@ -572,6 +580,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
 
     publishable = project.is_publishable()
     url_prefix = notification.get_url_prefix(request)
+    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     publish_form = forms.PublishForm(project=project)
 
     return render(request, 'console/publish_submission.html',
@@ -580,6 +589,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
          'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
          'latest_version': latest_version, 'publish_form': publish_form,
          'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'url_prefix': url_prefix,
+         'bulk_url_prefix': bulk_url_prefix,
          'reassign_editor_form': reassign_editor_form, 'editor_home': True})
 
 
