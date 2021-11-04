@@ -9,6 +9,9 @@
         <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline" role="tab" aria-controls="timeline" aria-selected="false">Submission Timeline</a>
       </li>
       <li class="nav-item">
+        <a class="nav-link" id="approvals-tab" data-toggle="tab" href="#approvals" role="tab" aria-controls="timeline" aria-selected="false">Approvals</a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="anonymous-tab" data-toggle="tab" href="#anonymous" role="tab" aria-controls="anonymous" aria-selected="false">Anonymous Access</a>
       </li>
       {% if project.editor == user %}
@@ -54,6 +57,19 @@
       {# Submission Timeline #}
       <div class="tab-pane fade" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
         {% include "project/active_submission_timeline.html" %}
+      </div>
+      {# Approvals #}
+      <div class="tab-pane fade" id="approvals" role="tabpanel" aria-labelledby="timeline-tab">
+        {% if project.reb_approval_letter %}
+          <a href="{{ project.reb_approval_letter.url }}">REB Approval Letter</a>
+        {% endif %}
+        {% if project.data_agreement_letter %}
+          <a href="{{ project.reb_approval_letter.url }}">Data Agreement Letter</a>
+        {% endif %}
+        {% if project.explanation %}
+          {{ project.explanation|safe }}
+        {% endif %}
+
       </div>
       {# Anonymous Access #}
       <div class="tab-pane fade {% if passphrase %} show active {% endif %}" id="anonymous" role="tabpanel" aria-labelledby="anonymous-tab">
