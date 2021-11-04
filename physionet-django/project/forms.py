@@ -5,6 +5,7 @@ from dal import autocomplete
 from django import forms
 from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
+from django.core.files.base import ContentFile
 from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
 from django.template.defaultfilters import slugify
@@ -385,15 +386,29 @@ class NewProjectVersionForm(forms.ModelForm):
 
     def save(self):
         project = super().save(commit=False)
-        # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields]:
-            if attr not in ['slug', 'version', 'creation_datetime']:
-                setattr(project, attr, getattr(self.latest_project, attr))
-        # Set new fields
+
         slug = get_random_string(20)
         while exists_project_slug(slug):
             slug = get_random_string(20)
         project.slug = slug
+        
+        # Direct copy over fields
+        for field in (field.name for field in Metadata._meta.fields):
+            if field not in ['slug', 'version', 'creation_datetime']:
+                value = getattr(self.latest_project, field)
+
+                if isinstance(value, FieldFile) and value.name:
+                    file_name, extension = value.name.rsplit('.', 1)
+                    prefix = file_name.rsplit('_', 1)[0]
+
+                    new_file = ContentFile(value.read())
+                    new_file.name = f'{prefix}_{project.slug}.{extension}'
+
+                    value = new_file
+
+                setattr(project, field, value)
+
+        # Set new fields
         project.creation_datetime = timezone.now()
         project.version_order = self.latest_project.version_order + 1
         project.is_new_version = True
