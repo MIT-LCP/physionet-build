@@ -6,7 +6,9 @@ import shutil
 
 from background_task import background
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.db import models, transaction
+from django.db.models.fields.files import FieldFile
 from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
@@ -456,8 +458,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         published_project = PublishedProject(has_wfdb=self.has_wfdb())
 
         # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
-            setattr(published_project, attr, getattr(self, attr))
+        for field in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
+            value = getattr(self, field)
+            
+            if isinstance(value, FieldFile) and value.name:
+                file_name, extension = value.name.rsplit('.', 1)
+                prefix = file_name.rsplit('_', 1)[0]
+
+                new_file = ContentFile(value.read())
+                new_file.name = f'{prefix}_{published_project.slug}.{extension}'
+
+                value = new_file
+
+            setattr(published_project, field, value)
 
         published_project.slug = slug or self.slug
 
