@@ -1636,7 +1636,7 @@ def published_project(request, project_slug, version, subdir=''):
 
     has_access = project.has_access(user) or has_passphrase
     current_site = get_current_site(request)
-    url_prefix = notification.get_url_prefix(request)
+    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
     context = {
         'project': project,
@@ -1648,7 +1648,7 @@ def published_project(request, project_slug, version, subdir=''):
         'contact': contact,
         'has_access': has_access,
         'current_site': current_site,
-        'url_prefix': url_prefix,
+        'bulk_url_prefix': bulk_url_prefix,
         'citations': citations,
         'news': news,
         'all_project_versions': all_project_versions,
