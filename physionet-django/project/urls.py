@@ -46,17 +46,22 @@ urlpatterns = [
     ),
     path('<project_slug>/content/', views.project_content, name='project_content'),
     # Edit a metadata item and reload the formset section
+<<<<<<< HEAD
     path(
         '<project_slug>/content/edit-item/',
         views.edit_content_item,
         name='edit_content_item',
     ),
+=======
+    path('<project_slug>/content/edit-item/', views.edit_content_item, name='edit_content_item'),
+>>>>>>> 409f1020 (Fix styles.)
     path('<project_slug>/access/', views.project_access, name='project_access'),
     path('<project_slug>/access/load-license/', views.load_license, name='load_license'),
     path('<project_slug>/discovery/', views.project_discovery, name='project_discovery'),
     path('<project_slug>/files/', views.project_files, name='project_files'),
     path('<project_slug>/files/<path:subdir>/', views.project_files, name='project_files'),
     re_path(
+<<<<<<< HEAD
         r'^(?P<project_slug>\w+)/files/(?P<file_name>.+)$',
         views.serve_active_project_file,
         name='serve_active_project_file',
@@ -73,32 +78,26 @@ urlpatterns = [
         views.project_preview,
         name='project_preview_subdir',
     ),
+=======
+        '^(?P<project_slug>\w+)/files/(?P<file_name>.+)$',
+        views.serve_active_project_file,
+        name='serve_active_project_file',
+    ),
+    path('<project_slug>/project-files-panel/', views.project_files_panel, name='project_files_panel'),
+    path('<project_slug>/proofread/', views.project_proofread, name='project_proofread'),
+    path('<project_slug>/preview/', views.project_preview, name='project_preview'),
+    path('<project_slug>/preview/<path:subdir>/', views.project_preview, name='project_preview_subdir'),
+>>>>>>> 409f1020 (Fix styles.)
     path(
         '<project_slug>/preview/<path:file_name>',
         views.display_active_project_file,
         name='display_active_project_file',
     ),
-    path(
-        '<project_slug>/preview-files-panel/',
-        views.preview_files_panel,
-        name='preview_files_panel',
-    ),
-    path(
-        '<project_slug>/view-license/',
-        views.project_license_preview,
-        name='project_license_preview',
-    ),
+    path('<project_slug>/preview-files-panel/', views.preview_files_panel, name='preview_files_panel'),
+    path('<project_slug>/view-license/', views.project_license_preview, name='project_license_preview'),
     path('<project_slug>/integrity/', views.check_integrity, name='check_integrity'),
-    path(
-        '<project_slug>/submission/',
-        views.project_submission,
-        name='project_submission',
-    ),
-    path(
-        '<project_slug>/approvals/',
-        views.project_approvals,
-        name='project_approvals',
-    ),
+    path('<project_slug>/submission/', views.project_submission, name='project_submission'),
+    path('<project_slug>/approvals/', views.project_approvals, name='project_approvals'),
     path(
         '<project_slug>/<version>/request_access/<int:access_type>',
         views.published_project_request_access,

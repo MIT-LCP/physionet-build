@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.core.files.base import ContentFile
 from django.db.models.functions import Lower
+from django.db.models.fields.files import FieldFile
 from django.forms.utils import ErrorList
 from django.template.defaultfilters import slugify
 from django.utils import timezone
@@ -391,7 +392,7 @@ class NewProjectVersionForm(forms.ModelForm):
         while exists_project_slug(slug):
             slug = get_random_string(20)
         project.slug = slug
-        
+
         # Direct copy over fields
         for field in (field.name for field in Metadata._meta.fields):
             if field not in ['slug', 'version', 'creation_datetime']:
@@ -1082,10 +1083,7 @@ class ApprovalsForm(forms.ModelForm):
     class Meta:
         model = ActiveProject
         fields = ('reb_approval_letter', 'data_sharing_agreement', 'explanation')
-        help_texts = {
-            'reb_approval_letter': 'REB Approval Letter',
-            'data_sharing_agreement': 'Data Sharing Agreement'
-        }
+        help_texts = {'reb_approval_letter': 'REB Approval Letter', 'data_sharing_agreement': 'Data Sharing Agreement'}
 
     def __init__(self, editable=True, **kwargs):
         super().__init__(**kwargs)

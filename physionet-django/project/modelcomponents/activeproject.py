@@ -308,11 +308,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if value is None or not text or text.isspace():
                 l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
-        
+
         # Approvals
         if self.access_policy == 2:
             if not self.reb_approval_letter and not self.explanation:
-                self.integrity_errors.append('You should at least upload REB approval letter or enter the explanation.')
+                self.integrity_errors.append(
+                    'You should at least upload REB approval letter or enter the explanation.'
+                )
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -464,7 +466,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Direct copy over fields
         for field in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
             value = getattr(self, field)
-            
+
             if isinstance(value, FieldFile) and value.name:
                 file_name, extension = value.name.rsplit('.', 1)
                 prefix = file_name.rsplit('_', 1)[0]
@@ -566,9 +568,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     copyedit_log.save()
 
                 # Set files read only and make zip file if requested
-                move_files_as_readonly(published_project.id, self.file_root(),
-                    published_project.file_root(), make_zip,
-                    verbose_name='Read Only Files - {}'.format(published_project))
+                move_files_as_readonly(
+                    published_project.id,
+                    self.file_root(),
+                    published_project.file_root(),
+                    make_zip,
+                    verbose_name='Read Only Files - {}'.format(published_project)
+                )
 
                 # Remove the ActiveProject
                 self.delete()
