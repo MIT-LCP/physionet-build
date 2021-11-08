@@ -6,8 +6,8 @@ from django import forms
 from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.core.files.base import ContentFile
-from django.db.models.functions import Lower
 from django.db.models.fields.files import FieldFile
+from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
 from django.template.defaultfilters import slugify
 from django.utils import timezone
@@ -1077,13 +1077,26 @@ class CustomClearableFileInput(forms.ClearableFileInput):
 
 
 class ApprovalsForm(forms.ModelForm):
-    reb_approval_letter = forms.FileField(widget=CustomClearableFileInput, required=False)
-    data_sharing_agreement = forms.FileField(widget=CustomClearableFileInput, required=False)
-
     class Meta:
         model = ActiveProject
-        fields = ('reb_approval_letter', 'data_sharing_agreement', 'explanation')
-        help_texts = {'reb_approval_letter': 'REB Approval Letter', 'data_sharing_agreement': 'Data Sharing Agreement'}
+        fields = ('ethical_approval', 'explanation', 'other_approvals')
+        labels = {'explanation': 'If none, explain why '}
+        help_texts = {
+            'ethical_approval': (
+                '* Any resource which involves data, biological materials,'
+                'or responses from human participants requires inclusion of an approval from the'
+                'local ethical body, e.g. an institutional review board approval letter.'
+            ),
+            'explanation': '* Explain why ethical approval was not necessary for the resource.',
+            'other_approvals': (
+                '* Include any other approvals or agreements required during'
+                'the creation of the resource, e.g. a data sharing agreement.'
+            ),
+        }
+        widgets = {
+            'ethical_approval': CustomClearableFileInput,
+            'other_approvals': CustomClearableFileInput,
+        }
 
     def __init__(self, editable=True, **kwargs):
         super().__init__(**kwargs)

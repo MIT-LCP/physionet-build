@@ -8,7 +8,7 @@
 <h2 class="form-signin-heading">7. Approvals</h2>
 <hr>
 
-<p>Upload the necessary approvals. For credentialed projects you should at least upload REB Approval Letter or enter the explanation.</p>
+<p>Provide documentation for approvals necessary for the creation of the resource. Include documentation of ethical review for the creation of the resource, e.g. an approval letter from an Institutional Review Board. If no ethical approval was necessary, provide an explanation.</p>
 
 {% if not project.author_editable %}
   <div class="alert alert-form alert-warning alert-dismissible">
@@ -21,7 +21,7 @@
 {% endif %}
 
 <form enctype="multipart/form-data" action="{% url 'project_approvals' project.slug %}" method="post" class="no-pd">
-  {% include "project/content_inline_form_snippet.html" with form=approvals_form %}
+  {% include "project/content_inline_form_snippet.html" with form=approvals_form first_col_size=3 second_col_size=9 %}
   {% if is_submitting and project.author_editable %}
   <hr>
   <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Approvals</button>
@@ -31,4 +31,5 @@
 
 {% block local_js_bottom %}
   <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+  <script src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}
