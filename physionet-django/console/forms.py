@@ -113,9 +113,19 @@ class EditSubmissionForm(forms.ModelForm):
         # fields. The __init__ function removes unnecessary fields and
         # renames fields
         model = EditLog
-        fields = ('soundly_produced', 'well_described', 'open_format',
-            'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable',
-            'necessary_approvals', 'editor_comments', 'auto_doi', 'decision')
+        fields = (
+            'soundly_produced',
+            'well_described',
+            'open_format',
+            'data_machine_readable',
+            'reusable',
+            'no_phi',
+            'pn_suitable',
+            'necessary_approvals',
+            'editor_comments',
+            'auto_doi',
+            'decision',
+        )
 
         labels = EditLog.COMMON_LABELS
 

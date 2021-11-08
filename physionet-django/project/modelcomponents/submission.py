@@ -1,7 +1,6 @@
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-
 from project.quota import DemoQuotaManager
 
 
@@ -12,17 +11,48 @@ class EditLog(models.Model):
     # Quality assurance fields for data and software
     QUALITY_ASSURANCE_FIELDS = (
         # 0: Database
-        ('soundly_produced', 'well_described', 'open_format',
-         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable', 'necessary_approvals'),
+        (
+            'soundly_produced',
+            'well_described',
+            'open_format',
+            'data_machine_readable',
+            'reusable',
+            'no_phi',
+            'pn_suitable',
+            'necessary_approvals',
+        ),
         # 1: Software
-        ('soundly_produced', 'well_described', 'open_format', 'no_phi',
-            'reusable', 'pn_suitable', 'necessary_approvals'),
+        (
+            'soundly_produced',
+            'well_described',
+            'open_format',
+            'no_phi',
+            'reusable',
+            'pn_suitable',
+            'necessary_approvals',
+        ),
         # 2: Challenge
-        ('soundly_produced', 'well_described', 'open_format',
-         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable', 'necessary_approvals'),
+        (
+            'soundly_produced',
+            'well_described',
+            'open_format',
+            'data_machine_readable',
+            'reusable',
+            'no_phi',
+            'pn_suitable',
+            'necessary_approvals',
+        ),
         # 3: Model
-        ('soundly_produced', 'well_described', 'open_format',
-         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable', 'necessary_approvals'),
+        (
+            'soundly_produced',
+            'well_described',
+            'open_format',
+            'data_machine_readable',
+            'reusable',
+            'no_phi',
+            'pn_suitable',
+            'necessary_approvals',
+        ),
     )
     # The editor's free input fields
     EDITOR_FIELDS = ('editor_comments', 'decision', 'auto_doi')

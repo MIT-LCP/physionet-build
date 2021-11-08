@@ -1333,16 +1333,19 @@ def project_approvals(request, project_slug, **kwargs):
     editable = is_submitting and project.author_editable()
 
     if request.method == 'POST':
-        approvals_form = forms.ApprovalsForm(data=request.POST, files=request.FILES, instance=project, editable=editable)
+        approvals_form = forms.ApprovalsForm(
+            data=request.POST, files=request.FILES, instance=project, editable=editable
+        )
         if approvals_form.is_valid():
             project = approvals_form.save()
-            
+
     approvals_form = forms.ApprovalsForm(instance=project, editable=editable)
 
-    return render(request, 'project/project_approvals.html', {
-        'project': kwargs['project'], 'approvals_form': approvals_form,
-        'is_submitting': kwargs['is_submitting']
-    })
+    return render(
+        request,
+        'project/project_approvals.html',
+        {'project': kwargs['project'], 'approvals_form': approvals_form, 'is_submitting': kwargs['is_submitting']},
+    )
 
 
 @login_required
@@ -1688,8 +1691,7 @@ def published_project(request, project_slug, version, subdir=''):
             status = 200
 
         main_size, compressed_size = [
-            utility.readable_size(s) for s in
-            (project.main_storage_size, project.compressed_storage_size)
+            utility.readable_size(s) for s in (project.main_storage_size, project.compressed_storage_size)
         ]
         files_panel_url = reverse('published_files_panel', args=(project.slug, project.version))
 
