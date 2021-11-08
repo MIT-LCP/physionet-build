@@ -15,7 +15,7 @@ from project.validators import validate_title, validate_topic, validate_version
 
 def ethical_approval_path(instance, filename):
     extension = filename.split('.')[-1]
-    return f'approvals/Ethical_Approval{instance.slug}.{extension}'
+    return f'approvals/Ethical_Approval_{instance.slug}.{extension}'
 
 
 def other_approvals_path(instance, filename):
