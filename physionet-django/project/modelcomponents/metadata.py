@@ -13,14 +13,14 @@ from project.utility import LinkFilter
 from project.validators import validate_title, validate_topic, validate_version
 
 
-def reb_approval_letter_path(instance, filename):
+def ethical_approval_path(instance, filename):
     extension = filename.split('.')[-1]
-    return f'approvals/REB_Approval_Letter_{instance.slug}.{extension}'
+    return f'approvals/Ethical_Approval{instance.slug}.{extension}'
 
 
-def data_sharing_agreement_path(instance, filename):
+def other_approvals_path(instance, filename):
     extension = filename.split('.')[-1]
-    return f'approvals/Data_Sharing_Agreement_{instance.slug}.{extension}'
+    return f'approvals/Other_Approvals_{instance.slug}.{extension}'
 
 
 class Metadata(models.Model):
@@ -85,8 +85,8 @@ class Metadata(models.Model):
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
 
-    reb_approval_letter = models.FileField(upload_to=reb_approval_letter_path, blank=True, null=True)
-    data_sharing_agreement = models.FileField(upload_to=data_sharing_agreement_path, blank=True, null=True)
+    ethical_approval = models.FileField(upload_to=ethical_approval_path, blank=True, null=True)
+    other_approvals = models.FileField(upload_to=other_approvals_path, blank=True, null=True)
     explanation = SafeHTMLField(blank=True)
 
     class Meta:

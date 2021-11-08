@@ -1,14 +1,14 @@
 {% csrf_token %}
 {% for field in form.visible_fields %}
   <div class="form-group row">
-    <label class="col-md-2" for="{{ field.id_for_label }}">
+    <label class="col-md-{{ first_col_size|default:2 }}" for="{{ field.id_for_label }}">
       {{ field.label|title }}
       {% if field.help_text|slice:"0:1" == "*" %}
         <a style="color:red"> *</a>
       {% endif %}
       <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ field.help_text|safe }}" data-html="true" onmouseover="" style="cursor: pointer;"></i>
     </label>
-    <div class='col-md-10'>
+    <div class="col-md-{{ second_col_size|default:10 }}">
       {{ field }}
       {% for error in field.errors %}
         <div class="alert alert-danger">

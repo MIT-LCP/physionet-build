@@ -43,7 +43,7 @@ urlpatterns = [
     path('<project_slug>/files/', views.project_files, name='project_files'),
     path('<project_slug>/files/<path:subdir>/', views.project_files, name='project_files'),
     re_path(
-        '^(?P<project_slug>\w+)/files/(?P<file_name>.+)$',
+        r'^(?P<project_slug>\w+)/files/(?P<file_name>.+)$',
         views.serve_active_project_file,
         name='serve_active_project_file',
     ),

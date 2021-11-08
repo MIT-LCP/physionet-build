@@ -314,10 +314,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Approvals
         if self.access_policy == 2:
-            if not self.reb_approval_letter and not self.explanation:
-                self.integrity_errors.append(
-                    'You should at least upload REB approval letter or enter the explanation.'
-                )
+            if not self.ethical_approval and not self.explanation:
+                self.integrity_errors.append('You should at least upload ethical approval or enter the explanation.')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -576,7 +574,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     self.file_root(),
                     published_project.file_root(),
                     make_zip,
-                    verbose_name='Read Only Files - {}'.format(published_project)
+                    verbose_name='Read Only Files - {}'.format(published_project),
                 )
 
                 if settings.STORAGE_TYPE == StorageTypes.GCP:
