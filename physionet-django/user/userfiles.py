@@ -3,7 +3,6 @@ import os
 
 from django.conf import settings
 from django.shortcuts import redirect
-
 from physionet.gcs import GCSObject
 from physionet.settings.base import StorageTypes
 from physionet.utility import serve_file
@@ -55,9 +54,7 @@ class GCSUserFiles(BaseUserFiles):
         GCSObject(target_path).rm()
 
     def rename(self, source_path, user):
-        target_path = os.path.join(
-            settings.GCP_STORAGE_BUCKET_NAME, user.file_root(relative=True)
-        )
+        target_path = os.path.join(settings.GCP_STORAGE_BUCKET_NAME, user.file_root(relative=True))
         GCSObject(source_path).rename(GCSObject(target_path))
 
 

@@ -3,7 +3,6 @@ from errno import ENAMETOOLONG
 
 from django.http import Http404
 from django.shortcuts import redirect
-
 from project.fileviews.base import RawFileView
 from project.fileviews.csv import CSVFileView, GzippedCSVFileView
 from project.fileviews.image import ImageFileView

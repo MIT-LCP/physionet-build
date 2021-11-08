@@ -2,9 +2,8 @@ import os
 
 from django.conf import settings
 from django.core.files.storage import get_storage_class
-from storages.backends.gcloud import GoogleCloudStorage
-
 from physionet.settings.base import StorageTypes
+from storages.backends.gcloud import GoogleCloudStorage
 
 
 class GCSObjectException(Exception):
@@ -37,9 +36,7 @@ class GCSObject:
                 f"The default `STORAGE_TYPE` is not set to GCP. You can pass custom `storage_klass`."
                 f"{self.__class__.__name__} works only with Storage class that can manage files stored in GCS."
             )
-        self._storage, self._object_name = self._retrieve_data_from_path(
-            path, storage_klass
-        )
+        self._storage, self._object_name = self._retrieve_data_from_path(path, storage_klass)
 
     def __repr__(self):
         return f'{self.__class__.__name__}(Bucket={self.bucket.name}, Object="{self.name}")'
@@ -82,18 +79,14 @@ class GCSObject:
             raise GCSObjectException(f'The {repr(self)} is not a directory.')
 
         if self.exists():
-            raise GCSObjectException(
-                f'The name `{self.name}` is already taken.'
-            )
+            raise GCSObjectException(f'The name `{self.name}` is already taken.')
 
         self.blob.upload_from_string('')
 
     def size(self):
         """Size of the object/all objects in the dictionary, in bytes."""
         if self.is_dir():
-            return sum(
-                obj.size for obj in self.bucket.list_blobs(prefix=self.name)
-            )
+            return sum(obj.size for obj in self.bucket.list_blobs(prefix=self.name))
 
         file = self.bucket.get_blob(self.blob.name)
         if not file:
@@ -115,14 +108,10 @@ class GCSObject:
 
     def cp(self, gcs_obj, ignored_files=None):
         if not gcs_obj.is_dir():
-            raise GCSObjectException(
-                'The target path must point on directory.'
-            )
+            raise GCSObjectException('The target path must point on directory.')
 
         if not self.is_dir() and ignored_files:
-            raise GCSObjectException(
-                '`ignored_files` does not work when copying a file.'
-            )
+            raise GCSObjectException('`ignored_files` does not work when copying a file.')
 
         if self.is_dir():
             self._cp_dir(gcs_obj, ignored_files)
@@ -190,9 +179,7 @@ class GCSObject:
                     gcs_obj.bucket,
                     new_name=gcs_obj.name
                     + relative_dir
-                    + blob.name.replace(
-                        os.path.commonprefix([self.name, blob.name]), ''
-                    ),
+                    + blob.name.replace(os.path.commonprefix([self.name, blob.name]), ''),
                 )
         except ValueError:
             pass
@@ -213,9 +200,7 @@ class GCSObject:
         except ValueError:
             bucket_name = path[0]
             if not add_slash:
-                raise GCSObjectException(
-                    'The provided path does not indicate a resource in the bucket.'
-                )
+                raise GCSObjectException('The provided path does not indicate a resource in the bucket.')
             object_name = '/'
         else:
             if add_slash:

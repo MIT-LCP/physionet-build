@@ -6,12 +6,11 @@ from django.db import models
 from django.utils import timezone
 from django.utils.html import format_html
 from html2text import html2text
-
 from project.modelcomponents.access import ACCESS_POLICIES, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
 from project.projectfiles import ProjectFiles
 from project.utility import LinkFilter
-from project.validators import validate_version, validate_title, validate_topic
+from project.validators import validate_title, validate_topic, validate_version
 
 
 class Metadata(models.Model):
@@ -344,9 +343,7 @@ class Metadata(models.Model):
         the project's file root.
         """
         inspect_dir = self.get_inspect_dir(subdir)
-        return ProjectFiles().get_project_directory_content(
-            inspect_dir, subdir, self.file_display_url, self.file_url
-        )
+        return ProjectFiles().get_project_directory_content(inspect_dir, subdir, self.file_display_url, self.file_url)
 
     def schema_org_resource_type(self):
         """

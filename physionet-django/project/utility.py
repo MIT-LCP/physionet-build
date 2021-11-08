@@ -2,25 +2,24 @@ import base64
 import datetime
 import errno
 import html.parser
+import json
+import logging
 import os
-import shutil
 import pdb
+import re
+import shutil
 import urllib.parse
 import uuid
-import logging
-import re
-import requests
-import json
 
+import requests
+from console.utility import create_directory_service
+from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.sites.shortcuts import get_current_site
-from django.conf import settings
-from django.core.exceptions import (PermissionDenied, ValidationError)
-from django.http import HttpResponse, Http404
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.http import Http404, HttpResponse
 from django.utils.crypto import constant_time_compare
 from googleapiclient.errors import HttpError
-
-from console.utility import create_directory_service
 from user.models import User
 
 LOGGER = logging.getLogger(__name__)

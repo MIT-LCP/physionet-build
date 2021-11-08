@@ -1,9 +1,8 @@
 import gzip
 import os
 
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
-
 from physionet.utility import file_content_type
 from project.projectfiles import ProjectFiles
 from project.utility import get_dir_breadcrumbs

@@ -1,8 +1,8 @@
-from datetime import timedelta
-from html import unescape
 import logging
 import os
 import shutil
+from datetime import timedelta
+from html import unescape
 
 from background_task import background
 from django.conf import settings
@@ -11,7 +11,6 @@ from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
-
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
@@ -21,7 +20,6 @@ from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionI
 from project.modelcomponents.unpublishedproject import UnpublishedProject
 from project.projectfiles import ProjectFiles
 from project.validators import validate_subdir
-
 
 LOGGER = logging.getLogger(__name__)
 

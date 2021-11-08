@@ -1,51 +1,59 @@
-import re
-import pdb
+import csv
 import logging
 import os
-import csv
+import pdb
+import re
+from collections import OrderedDict
 from datetime import datetime, timedelta
 from itertools import chain
-from statistics import median, StatisticsError
-from collections import OrderedDict
+from statistics import StatisticsError, median
 
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import validate_email
+import notification.utility as notification
+import project.forms as project_forms
+from background_task import background
+from console import forms, utility
+from console.tasks import associated_task, get_associated_tasks
+from dal import autocomplete
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.forms import modelformset_factory, Select, Textarea
-from django.http import Http404, JsonResponse, HttpResponse
-from django.shortcuts import redirect, render, get_object_or_404
+from django.contrib.sites.models import Site
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import validate_email
+from django.db import DatabaseError, transaction
+from django.db.models import Case, Count, DurationField, F, IntegerField, Q, Value, When
+from django.db.models.functions import Cast
+from django.forms import Select, Textarea, modelformset_factory
+from django.http import Http404, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.db import DatabaseError, transaction
-from django.db.models import Q, Count, Value, IntegerField, F, DurationField, Case, When
-from django.db.models.functions import Cast
-from background_task import background
-from django.contrib.sites.models import Site
-from dal import autocomplete
-
 from notification.models import News
-import notification.utility as notification
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.settings.base import StorageTypes
 from physionet.utility import paginate
-import project.forms as project_forms
-from project.models import (ActiveProject, ArchivedProject, StorageRequest,
-    Reference, Topic, Publication, PublishedProject, EditLog,
-    exists_project_slug, GCP, DUASignature, DataAccess, SubmissionInfo)
+from project.models import (
+    GCP,
+    ActiveProject,
+    ArchivedProject,
+    DataAccess,
+    DUASignature,
+    EditLog,
+    Publication,
+    PublishedProject,
+    Reference,
+    StorageRequest,
+    SubmissionInfo,
+    Topic,
+    exists_project_slug,
+)
 from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
-from project.views import (get_file_forms, get_project_file_info,
-    process_files_post)
-from user.models import (User, CredentialApplication, LegacyCredential,
-                         AssociatedEmail, CredentialReview)
-from console import forms, utility
-from console.tasks import associated_task, get_associated_tasks
-
-from django.conf import settings
+from project.views import get_file_forms, get_project_file_info, process_files_post
+from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User
 
 LOGGER = logging.getLogger(__name__)
 

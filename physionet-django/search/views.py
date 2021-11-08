@@ -1,19 +1,18 @@
+import operator
 import pdb
 import re
-import operator
 from functools import reduce
 
 from django.conf import settings
 from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.shortcuts import render, redirect, reverse
-from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
-from django.conf import settings
+from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
 from django.http import Http404
-
-from search import forms
+from django.shortcuts import redirect, render, reverse
+from physionet.utility import paginate
 from project.models import PublishedProject, PublishedTopic
 from project.projectfiles import ProjectFiles
-from physionet.utility import paginate
+from search import forms
+
 
 def topic_search(request):
     """

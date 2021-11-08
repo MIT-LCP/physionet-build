@@ -10,17 +10,29 @@ from django.forms.utils import ErrorList
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
-
 from physionet.gcs import GCSObject
 from physionet.settings.base import StorageTypes
-from project import utility
-from project import validators
-from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-                            CoreProject, StorageRequest, ProgrammingLanguage,
-                            License, Metadata, Reference, Publication, ACCESS_POLICIES,
-                            PublishedProject, Topic, exists_project_slug,
-                            AnonymousAccess, DataAccessRequest,
-                            DataAccessRequestReviewer)
+from project import utility, validators
+from project.models import (
+    ACCESS_POLICIES,
+    ActiveProject,
+    Affiliation,
+    AnonymousAccess,
+    Author,
+    AuthorInvitation,
+    CoreProject,
+    DataAccessRequest,
+    DataAccessRequestReviewer,
+    License,
+    Metadata,
+    ProgrammingLanguage,
+    Publication,
+    PublishedProject,
+    Reference,
+    StorageRequest,
+    Topic,
+    exists_project_slug,
+)
 from project.projectfiles import ProjectFiles
 from user.models import User
 
@@ -74,9 +86,7 @@ class ActiveProjectFilesForm(forms.Form):
         data = self.cleaned_data['subdir']
         file_dir = os.path.join(self.project.file_root(), data)
 
-        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(
-            file_dir
-        ):
+        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(file_dir):
             raise forms.ValidationError('Invalid directory')
         self.file_dir = file_dir
 
@@ -282,12 +292,8 @@ class MoveItemsForm(EditItemsForm):
                 'Cannot move folder <i>{}</i> into itself',
                 destination_folder))
 
-        self.dest_dir = os.path.normpath(
-            os.path.join(self.file_dir, destination_folder)
-        )
-        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(
-            self.dest_dir
-        ):
+        self.dest_dir = os.path.normpath(os.path.join(self.file_dir, destination_folder))
+        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(self.dest_dir):
             raise forms.ValidationError(
                 format_html(
                     'Destination folder <i>{}</i> does not exist',
@@ -427,17 +433,14 @@ class NewProjectVersionForm(forms.ModelForm):
             project.parent_projects.add(parent_project)
 
         for p_topic in self.latest_project.topics.all():
-            topic = Topic.objects.create(project=project,
-                description=p_topic.description)
+            Topic.objects.create(project=project, description=p_topic.description)
 
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
 
         ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
 
-        ProjectFiles().cp_dir(
-            older_file_root, current_file_root, ignored_files=ignored_files
-        )
+        ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
         return project
 
 

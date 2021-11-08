@@ -1,5 +1,4 @@
 from django.conf import settings
-
 from physionet.settings.base import StorageTypes
 from project.projectfiles.gcs import GCSProjectFiles
 from project.projectfiles.local import LocalProjectFiles

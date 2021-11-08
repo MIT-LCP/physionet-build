@@ -45,9 +45,7 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_project_directory_content(
-        self, path, subdir, file_display_url, file_url
-    ):
+    def get_project_directory_content(self, path, subdir, file_display_url, file_url):
         """
         Return information for displaying files and directories from
         the project's file root.

@@ -1,15 +1,12 @@
-from django.conf import settings
-from django.conf.urls import include
-from django.contrib import admin
-from django.urls import path
-from django.http import HttpResponse
-from django.conf.urls import handler404, handler500
-
 import lightwave.views as lightwave_views
 import project.views as project_views
+from django.conf import settings
+from django.conf.urls import handler404, handler500, include
+from django.contrib import admin
+from django.http import HttpResponse
+from django.urls import path
 from physionet import views
 from physionet.settings.base import StorageTypes
-
 
 handler403 = 'physionet.views.error_403'
 handler404 = 'physionet.views.error_404'
@@ -74,5 +71,6 @@ if settings.STORAGE_TYPE == StorageTypes.LOCAL:
 
 if settings.DEBUG:
     import debug_toolbar
+
     # debug toolbar
     urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))

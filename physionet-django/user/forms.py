@@ -8,10 +8,8 @@ from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
-
-from user.models import AssociatedEmail, User, Profile, CredentialApplication, CloudInformation
-from user.trainingreport import (find_training_report_url,
-                                 TrainingCertificateError)
+from user.models import AssociatedEmail, CloudInformation, CredentialApplication, Profile, User
+from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
 from user.validators import UsernameValidator, validate_name
 from user.widgets import ProfilePhotoInput

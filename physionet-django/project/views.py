@@ -1,9 +1,12 @@
+import logging
 import os
 import pdb
 import re
-import logging
+from ast import literal_eval
 from urllib.parse import quote_plus
 
+import notification.utility as notification
+from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
@@ -12,39 +15,49 @@ from django.contrib.auth.views import redirect_to_login
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import (ObjectDoesNotExist, PermissionDenied,
-    ValidationError)
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
-from django.forms import (formset_factory, inlineformset_factory,
-    modelformset_factory)
-from django.http import HttpResponse, Http404,JsonResponse, HttpResponseRedirect
-from django.http import HttpResponseForbidden
-from django.shortcuts import render, redirect, get_object_or_404
+from django.forms import formset_factory, inlineformset_factory, modelformset_factory
+from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
-
-from project.fileviews import display_project_file
-from project import forms
-from project.models import (Affiliation, Author, AuthorInvitation, License,
-                            ActiveProject, PublishedProject, StorageRequest, Reference, DataAccess,
-                            ArchivedProject, ProgrammingLanguage, Topic, Contact, Publication,
-                            PublishedAuthor, EditLog, CopyeditLog, DUASignature, CoreProject, GCP,
-                            AnonymousAccess, DataAccessRequest, DataAccessRequestReviewer)
-from project import utility
-from project.validators import validate_filename
-from project.projectfiles import ProjectFiles
-import notification.utility as notification
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import serve_file
-from user.forms import ProfileForm, AssociatedEmailChoiceForm
-from user.models import User, CloudInformation, CredentialApplication, LegacyCredential
-
-from dal import autocomplete
-
-from ast import literal_eval
+from project import forms, utility
+from project.fileviews import display_project_file
+from project.models import (
+    GCP,
+    ActiveProject,
+    Affiliation,
+    AnonymousAccess,
+    ArchivedProject,
+    Author,
+    AuthorInvitation,
+    Contact,
+    CopyeditLog,
+    CoreProject,
+    DataAccess,
+    DataAccessRequest,
+    DataAccessRequestReviewer,
+    DUASignature,
+    EditLog,
+    License,
+    ProgrammingLanguage,
+    Publication,
+    PublishedAuthor,
+    PublishedProject,
+    Reference,
+    StorageRequest,
+    Topic,
+)
+from project.projectfiles import ProjectFiles
+from project.validators import validate_filename
+from user.forms import AssociatedEmailChoiceForm, ProfileForm
+from user.models import CloudInformation, CredentialApplication, LegacyCredential, User
 
 LOGGER = logging.getLogger(__name__)
 
@@ -222,10 +235,8 @@ def project_home(request):
         if (p.submission_status == 30
                 and p.authors.get(user=user).is_submitting):
             pending_revisions.append(p)
-        if (p.submission_status == 0
-                and p.authors.get(user=user).affiliations.count() == 0):
-            missing_affiliations.append(
-                [p, p.authors.get(user=user).creation_date])
+        if p.submission_status == 0 and p.authors.get(user=user).affiliations.count() == 0:
+            missing_affiliations.append([p, p.authors.get(user=user).creation_date])
     rejected_projects = [a.project for a in archived_authors if a.project.archive_reason == 3]
 
     invitation_response_formset = InvitationResponseFormSet(
@@ -1034,12 +1045,13 @@ def project_files(request, project_slug, subdir='', **kwargs):
     storage_request = StorageRequest.objects.filter(project=project,
                                                     is_active=True).first()
     # Forms
-    storage_request_form = forms.StorageRequestForm(project=project) if (not storage_request and is_submitting) else None
+    storage_request_form = (
+        forms.StorageRequestForm(project=project) if (not storage_request and is_submitting) else None
+    )
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
-    file_warning = get_project_file_warning(display_files, display_dirs,
-                                              subdir)
+    file_warning = get_project_file_warning(display_files, display_dirs, subdir)
 
     (upload_files_form, create_folder_form, rename_item_form,
      move_items_form, delete_items_form) = get_file_forms(
@@ -1050,9 +1062,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'project/project_files.html',
         {
             'project': project,
-            'individual_size_limit': utility.readable_size(
-                ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT
-            ),
+            'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
             'subdir': subdir,
             'parent_dir': parent_dir,
             'display_files': display_files,
@@ -1167,8 +1177,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
-    file_warning = get_project_file_warning(display_files, display_dirs,
-                                              subdir)
+    file_warning = get_project_file_warning(display_files, display_dirs, subdir)
 
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
@@ -1622,15 +1631,13 @@ def published_project(request, project_slug, version, subdir=''):
     platform_citations = project.get_platform_citation()
 
     # Anonymous access authentication
-    an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
+    an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
     has_passphrase = project.get_anonymous_url() == an_url
 
     has_access = project.has_access(user) or has_passphrase
     current_site = get_current_site(request)
     url_prefix = notification.get_url_prefix(request)
-    all_project_versions = PublishedProject.objects.filter(
-        slug=project_slug
-    ).order_by('version_order')
+    all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
     context = {
         'project': project,
         'authors': authors,
@@ -1660,10 +1667,11 @@ def published_project(request, project_slug, version, subdir=''):
         else:
             status = 200
 
-        main_size, compressed_size = [utility.readable_size(s) for s in
-            (project.main_storage_size, project.compressed_storage_size)]
-        files_panel_url = reverse('published_files_panel',
-            args=(project.slug, project.version))
+        main_size, compressed_size = [
+            utility.readable_size(s) for s in
+            (project.main_storage_size, project.compressed_storage_size)
+        ]
+        files_panel_url = reverse('published_files_panel', args=(project.slug, project.version))
 
         context = {
             **context,

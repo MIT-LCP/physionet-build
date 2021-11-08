@@ -3,19 +3,18 @@ import os
 import shutil
 
 from django.conf import settings
-
-from physionet.utility import zip_dir, sorted_tree_files
+from physionet.utility import sorted_tree_files, zip_dir
 from project.projectfiles.base import BaseProjectFiles
 from project.utility import (
-    remove_items,
-    write_uploaded_file,
-    rename_file,
-    move_items,
-    list_items,
-    get_file_info,
-    get_directory_info,
     clear_directory,
+    get_directory_info,
+    get_file_info,
     get_tree_size,
+    list_items,
+    move_items,
+    remove_items,
+    rename_file,
+    write_uploaded_file,
 )
 
 
@@ -53,9 +52,7 @@ class LocalProjectFiles(BaseProjectFiles):
 
         return infile
 
-    def get_project_directory_content(
-        self, path, subdir, file_display_url, file_url
-    ):
+    def get_project_directory_content(self, path, subdir, file_display_url, file_url):
         file_names, dir_names = list_items(path)
         display_files, display_dirs = [], []
 
@@ -124,9 +121,7 @@ class LocalProjectFiles(BaseProjectFiles):
 
     def storage_used(self, path, zip_name):
         main = get_tree_size(path)
-        compressed = (
-            os.path.getsize(zip_name) if os.path.isfile(zip_name) else 0
-        )
+        compressed = os.path.getsize(zip_name) if os.path.isfile(zip_name) else 0
         return main, compressed
 
     def make_zip(self, project):
@@ -152,9 +147,7 @@ class LocalProjectFiles(BaseProjectFiles):
             for f in sorted_tree_files(project.file_root()):
                 if f != 'SHA256SUMS.txt':
                     h = hashlib.sha256()
-                    with open(
-                        os.path.join(project.file_root(), f), 'rb'
-                    ) as fp:
+                    with open(os.path.join(project.file_root(), f), 'rb') as fp:
                         block = fp.read(h.block_size)
                         while block:
                             h.update(block)

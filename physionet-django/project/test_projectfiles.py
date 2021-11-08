@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from django.test import override_settings
-
 from physionet.settings.base import StorageTypes
 from project.projectfiles import ProjectFiles
 from project.projectfiles.gcs import GCSProjectFiles

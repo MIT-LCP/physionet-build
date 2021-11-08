@@ -1,11 +1,10 @@
 import os
 
 from django.conf import settings
-from google.cloud.exceptions import NotFound, Conflict
-
+from google.cloud.exceptions import Conflict, NotFound
 from physionet.gcs import GCSObject, GCSObjectException, create_bucket
 from project.projectfiles.base import BaseProjectFiles
-from project.utility import readable_size, FileInfo, DirectoryInfo
+from project.utility import DirectoryInfo, FileInfo, readable_size
 
 
 class GCSProjectFiles(BaseProjectFiles):
@@ -59,15 +58,13 @@ class GCSProjectFiles(BaseProjectFiles):
 
         try:
             GCSObject(source_path).mv(GCSObject(target_path))
-        except:
+        except GCSObjectException:
             GCSObject(self._dir_path(source_path)).mv(GCSObject(target_path))
 
     def open(self, path, mode='rb'):
         return GCSObject(path).open(mode)
 
-    def get_project_directory_content(
-        self, path, subdir, file_display_url, file_url
-    ):
+    def get_project_directory_content(self, path, subdir, file_display_url, file_url):
         files, dirs = self._list_dir(path)
 
         for file in files:
@@ -84,9 +81,7 @@ class GCSProjectFiles(BaseProjectFiles):
         source_path = self._dir_path(source_path)
         target_path = self._dir_path(target_path)
 
-        GCSObject(source_path).cp_dir_content(
-            GCSObject(target_path), ignored_files=ignored_files
-        )
+        GCSObject(source_path).cp_dir_content(GCSObject(target_path), ignored_files=ignored_files)
 
     def raw_url(self, project, path):
         return self._url(os.path.join(project.file_root(), path))
@@ -109,9 +104,7 @@ class GCSProjectFiles(BaseProjectFiles):
         active_project_path = self._dir_path(active_project.file_root())
         published_project_path = self._dir_path(published_project.file_root())
 
-        GCSObject(active_project_path).cp_dir_content(
-            GCSObject(published_project_path), None
-        )
+        GCSObject(active_project_path).cp_dir_content(GCSObject(published_project_path), None)
 
     def get_project_file_root(self, slug, access_policy, klass):
         # the bucket name should be shorter than 63 characters

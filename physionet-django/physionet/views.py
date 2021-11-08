@@ -2,16 +2,15 @@ from collections import OrderedDict
 from os import path
 from re import fullmatch
 
+import notification.utility as notification
 from django.conf import settings
 from django.contrib import messages
-from django.http import HttpResponse, Http404
-from django.shortcuts import render
 from django.db.models.functions import Lower
-
+from django.http import Http404, HttpResponse
+from django.shortcuts import render
 from notification.models import News
-import notification.utility as notification
 from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.models import License, PublishedProject, ProjectType, ACCESS_POLICIES
+from project.models import ACCESS_POLICIES, License, ProjectType, PublishedProject
 from user.forms import ContactForm
 
 
