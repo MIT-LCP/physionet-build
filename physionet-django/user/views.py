@@ -690,7 +690,7 @@ def credential_application(request):
 
     return render(request, 'user/credential_application.html', {'form':form,
         'personal_form':personal_form, 'training_form':training_form,
-        'reference_form':reference_form, 'license':license,
+        'reference_form':reference_form, 'license':license, 
         'research_form':research_form})
 
 
@@ -763,7 +763,7 @@ def credential_reference(request, application_slug):
 @login_required
 def edit_cloud(request):
     """
-    Page to add the information for cloud usage.
+    Page to add the information for cloud usage. 
     """
     user = request.user
     cloud_info = CloudInformation.objects.get_or_create(user=user)[0]

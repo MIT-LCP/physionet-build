@@ -369,18 +369,18 @@ class PersonalCAF(forms.ModelForm):
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage')
         help_texts = {
-            'first_names': """Your first name(s). This can be edited in your
+            'first_names': """Your first name(s). This can be edited in your 
                 profile settings.""",
-            'last_name': """Your last (family) name. This can be edited in
+            'last_name': """Your last (family) name. This can be edited in 
                 your profile settings.""",
-            'suffix': """Please leave the suffix blank if your name does not
-                include a suffix like "Jr." or "III". Do not list degrees.
-                Do not put a prefix like "Mr" or "Ms". Do not put "not
+            'suffix': """Please leave the suffix blank if your name does not 
+                include a suffix like "Jr." or "III". Do not list degrees. 
+                Do not put a prefix like "Mr" or "Ms". Do not put "not 
                 applicable".""",
             'researcher_category': "Your research status.",
-            'organization_name': """Your employer or primary affiliation.
+            'organization_name': """Your employer or primary affiliation. 
                 Put "None" if you are an independent researcher.""",
-            'job_title': """Your job title or position (e.g., student) within
+            'job_title': """Your job title or position (e.g., student) within 
                 your institution or organization.""",
             'city': "The city where you live.",
             'state_province': "The state or province where you live. (Required for residents of Canada or the US.)",
@@ -389,8 +389,8 @@ class PersonalCAF(forms.ModelForm):
             'webpage': """Please include a link to a webpage with your
                 biography or other personal details (ORCID, LinkedIn,
                 Github, etc.).""",
-            'research_summary': """Brief description of your proposed research.
-                If you will be using the data for a class, please include
+            'research_summary': """Brief description of your proposed research. 
+                If you will be using the data for a class, please include 
                 course name and number in your description.""",
         }
         widgets = {
@@ -427,8 +427,8 @@ class ResearchCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('research_summary',)
         help_texts = {
-            'research_summary': """Brief description of your research. If you
-                will be using the data for a class, please include course name
+            'research_summary': """Brief description of your research. If you 
+                will be using the data for a class, please include course name 
                 and number in your description.""",
         }
         widgets = {
@@ -448,10 +448,10 @@ class TrainingCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('training_completion_report',)
         help_texts = {
-            'training_completion_report': """Do not upload the completion
-                certificate. Upload the completion report from the CITI
-                'Data or Specimens Only Research' training program which
-                lists all modules completed, with dates and scores.
+            'training_completion_report': """Do not upload the completion 
+                certificate. Upload the completion report from the CITI 
+                'Data or Specimens Only Research' training program which 
+                lists all modules completed, with dates and scores. 
                 Expired reports will not be accepted.""",
         }
 
@@ -473,11 +473,11 @@ class ReferenceCAF(forms.ModelForm):
         fields = ('reference_category', 'reference_name',
             'reference_email', 'reference_organization', 'reference_title')
         help_texts = {
-            'reference_category': """Your reference's relationship to you. If
-                you are a student or postdoc, this must be your supervisor.
-                Otherwise, you may list a colleague. Do not list yourself
-                or another student as reference. Remind your reference to
-                respond promptly, as long response times will prevent approval
+            'reference_category': """Your reference's relationship to you. If 
+                you are a student or postdoc, this must be your supervisor. 
+                Otherwise, you may list a colleague. Do not list yourself 
+                or another student as reference. Remind your reference to 
+                respond promptly, as long response times will prevent approval 
                 of your application.""",
             'reference_name': 'The full name of your reference.',
             'reference_email': """The email address of your reference. It is
