@@ -7,7 +7,7 @@ import django.contrib.auth.views as auth_views
 import pytz
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
@@ -71,16 +71,15 @@ def sso_login(request):
     # If the given user does not exists => redirect to sso/register
     remote_shibboleth_id = request.META.get('HTTP_REMOTE_USER')
 
-    # REMOTE_USER should be set by Shibboleth (if it's not then it's a config issue)
-    if not remote_shibboleth_id:
-        return redirect('login')
-
-    try:
-        user = UserModel._default_manager.get(shibboleth_id = remote_shibboleth_id)
-    except UserModel.DoesNotExist:
+    user = authenticate(remote_user = remote_shibboleth_id)
+    if user is not None:
+        print("Authenticating as", user, "using", user.backend)
+        auth_login(request, user)
+    else:
         return redirect('sso_register')
 
-    return HttpResponse(f"Logged in as: {request.META['HTTP_REMOTE_USER']}")
+    # return HttpResponse(f"Logged in as: {request.META['HTTP_REMOTE_USER']}")
+    return redirect('home')
 
 
 class LogoutView(auth_views.LogoutView):

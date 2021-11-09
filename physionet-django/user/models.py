@@ -647,8 +647,25 @@ class Orcid(models.Model):
 
 class CustomRemoteUserBackend():
     def authenticate(self, request, remote_user=None):
+        if not remote_user:
+            return
+
+        user = None
         print("Authenticating as:", remote_user)
-        return None
+        try:
+            user = get_user_model().objects.get(shibboleth_id = remote_user)
+            print("User found")
+        except User.DoesNotExist:
+            print("User not found")
+            pass
+        return user
+
+    def get_user(self, user_id):
+        print("Getting user with id", user_id)
+        try:
+            return get_user_model().objects.get(pk=user_id)
+        except get_user_model().DoesNotExist:
+            return None
 
 class DualAuthModelBackend():
     """
