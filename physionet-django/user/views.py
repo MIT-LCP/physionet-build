@@ -183,7 +183,7 @@ def activate_user(request, uidb64, token):
                     request.session.pop(activation_session_token)
                     logger.info('User activated - {0}'.format(user.email))
                     messages.success(request, 'The account has been activated.')
-                    login(request, user)
+                    auth_login(request, user)
                     return redirect('project_home')
             return render(request, 'user/activate_user.html', {'form': form,
                 'title': title})
@@ -533,11 +533,10 @@ def sso_register(request):
 
         if form.is_valid():
             user = form.save()
-            return HttpResponse('OK')
-        else:
-            return HttpResponse('Not OK')
+            auth_login(request, user)
+            return redirect('home')
     else:
-        form = forms.RegistrationForm()
+        form = forms.SSORegistrationForm()
 
     return render(request, 'user/sso_register.html', {'form': form})
 

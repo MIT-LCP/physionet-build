@@ -303,8 +303,6 @@ class RegistrationForm(forms.ModelForm):
         user = super(RegistrationForm, self).save(commit=False)
         user.email = user.email.lower()
 
-        print("Save 1")
-
         with transaction.atomic():
             user.save()
             # Save additional fields in Profile model
@@ -323,8 +321,8 @@ class SSORegistrationForm(forms.ModelForm):
                     validators=[validate_name])
 
     def __init__(self, *args, **kwargs):
-        self.shibboleth_id = kwargs.pop('shibboleth_id')
-        super(SSORegistrationForm, self).__init__(*args, **kwargs)
+        self.shibboleth_id = kwargs.pop('shibboleth_id', None)
+        super().__init__(*args, **kwargs)
 
     class Meta:
         model = User
@@ -347,11 +345,9 @@ class SSORegistrationForm(forms.ModelForm):
         if self.errors:
             return
 
-        user = super(SSORegistrationForm, self).save(commit=False)
+        user = super().save(commit=False)
         user.email = user.email.lower()
         user.shibboleth_id = self.shibboleth_id
-
-        print("Save 2")
 
         with transaction.atomic():
             user.save()
