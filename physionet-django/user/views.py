@@ -533,7 +533,7 @@ def sso_register(request):
 
         if form.is_valid():
             user = form.save()
-            auth_login(request, user)
+            auth_login(request, user, backend='user.models.CustomRemoteUserBackend')
             return redirect('home')
     else:
         form = forms.SSORegistrationForm()
