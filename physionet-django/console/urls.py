@@ -1,6 +1,5 @@
-from django.urls import path
-
 from console import views
+from django.urls import path
 
 urlpatterns = [
     path('', views.console_home,
@@ -96,13 +95,13 @@ urlpatterns = [
     path('usage/credentialing/stats/', views.credentialing_stats,
          name='credentialing_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
-
     # static pages
     path('static-pages/', views.static_pages, name='static_pages'),
-    path('static-pages/<str:page>/', views.static_page_sections,
-        name='static_page_sections'),
-    path('static-pages/<str:page>/<int:pk>/delete/', views.static_page_sections_delete,
-        name='static_page_sections_delete'),
-    path('static-pages/<str:page>/<int:pk>/edit/', views.static_page_sections_edit,
-        name='static_page_sections_edit')
+    path('static-pages/<str:page>/', views.static_page_sections, name='static_page_sections'),
+    path(
+        'static-pages/<str:page>/<int:pk>/delete/',
+        views.static_page_sections_delete,
+        name='static_page_sections_delete',
+    ),
+    path('static-pages/<str:page>/<int:pk>/edit/', views.static_page_sections_edit, name='static_page_sections_edit'),
 ]

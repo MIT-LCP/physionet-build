@@ -53,7 +53,6 @@ from project.models import (
     exists_project_slug,
 )
 from project.projectfiles import ProjectFiles
-import project.forms as project_forms
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
@@ -2090,9 +2089,8 @@ def complete_credential_applications_mailto(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_pages(request):
-    return render(request, 'console/static_pages.html', {
-        'pages': Page.choices(), 'static_pages_nav': True
-    })
+    return render(request, 'console/static_pages.html', {'pages': Page.choices(), 'static_pages_nav': True})
+
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -2106,21 +2104,21 @@ def static_page_sections(request, page):
         if up is not None:
             section = get_object_or_404(Section, pk=up)
             section.move_up()
-        
+
         down = request.POST.get('down')
         if down is not None:
             section = get_object_or_404(Section, pk=down)
             section.move_down()
-    
+
     section_form = forms.SectionForm(page=Page(page))
 
     sections = Section.objects.filter(page=Page(page))
 
-    return render(request, 'console/static_page_sections.html', {
-        'sections': sections, 'page': page,
-        'section_form': section_form,
-        'static_pages_nav': True
-    })
+    return render(
+        request,
+        'console/static_page_sections.html',
+        {'sections': sections, 'page': page, 'section_form': section_form, 'static_pages_nav': True},
+    )
 
 
 @login_required
@@ -2146,7 +2144,8 @@ def static_page_sections_edit(request, page, pk):
     else:
         section_form = forms.SectionForm(instance=section, page=Page(page))
 
-    return render(request, 'console/static_page_sections_edit.html', {
-        'section_form': section_form, 'static_pages_nav': True, 'page': page,
-        'section': section
-    })
+    return render(
+        request,
+        'console/static_page_sections_edit.html',
+        {'section_form': section_form, 'static_pages_nav': True, 'page': page, 'section': section},
+    )

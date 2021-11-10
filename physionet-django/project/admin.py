@@ -1,11 +1,10 @@
+from background_task.models import Task
+from background_task.models_completed import CompletedTask
 from ckeditor.fields import RichTextField
 from ckeditor.widgets import CKEditorWidget
 from django.contrib import admin
 from django.db.models import CharField, TextField
-from django.forms import TextInput, Textarea
-from background_task.models_completed import CompletedTask
-from background_task.models import Task
-
+from django.forms import Textarea, TextInput
 from project import models
 
 

@@ -25,7 +25,6 @@ from project.models import (
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CredentialApplication, CredentialReview, User
-from console.utility import generate_doi_payload, register_doi
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -941,7 +940,6 @@ class CreateLegacyAuthorForm(forms.ModelForm):
 
 
 class SectionForm(forms.ModelForm):
-    
     class Meta:
         model = Section
         fields = ('title', 'content')
@@ -949,7 +947,7 @@ class SectionForm(forms.ModelForm):
     def __init__(self, page, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.page = page
-    
+
     def save(self):
         section = super().save(commit=False)
         section.page = self.page
@@ -957,4 +955,3 @@ class SectionForm(forms.ModelForm):
             section.order = Section.objects.filter(page=self.page).count() + 1
         section.save()
         return section
-
