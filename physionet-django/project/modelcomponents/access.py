@@ -1,4 +1,5 @@
 from datetime import timedelta
+from enum import Enum
 
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -7,15 +8,17 @@ from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from html2text import html2text
-
 from project.modelcomponents.fields import SafeHTMLField
 
 
-ACCESS_POLICIES = (
-    (0, 'Open'),
-    (1, 'Restricted'),
-    (2, 'Credentialed'),
-)
+class AccessPolicy(Enum):
+    OPEN = 0
+    RESTRICTED = 1
+    CREDENTIALED = 2
+
+    @classmethod
+    def choices(cls):
+        return tuple((option.value, option.name.capitalize()) for option in cls)
 
 
 class DUASignature(models.Model):
@@ -208,8 +211,7 @@ class License(models.Model):
     home_page = models.URLField()
     # A project must choose a license with a matching access policy and
     # compatible resource type
-    access_policy = models.PositiveSmallIntegerField(choices=ACCESS_POLICIES,
-        default=0)
+    access_policy = models.PositiveSmallIntegerField(choices=AccessPolicy.choices(), default=0)
     # A license can be used for one or more resource types.
     # This is a comma delimited char field containing allowed types.
     # ie. '0' or '0,2' or '1,3,4'

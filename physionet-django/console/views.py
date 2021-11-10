@@ -53,6 +53,7 @@ from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
+from project.models import AccessPolicy
 from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User
 
 LOGGER = logging.getLogger(__name__)
@@ -872,7 +873,7 @@ def gcp_bucket_management(request, project, user):
     """
     is_private = True
 
-    if project.access_policy == 0:
+    if project.access_policy == AccessPolicy.OPEN:
         is_private = False
 
     bucket_name, group = utility.bucket_info(project.slug, project.version)
@@ -1948,7 +1949,7 @@ def download_credentialed_users(request):
     CSV create and download for database access.
     """
     # Create the HttpResponse object with the appropriate CSV header.
-    project_access = DUASignature.objects.filter(project__access_policy = 2)
+    project_access = DUASignature.objects.filter(project__access_policy=AccessPolicy.CREDENTIALED)
     added = []
     dua_info_csv = [['First name', 'Last name', 'E-mail', 'Institution', 'Country', 
     'MIMIC approval date', 'eICU approval date', 
@@ -2004,7 +2005,7 @@ def project_access(request):
     """
     List all the people that has access to credentialed databases
     """
-    c_projects = PublishedProject.objects.filter(access_policy=2).annotate(
+    c_projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CREDENTIALED).annotate(
         member_count=Count('duasignature'))
 
     return render(request, 'console/project_access.html',
@@ -2015,7 +2016,7 @@ def project_access(request):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def project_access_manage(request, pid):
     projects = PublishedProject.objects.prefetch_related('duasignature_set__user__profile')
-    c_project = get_object_or_404(projects, id=pid, access_policy=2)
+    c_project = get_object_or_404(projects, id=pid, access_policy=AccessPolicy.CREDENTIALED)
 
     return render(request, 'console/project_access_manage.html', {
         'c_project': c_project, 'project_members': c_project.duasignature_set.all(),

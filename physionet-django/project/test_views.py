@@ -5,14 +5,22 @@ from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
-
 from project.forms import ContentForm
-from project.models import (ArchivedProject, ActiveProject, PublishedProject,
-                            Author, AuthorInvitation, License, StorageRequest,
-                            DataAccessRequest, DataAccessRequestReviewer,
-                            PublishedAuthor)
+from project.models import (
+    AccessPolicy,
+    ActiveProject,
+    ArchivedProject,
+    Author,
+    AuthorInvitation,
+    DataAccessRequest,
+    DataAccessRequestReviewer,
+    License,
+    PublishedAuthor,
+    PublishedProject,
+    StorageRequest,
+)
 from user.models import User
-from user.test_views import prevent_request_warnings, TestMixin
+from user.test_views import TestMixin, prevent_request_warnings
 
 PROJECT_VIEWS = [
     'project_overview', 'project_authors', 'project_content',
@@ -171,12 +179,13 @@ class TestAccessPresubmission(TestMixin):
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
         # Ensure valid license policy combination
-        open_data_license = License.objects.filter(access_policy=0,
-            resource_types__contains='0').first()
-        restricted_data_license = License.objects.filter(access_policy=1,
-            resource_types__contains='0').first()
-        software_license = License.objects.filter(
-            resource_types__contains='1').first()
+        open_data_license = License.objects.filter(
+            access_policy=AccessPolicy.OPEN, resource_types__contains='0'
+        ).first()
+        restricted_data_license = License.objects.filter(
+            access_policy=AccessPolicy.RESTRICTED, resource_types__contains='0'
+        ).first()
+        software_license = License.objects.filter(resource_types__contains='1').first()
 
         response = self.client.post(reverse(
             'project_access', args=(project.slug,)),
