@@ -211,7 +211,7 @@ class License(models.Model):
     home_page = models.URLField()
     # A project must choose a license with a matching access policy and
     # compatible resource type
-    access_policy = models.PositiveSmallIntegerField(choices=AccessPolicy.choices(), default=0)
+    access_policy = models.PositiveSmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN.value)
     # A license can be used for one or more resource types.
     # This is a comma delimited char field containing allowed types.
     # ie. '0' or '0,2' or '1,3,4'
