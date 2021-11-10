@@ -24,8 +24,6 @@ Publish
             {% for section in sections %}
               <li><a href="#{{ section.order }}">{{ section.title }}</a></li>
             {% endfor %}
-            <li><a href="#licenses">Licenses</a></li>
-            <li><a href="#submit">Submit your Project</a></li>
           </ul>
         </div>
       </div>
@@ -38,12 +36,6 @@ Publish
         </div>
         <br>
       {% endfor %}
-      <h1 id="licenses">Licenses</h1>
-      <div>{% include "about/licenses.html" %}</div><br>
-      <h1 id="submit">Submit your Project</h1>
-      <div class="indented-box">
-          <p><a href="{% url 'create_project' %}">Click here</a> to create your project.</p>
-      </div>
     </div>
   </div>
 </div>
