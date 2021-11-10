@@ -14,7 +14,7 @@ The LightWAVE server, <tt>lightwave</tt>, runs as a CGI application within a web
 (http) server.  The web server collects user requests (typically made using the
 LightWAVE client running in a web browser on another computer) and forwards them
 to the LightWAVE server.  The LightWAVE server parses the requests, obtains the
-requested data from local storage or from a data repository such as {{ PLATFORM_NAME }},
+requested data from local storage or from a data repository such as PhysioNet,
 constructs appropriate responses, and passes them back to the web server.
 The web server then relays the responses (typically after compression) to the
 users.
@@ -26,7 +26,7 @@ to do so.
 
 <p> In normal use, the client, the server, and the data repository are
 all hosted on the same machine, and the user visits the URL of the
-client in order to use LightWAVE.  For example, {{ PLATFORM_NAME }} hosts a
+client in order to use LightWAVE.  For example, PhysioNet hosts a
 public server
 (<a href="http://physionet.org/cgi-bin/lightwave">http://physionet.org/cgi-bin/lightwave</a>),
 a public client
@@ -38,15 +38,15 @@ and a public data repository
 It is also possible for the client, the server, and the data
 repository to be hosted on different machines.  For example, a locally
 hosted LightWAVE client can make use of the public server and data
-repository on {{ PLATFORM_NAME }}, or a locally hosted client and server can use
+repository on PhysioNet, or a locally hosted client and server can use
 a remote data repository (or even multiple data repositories hosted on
 multiple remote machines).
 
 <p>
 This technical note describes how to install the LightWAVE server so
 that it can be hosted on your own computer while interacting with the
-public data repository on {{ PLATFORM_NAME }}.  The final section describes how
-to set up your own data repository, using {{ PLATFORM_NAME }} and its
+public data repository on PhysioNet.  The final section describes how
+to set up your own data repository, using PhysioNet and its
 <a href="http://physionet.org/mirrors/">mirrors</a> as a model.
 
 <h3>Who would want a locally hosted LightWAVE server?</h3>
@@ -58,10 +58,10 @@ of the early development of LightWAVE was done on a notebook PC while flying
 across the Pacific!)
 
 <p>
-If you use a {{ PLATFORM_NAME }} <a href="http://physionet.org/mirrors/">mirror</a>
+If you use a PhysioNet <a href="http://physionet.org/mirrors/">mirror</a>
 that doesn't host its own LightWAVE server, a locally hosted server
 can be configured to use the mirror as its primary data repository,
-with the {{ PLATFORM_NAME }} master server used only as a source of data that
+with the PhysioNet master server used only as a source of data that
 are not available on the mirror.
 
 <p>
@@ -269,7 +269,7 @@ on the same host.
 
 <p>
 In order to use your server from a different host, the LightWAVE client
-must be configured to use it rather than {{ PLATFORM_NAME }}'s public server.  To
+must be configured to use it rather than PhysioNet's public server.  To
 do this, go to the client's <b>Settings</b> tab and set the server URL to the
 location of your server.  This setting will persist only until you reload
 the LightWAVE client.  You can change the default server URL by changing

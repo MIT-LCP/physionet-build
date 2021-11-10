@@ -104,7 +104,7 @@ server and with plugins for the existing client.
 
 <p>We would like to investigate the possible benefits of storing server
 responses to common requests.  The server reads data in response to each
-incoming request, reformatting them as JSON, which (on {{ PLATFORM_NAME }}) Apache then
+incoming request, reformatting them as JSON, which (on PhysioNet) Apache then
 compresses using gzip before transmission to the client.  The server would
 require less computation if it were able to read gzip-compressed JSON data
 directly from local storage.
