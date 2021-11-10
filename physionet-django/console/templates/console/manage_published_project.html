@@ -101,7 +101,7 @@
           You can generate a passphrase that will allow anonymous access to the
           <i><a href="{% url 'published_project' project.slug project.version %}" target="_blank">content</a></i> of this project.
           This is useful if the authors are submitting an article to a peer-reviewed journal and access
-          to a {{ PLATFORM_NAME }} resource is needed during the review process.
+          to a {{ SITE_NAME }} resource is needed during the review process.
           <br>
           {% if anonymous_url %}
             The URL for reviewer access is:
@@ -112,7 +112,7 @@
           {% if not passphrase %}
             class="alert alert-danger">
             <p class='m-0'>Note: When providing anonymous access to third parties, keep in mind that any changes made during
-              the {{ PLATFORM_NAME }} review process will impact anyone viewing the project through that access.</p>
+              the {{ SITE_NAME }} review process will impact anyone viewing the project through that access.</p>
           {% else %}
             class="alert alert-success">
             Passphrase: {{ passphrase }}

@@ -8,4 +8,4 @@ def access_policy(request):
 
 
 def platform_name(request):
-    return {'PLATFORM_NAME': settings.PLATFORM_NAME}
+    return {'SITE_NAME': settings.SITE_NAME}
