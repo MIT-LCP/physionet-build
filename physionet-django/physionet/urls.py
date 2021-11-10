@@ -29,9 +29,6 @@ urlpatterns = [
     # export app
     path('', include('export.urls')),
 
-    # backward compatibility for LightWAVE
-    path('cgi-bin/lightwave', lightwave_views.lightwave_server),
-
     path('', views.home, name='home'),
     path('ping/', views.ping),
 
@@ -68,6 +65,8 @@ urlpatterns = [
 
 if settings.STORAGE_TYPE == StorageTypes.LOCAL:
     urlpatterns.append(path('lightwave/', include('lightwave.urls')))
+    # backward compatibility for LightWAVE
+    urlpatterns.append(path('cgi-bin/lightwave', lightwave_views.lightwave_server))
 
 if settings.DEBUG:
     import debug_toolbar
