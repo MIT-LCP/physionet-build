@@ -179,7 +179,7 @@ def moody_challenge_overview(request):
     """
     return render(request, 'about/moody_challenge_overview_index.html')
 
-def moody_challenges(request):
+def moody_challenge(request):
     """
     View for the list of previous Moody challenges
     """
@@ -194,9 +194,10 @@ def moody_challenges(request):
                 md_challenge.sources_index = True
         if path.exists(path.join(md_challenge.file_root() , 'papers/index.html')):
             md_challenge.papers = True
-    return render(request,'about/moody_challenges_index.html', {'moody_challenges': moody_challenges})
 
-def community_challenges(request):
+    return render(request,'about/moody_challenge_index.html', {'moody_challenges': moody_challenges})
+
+def community_challenge(request):
     """
     View for the list of Community challenges
     """
@@ -211,7 +212,7 @@ def community_challenges(request):
         if path.exists(path.join(c_challenge.file_root() , 'papers/index.html')):
             c_challenge.papers = True
 
-    return render(request,'about/community_challenges_index.html', {'community_challenges': community_challenges})
+    return render(request,'about/community_challenge_index.html', {'community_challenges': community_challenges})
 
 def tutorial_overview(request):
     """
