@@ -109,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = ['user.models.DualAuthModelBackend']
 
-# AUTHENTICATION_BACKENDS += ['user.models.CustomRemoteUserBackend']
+AUTHENTICATION_BACKENDS += ['user.models.CustomRemoteUserBackend']
 
 AUTH_USER_MODEL = 'user.User'
 

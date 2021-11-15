@@ -1,16 +1,14 @@
 """
 Module for generating notifications
 """
-from urllib import parse
 from email.utils import formataddr
+from urllib import parse
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage, send_mail, mail_admins
-from django.template import loader, defaultfilters
+from django.core.mail import EmailMessage, mail_admins, send_mail
+from django.template import defaultfilters, loader
 from django.utils import timezone
-
-
 from project.models import DataAccessRequest, License
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
@@ -868,3 +866,21 @@ def notify_account_registration(request, user, uidb64, token):
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [user.email], fail_silently=False)
+
+def notify_sso_account_registration(request, user, uidb64, token):
+    """
+    Send the SSO email confirmation email
+    """
+
+    # Send an email with the activation link
+    subject = "PhysioNet Account Activation"
+    context = {
+        'name': user.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'uidb64': uidb64,
+        'token': token,
+    }
+    body = loader.render_to_string('user/email/sso_register_email.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)

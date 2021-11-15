@@ -9,9 +9,16 @@ urlpatterns = [
 
     path('register/', views.register, name='register'),
     path('sso/register/', views.sso_register, name='sso_register'),
-    re_path('^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        views.activate_user, name='activate_user'),
-
+    re_path(
+        '^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        views.activate_user,
+        name='activate_user',
+    ),
+    re_path(
+        '^sso_activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+        views.sso_activate_user,
+        name='sso_activate_user',
+    ),
     # Request password reset
     path('reset-password/', views.reset_password_request,
          name='reset_password_request'),

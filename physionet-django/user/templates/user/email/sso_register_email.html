@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+Thanks for registering for an account on {{ domain }}. Please activate your account by clicking the following activation link or by copying and pasting the link into your web browser:
+
+{{ url_prefix }}{% url 'sso_activate_user' uidb64=uidb64 token=token %}
+
+This link will expire in 3 days or after the account has been activated.
+
+Regards
+The PhysioNet Team
+{% endfilter %}{% endautoescape %}

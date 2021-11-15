@@ -645,7 +645,8 @@ class Orcid(models.Model):
     def get_orcid_url():
         return settings.ORCID_DOMAIN
 
-class CustomRemoteUserBackend():
+
+class CustomRemoteUserBackend:
     def authenticate(self, request, remote_user=None):
         if not remote_user:
             return
@@ -653,19 +654,26 @@ class CustomRemoteUserBackend():
         user = None
         print("Authenticating as:", remote_user)
         try:
-            user = get_user_model().objects.get(shibboleth_id = remote_user)
+            user = get_user_model().objects.get(shibboleth_id=remote_user)
             print("User found")
         except User.DoesNotExist:
             print("User not found")
             pass
-        return user
+
+        return user if self.user_can_authenticate(user) else None
 
     def get_user(self, user_id):
         print("Getting user with id", user_id)
         try:
-            return get_user_model().objects.get(pk=user_id)
+            user = get_user_model().objects.get(pk=user_id)
         except get_user_model().DoesNotExist:
             return None
+        return user if self.user_can_authenticate(user) else None
+
+    def user_can_authenticate(self, user):
+        is_active = getattr(user, 'is_active', None)
+        return is_active or is_active is None
+
 
 class DualAuthModelBackend():
     """
