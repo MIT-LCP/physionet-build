@@ -85,9 +85,7 @@ class Metadata(models.Model):
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
 
-    ethical_approval = models.FileField(upload_to=ethical_approval_path, blank=True, null=True)
-    other_approvals = models.FileField(upload_to=other_approvals_path, blank=True, null=True)
-    explanation = SafeHTMLField(blank=True)
+    ethics_statement = models.CharField(max_length=1024, blank=True)
 
     class Meta:
         abstract = True
@@ -690,3 +688,7 @@ class PublishedPublication(BasePublication):
     """
     project = models.ForeignKey('project.PublishedProject',
         db_index=True, related_name='publications', on_delete=models.CASCADE)
+
+
+class SupportingDocument(models.Model):
+    name = models.CharField(max_length=128)

@@ -1064,26 +1064,19 @@ class CustomClearableFileInput(forms.ClearableFileInput):
     clear_checkbox_label = 'Remove file'
 
 
-class ApprovalsForm(forms.ModelForm):
+class EthicsForm(forms.ModelForm):
     class Meta:
         model = ActiveProject
-        fields = ('ethical_approval', 'explanation', 'other_approvals')
-        labels = {'explanation': 'If none, explain why '}
+        fields = ('ethics_statement',)
         help_texts = {
-            'ethical_approval': (
-                '* Any resource which involves data, biological materials,'
-                'or responses from human participants requires inclusion of an approval from the'
-                'local ethical body, e.g. an institutional review board approval letter.'
+            'ethics_statement': (
+                'A statement regarding ethical concerns for the work. '
+                'This statement will be published with the resource, '
+                'and typically describes formal approvals acquired for '
+                'the creation of the resource, and/or ethical considerations '
+                'for users of the resource. If no concerns, please indicate '
+                'this “The authors declare no ethics concerns.'
             ),
-            'explanation': '* Explain why ethical approval was not necessary for the resource.',
-            'other_approvals': (
-                '* Include any other approvals or agreements required during'
-                'the creation of the resource, e.g. a data sharing agreement.'
-            ),
-        }
-        widgets = {
-            'ethical_approval': CustomClearableFileInput,
-            'other_approvals': CustomClearableFileInput,
         }
 
     def __init__(self, editable=True, **kwargs):
