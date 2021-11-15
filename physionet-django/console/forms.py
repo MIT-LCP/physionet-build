@@ -122,7 +122,7 @@ class EditSubmissionForm(forms.ModelForm):
             'reusable',
             'no_phi',
             'pn_suitable',
-            'necessary_approvals',
+            'ethics_included',
             'editor_comments',
             'auto_doi',
             'decision',
@@ -142,7 +142,7 @@ class EditSubmissionForm(forms.ModelForm):
             'pn_suitable': forms.Select(choices=YES_NO_UNDETERMINED),
             'editor_comments': forms.Textarea(),
             'decision': forms.Select(choices=SUBMISSION_RESPONSE_CHOICES),
-            'necessary_approvals': forms.Select(choices=YES_NO_UNDETERMINED),
+            'ethics_included': forms.Select(choices=YES_NO_UNDETERMINED),
             'auto_doi': forms.HiddenInput(),
         }
 

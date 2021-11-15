@@ -19,7 +19,7 @@ class EditLog(models.Model):
             'reusable',
             'no_phi',
             'pn_suitable',
-            'necessary_approvals',
+            'ethics_included',
         ),
         # 1: Software
         (
@@ -29,7 +29,7 @@ class EditLog(models.Model):
             'no_phi',
             'reusable',
             'pn_suitable',
-            'necessary_approvals',
+            'ethics_included',
         ),
         # 2: Challenge
         (
@@ -40,7 +40,7 @@ class EditLog(models.Model):
             'reusable',
             'no_phi',
             'pn_suitable',
-            'necessary_approvals',
+            'ethics_included',
         ),
         # 3: Model
         (
@@ -51,7 +51,7 @@ class EditLog(models.Model):
             'reusable',
             'no_phi',
             'pn_suitable',
-            'necessary_approvals',
+            'ethics_included',
         ),
     )
     # The editor's free input fields
@@ -63,7 +63,7 @@ class EditLog(models.Model):
         'editor_comments': 'Comments to authors',
         'no_phi': 'Is the project free of protected health information?',
         'data_machine_readable': 'Are all files machine-readable?',
-        'necessary_approvals': 'Does the submission contain the necessary approvals?',
+        'ethics_included': 'Does the submission contain the necessary approvals?',
     }
 
     LABELS = (
@@ -117,7 +117,7 @@ class EditLog(models.Model):
     reusable = models.NullBooleanField(null=True)
     no_phi = models.NullBooleanField(null=True)
     pn_suitable = models.NullBooleanField(null=True)
-    necessary_approvals = models.NullBooleanField(null=True)
+    ethics_included = models.NullBooleanField(null=True)
     # Editor decision. 0 1 2 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)

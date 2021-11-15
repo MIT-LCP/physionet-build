@@ -140,7 +140,7 @@ class TestState(TestMixin):
                 'pn_suitable': 1,
                 'editor_comments': 'Good.',
                 'decision': 2,
-                'necessary_approvals': 1,
+                'ethics_included': 1,
             },
         )
         project = ActiveProject.objects.get(id=project.id)
@@ -175,7 +175,7 @@ class TestState(TestMixin):
                 'pn_suitable': 1,
                 'editor_comments': 'Good.',
                 'decision': 2,
-                'necessary_approvals': 1,
+                'ethics_included': 1,
             },
         )
         # Copyedit project.
@@ -250,7 +250,7 @@ class TestState(TestMixin):
                 'editor_comments': 'Good.',
                 'decision': 2,
                 'auto_doi': 1,
-                'necessary_approvals': 1,
+                'ethics_included': 1,
             },
         )
         self.assertEqual(get_project().modified_datetime, timestamp)

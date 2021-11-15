@@ -20,8 +20,8 @@
   </div>
 {% endif %}
 
-<form enctype="multipart/form-data" action="{% url 'project_approvals' project.slug %}" method="post" class="no-pd">
-  {% include "project/content_inline_form_snippet.html" with form=approvals_form first_col_size=3 second_col_size=9 %}
+<form enctype="multipart/form-data" action="{% url 'project_ethics' project.slug %}" method="post" class="no-pd">
+  {% include "project/content_inline_form_snippet.html" with form=ethics_form first_col_size=3 second_col_size=9 %}
   {% if is_submitting and project.author_editable %}
   <hr>
   <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Approvals</button>
