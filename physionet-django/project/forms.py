@@ -1097,3 +1097,16 @@ class EthicsForm(forms.ModelForm):
         if not editable:
             for field in self.fields.values():
                 field.disabled = True
+
+
+class UploadedSupportingDocumentFormSet(BaseGenericInlineFormSet):
+    form_name = 'project-uploadedsupportingdocument-content_type-object_id'
+    item_label = 'Supporting Documents'
+    max_forms = 3
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.help_text = (
+            'Upload supporting documents. For more information on '
+            'what documents are expected, see the [author guidance page].'
+        )

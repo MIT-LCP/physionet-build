@@ -17,8 +17,10 @@ function cloneFormElement(selector, form_name){
       var name = $(this).attr('name').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-');
       var id = 'id_' + name;
       // What about the actual object id hidden input?
+      
       $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
   });
+
   // Update the formset total forms indicator
   $('#id_' + form_name + '-TOTAL_FORMS').val(++total_forms);
   // Insert the new content after the original selected content

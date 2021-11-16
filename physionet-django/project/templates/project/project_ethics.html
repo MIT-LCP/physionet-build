@@ -2,10 +2,10 @@
 
 {% load static %}
 
-{% block title %}Project Approvals - {{ project }}{% endblock %}
+{% block title %}Project Ethics - {{ project }}{% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">7. Approvals</h2>
+<h2 class="form-signin-heading">7. Ethics</h2>
 <hr>
 
 <p>Provide documentation for approvals necessary for the creation of the resource. Include documentation of ethical review for the creation of the resource, e.g. an approval letter from an Institutional Review Board. If no ethical approval was necessary, provide an explanation.</p>
@@ -22,9 +22,10 @@
 
 <form enctype="multipart/form-data" action="{% url 'project_ethics' project.slug %}" method="post" class="no-pd">
   {% include "project/content_inline_form_snippet.html" with form=ethics_form first_col_size=3 second_col_size=9 %}
+  {% include 'project/item_list.html' with item="document" item_label=documents_formset.item_label formset=documents_formset form_name=documents_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
   {% if is_submitting and project.author_editable %}
   <hr>
-  <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Approvals</button>
+  <button class="btn btn-primary btn-rsp" type="submit" name="edit_">Save Approvals</button>
   {% endif %}
 </form>
 {% endblock %}
@@ -32,4 +33,6 @@
 {% block local_js_bottom %}
   <script src="{% static 'custom/js/resize-ck.js' %}"></script>
   <script src="{% static 'custom/js/enable-popover.js' %}"></script>
+  <script src="{% static 'custom/js/cookie.js' %}"></script>
+  <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
 {% endblock %}
