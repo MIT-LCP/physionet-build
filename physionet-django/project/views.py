@@ -53,6 +53,7 @@ from project.models import (
     Reference,
     StorageRequest,
     Topic,
+    UploadedSupportingDocument,
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename
@@ -1332,20 +1333,59 @@ def project_ethics(request, project_slug, **kwargs):
 
     editable = is_submitting and project.author_editable()
 
+    ethics_form = forms.EthicsForm(instance=project, editable=editable)
+
+    UploadedSupportingDocumentFormSet = generic_inlineformset_factory(UploadedSupportingDocument,
+        fields=('supporting_document', 'document',), extra=0,
+        max_num=forms.UploadedSupportingDocumentFormSet.max_forms, can_delete=False,
+        formset=forms.UploadedSupportingDocumentFormSet, validate_max=True)
+    
+
     if request.method == 'POST':
-        ethics_form = forms.EthicsForm(
-            data=request.POST, files=request.FILES, instance=project, editable=editable
-        )
+        documents_formset = UploadedSupportingDocumentFormSet(data=request.POST, instance=project, files=request.FILES)
         if ethics_form.is_valid():
             project = ethics_form.save()
 
-    ethics_form = forms.EthicsForm(instance=project, editable=editable)
+        if documents_formset.is_valid():
+            documents_formset.save()
+    else:
+        documents_formset = UploadedSupportingDocumentFormSet(instance=project)
+
+    edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
 
     return render(
         request,
         'project/project_ethics.html',
-        {'project': kwargs['project'], 'ethics_form': ethics_form, 'is_submitting': kwargs['is_submitting']},
+        {'project': project, 'ethics_form': ethics_form, 'is_submitting': kwargs['is_submitting'], 'documents_formset': documents_formset, 'add_item_url': edit_url, 'remove_item_url': edit_url}
     )
+
+
+@project_auth(auth_mode=0, post_auth_mode=2)
+def edit_ethics(request, project_slug, **kwargs):
+    project = kwargs['project']
+
+    if project.submission_status not in [0, 30]:
+        raise Http404()
+
+    # Reload the formset with the first empty form
+    if request.method == 'GET' and 'add_first' in request.GET:
+        extra_forms = 1
+    # Remove an object
+    elif request.method == 'POST' and 'remove_id' in request.POST:
+        extra_forms = 0
+        UploadedSupportingDocument.objects.get(id=int(request.POST['remove_id'])).delete()
+
+    UploadedSupportingDocumentFormSet = generic_inlineformset_factory(UploadedSupportingDocument,
+     fields=('supporting_document', 'document',), extra=extra_forms,
+        max_num=forms.UploadedSupportingDocumentFormSet.max_forms, can_delete=False,
+        formset=forms.UploadedSupportingDocumentFormSet, validate_max=True)
+    formset = UploadedSupportingDocumentFormSet(instance=project)
+    edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
+
+    return render(request, 'project/item_list.html',
+            {'formset':formset, 'item':'affiliation', 'item_label':formset.item_label,
+             'form_name':formset.form_name, 'add_item_url':edit_url,
+             'remove_item_url':edit_url})
 
 
 @login_required

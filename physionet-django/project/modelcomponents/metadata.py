@@ -692,3 +692,14 @@ class PublishedPublication(BasePublication):
 
 class SupportingDocument(models.Model):
     name = models.CharField(max_length=128)
+
+    def __str__(self):
+        return self.name
+
+
+class UploadedSupportingDocument(models.Model):
+    supporting_document = models.ForeignKey(SupportingDocument, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+    document = models.FileField()

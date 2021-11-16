@@ -60,7 +60,9 @@ urlpatterns = [
     path('<project_slug>/view-license/', views.project_license_preview, name='project_license_preview'),
     path('<project_slug>/integrity/', views.check_integrity, name='check_integrity'),
     path('<project_slug>/submission/', views.project_submission, name='project_submission'),
-    path('<project_slug>/approvals/', views.project_ethics, name='project_ethics'),
+    path('<project_slug>/ethics/', views.project_ethics, name='project_ethics'),
+    path('<project_slug>/ethics/edit-document/', views.edit_ethics, name='edit_ethics'),
+    
     path(
         '<project_slug>/<version>/request_access/<int:access_type>',
         views.published_project_request_access,
