@@ -867,6 +867,7 @@ def notify_account_registration(request, user, uidb64, token):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [user.email], fail_silently=False)
 
+
 def notify_sso_account_registration(request, user, uidb64, token):
     """
     Send the SSO email confirmation email
@@ -881,6 +882,6 @@ def notify_sso_account_registration(request, user, uidb64, token):
         'uidb64': uidb64,
         'token': token,
     }
-    body = loader.render_to_string('user/email/sso_register_email.html', context)
+    body = loader.render_to_string('sso/email/register_email.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)

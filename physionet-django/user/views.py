@@ -1,31 +1,31 @@
+from datetime import datetime
 import logging
 import os
 import pdb
-from datetime import datetime
-
-import django.contrib.auth.views as auth_views
 import pytz
+
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate
-from django.contrib.auth import login as auth_login
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
+import django.contrib.auth.views as auth_views
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.db import IntegrityError, transaction
-from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.db import IntegrityError
+from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_text
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.decorators import method_decorator
 from django.views.decorators.debug import sensitive_post_parameters
+<<<<<<< HEAD
 from notification.utility import (
     credential_application_request,
     get_url_prefix,
@@ -42,8 +42,15 @@ from physionet.middleware.maintenance import (
 )
 from physionet.settings.base import StorageTypes
 from project.models import Author, DUASignature, License, PublishedProject
+=======
+from django.db import transaction
+from django.core.exceptions import ValidationError
+>>>>>>> 1bca9e66 (Revert not needed formatting changes)
 from requests_oauthlib import OAuth2Session
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
+
 from user import forms, validators
+<<<<<<< HEAD
 from user.models import (
     AssociatedEmail,
     CloudInformation,
@@ -54,6 +61,17 @@ from user.models import (
     User,
 )
 from user.userfiles import UserFiles
+=======
+from user.models import AssociatedEmail, Profile, Orcid, User, CredentialApplication, LegacyCredential, CloudInformation
+from physionet import utility
+from physionet.middleware.maintenance import (allow_post_during_maintenance,
+                                              disallow_during_maintenance,
+                                              ServiceUnavailable)
+from project.models import Author, License, PublishedProject, DUASignature
+from notification.utility import (process_credential_complete,
+                                  credential_application_request,
+                                  get_url_prefix, notify_account_registration)
+>>>>>>> 1bca9e66 (Revert not needed formatting changes)
 
 logger = logging.getLogger(__name__)
 
@@ -63,27 +81,6 @@ class LoginView(auth_views.LoginView):
     template_name = 'user/login.html'
     authentication_form = forms.LoginForm
     redirect_authenticated_user = True
-
-
-from django.contrib.auth import get_user_model
-
-UserModel = get_user_model()
-
-
-def sso_login(request):
-    # If the given user exists => authenticate the user, redirect to desired page
-    # If the given user does not exists => redirect to sso/register
-    remote_shibboleth_id = request.META.get('HTTP_REMOTE_USER')
-
-    user = authenticate(remote_user=remote_shibboleth_id)
-    if user is not None:
-        print("Authenticating as", user, "using", user.backend)
-        auth_login(request, user)
-    else:
-        return redirect('sso_register')
-
-    # return HttpResponse(f"Logged in as: {request.META['HTTP_REMOTE_USER']}")
-    return redirect('home')
 
 
 class LogoutView(auth_views.LogoutView):
@@ -187,42 +184,10 @@ def activate_user(request, uidb64, token):
                     request.session.pop(activation_session_token)
                     logger.info('User activated - {0}'.format(user.email))
                     messages.success(request, 'The account has been activated.')
-                    auth_login(request, user)
+                    login(request, user)
                     return redirect('project_home')
             return render(request, 'user/activate_user.html', {'form': form,
                 'title': title})
-
-    return render(request, 'user/activate_user_complete.html', context)
-
-
-@disallow_during_maintenance
-def sso_activate_user(request, uidb64, token):
-    context = {'title': 'Invalid Activation Link', 'isvalid': False}
-
-    try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-
-    if user and user.is_active:
-        messages.success(request, 'The account is active.')
-        return redirect('sso_login')
-
-    if default_token_generator.check_token(user, token):
-        with transaction.atomic():
-            user.is_active = True
-            user.save()
-            email = user.associated_emails.first()
-            email = user.associated_emails.first()
-            email.verification_date = timezone.now()
-            email.is_verified = True
-            email.save()
-            logger.info('User activated - {0}'.format(user.email))
-            messages.success(request, 'The account has been activated.')
-
-        auth_login(request, user, backend='user.models.CustomRemoteUserBackend')
-        return redirect('project_home')
 
     return render(request, 'user/activate_user_complete.html', context)
 
@@ -553,34 +518,6 @@ def register(request):
     return render(request, 'user/register.html', {'form': form})
 
 
-def sso_register(request):
-    user = request.user
-    if user.is_authenticated:
-        return redirect('home')
-
-    remote_shibboleth_id = request.META.get('HTTP_REMOTE_USER')
-
-    # REMOTE_USER should be set by Shibboleth (if it's not then it's a config issue)
-    if not remote_shibboleth_id:
-        return redirect('login')
-
-    if request.method == 'POST':
-        form = forms.SSORegistrationForm(request.POST, shibboleth_id=remote_shibboleth_id)
-
-        if form.is_valid():
-            user = form.save()
-            uidb64 = force_text(urlsafe_base64_encode(force_bytes(user.pk)))
-            token = default_token_generator.make_token(user)
-            notify_sso_account_registration(request, user, uidb64, token)
-            # auth_login(request, user, backend='user.models.CustomRemoteUserBackend')
-            # return redirect('home')
-            return render(request, 'user/register_done.html', {'email': user.email})
-    else:
-        form = forms.SSORegistrationForm()
-
-    return render(request, 'user/sso_register.html', {'form': form})
-
-
 @login_required
 def user_settings(request):
     """
@@ -728,18 +665,10 @@ def credential_application(request):
         research_form = forms.ResearchCAF(prefix="application")
         form = None
 
-    return render(
-        request,
-        'user/credential_application.html',
-        {
-            'form': form,
-            'personal_form': personal_form,
-            'training_form': training_form,
-            'reference_form': reference_form,
-            'license': license,
-            'research_form': research_form,
-        },
-    )
+    return render(request, 'user/credential_application.html', {'form':form,
+        'personal_form':personal_form, 'training_form':training_form,
+        'reference_form':reference_form, 'license':license, 
+        'research_form':research_form})
 
 
 @login_required
@@ -811,7 +740,7 @@ def credential_reference(request, application_slug):
 @login_required
 def edit_cloud(request):
     """
-    Page to add the information for cloud usage.
+    Page to add the information for cloud usage. 
     """
     user = request.user
     cloud_info = CloudInformation.objects.get_or_create(user=user)[0]

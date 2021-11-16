@@ -29,6 +29,8 @@ urlpatterns = [
     path('', include('search.urls')),
     # export app
     path('', include('export.urls')),
+    # sso
+    path('', include('sso.urls')),
 
     path('', views.home, name='home'),
     path('ping/', views.ping),
@@ -60,8 +62,9 @@ urlpatterns = [
         name='tutorial_overview'),
 
     # robots.txt for crawlers
-    path('robots.txt', lambda x: HttpResponse("User-Agent: *\Allow: /", 
-        content_type="text/plain"), name="robots_file"),
+    path(
+        'robots.txt', lambda x: HttpResponse("User-Agent: *\Allow: /", content_type="text/plain"), name="robots_file"
+    ),
 ]
 
 if ProjectFiles().is_lightwave_supported:

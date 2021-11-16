@@ -646,35 +646,6 @@ class Orcid(models.Model):
         return settings.ORCID_DOMAIN
 
 
-class CustomRemoteUserBackend:
-    def authenticate(self, request, remote_user=None):
-        if not remote_user:
-            return
-
-        user = None
-        print("Authenticating as:", remote_user)
-        try:
-            user = get_user_model().objects.get(shibboleth_id=remote_user)
-            print("User found")
-        except User.DoesNotExist:
-            print("User not found")
-            pass
-
-        return user if self.user_can_authenticate(user) else None
-
-    def get_user(self, user_id):
-        print("Getting user with id", user_id)
-        try:
-            user = get_user_model().objects.get(pk=user_id)
-        except get_user_model().DoesNotExist:
-            return None
-        return user if self.user_can_authenticate(user) else None
-
-    def user_can_authenticate(self, user):
-        is_active = getattr(user, 'is_active', None)
-        return is_active or is_active is None
-
-
 class DualAuthModelBackend():
     """
     This is a ModelBacked that allows authentication with either a username or an email address.
