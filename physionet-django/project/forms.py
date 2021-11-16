@@ -34,6 +34,7 @@ from project.models import (
     StorageRequest,
     Topic,
     exists_project_slug,
+    UploadedSupportingDocument,
 )
 from project.projectfiles import ProjectFiles
 from user.models import User
@@ -1097,6 +1098,13 @@ class EthicsForm(forms.ModelForm):
         if not editable:
             for field in self.fields.values():
                 field.disabled = True
+
+
+class UploadedSupportingDocumentForm(forms.ModelForm):    
+    class Meta:
+        model = UploadedSupportingDocument
+        fields = ('supporting_document', 'document',)
+        widgets = {'document': CustomClearableFileInput}
 
 
 class UploadedSupportingDocumentFormSet(BaseGenericInlineFormSet):

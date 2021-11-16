@@ -703,3 +703,7 @@ class UploadedSupportingDocument(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
     document = models.FileField()
+
+    def delete(self, *args, **kwargs):
+        self.document.delete()
+        super().delete(*args, **kwargs)

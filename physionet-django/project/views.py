@@ -1355,9 +1355,9 @@ def project_ethics(request, project_slug, **kwargs):
 
     UploadedSupportingDocumentFormSet = generic_inlineformset_factory(UploadedSupportingDocument,
         fields=('supporting_document', 'document',), extra=0,
+        form=forms.UploadedSupportingDocumentForm,
         max_num=forms.UploadedSupportingDocumentFormSet.max_forms, can_delete=False,
         formset=forms.UploadedSupportingDocumentFormSet, validate_max=True)
-    
 
     if request.method == 'POST':
         documents_formset = UploadedSupportingDocumentFormSet(data=request.POST, instance=project, files=request.FILES)
@@ -1366,8 +1366,8 @@ def project_ethics(request, project_slug, **kwargs):
 
         if documents_formset.is_valid():
             documents_formset.save()
-    else:
-        documents_formset = UploadedSupportingDocumentFormSet(instance=project)
+
+    documents_formset = UploadedSupportingDocumentFormSet(instance=project)
 
     edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
 
@@ -1394,7 +1394,7 @@ def edit_ethics(request, project_slug, **kwargs):
         UploadedSupportingDocument.objects.get(id=int(request.POST['remove_id'])).delete()
 
     UploadedSupportingDocumentFormSet = generic_inlineformset_factory(UploadedSupportingDocument,
-     fields=('supporting_document', 'document',), extra=extra_forms,
+        extra=extra_forms,
         max_num=forms.UploadedSupportingDocumentFormSet.max_forms, can_delete=False,
         formset=forms.UploadedSupportingDocumentFormSet, validate_max=True)
     formset = UploadedSupportingDocumentFormSet(instance=project)
