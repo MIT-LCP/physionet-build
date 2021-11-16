@@ -1,31 +1,30 @@
-from datetime import datetime
 import logging
 import os
 import pdb
-import pytz
+from datetime import datetime
 
+import django.contrib.auth.views as auth_views
+import pytz
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
-import django.contrib.auth.views as auth_views
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.db import IntegrityError
-from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
-from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.db import IntegrityError, transaction
+from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from django.utils.encoding import force_bytes, force_text
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.debug import sensitive_post_parameters
-<<<<<<< HEAD
 from notification.utility import (
     credential_application_request,
     get_url_prefix,
@@ -42,15 +41,8 @@ from physionet.middleware.maintenance import (
 )
 from physionet.settings.base import StorageTypes
 from project.models import Author, DUASignature, License, PublishedProject
-=======
-from django.db import transaction
-from django.core.exceptions import ValidationError
->>>>>>> 1bca9e66 (Revert not needed formatting changes)
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
-
 from user import forms, validators
-<<<<<<< HEAD
 from user.models import (
     AssociatedEmail,
     CloudInformation,
@@ -61,17 +53,6 @@ from user.models import (
     User,
 )
 from user.userfiles import UserFiles
-=======
-from user.models import AssociatedEmail, Profile, Orcid, User, CredentialApplication, LegacyCredential, CloudInformation
-from physionet import utility
-from physionet.middleware.maintenance import (allow_post_during_maintenance,
-                                              disallow_during_maintenance,
-                                              ServiceUnavailable)
-from project.models import Author, License, PublishedProject, DUASignature
-from notification.utility import (process_credential_complete,
-                                  credential_application_request,
-                                  get_url_prefix, notify_account_registration)
->>>>>>> 1bca9e66 (Revert not needed formatting changes)
 
 logger = logging.getLogger(__name__)
 
@@ -665,10 +646,18 @@ def credential_application(request):
         research_form = forms.ResearchCAF(prefix="application")
         form = None
 
-    return render(request, 'user/credential_application.html', {'form':form,
-        'personal_form':personal_form, 'training_form':training_form,
-        'reference_form':reference_form, 'license':license, 
-        'research_form':research_form})
+    return render(
+        request,
+        'user/credential_application.html',
+        {
+            'form': form,
+            'personal_form': personal_form,
+            'training_form': training_form,
+            'reference_form': reference_form,
+            'license': license,
+            'research_form': research_form,
+        },
+    )
 
 
 @login_required
@@ -740,7 +729,7 @@ def credential_reference(request, application_slug):
 @login_required
 def edit_cloud(request):
     """
-    Page to add the information for cloud usage. 
+    Page to add the information for cloud usage.
     """
     user = request.user
     cloud_info = CloudInformation.objects.get_or_create(user=user)[0]
