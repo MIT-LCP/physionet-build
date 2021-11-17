@@ -29,7 +29,6 @@ from notification.utility import (
     credential_application_request,
     get_url_prefix,
     notify_account_registration,
-    notify_sso_account_registration,
     process_credential_complete,
 )
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
