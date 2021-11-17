@@ -7,6 +7,7 @@ from django.http import HttpResponse
 from django.urls import path
 from physionet import views
 from physionet.settings.base import StorageTypes
+from project.projectfiles import ProjectFiles
 
 handler403 = 'physionet.views.error_403'
 handler404 = 'physionet.views.error_404'
@@ -63,7 +64,7 @@ urlpatterns = [
         content_type="text/plain"), name="robots_file"),
 ]
 
-if settings.STORAGE_TYPE == StorageTypes.LOCAL:
+if ProjectFiles().is_lightwave_supported:
     urlpatterns.append(path('lightwave/', include('lightwave.urls')))
     # backward compatibility for LightWAVE
     urlpatterns.append(path('cgi-bin/lightwave', lightwave_views.lightwave_server))

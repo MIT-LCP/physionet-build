@@ -142,12 +142,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         versions of this CoreProject.  (The QuotaManager should ensure
         that the same file is not counted twice in this total.)
         """
-        if settings.STORAGE_TYPE == StorageTypes.LOCAL:
-            current = self.quota_manager().bytes_used
-        elif settings.STORAGE_TYPE == StorageTypes.GCP:
-            current = ProjectFiles().storage_used(self.file_root(), None)[0]
-
+        current = ProjectFiles().active_project_storage_used(self, None)
         published = self.core_project.total_published_size
+
         return current + published
 
     def storage_allowance(self):
@@ -555,18 +552,18 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     published_project.file_root(), make_zip,
                     verbose_name='Read Only Files - {}'.format(published_project))
 
-                if settings.STORAGE_TYPE == StorageTypes.GCP:
-                    ProjectFiles().rm_dir(self.file_root())
-
                 # Remove the ActiveProject
                 self.delete()
 
                 return published_project
 
-        except:
+        except Exception:
             # Move the files to the active project directory
             if settings.STORAGE_TYPE == StorageTypes.LOCAL:
                 os.rename(published_project.file_root(), self.file_root())
             elif settings.STORAGE_TYPE == StorageTypes.GCP:
                 ProjectFiles().rm_dir(published_project.file_root())
             raise
+
+        if settings.STORAGE_TYPE == StorageTypes.GCP:
+            ProjectFiles().rm_dir(self.file_root())

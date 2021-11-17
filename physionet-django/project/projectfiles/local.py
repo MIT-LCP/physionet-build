@@ -119,8 +119,11 @@ class LocalProjectFiles(BaseProjectFiles):
         else:
             return os.path.join(klass.PUBLIC_FILE_ROOT, slug)
 
-    def storage_used(self, path, zip_name):
-        main = get_tree_size(path)
+    def active_project_storage_used(self, project, zip_name):
+        return project.quota_manager().bytes_used
+
+    def published_project_storage_used(self, project, zip_name):
+        main = get_tree_size(project.file_root())
         compressed = os.path.getsize(zip_name) if os.path.isfile(zip_name) else 0
         return main, compressed
 
@@ -163,4 +166,10 @@ class LocalProjectFiles(BaseProjectFiles):
         return True
 
     def is_lightwave_supported(self):
+        return True
+
+    def has_wfdb_files(self, project):
+        return os.path.isfile(os.path.join(project.file_root(), 'RECORDS'))
+
+    def is_wget_supported(self):
         return True

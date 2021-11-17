@@ -258,7 +258,6 @@ def project_home(request):
             'invitation_response_formset': invitation_response_formset,
             'data_access_requests': data_access_requests,
             'pending_revisions': pending_revisions,
-            'storage_type': settings.STORAGE_TYPE,
         },
     )
 
@@ -1657,6 +1656,7 @@ def published_project(request, project_slug, version, subdir=''):
         'messages': messages.get_messages(request),
         'platform_citations': platform_citations,
         'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+        'is_wget_supported': ProjectFiles().is_wget_supported(),
     }
     # The file and directory contents
     if has_access:

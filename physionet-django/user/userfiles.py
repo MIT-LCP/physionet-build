@@ -9,6 +9,10 @@ from physionet.utility import serve_file
 
 
 class BaseUserFiles(abc.ABC):
+    @abc.abstractproperty
+    def file_root(self):
+        raise NotImplementedError
+
     @abc.abstractmethod
     def serve_photo(self, user):
         raise NotImplementedError
@@ -27,6 +31,10 @@ class BaseUserFiles(abc.ABC):
 
 
 class LocalUserFiles(BaseUserFiles):
+    @property
+    def file_root(self):
+        return settings.MEDIA_ROOT
+
     def serve_photo(self, user):
         return serve_file(user.profile.photo.path)
 
@@ -42,6 +50,10 @@ class LocalUserFiles(BaseUserFiles):
 
 
 class GCSUserFiles(BaseUserFiles):
+    @property
+    def file_root(self):
+        return settings.GCP_STORAGE_BUCKET_NAME
+
     def serve_photo(self, user):
         return redirect(user.profile.photo.url)
 

@@ -345,7 +345,7 @@ class User(AbstractBaseUser):
     REQUIRED_FIELDS = ['email']
     # Where all the users' files are kept
     RELATIVE_FILE_ROOT = 'users'
-    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, RELATIVE_FILE_ROOT)
+    FILE_ROOT = os.path.join(UserFiles().file_root, RELATIVE_FILE_ROOT)
 
     def is_superuser(self):
         return (self.is_admin,)
@@ -711,7 +711,7 @@ class CredentialApplication(models.Model):
     MAX_REPORT_SIZE = 2 * 1024 * 1024
 
     # Location for storing files associated with the application
-    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'credential-applications')
+    FILE_ROOT = os.path.join(UserFiles().file_root, 'credential-applications')
 
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     application_datetime = models.DateTimeField(auto_now_add=True)

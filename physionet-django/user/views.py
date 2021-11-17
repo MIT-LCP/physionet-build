@@ -450,13 +450,16 @@ def public_profile(request, username):
         'public_email':public_email, 'projects':projects})
 
 
-def profile_photo(_request, username):
+def profile_photo(request, username):
     """
     Serve a user's profile photo
     """
     try:
         user = User.objects.get(username__iexact=username)
     except ObjectDoesNotExist:
+        raise Http404()
+
+    if not user.profile.photo:
         raise Http404()
 
     return UserFiles().serve_photo(user)

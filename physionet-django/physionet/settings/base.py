@@ -487,9 +487,7 @@ class StorageTypes:
 
 STORAGE_TYPE = config('STORAGE_TYPE', default=StorageTypes.LOCAL)
 
-if STORAGE_TYPE == StorageTypes.LOCAL:
-    STATIC_URL = '/static/'
-elif STORAGE_TYPE == StorageTypes.GCP:
+if STORAGE_TYPE == StorageTypes.GCP:
     DEFAULT_FILE_STORAGE = 'physionet.storage.MediaStorage'
     STATICFILES_STORAGE = 'physionet.storage.StaticStorage'
     GCP_STORAGE_BUCKET_NAME = config('GCP_MEDIA_BUCKET_NAME')

@@ -43,34 +43,43 @@ class GCSObject:
 
     @property
     def bucket(self):
+        """Return the bucket"""
         return self._storage.bucket
 
     @property
     def blob(self):
+        """Return the blob"""
         return self._storage.bucket.blob(self.name)
 
     @property
     def url(self):
+        """Return the url"""
         return self._storage.url(self.name)
 
     @property
     def client(self):
+        """Return the client"""
         return self._storage.client
 
     @property
     def name(self):
+        """Return the name"""
         return self._object_name
 
     def open(self, mode):
+        """Open the location with the given mode"""
         return self._storage.open(self.name, mode=mode)
 
     def upload_from_string(self, content):
+        """Upload the contents from the provided string"""
         self.blob.upload_from_string(content)
 
     def upload_from_file(self, file):
+        """Upload the contents from a file object"""
         self.blob.upload_from_file(file)
 
     def exists(self):
+        """Check if blob exists"""
         return True if self.bucket.get_blob(self.name) else False
 
     def mkdir(self):
@@ -101,12 +110,14 @@ class GCSObject:
         return self.bucket.list_blobs(prefix=self.name, delimiter=delimiter)
 
     def rm(self):
+        """Remove"""
         if self.is_dir():
             self.bucket.delete_blobs(list(self.ls()))
         else:
             self.bucket.delete_blob(self.name)
 
     def cp(self, gcs_obj, ignored_files=None):
+        """Copy"""
         if not gcs_obj.is_dir():
             raise GCSObjectException('The target path must point on directory.')
 
@@ -119,6 +130,7 @@ class GCSObject:
             self._cp_file(gcs_obj)
 
     def mv(self, gcs_obj, ignored_files=None):
+        """Move"""
         if not gcs_obj.is_dir():
             raise GCSObjectException(
                 'The target path must point on directory. If you want to rename a file use `.rename()` method.'
@@ -132,6 +144,7 @@ class GCSObject:
         self.rm()
 
     def rename(self, gcs_obj):
+        """Rename"""
         if self.is_dir():
             self.cp_dir_content(gcs_obj, ignored_files=None)
             self.rm()
@@ -143,11 +156,13 @@ class GCSObject:
         return self.name.endswith('/')
 
     def get_filename(self):
+        """Return the filename from the path"""
         if self.is_dir():
             return self.name.split('/')[-2] + '/'
         return self.name.split('/')[-1]
 
     def _cp_file(self, gcs_obj):
+        """Copy file"""
         self.bucket.copy_blob(
             self.blob,
             gcs_obj.bucket,

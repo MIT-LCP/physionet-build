@@ -9,6 +9,7 @@ from physionet.settings.base import StorageTypes
 from project.modelcomponents.metadata import Metadata
 from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH
+from project.projectfiles import ProjectFiles
 
 LOGGER = logging.getLogger(__name__)
 
@@ -88,12 +89,7 @@ class UnpublishedProject(models.Model):
         """
         Whether the project has wfdb files.
         """
-        path = os.path.join(self.file_root(), 'RECORDS')
-        if settings.STORAGE_TYPE == StorageTypes.LOCAL:
-            return os.path.isfile(path)
-        else:
-            # lightwave for non-local storage is currently not supported
-            return False
+        return ProjectFiles().has_wfdb_files(self)
 
     def content_modified(self):
         """

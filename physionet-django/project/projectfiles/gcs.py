@@ -110,8 +110,11 @@ class GCSProjectFiles(BaseProjectFiles):
         # the bucket name should be shorter than 63 characters
         return f'physionet-{slug}'[:63]
 
-    def storage_used(self, path, zip_name):
-        return GCSObject(self._dir_path(path)).size(), 0
+    def active_project_storage_used(self, project, zip_name):
+        return self._storage_used(project)[0]
+
+    def published_project_storage_used(self, project, zip_name):
+        return self._storage_used(project)[0]
 
     def make_zip(self, project):
         """Not implemented for GCS storage backend."""
@@ -129,6 +132,15 @@ class GCSProjectFiles(BaseProjectFiles):
 
     def is_lightwave_supported(self):
         return False
+
+    def has_wfdb_files(self, project):
+        return False
+
+    def is_wget_supported(self):
+        return False
+
+    def _storage_used(self, project):
+        return GCSObject(self._dir_path(project.file_root())).size(), 0
 
     def _url(self, path):
         return GCSObject(path).url

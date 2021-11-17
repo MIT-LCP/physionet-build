@@ -88,8 +88,13 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def storage_used(self, path, zip_name):
-        """Total storage used in bytes."""
+    def active_project_storage_used(self, project, zip_name):
+        """Total storage used in bytes - active project."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def published_project_storage_used(self, project, zip_name):
+        """Total storage used in bytes - published project."""
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -114,5 +119,15 @@ class BaseProjectFiles(abc.ABC):
 
     @abc.abstractmethod
     def is_lightwave_supported(self):
+        """Check if lightwave is supported."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def has_wfdb_files(self, project):
+        """Check if lightwave is supported."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def is_wget_supported(self):
         """Check if lightwave is supported."""
         raise NotImplementedError

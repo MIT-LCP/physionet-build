@@ -11,6 +11,7 @@ from django.shortcuts import render
 from notification.models import News
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import ACCESS_POLICIES, License, ProjectType, PublishedProject
+from project.projectfiles import ProjectFiles
 from user.forms import ContactForm
 
 
@@ -31,7 +32,7 @@ def home(request):
             'latest': latest,
             'news_pieces': news_pieces,
             'front_page_banner': front_page_banner,
-            'storage_type': settings.STORAGE_TYPE,
+            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
         },
     )
 
