@@ -22,6 +22,9 @@ Register
   </form>
   <div class="form-signin">
     <p>Already have an account? <a href="{% url 'login' %}">Log In</a></p>
+    {% if enable_sso %}
+      <p><a id="sso_login" href="{% url 'sso_login' %}">Login with UTORid</a></p>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

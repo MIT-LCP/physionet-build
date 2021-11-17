@@ -22,6 +22,9 @@ def sso_login(request):
     # If the given user does not exists => redirect to sso/register
     remote_shibboleth_id = request.META.get('HTTP_REMOTE_USER')
 
+    if request.user.is_authenticated:
+        return redirect('home')
+
     user = authenticate(remote_user=remote_shibboleth_id)
     if user is not None:
         print("Authenticating as", user, "using", user.backend)
@@ -54,9 +57,13 @@ def sso_register(request):
             notify_sso_account_registration(request, user, uidb64, token)
             # auth_login(request, user, backend='user.models.CustomRemoteUserBackend')
             # return redirect('home')
-            return render(request, 'user/register_done.html', {'email': user.email})
+            return render(request, 'sso/register_done.html', {'email': user.email})
     else:
-        form = forms.SSORegistrationForm()
+        try:
+            remote_user = User.objects.get(shibboleth_id=remote_shibboleth_id)
+            return render(request, 'sso/register_done.html', {'email': remote_user.email})
+        except User.DoesNotExist:
+            form = forms.SSORegistrationForm()
 
     return render(request, 'sso/register.html', {'form': form})
 

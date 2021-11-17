@@ -29,8 +29,6 @@ urlpatterns = [
     path('', include('search.urls')),
     # export app
     path('', include('export.urls')),
-    # sso
-    path('', include('sso.urls')),
 
     path('', views.home, name='home'),
     path('ping/', views.ping),
@@ -71,6 +69,9 @@ if ProjectFiles().is_lightwave_supported:
     urlpatterns.append(path('lightwave/', include('lightwave.urls')))
     # backward compatibility for LightWAVE
     urlpatterns.append(path('cgi-bin/lightwave', lightwave_views.lightwave_server))
+
+if settings.ENABLE_SSO:
+    urlpatterns.append(path('', include('sso.urls')))
 
 if settings.DEBUG:
     import debug_toolbar

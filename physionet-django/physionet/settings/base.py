@@ -27,6 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 DEBUG = config('DEBUG', default=False, cast=bool)
 SECRET_KEY = config('SECRET_KEY')
+ENABLE_SSO = config('ENABLE_SSO', default=False, cast=bool)
 
 
 # Application definition
@@ -56,7 +57,8 @@ INSTALLED_APPS = [
     'physionet',
 ]
 
-INSTALLED_APPS += ['sso']
+if ENABLE_SSO:
+    INSTALLED_APPS += ['sso']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -111,7 +113,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTHENTICATION_BACKENDS = ['user.models.DualAuthModelBackend']
 
-AUTHENTICATION_BACKENDS += ['sso.auth.RemoteUserBackend']
+if ENABLE_SSO:
+    AUTHENTICATION_BACKENDS += ['sso.auth.RemoteUserBackend']
 
 AUTH_USER_MODEL = 'user.User'
 
