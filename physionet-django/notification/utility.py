@@ -849,7 +849,7 @@ def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, ta
     mail_admins(subject, body, settings.DEFAULT_FROM_EMAIL)
 
 
-def notify_account_registration(request, user, uidb64, token):
+def notify_account_registration(request, user, uidb64, token, sso=False):
     """
     Send the registration email.
     """
@@ -860,28 +860,9 @@ def notify_account_registration(request, user, uidb64, token):
         'domain': get_current_site(request),
         'url_prefix': get_url_prefix(request),
         'uidb64': uidb64,
-        'token': token
+        'token': token,
+        'sso': sso,
     }
     body = loader.render_to_string('user/email/register_email.html', context)
-    # Not resend the email if there was an integrity error
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [user.email], fail_silently=False)
-
-
-def notify_sso_account_registration(request, user, uidb64, token):
-    """
-    Send the SSO email confirmation email
-    """
-
-    # Send an email with the activation link
-    subject = "PhysioNet Account Activation"
-    context = {
-        'name': user.get_full_name(),
-        'domain': get_current_site(request),
-        'url_prefix': get_url_prefix(request),
-        'uidb64': uidb64,
-        'token': token,
-    }
-    body = loader.render_to_string('sso/email/register_email.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)

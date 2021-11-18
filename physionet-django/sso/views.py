@@ -9,7 +9,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_text
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
-from notification.utility import notify_sso_account_registration
+from notification.utility import notify_account_registration
 from physionet.middleware.maintenance import disallow_during_maintenance
 from sso import forms
 from user.models import User
@@ -27,12 +27,10 @@ def sso_login(request):
 
     user = authenticate(remote_user=remote_shibboleth_id)
     if user is not None:
-        print("Authenticating as", user, "using", user.backend)
         auth_login(request, user)
     else:
         return redirect('sso_register')
 
-    # return HttpResponse(f"Logged in as: {request.META['HTTP_REMOTE_USER']}")
     return redirect('home')
 
 
@@ -54,14 +52,12 @@ def sso_register(request):
             user = form.save()
             uidb64 = force_text(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
-            notify_sso_account_registration(request, user, uidb64, token)
-            # auth_login(request, user, backend='user.models.CustomRemoteUserBackend')
-            # return redirect('home')
-            return render(request, 'sso/register_done.html', {'email': user.email})
+            notify_account_registration(request, user, uidb64, token, sso=True)
+            return render(request, 'user/register_done.html', {'email': user.email, 'sso': True})
     else:
         try:
             remote_user = User.objects.get(shibboleth_id=remote_shibboleth_id)
-            return render(request, 'sso/register_done.html', {'email': remote_user.email})
+            return render(request, 'user/register_done.html', {'email': remote_user.email, 'sso': True})
         except User.DoesNotExist:
             form = forms.SSORegistrationForm()
 

@@ -14,6 +14,6 @@ Registration Complete
 <div class="container">
   <h1>Thank you for registering</h1>
   <p>An email has been sent to {{ email }}. Please click on the confirmation link to activate your account.</p>
-  <p>Once you have done that, you may <a href="{% url 'login' %}">log in</a>.</p>
+  <p>Once you have done that, you may <a href='{% url sso|yesno:"sso_login,login" %}'>log in</a>.</p>
 </div>
 {% endblock %}
