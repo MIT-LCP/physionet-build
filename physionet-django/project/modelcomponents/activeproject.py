@@ -555,7 +555,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 # Remove the ActiveProject
                 self.delete()
 
-        except Exception:
+        except BaseException:
             ProjectFiles().publish_rollback(self, published_project)
 
             raise
