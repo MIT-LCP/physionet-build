@@ -142,7 +142,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         versions of this CoreProject.  (The QuotaManager should ensure
         that the same file is not counted twice in this total.)
         """
-        current = ProjectFiles().active_project_storage_used(self, None)
+        current = ProjectFiles().active_project_storage_used(self, None)[0]
         published = self.core_project.total_published_size
 
         return current + published
@@ -463,7 +463,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Create project file root if this is first version or the first
         # version with a different access policy
 
-        ProjectFiles().publish(self, published_project)
+        ProjectFiles().publish_initial(self, published_project)
 
         try:
             with transaction.atomic():
@@ -555,15 +555,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 # Remove the ActiveProject
                 self.delete()
 
-                return published_project
-
         except Exception:
-            # Move the files to the active project directory
-            if settings.STORAGE_TYPE == StorageTypes.LOCAL:
-                os.rename(published_project.file_root(), self.file_root())
-            elif settings.STORAGE_TYPE == StorageTypes.GCP:
-                ProjectFiles().rm_dir(published_project.file_root())
+            ProjectFiles().publish_rollback(self, published_project)
+
             raise
 
-        if settings.STORAGE_TYPE == StorageTypes.GCP:
-            ProjectFiles().rm_dir(self.file_root())
+        ProjectFiles().publish_complete(self, published_project)
+
+        return published_project

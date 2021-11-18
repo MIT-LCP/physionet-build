@@ -94,7 +94,7 @@ class GCSProjectFiles(BaseProjectFiles):
     def download_url(self, project, path):
         return self.raw_url(project, path)
 
-    def publish(self, active_project, published_project):
+    def publish_initial(self, active_project, published_project):
         bucket_name = published_project.project_file_root()
         try:
             create_bucket(bucket_name)
@@ -106,15 +106,21 @@ class GCSProjectFiles(BaseProjectFiles):
 
         GCSObject(active_project_path).cp_dir_content(GCSObject(published_project_path), None)
 
+    def publish_complete(self, active_project, published_project):
+        self.rm_dir(active_project.file_root())
+
+    def publish_rollback(self, active_project, published_project):
+        self.rm_dir(published_project.file_root())
+
     def get_project_file_root(self, slug, access_policy, klass):
         # the bucket name should be shorter than 63 characters
         return f'physionet-{slug}'[:63]
 
     def active_project_storage_used(self, project, zip_name):
-        return self._storage_used(project)[0]
+        return self._storage_used(project)
 
     def published_project_storage_used(self, project, zip_name):
-        return self._storage_used(project)[0]
+        return self._storage_used(project)
 
     def make_zip(self, project):
         """Not implemented for GCS storage backend."""

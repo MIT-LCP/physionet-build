@@ -108,10 +108,16 @@ class LocalProjectFiles(BaseProjectFiles):
     def rmtree(self, path):
         shutil.rmtree(path)
 
-    def publish(self, active_project, published_project):
+    def publish_initial(self, active_project, published_project):
         if not os.path.isdir(published_project.project_file_root()):
             os.mkdir(published_project.project_file_root())
         os.rename(active_project.file_root(), published_project.file_root())
+
+    def publish_rollback(self, active_project, published_project):
+        os.rename(published_project.file_root(), active_project.file_root())
+
+    def publish_complete(self, active_project, published_project):
+        pass
 
     def get_project_file_root(self, slug, access_policy, klass):
         if access_policy:
@@ -120,7 +126,7 @@ class LocalProjectFiles(BaseProjectFiles):
             return os.path.join(klass.PUBLIC_FILE_ROOT, slug)
 
     def active_project_storage_used(self, project, zip_name):
-        return project.quota_manager().bytes_used
+        return project.quota_manager().bytes_used, project.core_project.total_published_size
 
     def published_project_storage_used(self, project, zip_name):
         main = get_tree_size(project.file_root())

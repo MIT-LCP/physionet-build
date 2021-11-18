@@ -78,7 +78,17 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def publish(self, active_project_path, published_project_path):
+    def publish_initial(self, active_project, published_project):
+        """Operations on files performed before publishing a project."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def publish_complete(self, active_project, published_project):
+        """Operations on files performed after publishing a project."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def publish_rollback(self, active_project, published_project):
         """Operations on files performed before publishing a project."""
         raise NotImplementedError
 
