@@ -88,7 +88,10 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Bytes of storage used by main files and compressed file if any
         """
-        return ProjectFiles().published_project_storage_used(self, self.zip_name(full=True))
+        storage_used = ProjectFiles().published_project_storage_used(self)
+        zip_file_size = ProjectFiles().get_zip_file_size(self)
+
+        return storage_used, zip_file_size
 
     def set_storage_info(self):
         """

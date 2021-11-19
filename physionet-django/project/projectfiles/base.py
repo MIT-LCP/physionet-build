@@ -98,13 +98,18 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def active_project_storage_used(self, project, zip_name):
+    def active_project_storage_used(self, project):
         """Total storage used in bytes - active project."""
         raise NotImplementedError
 
     @abc.abstractmethod
-    def published_project_storage_used(self, project, zip_name):
+    def published_project_storage_used(self, project):
         """Total storage used in bytes - published project."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_zip_file_size(self, project):
+        """Get size of the compressed zip file"""
         raise NotImplementedError
 
     @abc.abstractmethod

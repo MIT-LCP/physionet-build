@@ -125,13 +125,15 @@ class LocalProjectFiles(BaseProjectFiles):
         else:
             return os.path.join(klass.PUBLIC_FILE_ROOT, slug)
 
-    def active_project_storage_used(self, project, zip_name):
-        return project.quota_manager().bytes_used, project.core_project.total_published_size
+    def active_project_storage_used(self, project):
+        return project.quota_manager().bytes_used
 
-    def published_project_storage_used(self, project, zip_name):
-        main = get_tree_size(project.file_root())
-        compressed = os.path.getsize(zip_name) if os.path.isfile(zip_name) else 0
-        return main, compressed
+    def published_project_storage_used(self, project):
+        return get_tree_size(project.file_root())
+
+    def get_zip_file_size(self, project):
+        zip_name = project.zip_name(full=True)
+        return os.path.getsize(zip_name) if os.path.isfile(zip_name) else 0
 
     def make_zip(self, project):
         fname = project.zip_name(full=True)

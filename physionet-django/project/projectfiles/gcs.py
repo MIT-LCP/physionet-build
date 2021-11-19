@@ -122,6 +122,9 @@ class GCSProjectFiles(BaseProjectFiles):
     def published_project_storage_used(self, project, zip_name):
         return self._storage_used(project)
 
+    def get_zip_file_size(self, project):
+        return 0
+
     def make_zip(self, project):
         """Not implemented for GCS storage backend."""
         return None
@@ -146,7 +149,7 @@ class GCSProjectFiles(BaseProjectFiles):
         return False
 
     def _storage_used(self, project):
-        return GCSObject(self._dir_path(project.file_root())).size(), 0
+        return GCSObject(self._dir_path(project.file_root())).size()
 
     def _url(self, path):
         return GCSObject(path).url
