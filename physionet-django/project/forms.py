@@ -1,4 +1,5 @@
 import os
+import uuid
 from collections import OrderedDict
 
 from dal import autocomplete
@@ -34,7 +35,7 @@ from project.models import (
     StorageRequest,
     Topic,
     exists_project_slug,
-    UploadedSupportingDocument,
+    UploadedDocument,
 )
 from project.projectfiles import ProjectFiles
 from user.models import User
@@ -397,18 +398,7 @@ class NewProjectVersionForm(forms.ModelForm):
         # Direct copy over fields
         for field in (field.name for field in Metadata._meta.fields):
             if field not in ['slug', 'version', 'creation_datetime']:
-                value = getattr(self.latest_project, field)
-
-                if isinstance(value, FieldFile) and value.name:
-                    file_name, extension = value.name.rsplit('.', 1)
-                    prefix = file_name.rsplit('_', 1)[0]
-
-                    new_file = ContentFile(value.read())
-                    new_file.name = f'{prefix}_{project.slug}.{extension}'
-
-                    value = new_file
-
-                setattr(project, field, value)
+                setattr(project, field, getattr(self.latest_project, field))
 
         # Set new fields
         project.creation_datetime = timezone.now()
@@ -1083,7 +1073,7 @@ class EthicsForm(forms.ModelForm):
         fields = ('ethics_statement',)
         help_texts = {
             'ethics_statement': (
-                'A statement regarding ethical concerns for the work. '
+                '* A statement regarding ethical concerns for the work. '
                 'This statement will be published with the resource, '
                 'and typically describes formal approvals acquired for '
                 'the creation of the resource, and/or ethical considerations '
@@ -1100,15 +1090,15 @@ class EthicsForm(forms.ModelForm):
                 field.disabled = True
 
 
-class UploadedSupportingDocumentForm(forms.ModelForm):    
+class UploadedDocumentForm(forms.ModelForm):    
     class Meta:
-        model = UploadedSupportingDocument
-        fields = ('supporting_document', 'document',)
+        model = UploadedDocument
+        fields = ('document_type', 'document',)
         widgets = {'document': CustomClearableFileInput}
 
 
-class UploadedSupportingDocumentFormSet(BaseGenericInlineFormSet):
-    form_name = 'project-uploadedsupportingdocument-content_type-object_id'
+class UploadedDocumentFormSet(BaseGenericInlineFormSet):
+    form_name = 'project-uploadeddocument-content_type-object_id'
     item_label = 'Supporting Documents'
     max_forms = 3
 

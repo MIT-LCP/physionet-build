@@ -57,7 +57,7 @@ from project.models import (
     Reference,
     StorageRequest,
     Topic,
-    UploadedSupportingDocument,
+    UploadedDocument,
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename
@@ -1351,23 +1351,24 @@ def project_ethics(request, project_slug, **kwargs):
 
     editable = is_submitting and project.author_editable()
 
-    ethics_form = forms.EthicsForm(instance=project, editable=editable)
-
-    UploadedSupportingDocumentFormSet = generic_inlineformset_factory(UploadedSupportingDocument,
-        fields=('supporting_document', 'document',), extra=0,
-        form=forms.UploadedSupportingDocumentForm,
-        max_num=forms.UploadedSupportingDocumentFormSet.max_forms, can_delete=False,
-        formset=forms.UploadedSupportingDocumentFormSet, validate_max=True)
+    UploadedDocumentFormSet = generic_inlineformset_factory(UploadedDocument,
+        fields=('document_type', 'document',), extra=0,
+        form=forms.UploadedDocumentForm,
+        max_num=forms.UploadedDocumentFormSet.max_forms, can_delete=False,
+        formset=forms.UploadedDocumentFormSet, validate_max=True)
 
     if request.method == 'POST':
-        documents_formset = UploadedSupportingDocumentFormSet(data=request.POST, instance=project, files=request.FILES)
+        ethics_form = forms.EthicsForm(data=request.POST, instance=project, editable=editable)
+        documents_formset = UploadedDocumentFormSet(data=request.POST, instance=project, files=request.FILES)
         if ethics_form.is_valid():
             project = ethics_form.save()
 
         if documents_formset.is_valid():
             documents_formset.save()
+    else:
+        ethics_form = forms.EthicsForm(instance=project, editable=editable)
 
-    documents_formset = UploadedSupportingDocumentFormSet(instance=project)
+    documents_formset = UploadedDocumentFormSet(instance=project)
 
     edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
 
@@ -1391,12 +1392,13 @@ def edit_ethics(request, project_slug, **kwargs):
     # Remove an object
     elif request.method == 'POST' and 'remove_id' in request.POST:
         extra_forms = 0
-        UploadedSupportingDocument.objects.get(id=int(request.POST['remove_id'])).delete()
+        UploadedDocument.objects.get(id=int(request.POST['remove_id'])).delete()
 
-    UploadedSupportingDocumentFormSet = generic_inlineformset_factory(UploadedSupportingDocument,
+    UploadedSupportingDocumentFormSet = generic_inlineformset_factory(UploadedDocument,
         extra=extra_forms,
-        max_num=forms.UploadedSupportingDocumentFormSet.max_forms, can_delete=False,
-        formset=forms.UploadedSupportingDocumentFormSet, validate_max=True)
+        max_num=forms.UploadedDocumentFormSet.max_forms, can_delete=False,
+        form=forms.UploadedDocumentForm,
+        formset=forms.UploadedDocumentFormSet, validate_max=True)
     formset = UploadedSupportingDocumentFormSet(instance=project)
     edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
 

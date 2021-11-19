@@ -218,6 +218,8 @@ class SubmissionInfo(models.Model):
     # Anonymous access
     anonymous = GenericRelation('project.AnonymousAccess')
 
+    uploaded_documents = GenericRelation('project.UploadedDocument')
+
     class Meta:
         abstract = True
 

@@ -1,5 +1,6 @@
 import logging
 import os
+import uuid
 import shutil
 from datetime import timedelta
 from html import unescape
@@ -311,8 +312,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Approvals
         if self.access_policy == 2:
-            if not self.ethical_approval and not self.explanation:
-                self.integrity_errors.append('You should at least upload ethical approval or enter the explanation.')
+            if not self.ethics_statement:
+                self.integrity_errors.append('Missing required field: Ethics Statement')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -463,18 +464,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Direct copy over fields
         for field in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
-            value = getattr(self, field)
-
-            if isinstance(value, FieldFile) and value.name:
-                file_name, extension = value.name.rsplit('.', 1)
-                prefix = file_name.rsplit('_', 1)[0]
-
-                new_file = ContentFile(value.read())
-                new_file.name = f'{prefix}_{published_project.slug}.{extension}'
-
-                value = new_file
-
-            setattr(published_project, field, value)
+            setattr(published_project, field, getattr(self, field))
 
         published_project.slug = slug or self.slug
 

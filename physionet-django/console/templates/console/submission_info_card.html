@@ -9,7 +9,7 @@
         <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline" role="tab" aria-controls="timeline" aria-selected="false">Submission Timeline</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="approvals-tab" data-toggle="tab" href="#approvals" role="tab" aria-controls="timeline" aria-selected="false">Approvals</a>
+        <a class="nav-link" id="ethics-tab" data-toggle="tab" href="#ethics" role="tab" aria-controls="timeline" aria-selected="false">Ethics</a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="anonymous-tab" data-toggle="tab" href="#anonymous" role="tab" aria-controls="anonymous" aria-selected="false">Anonymous Access</a>
@@ -58,26 +58,8 @@
       <div class="tab-pane fade" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
         {% include "project/active_submission_timeline.html" %}
       </div>
-      {# Approvals #}
-      <div class="tab-pane fade" id="approvals" role="tabpanel" aria-labelledby="timeline-tab">
-        <p>
-          {% if project.ethical_approval or project.explanation or project.other_approvals %}
-          {% if project.ethical_approval %}
-            <i class="fas fa-external-link-alt"></i>
-            <a href="{{ project.ethical_approval.url }}" target="_blank">Ethical Approval</a>
-          {% endif %}
-          {% if project.other_approvals %}
-            <a href="{{ project.other_approvals.url }}" target="_blank">Other Approvals</a>
-          {% endif %}
-          {% if project.explanation %}
-            <h6>Explanation</h6>
-            <hr>
-            {{ project.explanation|safe }}
-          {% endif %}
-          {% else %}
-            The author didn't submit any approvals.
-          {% endif %}
-        </p>
+      {# Ethics #}
+      <div class="tab-pane fade" id="ethics" role="tabpanel" aria-labelledby="timeline-tab">
       </div>
       {# Anonymous Access #}
       <div class="tab-pane fade {% if passphrase %} show active {% endif %}" id="anonymous" role="tabpanel" aria-labelledby="anonymous-tab">

@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -13,14 +14,10 @@ from project.utility import LinkFilter, get_directory_info, get_file_info, list_
 from project.validators import validate_title, validate_topic, validate_version
 
 
-def ethical_approval_path(instance, filename):
+def get_document_path(instance, filename):
     extension = filename.split('.')[-1]
-    return f'approvals/Ethical_Approval_{instance.slug}.{extension}'
-
-
-def other_approvals_path(instance, filename):
-    extension = filename.split('.')[-1]
-    return f'approvals/Other_Approvals_{instance.slug}.{extension}'
+    name = instance.document_type.name.replace(" ", "_")
+    return f'ethics/{name}_{uuid.uuid4()}.{extension}'
 
 
 class Metadata(models.Model):
@@ -690,19 +687,19 @@ class PublishedPublication(BasePublication):
         db_index=True, related_name='publications', on_delete=models.CASCADE)
 
 
-class SupportingDocument(models.Model):
+class DocumentType(models.Model):
     name = models.CharField(max_length=128)
 
     def __str__(self):
         return self.name
 
 
-class UploadedSupportingDocument(models.Model):
-    supporting_document = models.ForeignKey(SupportingDocument, on_delete=models.CASCADE)
+class UploadedDocument(models.Model):
+    document_type = models.ForeignKey(DocumentType, on_delete=models.CASCADE)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
-    document = models.FileField()
+    document = models.FileField(upload_to=get_document_path)
 
     def delete(self, *args, **kwargs):
         self.document.delete()
