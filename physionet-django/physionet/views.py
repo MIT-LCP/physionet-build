@@ -173,13 +173,13 @@ def challenge_overview(request):
     return render(request, 'about/challenge_index.html',
         {'all_challenges': all_challenges})
 
-def moody_challenge_overview(request):
+def moody_physionet_challenge_overview(request):
     """
     View for detailed information about the George B. Moody PhysioNet Challenge
     """
-    return render(request, 'about/moody_challenge_overview_index.html')
+    return render(request, 'about/moody_physionet_challenge_overview_index.html')
 
-def moody_challenge(request):
+def moody_physionet_challenge(request):
     """
     View for the list of previous Moody challenges
     """
@@ -195,7 +195,7 @@ def moody_challenge(request):
         if path.exists(path.join(md_challenge.file_root() , 'papers/index.html')):
             md_challenge.papers = True
 
-    return render(request,'about/moody_challenge_index.html', {'moody_challenges': moody_challenges})
+    return render(request,'about/moody_physionet_challenge_index.html', {'moody_challenges': moody_challenges})
 
 def community_challenge(request):
     """

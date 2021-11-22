@@ -65,10 +65,10 @@ urlpatterns = [
         name='tutorial_overview'),
 
     # detailed pages related to the challenges overview
-    path('about/challenge/moody-challenge-overview', views.moody_challenge_overview,
-         name='moody_challenge_overview'),
-    path('about/challenge/moody-challenge', views.moody_challenge,
-         name='moody_challenge'),
+    path('about/challenge/moody-physionet-challenge-overview', views.moody_physionet_challenge_overview,
+         name='moody_physionet_challenge_overview'),
+    path('about/challenge/moody-physionet-challenge', views.moody_physionet_challenge,
+         name='moody_physionet_challenge'),
     path('about/challenge/community-challenge', views.community_challenge,
          name='community_challenge'),
 
