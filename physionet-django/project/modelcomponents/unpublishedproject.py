@@ -7,9 +7,9 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.metadata import Metadata
+from project.projectfiles import ProjectFiles
 from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH
-from project.projectfiles import ProjectFiles
 
 LOGGER = logging.getLogger(__name__)
 

@@ -14,9 +14,8 @@ import shutil
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
-
-from physionet.utility import get_project_apps
 from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
+from physionet.utility import get_project_apps
 
 
 class Command(BaseCommand):

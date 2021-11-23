@@ -1181,7 +1181,7 @@ class TestGenerateSignedUrl(TestMixin):
             response = self.client.post(self.url, self.invalid_size_data_2, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-    
+
     @mock.patch('project.views.generate_signed_url_v4')
     @mock.patch('project.views.MediaStorage')
     def test_valid_size_and_filename(self, media_mock, signed_url_mock):

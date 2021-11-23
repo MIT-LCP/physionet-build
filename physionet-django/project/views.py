@@ -1,10 +1,10 @@
+import datetime as dt
 import logging
 import os
 import pdb
 import re
 from ast import literal_eval
 from urllib.parse import quote_plus
-import datetime as dt
 
 import notification.utility as notification
 from dal import autocomplete
@@ -938,21 +938,31 @@ def project_files_panel(request, project_slug, **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
-    return render(request, 'project/edit_files_panel.html',
-        {'project':project, 'subdir':subdir, 'file_error':file_error,
-         'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
-         'display_files':display_files, 'display_dirs':display_dirs,
-         'file_warning':file_warning,
-         'storage_type':settings.STORAGE_TYPE,
-         'storage_info': storage_info,
-         'upload_files_form':upload_files_form,
-         'create_folder_form':create_folder_form,
-         'rename_item_form':rename_item_form,
-         'move_items_form':move_items_form,
-         'delete_items_form':delete_items_form,
-         'is_submitting':is_submitting,
-         'is_editor':is_editor,
-         'files_editable':files_editable})
+    return render(
+        request,
+        'project/edit_files_panel.html',
+        {
+            'project': project,
+            'subdir': subdir,
+            'file_error': file_error,
+            'dir_breadcrumbs': dir_breadcrumbs,
+            'parent_dir': parent_dir,
+            'display_files': display_files,
+            'display_dirs': display_dirs,
+            'file_warning': file_warning,
+            'storage_type': settings.STORAGE_TYPE,
+            'storage_info': storage_info,
+            'upload_files_form': upload_files_form,
+            'create_folder_form': create_folder_form,
+            'rename_item_form': rename_item_form,
+            'move_items_form': move_items_form,
+            'delete_items_form': delete_items_form,
+            'is_submitting': is_submitting,
+            'is_editor': is_editor,
+            'files_editable': files_editable,
+        },
+    )
+
 
 def process_items(request, form):
     """
@@ -1089,7 +1099,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'files_editable': files_editable,
             'maintenance_message': maintenance_message,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
-            'storage_type': settings.STORAGE_TYPE
+            'storage_type': settings.STORAGE_TYPE,
         },
     )
 
@@ -2135,7 +2145,7 @@ def generate_signed_url(request, project_slug):
     size = int(size)
     if size <= 0:
         return JsonResponse({'detail': 'The file size cannot be a negative value.'}, status=400)
-        
+
     if not filename.isascii():
         return JsonResponse({'detail': 'The filename contains non-ascii characters.'}, status=400)
 
@@ -2145,7 +2155,7 @@ def generate_signed_url(request, project_slug):
     queryset = ActiveProject.objects.all()
     if not request.user.is_admin:
         queryset.filter(Q(authors__user=request.user) | Q(editor=request.user))
-        
+
     project = get_object_or_404(queryset, slug=project_slug)
 
     if size > project.get_storage_info().remaining:
@@ -2160,7 +2170,7 @@ def generate_signed_url(request, project_slug):
         api_access_endpoint='https://storage.googleapis.com',
         expiration=dt.timedelta(days=1),
         method='PUT',
-        headers={'X-Upload-Content-Length': str(size)}
+        headers={'X-Upload-Content-Length': str(size)},
     )
 
     return JsonResponse({'url': url})

@@ -1,7 +1,5 @@
 from django.urls import path, re_path
-
 from project import views
-
 
 urlpatterns = [
     path('', views.project_home, name='project_home'),
@@ -21,9 +19,7 @@ urlpatterns = [
         views.rejected_submission_history,
         name='rejected_submission_history',
     ),
-    path(
-        'published/<project_slug>/', views.published_versions, name='published_versions'
-    ),
+    path('published/<project_slug>/', views.published_versions, name='published_versions'),
     path(
         'published/<project_slug>/<version>/submission-history/',
         views.published_submission_history,
@@ -56,18 +52,12 @@ urlpatterns = [
         name='edit_content_item',
     ),
     path('<project_slug>/access/', views.project_access, name='project_access'),
-    path(
-        '<project_slug>/access/load-license/', views.load_license, name='load_license'
-    ),
-    path(
-        '<project_slug>/discovery/', views.project_discovery, name='project_discovery'
-    ),
+    path('<project_slug>/access/load-license/', views.load_license, name='load_license'),
+    path('<project_slug>/discovery/', views.project_discovery, name='project_discovery'),
     path('<project_slug>/files/', views.project_files, name='project_files'),
-    path(
-        '<project_slug>/files/<path:subdir>/', views.project_files, name='project_files'
-    ),
+    path('<project_slug>/files/<path:subdir>/', views.project_files, name='project_files'),
     re_path(
-        '^(?P<project_slug>\w+)/files/(?P<file_name>.+)$',
+        r'^(?P<project_slug>\w+)/files/(?P<file_name>.+)$',
         views.serve_active_project_file,
         name='serve_active_project_file',
     ),
@@ -76,9 +66,7 @@ urlpatterns = [
         views.project_files_panel,
         name='project_files_panel',
     ),
-    path(
-        '<project_slug>/proofread/', views.project_proofread, name='project_proofread'
-    ),
+    path('<project_slug>/proofread/', views.project_proofread, name='project_proofread'),
     path('<project_slug>/preview/', views.project_preview, name='project_preview'),
     path(
         '<project_slug>/preview/<path:subdir>/',
@@ -112,7 +100,7 @@ urlpatterns = [
         name='published_project_request_access',
     ),
     re_path(
-        '^(?P<project_slug>\w+)/download/(?P<full_file_name>.*)$',
+        r'^(?P<project_slug>\w+)/download/(?P<full_file_name>.*)$',
         views.serve_active_project_file_editor,
         name='serve_active_project_file_editor',
     ),

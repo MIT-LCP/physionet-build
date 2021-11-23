@@ -427,7 +427,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if 'subdir' not in vars():
         subdir = ''
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card(force_calculate=True)
+    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
     (display_files, display_dirs, dir_breadcrumbs, _,
      file_error) = get_project_file_info(project=project, subdir=subdir)
@@ -440,29 +440,45 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request)
 
-    response = render(request, 'console/copyedit_submission.html', {
-        'project': project, 'description_form': description_form,
-        'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
-        'access_form': access_form, 'reference_formset':reference_formset,
-        'publication_formset': publication_formset,
-        'topic_formset': topic_formset,
-        'storage_type': settings.STORAGE_TYPE,
-        'storage_info': storage_info, 'upload_files_form':upload_files_form,
-        'create_folder_form': create_folder_form,
-        'rename_item_form': rename_item_form,
-        'move_items_form': move_items_form,
-        'delete_items_form': delete_items_form,
-        'subdir': subdir, 'display_files': display_files,
-        'display_dirs': display_dirs, 'dir_breadcrumbs': dir_breadcrumbs,
-        'file_error': file_error, 'editor_home': True,
-        'is_editor': True, 'files_editable': True,
-        'copyedit_form': copyedit_form,
-        'authors': authors, 'author_emails': author_emails, 'edit_logs': edit_logs,
-        'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
-        'add_item_url': edit_url, 'remove_item_url': edit_url,
-        'discovery_form': discovery_form, 'url_prefix': url_prefix,
-        'bulk_url_prefix': bulk_url_prefix,
-        'reassign_editor_form': reassign_editor_form})
+    response = render(
+        request,
+        'console/copyedit_submission.html',
+        {
+            'project': project,
+            'description_form': description_form,
+            'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
+            'access_form': access_form,
+            'reference_formset': reference_formset,
+            'publication_formset': publication_formset,
+            'topic_formset': topic_formset,
+            'storage_type': settings.STORAGE_TYPE,
+            'storage_info': storage_info,
+            'upload_files_form': upload_files_form,
+            'create_folder_form': create_folder_form,
+            'rename_item_form': rename_item_form,
+            'move_items_form': move_items_form,
+            'delete_items_form': delete_items_form,
+            'subdir': subdir,
+            'display_files': display_files,
+            'display_dirs': display_dirs,
+            'dir_breadcrumbs': dir_breadcrumbs,
+            'file_error': file_error,
+            'editor_home': True,
+            'is_editor': True,
+            'files_editable': True,
+            'copyedit_form': copyedit_form,
+            'authors': authors,
+            'author_emails': author_emails,
+            'edit_logs': edit_logs,
+            'copyedit_logs': copyedit_logs,
+            'latest_version': latest_version,
+            'add_item_url': edit_url,
+            'remove_item_url': edit_url,
+            'discovery_form': discovery_form,
+            'url_prefix': url_prefix,
+            'reassign_editor_form': reassign_editor_form,
+        },
+    )
     if description_form_saved:
         set_saved_fields_cookie(description_form, request.path, response)
     return response
