@@ -49,5 +49,5 @@ def display_project_file(request, project, file_path):
     else:
         (_, suffix) = os.path.splitext(file_path)
         cls = _suffixes.get(suffix, TextFileView)
-    view = cls(project, file_path, infile, size)
+    view = cls(project, file_path, infile, infile.size)
     return view.render(request)

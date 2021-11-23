@@ -4,6 +4,7 @@ import pdb
 import re
 from ast import literal_eval
 from urllib.parse import quote_plus
+import datetime as dt
 
 import notification.utility as notification
 from dal import autocomplete
@@ -16,6 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -23,6 +25,7 @@ from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
+from google.cloud.storage._signing import generate_signed_url_v4
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.storage import MediaStorage
@@ -1086,6 +1089,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'files_editable': files_editable,
             'maintenance_message': maintenance_message,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+            'storage_type': settings.STORAGE_TYPE
         },
     )
 
