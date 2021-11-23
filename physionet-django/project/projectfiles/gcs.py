@@ -116,10 +116,10 @@ class GCSProjectFiles(BaseProjectFiles):
         # the bucket name should be shorter than 63 characters
         return f'physionet-{slug}'[:63]
 
-    def active_project_storage_used(self, project, zip_name):
+    def active_project_storage_used(self, project):
         return self._storage_used(project)
 
-    def published_project_storage_used(self, project, zip_name):
+    def published_project_storage_used(self, project):
         return self._storage_used(project)
 
     def get_zip_file_size(self, project):
