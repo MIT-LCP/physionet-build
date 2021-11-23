@@ -191,7 +191,9 @@ class GCSObject:
                 if blob.name in ignored_files:
                     continue
 
-                new_name = gcs_obj.name + relative_dir + blob.name.replace(os.path.commonprefix([self.name, blob.name]), '')
+                new_name = (
+                    gcs_obj.name + relative_dir + blob.name.replace(os.path.commonprefix([self.name, blob.name]), '')
+                )
                 if new_name == '/':
                     continue
 
