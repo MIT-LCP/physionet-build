@@ -4,7 +4,6 @@ from collections import OrderedDict
 from dal import autocomplete
 from django import forms
 from django.conf import settings
-from physionet.settings.base import StorageTypes
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
@@ -12,6 +11,7 @@ from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
+from physionet.settings.base import StorageTypes
 from project import utility, validators
 from project.models import (
     AccessPolicy,

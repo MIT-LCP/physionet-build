@@ -10,8 +10,8 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from notification.models import News
 from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.projectfiles import ProjectFiles
 from project.models import AccessPolicy, License, ProjectType, PublishedProject
+from project.projectfiles import ProjectFiles
 from user.forms import ContactForm
 
 

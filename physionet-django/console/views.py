@@ -54,7 +54,6 @@ from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
-from project.models import AccessPolicy
 from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User
 
 LOGGER = logging.getLogger(__name__)

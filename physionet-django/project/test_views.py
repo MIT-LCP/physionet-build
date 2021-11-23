@@ -187,26 +187,30 @@ class TestAccessPresubmission(TestMixin):
         ).first()
         software_license = License.objects.filter(resource_types__contains='1').first()
 
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':AccessPolicy.OPEN.value, 'license':open_data_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': open_data_license.id},
+        )
         self.assertMessage(response, 25)
 
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':AccessPolicy.OPEN.value, 'license':restricted_data_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': restricted_data_license.id},
+        )
         self.assertMessage(response, 40)
 
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':AccessPolicy.OPEN.value, 'license':software_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': software_license.id},
+        )
         self.assertMessage(response, 40)
 
         # Non-submitting author is not allowed
         self.client.login(username='aewj@mit.edu', password='Tester11!')
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':AccessPolicy.OPEN.value, 'license':open_data_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': open_data_license.id},
+        )
         self.assertEqual(response.status_code, 403)
 
     @prevent_request_warnings
