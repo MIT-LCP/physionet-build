@@ -771,7 +771,7 @@ class CredentialApplication(models.Model):
     research_summary = models.CharField(max_length=1000,
         validators=[validators.validate_research_summary])
     project_of_interest = models.ForeignKey('project.PublishedProject', null=True,
-        on_delete=models.SET_NULL, limit_choices_to={'access_policy': 2},)
+        on_delete=models.SET_NULL, limit_choices_to={'access_policy': AccessPolicy.RESTRICTED.value},)
     decision_datetime = models.DateTimeField(null=True)
     responder = models.ForeignKey('user.User', null=True,
         related_name='responded_applications', on_delete=models.SET_NULL)
