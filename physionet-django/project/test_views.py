@@ -1,6 +1,9 @@
+
 import base64
 import os
 from http import HTTPStatus
+import json
+from unittest import mock
 
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -1120,10 +1123,10 @@ class TestInviteDataAccessReviewer(TestMixin):
         project = PublishedProject.objects.get(title=self.PROJECT_NAME)
 
         self.client.login(username=self.SUBMITTER, password=self.PASSWORD)
-        response = self.client.post(reverse('manage_data_access_reviewers',
-                                 args=(project.slug, project.version,)),
-                         data={'reviewer': self.SUBMITTER,
-                               'invite_reviewer' : ['']})
+        response = self.client.post(
+            reverse('manage_data_access_reviewers', args=(project.slug, project.version,)),
+            data={'reviewer': self.SUBMITTER, 'invite_reviewer': ['']}
+        )
 
         self.assertContains(response, "is already allowed to review requests!")
 
@@ -1131,7 +1134,10 @@ class TestInviteDataAccessReviewer(TestMixin):
 class TestGenerateSignedUrl(TestMixin):
     @classmethod
     def setUpTestData(cls):
-        cls.url = reverse('generate_signed_url', kwargs={"project_slug": ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database').slug})
+        cls.url = reverse(
+            'generate_signed_url',
+            kwargs={"project_slug": ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database').slug},
+        )
         cls.user_credentials = {'username': 'rgmark@mit.edu', 'password': 'Tester11!'}
         cls.invalid_size_data_1 = {'size': -10, 'filename': 'random.txt'}
         cls.invalid_size_data_2 = {'size': 'file_size', 'filename': 'random.txt'}
@@ -1147,7 +1153,7 @@ class TestGenerateSignedUrl(TestMixin):
             response = self.client.post(self.url, self.invalid_size_data_1, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        
+
         with self.subTest('A non-numeric file size returns a bad request.'):
             response = self.client.post(self.url, self.invalid_size_data_2, format='json')
 
@@ -1165,13 +1171,27 @@ class TestGenerateSignedUrl(TestMixin):
             response = self.client.post(self.url, self.invalid_filename_data_1, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        
+
         with self.subTest('A filename containing non-ascii characters returns a bad request.'):
             response = self.client.post(self.url, self.invalid_filename_data_2, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        
+
         with self.subTest('Non-numeric file size returns a bad request.'):
             response = self.client.post(self.url, self.invalid_size_data_2, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+    
+    @mock.patch('project.views.generate_signed_url_v4')
+    @mock.patch('project.views.MediaStorage')
+    def test_valid_size_and_filename(self, media_mock, signed_url_mock):
+        media_mock.return_value.bucket.name = "media-bucket"
+        signed_url_mock.return_value = 'https://example.com'
+
+        self.client.login(**self.user_credentials)
+        response = self.client.post(self.url, self.valid_data, format='json')
+
+        media_mock.assert_called_once()
+        signed_url_mock.assert_called_once()
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(json.loads(response.content).get('url'), 'https://example.com')
