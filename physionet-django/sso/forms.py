@@ -19,7 +19,7 @@ class SSORegistrationForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        self.shibboleth_id = kwargs.pop('shibboleth_id', None)
+        self.sso_id = kwargs.pop('sso_id', None)
         super().__init__(*args, **kwargs)
 
     class Meta:
@@ -48,7 +48,7 @@ class SSORegistrationForm(forms.ModelForm):
 
         user = super().save(commit=False)
         user.email = user.email.lower()
-        user.shibboleth_id = self.shibboleth_id
+        user.sso_id = self.sso_id
 
         with transaction.atomic():
             user.save()

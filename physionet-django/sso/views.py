@@ -20,12 +20,12 @@ logger = logging.getLogger(__name__)
 def sso_login(request):
     # If the given user exists => authenticate the user, redirect to desired page
     # If the given user does not exists => redirect to sso/register
-    remote_shibboleth_id = request.META.get('HTTP_REMOTE_USER')
+    remote_sso_id = request.META.get('HTTP_REMOTE_USER')
 
     if request.user.is_authenticated:
         return redirect('home')
 
-    user = authenticate(remote_user=remote_shibboleth_id)
+    user = authenticate(remote_user=remote_sso_id)
     if user is not None:
         auth_login(request, user)
     else:
@@ -39,14 +39,14 @@ def sso_register(request):
     if user.is_authenticated:
         return redirect('home')
 
-    remote_shibboleth_id = request.META.get('HTTP_REMOTE_USER')
+    remote_sso_id = request.META.get('HTTP_REMOTE_USER')
 
     # REMOTE_USER should be set by Shibboleth (if it's not then it's a config issue)
-    if not remote_shibboleth_id:
+    if not remote_sso_id:
         return redirect('login')
 
     if request.method == 'POST':
-        form = forms.SSORegistrationForm(request.POST, shibboleth_id=remote_shibboleth_id)
+        form = forms.SSORegistrationForm(request.POST, sso_id=remote_sso_id)
 
         if form.is_valid():
             user = form.save()
@@ -56,7 +56,7 @@ def sso_register(request):
             return render(request, 'user/register_done.html', {'email': user.email, 'sso': True})
     else:
         try:
-            remote_user = User.objects.get(shibboleth_id=remote_shibboleth_id)
+            remote_user = User.objects.get(sso_id=remote_sso_id)
             return render(request, 'user/register_done.html', {'email': remote_user.email, 'sso': True})
         except User.DoesNotExist:
             form = forms.SSORegistrationForm()

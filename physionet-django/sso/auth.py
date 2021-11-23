@@ -8,7 +8,7 @@ class RemoteUserBackend:
         if not remote_user:
             return
 
-        user = self._get_user_or_none(shibboleth_id=remote_user)
+        user = self._get_user_or_none(sso_id=remote_user)
         return user if self.user_can_authenticate(user) else None
 
     def get_user(self, user_id):

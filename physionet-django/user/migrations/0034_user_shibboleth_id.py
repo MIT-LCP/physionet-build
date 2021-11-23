@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='user',
-            name='shibboleth_id',
+            name='sso_id',
             field=models.CharField(max_length=50, null=True, unique=True),
         ),
     ]
