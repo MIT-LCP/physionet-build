@@ -11,12 +11,11 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import fcntl
-import sys
+import logging.config
 import os
+import sys
 
 from decouple import config
-
-import logging.config
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -479,3 +478,19 @@ if os.getenv('PHYSIONET_LOCK_FILE'):
     # contrast, fcntl.lockf uses fcntl(2) and os.lockf uses lockf(3),
     # both of which are tied to the PID.
     fcntl.flock(_lockfd, fcntl.LOCK_SH)
+
+
+class StorageTypes:
+    LOCAL = 'LOCAL'
+    GCP = 'GCP'
+
+
+STORAGE_TYPE = config('STORAGE_TYPE', default=StorageTypes.LOCAL)
+
+if STORAGE_TYPE == StorageTypes.GCP:
+    DEFAULT_FILE_STORAGE = 'physionet.storage.MediaStorage'
+    STATICFILES_STORAGE = 'physionet.storage.StaticStorage'
+    GCP_STORAGE_BUCKET_NAME = config('GCP_MEDIA_BUCKET_NAME')
+    GCP_STATIC_BUCKET_NAME = config('GCP_STATIC_BUCKET_NAME')
+    GCP_BUCKET_LOCATION = config('GCP_BUCKET_LOCATION')
+    GS_PROJECT_ID = config('GCP_PROJECT_ID')

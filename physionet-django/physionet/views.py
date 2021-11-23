@@ -2,15 +2,16 @@ from collections import OrderedDict
 from os import path
 from re import fullmatch
 
-from django.contrib import messages
-from django.http import HttpResponse, Http404
-from django.shortcuts import render
-from django.db.models.functions import Lower
-
-from notification.models import News
 import notification.utility as notification
+from django.conf import settings
+from django.contrib import messages
+from django.db.models.functions import Lower
+from django.http import Http404, HttpResponse
+from django.shortcuts import render
+from notification.models import News
 from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.models import License, PublishedProject, ProjectType, ACCESS_POLICIES
+from project.models import ACCESS_POLICIES, License, ProjectType, PublishedProject
+from project.projectfiles import ProjectFiles
 from user.forms import ContactForm
 
 
@@ -23,10 +24,17 @@ def home(request):
     news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
     front_page_banner = News.objects.filter(front_page_banner=True)
 
-    return render(request, 'home.html', {'featured': featured,
-                                         'latest': latest,
-                                         'news_pieces': news_pieces,
-                                         'front_page_banner': front_page_banner})
+    return render(
+        request,
+        'home.html',
+        {
+            'featured': featured,
+            'latest': latest,
+            'news_pieces': news_pieces,
+            'front_page_banner': front_page_banner,
+            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+        },
+    )
 
 
 def ping(request):

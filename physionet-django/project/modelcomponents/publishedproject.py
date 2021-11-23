@@ -1,19 +1,17 @@
-from distutils.version import StrictVersion
-import hashlib
 import os
 import shutil
+from distutils.version import StrictVersion
 
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
-
-from physionet.utility import sorted_tree_files, zip_dir
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
-from project.utility import clear_directory, get_tree_size, StorageInfo
+from project.projectfiles import ProjectFiles
+from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
 
 
@@ -78,10 +76,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         This is the parent directory of the main and special file
         directories.
         """
-        if self.access_policy:
-            return os.path.join(PublishedProject.PROTECTED_FILE_ROOT, self.slug)
-        else:
-            return os.path.join(PublishedProject.PUBLIC_FILE_ROOT, self.slug)
+        return ProjectFiles().get_project_file_root(self.slug, self.access_policy, PublishedProject)
 
     def file_root(self):
         """
@@ -93,9 +88,10 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Bytes of storage used by main files and compressed file if any
         """
-        main = get_tree_size(self.file_root())
-        compressed = os.path.getsize(self.zip_name(full=True)) if os.path.isfile(self.zip_name(full=True)) else 0
-        return main, compressed
+        storage_used = ProjectFiles().published_project_storage_used(self)
+        zip_file_size = ProjectFiles().get_zip_file_size(self)
+
+        return storage_used, zip_file_size
 
     def set_storage_info(self):
         """
@@ -125,15 +121,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make a (new) zip file of the main files.
         """
-        fname = self.zip_name(full=True)
-        if os.path.isfile(fname):
-            os.remove(fname)
-
-        zip_dir(zip_name=fname, target_dir=self.file_root(),
-            enclosing_folder=self.slugged_label())
-
-        self.compressed_storage_size = os.path.getsize(fname)
-        self.save()
+        return ProjectFiles().make_zip(project=self)
 
     def remove_zip(self):
         fname = self.zip_name(full=True)
@@ -156,29 +144,13 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make the checksums file for the main files
         """
-        fname = os.path.join(self.file_root(), 'SHA256SUMS.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-
-        with open(fname, 'w') as outfile:
-            for f in sorted_tree_files(self.file_root()):
-                if f != 'SHA256SUMS.txt':
-                    h = hashlib.sha256()
-                    with open(os.path.join(self.file_root(), f), 'rb') as fp:
-                        block = fp.read(h.block_size)
-                        while block:
-                            h.update(block)
-                            block = fp.read(h.block_size)
-                    outfile.write('{} {}\n'.format(h.hexdigest(), f))
-
-        self.set_storage_info()
+        return ProjectFiles().make_checksum_file(self)
 
     def remove_files(self):
         """
         Remove files of this project
         """
-        clear_directory(self.file_root())
-        self.remove_zip()
+        ProjectFiles().rm_dir(self.file_root(), remove_zip=self.remove_zip)
         self.set_storage_info()
 
     def deprecate_files(self, delete_files):

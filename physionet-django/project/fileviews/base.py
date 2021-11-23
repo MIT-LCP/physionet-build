@@ -1,10 +1,10 @@
 import gzip
 import os
 
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
-
 from physionet.utility import file_content_type
+from project.projectfiles import ProjectFiles
 from project.utility import get_dir_breadcrumbs
 
 MAX_PLAIN_SIZE = 5 * 1024 * 1024
@@ -27,7 +27,7 @@ class FileView:
         self.path = path
         self.file = file
         self._basename = os.path.basename(path)
-        self._stat = os.stat(file.fileno())
+        self._size = file.size
         self._url = project.file_url('', path)
 
     def render(self, request, template='project/file_view.html',
@@ -36,11 +36,11 @@ class FileView:
         Render the file to an HttpResponse.
         """
 
-        if self._stat.st_size == 0:
+        if self.size() == 0:
             template = 'project/file_view_empty.html'
             show_plain = False
         elif show_plain is None:
-            if self._stat.st_size <= MAX_PLAIN_SIZE:
+            if self.size() <= MAX_PLAIN_SIZE:
                 ctype = file_content_type(self.path)
                 show_plain = ctype.startswith('text/')
 
@@ -79,7 +79,7 @@ class FileView:
         """
         Return a human-readable file size.
         """
-        return '{:,} bytes'.format(self._stat.st_size)
+        return '{:,} bytes'.format(self.size())
 
     def download_url(self):
         """
@@ -89,7 +89,7 @@ class FileView:
         parameter indicating that we should try to force the browser
         to save the file rather than displaying it.
         """
-        return self._url + '?download'
+        return ProjectFiles().download_url(self.project, self.path)
 
     def raw_url(self):
         """
@@ -99,13 +99,13 @@ class FileView:
         according to the browser's default settings for the
         corresponding content type.
         """
-        return self._url
+        return ProjectFiles().raw_url(self.project, self.path)
 
     def size(self):
         """
         Return the size of the file in bytes.
         """
-        return self._stat.st_size
+        return self._size
 
 
 class RawFileView(FileView):

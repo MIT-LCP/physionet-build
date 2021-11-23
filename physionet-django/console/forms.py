@@ -1,21 +1,29 @@
-import re
 import pdb
+import re
 
-from django import forms
-from django.utils import timezone
-from django.core.validators import validate_integer, validate_email, URLValidator
-from google.cloud import storage
-from django.db import transaction
-from django.conf import settings
-from dal import autocomplete
-
-from notification.models import News
-from project.models import (ActiveProject, EditLog, CopyeditLog, Contact,
-                            PublishedProject, exists_project_slug, DataAccess,
-                            PublishedAffiliation, PublishedAuthor)
-from project.validators import validate_slug, MAX_PROJECT_SLUG_LENGTH, validate_doi
-from user.models import User, CredentialApplication, CredentialReview
 from console.utility import generate_doi_payload, register_doi
+from dal import autocomplete
+from django import forms
+from django.conf import settings
+from django.core.validators import URLValidator, validate_email, validate_integer
+from django.db import transaction
+from django.utils import timezone
+from google.cloud import storage
+from notification.models import News
+from project.models import (
+    ActiveProject,
+    Contact,
+    CopyeditLog,
+    DataAccess,
+    EditLog,
+    PublishedAffiliation,
+    PublishedAuthor,
+    PublishedProject,
+    exists_project_slug,
+)
+from project.projectfiles import ProjectFiles
+from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
+from user.models import CredentialApplication, CredentialReview, User
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -273,6 +281,11 @@ class PublishForm(forms.Form):
             del(self.fields['slug'])
         else:
             self.fields['slug'].initial = project.slug
+
+        if not ProjectFiles().can_make_zip():
+            self.fields['make_zip'].disabled = True
+            self.fields['make_zip'].required = False
+            self.fields['make_zip'].initial = 0
 
     def clean_slug(self):
         """

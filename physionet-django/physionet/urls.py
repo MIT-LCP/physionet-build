@@ -1,14 +1,13 @@
-from django.conf import settings
-from django.conf.urls import include
-from django.contrib import admin
-from django.urls import path
-from django.http import HttpResponse
-from django.conf.urls import handler404, handler500
-
-from physionet import views
 import lightwave.views as lightwave_views
 import project.views as project_views
-
+from django.conf import settings
+from django.conf.urls import handler404, handler500, include
+from django.contrib import admin
+from django.http import HttpResponse
+from django.urls import path
+from physionet import views
+from physionet.settings.base import StorageTypes
+from project.projectfiles import ProjectFiles
 
 handler403 = 'physionet.views.error_403'
 handler404 = 'physionet.views.error_404'
@@ -30,10 +29,6 @@ urlpatterns = [
     path('', include('search.urls')),
     # export app
     path('', include('export.urls')),
-
-    path('lightwave/', include('lightwave.urls')),
-    # backward compatibility for LightWAVE
-    path('cgi-bin/lightwave', lightwave_views.lightwave_server),
 
     path('', views.home, name='home'),
     path('ping/', views.ping),
@@ -69,7 +64,13 @@ urlpatterns = [
         content_type="text/plain"), name="robots_file"),
 ]
 
+if ProjectFiles().is_lightwave_supported:
+    urlpatterns.append(path('lightwave/', include('lightwave.urls')))
+    # backward compatibility for LightWAVE
+    urlpatterns.append(path('cgi-bin/lightwave', lightwave_views.lightwave_server))
+
 if settings.DEBUG:
     import debug_toolbar
+
     # debug toolbar
     urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))

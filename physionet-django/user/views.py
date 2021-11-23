@@ -1,45 +1,57 @@
-from datetime import datetime
 import logging
 import os
 import pdb
-import pytz
+from datetime import datetime
 
+import django.contrib.auth.views as auth_views
+import pytz
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
-import django.contrib.auth.views as auth_views
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.db import IntegrityError
-from django.forms import inlineformset_factory, HiddenInput, CheckboxInput
-from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.db import IntegrityError, transaction
+from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from django.utils.encoding import force_bytes, force_text
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.decorators import method_decorator
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.debug import sensitive_post_parameters
-from django.db import transaction
-from django.core.exceptions import ValidationError
-from requests_oauthlib import OAuth2Session
+from notification.utility import (
+    credential_application_request,
+    get_url_prefix,
+    notify_account_registration,
+    process_credential_complete,
+)
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
-
-from user import forms, validators
-from user.models import AssociatedEmail, Profile, Orcid, User, CredentialApplication, LegacyCredential, CloudInformation
 from physionet import utility
-from physionet.middleware.maintenance import (allow_post_during_maintenance,
-                                              disallow_during_maintenance,
-                                              ServiceUnavailable)
-from project.models import Author, License, PublishedProject, DUASignature
-from notification.utility import (process_credential_complete,
-                                  credential_application_request,
-                                  get_url_prefix, notify_account_registration)
+from physionet.middleware.maintenance import (
+    ServiceUnavailable,
+    allow_post_during_maintenance,
+    disallow_during_maintenance,
+)
+from physionet.settings.base import StorageTypes
+from project.models import Author, DUASignature, License, PublishedProject
+from requests_oauthlib import OAuth2Session
+from user import forms, validators
+from user.models import (
+    AssociatedEmail,
+    CloudInformation,
+    CredentialApplication,
+    LegacyCredential,
+    Orcid,
+    Profile,
+    User,
+)
+from user.userfiles import UserFiles
 
 logger = logging.getLogger(__name__)
 
@@ -444,9 +456,13 @@ def profile_photo(request, username):
     """
     try:
         user = User.objects.get(username__iexact=username)
-        return utility.serve_file(user.profile.photo.path)
     except ObjectDoesNotExist:
         raise Http404()
+
+    if not user.profile.photo:
+        raise Http404()
+
+    return UserFiles().serve_photo(user)
 
 
 def register(request):
@@ -647,6 +663,8 @@ def training_report(request, application_slug, attach=True):
 
     if request.user == application.user or request.user.is_admin:
         try:
+            if settings.STORAGE_TYPE == StorageTypes.GCP:
+                return redirect(application.training_completion_report.url)
             return utility.serve_file(application.training_completion_report.path,
                                       attach=attach)
         except FileNotFoundError:

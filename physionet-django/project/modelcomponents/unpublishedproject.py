@@ -2,13 +2,14 @@ import logging
 import os
 import shutil
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-
+from physionet.settings.base import StorageTypes
 from project.modelcomponents.metadata import Metadata
 from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH
-
+from project.projectfiles import ProjectFiles
 
 LOGGER = logging.getLogger(__name__)
 
@@ -88,7 +89,7 @@ class UnpublishedProject(models.Model):
         """
         Whether the project has wfdb files.
         """
-        return os.path.isfile(os.path.join(self.file_root(), 'RECORDS'))
+        return ProjectFiles().has_wfdb_files(self)
 
     def content_modified(self):
         """

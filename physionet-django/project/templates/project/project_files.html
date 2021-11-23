@@ -97,9 +97,10 @@
   </div>
 </div>
 <br>
-
-{% if project.has_wfdb %}
-  <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}" target="_blank"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+{% if is_lightwave_supported %}
+  {% if project.has_wfdb %}
+    <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}" target="_blank"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+  {% endif %}
 {% endif %}
 {% include "project/edit_files_panel.html" %}
 

@@ -1,26 +1,25 @@
-from datetime import timedelta
 import logging
 import os
 import pdb
+from datetime import timedelta
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import get_user_model, signals
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
-from django.db import models, DatabaseError, transaction
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.validators import EmailValidator, FileExtensionValidator, integer_validator, validate_integer
+from django.db import DatabaseError, models, transaction
 from django.db.models import CharField
 from django.db.models.functions import Lower
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare
-from django.core.validators import (EmailValidator, validate_integer,
-    FileExtensionValidator, integer_validator)
 from django.utils.translation import ugettext as _
-
 from user import validators
+from user.userfiles import UserFiles
 
 logger = logging.getLogger(__name__)
 
@@ -345,7 +344,8 @@ class User(AbstractBaseUser):
 
     REQUIRED_FIELDS = ['email']
     # Where all the users' files are kept
-    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'users')
+    RELATIVE_FILE_ROOT = 'users'
+    FILE_ROOT = os.path.join(UserFiles().file_root, RELATIVE_FILE_ROOT)
 
     def is_superuser(self):
         return (self.is_admin,)
@@ -405,8 +405,10 @@ class User(AbstractBaseUser):
     def disp_name_email(self):
         return '{} --- {}'.format(self.get_full_name(), self.email)
 
-    def file_root(self):
+    def file_root(self, relative=False):
         "Where the user's files are stored"
+        if relative:
+            return os.path.join(User.RELATIVE_FILE_ROOT, self.username)
         return os.path.join(User.FILE_ROOT, self.username)
 
 
@@ -594,9 +596,6 @@ class Profile(models.Model):
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
-    # Where all the users' files are kept
-    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'users')
-
     def __str__(self):
         return self.get_full_name()
 
@@ -611,13 +610,10 @@ class Profile(models.Model):
         Delete the photo
         """
         if self.photo:
-            os.remove(self.photo.path)
+            UserFiles().remove_photo(UserFiles().get_photo_path(self))
             self.photo = None
             self.save()
 
-    def file_root(self):
-        "Where the profile's files are stored"
-        return os.path.join(Profile.FILE_ROOT, self.username)
 
 class Orcid(models.Model):
     """
@@ -715,7 +711,7 @@ class CredentialApplication(models.Model):
     MAX_REPORT_SIZE = 2 * 1024 * 1024
 
     # Location for storing files associated with the application
-    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'credential-applications')
+    FILE_ROOT = os.path.join(UserFiles().file_root, 'credential-applications')
 
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     application_datetime = models.DateTimeField(auto_now_add=True)

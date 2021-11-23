@@ -2,25 +2,24 @@ import base64
 import datetime
 import errno
 import html.parser
+import json
+import logging
 import os
-import shutil
 import pdb
+import re
+import shutil
 import urllib.parse
 import uuid
-import logging
-import re
-import requests
-import json
 
+import requests
+from console.utility import create_directory_service
+from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.sites.shortcuts import get_current_site
-from django.conf import settings
-from django.core.exceptions import (PermissionDenied, ValidationError)
-from django.http import HttpResponse, Http404
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.http import Http404, HttpResponse
 from django.utils.crypto import constant_time_compare
 from googleapiclient.errors import HttpError
-
-from console.utility import create_directory_service
 from user.models import User
 
 LOGGER = logging.getLogger(__name__)
@@ -33,12 +32,18 @@ class FileInfo():
     def __init__(self, name, size, last_modified):
         self.name = name
         self.size = size
-        self.last_modified= last_modified
+        self.last_modified = last_modified
+
+    def __lt__(self, other):
+        return self.name < other.name
 
 
 class DirectoryInfo():
     def __init__(self, name):
         self.name = name
+
+    def __lt__(self, other):
+        return self.name < other.name
 
 
 class DirectoryBreadcrumb():
@@ -127,24 +132,6 @@ class StorageInfo():
         if compressed_used is not None:
             self.compressed_used = compressed_used
             self.readable_compressed_used = readable_size(compressed_used)
-
-
-def list_files(directory):
-    "List files in a directory"
-    files = []
-    for ent in os.scandir(directory):
-        if not ent.is_dir():
-            files.append(ent.name)
-    return sorted(files)
-
-
-def list_directories(directory):
-    "List directories in a directory"
-    dirs = []
-    for ent in os.scandir(directory):
-        if ent.is_dir():
-            dirs.append(ent.name)
-    return sorted(dirs)
 
 
 def list_items(directory, return_separate=True):

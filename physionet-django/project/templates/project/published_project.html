@@ -348,7 +348,9 @@
               {% endif %}
             {% endfor %}
           {% endif %}
-          <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          {% if is_wget_supported %}
+            <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          {% endif %}
           </ul>
 {# ZIP END #}
         <div id="files-panel" class="card">
@@ -391,13 +393,16 @@
             {% endif %}
           {% endfor %}
         {% endif %}
-          <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          {% if is_wget_supported %}
+            <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+          {% endif %}
         </ul>
 {# ZIP END #}
       </p>
-      {% if project.has_wfdb %}
-
-        <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+      {% if is_lightwave_supported %}
+        {% if project.has_wfdb %}
+          <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+        {% endif %}
       {% endif %}
       <div id="files-panel" class="card">
         {% include "project/files_panel.html" %}

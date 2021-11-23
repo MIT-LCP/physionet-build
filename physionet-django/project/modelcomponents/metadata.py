@@ -6,11 +6,11 @@ from django.db import models
 from django.utils import timezone
 from django.utils.html import format_html
 from html2text import html2text
-
 from project.modelcomponents.access import ACCESS_POLICIES, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
-from project.utility import LinkFilter, get_file_info, get_directory_info, list_items
-from project.validators import validate_version, validate_title, validate_topic
+from project.projectfiles import ProjectFiles
+from project.utility import LinkFilter
+from project.validators import validate_title, validate_topic, validate_version
 
 
 class Metadata(models.Model):
@@ -77,8 +77,6 @@ class Metadata(models.Model):
 
     class Meta:
         abstract = True
-
-    # TODO: Add abstractmethod is_published
 
     def author_contact_info(self, only_submitting=False):
         """
@@ -337,36 +335,15 @@ class Metadata(models.Model):
         project directory, replacing any existing file with that name.
         """
         fname = os.path.join(self.file_root(), 'LICENSE.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-        with open(fname, 'x') as outfile:
-            outfile.write(self.license_content(fmt='text'))
+        ProjectFiles().fwrite(fname, self.license_content(fmt='text'))
 
     def get_directory_content(self, subdir=''):
         """
         Return information for displaying files and directories from
         the project's file root.
         """
-        # Get folder to inspect if valid
         inspect_dir = self.get_inspect_dir(subdir)
-        file_names, dir_names = list_items(inspect_dir)
-        display_files, display_dirs = [], []
-
-        # Files require desciptive info and download links
-        for file in file_names:
-            file_info = get_file_info(os.path.join(inspect_dir, file))
-            file_info.url = self.file_display_url(subdir=subdir, file=file)
-            file_info.raw_url = self.file_url(subdir=subdir, file=file)
-            file_info.download_url = file_info.raw_url + '?download'
-            display_files.append(file_info)
-
-        # Directories require links
-        for dir_name in dir_names:
-            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
-            dir_info.full_subdir = os.path.join(subdir, dir_name)
-            display_dirs.append(dir_info)
-
-        return display_files, display_dirs
+        return ProjectFiles().get_project_directory_content(inspect_dir, subdir, self.file_display_url, self.file_url)
 
     def schema_org_resource_type(self):
         """

@@ -1,27 +1,40 @@
-from collections import OrderedDict
 import os
+from collections import OrderedDict
 
+from dal import autocomplete
 from django import forms
-from django.forms.utils import ErrorList
+from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.db.models.functions import Lower
-from django.template.defaultfilters import slugify
+from django.forms.utils import ErrorList
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
-
-from project.models import (Affiliation, Author, AuthorInvitation, ActiveProject,
-                            CoreProject, StorageRequest, ProgrammingLanguage,
-                            License, Metadata, Reference, Publication, ACCESS_POLICIES,
-                            PublishedProject, Topic, exists_project_slug,
-                            AnonymousAccess, DataAccessRequest,
-                            DataAccessRequestReviewer)
-from project import utility
-from project import validators
+from physionet.gcs import GCSObject
+from physionet.settings.base import StorageTypes
+from project import utility, validators
+from project.models import (
+    ACCESS_POLICIES,
+    ActiveProject,
+    Affiliation,
+    AnonymousAccess,
+    Author,
+    AuthorInvitation,
+    CoreProject,
+    DataAccessRequest,
+    DataAccessRequestReviewer,
+    License,
+    Metadata,
+    ProgrammingLanguage,
+    Publication,
+    PublishedProject,
+    Reference,
+    StorageRequest,
+    Topic,
+    exists_project_slug,
+)
+from project.projectfiles import ProjectFiles
 from user.models import User
-
-from dal import autocomplete
-
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -73,7 +86,7 @@ class ActiveProjectFilesForm(forms.Form):
         data = self.cleaned_data['subdir']
         file_dir = os.path.join(self.project.file_root(), data)
 
-        if not os.path.isdir(file_dir):
+        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(file_dir):
             raise forms.ValidationError('Invalid directory')
         self.file_dir = file_dir
 
@@ -126,9 +139,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
         errors = ErrorList()
         for file in self.files.getlist('file_field'):
             try:
-                utility.write_uploaded_file(
-                    file=file, overwrite=False,
-                    write_file_path=os.path.join(self.file_dir, file.name))
+                ProjectFiles().fput(self.file_dir, file)
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists', file.name))
@@ -151,8 +162,10 @@ class CreateFolderForm(ActiveProjectFilesForm):
         """
         errors = ErrorList()
         name = self.cleaned_data['folder_name']
+
+        file_path = os.path.join(self.file_dir, name)
         try:
-            os.mkdir(os.path.join(self.file_dir, name))
+            ProjectFiles().mkdir(file_path)
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', name))
@@ -188,7 +201,7 @@ class DeleteItemsForm(EditItemsForm):
         for item in self.cleaned_data['items']:
             path = os.path.join(self.file_dir, item)
             try:
-                utility.remove_items([path], ignore_missing=False)
+                ProjectFiles().rm(path)
             except OSError as e:
                 if not os.path.exists(path):
                     errors.append(format_html(
@@ -220,9 +233,11 @@ class RenameItemForm(EditItemsForm):
         errors = ErrorList()
         old_name = self.cleaned_data['items'][0]
         new_name = self.cleaned_data['new_name']
+
+        old_path = os.path.join(self.file_dir, old_name)
+        new_path = os.path.join(self.file_dir, new_name)
         try:
-            utility.rename_file(os.path.join(self.file_dir, old_name),
-                                os.path.join(self.file_dir, new_name))
+            ProjectFiles().rename(old_path, new_path)
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', new_name))
@@ -277,11 +292,14 @@ class MoveItemsForm(EditItemsForm):
                 'Cannot move folder <i>{}</i> into itself',
                 destination_folder))
 
-        self.dest_dir = os.path.join(self.file_dir, destination_folder)
-        if not os.path.isdir(self.dest_dir):
-            raise forms.ValidationError(format_html(
-                'Destination folder <i>{}</i> does not exist',
-                destination_folder))
+        self.dest_dir = os.path.normpath(os.path.join(self.file_dir, destination_folder))
+        if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(self.dest_dir):
+            raise forms.ValidationError(
+                format_html(
+                    'Destination folder <i>{}</i> does not exist',
+                    destination_folder,
+                )
+            )
 
         return cleaned_data
 
@@ -294,7 +312,7 @@ class MoveItemsForm(EditItemsForm):
         for item in self.cleaned_data['items']:
             path = os.path.join(self.file_dir, item)
             try:
-                utility.move_items([path], self.dest_dir)
+                ProjectFiles().mv(path, self.dest_dir)
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists in <i>{}</i>',
@@ -338,7 +356,7 @@ class CreateProjectForm(forms.ModelForm):
             is_submitting=True, is_corresponding=True)
         author.import_profile_info()
         # Create file directory
-        os.mkdir(project.file_root())
+        ProjectFiles().mkdir(project.file_root())
         return project
 
 
@@ -415,33 +433,14 @@ class NewProjectVersionForm(forms.ModelForm):
             project.parent_projects.add(parent_project)
 
         for p_topic in self.latest_project.topics.all():
-            topic = Topic.objects.create(project=project,
-                description=p_topic.description)
+            Topic.objects.create(project=project, description=p_topic.description)
 
-        # Create file directory
-        os.mkdir(project.file_root())
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
-        for (directory, subdirs, files) in os.walk(older_file_root):
-            rel_dir = os.path.relpath(directory, older_file_root)
-            destination = os.path.join(current_file_root, rel_dir)
-            for d in subdirs:
-                try:
-                    os.mkdir(os.path.join(destination, d))
-                except FileExistsError:
-                    pass
-            for f in files:
-                # Skip linking files that are automatically generated
-                # during publication.
-                if (directory == older_file_root
-                        and f in ('SHA256SUMS.txt', 'LICENSE.txt')):
-                    continue
-                try:
-                    os.link(os.path.join(directory, f),
-                            os.path.join(destination, f))
-                except FileExistsError:
-                    pass
 
+        ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
+
+        ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
         return project
 
 
