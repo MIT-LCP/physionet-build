@@ -6,10 +6,10 @@ from django.db import models
 from django.utils import timezone
 from django.utils.html import format_html
 from html2text import html2text
-from project.modelcomponents.access import ACCESS_POLICIES, AnonymousAccess
+from project.modelcomponents.access import AccessPolicy, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
 from project.projectfiles import ProjectFiles
-from project.utility import LinkFilter
+from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import validate_title, validate_topic, validate_version
 
 
@@ -57,8 +57,7 @@ class Metadata(models.Model):
     short_description = models.CharField(max_length=250, blank=True)
 
     # Access information
-    access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
-                                             default=0)
+    access_policy = models.SmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN)
     is_self_managed_access = models.BooleanField(default=False)
     self_managed_dua = SafeHTMLField(blank=True, default='')
     self_managed_request_template = SafeHTMLField(blank=True, default='')

@@ -10,7 +10,7 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import render
 from notification.models import News
 from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.models import ACCESS_POLICIES, License, ProjectType, PublishedProject
+from project.models import AccessPolicy, License, ProjectType, PublishedProject
 from project.projectfiles import ProjectFiles
 from user.forms import ContactForm
 
@@ -140,7 +140,7 @@ def database_overview(request):
     Temporary content overview
     """
     projects = {}
-    for i, policy in ACCESS_POLICIES:
+    for i, policy in AccessPolicy.choices():
         projects[i] = {}
         projects[i]['policy'] = policy
         projects[i]['projects'] = PublishedProject.objects.filter(

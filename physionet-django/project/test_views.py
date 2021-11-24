@@ -5,14 +5,22 @@ from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
-
 from project.forms import ContentForm
-from project.models import (ArchivedProject, ActiveProject, PublishedProject,
-                            Author, AuthorInvitation, License, StorageRequest,
-                            DataAccessRequest, DataAccessRequestReviewer,
-                            PublishedAuthor)
+from project.models import (
+    AccessPolicy,
+    ActiveProject,
+    ArchivedProject,
+    Author,
+    AuthorInvitation,
+    DataAccessRequest,
+    DataAccessRequestReviewer,
+    License,
+    PublishedAuthor,
+    PublishedProject,
+    StorageRequest,
+)
 from user.models import User
-from user.test_views import prevent_request_warnings, TestMixin
+from user.test_views import TestMixin, prevent_request_warnings
 
 PROJECT_VIEWS = [
     'project_overview', 'project_authors', 'project_content',
@@ -171,33 +179,38 @@ class TestAccessPresubmission(TestMixin):
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
         # Ensure valid license policy combination
-        open_data_license = License.objects.filter(access_policy=0,
-            resource_types__contains='0').first()
-        restricted_data_license = License.objects.filter(access_policy=1,
-            resource_types__contains='0').first()
-        software_license = License.objects.filter(
-            resource_types__contains='1').first()
+        open_data_license = License.objects.filter(
+            access_policy=AccessPolicy.OPEN, resource_types__contains='0'
+        ).first()
+        restricted_data_license = License.objects.filter(
+            access_policy=AccessPolicy.RESTRICTED, resource_types__contains='0'
+        ).first()
+        software_license = License.objects.filter(resource_types__contains='1').first()
 
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':0, 'license':open_data_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': open_data_license.id},
+        )
         self.assertMessage(response, 25)
 
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':0, 'license':restricted_data_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': restricted_data_license.id},
+        )
         self.assertMessage(response, 40)
 
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':0, 'license':software_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': software_license.id},
+        )
         self.assertMessage(response, 40)
 
         # Non-submitting author is not allowed
         self.client.login(username='aewj@mit.edu', password='Tester11!')
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':0, 'license':open_data_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': open_data_license.id},
+        )
         self.assertEqual(response.status_code, 403)
 
     @prevent_request_warnings

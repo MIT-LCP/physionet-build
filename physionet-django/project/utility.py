@@ -20,7 +20,7 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404, HttpResponse
 from django.utils.crypto import constant_time_compare
 from googleapiclient.errors import HttpError
-from user.models import User
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -391,6 +391,7 @@ def check_http_auth(request):
     This should be invoked at the start of the view before checking
     user credentials, and should be paired with require_http_auth().
     """
+    from user.models import User
 
     if 'HTTP_AUTHORIZATION' in request.META:
         # If an Authorization header is supplied, but this request is

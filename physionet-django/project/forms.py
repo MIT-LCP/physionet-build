@@ -7,14 +7,14 @@ from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
+from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
-from physionet.gcs import GCSObject
 from physionet.settings.base import StorageTypes
 from project import utility, validators
 from project.models import (
-    ACCESS_POLICIES,
+    AccessPolicy,
     ActiveProject,
     Affiliation,
     AnonymousAccess,
@@ -769,7 +769,9 @@ class AccessMetadataForm(forms.ModelForm):
         licenses = License.objects.filter(
             resource_types__icontains=str(self.instance.resource_type.id))
         # Set allowed access policies based on license policies
-        available_policies = ((val, label) for (val, label) in ACCESS_POLICIES if licenses.filter(access_policy=val).exists())
+        available_policies = (
+            (val, label) for (val, label) in AccessPolicy.choices() if licenses.filter(access_policy=val).exists()
+        )
         self.fields['access_policy'].choices = available_policies
 
         if not editable:

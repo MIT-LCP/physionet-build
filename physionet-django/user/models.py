@@ -18,6 +18,8 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import ugettext as _
+
+from project.models import AccessPolicy
 from user import validators
 from user.userfiles import UserFiles
 
@@ -764,14 +766,15 @@ class CredentialApplication(models.Model):
     reference_contact_datetime = models.DateTimeField(null=True)
     reference_response_datetime = models.DateTimeField(null=True)
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
-    reference_response = models.PositiveSmallIntegerField(default=0,
-        choices=REFERENCE_RESPONSES)
-    reference_response_text = models.CharField(max_length=2000,
-        validators=[validators.validate_reference_response])
-    research_summary = models.CharField(max_length=1000,
-        validators=[validators.validate_research_summary])
-    project_of_interest = models.ForeignKey('project.PublishedProject', null=True,
-        on_delete=models.SET_NULL, limit_choices_to={'access_policy': 2},)
+    reference_response = models.PositiveSmallIntegerField(default=0, choices=REFERENCE_RESPONSES)
+    reference_response_text = models.CharField(max_length=2000, validators=[validators.validate_reference_response])
+    research_summary = models.CharField(max_length=1000, validators=[validators.validate_research_summary])
+    project_of_interest = models.ForeignKey(
+        'project.PublishedProject',
+        null=True,
+        on_delete=models.SET_NULL,
+        limit_choices_to={'access_policy': AccessPolicy.CREDENTIALED},
+    )
     decision_datetime = models.DateTimeField(null=True)
     responder = models.ForeignKey('user.User', null=True,
         related_name='responded_applications', on_delete=models.SET_NULL)

@@ -10,8 +10,9 @@ from project.modelcomponents.access import DataAccessRequest, DataAccessRequestR
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
+from project.models import AccessPolicy
 from project.projectfiles import ProjectFiles
-from project.utility import StorageInfo
+from project.utility import StorageInfo, clear_directory, get_tree_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
 
 
@@ -200,10 +201,11 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.deprecated_files:
             return False
 
-        if self.access_policy == 2 and (
-            not user.is_authenticated or not user.is_credentialed):
+        if self.access_policy == AccessPolicy.CREDENTIALED and (
+            not user.is_authenticated or not user.is_credentialed
+        ):
             return False
-        elif self.access_policy == 1 and not user.is_authenticated:
+        elif self.access_policy == AccessPolicy.RESTRICTED and not user.is_authenticated:
             return False
 
         if self.is_self_managed_access:
