@@ -17,14 +17,16 @@ class Section(models.Model):
         return self.title
 
     def move_up(self):
-        count = Section.objects.count()
         order = self.order
         if order == 1:
             return
 
+        count = Section.objects.count()
         self.order = count + 1
         self.save()
-        Section.objects.filter(page=self.page, order=order - 1).update(order=order)
+
+        Section.objects.filter(page=self.page, order=order-1).update(order=order)
+
         self.order = order - 1
         self.save()
 
@@ -36,6 +38,8 @@ class Section(models.Model):
 
         self.order = count + 1
         self.save()
-        Section.objects.filter(page=self.page, order=order + 1).update(order=order)
+
+        Section.objects.filter(page=self.page, order=order+1).update(order=order)
+
         self.order = order + 1
         self.save()
