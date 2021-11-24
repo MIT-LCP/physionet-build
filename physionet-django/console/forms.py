@@ -10,6 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
+from physionet.models import Section
 from project.models import (
     ActiveProject,
     Contact,
@@ -19,7 +20,6 @@ from project.models import (
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
-    Section,
     exists_project_slug,
 )
 from project.projectfiles import ProjectFiles

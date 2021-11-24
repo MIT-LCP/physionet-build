@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'notification',
     'search',
     'lightwave',
+    'physionet',
 ]
 
 MIDDLEWARE = [

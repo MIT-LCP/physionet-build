@@ -35,6 +35,7 @@ from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.settings.base import StorageTypes
 from physionet.utility import paginate
+from physionet.models import Section
 from project.models import (
     GCP,
     AccessPolicy,
@@ -46,7 +47,6 @@ from project.models import (
     Publication,
     PublishedProject,
     Reference,
-    Section,
     StorageRequest,
     SubmissionInfo,
     Topic,

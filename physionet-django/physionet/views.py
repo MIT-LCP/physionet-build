@@ -10,8 +10,9 @@ from django.shortcuts import render
 from notification.models import News
 from project.projectfiles import ProjectFiles
 from physionet.enums import Page
+from physionet.models import Section
 from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.models import ACCESS_POLICIES, License, ProjectType, PublishedProject, Section
+from project.models import AccessPolicy, License, ProjectType, PublishedProject
 from user.forms import ContactForm
 
 
