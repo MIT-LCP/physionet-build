@@ -201,11 +201,11 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.deprecated_files:
             return False
 
-        if self.access_policy == AccessPolicy.CREDENTIALED.value and (
+        if self.access_policy == AccessPolicy.CREDENTIALED and (
             not user.is_authenticated or not user.is_credentialed
         ):
             return False
-        elif self.access_policy == AccessPolicy.RESTRICTED.value and not user.is_authenticated:
+        elif self.access_policy == AccessPolicy.RESTRICTED and not user.is_authenticated:
             return False
 
         if self.is_self_managed_access:

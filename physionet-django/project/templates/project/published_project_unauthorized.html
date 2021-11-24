@@ -1,6 +1,6 @@
 <div class="alert alert-danger col-md-8" role="alert">
   This is a restricted-access resource. To access the files, you must
-  {% if project.access_policy == 2 and not user.is_credentialed %}
+  {% if project.access_policy == AccessPolicy.CREDENTIALED and not user.is_credentialed %}
   be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and
   {% endif %}
 

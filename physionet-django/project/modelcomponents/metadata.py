@@ -57,7 +57,7 @@ class Metadata(models.Model):
     short_description = models.CharField(max_length=250, blank=True)
 
     # Access information
-    access_policy = models.SmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN.value)
+    access_policy = models.SmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN)
     is_self_managed_access = models.BooleanField(default=False)
     self_managed_dua = SafeHTMLField(blank=True, default='')
     self_managed_request_template = SafeHTMLField(blank=True, default='')

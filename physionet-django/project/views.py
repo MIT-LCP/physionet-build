@@ -31,6 +31,7 @@ from project import forms, utility
 from project.fileviews import display_project_file
 from project.models import (
     GCP,
+    AccessPolicy,
     ActiveProject,
     Affiliation,
     AnonymousAccess,
@@ -1716,7 +1717,7 @@ def sign_dua(request, project_slug, version):
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
-    if project.access_policy == 2 and not user.is_credentialed:
+    if project.access_policy == AccessPolicy.CREDENTIALED and not user.is_credentialed:
         return render(request, 'project/credential_required.html')
 
     license = project.license
@@ -1797,7 +1798,7 @@ def request_data_access(request, project_slug, version):
                                                              status=
                                                              DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
 
-    needs_credentialing = proj.access_policy == 2 and not user.is_credentialed
+    needs_credentialing = proj.access_policy == AccessPolicy.CREDENTIALED and not user.is_credentialed
 
     full_user_name = user.get_full_name()
 

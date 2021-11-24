@@ -19,6 +19,7 @@ from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import ugettext as _
 
+from project.models import AccessPolicy
 from user import validators
 from user.userfiles import UserFiles
 
@@ -772,7 +773,7 @@ class CredentialApplication(models.Model):
         'project.PublishedProject',
         null=True,
         on_delete=models.SET_NULL,
-        limit_choices_to={'access_policy': 2},
+        limit_choices_to={'access_policy': AccessPolicy.CREDENTIALED},
     )
     decision_datetime = models.DateTimeField(null=True)
     responder = models.ForeignKey('user.User', null=True,
