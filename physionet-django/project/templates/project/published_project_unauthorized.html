@@ -4,7 +4,7 @@
   be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and
   {% endif %}
 
-  {% if project.is_self_managed_access %}
+  {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
     <a
         href="{% url 'data_access_request_status' project.slug project.version %}">submit a
         request to the authors</a> to use the data for your project.

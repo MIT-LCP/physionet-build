@@ -15,12 +15,13 @@ class AccessPolicy(IntEnum):
     OPEN = 0
     RESTRICTED = 1
     CREDENTIALED = 2
+    CONTRIBUTOR_REVIEW = 3
 
     do_not_call_in_templates = True
 
     @classmethod
     def choices(cls):
-        return tuple((option.value, option.name.capitalize()) for option in cls)
+        return tuple((option.value, option.name.replace("_", " ").title()) for option in cls)
 
 
 class DUASignature(models.Model):

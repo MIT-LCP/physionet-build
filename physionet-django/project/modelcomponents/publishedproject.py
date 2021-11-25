@@ -210,7 +210,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         elif self.access_policy == AccessPolicy.RESTRICTED and not user.is_authenticated:
             return False
 
-        if self.is_self_managed_access:
+        if self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
             return DataAccessRequest.objects.filter(
                 project=self, requester=user,
                 status=DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
