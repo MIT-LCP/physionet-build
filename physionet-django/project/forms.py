@@ -33,8 +33,6 @@ from project.models import (
     Topic,
     exists_project_slug,
 )
-from project import utility
-from project import validators
 from project.projectfiles import ProjectFiles
 from user.models import User
 
