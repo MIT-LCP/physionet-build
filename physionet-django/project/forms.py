@@ -439,7 +439,7 @@ class NewProjectVersionForm(forms.ModelForm):
 
         ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
 
-        if project.allow_file_downloads:
+        if settings.COPY_FILES_TO_NEW_VERSION:
             ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
             
         return project
@@ -776,7 +776,7 @@ class AccessMetadataForm(forms.ModelForm):
         )
         self.fields['access_policy'].choices = available_policies
 
-        if settings.STORAGE_TYPE != StorageTypes.GCP:
+        if not settings.ENABLE_FILE_DOWNLOADS_OPTION:
             del self.fields['allow_file_downloads']
 
         if not editable:
