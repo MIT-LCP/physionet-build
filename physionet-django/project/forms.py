@@ -337,7 +337,7 @@ class CreateProjectForm(forms.ModelForm):
         self.fields['resource_type'].label_from_instance = lambda obj: obj.name
     class Meta:
         model = ActiveProject
-        fields = ['resource_type', 'title', 'abstract']
+        fields = ('resource_type', 'title', 'abstract')
 
     def save(self):
         project = super().save(commit=False)
@@ -441,7 +441,7 @@ class NewProjectVersionForm(forms.ModelForm):
 
         if settings.COPY_FILES_TO_NEW_VERSION:
             ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
-            
+
         return project
 
 
@@ -752,9 +752,14 @@ class AccessMetadataForm(forms.ModelForm):
     class Meta:
         model = ActiveProject
         fields = ('access_policy', 'license', 'allow_file_downloads')
-        help_texts = {'access_policy': '* Access policy for files.',
-                      'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
-                      'allow_file_downloads': '* This option allows to enable/disable direct files downloads from the platform. It cannot be changed after the publication of the project!'}
+        help_texts = {
+            'access_policy': '* Access policy for files.',
+            'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
+            'allow_file_downloads': (
+                '* This option allows to enable/disable direct files downloads from the '
+                'platform. It cannot be changed after the publication of the project!'
+            ),
+        }
 
     def __init__(self, editable=True, **kwargs):
         """
