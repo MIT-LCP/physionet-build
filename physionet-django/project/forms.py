@@ -11,6 +11,7 @@ from django.db.models.fields.files import FieldFile
 from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
 from django.template.defaultfilters import slugify
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
@@ -1076,7 +1077,7 @@ class EthicsForm(forms.ModelForm):
                 '* A statement regarding ethical concerns for the work. '
                 'This statement will be published with the resource, '
                 'and typically describes formal approvals acquired for '
-                'the creation of the resource, and/or ethical considerations '
+                'the creation of the resource (such as a review by an ethics board) '
                 'for users of the resource. If no concerns, please indicate '
                 'this “The authors declare no ethics concerns.'
             ),
@@ -1104,7 +1105,9 @@ class UploadedDocumentFormSet(BaseGenericInlineFormSet):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        url = f'{reverse_lazy("about_publish")}#guidelines'
         self.help_text = (
-            'Upload supporting documents. For more information on '
-            'what documents are expected, see the [author guidance page].'
+            "Upload supporting documents. For more information on what documents are expected, "
+            f"see the <a href='{url}' target='_blank'>author guidance page</a>. "
+            "These documents reviewed by the editorial staff, and are not published with the project."
         )

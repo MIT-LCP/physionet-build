@@ -310,10 +310,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
 
-        # Approvals
-        if self.access_policy == 2:
-            if not self.ethics_statement:
-                self.integrity_errors.append('Missing required field: Ethics Statement')
+        # Ethics
+        if not self.ethics_statement:
+            self.integrity_errors.append('Missing required field: Ethics Statement')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:

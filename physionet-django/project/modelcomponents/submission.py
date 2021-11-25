@@ -63,7 +63,8 @@ class EditLog(models.Model):
         'editor_comments': 'Comments to authors',
         'no_phi': 'Is the project free of protected health information?',
         'data_machine_readable': 'Are all files machine-readable?',
-        'ethics_included': 'Does the submission contain the necessary approvals?',
+        'ethics_included': ('Does the submission contain an appropriate statement regarding '
+            'ethical concerns, and if necessary, supporting documentation?'),
     }
 
     LABELS = (
