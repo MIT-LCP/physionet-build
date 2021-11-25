@@ -1079,7 +1079,7 @@ class EthicsForm(forms.ModelForm):
                 'and typically describes formal approvals acquired for '
                 'the creation of the resource (such as a review by an ethics board) '
                 'for users of the resource. If no concerns, please indicate '
-                'this “The authors declare no ethics concerns.'
+                'this “The authors declare no ethics concerns".'
             ),
         }
 
