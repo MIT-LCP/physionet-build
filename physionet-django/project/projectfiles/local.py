@@ -3,7 +3,7 @@ import os
 import shutil
 
 from django.conf import settings
-from physionet.utility import sorted_tree_files, zip_dir
+from physionet.utility import serve_file, sorted_tree_files, zip_dir
 from project.projectfiles.base import BaseProjectFiles
 from project.utility import (
     clear_directory,
@@ -184,3 +184,6 @@ class LocalProjectFiles(BaseProjectFiles):
 
     def is_wget_supported(self):
         return True
+
+    def serve_file_field(self, field):
+        return serve_file(field.path, attach=False)

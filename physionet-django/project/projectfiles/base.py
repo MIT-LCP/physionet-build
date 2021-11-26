@@ -1,5 +1,7 @@
 import abc
 
+from django.urls.base import reverse
+
 
 class BaseProjectFiles(abc.ABC):
     """Base class that defines project file operations."""
@@ -150,4 +152,9 @@ class BaseProjectFiles(abc.ABC):
     @abc.abstractmethod
     def is_wget_supported(self):
         """Check if lightwave is supported."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def serve_file_field(self, field):
+        """Serve file connected with the field"""
         raise NotImplementedError

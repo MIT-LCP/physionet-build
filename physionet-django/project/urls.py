@@ -80,7 +80,7 @@ urlpatterns = [
     path('<project_slug>/submission/', views.project_submission, name='project_submission'),
     path('<project_slug>/ethics/', views.project_ethics, name='project_ethics'),
     path('<project_slug>/ethics/edit-document/', views.edit_ethics, name='edit_ethics'),
-    
+    path('ethics/<path:file_name>/', views.serve_document, name='serve_document'),
     path(
         '<project_slug>/<version>/request_access/<int:access_type>',
         views.published_project_request_access,

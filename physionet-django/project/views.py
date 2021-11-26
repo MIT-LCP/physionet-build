@@ -1351,20 +1351,29 @@ def project_ethics(request, project_slug, **kwargs):
 
     editable = is_submitting and project.author_editable()
 
-    UploadedDocumentFormSet = generic_inlineformset_factory(UploadedDocument,
-        fields=('document_type', 'document',), extra=0,
+    UploadedDocumentFormSet = generic_inlineformset_factory(
+        UploadedDocument,
+        fields=(
+            'document_type',
+            'document',
+        ),
+        extra=0,
         form=forms.UploadedDocumentForm,
-        max_num=forms.UploadedDocumentFormSet.max_forms, can_delete=False,
-        formset=forms.UploadedDocumentFormSet, validate_max=True)
+        max_num=forms.UploadedDocumentFormSet.max_forms,
+        can_delete=False,
+        formset=forms.UploadedDocumentFormSet,
+        validate_max=True,
+    )
 
     if request.method == 'POST':
         ethics_form = forms.EthicsForm(data=request.POST, instance=project, editable=editable)
         documents_formset = UploadedDocumentFormSet(data=request.POST, instance=project, files=request.FILES)
-        if ethics_form.is_valid():
+        if ethics_form.is_valid() and documents_formset.is_valid():
             project = ethics_form.save()
-
-        if documents_formset.is_valid():
             documents_formset.save()
+            messages.success(request, 'Your project ethics has been updated.')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
     else:
         ethics_form = forms.EthicsForm(instance=project, editable=editable)
 
@@ -1375,7 +1384,14 @@ def project_ethics(request, project_slug, **kwargs):
     return render(
         request,
         'project/project_ethics.html',
-        {'project': project, 'ethics_form': ethics_form, 'is_submitting': kwargs['is_submitting'], 'documents_formset': documents_formset, 'add_item_url': edit_url, 'remove_item_url': edit_url}
+        {
+            'project': project,
+            'ethics_form': ethics_form,
+            'is_submitting': kwargs['is_submitting'],
+            'documents_formset': documents_formset,
+            'add_item_url': edit_url,
+            'remove_item_url': edit_url,
+        },
     )
 
 
@@ -1394,18 +1410,44 @@ def edit_ethics(request, project_slug, **kwargs):
         extra_forms = 0
         UploadedDocument.objects.get(id=int(request.POST['remove_id'])).delete()
 
-    UploadedSupportingDocumentFormSet = generic_inlineformset_factory(UploadedDocument,
+    UploadedSupportingDocumentFormSet = generic_inlineformset_factory(
+        UploadedDocument,
         extra=extra_forms,
-        max_num=forms.UploadedDocumentFormSet.max_forms, can_delete=False,
+        max_num=forms.UploadedDocumentFormSet.max_forms,
+        can_delete=False,
         form=forms.UploadedDocumentForm,
-        formset=forms.UploadedDocumentFormSet, validate_max=True)
+        formset=forms.UploadedDocumentFormSet,
+        validate_max=True,
+    )
     formset = UploadedSupportingDocumentFormSet(instance=project)
     edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
 
-    return render(request, 'project/item_list.html',
-            {'formset':formset, 'item':'affiliation', 'item_label':formset.item_label,
-             'form_name':formset.form_name, 'add_item_url':edit_url,
-             'remove_item_url':edit_url})
+    return render(
+        request,
+        'project/item_list.html',
+        {
+            'formset': formset,
+            'item': 'affiliation',
+            'item_label': formset.item_label,
+            'form_name': formset.form_name,
+            'add_item_url': edit_url,
+            'remove_item_url': edit_url,
+        },
+    )
+
+
+@login_required
+def serve_document(request, file_name):
+    projects = ActiveProject.objects.filter(Q(authors__user=request.user) | Q(editor=request.user)).values_list(
+        'id', flat=True
+    )
+    uploaded_document = get_object_or_404(
+        UploadedDocument.objects.filter(
+            object_id__in=projects, content_type=ContentType.objects.get_for_model(ActiveProject)
+        ),
+        document__iendswith=file_name,
+    )
+    return ProjectFiles().serve_file_field(uploaded_document.document)
 
 
 @login_required

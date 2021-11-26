@@ -7,7 +7,7 @@ from html import unescape
 
 from background_task import background
 from django.conf import settings
-from django.core.files.base import ContentFile
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.db.models.fields.files import FieldFile
 from django.forms.utils import ErrorList
@@ -17,7 +17,13 @@ from django.utils.html import strip_tags
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
-from project.modelcomponents.metadata import Contact, Metadata, PublishedPublication, PublishedReference
+from project.modelcomponents.metadata import (
+    Contact,
+    Metadata,
+    PublishedPublication,
+    PublishedReference,
+    UploadedDocument,
+)
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
@@ -251,6 +257,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             copyedit_log.save()
         for parent_project in self.parent_projects.all():
             archived_project.parent_projects.add(parent_project)
+
+        UploadedDocument.objects.filter(
+            object_id=self.pk, content_type=ContentType.objects.get_for_model(ActiveProject)
+        ).update(object_id=archived_project.pk, content_type=ContentType.objects.get_for_model(ArchivedProject))
+
         if self.resource_type.id == 1:
             languages = self.programming_languages.all()
             if languages:
@@ -539,12 +550,21 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         published_affiliation = PublishedAffiliation.objects.create(
                             name=affiliation.name, author=published_author)
 
+                    UploadedDocument.objects.filter(
+                        object_id=self.pk, content_type=ContentType.objects.get_for_model(ActiveProject)
+                    ).update(
+                        object_id=published_project.pk,
+                        content_type=ContentType.objects.get_for_model(PublishedProject),
+                    )
+
                     if author.is_corresponding:
                         published_author.corresponding_email = author.corresponding_email.email
                         published_author.save()
-                        contact = Contact.objects.create(name=author.get_full_name(),
-                        affiliations='; '.join(a.name for a in affiliations),
-                        email=author.corresponding_email, project=published_project)
+                        Contact.objects.create(
+                            name=author.get_full_name(),
+                            affiliations='; '.join(a.name for a in affiliations),
+                            email=author.corresponding_email, project=published_project
+                        )
 
                 # Move the edit and copyedit logs
                 for edit_log in self.edit_logs.all():

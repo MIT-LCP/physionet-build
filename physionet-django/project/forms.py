@@ -6,6 +6,7 @@ from dal import autocomplete
 from django import forms
 from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.db.models.fields.files import FieldFile
 from django.db.models.functions import Lower
@@ -441,6 +442,19 @@ class NewProjectVersionForm(forms.ModelForm):
 
         for p_topic in self.latest_project.topics.all():
             Topic.objects.create(project=project, description=p_topic.description)
+
+        documents = []
+        content_type = ContentType.objects.get_for_model(ActiveProject)
+        for uploaded_document in self.latest_project.uploaded_documents.all():
+            uploaded_document.id = None
+            uploaded_document.object_id = project.pk
+            uploaded_document.content_type = content_type
+            uploaded_document.document = ContentFile(
+                content=uploaded_document.document.read(), name=uploaded_document.document.name
+            )
+            documents.append(uploaded_document)
+
+        UploadedDocument.objects.bulk_create(documents)
 
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
@@ -1091,10 +1105,13 @@ class EthicsForm(forms.ModelForm):
                 field.disabled = True
 
 
-class UploadedDocumentForm(forms.ModelForm):    
+class UploadedDocumentForm(forms.ModelForm):
     class Meta:
         model = UploadedDocument
-        fields = ('document_type', 'document',)
+        fields = (
+            'document_type',
+            'document',
+        )
         widgets = {'document': CustomClearableFileInput}
 
 

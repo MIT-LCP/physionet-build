@@ -46,8 +46,14 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('object_id', models.PositiveIntegerField()),
                 ('document', models.FileField(upload_to=project.modelcomponents.metadata.get_document_path)),
-                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType')),
-                ('document_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='project.DocumentType')),
+                (
+                    'content_type',
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType'),
+                ),
+                (
+                    'document_type',
+                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='project.DocumentType'),
+                ),
             ],
         ),
     ]
