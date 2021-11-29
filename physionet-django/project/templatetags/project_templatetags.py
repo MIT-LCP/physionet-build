@@ -64,26 +64,37 @@ def delimit(items):
 def access_badge(access_policy):
     badges = {
         AccessPolicy.OPEN: '<span class="badge badge-success"><i class="fas fa-lock-open"></i> Open Access</span>',
-        AccessPolicy.RESTRICTED: '<span class="badge badge-warning"><i class="fas fa-unlock-alt"></i> Restricted Access</span>',
-        AccessPolicy.CREDENTIALED: '<span class="badge badge-danger"><i class="fas fa-lock"></i> Credentialed Access</span>',
-        AccessPolicy.CONTRIBUTOR_REVIEW: '<span class="badge badge-danger"><i class="fas fa-lock"></i> Contributor Review</span>',
+        AccessPolicy.RESTRICTED: (
+            '<span class="badge badge-warning"><i class="fas fa-unlock-alt"></i> Restricted Access</span>'
+        ),
+        AccessPolicy.CREDENTIALED: (
+            '<span class="badge badge-danger"><i class="fas fa-lock"></i> Credentialed Access</span>'
+        ),
+        AccessPolicy.CONTRIBUTOR_REVIEW: (
+            '<span class="badge badge-danger"><i class="fas fa-lock"></i> Contributor Review</span>'
+        ),
     }
     try:
         return badges[access_policy]
     except KeyError:
         return format_html('<!-- unknown access_policy: {} -->', access_policy)
 
+
 @register.filter(name='access_description')
 def access_description(access_policy):
     descriptions = {
-        AccessPolicy.OPEN: 'Anyone can access the files, as long as they conform to the terms of the specified license.',
-        AccessPolicy.RESTRICTED: 'Only logged in users who sign the specified data use agreement can access the files.',
-        AccessPolicy.CREDENTIALED: 'Only credentialed users who sign the specified DUA can access the files.',
+        AccessPolicy.OPEN: (
+            'Anyone can access the files, as long as they conform to the terms of the specified license.'
+        ),
+        AccessPolicy.RESTRICTED: (
+            'Only logged in users who sign the specified data use agreement can access the files.'
+        ),
+        AccessPolicy.CREDENTIALED: ('Only credentialed users who sign the specified DUA can access the files.'),
         AccessPolicy.CONTRIBUTOR_REVIEW: (
             'In addition to the requirements for Credentialed projects, '
             'users must have individual studies reviewed by you as the contributor. This is an extremely '
             'burdensome access mode and we do not recommend its use.'
-        )
+        ),
     }
     try:
         return descriptions[access_policy]

@@ -8,7 +8,7 @@ def migrate_forward(apps, schema_editor):
     ActiveProject = apps.get_model('project', 'ActiveProject')
     ArchivedProject = apps.get_model('project', 'ArchivedProject')
     PublishedProject = apps.get_model('project', 'PublishedProject')
-    
+
     ActiveProject.objects.filter(is_self_managed_access=True).update(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW)
     ArchivedProject.objects.filter(is_self_managed_access=True).update(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW)
     PublishedProject.objects.filter(is_self_managed_access=True).update(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW)
@@ -24,26 +24,36 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activeproject',
             name='access_policy',
-            field=models.SmallIntegerField(choices=[(0, 'Open'), (1, 'Restricted'), (2, 'Credentialed'), (3, 'Contributor Review')], default=AccessPolicy(0)),
+            field=models.SmallIntegerField(
+                choices=[(0, 'Open'), (1, 'Restricted'), (2, 'Credentialed'), (3, 'Contributor Review')],
+                default=AccessPolicy(0),
+            ),
         ),
         migrations.AlterField(
             model_name='archivedproject',
             name='access_policy',
-            field=models.SmallIntegerField(choices=[(0, 'Open'), (1, 'Restricted'), (2, 'Credentialed'), (3, 'Contributor Review')], default=AccessPolicy(0)),
+            field=models.SmallIntegerField(
+                choices=[(0, 'Open'), (1, 'Restricted'), (2, 'Credentialed'), (3, 'Contributor Review')],
+                default=AccessPolicy(0),
+            ),
         ),
         migrations.AlterField(
             model_name='license',
             name='access_policy',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Open'), (1, 'Restricted'), (2, 'Credentialed'), (3, 'Contributor Review')], default=AccessPolicy(0)),
+            field=models.PositiveSmallIntegerField(
+                choices=[(0, 'Open'), (1, 'Restricted'), (2, 'Credentialed'), (3, 'Contributor Review')],
+                default=AccessPolicy(0),
+            ),
         ),
         migrations.AlterField(
             model_name='publishedproject',
             name='access_policy',
-            field=models.SmallIntegerField(choices=[(0, 'Open'), (1, 'Restricted'), (2, 'Credentialed'), (3, 'Contributor Review')], default=AccessPolicy(0)),
+            field=models.SmallIntegerField(
+                choices=[(0, 'Open'), (1, 'Restricted'), (2, 'Credentialed'), (3, 'Contributor Review')],
+                default=AccessPolicy(0),
+            ),
         ),
-
         migrations.RunPython(migrate_forward),
-        
         migrations.RemoveField(
             model_name='activeproject',
             name='is_self_managed_access',
@@ -56,5 +66,4 @@ class Migration(migrations.Migration):
             model_name='publishedproject',
             name='is_self_managed_access',
         ),
-
     ]
