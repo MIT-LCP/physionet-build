@@ -1,7 +1,7 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
-from project.models import PublishedProject
+from project.models import PublishedProject, PublishedSectionContent
 
 def parse_legacy(apps, schema_editor):
     projects = PublishedProject.objects.filter(is_legacy=True)
@@ -9,9 +9,7 @@ def parse_legacy(apps, schema_editor):
         p.parse_legacy_content()
 
 def unparse_legacy(apps, schema_editor):
-    projects = PublishedProject.objects.filter(is_legacy=True)
-    for p in projects:
-        p.project_content.all().delete()
+    PublishedSectionContent.objects.filter(project__is_legacy=True).delete()
 
 class Migration(migrations.Migration):
 
