@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from os import path
+from os import path, listdir
 from re import fullmatch
 
 import notification.utility as notification
@@ -188,6 +188,46 @@ def challenge_overview(request):
     return render(request, 'about/challenge_index.html',
         {'all_challenges': all_challenges})
 
+def moody_challenge_overview(request):
+    """
+    View for detailed information about the George B. Moody PhysioNet Challenge
+    """
+    return render(request, 'about/moody_challenge_overview_index.html')
+
+def moody_challenge(request):
+    """
+    View for the list of previous Moody challenges
+    """
+    moody_challenges = PublishedProject.objects.filter(resource_type=2,
+        is_latest_version=True,slug__iregex=r'^challenge-[0-9]{4}$').order_by('-publish_datetime')
+
+    for md_challenge in moody_challenges:
+        md_challenge.year = md_challenge.slug.split('-')[1]
+        if path.exists(path.join(md_challenge.file_root() , 'sources')):
+            md_challenge.sources = True
+            if path.exists(path.join(md_challenge.file_root() , 'sources/index.html')):
+                md_challenge.sources_index = True
+        if path.exists(path.join(md_challenge.file_root() , 'papers/index.html')):
+            md_challenge.papers = True
+
+    return render(request,'about/moody_challenge_index.html', {'moody_challenges': moody_challenges})
+
+def community_challenge(request):
+    """
+    View for the list of Community challenges
+    """
+    community_challenges = PublishedProject.objects.filter(resource_type=2,
+        is_latest_version=True,slug__iregex=r'^((?!challenge-[0-9]{4}).)*$').order_by('-publish_datetime')
+
+    for c_challenge in community_challenges:
+        if path.exists(path.join(c_challenge.file_root() , 'sources')):
+            c_challenge.sources = True
+            if path.exists(path.join(c_challenge.file_root() , 'sources/index.html')):
+                c_challenge.sources_index = True
+        if path.exists(path.join(c_challenge.file_root() , 'papers/index.html')):
+            c_challenge.papers = True
+
+    return render(request,'about/community_challenge_index.html', {'community_challenges': community_challenges})
 
 def tutorial_overview(request):
     """
