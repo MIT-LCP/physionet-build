@@ -238,8 +238,8 @@ class Metadata(models.Model):
                         prefix_map={old_display_url: new_display_url,
                                     old_file_url: new_file_url})
 
-        project_content = self.project_content.all()
-        for section in project_content:
+        project_contents = self.project_contents.all()
+        for section in project_contents:
             text = lf.convert(section.section_content)
             section.section_content = text
 

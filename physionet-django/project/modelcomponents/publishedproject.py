@@ -358,7 +358,7 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         # Delete existing sections to deal
         # with parsing multiple times
-        self.project_content.all().delete()
+        self.project_contents.all().delete()
 
         # Parse html description
         full_description = BeautifulSoup(self.full_description,

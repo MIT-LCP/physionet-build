@@ -109,10 +109,10 @@ def undo_migrate_content(apps, schema_editor):
         content_model = apps.get_model("project", model+"SectionContent")
 
         # Persists new SectionContent entity based on content from the previous structure
-        project_content = content_model.objects.filter(project=d)
-        for pc in project_content:
-            value = pc.section_content
-            title = pc.project_section.title
+        project_contents = content_model.objects.filter(project=d)
+        for content in project_contents:
+            value = content.section_content
+            title = content.project_section.title
             l = labels[title]
             with transaction.atomic():
                 setattr(d, l, value)
@@ -144,7 +144,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('section_content', project.models.SafeHTMLField(blank=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_content', to='project.ActiveProject')),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_contents', to='project.ActiveProject')),
                 ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='activesectioncontents', to='project.ProjectSection')),
             ],
         ),
@@ -153,7 +153,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('section_content', project.models.SafeHTMLField(blank=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_content', to='project.ArchivedProject')),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_contents', to='project.ArchivedProject')),
                 ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='archivedsectioncontents', to='project.ProjectSection')),
             ],
         ),
@@ -162,7 +162,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('section_content', project.models.SafeHTMLField(blank=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_content', to='project.PublishedProject')),
+                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_contents', to='project.PublishedProject')),
                 ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='publishedsectioncontents', to='project.ProjectSection')),
             ],
         ),

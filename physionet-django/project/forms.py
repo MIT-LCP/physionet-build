@@ -409,7 +409,7 @@ class NewProjectVersionForm(forms.ModelForm):
 
         # Copy content for each project section
         contents = []
-        for c in self.latest_project.project_content.all():
+        for c in self.latest_project.project_contents.all():
             contents.append(ActiveSectionContent(
                 project=project,
                 project_section=c.project_section,
@@ -496,7 +496,7 @@ class SectionContentForm(forms.ModelForm):
         if 'instance' not in kwargs:
             try:
                 # Try to get currently existing content for section
-                section_content = project.project_content.get(
+                section_content = project.project_contents.get(
                     project_section=project_section)
             except:
                 # Creates form with empty instance in case content is not found

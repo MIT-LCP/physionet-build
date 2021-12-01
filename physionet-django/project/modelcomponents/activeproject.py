@@ -223,7 +223,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 archived_project.programming_languages.add(*list(languages))
 
         # Copy content
-        content = self.project_content.all()
+        content = self.project_contents.all()
         archived_contents = []
         for c in content:
             archived_contents.append(ArchivedSectionContent(
@@ -283,7 +283,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         sections = set(ProjectSection.objects.filter(
             resource_type=self.resource_type, required=True).values_list(    
             'title', flat=True))
-        contents = self.project_content.filter(project_section__required=True)
+        contents = self.project_contents.filter(project_section__required=True)
         for content in contents:
             if content.is_valid():
                 sections.remove(content.project_section.title)
@@ -483,7 +483,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.save()
  
                 # Copy content
-                content = self.project_content.all()
+                content = self.project_contents.all()
                 published_contents = []
                 for c in content:
                     published_contents.append(PublishedSectionContent(

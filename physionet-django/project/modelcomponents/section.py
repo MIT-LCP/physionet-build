@@ -50,14 +50,14 @@ class SectionContent(models.Model):
 
 class PublishedSectionContent(SectionContent):
     project = models.ForeignKey('project.PublishedProject',
-        related_name='project_content', on_delete=models.CASCADE)
+        related_name='project_contents', on_delete=models.CASCADE)
 
 
 class ActiveSectionContent(SectionContent):
     project = models.ForeignKey('project.ActiveProject',
-        related_name='project_content', on_delete=models.CASCADE)
+        related_name='project_contents', on_delete=models.CASCADE)
 
 
 class ArchivedSectionContent(SectionContent):
     project = models.ForeignKey('project.ArchivedProject',
-        related_name='project_content', on_delete=models.CASCADE)
+        related_name='project_contents', on_delete=models.CASCADE)
