@@ -203,22 +203,20 @@ class PublishedProject(Metadata, SubmissionInfo):
         if not self.allow_file_downloads:
             return False
 
-        if self.access_policy == AccessPolicy.CREDENTIALED and (
-            not user.is_authenticated or not user.is_credentialed
-        ):
-            return False
-        elif self.access_policy == AccessPolicy.RESTRICTED and not user.is_authenticated:
-            return False
+        if self.access_policy == AccessPolicy.OPEN:
+            return True
+        elif self.access_policy == AccessPolicy.RESTRICTED:
+            return user.is_authenticated and DUASignature.objects.filter(project=self, user=user).exists()
+        elif self.access_policy == AccessPolicy.CREDENTIALED:
+                return user.is_authenticated and user.is_credentialed and DUASignature.objects.filter(project=self, user=user).exists()
+        elif self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
+                return user.is_authenticated and user.is_credentialed and DataAccessRequest.objects.filter(
+                    project=self,
+                    requester=user,
+                    status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+                ).exists()
 
-        if self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
-            return DataAccessRequest.objects.filter(
-                project=self, requester=user,
-                status=DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
-        elif self.access_policy:
-            return DUASignature.objects.filter(
-                project=self, user=user).exists()
-
-        return True
+        return False
 
     def can_approve_requests(self, user):
         """
