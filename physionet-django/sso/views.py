@@ -1,7 +1,9 @@
 import logging
 
+import django.contrib.auth.views as auth_views
+from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.tokens import default_token_generator
 from django.db import transaction
@@ -17,31 +19,60 @@ from user.models import User
 logger = logging.getLogger(__name__)
 
 
-def sso_login(request):
-    # If the given user exists => authenticate the user, redirect to desired page
-    # If the given user does not exists => redirect to sso/register
-    remote_sso_id = request.META.get('HTTP_REMOTE_USER')
+class SSOLogin(auth_views.LoginView):
+    """SSO Login view
 
-    if request.user.is_authenticated:
-        return redirect('home')
+    This view should be protected by an appropriate Shibboleth proxy.
+    SSO_REMOTE_USER_HEADER should be set by the proxy.
 
-    user = authenticate(remote_user=remote_sso_id)
-    if user is not None:
-        auth_login(request, user)
-    else:
-        return redirect('sso_register')
+    If the user is able to access this view it means that they are authenticated using SSO.
+    """
 
-    return redirect('home')
+    http_method_names = ['get', 'head']
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect(self.get_success_url())
+
+        remote_sso_id = self.request.META.get(settings.SSO_REMOTE_USER_HEADER)
+
+        # This should not happen as the REMOTE_USER header should be always set by Nginx
+        if remote_sso_id is None:
+            return redirect('home')
+
+        user = authenticate(remote_user=remote_sso_id)
+        if user is not None:
+            auth_login(request, user)
+        else:
+            # Remote user seen for the first time, redirect to SSO registration form
+            return redirect('sso_register')
+
+        return redirect(self.get_success_url())
+
+
+sso_login = SSOLogin.as_view()
 
 
 def sso_register(request):
+    """SSO Registration view
+
+    This view should be protected by an appropriate Shibboleth proxy.
+    SSO_REMOTE_USER_HEADER should be set by the proxy.
+
+    GET does two things:
+      - if the user did not fill it renders the registration form.
+      - if the user filled the form but didn't click the configmation url it renders a message that tells
+        the user to click this link.
+
+    POST submits the registration form.
+    """
     user = request.user
     if user.is_authenticated:
-        return redirect('home')
+        return redirect('project_home')
 
-    remote_sso_id = request.META.get('HTTP_REMOTE_USER')
+    remote_sso_id = request.META.get(settings.SSO_REMOTE_USER_HEADER)
 
-    # REMOTE_USER should be set by Shibboleth (if it's not then it's a config issue)
+    # This should not happen as the REMOTE_USER header should be always set by Nginx
     if not remote_sso_id:
         return redirect('login')
 
@@ -66,17 +97,23 @@ def sso_register(request):
 
 @disallow_during_maintenance
 def sso_activate_user(request, uidb64, token):
+    """SSO Registration view
+
+    This view should be protected by an appropriate Shibboleth proxy.
+    SSO_REMOTE_USER_HEADER should be set by the proxy.
+    """
     context = {'title': 'Invalid Activation Link', 'isvalid': False}
 
     try:
         uid = force_text(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
+        remote_sso_id = request.META.get(settings.SSO_REMOTE_USER_HEADER)
+        user = User.objects.get(pk=uid, sso_id=remote_sso_id)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
     if user and user.is_active:
         messages.success(request, 'The account is active.')
-        return redirect('sso_login')
+        return redirect('project_home')
 
     if default_token_generator.check_token(user, token):
         with transaction.atomic():

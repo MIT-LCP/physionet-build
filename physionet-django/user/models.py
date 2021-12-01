@@ -18,7 +18,6 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import ugettext as _
-
 from project.models import AccessPolicy
 from user import validators
 from user.userfiles import UserFiles
