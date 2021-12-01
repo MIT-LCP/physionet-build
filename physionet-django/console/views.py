@@ -400,8 +400,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 reference_formset.save()
                 publication_formset.save()
                 topic_formset.save()
-                for sf in section_forms:
-                    sf.save()
+                for form in section_forms:
+                    form.save()
                 messages.success(request,
                     'The project metadata has been updated.')
                 description_form_saved = True
