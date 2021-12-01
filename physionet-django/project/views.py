@@ -1913,7 +1913,7 @@ def request_data_access(request, project_slug, version):
     else:
         project_request_form = forms.DataAccessRequestForm(project=proj,
                                                            requester=user,
-                                                           template=proj.self_managed_request_template,
+                                                           template=proj.license.access_request_template,
                                                            prefix="proj")
 
     is_additional_request = DataAccessRequest.objects.filter(requester=user,

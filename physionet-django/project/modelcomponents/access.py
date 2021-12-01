@@ -222,6 +222,7 @@ class License(models.Model):
     # A protected license has associated DUA content
     dua_name = models.CharField(max_length=100, blank=True, default='')
     dua_html_content = SafeHTMLField(blank=True, default='')
+    access_request_template = SafeHTMLField(blank=True, default='')
 
     def __str__(self):
         return self.name
