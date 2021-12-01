@@ -224,11 +224,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Copy content
         content = self.project_content.all()
+        archived_contents = []
         for c in content:
-            ArchivedSectionContent.objects.create(
+            archived_contents.append(ArchivedSectionContent(
                 project=archived_project,
                 section_content=c.section_content,
-                project_section=c.project_section)
+                project_section=c.project_section
+            ))
+        ArchivedSectionContent.objects.bulk_create(archived_contents)
 
         # Voluntary delete
         if archive_reason == 1:
@@ -277,16 +280,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
 
         # Content
-        sections = ProjectSection.objects.filter(
-            resource_type=self.resource_type, required=True)
-        for attr in sections:
-            try:
-                section = self.project_content.get(project_section=attr)
-                if not section.is_valid():
-                    raise ActiveSectionContent.DoesNotExist
-            except ActiveSectionContent.DoesNotExist:
-                self.integrity_errors.append(
-                    'Missing required field: {0}'.format(attr.title))
+        sections = set(ProjectSection.objects.filter(
+            resource_type=self.resource_type, required=True).values_list(    
+            'title', flat=True))
+        contents = self.project_content.filter(project_section__required=True)
+        for content in contents:
+            if content.is_valid():
+                sections.remove(content.project_section.title)
+        for section in sections:
+            self.integrity_errors.append(
+                'Missing required field: {0}'.format(section))
 
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS:
@@ -481,12 +484,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
  
                 # Copy content
                 content = self.project_content.all()
+                published_contents = []
                 for c in content:
-                    PublishedSectionContent.objects.create(
+                    published_contents.append(PublishedSectionContent(
                         project=published_project,
                         section_content=c.section_content,
                         project_section=c.project_section
-                    )
+                    ))
+                PublishedSectionContent.objects.bulk_create(published_contents)
 
                 # If this is a new version, all version fields have to be updated
                 if self.version_order > 0:

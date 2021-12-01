@@ -408,11 +408,13 @@ class NewProjectVersionForm(forms.ModelForm):
         project.save()
 
         # Copy content for each project section
+        contents = []
         for c in self.latest_project.project_content.all():
-            ActiveSectionContent.objects.create(
+            contents.append(ActiveSectionContent(
                 project=project,
                 project_section=c.project_section,
-                section_content=c.section_content)
+                section_content=c.section_content))
+        ActiveSectionContent.objects.bulk_create(contents)
 
         # Copy over the author/affiliation objects
         for p_author in self.latest_project.authors.all():
