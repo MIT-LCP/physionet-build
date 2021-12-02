@@ -99,8 +99,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         60: 'Awaiting editor to publish.',
     }
 
-    REQUIRED_FIELDS = ['title', 'abstract', 'version', 'license',
-        'short_description']
+    REQUIRED_FIELDS = [
+        'title', 'abstract', 'version', 'license',
+        'short_description'
+    ]
 
     def storage_used(self):
         """
@@ -281,7 +283,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Content
         sections = set(ProjectSection.objects.filter(
-            resource_type=self.resource_type, required=True).values_list(    
+            resource_type=self.resource_type, required=True).values_list(
             'title', flat=True))
         contents = self.project_contents.filter(project_section__required=True)
         for content in contents:
@@ -296,8 +298,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             value = getattr(self, attr)
             text = unescape(strip_tags(str(value)))
             if value is None or not text or text.isspace():
-                l = attr.replace('_', ' ').capitalize()
-                self.integrity_errors.append('Missing required field: {0}'.format(l))
+                label = attr.replace('_', ' ').capitalize()
+                self.integrity_errors.append('Missing required field: {0}'.format(label))
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -475,7 +477,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.title = title or self.title
                 published_project.doi = self.doi
                 published_project.save()
- 
+
                 # Copy content
                 content = self.project_contents.all()
                 published_contents = []

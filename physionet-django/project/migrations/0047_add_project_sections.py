@@ -14,45 +14,46 @@ import os
 LABELS = [
     # 0: Database
     {'Background': 'background',
-    'Methods': 'methods',
-    'Data Description': 'content_description',
-    'Usage Notes': 'usage_notes',
-    'Release Notes': 'release_notes',
-    'Acknowledgements': 'acknowledgements',
-    'Conflicts of Interest': 'conflicts_of_interest'},
+     'Methods': 'methods',
+     'Data Description': 'content_description',
+     'Usage Notes': 'usage_notes',
+     'Release Notes': 'release_notes',
+     'Acknowledgements': 'acknowledgements',
+     'Conflicts of Interest': 'conflicts_of_interest'},
     # 1: Software
     {'Background': 'background',
-    'Software Description': 'content_description',
-    'Technical Implementation': 'methods',
-    'Usage Notes': 'usage_notes',
-    'Release Notes': 'release_notes',
-    'Installation and Requirements': 'installation',
-    'Acknowledgements': 'acknowledgements',
-    'Conflicts of Interest': 'conflicts_of_interest'},
+     'Software Description': 'content_description',
+     'Technical Implementation': 'methods',
+     'Usage Notes': 'usage_notes',
+     'Release Notes': 'release_notes',
+     'Installation and Requirements': 'installation',
+     'Acknowledgements': 'acknowledgements',
+     'Conflicts of Interest': 'conflicts_of_interest'},
     # 2: Challenge
     {'Objective': 'background',
-    'Participation': 'methods',
-    'Data Description': 'content_description',
-    'Evaluation': 'usage_notes',
-    'Release Notes': 'release_notes',
-    'Acknowledgements': 'acknowledgements',
-    'Conflicts of Interest': 'conflicts_of_interest'},
+     'Participation': 'methods',
+     'Data Description': 'content_description',
+     'Evaluation': 'usage_notes',
+     'Release Notes': 'release_notes',
+     'Acknowledgements': 'acknowledgements',
+     'Conflicts of Interest': 'conflicts_of_interest'},
     # 3: Model
     {'Background': 'background',
-    'Model Description': 'content_description',
-    'Technical Implementation': 'methods',
-    'Usage Notes': 'usage_notes',
-    'Release Notes': 'release_notes',
-    'Installation and Requirements': 'installation',
-    'Acknowledgements': 'acknowledgements',
-    'Conflicts of Interest': 'conflicts_of_interest'}
+     'Model Description': 'content_description',
+     'Technical Implementation': 'methods',
+     'Usage Notes': 'usage_notes',
+     'Release Notes': 'release_notes',
+     'Installation and Requirements': 'installation',
+     'Acknowledgements': 'acknowledgements',
+     'Conflicts of Interest': 'conflicts_of_interest'}
 ]
 
 
 def load_fixture(apps, schema_editor):
-    project_types_fixtures = os.path.join(settings.BASE_DIR, 'project',
+    project_types_fixtures = os.path.join(
+        settings.BASE_DIR, 'project',
         'fixtures', 'project-sections.json')
-    call_command('loaddata', project_types_fixtures) 
+    call_command('loaddata', project_types_fixtures)
 
 
 def unload_fixture(apps, schema_editor):
@@ -67,7 +68,7 @@ def migrate_content(apps, schema_editor):
         apps.get_model("project", "ActiveProject").objects.all(),
         apps.get_model("project", "PublishedProject").objects.all(),
         apps.get_model("project", "ArchivedProject").objects.all()
-        )
+    )
 
     for d in data:
         # Separates labels for one resource type
@@ -75,21 +76,22 @@ def migrate_content(apps, schema_editor):
 
         # Get SectionContent model according to project status
         model = d._meta.model_name.replace("project", "").capitalize()
-        content_model = apps.get_model("project", model+"SectionContent")
+        content_model = apps.get_model("project", model + "SectionContent")
 
         # Persists new SectionContent entity based on content from the previous structure
         sections = section_model.objects.filter(title__in=labels.keys(), resource_type=d.resource_type.id)
         for section in sections:
-            l = labels[section.title]
-            value = d._meta.get_field(l).value_from_object(d)
+            label = labels[section.title]
+            value = d._meta.get_field(label).value_from_object(d)
             text = unescape(strip_tags(value))
 
             # Do nothing if empty
             if not text or text.isspace():
                 continue
-            
+
             with transaction.atomic():
-                content_model.objects.create(project=d, project_section=section,
+                content_model.objects.create(
+                    project=d, project_section=section,
                     section_content=value)
 
 
@@ -98,7 +100,7 @@ def undo_migrate_content(apps, schema_editor):
         apps.get_model("project", "ActiveProject").objects.all(),
         apps.get_model("project", "PublishedProject").objects.all(),
         apps.get_model("project", "ArchivedProject").objects.all()
-        )
+    )
 
     for d in data:
         # Separates labels for one resource type
@@ -106,16 +108,16 @@ def undo_migrate_content(apps, schema_editor):
 
         # Get SectionContent model according to project status
         model = d._meta.model_name.replace("project", "").capitalize()
-        content_model = apps.get_model("project", model+"SectionContent")
+        content_model = apps.get_model("project", model + "SectionContent")
 
         # Persists new SectionContent entity based on content from the previous structure
         project_contents = content_model.objects.filter(project=d)
         for content in project_contents:
             value = content.section_content
             title = content.project_section.title
-            l = labels[title]
+            label = labels[title]
             with transaction.atomic():
-                setattr(d, l, value)
+                setattr(d, label, value)
                 d.save()
 
 
@@ -135,7 +137,9 @@ class Migration(migrations.Migration):
                 ('description', models.TextField()),
                 ('default_order', models.PositiveSmallIntegerField()),
                 ('required', models.BooleanField()),
-                ('resource_type', models.ForeignKey(db_column='resource_type', on_delete=django.db.models.deletion.PROTECT, related_name='projectsections', to='project.ProjectType')),
+                ('resource_type', models.ForeignKey(
+                    db_column='resource_type', on_delete=django.db.models.deletion.PROTECT,
+                    related_name='projectsections', to='project.ProjectType')),
             ],
         ),
         migrations.RunPython(load_fixture, reverse_code=unload_fixture),
@@ -144,8 +148,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('section_content', project.models.SafeHTMLField(blank=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_contents', to='project.ActiveProject')),
-                ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='activesectioncontents', to='project.ProjectSection')),
+                ('project', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, related_name='project_contents',
+                    to='project.ActiveProject')),
+                ('project_section', models.ForeignKey(
+                    db_column='project_section', on_delete=django.db.models.deletion.PROTECT,
+                    related_name='activesectioncontents', to='project.ProjectSection')),
             ],
         ),
         migrations.CreateModel(
@@ -153,8 +161,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('section_content', project.models.SafeHTMLField(blank=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_contents', to='project.ArchivedProject')),
-                ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='archivedsectioncontents', to='project.ProjectSection')),
+                ('project', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, related_name='project_contents',
+                    to='project.ArchivedProject')),
+                ('project_section', models.ForeignKey(
+                    db_column='project_section', on_delete=django.db.models.deletion.PROTECT,
+                    related_name='archivedsectioncontents', to='project.ProjectSection')),
             ],
         ),
         migrations.CreateModel(
@@ -162,8 +174,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('section_content', project.models.SafeHTMLField(blank=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_contents', to='project.PublishedProject')),
-                ('project_section', models.ForeignKey(db_column='project_section', on_delete=django.db.models.deletion.PROTECT, related_name='publishedsectioncontents', to='project.ProjectSection')),
+                ('project', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, related_name='project_contents',
+                    to='project.PublishedProject')),
+                ('project_section', models.ForeignKey(
+                    db_column='project_section', on_delete=django.db.models.deletion.PROTECT,
+                    related_name='publishedsectioncontents', to='project.ProjectSection')),
             ],
         ),
         migrations.RunPython(migrate_content, reverse_code=undo_migrate_content),
@@ -181,6 +197,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='projectsection',
-            unique_together={('resource_type', 'title'), ('resource_type', 'html_id'), ('resource_type', 'default_order')},
+            unique_together={('resource_type', 'title'), ('resource_type', 'html_id'),
+                             ('resource_type', 'default_order')},
         ),
     ]

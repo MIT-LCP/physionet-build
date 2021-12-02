@@ -347,7 +347,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             if sorted_versions[-1] == version:
                 tmp.is_latest_version = True
             tmp.save()
-    
+
     def parse_legacy_content(self):
         """
         Parse the concent from legacy projects
@@ -361,7 +361,8 @@ class PublishedProject(Metadata, SubmissionInfo):
         self.project_contents.all().delete()
 
         # Parse html description
-        full_description = BeautifulSoup(self.full_description,
+        full_description = BeautifulSoup(
+            self.full_description,
             features="html.parser")
 
         # Find highest header
@@ -384,16 +385,16 @@ class PublishedProject(Metadata, SubmissionInfo):
                 PublishedSectionContent.objects.create(
                     project=self,
                     custom_title=tag.text,
-                    custom_order=content_len-i,
+                    custom_order=content_len - i,
                     section_content=section)
                 section = ""
             # In case last item is not a header
             # or single section with no header
-            elif i == content_len-1 and tagstr.strip():
+            elif i == content_len - 1 and tagstr.strip():
                 # If two words or less use
                 # as section header
                 if len(tagstr.split()) <= 2:
-                    title = tagstr 
+                    title = tagstr
                 else:
                     title = "Description"
                     section = str(tag) + section
@@ -401,7 +402,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                 PublishedSectionContent.objects.create(
                     project=self,
                     custom_title=title,
-                    custom_order=content_len-i,
+                    custom_order=content_len - i,
                     section_content=section)
             else:
                 # Attach to section content

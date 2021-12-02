@@ -51,11 +51,13 @@ class PublishedSectionInline(admin.TabularInline):
 
 class PublishedProjectAdmin(admin.ModelAdmin):
     fields = ('title', 'abstract',
-        'short_description', 'project_home_page', 'doi')
+              'short_description', 'project_home_page', 'doi')
 
     readonly_fields = ('publish_datetime',)
-    inlines = [PublishedSectionInline, PublishedPublicationInline, ContactInline,
-        PublishedAuthorInline]
+    inlines = [
+        PublishedSectionInline, PublishedPublicationInline, ContactInline,
+        PublishedAuthorInline
+    ]
     list_display = ('title', 'version', 'is_legacy', 'publish_datetime')
 
 

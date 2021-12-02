@@ -497,9 +497,10 @@ class SectionContentForm(forms.ModelForm):
                 # Try to get currently existing content for section
                 section_content = project.project_contents.get(
                     project_section=project_section)
-            except:
+            except ActiveSectionContent.DoesNotExist:
                 # Creates form with empty instance in case content is not found
-                section_content = ActiveSectionContent(project=project,
+                section_content = ActiveSectionContent(
+                    project=project,
                     project_section=project_section)
 
             kwargs['instance'] = section_content

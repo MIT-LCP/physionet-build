@@ -346,24 +346,30 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     data_complete = request.POST if 'complete_copyedit' in request.POST else None
 
     # Metadata forms and formsets
-    ReferenceFormSet = generic_inlineformset_factory(Reference,
+    ReferenceFormSet = generic_inlineformset_factory(
+        Reference,
         fields=('description',), extra=0,
         max_num=project_forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=project_forms.ReferenceFormSet, validate_max=True)
-    TopicFormSet = generic_inlineformset_factory(Topic,
+    TopicFormSet = generic_inlineformset_factory(
+        Topic,
         fields=('description',), extra=0,
         max_num=project_forms.TopicFormSet.max_forms, can_delete=False,
         formset=project_forms.TopicFormSet, validate_max=True)
-    PublicationFormSet = generic_inlineformset_factory(Publication,
+    PublicationFormSet = generic_inlineformset_factory(
+        Publication,
         fields=('citation', 'url'), extra=0,
         max_num=project_forms.PublicationFormSet.max_forms, can_delete=False,
         formset=project_forms.PublicationFormSet, validate_max=True)
 
-    description_form = project_forms.ContentForm(data=data_edit,
+    description_form = project_forms.ContentForm(
+        data=data_edit,
         resource_type=project.resource_type.id, instance=project)
-    access_form = project_forms.AccessMetadataForm(instance=project, data=data_edit)
+    access_form = project_forms.AccessMetadataForm(
+        instance=project, data=data_edit)
     access_form.set_license_queryset(access_policy=project.access_policy)
-    discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
+    discovery_form = project_forms.DiscoveryForm(
+        resource_type=project.resource_type.id,
         instance=project, data=data_edit)
     description_form_saved = False
 
@@ -379,7 +385,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     section_forms = []
     sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
     for s in sections:
-        form = project_forms.SectionContentForm(project=project, 
+        form = project_forms.SectionContentForm(
+            project=project,
             project_section=s, data=data_edit)
         section_forms.append(form)
         # Validation of all `section_content` forms
@@ -402,20 +409,25 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 topic_formset.save()
                 for form in section_forms:
                     form.save()
-                messages.success(request,
+                messages.success(
+                    request,
                     'The project metadata has been updated.')
                 description_form_saved = True
             else:
-                messages.error(request,
+                messages.error(
+                    request,
                     'Invalid submission. See errors below.')
         elif 'complete_copyedit' in request.POST:
-            copyedit_form = forms.CopyeditForm(request.POST,
+            copyedit_form = forms.CopyeditForm(
+                request.POST,
                 instance=copyedit_log)
             if copyedit_form.is_valid():
                 copyedit_log = copyedit_form.save()
-                notification.copyedit_complete_notify(request, project,
+                notification.copyedit_complete_notify(
+                    request, project,
                     copyedit_log)
-                return render(request, 'console/copyedit_complete.html',
+                return render(
+                    request, 'console/copyedit_complete.html',
                     {'project': project, 'copyedit_log': copyedit_log,
                      'editor_home': True})
             else:
@@ -445,7 +457,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'access_form': access_form, 'reference_formset':reference_formset,
         'publication_formset': publication_formset,
         'topic_formset': topic_formset,
-        'storage_info': storage_info, 'upload_files_form':upload_files_form,
+        'storage_info': storage_info, 'upload_files_form': upload_files_form,
         'create_folder_form': create_folder_form,
         'rename_item_form': rename_item_form,
         'move_items_form': move_items_form,
@@ -461,7 +473,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         'add_item_url': edit_url, 'remove_item_url': edit_url,
         'discovery_form': discovery_form, 'url_prefix': url_prefix,
         'reassign_editor_form': reassign_editor_form,
-        'section_forms':section_forms})
+        'section_forms': section_forms})
     if description_form_saved:
         set_saved_fields_cookie(description_form, request.path, response)
     return response

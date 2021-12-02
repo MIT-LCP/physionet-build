@@ -3,13 +3,16 @@ import django.db.models.deletion
 
 from project.models import PublishedProject, PublishedSectionContent
 
+
 def parse_legacy(apps, schema_editor):
     projects = PublishedProject.objects.filter(is_legacy=True)
     for p in projects:
         p.parse_legacy_content()
 
+
 def unparse_legacy(apps, schema_editor):
     PublishedSectionContent.objects.filter(project__is_legacy=True).delete()
+
 
 class Migration(migrations.Migration):
 

@@ -661,7 +661,8 @@ def project_content(request, project_slug, **kwargs):
     """
     For editing project content
     """
-    user, project, authors, is_submitting = (kwargs[k] for k in
+    user, project, authors, is_submitting = (
+        kwargs[k] for k in
         ('user', 'project', 'authors', 'is_submitting'))
 
     editable = is_submitting and project.author_editable()
@@ -671,7 +672,8 @@ def project_content(request, project_slug, **kwargs):
     data = request.POST or None
 
     # There are several forms for different types of content
-    ReferenceFormSet = generic_inlineformset_factory(Reference,
+    ReferenceFormSet = generic_inlineformset_factory(
+        Reference,
         fields=('description',), extra=0,
         max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=forms.ReferenceFormSet, validate_max=True)
@@ -687,7 +689,8 @@ def project_content(request, project_slug, **kwargs):
     section_forms = []
     sections = ProjectSection.objects.filter(resource_type=project.resource_type).order_by('default_order')
     for s in sections:
-        form = forms.SectionContentForm(project=project, 
+        form = forms.SectionContentForm(
+            project=project,
             project_section=s, data=data, editable=editable)
         section_forms.append(form)
         # Validation of all `section_content` forms
@@ -707,17 +710,19 @@ def project_content(request, project_slug, **kwargs):
             saved = True
             messages.success(request, 'Your project content has been updated.')
         else:
-            messages.error(request,
-                'Invalid submission. See errors below.')
+            messages.error(request, 'Invalid submission. See errors below.')
 
     edit_url = reverse('edit_content_item', args=[project.slug])
-    response = render(request, 'project/project_content.html', {
-        'project':project, 'description_form':description_form,
-        'reference_formset':reference_formset,
-        'messages':messages.get_messages(request),
-        'is_submitting':is_submitting,
-        'add_item_url':edit_url, 'remove_item_url':edit_url,
-        'section_forms':section_forms})
+    response = render(
+        request, 'project/project_content.html', {
+            'project': project, 'description_form': description_form,
+            'reference_formset': reference_formset,
+            'messages': messages.get_messages(request),
+            'is_submitting': is_submitting,
+            'add_item_url': edit_url, 'remove_item_url': edit_url,
+            'section_forms': section_forms
+        }
+    )
     if saved:
         set_saved_fields_cookie(description_form, request.path, response)
     return response
@@ -1202,7 +1207,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
 
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
-    
+
     # Ordered project content
     content = project.project_contents.all().order_by(
         "project_section__default_order")

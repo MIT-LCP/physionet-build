@@ -44,16 +44,22 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activesectioncontent',
             name='project_section',
-            field=models.ForeignKey(db_column='project_section', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='activesectioncontents', to='project.ProjectSection'),
+            field=models.ForeignKey(
+                db_column='project_section', null=True, on_delete=django.db.models.deletion.PROTECT,
+                related_name='activesectioncontents', to='project.ProjectSection'),
         ),
         migrations.AlterField(
             model_name='archivedsectioncontent',
             name='project_section',
-            field=models.ForeignKey(db_column='project_section', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='archivedsectioncontents', to='project.ProjectSection'),
+            field=models.ForeignKey(
+                db_column='project_section', null=True, on_delete=django.db.models.deletion.PROTECT,
+                related_name='archivedsectioncontents', to='project.ProjectSection'),
         ),
         migrations.AlterField(
             model_name='publishedsectioncontent',
             name='project_section',
-            field=models.ForeignKey(db_column='project_section', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='publishedsectioncontents', to='project.ProjectSection'),
+            field=models.ForeignKey(
+                db_column='project_section', null=True, on_delete=django.db.models.deletion.PROTECT,
+                related_name='publishedsectioncontents', to='project.ProjectSection'),
         ),
     ]

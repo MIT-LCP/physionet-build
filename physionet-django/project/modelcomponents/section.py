@@ -21,9 +21,11 @@ class ProjectSection(models.Model):
     required = models.BooleanField()
 
     class Meta:
-        unique_together = (('resource_type', 'title'),
+        unique_together = (
+            ('resource_type', 'title'),
             ('resource_type', 'default_order'),
-            (('resource_type', 'html_id')))
+            (('resource_type', 'html_id'))
+        )
 
 
 class SectionContent(models.Model):
@@ -101,15 +103,18 @@ class SectionContent(models.Model):
 
 
 class PublishedSectionContent(SectionContent):
-    project = models.ForeignKey('project.PublishedProject',
+    project = models.ForeignKey(
+        'project.PublishedProject',
         related_name='project_contents', on_delete=models.CASCADE)
 
 
 class ActiveSectionContent(SectionContent):
-    project = models.ForeignKey('project.ActiveProject',
+    project = models.ForeignKey(
+        'project.ActiveProject',
         related_name='project_contents', on_delete=models.CASCADE)
 
 
 class ArchivedSectionContent(SectionContent):
-    project = models.ForeignKey('project.ArchivedProject',
+    project = models.ForeignKey(
+        'project.ArchivedProject',
         related_name='project_contents', on_delete=models.CASCADE)
