@@ -242,6 +242,7 @@ class Metadata(models.Model):
         for section in project_contents:
             text = lf.convert(section.section_content)
             section.section_content = text
+            section.save()
 
     def file_base_url(self):
         """

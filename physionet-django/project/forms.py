@@ -399,12 +399,6 @@ class NewProjectVersionForm(forms.ModelForm):
         project.creation_datetime = timezone.now()
         project.version_order = self.latest_project.version_order + 1
         project.is_new_version = True
-
-        # Change internal links (that point to files within the
-        # published project) to point to their new locations in the
-        # active project
-        project.update_internal_links(old_project=self.latest_project)
-
         project.save()
 
         # Copy content for each project section
@@ -415,6 +409,11 @@ class NewProjectVersionForm(forms.ModelForm):
                 project_section=c.project_section,
                 section_content=c.section_content))
         ActiveSectionContent.objects.bulk_create(contents)
+
+        # Change internal links (that point to files within the
+        # published project) to point to their new locations in the
+        # active project
+        project.update_internal_links(old_project=self.latest_project)
 
         # Copy over the author/affiliation objects
         for p_author in self.latest_project.authors.all():
