@@ -5,7 +5,7 @@
 
 <p>User: <a href="{% url 'user_management' application.user.username %}">{{ application.user.username }}</a>
 
-PhysioNet e-mail: {{ application.user.email }}<br>
+{{ SITE_NAME }} e-mail: {{ application.user.email }}<br>
 
 My first (given) name(s): {{ application.first_names }}<br>
 

@@ -30,10 +30,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from notification.models import News
+from physionet.enums import Page
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.settings.base import StorageTypes
 from physionet.utility import paginate
+from physionet.models import Section
 from project.models import (
     GCP,
     AccessPolicy,
@@ -2082,3 +2084,68 @@ def complete_credential_applications_mailto(request):
                                                              comments=False)
 
     return JsonResponse({'mailtolink': mailto})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def static_pages(request):
+    return render(request, 'console/static_pages.html', {'pages': Page.choices(), 'static_pages_nav': True})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def static_page_sections(request, page):
+    if request.method == 'POST':
+        section_form = forms.SectionForm(data=request.POST, page=Page(page))
+        if section_form.is_valid():
+            section_form.save()
+
+        up = request.POST.get('up')
+        if up is not None:
+            section = get_object_or_404(Section, pk=up)
+            section.move_up()
+
+        down = request.POST.get('down')
+        if down is not None:
+            section = get_object_or_404(Section, pk=down)
+            section.move_down()
+
+    section_form = forms.SectionForm(page=Page(page))
+
+    sections = Section.objects.filter(page=Page(page))
+
+    return render(
+        request,
+        'console/static_page_sections.html',
+        {'sections': sections, 'page': page, 'section_form': section_form, 'static_pages_nav': True},
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def static_page_sections_delete(request, page, pk):
+    if request.method == 'POST':
+        section = get_object_or_404(Section, page=Page(page), pk=pk)
+        section.delete()
+        Section.objects.filter(page=page, order__gt=section.order).update(order=F('order') - 1)
+
+    return redirect('static_page_sections', page=page)
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def static_page_sections_edit(request, page, pk):
+    section = get_object_or_404(Section, page=Page(page), pk=pk)
+    if request.method == 'POST':
+        section_form = forms.SectionForm(instance=section, data=request.POST, page=Page(page))
+        if section_form.is_valid():
+            section_form.save()
+            return redirect('static_page_sections', page=page)
+    else:
+        section_form = forms.SectionForm(instance=section, page=Page(page))
+
+    return render(
+        request,
+        'console/static_page_sections_edit.html',
+        {'section_form': section_form, 'static_pages_nav': True, 'page': page, 'section': section},
+    )

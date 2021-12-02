@@ -3,7 +3,7 @@
 
 Dear {{ name }},
 
-Based on the recommendations of our editors, we are delighted to accept your project entitled "{{ project.title }}" for publication on PhysioNet.
+Based on the recommendations of our editors, we are delighted to accept your project entitled "{{ project.title }}" for publication on {{ SITE_NAME }}.
 
 A summary of our standard set of editorial checks is listed below:
 {% for result in edit_log.quality_assurance_results %}- {{ result }}

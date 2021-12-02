@@ -12,7 +12,7 @@
   <br /><br />
   <p>It might be located at: <a href="https://archive.physionet.org{{ request.get_full_path_info }}">https://archive.physionet.org{{ request.get_full_path_info }}</a>.
 
-  <p>If you think this is an error, please email us at: <a href="mailto:contact@physionet.org?subject=Missing%20URL%20on%20physionet.org&body={% filter urlencode %}Dear PhysioNet Team,
+  <p>If you think this is an error, please email us at: <a href="mailto:contact@physionet.org?subject=Missing%20URL%20on%20physionet.org&body={% filter urlencode %}Dear {{ SITE_NAME }} Team,
 
 The following URL is missing from the website:
 {{ request.get_raw_uri }}

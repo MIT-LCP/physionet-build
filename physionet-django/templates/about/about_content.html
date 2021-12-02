@@ -1,13 +1,13 @@
 <section id="citation">
   <h1>Suggested Citation</h1>
   <br>
-  <p>If you use resources from PhysioNet in a publication, please credit
-  the author(s) using the citation displayed at the top of the published content. Please also include the standard citation for PhysioNet:</p>
+  <p>If you use resources from {{ SITE_NAME }} in a publication, please credit
+  the author(s) using the citation displayed at the top of the published content. Please also include the standard citation for {{ SITE_NAME }}:</p>
 
   <p class="alert alert-primary" role="alert">Goldberger AL, Amaral LAN, Glass L,
     Hausdorff JM, Ivanov PCh, Mark RG,
   Mietus JE, Moody GB, Peng C-K, Stanley HE.  PhysioBank, PhysioToolkit, and
-  PhysioNet: Components of a New Research Resource for Complex Physiologic
+  {{ SITE_NAME }}: Components of a New Research Resource for Complex Physiologic
   Signals.
   <i>Circulation</i> <b>101</b>(23):e215-e220 [Circulation Electronic Pages;
   <a href="http://circ.ahajournals.org/content/101/23/e215.full"
@@ -21,7 +21,7 @@
 
 <section id="database">
   <h1>Databases</h1>
-  <p>To search content on PhysioNet, visit our <a href="{% url 'content_index' %}">search index</a>. Databases hosted on PhysioNet include:</p>
+  <p>To search content on {{ SITE_NAME }}, visit our <a href="{% url 'content_index' %}">search index</a>. Databases hosted on {{ SITE_NAME }} include:</p>
   <h5 id="ehr">Electronic Health Record (EHR)</h5>
   <ul>
     <li><a href="{% url 'published_project_latest' 'mimiciii' %}">MIMIC-III</a>, a large, single-center database comprising information relating to patients admitted to critical care units at a large tertiary care hospital.</li>
@@ -47,7 +47,7 @@
         remaining records are also available here.</li>
 
     <li><a href="{% url 'published_project_latest' 'ltstdb' %}">Long-Term ST Database</a>.  The creators of
-        this database contributed half of it to PhysioNet in 2003, and the
+        this database contributed half of it to {{ SITE_NAME }} in 2003, and the
         remaining records in 2007.  Each of the 86 records is 21 to 24 hours long,
         and contains 2 or 3 ECG signals, annotated beat-by-beat and with respect
         to ST episodes, rhythm changes, and signal quality changes; each record
@@ -118,7 +118,7 @@
         sampled at 1 KHz with 16-bit resolution.</li>
 
     <li><a href="{% url 'published_project_latest' 'aftdb' %}">AF Termination Challenge Database</a>.  This
-        database has been compiled for the PhysioNet/Computers in Cardiology Challenge
+        database has been compiled for the {{ SITE_NAME }}/Computers in Cardiology Challenge
         2004.  It consists of a learning set of 30 records and two test sets
         of 30 and 20 records.  Each record contains a one-minute excerpt of a
         two-lead long-term ECG recording exhibiting either self-terminating or
@@ -194,7 +194,7 @@
         recorded over a 20-week period from a single subject, in EDF+ format.</li>
 
     <li><a href="{% url 'published_project_latest' 'afpdb' %}">PAF Prediction Challenge Database</a>.  This
-        database has been compiled for the PhysioNet/Computers in Cardiology Challenge
+        database has been compiled for the {{ SITE_NAME }}/Computers in Cardiology Challenge
         2001.  It consists of 100 record sets, each including a pair of
         30-minute excerpts from a long-term ECG recording.  Approximately half of
         the subjects have PAF immediately following one of the two 30-minute
@@ -222,7 +222,7 @@
         href="vfdb/">MIT-BIH Malignant Ventricular Arrhythmia Database</a>.</li>
 
     <li><a href="{% url 'published_project_latest' 'twadb' %}">T-Wave Alternans Challenge Database</a>.
-        This database has been compiled for the PhysioNet/Computers in Cardiology Challenge 2008.  It contains 100 2-, 3-, and 12-lead ECG records sampled
+        This database has been compiled for the {{ SITE_NAME }}/Computers in Cardiology Challenge 2008.  It contains 100 2-, 3-, and 12-lead ECG records sampled
         at 500 Hz with 16-bit resolution over a &plusmn 32 mV range, including
         subjects with risk factors for sudden cardiac death as well as healthy
         controls and synthetic cases with calibrated amounts of T-wave alternans.</li>
@@ -278,7 +278,7 @@
     <li><a href="{% url 'published_project_latest' 'wrist' %}">Wrist PPG During Exercise</a> This database contains wrist PPGs recorded during walking, running and bike riding. Simultaneous motion estimates are collected using both accelerometers and gyroscopes to give multiple options for the removal of motion interference from the PPG traces. A reference chest ECG is included to allow a gold-standard comparison of heart rate during exercise.</li>
 
       <li><a href="{% url 'published_project_latest' 'apnea-ecg' %}">Apnea-ECG Database</a>.  This
-        database has been assembled for the PhysioNet/Computers in Cardiology
+        database has been assembled for the {{ SITE_NAME }}/Computers in Cardiology
         Challenge 2000.  It consists of 70 ECG recordings, each
         typically 8 hours long, with accompanying sleep apnea annotations
         obtained from study of simultaneously recorded respiration
@@ -525,7 +525,7 @@
 
 <li><a href="https://archive.physionet.org/tutorials/physiobank-text.shtml">How to obtain PhysioBank data in text
     form</a>.  Many readers wish to convert binary data from PhysioBank
-    (PhysioNet's data archive) into text form for further processing.  There
+    ({{ SITE_NAME }}'s data archive) into text form for further processing.  There
     are <a href="https://archive.physionet.org/physiobank/physiobank-intro.shtml">many good reasons</a>
     not to do so.  If you are determined to do it anyway, here's how.</li>
 
@@ -537,12 +537,12 @@
     started on creating PhysioBank-compatible records from your data.</li>
 
 <li><a href="https://archive.physionet.org/mirrors/mirror-howto.shtml">How to set up a mirror of
-    PhysioNet</a>.  A PhysioNet mirror can run on almost any computer made
+    {{ SITE_NAME }}</a>.  A {{ SITE_NAME }} mirror can run on almost any computer made
     in the last ten years, and it can provide local users with fast
     access to PhysioBank data and PhysioToolkit software, even in areas
-    with slow or unreliable Internet connections.  PhysioNet mirrors are
+    with slow or unreliable Internet connections.  {{ SITE_NAME }} mirrors are
     easy to set up and essentially self-maintaining.  Put an old computer
-    to good use and help PhysioNet users in your area.</li>
+    to good use and help {{ SITE_NAME }} users in your area.</li>
 
 <!-- <li><a href="https://archive.physionet.org/physiobank/tutorials/using-mimic2/">Using the MIMIC II
     Database</a>.  The MIMIC-II Database
@@ -552,7 +552,7 @@
  -->
 <li><a href="https://archive.physionet.org/physiotools/cygwin/">An Introduction to Cygwin</a>.
     PhysioToolkit includes a large collection of open-source, POSIX-compliant
-    software that can be useful to most PhysioNet visitors.  Since almost all
+    software that can be useful to most {{ SITE_NAME }} visitors.  Since almost all
     of the popular platforms are also POSIX-compliant, it's easy to get
     PhysioToolkit software running on those platforms, including GNU/Linux,
     Mac OS X, and all versions of Unix.  Microsoft Windows is not
@@ -562,11 +562,11 @@
     on it.  This tutorial explains how to do so, without interfering with
     any Windows software you may be using.</li>
 
-<li><a href="https://archive.physionet.org/tutorials/apt/">Applying PhysioNet tools to manage neurophysiological
+<li><a href="https://archive.physionet.org/tutorials/apt/">Applying {{ SITE_NAME }} tools to manage neurophysiological
     signals</a>.  How to import and handle data from commercial devices using
     PhysioToolkit and other open source software.  This tutorial was
     contributed by Jesus Olivan Palacios, a neurophysiologist who has written
-    an excellent introduction to much of the software available from PhysioNet
+    an excellent introduction to much of the software available from {{ SITE_NAME }}
     in the form of a series of hands-on exercises using data provided with the
     tutorial.  Very readable, and highly recommended for neurophysiologists and
     others alike.  (Also see <i>Sciteam</i>, below, by the same author.)</li>
@@ -606,12 +606,12 @@
     build, and complete a PhysioNetWorks project.</li>
 
 <!-- <li><a href="https://archive.physionet.org/writing-pages-howto.shtml">How to Write HTML pages for
-    PhysioNet</a>.  If you are preparing a contribution of data, software,
-    or tutorial material for PhysioNet, this guide illustrates how to create
+    {{ SITE_NAME }}</a>.  If you are preparing a contribution of data, software,
+    or tutorial material for {{ SITE_NAME }}, this guide illustrates how to create
     pages with the templates and style sheets used on this web site.</li> -->
 
-<li><a href="https://archive.physionet.org/tutorials/cloud/">Distributed Computing with PhysioNet data</a>. A brief tutorial on 
-    how to cloud processing PhysioNet data with WFDB, StarCluster, Amazon EC2, Octave, and Hadoop.</li>
+<li><a href="https://archive.physionet.org/tutorials/cloud/">Distributed Computing with {{ SITE_NAME }} data</a>. A brief tutorial on 
+    how to cloud processing {{ SITE_NAME }} data with WFDB, StarCluster, Amazon EC2, Octave, and Hadoop.</li>
   </ul>
 
   <h5 id="exploreanalyse">Exploration and analysis</h5>
@@ -774,10 +774,10 @@ programming.</li>
 
 <section id="software">
   <h1>Software</h1>
-  <p>To search content on PhysioNet, visit our <a href="{% url 'content_index' %}">search index</a>. Software hosted on PhysioNet includes:</p>
+  <p>To search content on {{ SITE_NAME }}, visit our <a href="{% url 'content_index' %}">search index</a>. Software hosted on {{ SITE_NAME }} includes:</p>
     <h5 id="visualization">Data visualization</h5>
     <ul>
-      <li><a href="https://archive.physionet.org/cgi-bin/atm/ATM">PhysioBank ATM</a>. PhysioBank’s Automated Teller Machine is a self-service facility for exploring PhysioNet databases using your web browser.</li>
+      <li><a href="https://archive.physionet.org/cgi-bin/atm/ATM">PhysioBank ATM</a>. PhysioBank’s Automated Teller Machine is a self-service facility for exploring {{ SITE_NAME }} databases using your web browser.</li>
       <li><a href="{% url 'published_project_latest' 'semia' %}">SEMIA</a>. SEMIA is a tool for viewing time series of diagnostic and morphology parameters of long-term ambulatory recordings.</li>
       <li><a href="{% url 'published_project_latest' 'mpp' %}">Multiscale Poincare Plots</a>. Matlab software for visualizing the complexity of time series on multiple time scales.</li>
     </ul>
@@ -841,8 +841,8 @@ programming.</li>
 
 
 <section id="challenge">
-  <h1>PhysioNet Challenges</h1>
-  <p>To search content on PhysioNet, visit our <a href="{% url 'content_index' %}">search index</a>. Challenges hosted on PhysioNet include:</p>
+  <h1>{{ SITE_NAME }} Challenges</h1>
+  <p>To search content on {{ SITE_NAME }}, visit our <a href="{% url 'content_index' %}">search index</a>. Challenges hosted on {{ SITE_NAME }} include:</p>
   <ul>
     <li><a href="{% url 'published_project_latest' 'challenge-2000' %}">2000</a>: Detecting Sleep Apnea from the ECG.</li>
     <li><a href="{% url 'published_project_latest' 'challenge-2001' %}">2001</a>: Predicting Paroxysmal Atrial Fibrillation.</li>

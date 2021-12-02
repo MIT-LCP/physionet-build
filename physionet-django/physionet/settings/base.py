@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'notification',
     'search',
     'lightwave',
+    'physionet',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +86,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'physionet.context_processors.access_policy',
+                'physionet.context_processors.platform_name',
             ],
         },
     },
@@ -495,3 +497,5 @@ if STORAGE_TYPE == StorageTypes.GCP:
     GCP_STATIC_BUCKET_NAME = config('GCP_STATIC_BUCKET_NAME')
     GCP_BUCKET_LOCATION = config('GCP_BUCKET_LOCATION')
     GS_PROJECT_ID = config('GCP_PROJECT_ID')
+
+SITE_NAME = config('SITE_NAME')

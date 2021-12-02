@@ -10,6 +10,7 @@ from django.db import transaction
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
+from physionet.models import Section
 from project.models import (
     ActiveProject,
     Contact,
@@ -936,3 +937,21 @@ class CreateLegacyAuthorForm(forms.ModelForm):
 
         affiliation.save()
         return affiliation
+
+
+class SectionForm(forms.ModelForm):
+    class Meta:
+        model = Section
+        fields = ('title', 'content')
+
+    def __init__(self, page, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.page = page
+
+    def save(self):
+        section = super().save(commit=False)
+        section.page = self.page
+        if not section.order:
+            section.order = Section.objects.filter(page=self.page).count() + 1
+        section.save()
+        return section

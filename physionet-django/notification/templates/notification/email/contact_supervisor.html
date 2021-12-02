@@ -1,7 +1,7 @@
 {% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 Dear {{ application.reference_name }},
 
-{{ applicant_name }} is applying for credentialed access to PhysioNet, the website for sharing biomedical data. He/she has listed you as his/her supervisor and has summarized the research project as follows:
+{{ applicant_name }} is applying for credentialed access to {{ SITE_NAME }}, the website for sharing biomedical data. He/she has listed you as his/her supervisor and has summarized the research project as follows:
 
 {{application.research_summary}}
 

@@ -4,7 +4,7 @@
   <input type="checkbox" id="navicon" class="navbar-check">
 
   <a class="navbar-brand" href="{% url 'home' %}">
-    PhysioNet
+    {{ SITE_NAME }}
   </a>
 
   <!-- start of menu items -->
@@ -192,6 +192,14 @@
             <a href="{% url 'submission_stats' %}">Submissions</a>
           </li>
         </ul>
+      </li>
+
+      <!-- static pages -->
+      <li class="nav-item {% if static_pages_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_console_news" class="nav-link" href="{% url 'static_pages' %}">
+          <i class="fa fa-fw fa-window-maximize"></i>
+          <span class="nav-link-text">Static Pages</span>
+        </a>
       </li>
 
     <!-- end of menu items -->

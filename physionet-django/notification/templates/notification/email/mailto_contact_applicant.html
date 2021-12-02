@@ -4,7 +4,7 @@ Application Date: {{ application.application_datetime|date }}
 My first (given) name(s): {{ application.first_names }}
 My last (family) name(s): {{ application.last_name }}
 Suffix (e.g., Jr.), if applicable: {{ application.suffix }}
-My PhysioNet email: {{ application.user.email }}
+My {{ SITE_NAME }} email: {{ application.user.email }}
 Researcher Category: {{ application.get_researcher_category_display }}
 Organization Name: {{ application.organization_name }}
 Job title or position: {{ application.job_title }}
