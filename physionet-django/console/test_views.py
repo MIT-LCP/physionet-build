@@ -254,10 +254,12 @@ class TestState(TestMixin):
                                   args=(project.slug, 'RECORDS'))
         active_preview_url = reverse('display_active_project_file',
                                      args=(project.slug, 'RECORDS'))
+        usage_notes = project.project_contents.get(
+            project_section__title="Usage Notes")
         self.assertIn('href="{}"'.format(active_file_url),
-                      project.usage_notes)
+                      usage_notes.section_content)
         self.assertIn('href="{}"'.format(active_preview_url),
-                      project.usage_notes)
+                      usage_notes.section_content)
 
         # Try to publish with an already taken slug
         # (note that if the project is a new version,
@@ -301,10 +303,12 @@ class TestState(TestMixin):
         self.assertEqual(response.status_code, 200)
 
         # The internal links should now point to published files
+        usage_notes = project.project_contents.get(
+            project_section__title="Usage Notes")
         self.assertNotIn('href="{}"'.format(active_file_url),
-                         project.usage_notes)
+                         usage_notes.section_content)
         self.assertNotIn('href="{}"'.format(active_preview_url),
-                         project.usage_notes)
+                         usage_notes.section_content)
         published_file_url = reverse('serve_published_project_file',
                                      args=(project.slug, project.version,
                                            'RECORDS'))
@@ -312,9 +316,9 @@ class TestState(TestMixin):
                                         args=(project.slug, project.version,
                                               'RECORDS'))
         self.assertIn('href="{}"'.format(published_file_url),
-                      project.usage_notes)
+                      usage_notes.section_content)
         self.assertIn('href="{}"'.format(published_preview_url),
-                      project.usage_notes)
+                      usage_notes.section_content)
 
     def test_publish_with_versions(self):
         """
