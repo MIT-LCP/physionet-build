@@ -1,15 +1,17 @@
+from unittest import skipIf
+
 from django.conf import settings
 from django.conf.urls import include
 from django.test import TestCase, override_settings
 from django.urls import path, reverse
 from physionet.urls import urlpatterns
-from unittest import skipIf
 from user.models import User
 
 authentication_backends = settings.AUTHENTICATION_BACKENDS + ['sso.auth.RemoteUserBackend']
 
+
 @override_settings(AUTHENTICATION_BACKENDS=authentication_backends)
-@skipIf(not settings.ENABLE_SSO, "SSO urls are disabled")
+@skipIf(not settings.ENABLE_SSO, 'SSO urls are disabled')
 class TestViews(TestCase):
     def setUp(self):
         urlpatterns.append(path('', include('sso.urls')))
