@@ -8,9 +8,7 @@ from user.models import User
 authentication_backends = settings.AUTHENTICATION_BACKENDS + ['sso.auth.RemoteUserBackend']
 
 
-@override_settings(
-    ENABLE_SSO=True, SSO_REMOTE_USER_HEADER='REMOTE_USER', AUTHENTICATION_BACKENDS=authentication_backends
-)
+@override_settings(AUTHENTICATION_BACKENDS=authentication_backends)
 class TestViews(TestCase):
     def setUp(self):
         urlpatterns.append(path('', include('sso.urls')))
