@@ -115,7 +115,7 @@ def sso_activate_user(request, uidb64, token):
 
     if user and user.is_active:
         messages.success(request, 'The account is active.')
-        return redirect('project_home')
+        return redirect('sso_login')
 
     if default_token_generator.check_token(user, token):
         with transaction.atomic():
