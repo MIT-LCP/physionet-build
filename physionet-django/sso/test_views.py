@@ -1,7 +1,9 @@
+import re
 from unittest import skipIf
 
 from django.conf import settings
 from django.conf.urls import include
+from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import path, reverse
 from physionet.urls import urlpatterns
@@ -16,10 +18,10 @@ class TestViews(TestCase):
     def setUp(self):
         urlpatterns.append(path('', include('sso.urls')))
         self.inactive_user = User.objects.create(
-            username='sso_inactive', email='sso_inactive@mit.edu', sso_id='inactive_remote_id'
+            username='ssoinactive', email='sso_inactive@mit.edu', sso_id='inactive_remote_id'
         )
         self.active_user = User.objects.create(
-            username='sso_active', email='sso_active@mit.edu', sso_id='active_remote_id', is_active=True
+            username='ssoactive', email='sso_active@mit.edu', sso_id='active_remote_id', is_active=True
         )
 
     def tearDown(self):
@@ -34,13 +36,13 @@ class TestViews(TestCase):
 
     def test_login_authenticated(self):
         self.client.login(remote_user=self.active_user.sso_id)
-        response = self.client.get(reverse('sso_login'))
+        response = self.client.get(reverse('sso_login'), REMOTE_USER=self.active_user.sso_id)
         self.assertRedirects(response, reverse('project_home'))
         self.assertAuthenticatedAs(self.active_user)
 
     def test_login_no_remote_user(self):
         response = self.client.get(reverse('sso_login'))
-        self.assertRedirects(response, reverse('home'))
+        self.assertRedirects(response, reverse('login'))
         self.assertNotAuthenticated()
 
     def test_login_new(self):
@@ -57,3 +59,46 @@ class TestViews(TestCase):
         response = self.client.get(reverse('sso_login'), REMOTE_USER=self.active_user.sso_id)
         self.assertRedirects(response, reverse('project_home'))
         self.assertAuthenticatedAs(self.active_user)
+
+    def test_register_authenticated(self):
+        self.client.login(remote_user=self.active_user.sso_id)
+        response = self.client.get(reverse('sso_register'))
+        self.assertRedirects(response, reverse('project_home'))
+        self.assertAuthenticatedAs(self.active_user)
+
+    def test_register_no_remote_user(self):
+        response = self.client.get(reverse('sso_register'))
+        self.assertRedirects(response, reverse('login'))
+        self.assertNotAuthenticated()
+
+    def test_sso_register_new(self):
+        response = self.client.get(reverse('sso_register'), REMOTE_USER='new_remote_id')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotAuthenticated()
+
+        data = {'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New'}
+        response = self.client.post(reverse('sso_register'), data=data, REMOTE_USER='new_remote_id')
+        self.assertEqual(response.status_code, 200)
+        new_user = User.objects.get(sso_id='new_remote_id')
+        self.assertFalse(new_user.is_active)
+        self.assertNotAuthenticated()
+
+        uidb64, token = re.findall(
+            'http://localhost:8000/sso/activate/(?P<uidb64>[0-9A-Za-z_-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+            mail.outbox[0].body,
+        )[0]
+        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), REMOTE_USER='new_remote_id')
+        self.assertRedirects(response, reverse('project_home'))
+        new_user = User.objects.get(sso_id='new_remote_id')
+        self.assertTrue(new_user.is_active)
+        self.assertAuthenticatedAs(new_user)
+
+    def test_sso_register_inactive(self):
+        response = self.client.get(reverse('sso_register'), REMOTE_USER=self.inactive_user.sso_id)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotAuthenticated()
+
+    def test_sso_register_active(self):
+        response = self.client.get(reverse('sso_register'), REMOTE_USER=self.active_user.sso_id)
+        self.assertRedirects(response, reverse('sso_login'), fetch_redirect_response=False)
+        self.assertNotAuthenticated()

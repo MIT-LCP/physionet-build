@@ -38,7 +38,7 @@ class SSOLogin(auth_views.LoginView):
 
         # This should not happen as the REMOTE_USER header should be always set by Nginx
         if remote_sso_id is None:
-            return redirect('home')
+            return redirect('login')
 
         user = authenticate(remote_user=remote_sso_id)
         if user is not None:
@@ -88,6 +88,8 @@ def sso_register(request):
     else:
         try:
             remote_user = User.objects.get(sso_id=remote_sso_id)
+            if remote_user.is_active:
+                return redirect('sso_login')
             return render(request, 'user/register_done.html', {'email': remote_user.email, 'sso': True})
         except User.DoesNotExist:
             form = forms.SSORegistrationForm()
