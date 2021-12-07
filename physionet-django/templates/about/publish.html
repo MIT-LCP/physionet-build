@@ -30,10 +30,12 @@ Publish
     </div>
     <div class="main-content">
       {% for section in sections %}
-        <h1>{{ section.title }}</h1>
-        <div class="indented-box">
-          {{ section.content|safe }}
-        </div>
+        <section id="{{ section.order }}">
+          <h1>{{ section.title }}</h1>
+          <div class="indented-box">
+            {{ section.content|safe }}
+          </div>
+        </section>
         <br>
       {% endfor %}
     </div>
