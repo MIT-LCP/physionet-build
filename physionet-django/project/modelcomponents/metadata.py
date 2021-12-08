@@ -1,6 +1,8 @@
 import os
 
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import (
+    GenericForeignKey, GenericRelation
+)
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
@@ -8,6 +10,7 @@ from django.utils.html import format_html
 from html2text import html2text
 from project.modelcomponents.access import AccessPolicy, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
+from project.modelcomponents.section import SectionContent
 from project.projectfiles import ProjectFiles
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import validate_title, validate_topic, validate_version
@@ -42,16 +45,8 @@ class Metadata(models.Model):
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_title])
     abstract = SafeHTMLField(max_length=10000, blank=True)
-    background = SafeHTMLField(blank=True)
-    methods = SafeHTMLField(blank=True)
-    content_description = SafeHTMLField(blank=True)
-    usage_notes = SafeHTMLField(blank=True)
-    installation = SafeHTMLField(blank=True)
-    acknowledgements = SafeHTMLField(blank=True)
-    conflicts_of_interest = SafeHTMLField(blank=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
-    release_notes = SafeHTMLField(blank=True)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
@@ -243,13 +238,11 @@ class Metadata(models.Model):
                         prefix_map={old_display_url: new_display_url,
                                     old_file_url: new_file_url})
 
-        for field in ('abstract', 'background', 'methods',
-                      'content_description', 'usage_notes',
-                      'installation', 'acknowledgements',
-                      'conflicts_of_interest', 'release_notes'):
-            text = getattr(self, field)
-            text = lf.convert(text)
-            setattr(self, field, text)
+        project_contents = self.project_contents.all()
+        for section in project_contents:
+            text = lf.convert(section.section_content)
+            section.section_content = text
+            section.save()
 
     def file_base_url(self):
         """

@@ -128,24 +128,27 @@
 
       </div>
     {% endif %}
-
-      {% if project.is_legacy %}
-        {{ project.full_description|safe }}
+      
+      {% if not project.is_legacy %}
+        <h2 id="abstract">Abstract</h2>
+        {{ project.abstract|safe }}
         <hr>
-      {% else %}
-        {# 0: Database #}
-        {% if project.resource_type.id == 0 %}
-          {% include "project/database_content.html" %}
-        {# 1: Software #}
-        {% elif project.resource_type.id == 1 %}
-          {% include "project/software_content.html" %}
-        {# 2: Challenge #}
-        {% elif project.resource_type.id == 2 %}
-          {% include "project/challenge_content.html" %}
-        {# 3: Model #}
-        {% elif project.resource_type.id == 3 %}
-          {% include "project/model_content.html" %}
-        {% endif %}
+      {% endif %}
+      {% for c in content %}
+        <h2 id='{% firstof c.project_section.html_id c.custom_title|slugify %}'>
+          {% firstof c.project_section.title c.custom_title %}
+        </h2>
+        {{ c.section_content|safe }}
+        <hr>
+      {% endfor %}
+      {% if references %}
+        <h2 id="references">References</h2>
+        <ol>
+        {% for reference in references %}
+          <li>{{ reference.description }}</li>
+        {% endfor %}
+        </ol>
+        <hr>
       {% endif %}
     </div>
     <!-- /.main column -->
@@ -153,58 +156,26 @@
     <!-- Sidebar Column -->
     <div class="col-md-4">
       {# Contents Button #}
-      {% if not project.is_legacy %}
       <div class="card" style="border: 0">
         <button class="btn btn-secondary dropdown-toggle btn-rsp btn-right" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Contents
         </button>
         <div class="dropdown-menu">
-          {% if project.resource_type.id == 0 %}
+
+          {% if not project.is_legacy %}
             <a class="dropdown-item" href="#abstract">Abstract</a>
-            <a class="dropdown-item" href="#background">Background</a>
-            <a class="dropdown-item" href="#methods">Methods</a>
-            <a class="dropdown-item" href="#description">Data Description</a>
-            <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
-            <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
-            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-            <a class="dropdown-item" href="#references">References</a>
-            <a class="dropdown-item" href="#files">Files</a>
-          {% elif project.resource_type.id == 1 %}
-            <a class="dropdown-item" href="#abstract">Abstract</a>
-            <a class="dropdown-item" href="#background">Background</a>
-            <a class="dropdown-item" href="#description">Software Description</a>
-            {% if project.methods %}
-              <a class="dropdown-item" href="#implementation">Technical Implementation</a>
-            {% endif %}
-            {% if project.installation %}
-              <a class="dropdown-item" href="#installation">Installation and Requirements</a>
-            {% endif %}
-            <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
-            {% if project.release_notes %}
-              <a class="dropdown-item" href="#release-notes">Release Notes</a>
-            {% endif %}
-            {% if project.acknowledgements %}
-              <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
-            {% endif %}
-            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-            <a class="dropdown-item" href="#references">References</a>
-            <a class="dropdown-item" href="#files">Files</a>
-          {% elif project.resource_type.id == 2 %}
-            <a class="dropdown-item" href="#abstract">Abstract</a>
-            <a class="dropdown-item" href="#objective">Objective</a>
-            <a class="dropdown-item" href="#participation">Participation</a>
-            <a class="dropdown-item" href="#description">Data Description</a>
-            <a class="dropdown-item" href="#evaluation">Evaluation</a>
-            <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
-            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-            <a class="dropdown-item" href="#references">References</a>
-            <a class="dropdown-item" href="#files">Files</a>
-          {% else %}
-            <a class="dropdown-item" href="#files">Files</a>
           {% endif %}
+          {% for c in content %}
+            <a class="dropdown-item" href="#{% firstof c.project_section.html_id c.custom_title|slugify %}">
+              {% firstof c.project_section.title c.custom_title %}
+            </a>
+          {% endfor %}
+          {% if references %}
+            <a class="dropdown-item" href="#references">References</a>
+          {% endif %}
+          <a class="dropdown-item" href="#files">Files</a>
         </div>
       </div>
-      {% endif %}
 
       {% if parent_projects %}
       <div class="card my-4">

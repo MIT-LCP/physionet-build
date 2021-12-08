@@ -5,7 +5,7 @@ from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
-from project.forms import ContentForm
+from project.forms import ContentForm, SectionContentForm
 from project.models import (
     AccessPolicy,
     ActiveProject,
@@ -451,8 +451,11 @@ class TestProjectEditing(TestCase):
             'project-reference-content_type-object_id-MIN_NUM_FORMS': '0',
             'project-reference-content_type-object_id-MAX_NUM_FORMS': '0',
         }
-        for field in ContentForm.FIELDS[project.resource_type.id]:
+        for field in ContentForm.Meta.fields:
             data[field] = getattr(project, field)
+        for content in project.project_contents.all():
+            field = SectionContentForm(instance=content)["section_content"]
+            data[field.html_name] = field.value()
 
         response = self.client.post(content_url, data=data)
         self.assertEqual(response.status_code, 200)
@@ -490,7 +493,9 @@ class TestProjectEditing(TestCase):
         response = self.client.post(content_url, data=data)
         self.assertEqual(response.status_code, 200)
         project.refresh_from_db()
-        self.assertHTMLEqual(project.background, expected_html)
+        background = project.project_contents.get(
+            project_section__title="Background").section_content
+        self.assertHTMLEqual(background, expected_html)
         self.assertGreater(project.modified_datetime, timestamp)
 
         # Post some blank text in a required field and verify that the

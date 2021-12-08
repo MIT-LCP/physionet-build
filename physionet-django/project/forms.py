@@ -32,6 +32,7 @@ from project.models import (
     StorageRequest,
     Topic,
     exists_project_slug,
+    ActiveSectionContent,
 )
 from project.projectfiles import ProjectFiles
 from user.models import User
@@ -398,13 +399,21 @@ class NewProjectVersionForm(forms.ModelForm):
         project.creation_datetime = timezone.now()
         project.version_order = self.latest_project.version_order + 1
         project.is_new_version = True
+        project.save()
+
+        # Copy content for each project section
+        contents = []
+        for c in self.latest_project.project_contents.all():
+            contents.append(ActiveSectionContent(
+                project=project,
+                project_section=c.project_section,
+                section_content=c.section_content))
+        ActiveSectionContent.objects.bulk_create(contents)
 
         # Change internal links (that point to files within the
         # published project) to point to their new locations in the
         # active project
         project.update_internal_links(old_project=self.latest_project)
-
-        project.save()
 
         # Copy over the author/affiliation objects
         for p_author in self.latest_project.authors.all():
@@ -447,83 +456,20 @@ class NewProjectVersionForm(forms.ModelForm):
 class ContentForm(forms.ModelForm):
     """
     Form for editing the content of a project.
-    Fields, labels, and help texts may be defined differently for
-    different resource types.
-
     """
-
-    FIELDS = (
-        # 0: Database
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'release_notes', 'acknowledgements',
-         'conflicts_of_interest',
-         ),
-        # 1: Software
-        ('title', 'abstract', 'background', 'content_description',
-         'methods', 'installation', 'usage_notes', 'release_notes',
-         'acknowledgements', 'conflicts_of_interest', ),
-        # 2: Challenge
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'release_notes', 'acknowledgements',
-         'conflicts_of_interest',
-         ),
-        # 3: Model
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'installation', 'usage_notes', 'release_notes',
-         'acknowledgements', 'conflicts_of_interest',
-         ),
-    )
-
-    HELP_TEXTS = (
-        # 0: Database
-        {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
-         'content_description': '* Describe the data, and how the files are named and structured.',
-         'usage_notes': '* How the data is to be used. List external documentation pages. List related software developed for the dataset, and any special software required to use the data.'},
-        # 1: Software
-        {'content_description': '* Describe the software in this project.',
-         'methods': 'Details on the technical implementation. ie. the development process, and the underlying algorithms.',
-         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'},
-        # 2: Challenge
-        {'background': '* An introduction to the challenge and a description of the objective/s.',
-         'methods': '* A timeline for the challenge and rules for participation.',
-         'content_description': '* A description of the challenge data and access details.',
-         'usage_notes': '* Scoring details, information on submitting an entry, and a link to a sample submission.'},
-        # 3: Model
-        {'background': '* Introduce the model, providing context.',
-         'content_description': '* Describe the model and any supporting data and software.',
-         'installation': '* Instructions on how to set up a software environment for using the model.',
-         'usage_notes': '* Describe how you intend others to (re)use the model.',
-         'methods': 'Details on the technical implementation. ie. the development process, and the underlying algorithms.',
-         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'},
-    )
 
     class Meta:
         model = ActiveProject
         # This includes fields for all resource types.
-        fields = ('title', 'abstract', 'background', 'methods',
-                  'content_description', 'installation', 'usage_notes',
-                  'acknowledgements', 'conflicts_of_interest',
-                  'release_notes',)
+        fields = ('title', 'abstract',)
 
         help_texts = {
             'title': '* The title of the resource.',
             'abstract': '* A brief description of the resource and the context in which it was created.',
-            'background': '* The content or research background.',
-            'installation': '* Instructions on how to install the software, along with the required dependencies. Or specify the files in which they are listed.',
-            'acknowledgements': 'Thank the people who helped with the research but did not qualify for authorship. In addition, provide any funding information.',
-            'conflicts_of_interest': '* List whether any authors have a financial, commercial, legal, or professional relationship with other organizations, or with the people working with them, that could influence this research. State explicitly if there are none.',
-            'release_notes': 'Important notes about the current release, and changes from previous versions.'
         }
 
     def __init__(self, resource_type, editable=True, **kwargs):
         super(ContentForm, self).__init__(**kwargs)
-        self.fields = OrderedDict((k, self.fields[k]) for k in self.FIELDS[resource_type])
-
-        for l in ActiveProject.LABELS[resource_type]:
-            self.fields[l].label = ActiveProject.LABELS[resource_type][l]
-
-        for h in self.__class__.HELP_TEXTS[resource_type]:
-            self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
 
         if not editable:
             for f in self.fields.values():
@@ -534,11 +480,66 @@ class ContentForm(forms.ModelForm):
         if self.instance and self.instance.is_new_version:
             self.fields['title'].disabled = True
 
-    def clean_version(self):
-        data = self.cleaned_data['version']
-        if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
-            raise forms.ValidationError('Please specify a new unused version.')
-        return data
+
+class SectionContentForm(forms.ModelForm):
+    """
+    Form for editing the content of a section.
+    """
+
+    class Meta:
+        model = ActiveSectionContent
+        fields = ('section_content',)
+
+    def __init__(self, project=None, project_section=None, editable=True, *args, **kwargs):
+        # Creates a new instance of SectionContent if none is passed as argument
+        if 'instance' not in kwargs:
+            try:
+                # Try to get currently existing content for section
+                section_content = project.project_contents.get(
+                    project_section=project_section)
+            except ActiveSectionContent.DoesNotExist:
+                # Creates form with empty instance in case content is not found
+                section_content = ActiveSectionContent(
+                    project=project,
+                    project_section=project_section)
+
+            kwargs['instance'] = section_content
+
+        # Sets label and help text for form fields
+        super(SectionContentForm, self).__init__(*args, **kwargs)
+        self.fields['section_content'].label = self.instance.project_section.title
+        self.fields['section_content'].help_text = self.instance.project_section.description
+
+        if not editable:
+            for f in self.fields.values():
+                f.disabled = True
+
+    def add_prefix(self, field_name):
+        # Adds the section's `html_id` as a prefix to the html tag's id and name
+        field_name = self.instance.project_section.html_id
+
+        # Compatiblity with old form ids
+        field_name = field_name.replace("-", "_")
+        field_name = field_name.replace("implementation", "methods")
+        field_name = field_name.replace("objective", "background")
+        field_name = field_name.replace("participation", "methods")
+        field_name = field_name.replace("evaluation", "usage_notes")
+        field_name = field_name.replace("description", "content_description")
+
+        return super(SectionContentForm, self).add_prefix(field_name)
+
+    def save(self):
+        # Save if not empty
+        section = super(SectionContentForm, self).save(commit=False)
+        if section.is_valid():
+            return section.save()
+
+        if section.id:
+            # Delete if in database and new
+            # content is empty
+            return section.delete()
+
+        return
 
 
 class DiscoveryForm(forms.ModelForm):
@@ -590,6 +591,12 @@ class DiscoveryForm(forms.ModelForm):
         result = super().save(*args, **kwargs)
         self.instance.content_modified()
         return result
+
+    def clean_version(self):
+        data = self.cleaned_data['version']
+        if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
+            raise forms.ValidationError('Please specify a new unused version.')
+        return data
 
 
 class AffiliationFormSet(forms.BaseInlineFormSet):

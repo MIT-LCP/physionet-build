@@ -2,10 +2,12 @@ import os
 
 from django.conf import settings
 from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
 
 from project.modelcomponents.metadata import Metadata
 from project.modelcomponents.unpublishedproject import UnpublishedProject
 from project.modelcomponents.submission import SubmissionInfo
+from project.modelcomponents.section import SectionContent
 
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):

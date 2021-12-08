@@ -11,6 +11,7 @@ from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
+
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
@@ -18,6 +19,9 @@ from project.modelcomponents.metadata import Contact, Metadata, PublishedPublica
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
+from project.modelcomponents.section import (
+    ProjectSection, ActiveSectionContent, PublishedSectionContent,
+    ArchivedSectionContent)
 from project.projectfiles import ProjectFiles
 from project.validators import validate_subdir
 
@@ -85,44 +89,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     FILE_ROOT = os.path.join(ProjectFiles().file_root, 'active-projects')
 
-    REQUIRED_FIELDS = (
-        # 0: Database
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
-        # 1: Software
-        ('title', 'abstract', 'background', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
-        # 2: Challenge
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
-        # 3: Model
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
-    )
-
-    # Custom labels that don't match model field names
-    LABELS = (
-        # 0: Database
-        {'content_description': 'Data Description'},
-        # 1: Software
-        {'content_description': 'Software Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-        # 2: Challenge
-        {'background': 'Objective',
-         'methods': 'Participation',
-         'content_description': 'Data Description',
-         'usage_notes': 'Evaluation'},
-        # 3: Model
-        {'content_description': 'Model Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-    )
-
     SUBMISSION_STATUS_LABELS = {
         0: 'Not submitted.',
         10: 'Awaiting editor assignment.',
@@ -132,6 +98,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         50: 'Awaiting authors to approve publication.',
         60: 'Awaiting editor to publish.',
     }
+
+    REQUIRED_FIELDS = [
+        'title', 'abstract', 'version', 'license',
+        'short_description'
+    ]
 
     def storage_used(self):
         """
@@ -253,6 +224,17 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if languages:
                 archived_project.programming_languages.add(*list(languages))
 
+        # Copy content
+        content = self.project_contents.all()
+        archived_contents = []
+        for c in content:
+            archived_contents.append(ArchivedSectionContent(
+                project=archived_project,
+                section_content=c.section_content,
+                project_section=c.project_section
+            ))
+        ArchivedSectionContent.objects.bulk_create(archived_contents)
+
         # Voluntary delete
         if archive_reason == 1:
             self.clear_files()
@@ -299,13 +281,25 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if not author.affiliations.all():
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
 
+        # Content
+        sections = set(ProjectSection.objects.filter(
+            resource_type=self.resource_type, required=True).values_list(
+            'title', flat=True))
+        contents = self.project_contents.filter(project_section__required=True)
+        for content in contents:
+            if content.is_valid():
+                sections.remove(content.project_section.title)
+        for section in sections:
+            self.integrity_errors.append(
+                'Missing required field: {0}'.format(section))
+
         # Metadata
-        for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type.id]:
+        for attr in ActiveProject.REQUIRED_FIELDS:
             value = getattr(self, attr)
             text = unescape(strip_tags(str(value)))
             if value is None or not text or text.isspace():
-                l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
-                self.integrity_errors.append('Missing required field: {0}'.format(l))
+                label = attr.replace('_', ' ').capitalize()
+                self.integrity_errors.append('Missing required field: {0}'.format(label))
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -482,13 +476,23 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.slug = slug or self.slug
                 published_project.title = title or self.title
                 published_project.doi = self.doi
+                published_project.save()
+
+                # Copy content
+                content = self.project_contents.all()
+                published_contents = []
+                for c in content:
+                    published_contents.append(PublishedSectionContent(
+                        project=published_project,
+                        section_content=c.section_content,
+                        project_section=c.project_section
+                    ))
+                PublishedSectionContent.objects.bulk_create(published_contents)
 
                 # Change internal links (that point to files within
                 # the active project) to point to their new locations
                 # in the published project
                 published_project.update_internal_links(old_project=self)
-
-                published_project.save()
 
                 # If this is a new version, all version fields have to be updated
                 if self.version_order > 0:
