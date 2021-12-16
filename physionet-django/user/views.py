@@ -16,7 +16,7 @@ from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
 from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -50,6 +50,8 @@ from user.models import (
     Orcid,
     Profile,
     User,
+    Training,
+    TrainingType,
 )
 from user.userfiles import UserFiles
 
@@ -623,16 +625,13 @@ def credential_application(request):
         # We use the individual forms to render the errors in the template
         # if not all valid
         personal_form = forms.PersonalCAF(user=user, data=request.POST, prefix="application")
-        training_form = forms.TrainingCAF(data=request.POST,
-            files=request.FILES, prefix="application")
         research_form = forms.ResearchCAF(data=request.POST, prefix="application")
         reference_form = forms.ReferenceCAF(data=request.POST, prefix="application", user=user)
 
         form = forms.CredentialApplicationForm(user=user, data=request.POST,
             files=request.FILES,  prefix="application")
 
-        if (personal_form.is_valid() and training_form.is_valid()
-                and reference_form.is_valid()
+        if (personal_form.is_valid() and reference_form.is_valid()
                 and form.is_valid()) and research_form.is_valid():
             application = form.save()
             credential_application_request(request, application)
@@ -642,37 +641,61 @@ def credential_application(request):
             messages.error(request, 'Invalid submission. See errors below.')
     else:
         personal_form = forms.PersonalCAF(user=user, prefix="application")
-        training_form = forms.TrainingCAF(prefix="application")
         reference_form = forms.ReferenceCAF(prefix="application", user=user)
         research_form = forms.ResearchCAF(prefix="application")
         form = None
 
     return render(request, 'user/credential_application.html', {'form':form,
-        'personal_form':personal_form, 'training_form':training_form,
+        'personal_form':personal_form,
         'reference_form':reference_form, 'license':license, 
         'research_form':research_form})
 
 
 @login_required
-def training_report(request, application_slug, attach=True):
+def edit_trainings(request):
+    if request.method == 'POST':
+        training_form = forms.TrainingForm(user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type'))
+        if training_form.is_valid():
+            training_form.save()
+            messages.success(request, 'The training has been submitted successfully.')
+            training_form = forms.TrainingForm(user=request.user)
+        else:
+            messages.error(request, 'Invalid submission. Check the errors below.')
+            
+    else:
+        training_type = request.GET.get('trainingType')
+        if training_type:
+            training_form = forms.TrainingForm(user=request.user, training_type=training_type)
+        else:
+            training_form = forms.TrainingForm(user=request.user)
+
+    trainings = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
+        
+    return render(request, 'user/edit_trainings.html', {'training_form': training_form, 'trainings': trainings})
+
+
+@login_required
+def edit_trainings_detail(request, training_id):
+    training = get_object_or_404(Training, pk=training_id, user=request.user)
+
+    if request.method == 'POST':
+        if request.POST.get('withdraw') is not None and not training.is_withdrawn():
+            training.withdraw()
+            return redirect('edit_trainings')
+
+    return render(request, 'user/edit_trainings_detail.html', {'training': training})
+
+@login_required
+def training_report(request, training_id):
     """
     Serve a training report file
     """
-    try:
-        application = CredentialApplication.objects.get(slug=application_slug)
-    except ObjectDoesNotExist:
-        raise Http404()
+    training = get_object_or_404(Training, id=training_id, user=request.user)
 
-    if request.user == application.user or request.user.is_admin:
-        try:
-            if settings.STORAGE_TYPE == StorageTypes.GCP:
-                return redirect(application.training_completion_report.url)
-            return utility.serve_file(application.training_completion_report.path,
-                                      attach=attach)
-        except FileNotFoundError:
-            raise Http404()
+    if settings.STORAGE_TYPE == StorageTypes.GCP:
+        return redirect(training.completion_report.url)
 
-    raise PermissionDenied()
+    return utility.serve_file(training.completion_report.path, attach=False)
 
 
 @login_required
