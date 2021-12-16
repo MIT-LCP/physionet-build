@@ -1,0 +1,42 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}To be changed{% endblock %}
+
+{% block content %}
+<h1>To be changed</h1>
+<hr>
+
+<div class="card-columns row">
+    <div class="col-sm-5">
+        <div class="card mb-4">
+            <div class="card-header">
+                Application information
+            </div>
+            <div class="card-body">
+                Document: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
+                URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
+                Submitted on: {{ training.application_datetime|date }}
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-5">
+        <div class="card mb-4">
+            <div class="card-header">
+                Reviewer Questions
+            </div>
+            <div class="card-body">
+                <form action="" method="post" class="form-signin">
+                    {% csrf_token %}
+                    {% include "console/formset_snippet.html" with formset=questions_formset %}
+                    {% include "form_snippet.html" with form=training_review_form %}
+                    <button class="btn btn-primary btn-fixed" name="accept" type="submit">Accept</button>
+                    <button class="btn btn-danger btn-fixed" name="reject" type="submit">Reject</button>
+                  </form>
+            </div>
+        </div>
+  </div>
+</div>
+
+{% endblock %}

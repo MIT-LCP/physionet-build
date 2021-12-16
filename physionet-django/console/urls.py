@@ -68,6 +68,11 @@ urlpatterns = [
         views.download_credentialed_users,
         name="download_credentialed_users"),
 
+    path('trainings/', views.trainings_list, name='trainings_list'),
+    path('trainings/<int:pk>/', views.trainings_detail, name='trainings_detail'),
+    path('trainings/process/<int:pk>/', views.trainings_proccess, name='trainings_process'),
+
+
     path('users/search/<group>/', views.users_search, name='users_list_search'),
     path('users/<group>/', views.users, name='users'),
     path('user/manage/<username>/', views.user_management,

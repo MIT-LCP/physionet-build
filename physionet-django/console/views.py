@@ -8,6 +8,9 @@ from datetime import datetime, timedelta
 from itertools import chain
 from statistics import StatisticsError, median
 
+from django.forms.formsets import formset_factory
+from django.forms.models import inlineformset_factory
+
 import notification.utility as notification
 import project.forms as project_forms
 from background_task import background
@@ -56,7 +59,7 @@ from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
-from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User
+from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User, Training, TrainingQuestion
 
 LOGGER = logging.getLogger(__name__)
 
@@ -1126,14 +1129,12 @@ def process_credential_application(request, application_slug):
     if application.credential_review.status == 10:
         intermediate_credential_form = forms.InitialCredentialForm(responder=request.user, instance=application)
     if application.credential_review.status == 20:
-        intermediate_credential_form = forms.TrainingCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 30:
         intermediate_credential_form = forms.PersonalCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 40:
+    if application.credential_review.status == 30:
         intermediate_credential_form = forms.ReferenceCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 50:
+    if application.credential_review.status == 40:
         intermediate_credential_form = forms.ResponseCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 60:
+    if application.credential_review.status == 50:
         intermediate_credential_form = forms.ProcessCredentialReviewForm(responder=request.user, instance=application)
 
     if request.method == 'POST':
@@ -1148,7 +1149,7 @@ def process_credential_application(request, application_slug):
                     return render(request, 'console/process_credential_complete.html',
                         {'application':application})
                 page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.TrainingCredentialForm(
+                intermediate_credential_form = forms.PersonalCredentialForm(
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
@@ -1164,38 +1165,6 @@ def process_credential_application(request, application_slug):
                 for field in valid_fields:
                     data_copy[field] = '1'
                 intermediate_credential_form = forms.InitialCredentialForm(
-                    responder=request.user, data=data_copy, instance=application)
-                intermediate_credential_form.save()
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.TrainingCredentialForm(
-                    responder=request.user, instance=application)
-        elif 'approve_training' in request.POST:
-            intermediate_credential_form = forms.TrainingCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
-            if intermediate_credential_form.is_valid():
-                intermediate_credential_form.save()
-                if intermediate_credential_form.cleaned_data['decision'] == '0':
-                    notification.process_credential_complete(request,
-                                                             application)
-                    return render(request, 'console/process_credential_complete.html',
-                        {'application':application})
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.PersonalCredentialForm(
-                    responder=request.user, instance=application)
-            else:
-                messages.error(request, 'Invalid review. See form below.')
-        elif 'approve_training_all' in request.POST:
-            if request.POST['decision'] == '0':
-                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
-            else:
-                data_copy = request.POST.copy()
-                valid_fields = set(request.POST.keys())
-                valid_fields.difference_update({'csrfmiddlewaretoken',
-                                                'responder_comments',
-                                                'approve_training_all'})
-                for field in valid_fields:
-                    data_copy[field] = '1'
-                intermediate_credential_form = forms.TrainingCredentialForm(
                     responder=request.user, data=data_copy, instance=application)
                 intermediate_credential_form.save()
                 page_title = title_dict[application.credential_review.status]
@@ -1309,7 +1278,7 @@ def process_credential_application(request, application_slug):
                                                subject=subject, body=body)
                 messages.success(request, 'The reference has been contacted.')
         elif 'skip_reference' in request.POST:
-            application.update_review_status(60)
+            application.update_review_status(50)
             application.save()
         elif 'process_application' in request.POST:
             process_credential_form = forms.ProcessCredentialReviewForm(
@@ -1342,18 +1311,15 @@ def credential_processing(request):
     initial_2 = Q(credential_review__status=10)
     initial_applications = applications.filter(
         initial_1 | initial_2).order_by('application_datetime')
-    # Awaiting training check
-    training_applications = applications.filter(
-        credential_review__status=20).order_by('application_datetime')
     # Awaiting ID check
     personal_applications = applications.filter(
-        credential_review__status=30).order_by('application_datetime')
+        credential_review__status=20).order_by('application_datetime')
     # Awaiting reference check
     reference_applications = applications.filter(
-        credential_review__status=40).order_by('application_datetime')
+        credential_review__status=30).order_by('application_datetime')
     # Awaiting reference response
     response_applications = applications.filter(
-        credential_review__status=50).order_by('-reference_response',
+        credential_review__status=40).order_by('-reference_response',
                                                'application_datetime')
     # Awaiting final review
     final_applications = applications.filter(
@@ -1371,7 +1337,6 @@ def credential_processing(request):
     return render(request, 'console/credential_processing.html',
         {'applications': applications,
         'initial_applications': initial_applications,
-        'training_applications': training_applications,
         'personal_applications': personal_applications,
         'reference_applications': reference_applications,
         'response_applications': response_applications,
@@ -1530,6 +1495,67 @@ def credentialed_user_info(request, username):
         raise Http404()
     return render(request, 'console/credentialed_user_info.html',
         {'c_user':c_user, 'application':application})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def trainings_list(request):
+    review_trainings = Training.objects.select_related('user__profile', 'training_type').get_review()
+    valid_trainings = Training.objects.select_related('user__profile', 'training_type').get_valid()
+    expired_trainings = Training.objects.select_related('user__profile', 'training_type').get_expired()
+    rejected_trainings = Training.objects.select_related('user__profile', 'training_type').get_rejected()
+
+    return render(request, 'console/trainings_list.html', {
+        'review_trainings': review_trainings,
+        'valid_trainings': valid_trainings,
+        'expired_trainings': expired_trainings,
+        'rejected_trainings': rejected_trainings,
+        'training_nav': True,
+    })
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def trainings_proccess(request, pk):
+    training = get_object_or_404(Training.objects.prefetch_related('training_type__questions').get_review(), pk=pk)
+
+    TrainingQuestionFormSet = modelformset_factory(model=TrainingQuestion, form=forms.TrainingQuestionForm, formset=forms.TrainingQuestionFormSet, extra=0)
+
+    if request.method == 'POST':        
+        print(request.POST)
+
+        if 'accept' in request.POST:
+            questions_formset = TrainingQuestionFormSet(data=request.POST, queryset=training.training_questions.all())
+
+            if questions_formset.is_valid():
+                questions_formset.save()
+
+                training.accept(reviewer=request.user)
+                return redirect('trainings_list')
+            
+            training_review_form = forms.TrainingReviewForm()
+
+        elif 'reject' in request.POST:
+            training_review_form = forms.TrainingReviewForm(data=request.POST)
+
+            if training_review_form.is_valid():
+                training.reject(reviewer=request.user, reviewer_comments=training_review_form.cleaned_data['reviewer_comments'])
+
+                return redirect('trainings_list')
+            
+            questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
+    else:
+        questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
+        training_review_form = forms.TrainingReviewForm()
+
+    return render(request, 'console/trainings_process.html', {'training': training, 'questions_formset': questions_formset, 'training_review_form': training_review_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def trainings_detail(request, pk):
+    training = get_object_or_404(Training.objects.prefetch_related('training_type'), pk=pk)
+
+    return render(request, 'console/trainings_detail.html', {'training': training})
 
 
 @login_required
