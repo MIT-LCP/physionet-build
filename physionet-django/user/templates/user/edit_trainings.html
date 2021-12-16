@@ -1,0 +1,57 @@
+{% extends "user/settings.html" %}
+
+{% block title %}PhysioNet Trainings{% endblock %}
+
+{% block main_content %}
+<h1>PhysioNet Trainings</h1>
+  <hr>
+  <h4>Active trainings</h4>
+  <ul class="list-group list-group-flush">
+    {% for training in trainings %}
+      <li class="list-group-item d-flex align-items-center justify-content-between">
+        <div>
+          {{ training.training_type.name }} Training
+          {% include 'user/training_badge.html' %}
+        </div>
+        <a href="{% url 'edit_trainings_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a>
+      </li>
+    {% empty %}
+      <p>There are no trainings.</p>
+    {% endfor %}
+  </ul>
+  <hr>
+  <h4>New training</h4>
+  {% lorem 1 p %}
+  <form action="{% url "edit_trainings" %}" method="post" enctype="multipart/form-data" id="training">
+      {% include "descriptive_inline_form_snippet.html" with form=training_form %}
+      <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#submit-training">Submit Training</button>
+      <div class="modal fade" id="submit-training" tabindex="-1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Submit Training</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                  <p>Are you sure you want to submit the training?</p>
+              </div>
+              <div class="modal-footer">
+                  <button class="btn btn-primary" type="submit">Submit Training</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+      </div>
+  </form>
+
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script>
+    $(document).on('change', '#id_training_type', function() {
+      $("#training").load(`{% url 'edit_trainings' %}?trainingType=${this.value} #training>`);
+    });
+  </script>
+{% endblock %}
