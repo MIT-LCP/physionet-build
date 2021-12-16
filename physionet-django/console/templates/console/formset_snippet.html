@@ -1,0 +1,27 @@
+{{ formset.management_form }}
+{% for form in formset %}
+    {% for field in form.visible_fields %}
+    <div class="form-group">
+        <label for="{{ field.id_for_label }}" title="{{ field.help_text }}">{{ field.label|safe }}
+        </label> {{ field }}
+        {% for error in field.errors %}
+        <div class="alert alert-danger">
+            <strong>{{ error|escape }}</strong>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+    <div class="alert alert-danger">
+        <strong>{{ error|escape }}</strong>
+    </div>
+    {% endfor %}
+    {% for field in form.hidden_fields %}
+    {{ field }}
+    {% endfor %}
+{% endfor %}
+{% for error in formset.non_form_errors %}
+    <div class="alert alert-danger">
+        <strong>{{ error|escape }}</strong>
+    </div>
+{% endfor %}
