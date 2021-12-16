@@ -954,7 +954,7 @@ class CredentialReview(models.Model):
         (20, 'ID check'),
         (30, 'Reference'),
         (40, 'Reference response'),
-        (50, 'Final review')
+        (50, 'Final review'),
     )
 
     application = models.OneToOneField('user.CredentialApplication',
@@ -1017,13 +1017,14 @@ class Training(models.Model):
     training_type = models.ForeignKey(TrainingType, on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='trainings', on_delete=models.CASCADE)
     status = models.PositiveSmallIntegerField(choices=TrainingStatus.choices(), default=TrainingStatus.REVIEW)
-    completion_report = models.FileField(upload_to=get_training_path, validators=[FileExtensionValidator(['pdf'], 'File must be a pdf.')], blank=True)
+    completion_report = models.FileField(
+        upload_to=get_training_path, validators=[FileExtensionValidator(['pdf'], 'File must be a pdf.')], blank=True
+    )
     completion_report_url = models.URLField(blank=True)
     application_datetime = models.DateTimeField(auto_now_add=True)
     process_datetime = models.DateTimeField(null=True)
     reviewer = models.ForeignKey(User, related_name='reviewed_trainings', null=True, on_delete=models.SET_NULL)
     reviewer_comments = models.CharField(max_length=512)
-
 
     objects = TrainingQuerySet.as_manager()
 
@@ -1043,10 +1044,10 @@ class Training(models.Model):
         self.reviewer_comments = reviewer_comments
         self.process_datetime = timezone.now()
         self.save(update_fields=['status', 'reviewer', 'reviewer_comments', 'process_datetime'])
-    
+
     def get_valid_date(self):
         return self.process_datetime + self.training_type.valid_duration
-        
+
     def is_withdrawn(self):
         return self.status == TrainingStatus.WITHDRAWN
 
@@ -1063,7 +1064,7 @@ class Training(models.Model):
                 return True
             else:
                 return self.process_datetime + self.training_type.valid_duration < timezone.now()
-    
+
     def is_rejected(self):
         return self.status == TrainingStatus.REJECTED
 
