@@ -58,7 +58,15 @@ from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
-from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User, Training, TrainingQuestion
+from user.models import (
+    AssociatedEmail,
+    CredentialApplication,
+    CredentialReview,
+    LegacyCredential,
+    User,
+    Training,
+    TrainingQuestion,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -1317,15 +1325,13 @@ def credential_processing(request):
     initial_applications = applications.filter(
         initial_1 | initial_2).order_by('application_datetime')
     # Awaiting ID check
-    personal_applications = applications.filter(
-        credential_review__status=20).order_by('application_datetime')
+    personal_applications = applications.filter(credential_review__status=20).order_by('application_datetime')
     # Awaiting reference check
-    reference_applications = applications.filter(
-        credential_review__status=30).order_by('application_datetime')
+    reference_applications = applications.filter(credential_review__status=30).order_by('application_datetime')
     # Awaiting reference response
-    response_applications = applications.filter(
-        credential_review__status=40).order_by('-reference_response',
-                                               'application_datetime')
+    response_applications = applications.filter(credential_review__status=40).order_by(
+        '-reference_response', 'application_datetime'
+    )
     # Awaiting final review
     final_applications = applications.filter(
         credential_review__status=60).order_by('application_datetime')
@@ -1498,8 +1504,9 @@ def credentialed_user_info(request, username):
         application = CredentialApplication.objects.get(user=c_user, status=2)
     except (User.DoesNotExist, CredentialApplication.DoesNotExist):
         raise Http404()
-    return render(request, 'console/credentialed_user_info.html',
-        {'c_user':c_user, 'application':application})
+    return render(request, 'console/credentialed_user_info.html', {
+        'c_user': c_user, 'application': application
+    })
 
 
 @login_required
@@ -1510,22 +1517,29 @@ def trainings_list(request):
     expired_trainings = Training.objects.select_related('user__profile', 'training_type').get_expired()
     rejected_trainings = Training.objects.select_related('user__profile', 'training_type').get_rejected()
 
-    return render(request, 'console/trainings_list.html', {
-        'review_trainings': review_trainings,
-        'valid_trainings': valid_trainings,
-        'expired_trainings': expired_trainings,
-        'rejected_trainings': rejected_trainings,
-        'training_nav': True,
-    })
+    return render(
+        request,
+        'console/trainings_list.html',
+        {
+            'review_trainings': review_trainings,
+            'valid_trainings': valid_trainings,
+            'expired_trainings': expired_trainings,
+            'rejected_trainings': rejected_trainings,
+            'training_nav': True,
+        },
+    )
+
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def trainings_proccess(request, pk):
     training = get_object_or_404(Training.objects.prefetch_related('training_type__questions').get_review(), pk=pk)
 
-    TrainingQuestionFormSet = modelformset_factory(model=TrainingQuestion, form=forms.TrainingQuestionForm, formset=forms.TrainingQuestionFormSet, extra=0)
+    TrainingQuestionFormSet = modelformset_factory(
+        model=TrainingQuestion, form=forms.TrainingQuestionForm, formset=forms.TrainingQuestionFormSet, extra=0
+    )
 
-    if request.method == 'POST':        
+    if request.method == 'POST':
         print(request.POST)
 
         if 'accept' in request.POST:
@@ -1536,23 +1550,29 @@ def trainings_proccess(request, pk):
 
                 training.accept(reviewer=request.user)
                 return redirect('trainings_list')
-            
+
             training_review_form = forms.TrainingReviewForm()
 
         elif 'reject' in request.POST:
             training_review_form = forms.TrainingReviewForm(data=request.POST)
 
             if training_review_form.is_valid():
-                training.reject(reviewer=request.user, reviewer_comments=training_review_form.cleaned_data['reviewer_comments'])
+                training.reject(
+                    reviewer=request.user, reviewer_comments=training_review_form.cleaned_data['reviewer_comments']
+                )
 
                 return redirect('trainings_list')
-            
+
             questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
     else:
         questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
         training_review_form = forms.TrainingReviewForm()
 
-    return render(request, 'console/trainings_process.html', {'training': training, 'questions_formset': questions_formset, 'training_review_form': training_review_form})
+    return render(
+        request,
+        'console/trainings_process.html',
+        {'training': training, 'questions_formset': questions_formset, 'training_review_form': training_review_form},
+    )
 
 
 @login_required

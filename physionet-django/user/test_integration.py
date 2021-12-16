@@ -212,7 +212,7 @@ class TestCredentialing(TestMixin):
             'application-research_summary': 'Effects of asdfghjk on zxcvbnm',
         }
 
-        response = self.client.post(reverse('credential_application'), data=data)
+        self.client.post(reverse('credential_application'), data=data)
         # no message upon successful submission
         self.assertTrue(u.credential_applications.exists())
 

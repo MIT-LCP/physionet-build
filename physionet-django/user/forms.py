@@ -9,7 +9,18 @@ from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
-from user.models import AssociatedEmail, CloudInformation, CredentialApplication, Profile, User, Training, TrainingQuestion, TrainingType, TrainingStatus, RequiredField
+from user.models import (
+    AssociatedEmail,
+    CloudInformation,
+    CredentialApplication,
+    Profile,
+    User,
+    Training,
+    TrainingQuestion,
+    TrainingType,
+    TrainingStatus,
+    RequiredField,
+)
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
 from user.validators import UsernameValidator, validate_name
@@ -662,7 +673,7 @@ class TrainingForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.training_type = TrainingType.objects.filter(id=training_type_id).first()
-        
+
         self.fields['training_type'].initial = self.training_type
 
         if self.training_type:
@@ -679,8 +690,17 @@ class TrainingForm(forms.ModelForm):
         if self.errors:
             return
 
-        trainings = Training.objects.filter(Q(status=TrainingStatus.REVIEW) | Q(status=TrainingStatus.ACCEPTED, training_type__valid_duration__isnull=True) | Q(status=TrainingStatus.ACCEPTED, process_datetime__gte=timezone.now() - F('training_type__valid_duration'))).filter(training_type=OuterRef('pk'), user=self.user)
-        available_training_types = TrainingType.objects.annotate(training_exists=Exists(trainings)).filter(training_exists=False)
+        trainings = Training.objects.filter(
+            Q(status=TrainingStatus.REVIEW)
+            | Q(status=TrainingStatus.ACCEPTED, training_type__valid_duration__isnull=True)
+            | Q(
+                status=TrainingStatus.ACCEPTED,
+                process_datetime__gte=timezone.now() - F('training_type__valid_duration'),
+            )
+        ).filter(training_type=OuterRef('pk'), user=self.user)
+        available_training_types = TrainingType.objects.annotate(training_exists=Exists(trainings)).filter(
+            training_exists=False
+        )
 
         if self.cleaned_data['training_type'] not in available_training_types:
             raise forms.ValidationError("You have already submitted a training of this type.")
@@ -698,4 +718,3 @@ class TrainingForm(forms.ModelForm):
         TrainingQuestion.objects.bulk_create(training_questions)
 
         return training
-

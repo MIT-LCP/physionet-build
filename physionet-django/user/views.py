@@ -631,8 +631,7 @@ def credential_application(request):
         form = forms.CredentialApplicationForm(user=user, data=request.POST,
             files=request.FILES,  prefix="application")
 
-        if (personal_form.is_valid() and reference_form.is_valid()
-                and form.is_valid()) and research_form.is_valid():
+        if (personal_form.is_valid() and reference_form.is_valid() and form.is_valid()) and research_form.is_valid():
             application = form.save()
             credential_application_request(request, application)
 
@@ -645,23 +644,32 @@ def credential_application(request):
         research_form = forms.ResearchCAF(prefix="application")
         form = None
 
-    return render(request, 'user/credential_application.html', {'form':form,
-        'personal_form':personal_form,
-        'reference_form':reference_form, 'license':license, 
-        'research_form':research_form})
+    return render(
+        request,
+        'user/credential_application.html',
+        {
+            'form': form,
+            'personal_form': personal_form,
+            'reference_form': reference_form,
+            'license': license,
+            'research_form': research_form,
+        },
+    )
 
 
 @login_required
 def edit_trainings(request):
     if request.method == 'POST':
-        training_form = forms.TrainingForm(user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type'))
+        training_form = forms.TrainingForm(
+            user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type')
+        )
         if training_form.is_valid():
             training_form.save()
             messages.success(request, 'The training has been submitted successfully.')
             training_form = forms.TrainingForm(user=request.user)
         else:
             messages.error(request, 'Invalid submission. Check the errors below.')
-            
+
     else:
         training_type = request.GET.get('trainingType')
         if training_type:
@@ -670,7 +678,7 @@ def edit_trainings(request):
             training_form = forms.TrainingForm(user=request.user)
 
     trainings = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
-        
+
     return render(request, 'user/edit_trainings.html', {'training_form': training_form, 'trainings': trainings})
 
 
@@ -684,6 +692,7 @@ def edit_trainings_detail(request, training_id):
             return redirect('edit_trainings')
 
     return render(request, 'user/edit_trainings_detail.html', {'training': training})
+
 
 @login_required
 def training_report(request, training_id):

@@ -62,7 +62,7 @@ YES_NO_UNDETERMINED = (
 YES_NO_UNDETERMINED_REVIEW = (
     (True, 'Yes'),
     (False, 'No'),
-    (None, 'Undetermined')
+    (None, 'Undetermined'),
 )
 
 YES_NO_NA_UNDETERMINED = (
@@ -898,13 +898,13 @@ class SectionForm(forms.ModelForm):
         section.save()
         return section
 
-        
+
 class TrainingQuestionForm(forms.ModelForm):
     class Meta:
         model = TrainingQuestion
         fields = ('answer',)
         widgets = {'answer': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW)}
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -915,10 +915,12 @@ class TrainingQuestionFormSet(forms.BaseModelFormSet):
     def clean(self):
         if any(self.errors):
             return
-        
+
         for form in self.forms:
             if not form.cleaned_data['answer']:
-                raise forms.ValidationError('The quality assurance fields must all pass before you approve the application.')
+                raise forms.ValidationError(
+                    'The quality assurance fields must all pass before you approve the application.'
+                )
 
 
 class TrainingReviewForm(forms.Form):

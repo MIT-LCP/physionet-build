@@ -26,13 +26,34 @@ class Migration(migrations.Migration):
             name='Training',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.PositiveSmallIntegerField(choices=[(0, 'REVIEW'), (1, 'WITHDRAWN'), (2, 'REJECTED'), (3, 'ACCEPTED')], default=user.enums.TrainingStatus(0))),
-                ('completion_report', models.FileField(blank=True, upload_to=user.models.get_training_path, validators=[django.core.validators.FileExtensionValidator(['pdf'], 'File must be a pdf.')])),
+                (
+                    'status',
+                    models.PositiveSmallIntegerField(
+                        choices=[(0, 'REVIEW'), (1, 'WITHDRAWN'), (2, 'REJECTED'), (3, 'ACCEPTED')],
+                        default=user.enums.TrainingStatus(0),
+                    ),
+                ),
+                (
+                    'completion_report',
+                    models.FileField(
+                        blank=True,
+                        upload_to=user.models.get_training_path,
+                        validators=[django.core.validators.FileExtensionValidator(['pdf'], 'File must be a pdf.')],
+                    ),
+                ),
                 ('completion_report_url', models.URLField(blank=True)),
                 ('application_datetime', models.DateTimeField(auto_now_add=True)),
                 ('process_datetime', models.DateTimeField(null=True)),
                 ('reviewer_comments', models.CharField(max_length=512)),
-                ('reviewer', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='reviewed_trainings', to=settings.AUTH_USER_MODEL)),
+                (
+                    'reviewer',
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name='reviewed_trainings',
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.RemoveField(
@@ -74,7 +95,18 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='credentialreview',
             name='status',
-            field=models.PositiveSmallIntegerField(choices=[('', '-----------'), (0, 'Not in review'), (10, 'Initial review'), (20, 'ID check'), (30, 'Reference'), (40, 'Reference response'), (50, 'Final review')], default=10),
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    ('', '-----------'),
+                    (0, 'Not in review'),
+                    (10, 'Initial review'),
+                    (20, 'ID check'),
+                    (30, 'Reference'),
+                    (40, 'Reference response'),
+                    (50, 'Final review'),
+                ],
+                default=10,
+            ),
         ),
         migrations.CreateModel(
             name='TrainingType',
@@ -83,7 +115,12 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=128)),
                 ('description', models.TextField(max_length=1024)),
                 ('valid_duration', models.DurationField(null=True)),
-                ('required_field', models.PositiveSmallIntegerField(choices=[(0, 'DOCUMENT'), (1, 'URL')], default=user.enums.RequiredField(0))),
+                (
+                    'required_field',
+                    models.PositiveSmallIntegerField(
+                        choices=[(0, 'DOCUMENT'), (1, 'URL')], default=user.enums.RequiredField(0)
+                    ),
+                ),
                 ('questions', models.ManyToManyField(related_name='training_types', to='user.Question')),
             ],
         ),
@@ -93,7 +130,14 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('answer', models.NullBooleanField()),
                 ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='user.Question')),
-                ('training', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='training_questions', to='user.Training')),
+                (
+                    'training',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='training_questions',
+                        to='user.Training',
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
@@ -104,6 +148,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='training',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='trainings', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, related_name='trainings', to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]
