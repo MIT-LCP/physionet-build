@@ -348,7 +348,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         Get a count of the number of files/directories minus one (for the index.html) in a projects papers folder.
         This is designed to work with the project structure for challenges but could be used elsewhere also.
         """
-        paper_count = len(os.listdir(os.path.join(self.file_root(),'papers/'))) - 1
+        paper_count = len(os.listdir(os.path.join(self.file_root(), 'papers/'))) - 1
         return(paper_count)
 
     def get_program_count(self):
@@ -356,5 +356,5 @@ class PublishedProject(Metadata, SubmissionInfo):
         Get a count of the number of files/directories minus one (for the index.html) in a projects sources folder.
         This is designed to work with the project structure for challenges but could be used elsewhere also.
         """
-        program_count = len(os.listdir(os.path.join(self.file_root(),'sources/'))) - 1
+        program_count = len(os.listdir(os.path.join(self.file_root(), 'sources/'))) - 1
         return(program_count)
