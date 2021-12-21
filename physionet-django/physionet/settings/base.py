@@ -499,3 +499,4 @@ if STORAGE_TYPE == StorageTypes.GCP:
     GS_PROJECT_ID = config('GCP_PROJECT_ID')
 
 SITE_NAME = config('SITE_NAME')
+EMAIL_SIGNATURE = config('EMAIL_SIGNATURE')
