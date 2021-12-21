@@ -111,8 +111,9 @@ def invitation_notify(request, invite_author_form, target_email):
         'url_prefix': get_url_prefix(request),
         'signature': settings.EMAIL_SIGNATURE,
         'project_info': email_project_info(project),
-        'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME,
-        'target_email': target_email
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+        'target_email': target_email,
     }
 
     body = loader.render_to_string('notification/email/invite_author.html',
@@ -138,7 +139,8 @@ def invitation_response_notify(invitation, affected_emails):
         'response': response,
         'signature': settings.EMAIL_SIGNATURE,
         'project_info': email_project_info(project),
-        'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
     }
 
     # Send an email for each email belonging to the accepting user
@@ -159,7 +161,8 @@ def submit_notify(project):
         'project': project,
         'signature': settings.EMAIL_SIGNATURE,
         'project_info': email_project_info(project),
-        'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
     }
 
     for email, name in project.author_contact_info():
@@ -192,7 +195,8 @@ def resubmit_notify(project, comments):
         'project': project,
         'signature': settings.EMAIL_SIGNATURE,
         'project_info': email_project_info(project),
-        'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
     }
 
     for email, name in project.author_contact_info():
@@ -229,7 +233,8 @@ def assign_editor_notify(project):
                 'editor': project.editor,
                 'signature': settings.EMAIL_SIGNATURE,
                 'project_info': email_project_info(project),
-                'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+                'footer': email_footer(),
+                'SITE_NAME': settings.SITE_NAME,
             })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
@@ -250,7 +255,8 @@ def editor_notify_new_project(project, assigner, reassigned=False):
             'signature': settings.EMAIL_SIGNATURE,
             'user': assigner.get_full_name(),
             'project_info': email_project_info(project),
-            'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
         })
     if reassigned:
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
@@ -316,7 +322,8 @@ def copyedit_complete_notify(request, project, copyedit_log, reminder=False):
                     'url_prefix': get_url_prefix(request),
                     'signature': settings.EMAIL_SIGNATURE,
                     'project_info': email_project_info(project),
-                    'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+                    'footer': email_footer(),
+                    'SITE_NAME': settings.SITE_NAME,
                 })
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                       [person.user.email], fail_silently=False)
@@ -337,7 +344,8 @@ def reopen_copyedit_notify(request, project):
                 'url_prefix': get_url_prefix(request),
                 'signature': settings.EMAIL_SIGNATURE,
                 'project_info': email_project_info(project),
-                'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+                'footer': email_footer(),
+                'SITE_NAME': settings.SITE_NAME,
             })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
@@ -359,7 +367,8 @@ def authors_approved_notify(request, project):
                 'url_prefix': get_url_prefix(request),
                 'signature': settings.EMAIL_SIGNATURE,
                 'project_info': email_project_info(project),
-                'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+                'footer': email_footer(),
+                'SITE_NAME': settings.SITE_NAME,
             })
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
@@ -372,12 +381,15 @@ def publish_notify(request, published_project):
     subject = 'Your project has been published: {0}'.format(
         published_project.title)
 
-    content = {'published_project': published_project,
-               'domain': get_current_site(request),
-               'url_prefix': get_url_prefix(request),
-               'signature': settings.EMAIL_SIGNATURE,
-               'project_info': email_project_info(published_project),
-               'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME}
+    content = {
+        'published_project': published_project,
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'signature': settings.EMAIL_SIGNATURE,
+        'project_info': email_project_info(published_project),
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+    }
 
     for email, name in published_project.author_contact_info():
         content['name'] = name
