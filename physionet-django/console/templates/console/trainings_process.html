@@ -15,8 +15,12 @@
                 Application information
             </div>
             <div class="card-body">
-                Document: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
-                URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
+                {% if training.completion_report %}
+                    Document: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
+                {% endif %}
+                {% if training.completion_report_url %}
+                    URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
+                {% endif %}
                 Submitted on: {{ training.application_datetime|date }}
             </div>
         </div>
