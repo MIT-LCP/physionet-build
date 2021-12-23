@@ -370,12 +370,16 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     description_form = project_forms.ContentForm(
         resource_type=project.resource_type.id, instance=project)
     ethics_form = project_forms.EthicsForm(instance=project)
-    access_form = project_forms.AccessMetadataForm(instance=project)
+
+    access_policy = request.GET.get('accessPolicy')
+    if access_policy:
+        access_form = project_forms.AccessMetadataForm(instance=project, access_policy=int(access_policy))
+    else:
+        access_form = project_forms.AccessMetadataForm(instance=project)
+
     discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
         instance=project)
     description_form_saved = False
-
-    access_form.set_license_queryset(access_policy=project.access_policy)
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
@@ -424,7 +428,6 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
-            access_form.set_license_queryset(access_policy=access_form.instance.access_policy)
         elif 'complete_copyedit' in request.POST:
             copyedit_form = forms.CopyeditForm(request.POST,
                 instance=copyedit_log)
@@ -1504,9 +1507,7 @@ def credentialed_user_info(request, username):
         application = CredentialApplication.objects.get(user=c_user, status=2)
     except (User.DoesNotExist, CredentialApplication.DoesNotExist):
         raise Http404()
-    return render(request, 'console/credentialed_user_info.html', {
-        'c_user': c_user, 'application': application
-    })
+    return render(request, 'console/credentialed_user_info.html', {'c_user': c_user, 'application': application})
 
 
 @login_required

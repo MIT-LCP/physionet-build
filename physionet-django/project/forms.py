@@ -11,6 +11,7 @@ from django.core.files.base import ContentFile
 from django.db.models.fields.files import FieldFile
 from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
+from django.forms.widgets import HiddenInput
 from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -40,7 +41,7 @@ from project.models import (
     UploadedDocument,
 )
 from project.projectfiles import ProjectFiles
-from user.models import User
+from user.models import User, TrainingType
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -455,6 +456,8 @@ class NewProjectVersionForm(forms.ModelForm):
             documents.append(uploaded_document)
 
         UploadedDocument.objects.bulk_create(documents)
+        
+        project.required_trainings.set(self.latest_project.required_trainings.all())
 
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
@@ -768,67 +771,48 @@ class LanguageFormSet(BaseGenericInlineFormSet):
 
 
 class AccessMetadataForm(forms.ModelForm):
-    """
-    For editing project access metadata
-    """
+
     class Meta:
         model = ActiveProject
         fields = ('access_policy', 'license', 'allow_file_downloads')
         help_texts = {
             'access_policy': '* Access policy for files.',
             'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
+            'required_trainings': '* Choose required trainings to access the dataset.',
             'allow_file_downloads': (
                 '* This option allows to enable/disable direct files downloads from the '
                 'platform. It cannot be changed after the publication of the project!'
             ),
         }
 
-    def __init__(self, editable=True, **kwargs):
-        """
-        Control the available access policies based on the existing
-        licenses. The license queryset is set in the following
-        `set_license_queryset` function.
+    def __init__(self, *args, **kwargs):
+        self.access_policy = kwargs.pop('access_policy', None)
+        self.editable = kwargs.pop('editable', True)
 
-        Each license has one access policy, and potentially multiple
-        resource types.
-        """
-        super().__init__(**kwargs)
+        if self.access_policy is not None:
+            kwargs.setdefault('initial', {}).update({'access_policy': self.access_policy})
 
-        # Get licenses for this resource type
-        licenses = License.objects.filter(
-            resource_types__icontains=str(self.instance.resource_type.id))
-        # Set allowed access policies based on license policies
-        available_policies = (
-            (val, label) for (val, label) in AccessPolicy.choices() if licenses.filter(access_policy=val).exists()
-        )
-        self.fields['access_policy'].choices = available_policies
+        data = kwargs.get('data')
+        if self.access_policy is None and data is not None:
+            self.access_policy = int(data.get('access_policy'))
 
         if not settings.ENABLE_FILE_DOWNLOADS_OPTION:
             del self.fields['allow_file_downloads']
 
-        if not editable:
-            for f in self.fields.values():
-                f.disabled = True
+        super().__init__(*args, **kwargs)
 
-    def set_license_queryset(self, access_policy):
-        """
-        Set the license queryset according to the set or selected
-        access policy.
-        """
-        self.fields['license'].queryset = License.objects.filter(
-            resource_types__icontains=str(self.instance.resource_type.id),
-            access_policy=access_policy)
+        if self.access_policy is None:
+            self.access_policy = self.instance.access_policy
 
-    def clean(self):
-        """
-        Ensure valid license access policy combinations
-        """
-        data = super().clean()
-        if (str(self.instance.resource_type.id) in data['license'].resource_types
-                and data['access_policy'] == data['license'].access_policy):
-            return data
+        self.fields['license'].queryset = License.objects.filter(resource_types__icontains=str(self.instance.resource_type.id), access_policy=self.access_policy)
 
-        raise forms.ValidationError('Invalid policy license combination.')
+        if self.access_policy != AccessPolicy.CREDENTIALED:
+            self.fields['required_trainings'].disabled = True
+            self.fields['required_trainings'].widget = forms.HiddenInput()
+
+        if not self.editable:
+            for field in self.fields.values():
+                field.disabled = True
 
 
 class AuthorCommentsForm(forms.Form):
