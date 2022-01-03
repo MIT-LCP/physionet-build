@@ -1,9 +1,9 @@
 {% extends "user/settings.html" %}
 
-{% block title %}PhysioNet Trainings{% endblock %}
+{% block title %}{{ SITE_NAME }} Training{% endblock %}
 
 {% block main_content %}
-<h1>PhysioNet Trainings</h1>
+<h1>{{ SITE_NAME }} Training</h1>
   <hr>
   <h4>Active trainings</h4>
   <ul class="list-group list-group-flush">
@@ -13,7 +13,7 @@
           {{ training.training_type.name }} Training
           {% include 'user/training_badge.html' %}
         </div>
-        <a href="{% url 'edit_trainings_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a>
+        <a href="{% url 'edit_training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a>
       </li>
     {% empty %}
       <p>There are no trainings.</p>
@@ -22,7 +22,7 @@
   <hr>
   <h4>New training</h4>
   {% lorem 1 p %}
-  <form action="{% url "edit_trainings" %}" method="post" enctype="multipart/form-data" id="training">
+  <form action="{% url "edit_training" %}" method="post" enctype="multipart/form-data" id="training">
       {% include "descriptive_inline_form_snippet.html" with form=training_form %}
       <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#submit-training">Submit Training</button>
       <div class="modal fade" id="submit-training" tabindex="-1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
@@ -51,7 +51,7 @@
 {% block local_js_bottom %}
   <script>
     $(document).on('change', '#id_training_type', function() {
-      $("#training").load(`{% url 'edit_trainings' %}?trainingType=${this.value} #training>`);
+      $("#training").load(`{% url 'edit_training' %}?trainingType=${this.value} #training>`);
     });
   </script>
 {% endblock %}

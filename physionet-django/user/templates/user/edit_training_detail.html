@@ -16,7 +16,7 @@
     Submitted on: {{ training.application_datetime|date }}<br>
   {% if training.is_review %}
     <hr>
-    <form action="{% url 'edit_trainings_detail' training.pk %}" method="post">
+    <form action="{% url 'edit_training_detail' training.pk %}" method="post">
       {% csrf_token %}
       <button type="button" class="btn btn-danger btn-rsp" data-toggle="modal" data-target="#withdraw-training">Withdraw Training</button>
       <div class="modal fade" id="withdraw-training" tabindex="-1" role="dialog" aria-labelledby="withdraw-credential-modal" aria-hidden="true">

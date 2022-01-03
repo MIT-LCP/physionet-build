@@ -658,7 +658,7 @@ def credential_application(request):
 
 
 @login_required
-def edit_trainings(request):
+def edit_training(request):
     if request.method == 'POST':
         training_form = forms.TrainingForm(
             user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type')
@@ -679,19 +679,19 @@ def edit_trainings(request):
 
     trainings = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
 
-    return render(request, 'user/edit_trainings.html', {'training_form': training_form, 'trainings': trainings})
+    return render(request, 'user/edit_training.html', {'training_form': training_form, 'trainings': trainings})
 
 
 @login_required
-def edit_trainings_detail(request, training_id):
+def edit_training_detail(request, training_id):
     training = get_object_or_404(Training, pk=training_id, user=request.user)
 
     if request.method == 'POST':
         if request.POST.get('withdraw') is not None and not training.is_withdrawn():
             training.withdraw()
-            return redirect('edit_trainings')
+            messages.success(request, 'The training has been withdrawn.')
 
-    return render(request, 'user/edit_trainings_detail.html', {'training': training})
+    return render(request, 'user/edit_training_detail.html', {'training': training})
 
 
 @login_required
@@ -699,7 +699,11 @@ def training_report(request, training_id):
     """
     Serve a training report file
     """
-    training = get_object_or_404(Training, id=training_id, user=request.user)
+    trainings = Training.objects.all()
+    if not request.user.is_admin:
+        trainings = trainings.filter(user=request.user)
+
+    training = get_object_or_404(trainings, id=training_id)
 
     if settings.STORAGE_TYPE == StorageTypes.GCP:
         return redirect(training.completion_report.url)

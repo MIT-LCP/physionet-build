@@ -14112,5 +14112,50 @@
     "gcp_email": 7,
     "aws_id": "0123456789"
   }
+},
+{
+  "model": "user.training",
+  "pk": 1,
+  "fields": {
+    "training_type": 1,
+    "user": 2,
+    "status": 3,
+    "completion_report": "trainings/CITI_Data_or_Specimens_Only_Research_202c2efe-0054-4dd9-90a6-5bd89ad42954.pdf",
+    "completion_report_url": "",
+    "application_datetime": "2022-01-02T20:48:11.535Z",
+    "process_datetime": "2022-01-02T20:48:11.534Z",
+    "reviewer": null,
+    "reviewer_comments": ""
+  }
+},
+{
+  "model": "user.training",
+  "pk": 2,
+  "fields": {
+    "training_type": 1,
+    "user": 4,
+    "status": 3,
+    "completion_report": "trainings/CITI_Data_or_Specimens_Only_Research_3134c37f-b156-4ceb-9c2d-42a4295cb644.pdf",
+    "completion_report_url": "",
+    "application_datetime": "2022-01-02T21:07:43.514Z",
+    "process_datetime": "2022-01-02T20:48:11.534Z",
+    "reviewer": null,
+    "reviewer_comments": ""
+  }
+},
+{
+  "model": "user.training",
+  "pk": 3,
+  "fields": {
+    "training_type": 1,
+    "user": 206,
+    "status": 3,
+    "completion_report": "trainings/CITI_Data_or_Specimens_Only_Research_d203a379-e0a4-44c3-b497-eda4954c009b.pdf",
+    "completion_report_url": "",
+    "application_datetime": "2022-01-02T21:07:52.243Z",
+    "process_datetime": "2022-01-02T20:48:11.534Z",
+    "reviewer": null,
+    "reviewer_comments": ""
+  }
 }
 ]

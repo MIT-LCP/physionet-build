@@ -529,15 +529,6 @@ class CredentialApplicationForm(forms.ModelForm):
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
             raise forms.ValidationError('Outstanding application exists.')
 
-        # Check for a recognized CITI verification link.
-        # try:
-        #     reportfile = data['training_completion_report']
-        #     self.report_url = find_training_report_url(reportfile)
-        # except TrainingCertificateError:
-        #     raise forms.ValidationError(
-        #         'Please upload the "Completion Report" file, '
-        #         'not the "Completion Certificate".')
-
     def save(self):
         credential_application = super().save(commit=False)
         slug = get_random_string(20)
@@ -687,8 +678,7 @@ class TrainingForm(forms.ModelForm):
                 self.fields['completion_report_url'].widget = forms.URLInput()
 
     def clean(self):
-        if self.errors:
-            return
+        data = super().clean()
 
         trainings = Training.objects.filter(
             Q(status=TrainingStatus.REVIEW)
@@ -702,8 +692,8 @@ class TrainingForm(forms.ModelForm):
             training_exists=False
         )
 
-        if self.cleaned_data['training_type'] not in available_training_types:
-            raise forms.ValidationError("You have already submitted a training of this type.")
+        if data['training_type'] not in available_training_types:
+            raise forms.ValidationError('You have already submitted a training of this type.')
 
     def save(self):
         training = super().save(commit=False)
