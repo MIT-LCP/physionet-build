@@ -1507,7 +1507,7 @@ def credentialed_user_info(request, username):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def trainings_list(request):
+def training_list(request):
     review_trainings = Training.objects.select_related('user__profile', 'training_type').get_review()
     valid_trainings = Training.objects.select_related('user__profile', 'training_type').get_valid()
     expired_trainings = Training.objects.select_related('user__profile', 'training_type').get_expired()
@@ -1515,7 +1515,7 @@ def trainings_list(request):
 
     return render(
         request,
-        'console/trainings_list.html',
+        'console/training_list.html',
         {
             'review_trainings': review_trainings,
             'valid_trainings': valid_trainings,
@@ -1528,7 +1528,7 @@ def trainings_list(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def trainings_proccess(request, pk):
+def training_proccess(request, pk):
     training = get_object_or_404(Training.objects.prefetch_related('training_type__questions').get_review(), pk=pk)
 
     TrainingQuestionFormSet = modelformset_factory(
@@ -1536,8 +1536,6 @@ def trainings_proccess(request, pk):
     )
 
     if request.method == 'POST':
-        print(request.POST)
-
         if 'accept' in request.POST:
             questions_formset = TrainingQuestionFormSet(data=request.POST, queryset=training.training_questions.all())
 
@@ -1545,7 +1543,7 @@ def trainings_proccess(request, pk):
                 questions_formset.save()
 
                 training.accept(reviewer=request.user)
-                return redirect('trainings_list')
+                return redirect('training_list')
 
             training_review_form = forms.TrainingReviewForm()
 
@@ -1557,7 +1555,7 @@ def trainings_proccess(request, pk):
                     reviewer=request.user, reviewer_comments=training_review_form.cleaned_data['reviewer_comments']
                 )
 
-                return redirect('trainings_list')
+                return redirect('training_list')
 
             questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
     else:
@@ -1566,17 +1564,17 @@ def trainings_proccess(request, pk):
 
     return render(
         request,
-        'console/trainings_process.html',
+        'console/training_process.html',
         {'training': training, 'questions_formset': questions_formset, 'training_review_form': training_review_form},
     )
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def trainings_detail(request, pk):
+def training_detail(request, pk):
     training = get_object_or_404(Training.objects.prefetch_related('training_type'), pk=pk)
 
-    return render(request, 'console/trainings_detail.html', {'training': training})
+    return render(request, 'console/training_detail.html', {'training': training})
 
 
 @login_required

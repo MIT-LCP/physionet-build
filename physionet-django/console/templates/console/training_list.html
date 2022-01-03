@@ -46,7 +46,7 @@
                   <td>{{ training.user.email }}</td>
                   <td>{{ training.training_type.name }}</td>
                   <td>{{ training.application_datetime }}</td>
-                  <td><a href="{% url 'trainings_process' training.id %}" class="btn btn-sm btn-primary" role="button">Process</a></td>
+                  <td><a href="{% url 'training_process' training.id %}" class="btn btn-sm btn-primary" role="button">Process</a></td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -84,7 +84,7 @@
                       End of the world
                     {% endif %}
                   </td>
-                  <td><a href="{% url 'trainings_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+                  <td><a href="{% url 'training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -116,7 +116,7 @@
                   <td>{{ training.user.email }}</td>
                   <td>{{ training.training_type.name }}</td>
                   <td>{{ training.valid_datetime }}</td>
-                  <td><a href="{% url 'trainings_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+                  <td><a href="{% url 'training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -150,7 +150,7 @@
                   <td>{{ training.training_type.name }}</td>
                   <td>{{ training.application_datetime }}</td>
                   <td>{{ training.process_datetime }}</td>
-                  <td><a href="{% url 'trainings_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+                  <td><a href="{% url 'training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
                 </tr>
               {% endfor %}
               </tbody>
