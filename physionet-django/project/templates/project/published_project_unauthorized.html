@@ -6,7 +6,7 @@
         <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
       {% endif %}
       {% if not has_required_trainings %}
-        <li>have all of the required <a href="{% url 'edit_trainings' %}">trainings</a></li>
+        <li>have all of the required <a href="{% url 'edit_training' %}">trainings</a></li>
       {% endif %}
       {% if not has_signed_dua %}
         <li>

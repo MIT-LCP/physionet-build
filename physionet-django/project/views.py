@@ -731,7 +731,9 @@ def project_access(request, project_slug, **kwargs):
     else:
         access_policy = request.GET.get('accessPolicy')
         if access_policy:
-            access_form = forms.AccessMetadataForm(instance=project, editable=editable, access_policy=int(access_policy))
+            access_form = forms.AccessMetadataForm(
+                instance=project, editable=editable, access_policy=int(access_policy)
+            )
         else:
             access_form = forms.AccessMetadataForm(instance=project, editable=editable)
 
@@ -1221,6 +1223,21 @@ def project_license_preview(request, project_slug, **kwargs):
         'license_content':license_content})
 
 
+@project_auth(auth_mode=3)
+def project_required_trainings_preview(request, project_slug, **kwargs):
+    """
+    View a project's license
+    """
+    project = kwargs['project']
+    required_trainings = project.required_trainings.all()
+
+    return render(
+        request,
+        'project/project_required_trainings_preview.html',
+        {'project': project, 'required_trainings': required_trainings},
+    )
+
+
 @project_auth(auth_mode=0)
 def project_proofread(request, project_slug, **kwargs):
     """
@@ -1692,6 +1709,19 @@ def published_project_license(request, project_slug, version):
         'license_content':license_content})
 
 
+def published_project_required_trainings(request, project_slug, version):
+    """Displays a published project's required trainings"""
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+
+    required_trainings = project.required_trainings.all()
+
+    return render(
+        request,
+        'project/published_project_required_trainings.html',
+        {'project': project, 'required_trainings': required_trainings},
+    )
+
+
 def published_project_latest(request, project_slug):
     """
     Redirect to latest project version
@@ -1745,7 +1775,12 @@ def published_project(request, project_slug, version, subdir=''):
         requester=user,
         status=DataAccessRequest.ACCEPT_REQUEST_VALUE
     ).exists()
-    has_required_trainings = False if not user.is_authenticated else Training.objects.get_valid().filter(training_type__in=project.required_trainings.all(), user=user).count() == project.required_trainings.count()
+    has_required_trainings = (
+        False
+        if not user.is_authenticated
+        else Training.objects.get_valid().filter(training_type__in=project.required_trainings.all(), user=user).count()
+        == project.required_trainings.count()
+    )
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
