@@ -86,7 +86,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'physionet.context_processors.access_policy',
-                'physionet.context_processors.platform_name',
+                'physionet.context_processors.platform_config',
             ],
         },
     },
@@ -500,3 +500,6 @@ if STORAGE_TYPE == StorageTypes.GCP:
 
 SITE_NAME = config('SITE_NAME')
 EMAIL_SIGNATURE = config('EMAIL_SIGNATURE')
+FOOTER_MANAGED_BY = config('FOOTER_MANAGED_BY')
+FOOTER_SUPPORTED_BY = config('FOOTER_SUPPORTED_BY')
+FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE')
