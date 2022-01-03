@@ -206,7 +206,7 @@
               <strong>Required trainings:</strong>
               {% for training in project.required_trainings.all %}
                 <br>
-                {{ training }}
+                <a href="{% url 'published_project_required_trainings' project.slug project.version %}#{{ training.id }}"{{ training }}>{{ training }}</a>
               {% endfor%}
             </p>
           {% endif %}

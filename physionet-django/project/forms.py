@@ -771,7 +771,6 @@ class LanguageFormSet(BaseGenericInlineFormSet):
 
 
 class AccessMetadataForm(forms.ModelForm):
-
     class Meta:
         model = ActiveProject
         fields = ('access_policy', 'license', 'allow_file_downloads')
@@ -804,10 +803,13 @@ class AccessMetadataForm(forms.ModelForm):
         if self.access_policy is None:
             self.access_policy = self.instance.access_policy
 
-        self.fields['license'].queryset = License.objects.filter(resource_types__icontains=str(self.instance.resource_type.id), access_policy=self.access_policy)
+        self.fields['license'].queryset = License.objects.filter(
+            resource_types__icontains=str(self.instance.resource_type.id), access_policy=self.access_policy
+        )
 
         if self.access_policy != AccessPolicy.CREDENTIALED:
             self.fields['required_trainings'].disabled = True
+            self.fields['required_trainings'].required = False
             self.fields['required_trainings'].widget = forms.HiddenInput()
 
         if not self.editable:
