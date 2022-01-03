@@ -3,7 +3,7 @@
 set -e
 
 mkdir -p $STATIC_ROOT/published-projects
-mkdir -p $MEDIA_ROOT/{active-projects,archived-projects,credential-applications,published-projects,users}
+mkdir -p $MEDIA_ROOT/{active-projects,archived-projects,credential-applications,published-projects,users,trainings}
 
 ./docker/wait-for-it.sh --strict $DB_HOST:5432
 ./docker/wait-for-it.sh --strict $GCS_HOST:4443
