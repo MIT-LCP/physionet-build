@@ -87,10 +87,13 @@ def copy_demo_media():
     for subdir in os.listdir(demo_media_root):
         demo_subdir = os.path.join(demo_media_root, subdir)
         target_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
-
         for item in [i for i in os.listdir(demo_subdir) if i != '.gitkeep']:
-            shutil.copytree(os.path.join(demo_subdir, item),
-                            os.path.join(target_subdir, item))
+            path = os.path.join(demo_subdir, item)
+            if os.path.isdir(path):
+                shutil.copytree(os.path.join(demo_subdir, item),
+                                os.path.join(target_subdir, item))
+            else:
+                shutil.copy(path, target_subdir)
 
     # Published project files should have been made read-only at
     # the time of publication

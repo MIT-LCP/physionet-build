@@ -21,6 +21,7 @@ from django.utils.crypto import constant_time_compare
 from django.utils.translation import ugettext as _
 
 from project.modelcomponents.access import AccessPolicy
+from project.modelcomponents.fields import SafeHTMLField
 from user import validators
 from user.userfiles import UserFiles
 from user.enums import TrainingStatus, RequiredField
@@ -1020,10 +1021,11 @@ class Question(models.Model):
 
 class TrainingType(models.Model):
     name = models.CharField(max_length=128)
-    description = models.TextField(max_length=1024)
+    description = SafeHTMLField()
     valid_duration = models.DurationField(null=True)
     questions = models.ManyToManyField(Question, related_name='training_types')
     required_field = models.PositiveSmallIntegerField(choices=RequiredField.choices(), default=RequiredField.DOCUMENT)
+    home_page = models.URLField(blank=True)
 
     def __str__(self):
         return self.name
@@ -1060,9 +1062,6 @@ class Training(models.Model):
         self.reviewer_comments = reviewer_comments
         self.process_datetime = timezone.now()
         self.save(update_fields=['status', 'reviewer', 'reviewer_comments', 'process_datetime'])
-
-    def get_valid_date(self):
-        return self.process_datetime + self.training_type.valid_duration
 
     def is_withdrawn(self):
         return self.status == TrainingStatus.WITHDRAWN
