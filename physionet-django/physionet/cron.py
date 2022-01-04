@@ -32,7 +32,11 @@ class RemoveUnverifiedEmails(CronJobBase):
                 timezone.now().strftime('%Y-%m-%d %H:%M:%S'), ae.email,
                 ae.user.email))
             subject = "PhysioNet Unverified Email Removal"
-            context = {'name':ae.user.get_full_name(), 'email': ae.email}
+            context = {
+                'name': ae.user.get_full_name(),
+                'email': ae.email,
+                'SITE_NAME': settings.SITE_NAME,
+            }
             body = loader.render_to_string(
                 'user/email/unverified_email_removal.html', context)
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
