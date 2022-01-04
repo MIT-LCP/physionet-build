@@ -867,7 +867,8 @@ def notify_account_registration(request, user, uidb64, token):
         'domain': get_current_site(request),
         'url_prefix': get_url_prefix(request),
         'uidb64': uidb64,
-        'token': token
+        'token': token,
+        'SITE_NAME': settings.SITE_NAME,
     }
     body = loader.render_to_string('user/email/register_email.html', context)
     # Not resend the email if there was an integrity error

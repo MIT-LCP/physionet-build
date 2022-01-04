@@ -72,6 +72,7 @@ class PasswordResetView(auth_views.PasswordResetView):
     template_name = 'user/reset_password_request.html'
     success_url = reverse_lazy('reset_password_sent')
     email_template_name = 'user/email/reset_password_email.html'
+    extra_email_context = {'SITE_NAME': settings.SITE_NAME}
 
 
 # Page shown after reset email has been sent
@@ -258,7 +259,8 @@ def add_email(request, add_email_form):
             'domain': get_current_site(request),
             'url_prefix': get_url_prefix(request),
             'uidb64': uidb64,
-            'token': token
+            'token': token,
+            'SITE_NAME': settings.SITE_NAME,
         }
         body = loader.render_to_string('user/email/verify_email_email.html', context)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,

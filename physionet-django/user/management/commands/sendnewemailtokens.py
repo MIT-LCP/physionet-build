@@ -102,7 +102,8 @@ class Command(BaseCommand):
                 'domain': 'physionet.org',
                 'url_prefix': 'https://physionet.org',
                 'uidb64': uidb64,
-                'token': token
+                'token': token,
+                'SITE_NAME': settings.SITE_NAME,
             }
             body = loader.render_to_string('user/email/verify_email_email.html', context)
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
