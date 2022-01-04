@@ -957,7 +957,8 @@
     "archive_datetime": "2020-05-21T16:07:36.681Z",
     "archive_reason": 3,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1002,7 +1003,8 @@
     "doi": null,
     "submission_status": 0,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1047,7 +1049,8 @@
     "doi": null,
     "submission_status": 0,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1092,7 +1095,8 @@
     "doi": null,
     "submission_status": 0,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1137,7 +1141,8 @@
     "doi": null,
     "submission_status": 0,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1182,7 +1187,8 @@
     "doi": null,
     "submission_status": 0,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1229,7 +1235,8 @@
     "doi": null,
     "submission_status": 20,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1284,7 +1291,8 @@
     "has_wfdb": false,
     "display_publications": true,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1342,7 +1350,8 @@
     "programming_languages": [
       1,
       4
-    ]
+    ],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1397,7 +1406,8 @@
     "has_wfdb": true,
     "display_publications": true,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1452,7 +1462,8 @@
     "has_wfdb": false,
     "display_publications": true,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
@@ -1562,7 +1573,8 @@
     "has_wfdb": true,
     "display_publications": true,
     "parent_projects": [],
-    "programming_languages": []
+    "programming_languages": [],
+    "allow_file_downloads": true
   }
 },
 {
