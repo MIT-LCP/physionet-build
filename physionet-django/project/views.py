@@ -1911,10 +1911,9 @@ def request_data_access(request, project_slug, version):
                                     request.path, response)
             return response
     else:
-        project_request_form = forms.DataAccessRequestForm(project=proj,
-                                                           requester=user,
-                                                           template=proj.license.access_request_template,
-                                                           prefix="proj")
+        project_request_form = forms.DataAccessRequestForm(
+            project=proj, requester=user, template=proj.license.access_request_template, prefix="proj"
+        )
 
     is_additional_request = DataAccessRequest.objects.filter(requester=user,
                                                              project=proj,
