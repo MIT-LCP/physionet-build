@@ -100,8 +100,9 @@ pyparsing==2.4.7 \
  --hash=sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b
 
 # required by Django 2.2.3
-sqlparse==0.2.4 \
- --hash=sha256:d9cf190f51cbb26da0412247dfe4fb5f4098edb73db84e02f9fc21fdca31fed4
+sqlparse==0.4.2 \
+    --hash=sha256:0c00730c74263a94e5a9919ade150dfc3b19c574389985446148402998287dae \
+    --hash=sha256:48719e356bb8b42991bdbb1e8b83223757b93789c00910a616a071910ca4a64d
 
 # required by django-ckeditor 5.7.1
 django-js-asset==0.1.1 \
