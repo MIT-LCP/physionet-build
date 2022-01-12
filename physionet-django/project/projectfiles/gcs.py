@@ -114,7 +114,7 @@ class GCSProjectFiles(BaseProjectFiles):
 
     def get_project_file_root(self, slug, version, access_policy, klass):
         return f'{slug}-{version}.{settings.GCP_DOMAIN}'
-    
+
     def get_file_root(self, slug, version, access_policy, klass):
         return self.get_project_file_root(slug, version, access_policy, klass)
 
