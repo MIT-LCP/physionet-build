@@ -1660,7 +1660,7 @@ def published_project(request, project_slug, version, subdir=''):
         'is_wget_supported': ProjectFiles().is_wget_supported(),
     }
     # The file and directory contents
-    if has_access and project.allow_file_downloads:
+    if has_access:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
         if file_error:
