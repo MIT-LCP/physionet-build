@@ -2,7 +2,7 @@ import os
 
 from django.conf import settings
 from google.cloud.exceptions import Conflict, NotFound
-from physionet.gcs import GCSObject, GCSObjectException, create_bucket
+from physionet.gcs import GCSObject, GCSObjectException, create_bucket, delete_bucket
 from project.projectfiles.base import BaseProjectFiles
 from project.utility import DirectoryInfo, FileInfo, readable_size
 
@@ -110,7 +110,7 @@ class GCSProjectFiles(BaseProjectFiles):
         self.rm_dir(active_project.file_root())
 
     def publish_rollback(self, active_project, published_project):
-        self.rm_dir(published_project.file_root())
+        delete_bucket(published_project.project_file_root())
 
     def get_project_file_root(self, slug, version, access_policy, klass):
         return f'{slug}-{version}.{settings.GCP_DOMAIN}'

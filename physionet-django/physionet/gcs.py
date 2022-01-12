@@ -239,3 +239,9 @@ def create_bucket(name):
     bucket.location = settings.GCP_BUCKET_LOCATION
     bucket.iam_configuration.uniform_bucket_level_access_enabled = True
     client.create_bucket(bucket)
+
+
+def delete_bucket(name):
+    client = GoogleCloudStorage().client
+    bucket = client.bucket(name)
+    bucket.delete(force=True)
