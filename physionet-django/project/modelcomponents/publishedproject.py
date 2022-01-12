@@ -82,7 +82,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Root directory where the main user uploaded files are located
         """
-        return os.path.join(self.project_file_root(), self.version)
+        return ProjectFiles().get_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def storage_used(self):
         """

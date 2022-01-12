@@ -125,6 +125,9 @@ class LocalProjectFiles(BaseProjectFiles):
         else:
             return os.path.join(klass.PUBLIC_FILE_ROOT, slug)
 
+    def get_file_root(self, slug, version, access_policy, klass):
+        return os.path.join(self.get_project_file_root(slug, version, access_policy, klass), version)
+
     def active_project_storage_used(self, project):
         return project.quota_manager().bytes_used
 
