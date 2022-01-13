@@ -208,13 +208,17 @@ class PublishedProject(Metadata, SubmissionInfo):
         elif self.access_policy == AccessPolicy.RESTRICTED:
             return user.is_authenticated and DUASignature.objects.filter(project=self, user=user).exists()
         elif self.access_policy == AccessPolicy.CREDENTIALED:
-                return user.is_authenticated and user.is_credentialed and DUASignature.objects.filter(project=self, user=user).exists()
+            return (
+                user.is_authenticated
+                and user.is_credentialed
+                and DUASignature.objects.filter(project=self, user=user).exists()
+            )
         elif self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
-                return user.is_authenticated and user.is_credentialed and DataAccessRequest.objects.filter(
-                    project=self,
-                    requester=user,
-                    status=DataAccessRequest.ACCEPT_REQUEST_VALUE
-                ).exists()
+            return user.is_authenticated and user.is_credentialed and DataAccessRequest.objects.filter(
+                project=self,
+                requester=user,
+                status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+            ).exists()
 
         return False
 

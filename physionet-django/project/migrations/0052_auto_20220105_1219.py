@@ -2,15 +2,38 @@
 
 from django.db import migrations
 
+from project.modelcomponents.access import AccessPolicy
+
+
+def migrate_forward(apps, schema_editor):
+    pass
+
+
+def migrate_backward(apps, schema_editor):
+    ActiveProject = apps.get_model('project', 'ActiveProject')
+    ArchivedProject = apps.get_model('project', 'ArchivedProject')
+    PublishedProject = apps.get_model('project', 'PublishedProject')
+
+    ActiveProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW).update(
+        is_self_managed_access=True
+    )
+    ArchivedProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW).update(
+        is_self_managed_access=True
+    )
+    PublishedProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW).update(
+        is_self_managed_access=True
+    )
+
 
 class Migration(migrations.Migration):
     MIGRATE_AFTER_INSTALL = True
 
     dependencies = [
-        ('project', '0048_auto_20220105_1125'),
+        ('project', '0051_auto_20220105_1125'),
     ]
 
     operations = [
+        migrations.RunPython(migrate_forward, migrate_backward),
         migrations.RemoveField(
             model_name='activeproject',
             name='is_self_managed_access',
