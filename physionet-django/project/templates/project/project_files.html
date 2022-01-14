@@ -10,6 +10,10 @@
 <script src="{% static 'custom/js/cookie.js' %}"></script>
 {% endblock %}
 
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}"/>
+{% endblock local_css %}
+
 {% block main_content %}
 <h2 class="form-signin-heading">5. Project Files</h2>
 <hr>

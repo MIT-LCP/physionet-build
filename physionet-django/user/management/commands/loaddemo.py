@@ -128,6 +128,7 @@ def copy_demo_static():
     # the time of publication
     ppdir = os.path.join(effective_static_root, 'published-projects')
     for dirpath, subdirs, files in os.walk(ppdir):
+        print(dirpath, subdirs, files)
         if dirpath != ppdir:
             for f in files:
                 os.chmod(os.path.join(dirpath, f), 0o444)

@@ -312,8 +312,8 @@
     </div>
     <!-- /.sidebar -->
   </div>
-
   <h2 id="files">Files</h2>
+  {% if project.allow_file_downloads %}
   {% if project.deprecated_files %}
     <div class="alert alert-danger col-md-8" role="alert">
       The files for this project are no longer available.
@@ -408,6 +408,9 @@
         {% include "project/files_panel.html" %}
       </div>
     {% endif %}
+  {% endif %}
+  {% else %}
+    {% include "project/published_project_denied_downloads.html" %}
   {% endif %}
   <br>
 </div>
