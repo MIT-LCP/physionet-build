@@ -91,7 +91,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'physionet.context_processors.access_policy',
-                'physionet.context_processors.platform_name',
+                'physionet.context_processors.platform_config',
             ],
         },
     },
@@ -176,6 +176,9 @@ GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
 
 GCP_BUCKET_PREFIX = "testing-delete."
 GCP_DOMAIN = "physionet.org"
+
+# Alternate hostname to be used in example download commands
+BULK_DOWNLOAD_HOSTNAME = config('BULK_DOWNLOAD_HOSTNAME', default=None)
 
 # Header tags for the AWS lambda function that grants access to S3 storage
 AWS_HEADER_KEY = config('AWS_KEY', default=False)
@@ -507,3 +510,8 @@ if STORAGE_TYPE == StorageTypes.GCP:
     GS_PROJECT_ID = config('GCP_PROJECT_ID')
 
 SITE_NAME = config('SITE_NAME')
+STRAPLINE = config('STRAPLINE')
+EMAIL_SIGNATURE = config('EMAIL_SIGNATURE')
+FOOTER_MANAGED_BY = config('FOOTER_MANAGED_BY')
+FOOTER_SUPPORTED_BY = config('FOOTER_SUPPORTED_BY')
+FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)

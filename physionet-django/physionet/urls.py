@@ -59,6 +59,14 @@ urlpatterns = [
     path('about/tutorial/', views.tutorial_overview,
         name='tutorial_overview'),
 
+    # detailed pages related to the challenges overview
+    path('about/challenge/moody-challenge-overview', views.moody_challenge_overview,
+         name='moody_challenge_overview'),
+    path('about/challenge/moody-challenge', views.moody_challenge,
+         name='moody_challenge'),
+    path('about/challenge/community-challenge', views.community_challenge,
+         name='community_challenge'),
+
     # robots.txt for crawlers
     path(
         'robots.txt', lambda x: HttpResponse("User-Agent: *\Allow: /", content_type="text/plain"), name="robots_file"

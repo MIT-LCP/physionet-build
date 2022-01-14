@@ -10,11 +10,12 @@ from google.cloud.storage import Blob, Bucket, Client
 from physionet.gcs import GCSObject, GCSObjectException
 from physionet.settings.base import StorageTypes
 
-SKIP_GCS_INTEGRATION = not config('TEST_GCS_INTEGRATION', default=True, cast=bool)
+TEST_GCS_INTEGRATION = config('TEST_GCS_INTEGRATION', default=True, cast=bool)
+GCS_HOST = config('GCS_HOST', default=None)
 
 
 @skipIf(
-    SKIP_GCS_INTEGRATION,
+    (GCS_HOST is None or not TEST_GCS_INTEGRATION),
     'Test GCS-backend integration only on dockerized CI/CD pipeline.',
 )
 @override_settings(

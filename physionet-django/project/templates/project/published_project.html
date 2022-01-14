@@ -349,7 +349,7 @@
             {% endfor %}
           {% endif %}
           {% if is_wget_supported %}
-            <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+            <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
           {% endif %}
           </ul>
 {# ZIP END #}
@@ -394,7 +394,7 @@
           {% endfor %}
         {% endif %}
           {% if is_wget_supported %}
-            <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np {{ url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
+            <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
           {% endif %}
         </ul>
 {# ZIP END #}
