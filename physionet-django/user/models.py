@@ -330,7 +330,7 @@ class User(AbstractBaseUser):
         validators=[validators.UsernameValidator()],
         error_messages={
             'unique': "A user with that username already exists."})
-    sso_id = models.CharField(max_length=50, unique=True, null=True, blank=False)
+    sso_id = models.CharField(max_length=256, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
