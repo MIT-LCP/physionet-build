@@ -75,7 +75,7 @@ test = ["pytest (>=6.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pret
 
 [[package]]
 name = "django"
-version = "2.2.25"
+version = "2.2.26"
 description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
 category = "main"
 optional = false
@@ -655,7 +655,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "6c91fc150ad64712eb24333805de97ede65faac203ac94b72e4bfd297359e6bb"
+content-hash = "b0a936b8775b750ed3ade7c29058212e089294079b18360b6f37f48c00d11fff"
 
 [metadata.files]
 bleach = [
@@ -776,8 +776,8 @@ cryptography = [
     {file = "cryptography-3.4.7.tar.gz", hash = "sha256:3d10de8116d25649631977cb37da6cbdd2d6fa0e0281d014a5b7d337255ca713"},
 ]
 django = [
-    {file = "Django-2.2.25-py3-none-any.whl", hash = "sha256:08bad7ef7e90286b438dbe1412c3e633fbc7b96db04735f0c7baadeed52f3fad"},
-    {file = "Django-2.2.25.tar.gz", hash = "sha256:b1e65eaf371347d4b13eb7e061b09786c973061de95390c327c85c1e2aa2349c"},
+    {file = "Django-2.2.26-py3-none-any.whl", hash = "sha256:85e62019366692f1d5afed946ca32fef34c8693edf342ac9d067d75d64faf0ac"},
+    {file = "Django-2.2.26.tar.gz", hash = "sha256:dfa537267d52c6243a62b32855a744ca83c37c70600aacffbfd98bc5d6d8518f"},
 ]
 django-autocomplete-light = [
     {file = "django-autocomplete-light-3.8.2.tar.gz", hash = "sha256:25f0ea71b59a8f1f97a8a564e33e429570b0ea77c5eac81f7beb283073b4ba90"},
