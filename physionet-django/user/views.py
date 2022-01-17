@@ -59,7 +59,10 @@ logger = logging.getLogger(__name__)
 @method_decorator(allow_post_during_maintenance, 'dispatch')
 class LoginView(auth_views.LoginView):
     template_name = 'user/login.html'
-    extra_context = {'enable_sso': settings.ENABLE_SSO}
+    extra_context = {
+        'enable_sso': settings.ENABLE_SSO,
+        'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT
+    }
     authentication_form = forms.LoginForm
     redirect_authenticated_user = True
 
@@ -498,7 +501,13 @@ def register(request):
     else:
         form = forms.RegistrationForm()
 
-    return render(request, 'user/register.html', {'form': form, 'enable_sso': settings.ENABLE_SSO})
+    context = {
+        'form': form,
+        'enable_sso': settings.ENABLE_SSO,
+        'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT
+    }
+
+    return render(request, 'user/register.html', context)
 
 
 @login_required
