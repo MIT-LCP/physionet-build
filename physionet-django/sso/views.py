@@ -61,7 +61,7 @@ def sso_register(request):
 
     GET does two things:
       - if the user did not fill it renders the registration form.
-      - if the user filled the form but didn't click the configmation url it renders a message that tells
+      - if the user filled the form but didn't click the confirmation url it renders a message that tells
         the user to click this link.
 
     POST submits the registration form.
