@@ -335,10 +335,9 @@ class CreateProjectForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.user = user
         self.fields['resource_type'].label_from_instance = lambda obj: obj.name
-
     class Meta:
         model = ActiveProject
-        fields = ('resource_type', 'title', 'abstract',)
+        fields = ('resource_type', 'title', 'abstract')
 
     def save(self):
         project = super().save(commit=False)
@@ -440,7 +439,9 @@ class NewProjectVersionForm(forms.ModelForm):
 
         ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
 
-        ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
+        if settings.COPY_FILES_TO_NEW_VERSION:
+            ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
+
         return project
 
 
@@ -750,9 +751,15 @@ class AccessMetadataForm(forms.ModelForm):
     """
     class Meta:
         model = ActiveProject
-        fields = ('access_policy', 'license')
-        help_texts = {'access_policy': '* Access policy for files.',
-                      'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>"}
+        fields = ('access_policy', 'license', 'allow_file_downloads')
+        help_texts = {
+            'access_policy': '* Access policy for files.',
+            'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
+            'allow_file_downloads': (
+                '* This option allows to enable/disable direct files downloads from the '
+                'platform. It cannot be changed after the publication of the project!'
+            ),
+        }
 
     def __init__(self, editable=True, **kwargs):
         """
@@ -773,6 +780,9 @@ class AccessMetadataForm(forms.ModelForm):
             (val, label) for (val, label) in AccessPolicy.choices() if licenses.filter(access_policy=val).exists()
         )
         self.fields['access_policy'].choices = available_policies
+
+        if not settings.ENABLE_FILE_DOWNLOADS_OPTION:
+            del self.fields['allow_file_downloads']
 
         if not editable:
             for f in self.fields.values():

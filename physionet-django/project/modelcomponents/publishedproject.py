@@ -201,6 +201,9 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.deprecated_files:
             return False
 
+        if not self.allow_file_downloads:
+            return False
+
         if self.access_policy == AccessPolicy.CREDENTIALED and (
             not user.is_authenticated or not user.is_credentialed
         ):
