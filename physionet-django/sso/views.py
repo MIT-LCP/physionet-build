@@ -36,7 +36,7 @@ class SSOLogin(auth_views.LoginView):
 
         remote_sso_id = self.request.META.get(settings.SSO_REMOTE_USER_HEADER)
 
-        # This should not happen as the REMOTE_USER header should be always set by Nginx
+        # This should not happen as the SSO_REMOTE_USER_HEADER header should be always set by Nginx
         if remote_sso_id is None:
             return redirect('login')
 
@@ -72,7 +72,7 @@ def sso_register(request):
 
     remote_sso_id = request.META.get(settings.SSO_REMOTE_USER_HEADER)
 
-    # This should not happen as the REMOTE_USER header should be always set by Nginx
+    # This should not happen as the SSO_REMOTE_USER_HEADER header should be always set by Nginx
     if not remote_sso_id:
         return redirect('login')
 
