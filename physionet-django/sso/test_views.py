@@ -43,7 +43,7 @@ class TestViews(TestCase):
 
     def test_login_authenticated(self):
         self.client.login(remote_user=self.active_user.sso_id)
-        response = self.client.get(reverse('sso_login'), REMOTE_USER=self.active_user.sso_id)
+        response = self.client.get(reverse('sso_login'), HTTP_REMOTE_USER=self.active_user.sso_id)
         self.assertRedirects(response, reverse('project_home'))
         self.assertAuthenticatedAs(self.active_user)
 
@@ -53,17 +53,17 @@ class TestViews(TestCase):
         self.assertNotAuthenticated()
 
     def test_login_new(self):
-        response = self.client.get(reverse('sso_login'), REMOTE_USER='new_remote_id')
+        response = self.client.get(reverse('sso_login'), HTTP_REMOTE_USER='new_remote_id')
         self.assertRedirects(response, reverse('sso_register'), fetch_redirect_response=False)
         self.assertNotAuthenticated()
 
     def test_login_inactive(self):
-        response = self.client.get(reverse('sso_login'), REMOTE_USER=self.inactive_user.sso_id)
+        response = self.client.get(reverse('sso_login'), HTTP_REMOTE_USER=self.inactive_user.sso_id)
         self.assertRedirects(response, reverse('sso_register'), fetch_redirect_response=False)
         self.assertNotAuthenticated()
 
     def test_login_active(self):
-        response = self.client.get(reverse('sso_login'), REMOTE_USER=self.active_user.sso_id)
+        response = self.client.get(reverse('sso_login'), HTTP_REMOTE_USER=self.active_user.sso_id)
         self.assertRedirects(response, reverse('project_home'))
         self.assertAuthenticatedAs(self.active_user)
 
@@ -80,13 +80,13 @@ class TestViews(TestCase):
 
     def test_sso_register_new(self):
         # GET registration page
-        response = self.client.get(reverse('sso_register'), REMOTE_USER='new_remote_id')
+        response = self.client.get(reverse('sso_register'), HTTP_REMOTE_USER='new_remote_id')
         self.assertEqual(response.status_code, 200)
         self.assertNotAuthenticated()
 
         # POST registration form
         data = {'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New'}
-        response = self.client.post(reverse('sso_register'), data=data, REMOTE_USER='new_remote_id')
+        response = self.client.post(reverse('sso_register'), data=data, HTTP_REMOTE_USER='new_remote_id')
         self.assertEqual(response.status_code, 200)
         new_user = User.objects.get(sso_id='new_remote_id')
         self.assertFalse(new_user.is_active)
@@ -97,19 +97,19 @@ class TestViews(TestCase):
         self.assertNotAuthenticated()
 
     def test_sso_register_inactive(self):
-        response = self.client.get(reverse('sso_register'), REMOTE_USER=self.inactive_user.sso_id)
+        response = self.client.get(reverse('sso_register'), HTTP_REMOTE_USER=self.inactive_user.sso_id)
         self.assertEqual(response.status_code, 200)
         self.assertNotAuthenticated()
 
     def test_sso_register_active(self):
-        response = self.client.get(reverse('sso_register'), REMOTE_USER=self.active_user.sso_id)
+        response = self.client.get(reverse('sso_register'), HTTP_REMOTE_USER=self.active_user.sso_id)
         self.assertRedirects(response, reverse('sso_login'), fetch_redirect_response=False)
         self.assertNotAuthenticated()
 
     def test_sso_activate_user_invalid(self):
         # POST registration form
         data = {'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New'}
-        response = self.client.post(reverse('sso_register'), data=data, REMOTE_USER='new_remote_id')
+        response = self.client.post(reverse('sso_register'), data=data, HTTP_REMOTE_USER='new_remote_id')
 
         # GET activation page without REMOTE USER
         uidb64, token = self.getActivationUrl()
@@ -122,7 +122,7 @@ class TestViews(TestCase):
 
         # GET activation page with invalid uidb64
         response = self.client.get(
-            reverse('sso_activate_user', args=('invaliduidb64', token)), REMOTE_USER='new_remote_id'
+            reverse('sso_activate_user', args=('invaliduidb64', token)), HTTP_REMOTE_USER='new_remote_id'
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Invalid Activation Link', response.content)
@@ -133,7 +133,7 @@ class TestViews(TestCase):
         # GET activation page with invalid token
         invalid_token = 'a' * 8 + '-' + 'b' * 13
         response = self.client.get(
-            reverse('sso_activate_user', args=(uidb64, invalid_token)), REMOTE_USER='new_remote_id'
+            reverse('sso_activate_user', args=(uidb64, invalid_token)), HTTP_REMOTE_USER='new_remote_id'
         )
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'Invalid Activation Link', response.content)
@@ -144,11 +144,11 @@ class TestViews(TestCase):
     def test_sso_activate_user_new(self):
         # POST registration form
         data = {'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New'}
-        response = self.client.post(reverse('sso_register'), data=data, REMOTE_USER='new_remote_id')
+        response = self.client.post(reverse('sso_register'), data=data, HTTP_REMOTE_USER='new_remote_id')
 
         # GET activation page
         uidb64, token = self.getActivationUrl()
-        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), REMOTE_USER='new_remote_id')
+        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), HTTP_REMOTE_USER='new_remote_id')
         self.assertRedirects(response, reverse('project_home'))
         new_user = User.objects.get(sso_id='new_remote_id')
         self.assertTrue(new_user.is_active)
@@ -157,12 +157,12 @@ class TestViews(TestCase):
     def test_sso_activate_user_active(self):
         # POST registration form
         data = {'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New'}
-        response = self.client.post(reverse('sso_register'), data=data, REMOTE_USER='new_remote_id')
+        response = self.client.post(reverse('sso_register'), data=data, HTTP_REMOTE_USER='new_remote_id')
 
         # GET activation page
         uidb64, token = self.getActivationUrl()
-        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), REMOTE_USER='new_remote_id')
+        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), HTTP_REMOTE_USER='new_remote_id')
 
         # GET activation page again
-        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), REMOTE_USER='new_remote_id')
+        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), HTTP_REMOTE_USER='new_remote_id')
         self.assertRedirects(response, reverse('sso_login'), fetch_redirect_response=False)
