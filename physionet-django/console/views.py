@@ -862,6 +862,7 @@ def manage_published_project(request, project_slug, version):
     rw_tasks = [task for (task, read_only) in tasks if not read_only]
 
     url_prefix = notification.get_url_prefix(request)
+    bulk_url_prefix = notification.get_url_prefix(request)
 
     return render(
         request,
@@ -886,6 +887,7 @@ def manage_published_project(request, project_slug, version):
             'passphrase': passphrase,
             'published_projects_nav': True,
             'url_prefix': url_prefix,
+            'bulk_url_prefix': bulk_url_prefix,
             'contact_form': contact_form,
             'legacy_author_form': legacy_author_form,
             'can_make_zip': ProjectFiles().can_make_zip(),
