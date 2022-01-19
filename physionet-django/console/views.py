@@ -388,12 +388,15 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
             topic_formset = TopicFormSet(request.POST, instance=project)
-            if (description_form.is_valid() and access_form.is_valid()
-                                            and ethics_form.is_valid()
-                                            and reference_formset.is_valid()
-                                            and publication_formset.is_valid()
-                                            and topic_formset.is_valid()
-                                            and discovery_form.is_valid()):
+            if (
+                description_form.is_valid()
+                and access_form.is_valid()
+                and ethics_form.is_valid()
+                and reference_formset.is_valid()
+                and publication_formset.is_valid()
+                and topic_formset.is_valid()
+                and discovery_form.is_valid()
+            ):
                 description_form.save()
                 ethics_form.save()
                 access_form.save()

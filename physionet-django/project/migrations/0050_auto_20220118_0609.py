@@ -7,7 +7,7 @@ import project.modelcomponents.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0047_auto_20211117_0304'),
+        ('project', '0049_auto_20211117_0304'),
     ]
 
     operations = [
