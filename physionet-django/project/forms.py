@@ -1124,7 +1124,8 @@ class UploadedDocumentFormSet(BaseGenericInlineFormSet):
         super().__init__(*args, **kwargs)
         url = f'{reverse_lazy("about_publish")}#guidelines'
         self.help_text = (
-            "Upload supporting documents. For more information on what documents are expected, "
-            f"see the <a href='{url}' target='_blank'>author guidance page</a>. "
-            "These documents reviewed by the editorial staff, and are not published with the project."
+            "Please provide an ethics statement following the"
+            f"<a href='{url}' target='_blank'>author guidelines</a>. "
+            "Statements on ethics approval should appear here. "
+            "Your statement will be included in the public project description."
         )

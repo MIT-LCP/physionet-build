@@ -46,15 +46,7 @@ urlpatterns = [
     ),
     path('<project_slug>/content/', views.project_content, name='project_content'),
     # Edit a metadata item and reload the formset section
-<<<<<<< HEAD
-    path(
-        '<project_slug>/content/edit-item/',
-        views.edit_content_item,
-        name='edit_content_item',
-    ),
-=======
     path('<project_slug>/content/edit-item/', views.edit_content_item, name='edit_content_item'),
->>>>>>> 409f1020 (Fix styles.)
     path('<project_slug>/access/', views.project_access, name='project_access'),
     path('<project_slug>/access/load-license/', views.load_license, name='load_license'),
     path('<project_slug>/discovery/', views.project_discovery, name='project_discovery'),

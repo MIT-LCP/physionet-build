@@ -82,7 +82,7 @@ class Metadata(models.Model):
                                      on_delete=models.CASCADE)
     allow_file_downloads = models.BooleanField(default=True)
 
-    ethics_statement = models.CharField(max_length=1024, blank=True)
+    ethics_statement = SafeHTMLField(blank=True)
 
     class Meta:
         abstract = True
