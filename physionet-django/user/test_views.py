@@ -483,7 +483,6 @@ class TrainingTestCase(TestCase):
         self.assertEqual(messages[0].level, msgs.ERROR)
         self.assertEqual(Training.objects.count(), 4)
 
-
     def test_view_training_not_authenticated(self):
         response = self.client.get(self.training_view_url)
 
