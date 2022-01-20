@@ -1118,7 +1118,7 @@ class UploadedDocumentForm(forms.ModelForm):
 class UploadedDocumentFormSet(BaseGenericInlineFormSet):
     form_name = 'project-uploadeddocument-content_type-object_id'
     item_label = 'Supporting Documents'
-    max_forms = 3
+    max_forms = 10
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1372,12 +1372,12 @@ def project_ethics(request, project_slug, **kwargs):
             project = ethics_form.save()
             documents_formset.save()
             messages.success(request, 'Your project ethics has been updated.')
+            documents_formset = UploadedDocumentFormSet(instance=project)
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     else:
         ethics_form = forms.EthicsForm(instance=project, editable=editable)
-
-    documents_formset = UploadedDocumentFormSet(instance=project)
+        documents_formset = UploadedDocumentFormSet(instance=project)
 
     edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
 
