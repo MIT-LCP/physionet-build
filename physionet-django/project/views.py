@@ -1710,7 +1710,7 @@ def published_project_license(request, project_slug, version):
 
 
 def published_project_required_trainings(request, project_slug, version):
-    """Displays a published project's required trainings"""
+    """Displays a published project's required training"""
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
 
     required_trainings = project.required_trainings.all()

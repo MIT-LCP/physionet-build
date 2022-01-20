@@ -153,7 +153,7 @@
           </p>
           {% if project.access_policy == AccessPolicy.CREDENTIALED %}
             <p>
-              <strong>Required trainings:</strong>
+              <strong>Required training:</strong>
               {% for training in project.required_trainings.all %}
                 <br>
                 <a href="{% url 'project_required_trainings_preview' project.slug %}#{{ training.id }}">{{ training }}</a>
