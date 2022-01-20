@@ -773,7 +773,7 @@ class LanguageFormSet(BaseGenericInlineFormSet):
 class AccessMetadataForm(forms.ModelForm):
     class Meta:
         model = ActiveProject
-        fields = ('access_policy', 'license', 'allow_file_downloads')
+        fields = ('access_policy', 'license', 'required_trainings', 'allow_file_downloads')
         help_texts = {
             'access_policy': '* Access policy for files.',
             'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
