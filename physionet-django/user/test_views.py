@@ -470,7 +470,7 @@ class TrainingTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0].level, msgs.SUCCESS)
-        self.assertEqual(Training.objects.count(), 2)
+        self.assertEqual(Training.objects.count(), 5)
 
     def test_submit_new_training_invalid(self):
         self.client.force_login(user=self.user)
@@ -481,6 +481,8 @@ class TrainingTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0].level, msgs.ERROR)
+        self.assertEqual(Training.objects.count(), 4)
+
 
     def test_view_training_not_authenticated(self):
         response = self.client.get(self.training_view_url)

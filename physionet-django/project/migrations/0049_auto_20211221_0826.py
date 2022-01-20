@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('user', '0034_auto_20211215_0859'),
-        ('project', '0046_auto_20210504_1504'),
+        ('project', '0048_allow_file_downloads_2'),
     ]
 
     operations = [
