@@ -119,11 +119,14 @@ class LocalProjectFiles(BaseProjectFiles):
     def publish_complete(self, active_project, published_project):
         pass
 
-    def get_project_file_root(self, slug, access_policy, klass):
+    def get_project_file_root(self, slug, version, access_policy, klass):
         if access_policy:
             return os.path.join(klass.PROTECTED_FILE_ROOT, slug)
         else:
             return os.path.join(klass.PUBLIC_FILE_ROOT, slug)
+
+    def get_file_root(self, slug, version, access_policy, klass):
+        return os.path.join(self.get_project_file_root(slug, version, access_policy, klass), version)
 
     def active_project_storage_used(self, project):
         return project.quota_manager().bytes_used

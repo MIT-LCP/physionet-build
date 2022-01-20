@@ -107,7 +107,9 @@ class GCSObject:
         if not self.is_dir():
             raise GCSObjectException(f'The {repr(self)} is not a directory.')
 
-        return self.bucket.list_blobs(prefix=self.name, delimiter=delimiter)
+        prefix = '' if self.name == '/' else self.name
+
+        return self.bucket.list_blobs(prefix=prefix, delimiter=delimiter)
 
     def rm(self):
         """Remove"""
@@ -189,12 +191,16 @@ class GCSObject:
                 if blob.name in ignored_files:
                     continue
 
+                new_name = (
+                    gcs_obj.name + relative_dir + blob.name.replace(os.path.commonprefix([self.name, blob.name]), '')
+                )
+                if new_name == '/':
+                    continue
+
                 self.bucket.copy_blob(
                     blob,
                     gcs_obj.bucket,
-                    new_name=gcs_obj.name
-                    + relative_dir
-                    + blob.name.replace(os.path.commonprefix([self.name, blob.name]), ''),
+                    new_name=new_name.strip('/'),
                 )
         except ValueError:
             pass
@@ -233,3 +239,9 @@ def create_bucket(name):
     bucket.location = settings.GCP_BUCKET_LOCATION
     bucket.iam_configuration.uniform_bucket_level_access_enabled = True
     client.create_bucket(bucket)
+
+
+def delete_bucket(name):
+    client = GoogleCloudStorage().client
+    bucket = client.bucket(name)
+    bucket.delete(force=True)

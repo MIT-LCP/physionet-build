@@ -93,8 +93,13 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def get_project_file_root(self, slug, access_policy, klass):
+    def get_project_file_root(self, slug, version, access_policy, klass):
         """Root directory containing the published project's files."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_file_root(self, slug, version, access_policy, klass):
+        """Project directory."""
         raise NotImplementedError
 
     @abc.abstractmethod

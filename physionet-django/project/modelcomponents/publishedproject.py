@@ -19,7 +19,6 @@ from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_
 class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
-
     """
     # File storage sizes in bytes
     main_storage_size = models.BigIntegerField(default=0)
@@ -77,13 +76,13 @@ class PublishedProject(Metadata, SubmissionInfo):
         This is the parent directory of the main and special file
         directories.
         """
-        return ProjectFiles().get_project_file_root(self.slug, self.access_policy, PublishedProject)
+        return ProjectFiles().get_project_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def file_root(self):
         """
         Root directory where the main user uploaded files are located
         """
-        return os.path.join(self.project_file_root(), self.version)
+        return ProjectFiles().get_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def storage_used(self):
         """
