@@ -777,7 +777,7 @@ class AccessMetadataForm(forms.ModelForm):
         help_texts = {
             'access_policy': '* Access policy for files.',
             'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
-            'required_trainings': '* Choose required trainings to access the dataset.',
+            'required_trainings': '* Choose required training to access the dataset.',
             'allow_file_downloads': (
                 '* This option allows to enable/disable direct files downloads from the '
                 'platform. It cannot be changed after the publication of the project!'
