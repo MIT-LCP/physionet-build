@@ -35,7 +35,8 @@ urlpatterns = [
     path('content/<project_slug>/get-zip/<version>/',
         project_views.serve_published_project_zip,
         name='serve_published_project_zip'),
-    path('content/<project_slug>/view-license/<version>/',
+    path(
+        'content/<project_slug>/view-license/<version>/',
         project_views.published_project_license,
         name='published_project_license',
     ),
