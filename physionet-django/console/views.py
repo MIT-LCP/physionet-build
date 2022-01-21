@@ -476,6 +476,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             'remove_item_url': edit_url,
             'discovery_form': discovery_form,
             'url_prefix': url_prefix,
+            'bulk_url_prefix': bulk_url_prefix,
             'reassign_editor_form': reassign_editor_form,
         },
     )
