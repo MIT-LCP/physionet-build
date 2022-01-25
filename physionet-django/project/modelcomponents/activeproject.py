@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 from physionet.settings.base import StorageTypes
+from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
 from project.modelcomponents.metadata import (
@@ -333,6 +334,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.version_clash = True
             else:
                 self.version_clash = False
+
+        if self.access_policy != AccessPolicy.OPEN and self.dua is None:
+            self.integrity_errors.append('You have to choose one of the data use agreements.')
 
         if self.integrity_errors:
             return False

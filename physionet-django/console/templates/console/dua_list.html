@@ -1,0 +1,87 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% load static %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block title %}{{ SITE_NAME }} - DUAs{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    DUAs <span class="badge badge-pill badge-info">{{ duas|length }}</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Resource types</th>
+            <th>Access policy</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for dua in duas %}
+            <tr>
+                <td>{{ dua.name }}</td>
+                <td>{{ dua.resource_types }}</td>
+                {% if dua.access_policy == AccessPolicy.OPEN %}
+                  <td>Open</td>
+                {% elif dua.access_policy == AccessPolicy.RESTRICTED %}
+                  <td>Restricted</td>x3
+                {% elif dua.access_policy == AccessPolicy.CREDENTIALED %}
+                  <td>Credentialed</td>
+                {% endif %}
+                <td>
+                  <a href="{% url 'dua_detail' dua.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
+                  <button type="button" class="btn btn-sm btn-danger " data-toggle="modal" data-target="#remove-dua">Delete</button>
+
+                  <div class="modal fade" id="remove-dua" tabindex="1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
+                    <form method="post" action="{% url 'dua_delete' dua.pk %}">
+                      {% csrf_token %}
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Delete DUA</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                              <p>Are you sure you want to delete the DUA?</p>
+                          </div>
+                          <div class="modal-footer">
+                              <button class="btn btn-danger" type="submit">Delete</button>
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=duas %}
+    </div>
+  </div>
+</div>
+<div class="card mb-3">
+  <div class="card-header">
+    New dua
+  </div>
+  <div class="card-body">
+      <form method="post" action="{% url 'dua_list' %}">
+          {% include "inline_form_snippet.html" with form=dua_form %}
+          <button class="btn btn-primary btn-fixed" type="submit">Create</button>
+      </form>
+  </div>
+</div>
+{% endblock %}

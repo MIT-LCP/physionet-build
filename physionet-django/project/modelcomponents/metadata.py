@@ -68,6 +68,7 @@ class Metadata(models.Model):
 
     license = models.ForeignKey('project.License', null=True,
         on_delete=models.SET_NULL)
+    dua = models.ForeignKey('project.DUA', null=True, on_delete=models.SET_NULL)
     project_home_page = models.URLField(default='', blank=True)
     parent_projects = models.ManyToManyField('project.PublishedProject',
         blank=True, related_name='derived_%(class)ss')

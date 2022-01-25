@@ -1,5 +1,6 @@
 import pdb
 import re
+import resource
 
 from django.forms.widgets import RadioSelect
 
@@ -18,7 +19,10 @@ from project.models import (
     Contact,
     CopyeditLog,
     DataAccess,
+    DUA,
     EditLog,
+    License,
+    ProjectType,
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
@@ -932,3 +936,31 @@ class TrainingReviewForm(forms.Form):
 
         if not self.cleaned_data['reviewer_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
+
+
+
+class LicenseForm(forms.ModelForm):
+    resource_types = forms.ModelMultipleChoiceField(queryset=ProjectType.objects.all())
+
+    class Meta:
+        model = License
+        fields = ('name', 'slug', 'text_content', 'html_content', 'home_page', 'access_policy', 'resource_types')
+
+    def clean_resource_types(self):
+        resource_types = self.cleaned_data['resource_types']
+
+        return ','.join(str(id) for id in resource_types.values_list("pk", flat=True))
+
+
+class DUAForm(forms.ModelForm):
+    resource_types = forms.ModelMultipleChoiceField(queryset=ProjectType.objects.all())
+
+    class Meta:
+        model = DUA
+        fields = '__all__'
+
+    def clean_resource_types(self):
+        resource_types = self.cleaned_data['resource_types']
+
+        return ','.join(str(id) for id in resource_types.values_list("pk", flat=True))
+    

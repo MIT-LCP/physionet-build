@@ -45,8 +45,11 @@ from project.models import (
     ActiveProject,
     ArchivedProject,
     DataAccess,
+    DUA,
     DUASignature,
+    License,
     EditLog,
+    ProjectType,
     Publication,
     PublishedProject,
     Reference,
@@ -2084,6 +2087,7 @@ def static_page_sections_delete(request, page, pk):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_page_sections_edit(request, page, pk):
     section = get_object_or_404(Section, page=Page(page), pk=pk)
+
     if request.method == 'POST':
         section_form = forms.SectionForm(instance=section, data=request.POST, page=Page(page))
         if section_form.is_valid():
@@ -2097,3 +2101,103 @@ def static_page_sections_edit(request, page, pk):
         'console/static_page_sections_edit.html',
         {'section_form': section_form, 'static_pages_nav': True, 'page': page, 'section': section},
     )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_list(request):
+    if request.method == 'POST':
+        license_form = forms.LicenseForm(data=request.POST)
+        if license_form.is_valid():
+            license_form.save()
+            license_form = forms.LicenseForm()
+            messages.success(request, "The license has been created.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        license_form = forms.LicenseForm()
+
+    licenses = License.objects.order_by('access_policy', 'name')
+    licenses = paginate(request, licenses, 20)
+
+
+    return render(request, 'console/license_list.html', {'license_nav': True, 'licenses': licenses, 'license_form': license_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_detail(request, pk):
+    license = get_object_or_404(License, pk=pk)
+    
+    if request.method == 'POST':
+        license_form = forms.LicenseForm(data=request.POST, instance=license)
+        if license_form.is_valid():
+            license_form.save()
+            messages.success(request, "The license has been updated.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+
+    else:
+        license_form = forms.LicenseForm(instance=license)
+
+    return render(request, 'console/license_detail.html', {'license_nav': True, 'license': license, 'license_form': license_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_delete(request, pk):
+    if request.method == 'POST':
+        license = get_object_or_404(License, pk=pk)
+        license.delete()
+
+    return redirect("license_list")
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_list(request):
+    if request.method == 'POST':
+        dua_form = forms.DUAForm(data=request.POST)
+        if dua_form.is_valid():
+            dua_form.save()
+            dua_form = forms.DUAForm()
+            messages.success(request, "The DUA has been created.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        dua_form = forms.DUAForm()
+    
+    duas = DUA.objects.order_by('access_policy', 'name')
+    duas = paginate(request, duas, 20)
+
+    return render(request, 'console/dua_list.html', {'dua_nav': True, 'duas': duas, 'dua_form': dua_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_detail(request, pk):
+    dua = get_object_or_404(DUA, pk=pk)
+    
+    if request.method == 'POST':
+        dua_form = forms.DUAForm(data=request.POST, instance=dua)
+        if dua_form.is_valid():
+            dua_form.save()
+            messages.success(request, "The dua has been updated.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+
+    else:
+        dua_form = forms.DUAForm(instance=dua)
+
+    return render(request, 'console/dua_detail.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_delete(request, pk):
+    if request.method == 'POST':
+        dua = get_object_or_404(DUA, pk=pk)
+        dua.delete()
+
+    return redirect("dua_list")
+

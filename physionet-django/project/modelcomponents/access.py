@@ -220,9 +220,6 @@ class License(models.Model):
     # ie. '0' or '0,2' or '1,3,4'
     resource_types = models.CharField(max_length=100)
     # A protected license has associated DUA content
-    dua_name = models.CharField(max_length=100, blank=True, default='')
-    dua_html_content = SafeHTMLField(blank=True, default='')
-    access_request_template = SafeHTMLField(blank=True, default='')
 
     def __str__(self):
         return self.name
@@ -233,3 +230,14 @@ class License(models.Model):
         plain text emails.
         """
         return html2text(self.dua_html_content)
+
+
+class DUA(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120)
+    html_content = SafeHTMLField(default='')
+    access_policy = models.PositiveSmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN)
+    resource_types = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name

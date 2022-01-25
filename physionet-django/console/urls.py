@@ -104,4 +104,10 @@ urlpatterns = [
         name='static_page_sections_delete',
     ),
     path('static-pages/<str:page>/<int:pk>/edit/', views.static_page_sections_edit, name='static_page_sections_edit'),
+    path('licenses/', views.license_list, name='license_list'),
+    path('licenses/<int:pk>/', views.license_detail, name='license_detail'),
+    path('licenses/<int:pk>/delete/', views.license_delete, name='license_delete'),
+    path('duas/', views.dua_list, name='dua_list'),
+    path('duas/<int:pk>/', views.dua_detail, name='dua_detail'),
+    path('duas/<int:pk>/delete/', views.dua_delete, name='dua_delete'),
 ]

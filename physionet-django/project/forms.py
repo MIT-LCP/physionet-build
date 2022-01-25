@@ -29,6 +29,7 @@ from project.models import (
     CoreProject,
     DataAccessRequest,
     DataAccessRequestReviewer,
+    DUA,
     License,
     Metadata,
     ProgrammingLanguage,
@@ -773,16 +774,18 @@ class LanguageFormSet(BaseGenericInlineFormSet):
 class AccessMetadataForm(forms.ModelForm):
     class Meta:
         model = ActiveProject
-        fields = ('access_policy', 'license', 'required_trainings', 'allow_file_downloads')
+        fields = ('access_policy', 'license', 'dua', 'required_trainings', 'allow_file_downloads')
         help_texts = {
             'access_policy': '* Access policy for files.',
             'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
+            'dua': "* Insert DUA help text!",
             'required_trainings': '* Choose required training to access the dataset.',
             'allow_file_downloads': (
                 '* This option allows to enable/disable direct files downloads from the '
                 'platform. It cannot be changed after the publication of the project!'
             ),
         }
+        labels = {'dua': "DUA"}
 
     def __init__(self, *args, **kwargs):
         self.access_policy = kwargs.pop('access_policy', None)
@@ -807,10 +810,19 @@ class AccessMetadataForm(forms.ModelForm):
             resource_types__icontains=str(self.instance.resource_type.id), access_policy=self.access_policy
         )
 
+        self.fields['dua'].queryset = DUA.objects.filter(
+            resource_types__icontains=str(self.instance.resource_type.id), access_policy=self.access_policy
+        )
+
         if self.access_policy not in {AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW}:
             self.fields['required_trainings'].disabled = True
             self.fields['required_trainings'].required = False
             self.fields['required_trainings'].widget = forms.HiddenInput()
+
+        if self.access_policy == AccessPolicy.OPEN:
+            self.fields['dua'].disabled = True
+            self.fields['dua'].required = False
+            self.fields['dua'].widget = forms.HiddenInput()
 
         if not self.editable:
             for field in self.fields.values():
