@@ -22,7 +22,7 @@ class FileView:
     display something more useful.
     """
 
-    def __init__(self, project, path, file, size=0):
+    def __init__(self, project, path, file):
         self.project = project
         self.path = path
         self.file = file
