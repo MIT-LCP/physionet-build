@@ -43,11 +43,10 @@ def display_project_file(request, project, file_path):
     except (IOError, OSError) as err:
         raise (Http404() if err.errno == ENAMETOOLONG else err)
 
-    with infile:
-        if file_path.endswith('.csv.gz'):
-            cls = GzippedCSVFileView
-        else:
-            (_, suffix) = os.path.splitext(file_path)
-            cls = _suffixes.get(suffix, TextFileView)
-        view = cls(project, file_path, infile)
-        return view.render(request)
+    if file_path.endswith('.csv.gz'):
+        cls = GzippedCSVFileView
+    else:
+        (_, suffix) = os.path.splitext(file_path)
+        cls = _suffixes.get(suffix, TextFileView)
+    view = cls(project, file_path, infile)
+    return view.render(request)

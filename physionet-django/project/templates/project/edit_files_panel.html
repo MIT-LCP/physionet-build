@@ -1,7 +1,19 @@
 {% load static %}
 
+{% block local_js_top %}
+<script src="{% static 'dropzone/dropzone.min.js' %}"></script>
+{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'dropzone/dropzone.min.css' %}">
+{% endblock %}
+
 <div id="forms-and-panel">
+  {% if storage_type  != "GCP" %}
   <form method="post" enctype="multipart/form-data" onsubmit="check_upload_size_limit('submit')">
+  {% else %}
+    <form method="post" enctype="multipart/form-data">
+  {% endif %}
     {% csrf_token %}
     {% include "project/project_files_form.html" %}
     <div id="files-panel" class="card">
@@ -80,21 +92,62 @@
     </div>
   </form>
 
+  <script>
+    Dropzone.autoDiscover = false;
+
+    $(document).ready(() => {
+      const dropzoneObj = {
+            method: 'PUT',
+            createImageThumbnails: false,
+            maxFiles: 2000,
+            maxFilesize: 10000,
+            parallelUploads: 1,
+            timeout: null,
+            headers: {
+                'Cache-Control': null,
+                'X-Requested-With': null,
+                'Accept': null,
+            },
+            url: files => files[0].dynamicUploadUrl,
+            sending: (file, xhr, formData) => {
+                xhr.setRequestHeader("X-Upload-Content-Length", file.size);
+                xhr.setRequestHeader("Content-Type", file.type);
+
+                let _send = xhr.send;
+                xhr.send = function () {
+                    _send.call(xhr, file);
+                };
+            },
+            accept: (file, done) => {
+                const payload = {size: file.size, filename: `{{ subdir }}/${file.upload.filename}`, csrfmiddlewaretoken: "{{ csrf_token }}"};
+
+                $.post("{% url 'generate_signed_url' project_slug=project.slug %}", payload, "json")
+                .done(data => {
+                  file.dynamicUploadUrl = data.url;
+                  done();
+                }).fail(data => {
+                  done(data.responseJSON.detail);
+                });
+            }
+        };
+        $("#myDropzone").dropzone(dropzoneObj);
+        $("#myDropzone").addClass("dropzone");
+    });
+</script>
+
 </div>
-<script>
+  <script>
   // Navigate to another file directory and reload the file panel
   // subdir is the full subdirectory
-  function navigateDir(subdir){
+  function navigateDir(subdir) {
     $.ajax({
-            type: "GET",
             url: "{% url 'project_files_panel' project.slug %}",
-            data: {'subdir':subdir
-            },
-            success: function reloadSection(result){
+            data: {'subdir': subdir},
+            success: result => {
                 $("#forms-and-panel").html(result);
-            },
+            }
     });
-    return false
+    return false;
   }
 
   // Selected checkboxes
@@ -129,12 +182,14 @@
 
   // Direct each input's 'enter' submit function to the right button.
   // Needed due to form sharing of all item manipulation inputs.
+  {% if storage_type != "GCP" %}
   document.getElementById("id_file_field").addEventListener("keydown", function(event){
       if (event.keyCode === 13) {
         event.preventDefault()
         document.getElementById("upload-files-button-submit").click()
       }
   });
+  {% endif %}
   document.getElementById("id_folder_name").addEventListener("keydown", function(event){
       if (event.keyCode === 13) {
         event.preventDefault()
@@ -158,22 +213,21 @@
   function setInputRequirements(required_id){
     // Make one of the item manipulating form inputs required, and
     // remove it from all others.
-    var input_ids = ["id_file_field", "id_folder_name", "id_new_name",
-                     "id_destination_folder"]
-    for (var i=0; i<input_ids.length; i++){
-      var input_id = input_ids[i]
-      if (required_id == input_id){
-        document.getElementById(input_id).required = true
-      }
-      else{
-        document.getElementById(input_id).required = false
-      }
-    }
+    let input_ids = ["id_folder_name", "id_new_name", "id_destination_folder"]
+    {% if storage_type != "GCP" %}
+      input_ids.append("id_file_field")
+    {% endif %}
+
+    input_ids.map(element => (
+      document.getElementById(element).required = element === required_id
+    ))
   }
 
   // These prepare functions are activated before triggering the modals
   function prepareUpload(){
+    {% if storage_type != "GCP" %}
     setInputRequirements("id_file_field")
+    {% endif %}
   }
 
   function prepareCreate(){
@@ -202,9 +256,9 @@
 
     // The size is calculated in bytes
     files = $('#id_file_field').get(0).files;
-    size = 0;
+    let size = 0;
     // Add the size of all the files into a single variable
-    for (i = 0; i < files.length; i++)
+    for (let i = 0; i < files.length; i++)
     {
       size = size + files[i].size;
     }
@@ -231,5 +285,4 @@ function readableBytes(bytes) {
     sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
     return (bytes / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + sizes[i];
 }
-
 </script>

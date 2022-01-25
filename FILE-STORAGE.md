@@ -40,6 +40,28 @@ CORS configuration (needed for font-awesome):
 
 - Each published project will have its own bucket. Note that this differs from local storage where public project files are written to the `published_projects` directory within the static root. One reason for the separation is to more easily set requester pays per bucket and view analytics. Set the `GCP_BUCKET_LOCATION` environment variable to the location where new buckets should be created.
 
+CORS configuration to allow direct uploads:
+
+```json
+[
+  {
+    "origin": ["https://your-website.com"],
+    "responseHeader": [
+      "Content-Type",
+      "Access-Control-Allow-Origin",
+      "X-Upload-Content-Length",
+      "x-goog-resumable"
+    ],
+    "method": ["PUT", "OPTIONS"],
+    "maxAgeSeconds": 3600
+  }
+]
+```
+
+Direct files upload flow:
+- Generate a signed url by sending an HTTP POST request to the `generate_signed_url` endpoint, it accepts `filename` and `size`.
+- Send a PUT request to the signed url with the file as a payload, you have to provide `X-Upload-Content-Length` header and set it to the file size. The file needs to match the one provided when generating the signed url, otherwise the request will fail.
+ 
 ## Serving Files and URLs
 
 Static files are all public, so just use the `{% static %}` tag in the django templates.
@@ -51,3 +73,5 @@ Media files are not inherently public. For media assets that require access cont
 eg. See `def profile_photo`.
 
 With GCS uploads, it is possible to link directly to the GCS location in the template with: `<a src="{{ <model>.<fieldname>.url}}">`. Django automatically generates a signed URL for the GCS location. Only do this if the media asset should be publicly accessible.
+
+Note about psycopg2-binary installation for M1 Mac which is required for `django-storages`: https://github.com/psycopg/psycopg2/issues/1286

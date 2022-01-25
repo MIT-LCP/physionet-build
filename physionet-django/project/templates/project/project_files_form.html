@@ -36,7 +36,11 @@
         </div>
           <div class="modal-body">
             <p>Individual file size limit: {{ individual_size_limit }}.</p>
-            {{ upload_files_form.file_field }}
+              {% if storage_type == "GCP" %}
+                <div class="dropzone" id="myDropzone"></div>
+              {% else %}
+                {{ upload_files_form.file_field }}
+              {% endif %}
             <br>
             <div id='error_data_size' style="display:none" class="alert alert-danger">
               <p>The selected files are larger than your remaining storage allowance for this project.
@@ -46,8 +50,12 @@
             </div>
           </div>
           <div class="modal-footer">
-            <button id="upload-files-button-submit" class="btn btn-success" name="upload_files" value="{{ subdir }}" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            {% if storage_type == "GCP" %}
+              <button id="upload-files-finish" type="button" data-dismiss="modal" class="btn btn-secondary" onclick="return navigateDir('{{ subdir }}')">Finish</button>
+            {% else %}
+              <button id="upload-files-button-submit" class="btn btn-success" name="upload_files" value="{{ subdir }}" type="submit"><i class="fa fa-arrow-circle-up"></i> Upload Files</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            {% endif %}
           </div>
       </div>
     </div>

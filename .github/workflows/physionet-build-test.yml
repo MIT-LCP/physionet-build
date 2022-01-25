@@ -67,7 +67,6 @@ jobs:
           service postgresql start
           sudo -u postgres psql -c "create user physionet with superuser password 'password';" -U postgres
           sudo -u postgres psql -c "create database physionet;" -U postgres
-
       - name: Install and setup wfdb
         run: |
           wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz -O wfdb.tar.gz
