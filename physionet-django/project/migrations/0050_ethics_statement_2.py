@@ -16,6 +16,10 @@ def migrate_forward(apps, schema_editor):
     PublishedProject.objects.update(ethics_statement="The authors declare no ethics concerns.")
 
 
+def migrate_backward(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
     MIGRATE_AFTER_INSTALL = True
 
@@ -25,7 +29,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(migrate_forward),
+        migrations.RunPython(migrate_forward, migrate_backward),
         migrations.AlterField(
             model_name='activeproject',
             name='ethics_statement',
