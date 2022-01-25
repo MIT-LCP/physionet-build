@@ -41,6 +41,10 @@ class UnpublishedProject(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def is_legacy(self):
+        return False
+
     def is_published(self):
         return False
 
