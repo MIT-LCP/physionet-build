@@ -148,7 +148,9 @@ class TestViews(TestCase):
 
         # GET activation page
         uidb64, token = self.getActivationUrl()
-        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), HTTP_REMOTE_USER='new_remote_id')
+        response = self.client.get(
+            reverse('sso_activate_user', args=(uidb64, token)), HTTP_REMOTE_USER='new_remote_id'
+        )
         self.assertRedirects(response, reverse('project_home'))
         new_user = User.objects.get(sso_id='new_remote_id')
         self.assertTrue(new_user.is_active)
@@ -161,8 +163,12 @@ class TestViews(TestCase):
 
         # GET activation page
         uidb64, token = self.getActivationUrl()
-        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), HTTP_REMOTE_USER='new_remote_id')
+        response = self.client.get(
+            reverse('sso_activate_user', args=(uidb64, token)), HTTP_REMOTE_USER='new_remote_id'
+        )
 
         # GET activation page again
-        response = self.client.get(reverse('sso_activate_user', args=(uidb64, token)), HTTP_REMOTE_USER='new_remote_id')
+        response = self.client.get(
+            reverse('sso_activate_user', args=(uidb64, token)), HTTP_REMOTE_USER='new_remote_id'
+        )
         self.assertRedirects(response, reverse('sso_login'), fetch_redirect_response=False)
