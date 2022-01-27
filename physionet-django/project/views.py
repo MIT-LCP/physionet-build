@@ -57,6 +57,7 @@ from project.models import (
     Reference,
     StorageRequest,
     Topic,
+    UploadedDocument,
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename
@@ -1343,6 +1344,112 @@ def project_submission(request, project_slug, **kwargs):
         'awaiting_user_approval':awaiting_user_approval})
 
 
+@project_auth(auth_mode=0, post_auth_mode=2)
+def project_ethics(request, project_slug, **kwargs):
+    project = kwargs['project']
+    is_submitting = kwargs['is_submitting']
+
+    editable = is_submitting and project.author_editable()
+
+    UploadedDocumentFormSet = generic_inlineformset_factory(
+        UploadedDocument,
+        fields=(
+            'document_type',
+            'document',
+        ),
+        extra=0,
+        form=forms.UploadedDocumentForm,
+        max_num=forms.UploadedDocumentFormSet.max_forms,
+        can_delete=False,
+        formset=forms.UploadedDocumentFormSet,
+        validate_max=True,
+    )
+
+    if request.method == 'POST':
+        ethics_form = forms.EthicsForm(data=request.POST, instance=project, editable=editable)
+        documents_formset = UploadedDocumentFormSet(data=request.POST, instance=project, files=request.FILES)
+        if ethics_form.is_valid() and documents_formset.is_valid():
+            project = ethics_form.save()
+            documents_formset.save()
+            messages.success(request, 'Your project ethics has been updated.')
+            documents_formset = UploadedDocumentFormSet(instance=project)
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        ethics_form = forms.EthicsForm(instance=project, editable=editable)
+        documents_formset = UploadedDocumentFormSet(instance=project)
+
+    edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
+
+    return render(
+        request,
+        'project/project_ethics.html',
+        {
+            'project': project,
+            'ethics_form': ethics_form,
+            'is_submitting': kwargs['is_submitting'],
+            'documents_formset': documents_formset,
+            'add_item_url': edit_url,
+            'remove_item_url': edit_url,
+        },
+    )
+
+
+@project_auth(auth_mode=0, post_auth_mode=2)
+def edit_ethics(request, project_slug, **kwargs):
+    project = kwargs['project']
+
+    if project.submission_status not in [0, 30]:
+        raise Http404()
+
+    # Reload the formset with the first empty form
+    if request.method == 'GET' and 'add_first' in request.GET:
+        extra_forms = 1
+    # Remove an object
+    elif request.method == 'POST' and 'remove_id' in request.POST:
+        extra_forms = 0
+        UploadedDocument.objects.get(id=int(request.POST['remove_id'])).delete()
+
+    UploadedSupportingDocumentFormSet = generic_inlineformset_factory(
+        UploadedDocument,
+        extra=extra_forms,
+        max_num=forms.UploadedDocumentFormSet.max_forms,
+        can_delete=False,
+        form=forms.UploadedDocumentForm,
+        formset=forms.UploadedDocumentFormSet,
+        validate_max=True,
+    )
+    formset = UploadedSupportingDocumentFormSet(instance=project)
+    edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
+
+    return render(
+        request,
+        'project/item_list.html',
+        {
+            'formset': formset,
+            'item': 'affiliation',
+            'item_label': formset.item_label,
+            'form_name': formset.form_name,
+            'add_item_url': edit_url,
+            'remove_item_url': edit_url,
+        },
+    )
+
+
+@login_required
+def serve_document(request, file_name):
+    projects = ActiveProject.objects.filter(Q(authors__user=request.user) | Q(editor=request.user)).values_list(
+        'id', flat=True
+    )
+    uploaded_document = get_object_or_404(
+        UploadedDocument.objects.filter(
+            object_id__in=projects, content_type=ContentType.objects.get_for_model(ActiveProject)
+        ),
+        document__iendswith=file_name,
+    )
+    return ProjectFiles().serve_file_field(uploaded_document.document)
+
+
 @login_required
 def rejected_submission_history(request, project_slug):
     """
@@ -1687,8 +1794,7 @@ def published_project(request, project_slug, version, subdir=''):
             status = 200
 
         main_size, compressed_size = [
-            utility.readable_size(s) for s in
-            (project.main_storage_size, project.compressed_storage_size)
+            utility.readable_size(s) for s in (project.main_storage_size, project.compressed_storage_size)
         ]
         files_panel_url = reverse('published_files_panel', args=(project.slug, project.version))
 

@@ -1,7 +1,6 @@
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-
 from project.quota import DemoQuotaManager
 
 
@@ -12,17 +11,48 @@ class EditLog(models.Model):
     # Quality assurance fields for data and software
     QUALITY_ASSURANCE_FIELDS = (
         # 0: Database
-        ('soundly_produced', 'well_described', 'open_format',
-         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+        (
+            'soundly_produced',
+            'well_described',
+            'open_format',
+            'data_machine_readable',
+            'reusable',
+            'no_phi',
+            'pn_suitable',
+            'ethics_included',
+        ),
         # 1: Software
-        ('soundly_produced', 'well_described', 'open_format', 'no_phi',
-            'reusable', 'pn_suitable'),
+        (
+            'soundly_produced',
+            'well_described',
+            'open_format',
+            'no_phi',
+            'reusable',
+            'pn_suitable',
+            'ethics_included',
+        ),
         # 2: Challenge
-        ('soundly_produced', 'well_described', 'open_format',
-         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+        (
+            'soundly_produced',
+            'well_described',
+            'open_format',
+            'data_machine_readable',
+            'reusable',
+            'no_phi',
+            'pn_suitable',
+            'ethics_included',
+        ),
         # 3: Model
-        ('soundly_produced', 'well_described', 'open_format',
-         'data_machine_readable', 'reusable', 'no_phi', 'pn_suitable'),
+        (
+            'soundly_produced',
+            'well_described',
+            'open_format',
+            'data_machine_readable',
+            'reusable',
+            'no_phi',
+            'pn_suitable',
+            'ethics_included',
+        ),
     )
     # The editor's free input fields
     EDITOR_FIELDS = ('editor_comments', 'decision', 'auto_doi')
@@ -32,7 +62,11 @@ class EditLog(models.Model):
         'pn_suitable': 'Is the content suitable for PhysioNet?',
         'editor_comments': 'Comments to authors',
         'no_phi': 'Is the project free of protected health information?',
-        'data_machine_readable': 'Are all files machine-readable?'
+        'data_machine_readable': 'Are all files machine-readable?',
+        'ethics_included': (
+            'Does the submission contain an appropriate statement regarding '
+            'ethical concerns, and if necessary, supporting documentation?'
+        ),
     }
 
     LABELS = (
@@ -86,6 +120,7 @@ class EditLog(models.Model):
     reusable = models.NullBooleanField(null=True)
     no_phi = models.NullBooleanField(null=True)
     pn_suitable = models.NullBooleanField(null=True)
+    ethics_included = models.NullBooleanField(null=True)
     # Editor decision. 0 1 2 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
@@ -185,6 +220,8 @@ class SubmissionInfo(models.Model):
 
     # Anonymous access
     anonymous = GenericRelation('project.AnonymousAccess')
+
+    uploaded_documents = GenericRelation('project.UploadedDocument')
 
     class Meta:
         abstract = True

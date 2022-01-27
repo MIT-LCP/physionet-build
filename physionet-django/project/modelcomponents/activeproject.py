@@ -1,12 +1,15 @@
 import logging
 import os
+import uuid
 import shutil
 from datetime import timedelta
 from html import unescape
 
 from background_task import background
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
+from django.db.models.fields.files import FieldFile
 from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
@@ -14,7 +17,13 @@ from django.utils.html import strip_tags
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
-from project.modelcomponents.metadata import Contact, Metadata, PublishedPublication, PublishedReference
+from project.modelcomponents.metadata import (
+    Contact,
+    Metadata,
+    PublishedPublication,
+    PublishedReference,
+    UploadedDocument,
+)
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
@@ -248,6 +257,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             copyedit_log.save()
         for parent_project in self.parent_projects.all():
             archived_project.parent_projects.add(parent_project)
+
+        UploadedDocument.objects.filter(
+            object_id=self.pk, content_type=ContentType.objects.get_for_model(ActiveProject)
+        ).update(object_id=archived_project.pk, content_type=ContentType.objects.get_for_model(ArchivedProject))
+
         if self.resource_type.id == 1:
             languages = self.programming_languages.all()
             if languages:
@@ -306,6 +320,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if value is None or not text or text.isspace():
                 l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
+
+        # Ethics
+        if not self.ethics_statement:
+            self.integrity_errors.append('Missing required field: Ethics Statement')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -455,8 +473,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         published_project = PublishedProject(has_wfdb=self.has_wfdb())
 
         # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
-            setattr(published_project, attr, getattr(self, attr))
+        for field in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
+            setattr(published_project, field, getattr(self, field))
 
         published_project.slug = slug or self.slug
 
@@ -532,12 +550,21 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         published_affiliation = PublishedAffiliation.objects.create(
                             name=affiliation.name, author=published_author)
 
+                    UploadedDocument.objects.filter(
+                        object_id=self.pk, content_type=ContentType.objects.get_for_model(ActiveProject)
+                    ).update(
+                        object_id=published_project.pk,
+                        content_type=ContentType.objects.get_for_model(PublishedProject),
+                    )
+
                     if author.is_corresponding:
                         published_author.corresponding_email = author.corresponding_email.email
                         published_author.save()
-                        contact = Contact.objects.create(name=author.get_full_name(),
-                        affiliations='; '.join(a.name for a in affiliations),
-                        email=author.corresponding_email, project=published_project)
+                        Contact.objects.create(
+                            name=author.get_full_name(),
+                            affiliations='; '.join(a.name for a in affiliations),
+                            email=author.corresponding_email, project=published_project
+                        )
 
                 # Move the edit and copyedit logs
                 for edit_log in self.edit_logs.all():
@@ -548,9 +575,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     copyedit_log.save()
 
                 # Set files read only and make zip file if requested
-                move_files_as_readonly(published_project.id, self.file_root(),
-                    published_project.file_root(), make_zip,
-                    verbose_name='Read Only Files - {}'.format(published_project))
+                move_files_as_readonly(
+                    published_project.id,
+                    self.file_root(),
+                    published_project.file_root(),
+                    make_zip,
+                    verbose_name='Read Only Files - {}'.format(published_project),
+                )
 
                 # Remove the ActiveProject
                 self.delete()

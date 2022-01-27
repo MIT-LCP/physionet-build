@@ -359,6 +359,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     description_form = project_forms.ContentForm(
         resource_type=project.resource_type.id, instance=project)
+    ethics_form = project_forms.EthicsForm(instance=project)
     access_form = project_forms.AccessMetadataForm(instance=project)
     discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
         instance=project)
@@ -376,6 +377,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             description_form = project_forms.ContentForm(
                 resource_type=project.resource_type.id, data=request.POST,
                 instance=project)
+            ethics_form = project_forms.EthicsForm(data=request.POST, instance=project)
             access_form = project_forms.AccessMetadataForm(data=request.POST,
                 instance=project)
             discovery_form = project_forms.DiscoveryForm(
@@ -386,12 +388,17 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
             topic_formset = TopicFormSet(request.POST, instance=project)
-            if (description_form.is_valid() and access_form.is_valid()
-                                            and reference_formset.is_valid()
-                                            and publication_formset.is_valid()
-                                            and topic_formset.is_valid()
-                                            and discovery_form.is_valid()):
+            if (
+                description_form.is_valid()
+                and access_form.is_valid()
+                and ethics_form.is_valid()
+                and reference_formset.is_valid()
+                and publication_formset.is_valid()
+                and topic_formset.is_valid()
+                and discovery_form.is_valid()
+            ):
                 description_form.save()
+                ethics_form.save()
                 access_form.save()
                 discovery_form.save()
                 reference_formset.save()
@@ -446,6 +453,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         {
             'project': project,
             'description_form': description_form,
+            'ethics_form': ethics_form,
             'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
             'access_form': access_form,
             'reference_formset': reference_formset,

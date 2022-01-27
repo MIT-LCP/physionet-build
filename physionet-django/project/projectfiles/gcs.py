@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from django.shortcuts import redirect
 from google.cloud.exceptions import Conflict, NotFound
 from physionet.gcs import GCSObject, GCSObjectException, create_bucket, delete_bucket
 from project.projectfiles.base import BaseProjectFiles
@@ -149,6 +150,9 @@ class GCSProjectFiles(BaseProjectFiles):
 
     def is_wget_supported(self):
         return False
+
+    def serve_file_field(self, field):
+        return redirect(field.url)
 
     def _storage_used(self, project):
         return GCSObject(self._dir_path(project.file_root())).size()

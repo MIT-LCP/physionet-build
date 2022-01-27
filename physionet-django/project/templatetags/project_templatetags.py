@@ -1,3 +1,5 @@
+import os
+
 from django import template
 from django.shortcuts import reverse
 from django.utils.html import format_html, escape
@@ -159,3 +161,8 @@ def mailto_link(*recipients, **params):
     url = mailto_url(*recipients, **params)
     label = ', '.join(recipients)
     return format_html('<a href="{0}">{1}</a>', url, label)
+
+
+@register.filter
+def filename(value):
+    return os.path.basename(value.name)

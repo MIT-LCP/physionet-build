@@ -1,17 +1,23 @@
 import json
+import logging
 import os
 import pdb
-import logging
 
-from django.urls import reverse
-from django.test.utils import get_runner
-from background_task.tasks import tasks
 import requests_mock
-
-from project.models import (ArchivedProject, ActiveProject, PublishedProject,
-    Author, AuthorInvitation, License, StorageRequest)
+from background_task.tasks import tasks
+from django.test.utils import get_runner
+from django.urls import reverse
+from project.models import (
+    ActiveProject,
+    ArchivedProject,
+    Author,
+    AuthorInvitation,
+    License,
+    PublishedProject,
+    StorageRequest,
+)
 from user.models import User
-from user.test_views import prevent_request_warnings, TestMixin
+from user.test_views import TestMixin, prevent_request_warnings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -122,12 +128,21 @@ class TestState(TestMixin):
             'pn_suitable':1, 'editor_comments':'Good.', 'decision':2
             })
         self.assertMessage(response, 40)
-        response = self.client.post(reverse(
-            'edit_submission', args=(project.slug,)), data={
-            'soundly_produced':1, 'well_described':1, 'open_format':1,
-            'data_machine_readable':1, 'reusable':1, 'no_phi':1,
-            'pn_suitable':1, 'editor_comments':'Good.', 'decision':2
-            })
+        response = self.client.post(
+            reverse('edit_submission', args=(project.slug,)),
+            data={
+                'soundly_produced': 1,
+                'well_described': 1,
+                'open_format': 1,
+                'data_machine_readable': 1,
+                'reusable': 1,
+                'no_phi': 1,
+                'pn_suitable': 1,
+                'editor_comments': 'Good.',
+                'decision': 2,
+                'ethics_included': 1,
+            },
+        )
         project = ActiveProject.objects.get(id=project.id)
         self.assertTrue(project.copyeditable())
 
@@ -148,12 +163,21 @@ class TestState(TestMixin):
             'item':'topic', 'remove_id':topic.id})
         self.assertEqual(response.status_code, 404)
         # Accept submission
-        response = self.client.post(reverse(
-            'edit_submission', args=(project.slug,)), data={
-            'soundly_produced':1, 'well_described':1, 'open_format':1,
-            'data_machine_readable':1, 'reusable':1, 'no_phi':1,
-            'pn_suitable':1, 'editor_comments':'Good.', 'decision':2
-            })
+        response = self.client.post(
+            reverse('edit_submission', args=(project.slug,)),
+            data={
+                'soundly_produced': 1,
+                'well_described': 1,
+                'open_format': 1,
+                'data_machine_readable': 1,
+                'reusable': 1,
+                'no_phi': 1,
+                'pn_suitable': 1,
+                'editor_comments': 'Good.',
+                'decision': 2,
+                'ethics_included': 1,
+            },
+        )
         # Copyedit project.
         # Remove a related item
         response = self.client.post(reverse(
@@ -213,13 +237,22 @@ class TestState(TestMixin):
 
         self.client.login(username='admin', password='Tester11!')
         # Accept submission
-        response = self.client.post(reverse(
-            'edit_submission', args=(project.slug,)), data={
-                'soundly_produced': 1, 'well_described': 1, 'open_format': 1,
-                'data_machine_readable': 1, 'reusable': 1, 'no_phi': 1,
-                'pn_suitable': 1, 'editor_comments': 'Good.', 'decision': 2,
-                'auto_doi': 1
-            })
+        response = self.client.post(
+            reverse('edit_submission', args=(project.slug,)),
+            data={
+                'soundly_produced': 1,
+                'well_described': 1,
+                'open_format': 1,
+                'data_machine_readable': 1,
+                'reusable': 1,
+                'no_phi': 1,
+                'pn_suitable': 1,
+                'editor_comments': 'Good.',
+                'decision': 2,
+                'auto_doi': 1,
+                'ethics_included': 1,
+            },
+        )
         self.assertEqual(get_project().modified_datetime, timestamp)
 
         # Complete copyedit
