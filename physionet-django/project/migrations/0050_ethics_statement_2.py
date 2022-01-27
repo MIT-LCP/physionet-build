@@ -13,7 +13,7 @@ def migrate_forward(apps, schema_editor):
 
     ActiveProject.objects.update(ethics_statement="The authors declare no ethics concerns.")
     ArchivedProject.objects.update(ethics_statement="The authors declare no ethics concerns.")
-    PublishedProject.objects.update(ethics_statement="The authors declare no ethics concerns.")
+    PublishedProject.objects.update(ethics_statement="")
 
 
 def migrate_backward(apps, schema_editor):
