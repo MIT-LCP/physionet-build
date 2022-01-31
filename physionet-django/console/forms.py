@@ -375,7 +375,7 @@ class ProcessCredentialForm(forms.ModelForm):
         model = CredentialApplication
         fields = ('responder_comments', 'status')
         labels = {
-            'responder_comments':'Comments (required for rejected applications). This will be sent to the applicant.',
+            'responder_comments':'External comments (required for rejected applications). This will be sent to the applicant.',
             'status':'Decision',
         }
         # widgets = {
@@ -463,13 +463,14 @@ class InitialCredentialForm(forms.ModelForm):
     class Meta:
         model = CredentialReview
         fields = ('fields_complete', 'appears_correct', 'lang_understandable',
-                  'responder_comments', 'decision')
+                  'responder_comments', 'internal_comments', 'decision')
 
         labels = {
             'fields_complete': 'Are all of the required fields complete?',
             'appears_correct': 'Does the application clearly avoid frivolous text such as "aa"?',
             'lang_understandable': 'Is any non-English text (e.g. job titles) easily translated?',
-            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'responder_comments': 'External comments (required for rejected applications). This will be sent to the applicant.',
+            'internal_comments': 'Internal comments. This will not be sent to the applicant.',
             'decision': 'Decision',
         }
 
@@ -478,6 +479,7 @@ class InitialCredentialForm(forms.ModelForm):
             'appears_correct': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'lang_understandable': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
+            'internal_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
@@ -529,7 +531,7 @@ class TrainingCredentialForm(forms.ModelForm):
         model = CredentialReview
         fields = ('citi_report_attached', 'training_current', 'training_all_modules',
                   'training_privacy_complete', 'training_name_match',
-                  'responder_comments', 'decision')
+                  'responder_comments', 'internal_comments', 'decision')
 
         labels = {
             'citi_report_attached': 'Is the CITI Completion Report attached?',
@@ -537,7 +539,8 @@ class TrainingCredentialForm(forms.ModelForm):
             'training_all_modules': 'Are all of the required modules complete?',
             'training_privacy_complete': 'Has the "Research and HIPAA Privacy Protections" module been completed?',
             'training_name_match': 'Does the name on the training form match the name listed in the user profile?',
-            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'responder_comments': 'External comments (required for rejected applications). This will be sent to the applicant.',
+            'internal_comments': 'Internal comments. This will not be sent to the applicant.',
             'decision': 'Decision',
         }
 
@@ -548,6 +551,7 @@ class TrainingCredentialForm(forms.ModelForm):
             'training_privacy_complete': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'training_name_match': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
+            'internal_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
@@ -601,7 +605,7 @@ class PersonalCredentialForm(forms.ModelForm):
         fields = ('user_searchable', 'user_has_papers',
                   'research_summary_clear', 'course_name_provided', 'user_understands_privacy',
                   'user_org_known', 'user_details_consistent',
-                  'responder_comments', 'decision')
+                  'responder_comments', 'internal_comments', 'decision')
 
         labels = {
             'user_searchable': 'Do you find search results for the applicant\'s name (possibly include their organization in the search query)?',
@@ -611,7 +615,8 @@ class PersonalCredentialForm(forms.ModelForm):
             'user_understands_privacy': 'Does the research summary indicate an understanding that data must not be shared (e.g. no plural pronouns such as "we", "us", etc.)?',
             'user_org_known': 'Does the organization have a website or other online presence (*not* "MIT Affiliates")?',
             'user_details_consistent': 'Is the information consistent (independent researcher should not list an organization, obvious students should be listed as either "student" or "postdoc", MD\'s with a hospital as their organization should be "hospital researcher", the county and state mismatches, etc.)?',
-            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'responder_comments': 'External comments (required for rejected applications). This will be sent to the applicant.',
+            'internal_comments': 'Internal comments. This will not be sent to the applicant.',
             'decision': 'Decision',
         }
 
@@ -624,6 +629,7 @@ class PersonalCredentialForm(forms.ModelForm):
             'user_org_known': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'user_details_consistent': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
+            'internal_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
@@ -680,7 +686,7 @@ class ReferenceCredentialForm(forms.ModelForm):
         model = CredentialReview
         fields = ('ref_appropriate', 'ref_searchable', 'ref_has_papers',
                   'ref_is_supervisor', 'ref_course_list',
-                  'responder_comments', 'decision')
+                  'responder_comments', 'internal_comments', 'decision')
 
         labels = {
             'ref_appropriate': 'Is the reference appropriate?',
@@ -688,7 +694,8 @@ class ReferenceCredentialForm(forms.ModelForm):
             'ref_has_papers': 'Can you find publications linked to the reference?',
             'ref_is_supervisor': 'If applicable (for students and postdocs only), is the reference in a supervisory position?',
             'ref_course_list': 'If applicable (for students and postdocs only), is the applicant included in a list of course participants?',
-            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'responder_comments': 'External comments (required for rejected applications). This will be sent to the applicant.',
+            'internal_comments': 'Internal comments. This will not be sent to the applicant.',
             'decision': 'Decision',
         }
 
@@ -699,6 +706,7 @@ class ReferenceCredentialForm(forms.ModelForm):
             'ref_is_supervisor': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
             'ref_course_list': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
+            'internal_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
@@ -755,13 +763,15 @@ class ResponseCredentialForm(forms.ModelForm):
     class Meta:
         model = CredentialReview
         fields = ('ref_knows_applicant', 'ref_approves',
-                  'ref_understands_privacy', 'responder_comments', 'decision')
+                  'ref_understands_privacy', 'responder_comments',
+                  'internal_comments', 'decision')
 
         labels = {
             'ref_knows_applicant': 'Does the reference know the applicant?',
             'ref_approves': 'Does the reference approve the applicant for use of restricted data?',
             'ref_understands_privacy': 'Does the response indicate an understanding that data must not be shared (e.g. no plural pronouns such as "we", "us", etc.)?',
-            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'responder_comments': 'External comments (required for rejected applications). This will be sent to the applicant.',
+            'internal_comments': 'Internal comments. This will not be sent to the applicant.',
             'decision': 'Decision',
         }
 
@@ -770,6 +780,7 @@ class ResponseCredentialForm(forms.ModelForm):
             'ref_approves': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'ref_understands_privacy': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
+            'internal_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
@@ -816,9 +827,10 @@ class AlterCommentsCredentialForm(forms.ModelForm):
     """
     class Meta:
         model = CredentialReview
-        fields = ('responder_comments',)
+        fields = ('responder_comments', 'internal_comments')
         labels = {
-            'responder_comments': 'Comments',
+            'responder_comments': 'External Comments',
+            'internal_comments': 'Internal Comments'
         }
 
 

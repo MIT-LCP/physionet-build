@@ -1434,6 +1434,7 @@ def process_credential_application(request, application_slug):
                     {'application':application})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
+
     return render(request, 'console/process_credential_application.html',
         {'application': application, 'app_user': application.user,
          'intermediate_credential_form': intermediate_credential_form,
@@ -1513,7 +1514,8 @@ def view_credential_application(request, application_slug):
         raise Http404()
 
     form = forms.AlterCommentsCredentialForm(initial={
-        'responder_comments': application.responder_comments})
+        'responder_comments': application.responder_comments,
+        'internal_comments': application.internal_comments})
     if request.method == 'POST':
         form = forms.AlterCommentsCredentialForm(data=request.POST,
                                                  instance=application)
