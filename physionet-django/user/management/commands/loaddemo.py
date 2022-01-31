@@ -14,9 +14,8 @@ import shutil
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
-
-from physionet.utility import get_project_apps
 from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
+from physionet.utility import get_project_apps
 
 
 class Command(BaseCommand):
@@ -91,7 +90,6 @@ def copy_demo_media():
         target_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
 
         for item in [i for i in os.listdir(demo_subdir) if i != '.gitkeep']:
-
             shutil.copytree(os.path.join(demo_subdir, item),
                             os.path.join(target_subdir, item))
 
@@ -128,7 +126,6 @@ def copy_demo_static():
     # the time of publication
     ppdir = os.path.join(effective_static_root, 'published-projects')
     for dirpath, subdirs, files in os.walk(ppdir):
-        print(dirpath, subdirs, files)
         if dirpath != ppdir:
             for f in files:
                 os.chmod(os.path.join(dirpath, f), 0o444)

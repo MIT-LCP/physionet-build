@@ -1,13 +1,18 @@
 import os
+import uuid
 from collections import OrderedDict
 
 from dal import autocomplete
 from django import forms
 from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
+from django.contrib.contenttypes.models import ContentType
+from django.core.files.base import ContentFile
+from django.db.models.fields.files import FieldFile
 from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
 from django.template.defaultfilters import slugify
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
@@ -32,6 +37,7 @@ from project.models import (
     StorageRequest,
     Topic,
     exists_project_slug,
+    UploadedDocument,
 )
 from project.projectfiles import ProjectFiles
 from user.models import User
@@ -385,15 +391,18 @@ class NewProjectVersionForm(forms.ModelForm):
 
     def save(self):
         project = super().save(commit=False)
-        # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields]:
-            if attr not in ['slug', 'version', 'creation_datetime']:
-                setattr(project, attr, getattr(self.latest_project, attr))
-        # Set new fields
+
         slug = get_random_string(20)
         while exists_project_slug(slug):
             slug = get_random_string(20)
         project.slug = slug
+
+        # Direct copy over fields
+        for field in (field.name for field in Metadata._meta.fields):
+            if field not in ['slug', 'version', 'creation_datetime']:
+                setattr(project, field, getattr(self.latest_project, field))
+
+        # Set new fields
         project.creation_datetime = timezone.now()
         project.version_order = self.latest_project.version_order + 1
         project.is_new_version = True
@@ -433,6 +442,19 @@ class NewProjectVersionForm(forms.ModelForm):
 
         for p_topic in self.latest_project.topics.all():
             Topic.objects.create(project=project, description=p_topic.description)
+
+        documents = []
+        content_type = ContentType.objects.get_for_model(ActiveProject)
+        for uploaded_document in self.latest_project.uploaded_documents.all():
+            uploaded_document.id = None
+            uploaded_document.object_id = project.pk
+            uploaded_document.content_type = content_type
+            uploaded_document.document = ContentFile(
+                content=uploaded_document.document.read(), name=uploaded_document.document.name
+            )
+            documents.append(uploaded_document)
+
+        UploadedDocument.objects.bulk_create(documents)
 
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
@@ -913,7 +935,6 @@ class InvitationResponseForm(forms.ModelForm):
         Invitation must be active, user must be invited
         """
         cleaned_data = super().clean()
-
         if not self.instance.is_active:
             raise forms.ValidationError('Invalid invitation.')
 
@@ -1053,3 +1074,58 @@ class InviteDataAccessReviewerForm(forms.ModelForm):
         invitation.added_date = timezone.now()
         invitation.save()
         return invitation
+
+
+class CustomClearableFileInput(forms.ClearableFileInput):
+    template_name = 'project/custom_clearable_file_input.html'
+    initial_text = 'Current file'
+    clear_checkbox_label = 'Remove file'
+
+
+class EthicsForm(forms.ModelForm):
+    class Meta:
+        model = ActiveProject
+        fields = ('ethics_statement',)
+        help_texts = {
+            'ethics_statement': (
+                '* A statement regarding ethical concerns for the work. '
+                'This statement will be published with the resource, '
+                'and typically describes formal approvals acquired for '
+                'the creation of the resource (such as a review by an ethics board) '
+                'for users of the resource. If no concerns, please indicate '
+                'this 	&ldquo;The authors declare no ethics concerns&rdquo;.'
+            ),
+        }
+
+    def __init__(self, editable=True, **kwargs):
+        super().__init__(**kwargs)
+
+        if not editable:
+            for field in self.fields.values():
+                field.disabled = True
+
+
+class UploadedDocumentForm(forms.ModelForm):
+    class Meta:
+        model = UploadedDocument
+        fields = (
+            'document_type',
+            'document',
+        )
+        widgets = {'document': CustomClearableFileInput}
+
+
+class UploadedDocumentFormSet(BaseGenericInlineFormSet):
+    form_name = 'project-uploadeddocument-content_type-object_id'
+    item_label = 'Supporting Documents'
+    max_forms = 10
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        url = f'{reverse_lazy("about_publish")}#guidelines'
+        self.help_text = (
+            "Please provide an ethics statement following the "
+            f"<a href='{url}' target='_blank'>author guidelines</a>. "
+            "Statements on ethics approval should appear here. "
+            "Your statement will be included in the public project description."
+        )

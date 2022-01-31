@@ -8,14 +8,16 @@
 
 {% block local_js_top %}
 <script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'dropzone/dropzone.min.js' %}"></script>
 {% endblock %}
 
 {% block local_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}"/>
-{% endblock local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'dropzone/dropzone.min.css' %}">
+{% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">5. Project Files</h2>
+<h2 class="form-signin-heading">6. Project Files</h2>
 <hr>
 {% include "about/files.html" %}
 <br>
@@ -33,7 +35,6 @@
     {{ maintenance_message }}
   </div>
 {% endif %}
-
 <div class="card">
   <div class="card-body">
     {% include "project/project_storage_allowance.html" %}

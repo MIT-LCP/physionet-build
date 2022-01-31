@@ -1,3 +1,4 @@
+import datetime as dt
 import logging
 import os
 import pdb
@@ -9,7 +10,6 @@ import notification.utility as notification
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import redirect_to_login
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
@@ -17,6 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.forms import formset_factory, inlineformset_factory, modelformset_factory
 from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -24,8 +25,10 @@ from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
+from google.cloud.storage._signing import generate_signed_url_v4
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
+from physionet.storage import MediaStorage
 from physionet.utility import serve_file
 from project import forms, utility
 from project.fileviews import display_project_file
@@ -54,6 +57,7 @@ from project.models import (
     Reference,
     StorageRequest,
     Topic,
+    UploadedDocument,
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename
@@ -929,23 +933,37 @@ def project_files_panel(request, project_slug, **kwargs):
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
 
+    storage_info = project.get_storage_info()
+
     (upload_files_form, create_folder_form, rename_item_form,
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
-    return render(request, 'project/edit_files_panel.html',
-        {'project':project, 'subdir':subdir, 'file_error':file_error,
-         'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
-         'display_files':display_files, 'display_dirs':display_dirs,
-         'file_warning':file_warning,
-         'upload_files_form':upload_files_form,
-         'create_folder_form':create_folder_form,
-         'rename_item_form':rename_item_form,
-         'move_items_form':move_items_form,
-         'delete_items_form':delete_items_form,
-         'is_submitting':is_submitting,
-         'is_editor':is_editor,
-         'files_editable':files_editable})
+    return render(
+        request,
+        'project/edit_files_panel.html',
+        {
+            'project': project,
+            'subdir': subdir,
+            'file_error': file_error,
+            'dir_breadcrumbs': dir_breadcrumbs,
+            'parent_dir': parent_dir,
+            'display_files': display_files,
+            'display_dirs': display_dirs,
+            'file_warning': file_warning,
+            'storage_type': settings.STORAGE_TYPE,
+            'storage_info': storage_info,
+            'upload_files_form': upload_files_form,
+            'create_folder_form': create_folder_form,
+            'rename_item_form': rename_item_form,
+            'move_items_form': move_items_form,
+            'delete_items_form': delete_items_form,
+            'is_submitting': is_submitting,
+            'is_editor': is_editor,
+            'files_editable': files_editable,
+        },
+    )
+
 
 def process_items(request, form):
     """
@@ -1082,6 +1100,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'files_editable': files_editable,
             'maintenance_message': maintenance_message,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+            'storage_type': settings.STORAGE_TYPE,
         },
     )
 
@@ -1323,6 +1342,112 @@ def project_submission(request, project_slug, **kwargs):
         'is_submitting':is_submitting, 'author_comments_form':author_comments_form,
         'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
         'awaiting_user_approval':awaiting_user_approval})
+
+
+@project_auth(auth_mode=0, post_auth_mode=2)
+def project_ethics(request, project_slug, **kwargs):
+    project = kwargs['project']
+    is_submitting = kwargs['is_submitting']
+
+    editable = is_submitting and project.author_editable()
+
+    UploadedDocumentFormSet = generic_inlineformset_factory(
+        UploadedDocument,
+        fields=(
+            'document_type',
+            'document',
+        ),
+        extra=0,
+        form=forms.UploadedDocumentForm,
+        max_num=forms.UploadedDocumentFormSet.max_forms,
+        can_delete=False,
+        formset=forms.UploadedDocumentFormSet,
+        validate_max=True,
+    )
+
+    if request.method == 'POST':
+        ethics_form = forms.EthicsForm(data=request.POST, instance=project, editable=editable)
+        documents_formset = UploadedDocumentFormSet(data=request.POST, instance=project, files=request.FILES)
+        if ethics_form.is_valid() and documents_formset.is_valid():
+            project = ethics_form.save()
+            documents_formset.save()
+            messages.success(request, 'Your project ethics has been updated.')
+            documents_formset = UploadedDocumentFormSet(instance=project)
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        ethics_form = forms.EthicsForm(instance=project, editable=editable)
+        documents_formset = UploadedDocumentFormSet(instance=project)
+
+    edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
+
+    return render(
+        request,
+        'project/project_ethics.html',
+        {
+            'project': project,
+            'ethics_form': ethics_form,
+            'is_submitting': kwargs['is_submitting'],
+            'documents_formset': documents_formset,
+            'add_item_url': edit_url,
+            'remove_item_url': edit_url,
+        },
+    )
+
+
+@project_auth(auth_mode=0, post_auth_mode=2)
+def edit_ethics(request, project_slug, **kwargs):
+    project = kwargs['project']
+
+    if project.submission_status not in [0, 30]:
+        raise Http404()
+
+    # Reload the formset with the first empty form
+    if request.method == 'GET' and 'add_first' in request.GET:
+        extra_forms = 1
+    # Remove an object
+    elif request.method == 'POST' and 'remove_id' in request.POST:
+        extra_forms = 0
+        UploadedDocument.objects.get(id=int(request.POST['remove_id'])).delete()
+
+    UploadedSupportingDocumentFormSet = generic_inlineformset_factory(
+        UploadedDocument,
+        extra=extra_forms,
+        max_num=forms.UploadedDocumentFormSet.max_forms,
+        can_delete=False,
+        form=forms.UploadedDocumentForm,
+        formset=forms.UploadedDocumentFormSet,
+        validate_max=True,
+    )
+    formset = UploadedSupportingDocumentFormSet(instance=project)
+    edit_url = reverse('edit_ethics', kwargs={'project_slug': project.slug})
+
+    return render(
+        request,
+        'project/item_list.html',
+        {
+            'formset': formset,
+            'item': 'affiliation',
+            'item_label': formset.item_label,
+            'form_name': formset.form_name,
+            'add_item_url': edit_url,
+            'remove_item_url': edit_url,
+        },
+    )
+
+
+@login_required
+def serve_document(request, file_name):
+    projects = ActiveProject.objects.filter(Q(authors__user=request.user) | Q(editor=request.user)).values_list(
+        'id', flat=True
+    )
+    uploaded_document = get_object_or_404(
+        UploadedDocument.objects.filter(
+            object_id__in=projects, content_type=ContentType.objects.get_for_model(ActiveProject)
+        ),
+        document__iendswith=file_name,
+    )
+    return ProjectFiles().serve_file_field(uploaded_document.document)
 
 
 @login_required
@@ -1669,8 +1794,7 @@ def published_project(request, project_slug, version, subdir=''):
             status = 200
 
         main_size, compressed_size = [
-            utility.readable_size(s) for s in
-            (project.main_storage_size, project.compressed_storage_size)
+            utility.readable_size(s) for s in (project.main_storage_size, project.compressed_storage_size)
         ]
         files_panel_url = reverse('published_files_panel', args=(project.slug, project.version))
 
@@ -2108,3 +2232,51 @@ def anonymous_login(request, anonymous_url):
 
     return render(request, 'project/anonymous_login.html', {'anonymous_url': anonymous_url,
                   'form': form, 'license': license})
+
+
+@login_required
+def generate_signed_url(request, project_slug):
+    """
+    API endpoint to generate a signed URL to access project files on GCS.
+    """
+    filename = request.POST.get('filename')
+    size = request.POST.get('size')
+
+    if not filename or not size:
+        return JsonResponse({'detail': 'You must provide the filename and the size.'}, status=400)
+
+    if not size.isnumeric():
+        return JsonResponse({'detail': 'The file size must be a numeric value.'}, status=400)
+
+    size = int(size)
+    if size <= 0:
+        return JsonResponse({'detail': 'The file size cannot be a negative value.'}, status=400)
+
+    if not filename.isascii():
+        return JsonResponse({'detail': 'The filename contains non-ascii characters.'}, status=400)
+
+    if ' ' in filename:
+        return JsonResponse({'detail': 'The filename contains whitespaces.'}, status=400)
+
+    queryset = ActiveProject.objects.all()
+    if not request.user.is_admin:
+        queryset.filter(Q(authors__user=request.user) | Q(editor=request.user))
+
+    project = get_object_or_404(queryset, slug=project_slug)
+
+    if size > project.get_storage_info().remaining:
+        return JsonResponse({'detail': 'The file size cannot be greater than the remaining space.'}, status=400)
+
+    storage = MediaStorage()
+    canonical_resource = f'/{storage.bucket.name}/active-projects/{project_slug}/{filename.strip("/")}'
+
+    url = generate_signed_url_v4(
+        storage.client._credentials,
+        resource=canonical_resource,
+        api_access_endpoint='https://storage.googleapis.com',
+        expiration=dt.timedelta(days=1),
+        method='PUT',
+        headers={'X-Upload-Content-Length': str(size)},
+    )
+
+    return JsonResponse({'url': url})

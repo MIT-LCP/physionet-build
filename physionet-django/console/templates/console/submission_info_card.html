@@ -9,6 +9,9 @@
         <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline" role="tab" aria-controls="timeline" aria-selected="false">Submission Timeline</a>
       </li>
       <li class="nav-item">
+        <a class="nav-link" id="ethics-tab" data-toggle="tab" href="#ethics" role="tab" aria-controls="timeline" aria-selected="false">Ethics</a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="anonymous-tab" data-toggle="tab" href="#anonymous" role="tab" aria-controls="anonymous" aria-selected="false">Anonymous Access</a>
       </li>
       {% if project.editor == user %}
@@ -54,6 +57,19 @@
       {# Submission Timeline #}
       <div class="tab-pane fade" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
         {% include "project/active_submission_timeline.html" %}
+      </div>
+      {# Ethics #}
+      <div class="tab-pane fade" id="ethics" role="tabpanel" aria-labelledby="timeline-tab">
+        <h5 class="card-title">Ethics statement</h5>
+        <p class="card-text">{{ project.ethics_statement|safe }}</p>
+        <h5>Uploaded Documents</h5>
+        {% if project.uploaded_documents.all %}
+          {% for uploaded_document in project.uploaded_documents.all %}
+            <p class="card_text"><a href="{% url 'serve_document' uploaded_document.document|filename %}" target="_blank">{{ uploaded_document.document_type }}</a></p>
+          {% endfor %}
+        {% else %}
+          <p class="card_text">No documents were provided.</p>
+        {% endif %}
       </div>
       {# Anonymous Access #}
       <div class="tab-pane fade {% if passphrase %} show active {% endif %}" id="anonymous" role="tabpanel" aria-labelledby="anonymous-tab">

@@ -359,6 +359,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     description_form = project_forms.ContentForm(
         resource_type=project.resource_type.id, instance=project)
+    ethics_form = project_forms.EthicsForm(instance=project)
     access_form = project_forms.AccessMetadataForm(instance=project)
     discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
         instance=project)
@@ -376,6 +377,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             description_form = project_forms.ContentForm(
                 resource_type=project.resource_type.id, data=request.POST,
                 instance=project)
+            ethics_form = project_forms.EthicsForm(data=request.POST, instance=project)
             access_form = project_forms.AccessMetadataForm(data=request.POST,
                 instance=project)
             discovery_form = project_forms.DiscoveryForm(
@@ -386,12 +388,17 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
             topic_formset = TopicFormSet(request.POST, instance=project)
-            if (description_form.is_valid() and access_form.is_valid()
-                                            and reference_formset.is_valid()
-                                            and publication_formset.is_valid()
-                                            and topic_formset.is_valid()
-                                            and discovery_form.is_valid()):
+            if (
+                description_form.is_valid()
+                and access_form.is_valid()
+                and ethics_form.is_valid()
+                and reference_formset.is_valid()
+                and publication_formset.is_valid()
+                and topic_formset.is_valid()
+                and discovery_form.is_valid()
+            ):
                 description_form.save()
+                ethics_form.save()
                 access_form.save()
                 discovery_form.save()
                 reference_formset.save()
@@ -440,29 +447,47 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request)
 
-    response = render(request, 'console/copyedit_submission.html', {
-        'project': project, 'description_form': description_form,
-        'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
-        'access_form': access_form, 'reference_formset':reference_formset,
-        'publication_formset': publication_formset,
-        'topic_formset': topic_formset,
-        'storage_info': storage_info, 'upload_files_form':upload_files_form,
-        'create_folder_form': create_folder_form,
-        'rename_item_form': rename_item_form,
-        'move_items_form': move_items_form,
-        'delete_items_form': delete_items_form,
-        'subdir': subdir, 'display_files': display_files,
-        'display_dirs': display_dirs, 'dir_breadcrumbs': dir_breadcrumbs,
-        'file_error': file_error, 'editor_home': True,
-        'is_editor': True, 'files_editable': True,
-        'copyedit_form': copyedit_form,
-        'authors': authors, 'author_emails': author_emails,
-        'storage_info': storage_info, 'edit_logs': edit_logs,
-        'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
-        'add_item_url': edit_url, 'remove_item_url': edit_url,
-        'discovery_form': discovery_form, 'url_prefix': url_prefix,
-        'bulk_url_prefix': bulk_url_prefix,
-        'reassign_editor_form': reassign_editor_form})
+    response = render(
+        request,
+        'console/copyedit_submission.html',
+        {
+            'project': project,
+            'description_form': description_form,
+            'ethics_form': ethics_form,
+            'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
+            'access_form': access_form,
+            'reference_formset': reference_formset,
+            'publication_formset': publication_formset,
+            'topic_formset': topic_formset,
+            'storage_type': settings.STORAGE_TYPE,
+            'storage_info': storage_info,
+            'upload_files_form': upload_files_form,
+            'create_folder_form': create_folder_form,
+            'rename_item_form': rename_item_form,
+            'move_items_form': move_items_form,
+            'delete_items_form': delete_items_form,
+            'subdir': subdir,
+            'display_files': display_files,
+            'display_dirs': display_dirs,
+            'dir_breadcrumbs': dir_breadcrumbs,
+            'file_error': file_error,
+            'editor_home': True,
+            'is_editor': True,
+            'files_editable': True,
+            'copyedit_form': copyedit_form,
+            'authors': authors,
+            'author_emails': author_emails,
+            'edit_logs': edit_logs,
+            'copyedit_logs': copyedit_logs,
+            'latest_version': latest_version,
+            'add_item_url': edit_url,
+            'remove_item_url': edit_url,
+            'discovery_form': discovery_form,
+            'url_prefix': url_prefix,
+            'bulk_url_prefix': bulk_url_prefix,
+            'reassign_editor_form': reassign_editor_form,
+        },
+    )
     if description_form_saved:
         set_saved_fields_cookie(description_form, request.path, response)
     return response
@@ -846,6 +871,7 @@ def manage_published_project(request, project_slug, version):
     rw_tasks = [task for (task, read_only) in tasks if not read_only]
 
     url_prefix = notification.get_url_prefix(request)
+    bulk_url_prefix = notification.get_url_prefix(request)
 
     return render(
         request,
@@ -870,6 +896,7 @@ def manage_published_project(request, project_slug, version):
             'passphrase': passphrase,
             'published_projects_nav': True,
             'url_prefix': url_prefix,
+            'bulk_url_prefix': bulk_url_prefix,
             'contact_form': contact_form,
             'legacy_author_form': legacy_author_form,
             'can_make_zip': ProjectFiles().can_make_zip(),

@@ -1,8 +1,9 @@
 import os
 
 from django.conf import settings
+from django.shortcuts import redirect
 from google.cloud.exceptions import Conflict, NotFound
-from physionet.gcs import GCSObject, GCSObjectException, create_bucket
+from physionet.gcs import GCSObject, GCSObjectException, create_bucket, delete_bucket
 from project.projectfiles.base import BaseProjectFiles
 from project.utility import DirectoryInfo, FileInfo, readable_size
 
@@ -96,25 +97,27 @@ class GCSProjectFiles(BaseProjectFiles):
 
     def publish_initial(self, active_project, published_project):
         bucket_name = published_project.project_file_root()
+        create_bucket(bucket_name)
+
         try:
-            create_bucket(bucket_name)
-        except Conflict:
-            pass
-
-        active_project_path = self._dir_path(active_project.file_root())
-        published_project_path = self._dir_path(published_project.file_root())
-
-        GCSObject(active_project_path).cp_dir_content(GCSObject(published_project_path), None)
+            active_project_path = self._dir_path(active_project.file_root())
+            published_project_path = self._dir_path(published_project.file_root())
+            GCSObject(active_project_path).cp_dir_content(GCSObject(published_project_path), None)
+        except BaseException:
+            delete_bucket(bucket_name)
+            raise
 
     def publish_complete(self, active_project, published_project):
         self.rm_dir(active_project.file_root())
 
     def publish_rollback(self, active_project, published_project):
-        self.rm_dir(published_project.file_root())
+        delete_bucket(published_project.project_file_root())
 
-    def get_project_file_root(self, slug, access_policy, klass):
-        # the bucket name should be shorter than 63 characters
-        return f'physionet-{slug}'[:63]
+    def get_project_file_root(self, slug, version, access_policy, klass):
+        return f'{slug}-{version}.{settings.GCP_DOMAIN}'
+
+    def get_file_root(self, slug, version, access_policy, klass):
+        return self.get_project_file_root(slug, version, access_policy, klass)
 
     def active_project_storage_used(self, project):
         return self._storage_used(project)
@@ -148,6 +151,9 @@ class GCSProjectFiles(BaseProjectFiles):
     def is_wget_supported(self):
         return False
 
+    def serve_file_field(self, field):
+        return redirect(field.url)
+
     def _storage_used(self, project):
         return GCSObject(self._dir_path(project.file_root())).size()
 
@@ -158,7 +164,6 @@ class GCSProjectFiles(BaseProjectFiles):
         path = self._dir_path(path)
 
         iterator = GCSObject(path).ls(delimiter='/')
-
         _, object_name = self._local_filesystem_path_to_gcs_path(path)
         object_name = self._dir_path(object_name)
 
@@ -187,5 +192,8 @@ class GCSProjectFiles(BaseProjectFiles):
         return path if path.endswith('/') else path + '/'
 
     def _local_filesystem_path_to_gcs_path(self, path):
-        bucket_name, object_name = os.path.normpath(path).split('/', 1)
+        bucket_name, *object_name = os.path.normpath(path).split('/', 1)
+
+        object_name = object_name[0] if object_name else '/'
+
         return bucket_name, object_name

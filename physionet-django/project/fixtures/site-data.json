@@ -281,5 +281,19 @@
   "fields": {
     "name": "Swift"
   }
+},
+{
+  "model": "project.documenttype",
+  "pk": 1,
+  "fields": {
+    "name": "Ethics Approval"
+    }
+  },
+{
+  "model": "project.documenttype",
+  "pk": 2,
+  "fields": {
+    "name": "Study Protocol"
+  }
 }
 ]
