@@ -940,27 +940,17 @@ class TrainingReviewForm(forms.Form):
 
 
 class LicenseForm(forms.ModelForm):
-    resource_types = forms.ModelMultipleChoiceField(queryset=ProjectType.objects.all())
-
     class Meta:
         model = License
-        fields = ('name', 'slug', 'text_content', 'html_content', 'home_page', 'access_policy', 'resource_types')
-
-    def clean_resource_types(self):
-        resource_types = self.cleaned_data['resource_types']
-
-        return ','.join(str(id) for id in resource_types.values_list("pk", flat=True))
-
+        fields = ('name', 'version', 'slug', 'text_content', 'html_content', 'home_page', 'access_policy', 'project_types')
+        labels = {'html_content': 'HTML content'}
+        
 
 class DUAForm(forms.ModelForm):
-    resource_types = forms.ModelMultipleChoiceField(queryset=ProjectType.objects.all())
-
     class Meta:
         model = DUA
         fields = '__all__'
+        labels = {'html_content': 'HTML content'}
+    
 
-    def clean_resource_types(self):
-        resource_types = self.cleaned_data['resource_types']
-
-        return ','.join(str(id) for id in resource_types.values_list("pk", flat=True))
     

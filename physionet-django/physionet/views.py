@@ -52,9 +52,9 @@ def about_publish(request):
     """
     licenses = OrderedDict()
     descriptions = OrderedDict()
-    for resource_type in ProjectType.objects.all():
-        descriptions[resource_type.name] = resource_type.description
-        licenses[resource_type.name] = License.objects.filter(resource_types__contains=str(resource_type.id)).order_by(
+    for project_type in ProjectType.objects.all():
+        descriptions[project_type.name] = project_type.description
+        licenses[project_type.name] = License.objects.filter(project_types=project_type).order_by(
             'access_policy'
         )
 

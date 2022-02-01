@@ -785,7 +785,7 @@ class AccessMetadataForm(forms.ModelForm):
                 'platform. It cannot be changed after the publication of the project!'
             ),
         }
-        labels = {'dua': "DUA"}
+        labels = {'dua': 'DUA'}
 
     def __init__(self, *args, **kwargs):
         self.access_policy = kwargs.pop('access_policy', None)

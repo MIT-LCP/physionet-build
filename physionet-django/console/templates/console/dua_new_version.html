@@ -2,17 +2,17 @@
 
 {% load static %}
 
-{% block title %}{{ SITE_NAME }} - DUAs{% endblock %}
+{% block title %}{{ SITE_NAME }} - Data Use Agreements{% endblock %}
 
 {% block content %}
   <div class="card mb-3">
     <div class="card-header">
-        {{ dua.name }} - edit
+        {{ dua.name }} - new version
     </div>
     <div class="card-body">
         <form method="post" action="{% url 'dua_detail' dua.pk %}">
             {% include "inline_form_snippet.html" with form=dua_form %}
-          <button class="btn btn-primary btn-fixed" type="submit">Save</button>
+          <button class="btn btn-primary btn-fixed" type="submit">Create</button>
         </form>
     </div>
   </div>

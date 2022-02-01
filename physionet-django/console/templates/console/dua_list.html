@@ -1,7 +1,5 @@
 {% extends "console/base_console.html" %}
 
-{% load project_templatetags %}
-
 {% load static %}
 
 {% block local_css %}
@@ -13,14 +11,16 @@
 {% block content %}
  <div class="card mb-3">
   <div class="card-header">
-    DUAs <span class="badge badge-pill badge-info">{{ duas|length }}</span>
+    Data Use Agreements <span class="badge badge-pill badge-info">{{ duas|length }}</span>
   </div>
   <div class="card-body">
+    {% if duas %}
     <div class="table-responsive">
       <table class="table table-bordered">
         <thead>
           <tr>
             <th>Name</th>
+            <th>Version</th>
             <th>Resource types</th>
             <th>Access policy</th>
             <th>Actions</th>
@@ -30,16 +30,22 @@
         {% for dua in duas %}
             <tr>
                 <td>{{ dua.name }}</td>
-                <td>{{ dua.resource_types }}</td>
+                <td>{{ dua.version }}</td>
+                <td>
+                  {% for project_type in dua.project_types.all %}
+                    {{ project_type.name }}{% if not forloop.last %},{% endif %}
+                  {% endfor %}
+                </td>
                 {% if dua.access_policy == AccessPolicy.OPEN %}
                   <td>Open</td>
                 {% elif dua.access_policy == AccessPolicy.RESTRICTED %}
-                  <td>Restricted</td>x3
+                  <td>Restricted</td>
                 {% elif dua.access_policy == AccessPolicy.CREDENTIALED %}
                   <td>Credentialed</td>
                 {% endif %}
                 <td>
                   <a href="{% url 'dua_detail' dua.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
+                  <a href="{% url 'dua_new_version' dua.pk %}" class="btn btn-sm btn-success" role="button">New version</a>
                   <button type="button" class="btn btn-sm btn-danger " data-toggle="modal" data-target="#remove-dua">Delete</button>
 
                   <div class="modal fade" id="remove-dua" tabindex="1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
@@ -71,11 +77,14 @@
       </table>
       {% include "console/pagination.html" with pagination=duas %}
     </div>
+    {% else %}
+      <p>There aren't any data use agreements.</p>
+    {% endif %}
   </div>
 </div>
 <div class="card mb-3">
   <div class="card-header">
-    New dua
+    New Data Use Agreement
   </div>
   <div class="card-body">
       <form method="post" action="{% url 'dua_list' %}">
@@ -84,4 +93,8 @@
       </form>
   </div>
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
 {% endblock %}

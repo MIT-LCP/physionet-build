@@ -28,6 +28,7 @@ from django.db import DatabaseError, transaction
 from django.db.models import Case, Count, DurationField, F, IntegerField, Q, Value, When
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
+from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -2117,9 +2118,8 @@ def license_list(request):
     else:
         license_form = forms.LicenseForm()
 
-    licenses = License.objects.order_by('access_policy', 'name')
+    licenses = License.objects.prefetch_related('project_types').order_by('access_policy', 'name')
     licenses = paginate(request, licenses, 20)
-
 
     return render(request, 'console/license_list.html', {'license_nav': True, 'licenses': licenses, 'license_form': license_form})
 
@@ -2150,7 +2150,28 @@ def license_delete(request, pk):
         license = get_object_or_404(License, pk=pk)
         license.delete()
 
-    return redirect("license_list")
+    return redirect('license_list')
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_new_version(request, pk):
+    license = get_object_or_404(License, pk=pk)
+    
+    if request.method == 'POST':
+        license_form = forms.LicenseForm(data=request.POST)
+        if license_form.is_valid():
+            license_form.save()
+            messages.success(request, "The license has been created.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        license_data = model_to_dict(license)
+        license_data['id'] = None
+        license_data['version'] = None
+        license_form = forms.LicenseForm(initial=license_data)
+
+    return render(request, 'console/license_new_version.html', {'license_nav': True, 'license': license, 'license_form': license_form})
 
 
 @login_required
@@ -2162,6 +2183,7 @@ def dua_list(request):
             dua_form.save()
             dua_form = forms.DUAForm()
             messages.success(request, "The DUA has been created.")
+            return redirect("dua_list")
         else:
             messages.error(request, "Invalid submission. Check errors below.")
     else:
@@ -2182,7 +2204,7 @@ def dua_detail(request, pk):
         dua_form = forms.DUAForm(data=request.POST, instance=dua)
         if dua_form.is_valid():
             dua_form.save()
-            messages.success(request, "The dua has been updated.")
+            messages.success(request, "The dua has been created.")
         else:
             messages.error(request, "Invalid submission. Check errors below.")
 
@@ -2200,4 +2222,26 @@ def dua_delete(request, pk):
         dua.delete()
 
     return redirect("dua_list")
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_new_version(request, pk):
+    dua = get_object_or_404(DUA, pk=pk)
+    
+    if request.method == 'POST':
+        dua_form = forms.DUAForm(data=request.POST)
+        if dua_form.is_valid():
+            dua_form.save()
+            messages.success(request, "The DUA has been created.")
+            return redirect("dua_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        dua_data = model_to_dict(dua)
+        dua_data['id'] = None
+        dua_data['version'] = None
+        dua_form = forms.LicenseForm(initial=dua_data)
+
+    return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
 

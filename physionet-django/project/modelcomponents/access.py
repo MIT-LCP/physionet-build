@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from html2text import html2text
 from project.modelcomponents.fields import SafeHTMLField
+from project.validators import validate_version
 
 
 class AccessPolicy(IntEnum):
@@ -209,6 +210,7 @@ class AnonymousAccess(models.Model):
 class License(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
     text_content = models.TextField(default='')
     html_content = SafeHTMLField(default='')
     home_page = models.URLField()
@@ -218,8 +220,11 @@ class License(models.Model):
     # A license can be used for one or more resource types.
     # This is a comma delimited char field containing allowed types.
     # ie. '0' or '0,2' or '1,3,4'
-    resource_types = models.CharField(max_length=100)
+    project_types = models.ManyToManyField('project.ProjectType', related_name='licenses')
     # A protected license has associated DUA content
+
+    class Meta:
+        unique_together = (('name', 'version'),)
 
     def __str__(self):
         return self.name
@@ -234,10 +239,14 @@ class License(models.Model):
 
 class DUA(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=120)
+    slug = models.SlugField(max_length=120, unique=True)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
     html_content = SafeHTMLField(default='')
     access_policy = models.PositiveSmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN)
-    resource_types = models.CharField(max_length=100)
+    project_types = models.ManyToManyField('project.ProjectType', related_name='duas')
+
+    class Meta:
+        unique_together = (('name', 'version'),)
 
     def __str__(self):
         return self.name

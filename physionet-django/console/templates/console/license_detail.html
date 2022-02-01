@@ -1,8 +1,8 @@
 {% extends "console/base_console.html" %}
 
-{% load project_templatetags %}
+{% load static %}
 
-{% block title %}Licenses{% endblock %}
+{% block title %}{{ SITE_NAME }} Licenses{% endblock %}
 
 {% block content %}
   <div class="card mb-3">
@@ -16,4 +16,8 @@
         </form>
     </div>
   </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
 {% endblock %}
