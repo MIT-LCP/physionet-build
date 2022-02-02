@@ -66,7 +66,10 @@ def access_badge(access_policy):
         1: '<span class="badge badge-warning"><i class="fas fa-unlock-alt"></i> Restricted Access</span>',
         2: '<span class="badge badge-danger"><i class="fas fa-lock"></i> Credentialed Access</span>',
     }
-    return badges[access_policy]
+    try:
+        return badges[access_policy]
+    except KeyError:
+        return format_html('<!-- unknown access_policy: {} -->', access_policy)
 
 @register.filter(name='access_description')
 def access_description(access_policy):
@@ -75,7 +78,10 @@ def access_description(access_policy):
         1: 'Only logged in users who sign the specified data use agreement can access the files.',
         2: 'Only credentialed users who sign the specified DUA can access the files.',
     }
-    return descriptions[access_policy]
+    try:
+        return descriptions[access_policy]
+    except KeyError:
+        return format_html('<!-- unknown access_policy: {} -->', access_policy)
 
 @register.filter(name='bytes_to_gb')
 def bytes_to_gb(n_bytes):
