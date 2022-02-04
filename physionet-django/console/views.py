@@ -1185,28 +1185,10 @@ def complete_credential_applications(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def complete_list_credentialed_people(request):
-    legacy_cred_user = LegacyCredential.objects.all().order_by('-mimic_approval_date')
-    new_cred_user = CredentialApplication.objects.filter(status=2).order_by('-decision_datetime')
-
-    credentialed_people = []
-    for item in legacy_cred_user:
-        try:
-            credentialed_people.append([item.first_names, item.last_name,
-                item.email, item.country, datetime.strptime(item.mimic_approval_date, '%m/%d/%Y'),
-                datetime.strptime(item.eicu_approval_date, '%m/%d/%Y'), item.info])
-        except ValueError:
-            credentialed_people.append([item.first_names, item.last_name,
-                item.email, item.country, datetime.strptime(item.mimic_approval_date, '%m/%d/%Y'),
-                None, item.info])
-    for item in new_cred_user:
-        credentialed_people.append([item.first_names, item.last_name, 
-            item.user.email, item.country, item.decision_datetime.replace(tzinfo=None), 
-            item.decision_datetime.replace(tzinfo=None), item.research_summary])
-
-    credentialed_people = sorted(credentialed_people, key = lambda x: x[4])
-    return render(request, 'console/complete_list_credentialed_people.html',
-        {'credentialed_people': credentialed_people})
-
+    """
+    Legacy page that displayed a list of all approved MIMIC users.
+    """
+    return redirect(credential_applications, "successful")
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
