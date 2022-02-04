@@ -1335,16 +1335,7 @@ def credential_processing(request):
     """
     Process applications for credentialed access.
     """
-    applications = CredentialApplication.objects.filter(status=0)
-
-    # TODO: Remove this step. If KP has contacted the reference, exclude the
-    # application from our list. Avoid toes.
-    review_not_underway = (Q(credential_review__status__lte=10) |
-                           Q(credential_review__isnull=True))
-
-    ref_contacted = Q(reference_contact_datetime__isnull=False)
-
-    applications = applications.select_related('user__profile').exclude(review_not_underway, ref_contacted)
+    applications = CredentialApplication.objects.filter(status=0).select_related('user__profile')
 
     # Awaiting initial review
     initial_1 = Q(credential_review__isnull=True)
