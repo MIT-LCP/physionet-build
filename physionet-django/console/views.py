@@ -1991,25 +1991,6 @@ def known_references(request):
     return render(request, 'console/known_references.html', {
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
 
-
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
-def complete_credential_applications_mailto(request):
-    """
-    Return the mailto link to a credentialing applicant.
-    """
-    app_id = request.GET['app_id']
-    try:
-        app = CredentialApplication.objects.get(id=app_id)
-    except CredentialApplication.DoesNotExist:
-        return JsonResponse({'mailtolink': 'false'})
-
-    mailto = notification.mailto_process_credential_complete(request, app,
-                                                             comments=False)
-
-    return JsonResponse({'mailtolink': mailto})
-
-
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_pages(request):

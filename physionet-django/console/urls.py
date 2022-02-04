@@ -42,10 +42,7 @@ urlpatterns = [
         name='storage_requests'),
 
     path('complete-credential-applications/', views.complete_credential_applications,
-        name='complete_credential_applications'),
-    path('complete-credential-applications-mailto/',
-         views.complete_credential_applications_mailto,
-         name='complete_credential_applications_mailto'),
+         name='complete_credential_applications'),
     path('complete-list-credentialed-people/', views.complete_list_credentialed_people,
         name='complete_list_credentialed_people'),
     path('credential-applications/<status>', views.credential_applications,
