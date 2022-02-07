@@ -45,6 +45,8 @@ from requests_oauthlib import OAuth2Session
 from user import forms, validators
 from user.models import (
     AssociatedEmail,
+    CodeOfConduct,
+    CodeOfConductSignature,
     CloudInformation,
     CredentialApplication,
     LegacyCredential,
@@ -658,6 +660,8 @@ def credential_application(request):
             application = form.save()
             credential_application_request(request, application)
 
+            CodeOfConductSignature.objects.get_or_create(code_of_conduct=CodeOfConduct.objects.filter(is_active=True).first(), user=request.user)
+
             return render(request, 'user/credential_application_complete.html')
         else:
             messages.error(request, 'Invalid submission. See errors below.')
@@ -666,6 +670,8 @@ def credential_application(request):
         reference_form = forms.ReferenceCAF(prefix="application", user=user)
         research_form = forms.ResearchCAF(prefix="application")
         form = None
+        code_of_conduct = CodeOfConduct.objects.filter(is_active=True).first()
+
 
     return render(
         request,
@@ -675,6 +681,7 @@ def credential_application(request):
             'personal_form': personal_form,
             'reference_form': reference_form,
             'research_form': research_form,
+            'code_of_conduct': code_of_conduct,
         },
     )
 
@@ -811,10 +818,11 @@ def view_agreements(request):
     View a list of signed agreements in the user profile.
     """
     user = request.user
-    signed = DUASignature.objects.filter(user=user).order_by('-sign_datetime')
+    signed_agreements = DUASignature.objects.filter(user=user).order_by('-sign_datetime')
+    signed_code_of_conducts = CodeOfConductSignature.objects.filter(user=user).order_by('-sign_datetime')
 
     return render(request, 'user/view_agreements.html', {'user': user,
-                                                         'signed': signed})
+                                                         'signed_agreements': signed_agreements, 'signed_code_of_conducts': signed_code_of_conducts})
 
 @login_required
 def view_signed_agreement(request, id):

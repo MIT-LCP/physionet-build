@@ -1,6 +1,5 @@
 import pdb
 import re
-import resource
 
 from django.forms.widgets import RadioSelect
 
@@ -25,7 +24,6 @@ from project.models import (
     DUA,
     EditLog,
     License,
-    ProjectType,
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,

@@ -40,9 +40,8 @@ from project.models import (
     DUA,
     DataAccessRequest,
     DUASignature,
-    License,
     EditLog,
-    ProjectType,
+    License,
     Publication,
     PublishedProject,
     Reference,
@@ -2521,7 +2520,7 @@ def license_list(request):
     else:
         license_form = forms.LicenseForm()
 
-    licenses = License.objects.prefetch_related('project_types').order_by('access_policy', 'name')
+    licenses = License.objects.prefetch_related('project_types').order_by('access_policy', 'name', '-version')
     licenses = paginate(request, licenses, 20)
 
     return render(
@@ -2599,7 +2598,6 @@ def dua_list(request):
             dua_form.save()
             dua_form = forms.DUAForm()
             messages.success(request, "The DUA has been created.")
-            return redirect("dua_list")
         else:
             messages.error(request, "Invalid submission. Check errors below.")
     else:
@@ -2649,14 +2647,100 @@ def dua_new_version(request, pk):
         dua_form = forms.DUAForm(data=request.POST)
         if dua_form.is_valid():
             dua_form.save()
-            messages.success(request, "The DUA has been created.")
-            return redirect("dua_list")
+            messages.success(request, "The license has been created.")
+            return redirect('license_list')
         else:
             messages.error(request, "Invalid submission. Check errors below.")
     else:
-        dua_data = model_to_dict(dua)
+        dua_data = model_to_dict(license)
         dua_data['id'] = None
         dua_data['version'] = None
         dua_form = forms.DUAForm(initial=dua_data)
 
     return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_list(request):
+    if request.method == 'POST':
+        code_of_conduct_form = forms.CodeOfConductForm(data=request.POST)
+        if code_of_conduct_form.is_valid():
+            code_of_conduct_form.save()
+            code_of_conduct_form = forms.CodeOfConductForm()
+            messages.success(request, "The Code of Conduct has been created.")
+            return redirect("code_of_conduct_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        code_of_conduct_form = forms.CodeOfConductForm()
+
+    code_of_conducts = CodeOfConduct.objects.order_by('name', 'version')
+    code_of_conducts = paginate(request, code_of_conducts, 20)
+
+    return render(request, 'console/code_of_conduct_list.html', {'code_of_conduct_nav': True, 'code_of_conducts': code_of_conducts, 'code_of_conduct_form': code_of_conduct_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_detail(request, pk):
+    code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
+
+    if request.method == 'POST':
+        code_of_conduct_form = forms.CodeOfConductForm(data=request.POST, instance=code_of_conduct)
+        if code_of_conduct_form.is_valid():
+            code_of_conduct_form.save()
+            messages.success(request, "The Code of Conduct has been updated.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+
+    else:
+        code_of_conduct_form = forms.CodeOfConductForm(instance=code_of_conduct)
+
+    return render(request, 'console/code_of_conduct_detail.html', {'code_of_conduct_nav': True, 'code_of_conduct': code_of_conduct, 'code_of_conduct_form': code_of_conduct_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_delete(request, pk):
+    if request.method == 'POST':
+        code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
+        code_of_conduct.delete()
+
+    return redirect("code_of_conduct_list")
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_new_version(request, pk):
+    code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
+
+    if request.method == 'POST':
+        code_of_conduct_form = forms.CodeOfConductForm(data=request.POST)
+        if code_of_conduct_form.is_valid():
+            code_of_conduct_form.save()
+            messages.success(request, "The Code of Conduct has been created.")
+            return redirect("code_of_conduct_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        code_of_conduct_data = model_to_dict(code_of_conduct)
+        code_of_conduct_data['id'] = None
+        code_of_conduct_data['version'] = None
+        code_of_conduct_form = forms.CodeOfConductForm(initial=code_of_conduct_data)
+
+    return render(request, 'console/code_of_conduct_new_version.html', {'code_of_conduct_nav': True, 'code_of_conduct': code_of_conduct, 'code_of_conduct_form': code_of_conduct_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_activate(request, pk):
+    CodeOfConduct.objects.filter(is_active=True).update(is_active=False)
+    
+    code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
+    code_of_conduct.is_active = True
+    code_of_conduct.save()
+
+    messages.success(request, f"The {code_of_conduct.name} has been activated.")
+
+    return redirect("code_of_conduct_list")

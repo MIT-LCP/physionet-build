@@ -120,4 +120,9 @@ urlpatterns = [
     path('duas/<int:pk>/', views.dua_detail, name='dua_detail'),
     path('duas/<int:pk>/delete/', views.dua_delete, name='dua_delete'),
     path('duas/<int:pk>/new-version/', views.dua_new_version, name='dua_new_version'),
+    path('code-of-conducts/', views.code_of_conduct_list, name='code_of_conduct_list'),
+    path('code-of-conducts/<int:pk>/', views.code_of_conduct_detail, name='code_of_conduct_detail'),
+    path('code-of-conducts/<int:pk>/delete/', views.code_of_conduct_delete, name='code_of_conduct_delete'),
+    path('code-of-conducts/<int:pk>/new-version/', views.code_of_conduct_new_version, name='code_of_conduct_new_version'),
+    path('code-of-conducts/<int:pk>/activate/', views.code_of_conduct_activate, name='code_of_conduct_activate'),
 ]
