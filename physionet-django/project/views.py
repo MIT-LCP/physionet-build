@@ -1238,6 +1238,16 @@ def project_required_trainings_preview(request, project_slug, **kwargs):
     )
 
 
+@project_auth(auth_mode=3)
+def project_dua_preview(request, project_slug, **kwargs):
+    """
+    View a project's dua
+    """
+    project = kwargs['project']
+
+    return render(request, 'project/project_dua_preview.html', {'project': project, 'dua': project.dua})
+
+
 @project_auth(auth_mode=0)
 def project_proofread(request, project_slug, **kwargs):
     """
@@ -1720,6 +1730,17 @@ def published_project_required_trainings(request, project_slug, version):
         'project/published_project_required_trainings.html',
         {'project': project, 'required_trainings': required_trainings},
     )
+
+
+def published_project_dua(request, project_slug, version):
+    """Displays a published project's dua"""
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+
+    return render(
+        request,
+        'project/published_project_dua.html', {'project': project},
+    )
+
 
 
 def published_project_latest(request, project_slug):

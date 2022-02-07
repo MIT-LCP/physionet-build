@@ -806,13 +806,8 @@ class AccessMetadataForm(forms.ModelForm):
         if self.access_policy is None:
             self.access_policy = self.instance.access_policy
 
-        self.fields['license'].queryset = License.objects.filter(
-            resource_types__icontains=str(self.instance.resource_type.id), access_policy=self.access_policy
-        )
-
-        self.fields['dua'].queryset = DUA.objects.filter(
-            resource_types__icontains=str(self.instance.resource_type.id), access_policy=self.access_policy
-        )
+        self.fields['license'].queryset = License.objects.filter(is_active=True, project_types=self.instance.resource_type, access_policy=self.access_policy)
+        self.fields['dua'].queryset = DUA.objects.filter(is_active=True, project_types=self.instance.resource_type, access_policy=self.access_policy)
 
         if self.access_policy not in {AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW}:
             self.fields['required_trainings'].disabled = True
@@ -985,7 +980,7 @@ class DataAccessRequestForm(forms.ModelForm):
 
     def __init__(self, project, requester, template, *args, **kwargs):
         kwargs.update(initial={
-            'data_use_purpose': template
+            'data_use_purpose': project.dua.access_template
         })
 
         super().__init__(*args, **kwargs)

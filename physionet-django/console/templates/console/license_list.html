@@ -28,7 +28,14 @@
         <tbody>
         {% for license in licenses %}
             <tr>
-                <td>{{ license.name }}</td>
+                <td>
+                  {{ license.name }}
+                  {% if license.is_active %}
+                    <span class="badge badge-success">Active</span>
+                  {% else %}
+                    <span class="badge badge-danger">Inactive</span>
+                  {% endif %}
+                </td>
                 <td>{{ license.version }}</td>
                 <td>
                   {% for project_type in license.project_types.all %}

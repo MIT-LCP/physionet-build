@@ -65,6 +65,7 @@ from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from user.models import (
     AssociatedEmail,
+    CodeOfConduct,
     CredentialApplication,
     CredentialReview,
     LegacyCredential,
@@ -2199,7 +2200,7 @@ def dua_list(request):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def dua_detail(request, pk):
     dua = get_object_or_404(DUA, pk=pk)
-    
+
     if request.method == 'POST':
         dua_form = forms.DUAForm(data=request.POST, instance=dua)
         if dua_form.is_valid():
@@ -2228,7 +2229,7 @@ def dua_delete(request, pk):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def dua_new_version(request, pk):
     dua = get_object_or_404(DUA, pk=pk)
-    
+
     if request.method == 'POST':
         dua_form = forms.DUAForm(data=request.POST)
         if dua_form.is_valid():
@@ -2244,4 +2245,3 @@ def dua_new_version(request, pk):
         dua_form = forms.LicenseForm(initial=dua_data)
 
     return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
-

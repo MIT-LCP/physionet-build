@@ -29,7 +29,14 @@
         <tbody>
         {% for dua in duas %}
             <tr>
-                <td>{{ dua.name }}</td>
+                <td>
+                  {{ dua.name }}
+                  {% if dua.is_active %}
+                    <span class="badge badge-success">Active</span>
+                  {% else %}
+                    <span class="badge badge-danger">Inactive</span>
+                  {% endif %}
+                </td>
                 <td>{{ dua.version }}</td>
                 <td>
                   {% for project_type in dua.project_types.all %}

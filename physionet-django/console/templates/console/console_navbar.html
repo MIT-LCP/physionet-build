@@ -101,7 +101,7 @@
         </a>
       </li>
 
-      <!-- license and dua -->
+      <!-- legal -->
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         {% if license_nav or dua_nav %}
           <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#license" data-parent="#sideAccordion" aria-expanded="true">
@@ -112,7 +112,7 @@
             <span class="nav-link-text">NAME HERE</span>
           </a>
           <!-- submenu -->
-        {% if license_nav or dua_nav %}
+        {% if license_nav or dua_nav or code_of_conduct_nav %}
           <ul class="sidenav-second-level collapse show" id="license">
         {% else %}
           <ul class="sidenav-second-level collapse" id="license">

@@ -30,7 +30,7 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
-from user.models import CredentialApplication, CredentialReview, User, TrainingQuestion
+from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -942,15 +942,12 @@ class TrainingReviewForm(forms.Form):
 class LicenseForm(forms.ModelForm):
     class Meta:
         model = License
-        fields = ('name', 'version', 'slug', 'text_content', 'html_content', 'home_page', 'access_policy', 'project_types')
-        labels = {'html_content': 'HTML content'}
+        fields = ('name', 'version', 'slug', 'is_active', 'html_content', 'home_page', 'access_policy', 'project_types')
+        labels = {'html_content': 'Content'}
         
 
 class DUAForm(forms.ModelForm):
     class Meta:
         model = DUA
-        fields = '__all__'
-        labels = {'html_content': 'HTML content'}
-    
-
-    
+        fields = ('name', 'version', 'slug', 'is_active', 'html_content', 'access_template', 'access_policy', 'project_types')
+        labels = {'html_content': 'Content'}

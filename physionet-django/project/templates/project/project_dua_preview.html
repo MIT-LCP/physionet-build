@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+License for {{ project }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="text-center">{{ dua.name }} <a href="{{ license.home_page }}"><i class="fas fa-external-link-alt"></i></a></h1>
+  <hr>
+  {{ dua.html_content|safe }}
+  <br>
+</div>
+{% endblock %}

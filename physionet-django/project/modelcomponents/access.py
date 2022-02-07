@@ -211,6 +211,7 @@ class License(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120)
     version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=True)
     text_content = models.TextField(default='')
     html_content = SafeHTMLField(default='')
     home_page = models.URLField()
@@ -241,7 +242,9 @@ class DUA(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120, unique=True)
     version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=True)
     html_content = SafeHTMLField(default='')
+    access_template = SafeHTMLField(default='')
     access_policy = models.PositiveSmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN)
     project_types = models.ManyToManyField('project.ProjectType', related_name='duas')
 
