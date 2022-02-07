@@ -7,7 +7,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from html2text import html2text
 from project.modelcomponents.fields import SafeHTMLField
 from project.validators import validate_version
 
@@ -229,13 +228,6 @@ class License(models.Model):
 
     def __str__(self):
         return self.name
-
-    def dua_text_content(self):
-        """
-        Returns dua_html_content as plain text. Used when adding the DUA to
-        plain text emails.
-        """
-        return html2text(self.dua_html_content)
 
 
 class DUA(models.Model):

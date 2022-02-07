@@ -601,11 +601,9 @@ def mailto_process_credential_complete(request, application, comments=True):
     """
     applicant_name = application.get_full_name()
     subject = '{} clinical database access request for {}'.format(settings.SITE_NAME, applicant_name)
-    dua = License.objects.get(slug='physionet-credentialed-health-data-license-150')
     body = loader.render_to_string(
         'notification/email/mailto_contact_applicant.html', {
             'application': application,
-            'dua': dua.dua_text_content()
         }).replace('\n', '\n> ')
 
     if comments:
@@ -671,14 +669,12 @@ def credential_application_request(request, application):
     """
     applicant_name = application.get_full_name()
     subject = f'{settings.SITE_NAME} credentialing application notification'
-    dua = License.objects.get(slug='physionet-credentialed-health-data-license-150')
     body = loader.render_to_string(
         'notification/email/notify_credential_request.html', {
             'application': application,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
             'url_prefix': get_url_prefix(request),
-            'dua': dua.dua_text_content(),
             'signature': settings.EMAIL_SIGNATURE,
             'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
         })
