@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
     MIGRATE_AFTER_INSTALL = True
 
     dependencies = [
-        ('project', '0051_auto_20220105_1125'),
+        ('project', '0051_auto_20211129_0427'),
     ]
 
     operations = [

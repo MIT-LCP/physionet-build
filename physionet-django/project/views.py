@@ -1836,7 +1836,7 @@ def sign_dua(request, project_slug, version):
     else:
         raise Http404()
 
-    if project.deprecated_files or not project.access_policy or project.has_access(user):
+    if project.deprecated_files or project.access_policy not in {AccessPolicy.RESTRICTED, AccessPolicy.CREDENTIALED} or project.has_access(user):
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
