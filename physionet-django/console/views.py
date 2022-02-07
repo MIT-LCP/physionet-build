@@ -65,7 +65,6 @@ from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
 from user.models import (
     AssociatedEmail,
-    CodeOfConduct,
     CredentialApplication,
     CredentialReview,
     LegacyCredential,
