@@ -1760,6 +1760,15 @@ def published_project(request, project_slug, version, subdir=''):
     has_passphrase = project.get_anonymous_url() == an_url
 
     has_access = project.has_access(user) or has_passphrase
+    has_signed_dua = False if not user.is_authenticated else DUASignature.objects.filter(
+        project=project,
+        user=user
+    ).exists()
+    has_accepted_access_request = False if not user.is_authenticated else DataAccessRequest.objects.filter(
+        project=project,
+        requester=user,
+        status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+    ).exists()
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
@@ -1772,6 +1781,8 @@ def published_project(request, project_slug, version, subdir=''):
         'languages': languages,
         'contact': contact,
         'has_access': has_access,
+        'has_signed_dua': has_signed_dua,
+        'has_accepted_access_request': has_accepted_access_request,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
         'citations': citations,
@@ -1836,8 +1847,11 @@ def sign_dua(request, project_slug, version):
     else:
         raise Http404()
 
-    if project.deprecated_files or not project.access_policy or project.has_access(user) \
-        or project.is_self_managed_access:
+    if (
+        project.deprecated_files
+        or project.access_policy not in {AccessPolicy.RESTRICTED, AccessPolicy.CREDENTIALED}
+        or project.has_access(user)
+    ):
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
@@ -1868,7 +1882,7 @@ def request_data_access(request, project_slug, version):
     except PublishedProject.DoesNotExist:
         raise Http404(Exception("Project does not exist"))
 
-    if not proj.is_self_managed_access:
+    if proj.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
@@ -1912,10 +1926,9 @@ def request_data_access(request, project_slug, version):
                                     request.path, response)
             return response
     else:
-        project_request_form = forms.DataAccessRequestForm(project=proj,
-                                                           requester=user,
-                                                           template=proj.self_managed_request_template,
-                                                           prefix="proj")
+        project_request_form = forms.DataAccessRequestForm(
+            project=proj, requester=user, template=proj.license.access_request_template, prefix="proj"
+        )
 
     is_additional_request = DataAccessRequest.objects.filter(requester=user,
                                                              project=proj,
@@ -1948,7 +1961,7 @@ def data_access_request_status(request, project_slug, version):
     except PublishedProject.DoesNotExist:
         raise Http404(Exception("Project doesn't not exist"))
 
-    if not proj.is_self_managed_access:
+    if proj.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
         return redirect('published_project',
                          project_slug=project_slug, version=version)
 
@@ -1990,7 +2003,7 @@ def data_access_requests_overview(request, project_slug, version):
     except PublishedProject.DoesNotExist:
         raise Http404(Exception("The project doesn't exist"))
 
-    if not proj.is_self_managed_access:
+    if proj.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
@@ -2040,7 +2053,7 @@ def data_access_request_view(request, project_slug, version, user_id):
     except PublishedProject.DoesNotExist:
         raise Http404(Exception("Project doesn't exist"))
 
-    if not proj.is_self_managed_access:
+    if proj.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
         return redirect('published_project',
                         project_slug=project_slug, version=version)
 
@@ -2106,7 +2119,7 @@ def manage_data_access_reviewers(request, project_slug, version):
     except:
         raise Http404(Exception("The project doesn't exist"))
 
-    if not project.is_self_managed_access:
+    if project.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
         return redirect('project_home')
 
     reviewer_manager = request.user

@@ -281,7 +281,7 @@
 
 {# ZIP START #}
           <h5>Access the files</h5>
-          {% if project.is_self_managed_access %}
+          {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
             <p>You have been granted access for a  <a href="{% url 'data_access_request_status' project.slug project.version %}">specific project</a>. If you require access for an additional project, please submit a <a href="{% url 'request_data_access' project.slug project.version %}">new request.</a></p>
           {% endif %}
           <ul>

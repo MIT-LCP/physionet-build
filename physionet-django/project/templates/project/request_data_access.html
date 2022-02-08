@@ -82,11 +82,7 @@ Request Access to {{ project.title }} {{ project.version }}
                 {% endfor %}
 
                 <div>
-                    {% if project.self_managed_dua %}
-                        {{ project.self_managed_dua|safe }}
-                    {% else %}
-                        {{ project.license.html_content|safe }}
-                    {% endif %}
+                    {{ project.license.dua_html_content|safe }}
                 </div>
 
                 <div >
