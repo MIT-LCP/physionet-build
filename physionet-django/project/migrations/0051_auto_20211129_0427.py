@@ -36,8 +36,7 @@ def migrate_backward(apps, schema_edtior):
     License = apps.get_model('project', 'License')
 
     old_license = License.objects.get(slug='physionet-credentialed-health-data-license-150')
-    new_licenses = License.objects.filter(slug='physionet-contributor-review-health-data-license-150')
-    new_license = new_licenses.first()
+    new_license = License.objects.get(slug='physionet-contributor-review-health-data-license-150')
 
     ActiveProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW).update(
         is_self_managed_access=True,
@@ -61,7 +60,7 @@ def migrate_backward(apps, schema_edtior):
         license=old_license,
     )
 
-    new_licenses.delete()
+    new_license.delete()
 
 
 class Migration(migrations.Migration):
