@@ -59,7 +59,7 @@
 
       <!-- credentialing -->
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if credentials_nav or complete_credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
+      {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
         <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="true">
       {% else %}
         <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -68,14 +68,11 @@
           <span class="nav-link-text">Credentialing</span>
         </a>
         <!-- submenu -->
-      {% if credentials_nav or complete_credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
+      {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
         <ul class="sidenav-second-level collapse show" id="credentialComponents">
       {% else %}
         <ul class="sidenav-second-level collapse" id="credentialComponents">
       {% endif %}
-          <li class="nav-item {% if complete_credentials_nav %}active{% endif %}">
-            <a id="nav_credential_applications" href="{% url 'complete_credential_applications' %}">Management</a>
-          </li>
           <li class="nav-item {% if processing_credentials_nav %}active{% endif %}">
             <a id="nav_credential_applications" href="{% url 'credential_processing' %}">Processing</a>
           </li>
