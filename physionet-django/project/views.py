@@ -1760,6 +1760,15 @@ def published_project(request, project_slug, version, subdir=''):
     has_passphrase = project.get_anonymous_url() == an_url
 
     has_access = project.has_access(user) or has_passphrase
+    has_signed_dua = False if not user.is_authenticated else DUASignature.objects.filter(
+        project=project,
+        user=user
+    ).exists()
+    has_accepted_access_request = False if not user.is_authenticated else DataAccessRequest.objects.filter(
+        project=project,
+        requester=user,
+        status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+    ).exists()
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
@@ -1772,6 +1781,8 @@ def published_project(request, project_slug, version, subdir=''):
         'languages': languages,
         'contact': contact,
         'has_access': has_access,
+        'has_signed_dua': has_signed_dua,
+        'has_accepted_access_request': has_accepted_access_request,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
         'citations': citations,
