@@ -24,6 +24,8 @@ def migrate_forward(apps, schema_editor):
     CredentialApplication = apps.get_model('user', 'CredentialApplication')
     User = apps.get_model('user', 'User')
 
+    ProjectFiles().mkdir(os.path.join(ProjectFiles().file_root, "trainings"))
+
     training_type = TrainingType.objects.first()
 
     credential_applications = CredentialApplication.objects.filter(user=models.OuterRef('pk'))
@@ -32,22 +34,22 @@ def migrate_forward(apps, schema_editor):
     )
     for user in users:
         credential_application = user.credential_applications.last()
-        if credential_application is None:
-            continue
 
-        new_path = os.path.join('trainings', f'{training_type.name.replace(" ", "_")}_{uuid4()}.pdf')
-        ProjectFiles().mv(
+        new_name = os.path.join('trainings', f'{training_type.name.replace(" ", "_")}_{uuid4()}.pdf')
+        ProjectFiles().rename(
             os.path.join(ProjectFiles().file_root, credential_application.training_completion_report.name),
-            new_path,
+            os.path.join(ProjectFiles().file_root, new_name),
         )
 
         status = TrainingStatus.ACCEPTED if user.is_credentialed else TrainingStatus.REVIEW
 
+        report_url = "" if credential_application.training_completion_report_url is None else credential_application.training_completion_report_url
+
         Training.objects.create(
             training_type=training_type,
             user=user,
-            completion_report=new_path,
-            completion_report_url=credential_application.training_completion_report_url,
+            completion_report=new_name,
+            completion_report_url=report_url,
             application_datetime=credential_application.training_completion_date,
             process_datetime=credential_application.training_completion_date,
             status=status,

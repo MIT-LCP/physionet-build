@@ -201,7 +201,7 @@
             <br>
             <a href="{% url 'published_project_license' project.slug project.version %}">{{ project.license }}</a>
           </p>
-          {% if project.access_policy == AccessPolicy.CREDENTIALED %}
+          {% if project.access_policy == AccessPolicy.CREDENTIALED or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
             <p>
               <strong>Required training:</strong>
               {% for training in project.required_trainings.all %}
