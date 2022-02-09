@@ -213,14 +213,23 @@ class PublishedProject(Metadata, SubmissionInfo):
                 user.is_authenticated
                 and user.is_credentialed
                 and DUASignature.objects.filter(project=self, user=user).exists()
-                and Training.objects.get_valid().filter(training_type__in=self.required_trainings.all(), user=user).count() == self.required_trainings.count()
+                and Training.objects.get_valid()
+                .filter(training_type__in=self.required_trainings.all(), user=user)
+                .count()
+                == self.required_trainings.count()
             )
         elif self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
-            return user.is_authenticated and user.is_credentialed and DataAccessRequest.objects.filter(
-                project=self,
-                requester=user,
-                status=DataAccessRequest.ACCEPT_REQUEST_VALUE
-            ).exists() and Training.objects.get_valid().filter(training_type__in=self.required_trainings.all(), user=user).count() == self.required_trainings.count()
+            return (
+                user.is_authenticated
+                and user.is_credentialed
+                and DataAccessRequest.objects.filter(
+                    project=self, requester=user, status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+                ).exists()
+                and Training.objects.get_valid()
+                .filter(training_type__in=self.required_trainings.all(), user=user)
+                .count()
+                == self.required_trainings.count()
+            )
 
         return False
 

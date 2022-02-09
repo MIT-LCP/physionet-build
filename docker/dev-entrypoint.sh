@@ -3,7 +3,7 @@
 set -e
 
 mkdir -p $STATIC_ROOT/published-projects
-mkdir -p $MEDIA_ROOT/{active-projects,archived-projects,credential-applications,published-projects,users,trainings}
+mkdir -p $MEDIA_ROOT/{active-projects,archived-projects,credential-applications,published-projects,users}
 
 ./docker/wait-for-it.sh $DB_HOST:5432
 if [ -n "$GCS_HOST" ]; then

@@ -3,23 +3,34 @@ from itertools import chain
 
 from django.db import migrations, models
 
+from project.modelcomponents.access import AccessPolicy
+
 
 def migrate_forward(apps, schema_editor):
     ActiveProject = apps.get_model('project', 'ActiveProject')
-    ArchivedProject = apps.get_model('project', 'ActiveProject')
-    PublishProject = apps.get_model('project', 'ActiveProject')
+    ArchivedProject = apps.get_model('project', 'ArchivedProject')
+    PublishedProject = apps.get_model('project', 'PublishedProject')
     TrainingType = apps.get_model('user', 'TrainingType')
 
     training_type = TrainingType.objects.first()
 
-    for project in chain(ActiveProject.objects.all(), ArchivedProject.objects.all(), PublishProject.objects.all()):
+    filter = models.Q(access_policy__gte=AccessPolicy.CREDENTIALED)
+    for project in chain(
+        ActiveProject.objects.filter(filter),
+        ArchivedProject.objects.filter(filter),
+        PublishedProject.objects.filter(filter)
+    ):
         project.required_trainings.add(training_type)
+
+
+def migrate_backward(apps, schema_editor):
+    pass
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0034_auto_20211215_0859'),
+        ('user', '0034_training_1'),
         ('project', '0052_auto_20220105_1219'),
     ]
 
@@ -39,5 +50,5 @@ class Migration(migrations.Migration):
             name='required_trainings',
             field=models.ManyToManyField(related_name='publishedproject', to='user.TrainingType'),
         ),
-        migrations.RunPython(migrate_forward),
+        migrations.RunPython(migrate_forward, migrate_backward),
     ]
