@@ -527,7 +527,7 @@ def training_report_path(instance, filename):
 
 
 def get_training_path(instance, filename):
-    return f'trainings/{instance.training_type.name.replace(" ", "_")}_{uuid.uuid4()}.pdf'
+    return f'trainings/{instance.slug}/training-report.pdf'
 
 
 class LegacyCredential(models.Model):
@@ -1032,6 +1032,7 @@ class TrainingType(models.Model):
 
 
 class Training(models.Model):
+    slug = models.SlugField(max_length=20, unique=True)
     training_type = models.ForeignKey(TrainingType, on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='trainings', on_delete=models.CASCADE)
     status = models.PositiveSmallIntegerField(choices=TrainingStatus.choices(), default=TrainingStatus.REVIEW)
@@ -1045,6 +1046,12 @@ class Training(models.Model):
     reviewer_comments = models.CharField(max_length=512)
 
     objects = TrainingQuerySet.as_manager()
+
+    def delete(self, *args, **kwargs):
+        if self.completion_report is not None:
+            self.completion_report.delete()
+
+        return super().delete(*args, **kwargs)
 
     def withdraw(self):
         self.status = TrainingStatus.WITHDRAWN

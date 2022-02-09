@@ -456,7 +456,7 @@ class NewProjectVersionForm(forms.ModelForm):
             documents.append(uploaded_document)
 
         UploadedDocument.objects.bulk_create(documents)
-        
+
         project.required_trainings.set(self.latest_project.required_trainings.all())
 
         current_file_root = project.file_root()
@@ -807,7 +807,7 @@ class AccessMetadataForm(forms.ModelForm):
             resource_types__icontains=str(self.instance.resource_type.id), access_policy=self.access_policy
         )
 
-        if self.access_policy != AccessPolicy.CREDENTIALED:
+        if self.access_policy not in {AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW}:
             self.fields['required_trainings'].disabled = True
             self.fields['required_trainings'].required = False
             self.fields['required_trainings'].widget = forms.HiddenInput()

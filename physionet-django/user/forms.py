@@ -698,6 +698,11 @@ class TrainingForm(forms.ModelForm):
     def save(self):
         training = super().save(commit=False)
 
+        slug = get_random_string(20)
+        while Training.objects.filter(slug=slug).exists():
+            slug = get_random_string(20)
+
+        training.slug = slug
         training.user = self.user
         training.save()
 
