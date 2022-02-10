@@ -53,6 +53,14 @@ class GCSProjectFiles(BaseProjectFiles):
 
         gcs_obj.rename(GCSObject(target_path))
 
+    def cp_file(self, source_path, target_path):
+        gcs_obj = GCSObject(source_path)
+        if not gcs_obj.exists():
+            gcs_obj = GCSObject(self._dir_path(source_path))
+            target_path = self._dir_path(target_path)
+
+        gcs_obj.cp(GCSObject(target_path))
+
     def mv(self, source_path, target_path):
         source_path = source_path
         target_path = self._dir_path(target_path)
