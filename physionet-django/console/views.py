@@ -970,7 +970,7 @@ def users(request, group='all'):
     if group == 'admin':
         admin_users = user_list.filter(is_admin=True)
         return render(request, 'console/users_admin.html', {
-            'admin_users': admin_users, 
+            'admin_users': admin_users,
             'group': group,
             'user_nav': True,
         })
