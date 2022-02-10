@@ -10,6 +10,12 @@
           <a href="{% url 'sign_dua' project.slug project.version %}">sign the data use agreement</a> for the project
         </li>
       {% endif %}
+    {% elif project.access_policy == AccessPolicy.RESTRICTED %}
+      {% if not has_signed_dua %}
+        <li>
+          <a href="{% url 'sign_dua' project.slug project.version %}">sign the data use agreement</a> for the project
+        </li>
+     {% endif %}
     {% elif project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
       {% if not user.is_credentialed %}
         <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
