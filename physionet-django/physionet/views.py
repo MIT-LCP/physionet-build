@@ -4,6 +4,7 @@ from re import fullmatch
 
 import notification.utility as notification
 from django.contrib import messages
+from django.conf import settings
 from django.db.models.functions import Lower
 from django.http import Http404, HttpResponse
 from django.shortcuts import render
@@ -116,7 +117,7 @@ def error_404(request, exception=None):
     View for testing the 404 page. To test, uncomment the URL pattern
         in urls.py.
     """
-    return render(request,'404.html', status=404)
+    return render(request, '404.html', {'ERROR_EMAIL': settings.ERROR_EMAIL}, status=404)
 
 
 def error_403(request, exception=None):
@@ -124,7 +125,7 @@ def error_403(request, exception=None):
     View for testing the 404 page. To test, uncomment the URL pattern
         in urls.py.
     """
-    return render(request,'403.html', status=403)
+    return render(request, '403.html', {'ERROR_EMAIL': settings.ERROR_EMAIL}, status=403)
 
 
 def error_500(request, exception=None):
@@ -132,7 +133,7 @@ def error_500(request, exception=None):
     View for testing the 404 page. To test, uncomment the URL pattern
         in urls.py.
     """
-    return render(request, "500.html", status=500)
+    return render(request, '500.html', {'ERROR_EMAIL': settings.ERROR_EMAIL}, status=500)
 
 
 def content_overview(request):
