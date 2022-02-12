@@ -43,6 +43,9 @@ class LocalProjectFiles(BaseProjectFiles):
     def rename(self, source_path, target_path):
         rename_file(source_path, target_path)
 
+    def cp_file(self, source_path, target_path):
+        shutil.copyfile(source_path, target_path)
+
     def mv(self, source_path, target_path):
         move_items([source_path], target_path)
 
