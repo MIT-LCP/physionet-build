@@ -102,7 +102,7 @@
           <span class="nav-link-text">Logs</span>
         </a>
         <!-- submenu -->
-      {% if access_logs_nav or gcp_logs_nav %}
+      {% if project_access_logs_nav or user_access_logs_nav or gcp_logs_nav %}
         <ul class="sidenav-second-level collapse show" id="logsComponent" style="">
       {% else %}
         <ul class="sidenav-second-level collapse" id="logsComponent">
@@ -113,9 +113,11 @@
           <li class="nav-item {% if user_access_logs_nav %}active{% endif %}">
             <a id="nav_user_access_logs" class="nav-link" href="{% url 'user_access_logs' %}">User accesses</a>
           </li>
-          <li class="nav-item {% if gcp_logs_nav %}active{% endif %}">
-            <a id="nav_gcp_logs" class="nav-link" href="{% url 'gcp_signed_urls_logs' %}">GCP signed urls</a>
-          </li>
+          {% if storage_type == 'GCP' %}
+            <li class="nav-item {% if gcp_logs_nav %}active{% endif %}">
+              <a id="nav_gcp_logs" class="nav-link" href="{% url 'gcp_signed_urls_logs' %}">GCP signed urls</a>
+            </li>
+          {% endif %}
         </ul>
       </li>
       <!-- users -->

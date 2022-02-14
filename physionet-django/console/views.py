@@ -52,10 +52,10 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 import project.forms as project_forms
-from project.modelcomponents.access import ACCESS_POLICIES
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
+from physionet.enums import LogCategory
 from user.models import (User, CredentialApplication, LegacyCredential,
                          AssociatedEmail, CredentialReview)
 from console import forms, utility
@@ -1962,7 +1962,6 @@ def project_access_logs(request):
 
     return render(request, 'console/project_access_logs.html', {
         'c_projects': c_projects, 'project_access_logs_nav': True,
-        'access_policies': ACCESS_POLICIES
     })
 
 

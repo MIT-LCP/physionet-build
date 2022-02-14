@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.db.models import CharField, TextField
 from django.forms import Textarea, TextInput
 from project import models
+from project.modelcomponents.log import AccessLog, GCPLog
 
 
 class LicenseAdmin(admin.ModelAdmin):
@@ -111,8 +112,8 @@ admin.site.register(models.PublishedPublication)
 admin.site.register(models.PublishedReference)
 admin.site.register(models.StorageRequest)
 admin.site.register(models.GCP)
-admin.site.register(models.AccessLog, LogAdmin)
-admin.site.register(models.GCPLog, LogAdmin)
+admin.site.register(AccessLog, LogAdmin)
+admin.site.register(GCPLog, LogAdmin)
 
 # Add the custom tasks to the admin page
 admin.site.register(Task, TaskAdmin)

@@ -30,6 +30,7 @@ from project import forms, utility
 from project.fileviews import display_project_file
 from project.models import (
     AccessPolicy,
+    AccessLog,
     ActiveProject,
     Affiliation,
     AnonymousAccess,
@@ -40,6 +41,7 @@ from project.models import (
     DataAccessRequest,
     DataAccessRequestReviewer,
     DUASignature,
+    GCPLog,
     License,
     Publication,
     PublishedAuthor,
@@ -1787,6 +1789,7 @@ def published_project(request, project_slug, version, subdir=''):
     }
     # The file and directory contents
     if has_access:
+        AccessLog.objects.update_or_create(project=project, user=request.user)
 
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)

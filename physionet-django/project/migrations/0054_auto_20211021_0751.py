@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0047_accesslog_gcplog_log'),
+        ('project', '0053_accesslog_gcplog_log'),
     ]
 
     operations = [

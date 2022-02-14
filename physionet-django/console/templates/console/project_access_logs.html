@@ -30,7 +30,7 @@
       <div class="col-sm-4">
         <select id="accesspolicy" style="cursor: pointer;" class="form-select text-dark" aria-label="Access policy">
             <option value="-1" selected>All</option>
-            {% for policy in access_policies %}
+            {% for policy in AccessPolicy.choices %}
               <option value="{{ policy.0 }}">{{ policy.1 }}</option>
             {% endfor %}
         </select>
