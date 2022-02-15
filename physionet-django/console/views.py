@@ -964,22 +964,24 @@ def users(request, group='all'):
     """
     List of users
     """
-    show_inactive = False
+    user_list = User.objects.select_related('profile').annotate(
+        login_time_count=Count('login_time')
+    ).order_by('username')
     if group == 'admin':
-        admin_users = User.objects.filter(is_admin=True).order_by('username')
+        admin_users = user_list.filter(is_admin=True)
         return render(request, 'console/users_admin.html', {
-            'admin_users': admin_users, 'group': group, 'user_nav': True})
+            'admin_users': admin_users,
+            'group': group,
+            'user_nav': True,
+        })
     elif group == 'active':
-        user_list = User.objects.filter(is_active=True).order_by('username')
+        user_list = user_list.filter(is_active=True)
     elif group == 'inactive':
-        user_list = User.objects.filter(is_active=False).order_by('username')
-    else:
-        user_list = User.objects.all().order_by('username')
-        show_inactive = True
+        user_list = user_list.filter(is_active=False)
+
     users = paginate(request, user_list, 50)
 
-    return render(request, 'console/users.html', {'users': users,
-        'show_inactive': show_inactive, 'group': group, 'user_nav': True})
+    return render(request, 'console/users.html', {'users': users, 'group': group, 'user_nav': True})
 
 
 @login_required
@@ -1643,11 +1645,12 @@ def featured_content(request):
 
         # Swap positions
         PublishedProject.objects.filter(featured=idx+1).update(featured=idx)
-        move.featured = idx+1
+        move.featured = idx + 1
         move.save()
 
-
-    featured_content = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')
+    featured_content = PublishedProject.objects.select_related('resource_type').filter(
+        featured__isnull=False
+    ).order_by('featured')
 
     return render(request, 'console/featured_content.html',
         {'featured_content': featured_content, 'featured_content_nav': True})
