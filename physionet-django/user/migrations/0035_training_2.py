@@ -11,7 +11,6 @@ from project.projectfiles import ProjectFiles
 def migrate_forward(apps, schema_editor):
     CredentialReview = apps.get_model('user', 'CredentialReview')
 
-    ProjectFiles().rm(os.path.join(ProjectFiles().file_root, 'credential-applications'))
     CredentialReview.objects.filter(status__gte=30).update(status=models.F('status') - 10)
 
 
@@ -20,7 +19,6 @@ def migrate_backward(apps, schema_editor):
     CredentialReview = apps.get_model('user', 'CredentialReview')
     Training = apps.get_model('user', 'Training')
 
-    ProjectFiles().mkdir(os.path.join(ProjectFiles().file_root, 'credential-applications'))
     CredentialReview.objects.filter(status__gte=20).update(status=models.F('status') + 10)
 
     for training in Training.objects.select_related('user').all():
@@ -28,18 +26,9 @@ def migrate_backward(apps, schema_editor):
         if credential_application is None:
             continue
 
-        ProjectFiles().mkdir(
-            os.path.join(ProjectFiles().file_root, 'credential-applications', credential_application.slug)
-        )
-        new_name = os.path.join('credential-applications', credential_application.slug, 'training-report.pdf')
-        ProjectFiles().cp_file(
-            os.path.join(ProjectFiles().file_root, training.completion_report.name),
-            os.path.join(ProjectFiles().file_root, new_name),
-        )
-
         report_url = None if not training.completion_report_url else training.completion_report_url
 
-        credential_application.training_completion_report = new_name
+        credential_application.training_completion_report = training.completion_report.name
         credential_application.training_completion_report_url = report_url
         credential_application.training_completion_date = training.application_datetime
         credential_application.training_course_name = training.training_type.name
