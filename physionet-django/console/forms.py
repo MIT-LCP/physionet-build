@@ -973,17 +973,18 @@ class UserFilterForm(forms.ModelForm):
         model = User
         fields = ('username',)
         widgets = {
-            'username': autocomplete.ListSelect2(url='user-autocomplete', attrs={'class': 'border', 'data-placeholder': 'Search...'})
+            'username': autocomplete.ListSelect2(url='user-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
         }
 
 
 class ProjectFilterForm(forms.ModelForm):
-    
     class Meta:
         model = PublishedProject
         fields = ('title',)
         widgets = {
-            'title': autocomplete.ListSelect2(url='project-autocomplete', attrs={'class': 'border', 'data-placeholder': 'Search...'})
+            'title': autocomplete.ListSelect2(url='project-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
         }
-
-

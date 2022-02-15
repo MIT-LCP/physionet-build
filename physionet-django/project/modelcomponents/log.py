@@ -24,9 +24,9 @@ class Log(models.Model):
     def get_data(self):
         return self.data.split(';')
 
-        
+
 class AccessLog(Log):
-    """Proxy model for access logs""" 
+    """Proxy model for access logs"""
     objects = AccessLogManager.from_queryset(AccessLogQuerySet)()
 
     class Meta:

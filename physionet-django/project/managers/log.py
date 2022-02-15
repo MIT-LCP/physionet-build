@@ -22,7 +22,7 @@ class AccessLogQuerySet(QuerySet):
     def create(self, **kwargs):
         kwargs['category'] = LogCategory.ACCESS
         return super().create(**kwargs)
-    
+
     def update_or_create(self, defaults=None, **kwargs):
         user = kwargs.get('user')
         project = kwargs.get('project')
@@ -47,8 +47,8 @@ class AccessLogQuerySet(QuerySet):
             created = True
 
         return instance, created
-    
-    
+
+
 class GCPLogQuerySet(QuerySet):
     def create(self, **kwargs):
         kwargs['category'] = LogCategory.GCP
@@ -80,4 +80,3 @@ class GCPLogQuerySet(QuerySet):
             created = True
 
         return instance, created
-

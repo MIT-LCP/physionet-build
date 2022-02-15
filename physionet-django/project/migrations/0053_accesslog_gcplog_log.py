@@ -18,13 +18,20 @@ class Migration(migrations.Migration):
             name='Log',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('category', models.CharField(choices=[('ACCESS', 'Access'), ('GCP', 'GCP')], editable=False, max_length=64)),
+                ('category', models.CharField(
+                    choices=[('ACCESS', 'Access'), ('GCP', 'GCP')],
+                    editable=False,
+                    max_length=64
+                )),
                 ('object_id', models.PositiveIntegerField()),
                 ('data', models.TextField(max_length=512)),
                 ('count', models.PositiveIntegerField(default=1)),
                 ('creation_datetime', models.DateTimeField(auto_now_add=True)),
                 ('last_access_datetime', models.DateTimeField(auto_now=True)),
-                ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType')),
+                ('content_type', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to='contenttypes.ContentType'
+                )),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),

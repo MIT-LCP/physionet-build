@@ -9,9 +9,7 @@ from itertools import chain
 from statistics import StatisticsError, median
 
 import notification.utility as notification
-import project.forms as project_forms
 from background_task import background
-from console import forms, utility
 from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
@@ -32,6 +30,7 @@ from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
 from physionet.models import Section
+from project import forms as project_forms
 from project.models import (
     GCP,
     GCPLog,
@@ -46,12 +45,10 @@ from project.models import (
     PublishedProject,
     Reference,
     StorageRequest,
-    SubmissionInfo,
     Topic,
     exists_project_slug,
 )
 from project.projectfiles import ProjectFiles
-import project.forms as project_forms
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
@@ -59,7 +56,7 @@ from physionet.enums import LogCategory
 from user.models import (User, CredentialApplication, LegacyCredential,
                          AssociatedEmail, CredentialReview)
 from console import forms, utility
-from console.forms import UserFilterForm
+from console.forms import ProjectFilterForm, UserFilterForm
 
 
 LOGGER = logging.getLogger(__name__)
@@ -438,10 +435,22 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if 'subdir' not in vars():
         subdir = ''
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card(force_calculate=True)
+    (
+        authors,
+        author_emails,
+        storage_info,
+        edit_logs,
+        copyedit_logs,
+        latest_version,
+    ) = project.info_card(force_calculate=True)
 
-    (display_files, display_dirs, dir_breadcrumbs, _,
-     file_error) = get_project_file_info(project=project, subdir=subdir)
+    (
+        display_files,
+        display_dirs,
+        dir_breadcrumbs,
+        _,
+        file_error
+    ) = get_project_file_info(project=project, subdir=subdir)
 
     (upload_files_form, create_folder_form, rename_item_form,
      move_items_form, delete_items_form) = get_file_forms(
@@ -2007,7 +2016,7 @@ def download_project_accesses(request, pk):
         .select_related("user__profile")
         .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
     )
-    
+
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="project_{pk}_accesses.csv"'
 
@@ -2072,7 +2081,6 @@ def user_access_logs_detail(request, pid):
     if start_date and end_date:
         logs = logs.filter(creation_datetime__gte=start_date, creation_datetime__lte=end_date)
 
-
     logs = paginate(request, logs, 50)
 
     project_filter_form = ProjectFilterForm()
@@ -2090,9 +2098,9 @@ def download_user_accesses(request, pk):
 
     data = (
         AccessLog.objects.filter(user=pk).select_related('user__profile')
-        .annotate(duration=F('last_access_datetime')-F('creation_datetime'))
+        .annotate(duration=F('last_access_datetime') - F('creation_datetime'))
     )
-    
+
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="user_{pk}_logs.csv"'
 
@@ -2133,7 +2141,7 @@ def gcp_signed_urls_logs(request):
 def gcp_signed_urls_logs_detail(request, pk):
     project = get_object_or_404(ActiveProject, pk=pk)
     logs = project.logs.order_by('-creation_datetime').prefetch_related('project').annotate(
-        duration=F('last_access_datetime')-F('creation_datetime'))
+        duration=F('last_access_datetime') - F('creation_datetime'))
 
     logs = paginate(request, logs, 50)
 
@@ -2148,11 +2156,13 @@ def gcp_signed_urls_logs_detail(request, pk):
 def download_signed_urls_logs(request, pk):
     headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Data', 'Count']
 
-    data = (
-        GCPLog.objects.filter(content_type=ContentType.objects.get_for_model(ActiveProject), object_id=pk).select_related('user__profile')
-        .annotate(duration=F('last_access_datetime') - F('creation_datetime'))
+    data = GCPLog.objects.filter(
+        content_type=ContentType.objects.get_for_model(ActiveProject),
+        object_id=pk
+    ).select_related('user__profile').annotate(
+        duration=F('last_access_datetime') - F('creation_datetime')
     )
-    
+
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = f'attachment; filename="project_{pk}_signed_urls.csv"'
 
