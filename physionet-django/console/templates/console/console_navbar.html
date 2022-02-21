@@ -10,194 +10,224 @@
   <!-- start of menu items -->
   <div class="collapse navbar-collapse" id="navbarResponsive">
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
+      
+      <!-- console home page -->
+      <li class="nav-item {% if console_home_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_console_hom" class="nav-link" href="{% url 'console_home' %}">
+          <i class="fa fa-fw fa-book-open"></i>
+          <span class="nav-link-text">Home</span>
+        </a>
+      </li>
 
       <!-- editor home -->
-      <li class="nav-item {% if editor_home %}active{% endif %}" data-toggle="tooltip" data-placement="right">
-        <a id="nav_editor_home" class="nav-link" href="{% url 'editor_home' %}">
-          <i class="fa fa-fw fa-book-open"></i>
-          <span class="nav-link-text">Editor Home</span>
-        </a>
-      </li>
+      {% if perms.project.change_publishedproject %}
+        <li class="nav-item {% if editor_home %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+          <a id="nav_editor_home" class="nav-link" href="{% url 'editor_home' %}">
+            <i class="fa fa-fw fa-book-open"></i>
+            <span class="nav-link-text">Editor Home</span>
+          </a>
+        </li>
+      {% endif %}
 
       <!-- projects -->
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or rejected_projects_nav %}
-        <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="true">
-      {% else %}
-        <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="false">
+      {% if perms.project.change_publishedproject %}
+        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or rejected_projects_nav %}
+          <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="true">
+        {% else %}
+          <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="false">
+        {% endif %}
+            <i class="fa fa-fw fa-clipboard-list"></i>
+            <span class="nav-link-text">Projects</span>
+          </a>
+          <!-- submenu -->
+        {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or rejected_projects_nav %}
+          <ul class="sidenav-second-level collapse show" id="projectComponents" style="">
+        {% else %}
+          <ul class="sidenav-second-level collapse" id="projectComponents">
+        {% endif %}
+            <li class="nav-item {% if unsubmitted_projects_nav %}active{% endif %}">
+              <a id="nav_unsubmitted_projects" class="nav-link" href="{% url 'unsubmitted_projects' %}">Unsubmitted</a>
+            </li>
+            <li class="nav-item {% if submitted_projects_nav %}active{% endif %}">
+              <a id="nav_submitted_projects" class="nav-link" href="{% url 'submitted_projects' %}">Submitted</a>
+            </li>
+            <li class="nav-item {% if published_projects_nav %}active{% endif %}">
+              <a id="nav_published_projects" class="nav-link" href="{% url 'published_projects' %}">Published</a>
+            </li>
+            <li class="nav-item {% if rejected_projects_nav %}active{% endif %}">
+              <a id="nav_rejected_submissions" class="nav-link" href="{% url 'rejected_submissions' %}">Rejected</a>
+            </li>          
+          </ul>
+        </li>
       {% endif %}
-          <i class="fa fa-fw fa-clipboard-list"></i>
-          <span class="nav-link-text">Projects</span>
-        </a>
-        <!-- submenu -->
-      {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or rejected_projects_nav %}
-        <ul class="sidenav-second-level collapse show" id="projectComponents" style="">
-      {% else %}
-        <ul class="sidenav-second-level collapse" id="projectComponents">
-      {% endif %}
-          <li class="nav-item {% if unsubmitted_projects_nav %}active{% endif %}">
-            <a id="nav_unsubmitted_projects" class="nav-link" href="{% url 'unsubmitted_projects' %}">Unsubmitted</a>
-          </li>
-          <li class="nav-item {% if submitted_projects_nav %}active{% endif %}">
-            <a id="nav_submitted_projects" class="nav-link" href="{% url 'submitted_projects' %}">Submitted</a>
-          </li>
-          <li class="nav-item {% if published_projects_nav %}active{% endif %}">
-            <a id="nav_published_projects" class="nav-link" href="{% url 'published_projects' %}">Published</a>
-          </li>
-          <li class="nav-item {% if rejected_projects_nav %}active{% endif %}">
-            <a id="nav_rejected_submissions" class="nav-link" href="{% url 'rejected_submissions' %}">Rejected</a>
-          </li>          
-        </ul>
-      </li>
       <!-- storage requests -->
-      <li class="nav-item {% if storage_requests_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
-        <a id="nav_storage_requests" class="nav-link" href="{% url 'storage_requests' %}">
-          <i class="fa fa-fw fa-cube"></i>
-          <span class="nav-link-text">Storage</span>
-        </a>
-      </li>
+      {% if perms.project.change_storagerequest %}
+        <li class="nav-item {% if storage_requests_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+          <a id="nav_storage_requests" class="nav-link" href="{% url 'storage_requests' %}">
+            <i class="fa fa-fw fa-cube"></i>
+            <span class="nav-link-text">Storage</span>
+          </a>
+        </li>
+      {% endif %}
 
       <!-- credentialing -->
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
-        <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="true">
-      {% else %}
-        <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="false">
+      {% if perms.user.change_credentialapplication %}
+        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
+          <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="true">
+        {% else %}
+          <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="false">
+        {% endif %}
+            <i class="fa fa-fw fa-hand-paper"></i>
+            <span class="nav-link-text">Credentialing</span>
+          </a>
+          <!-- submenu -->
+        {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
+          <ul class="sidenav-second-level collapse show" id="credentialComponents">
+        {% else %}
+          <ul class="sidenav-second-level collapse" id="credentialComponents">
+        {% endif %}
+            <li class="nav-item {% if processing_credentials_nav %}active{% endif %}">
+              <a id="nav_credential_applications" href="{% url 'credential_processing' %}">Processing</a>
+            </li>
+            <li class="nav-item {% if past_credentials_nav %}active{% endif %} ">
+              <a id="nav_all_credential_applications" href="{% url 'credential_applications' 'successful' %}">All Applications</a>
+            </li>
+            <li class="nav-item {% if known_ref_nav %}active{% endif %} ">
+              <a id="nav_known_ref" href="{% url 'known_references' %}">Known References</a>
+            </li>
+          </ul>
+        </li>
       {% endif %}
-          <i class="fa fa-fw fa-hand-paper"></i>
-          <span class="nav-link-text">Credentialing</span>
-        </a>
-        <!-- submenu -->
-      {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
-        <ul class="sidenav-second-level collapse show" id="credentialComponents">
-      {% else %}
-        <ul class="sidenav-second-level collapse" id="credentialComponents">
-      {% endif %}
-          <li class="nav-item {% if processing_credentials_nav %}active{% endif %}">
-            <a id="nav_credential_applications" href="{% url 'credential_processing' %}">Processing</a>
-          </li>
-          <li class="nav-item {% if past_credentials_nav %}active{% endif %} ">
-            <a id="nav_all_credential_applications" href="{% url 'credential_applications' 'successful' %}">All Applications</a>
-          </li>
-          <li class="nav-item {% if known_ref_nav %}active{% endif %} ">
-            <a id="nav_known_ref" href="{% url 'known_references' %}">Known References</a>
-          </li>
-        </ul>
-      </li>
 
       <!-- project access -->
+      {% if perms.project.can_view_access_logs %}
       <li class="nav-item {% if project_access_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_protected_project_access" class="nav-link" href="{% url 'protected_project_access' %}">
           <i class="fa fa-fw fa-universal-access"></i>
           <span class="nav-link-text">Access</span>
         </a>
       </li>
+      {% endif %}
+
       <!-- users -->
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if user_nav %}
-        <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="true">
-      {% else %}
-        <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="false">
+      {% if perms.user.view_user %}
+        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        {% if user_nav %}
+          <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="true">
+        {% else %}
+          <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#userComponents" data-parent="#sideAccordion" aria-expanded="false">
+        {% endif %}
+            <i class="fa fa-fw fa-user-check"></i>
+            <span class="nav-link-text">Users</span>
+          </a>
+          <!-- submenu -->
+        {% if user_nav %}
+          <ul class="sidenav-second-level collapse show" id="userComponents">
+        {% else  %}
+          <ul class="sidenav-second-level collapse" id="userComponents">
+        {% endif %}
+            <li class="nav-item {% if group == 'active' %}active{% endif %}">
+              <a id="nav_active_users" class="nav-link" href="{% url 'users' 'active' %}">Active Users</a>
+            </li>
+            <li class="nav-item {% if group == 'inactive' %}active{% endif %}">
+              <a id="nav_active_users" class="nav-link" href="{% url 'users' 'inactive' %}">Inactive Users</a>
+            </li>
+            <li class="nav-item {% if group == 'all' %}active{% endif %}">
+              <a id="nav_all_users" class="nav-link" href="{% url 'users' 'all' %}">All Users</a>
+            </li>
+            <li class="nav-item {% if group == 'admin' %}active{% endif %}">
+              <a id="nav_all_users" class="nav-link" href="{% url 'users' 'admin' %}"> {{admin}}Administrators</a>
+            </li>
+          </ul>
+        </li>
       {% endif %}
-          <i class="fa fa-fw fa-user-check"></i>
-          <span class="nav-link-text">Users</span>
-        </a>
-        <!-- submenu -->
-      {% if user_nav %}
-        <ul class="sidenav-second-level collapse show" id="userComponents">
-      {% else  %}
-        <ul class="sidenav-second-level collapse" id="userComponents">
-      {% endif %}
-          <li class="nav-item {% if group == 'active' %}active{% endif %}">
-            <a id="nav_active_users" class="nav-link" href="{% url 'users' 'active' %}">Active Users</a>
-          </li>
-          <li class="nav-item {% if group == 'inactive' %}active{% endif %}">
-            <a id="nav_active_users" class="nav-link" href="{% url 'users' 'inactive' %}">Inactive Users</a>
-          </li>
-          <li class="nav-item {% if group == 'all' %}active{% endif %}">
-            <a id="nav_all_users" class="nav-link" href="{% url 'users' 'all' %}">All Users</a>
-          </li>
-          <li class="nav-item {% if group == 'admin' %}active{% endif %}">
-            <a id="nav_all_users" class="nav-link" href="{% url 'users' 'admin' %}"> {{admin}}Administrators</a>
-          </li>
-        </ul>
-      </li>
 
       <!-- featured content -->
-      <li class="nav-item {% if featured_content_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
-        <a id="nav_console_featured" class="nav-link" href="{% url 'featured_content' %}">
-          <i class="fa fa-fw fa-star"></i>
-          <span class="nav-link-text">Featured Content</span>
-        </a>
-      </li>
+      {% if perms.project.can_edit_featured_content %}
+        <li class="nav-item {% if featured_content_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+          <a id="nav_console_featured" class="nav-link" href="{% url 'featured_content' %}">
+            <i class="fa fa-fw fa-star"></i>
+            <span class="nav-link-text">Featured Content</span>
+          </a>
+        </li>
+      {% endif %}
 
       <!-- news -->
-      <li class="nav-item {% if news_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
-        <a id="nav_console_news" class="nav-link" href="{% url 'news_console' %}">
-          <i class="fa fa-fw fa-newspaper"></i>
-          <span class="nav-link-text">News</span>
-        </a>
-      </li>
+      {% if perms.notification.change_news %}
+        <li class="nav-item {% if news_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+          <a id="nav_console_news" class="nav-link" href="{% url 'news_console' %}">
+            <i class="fa fa-fw fa-newspaper"></i>
+            <span class="nav-link-text">News</span>
+          </a>
+        </li>
+      {% endif %}
 
       <!-- guidelines and documentation -->
-
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if guidelines_review_nav %}
-        <a id="nav_guidelines_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#guidelinesComponents" data-parent="#sideAccordion" aria-expanded="true">
-      {% else %}
-        <a id="nav_guidelines_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#guidelinesComponents" data-parent="#sideAccordion" aria-expanded="false">
+      {% if perms.project.can_view_project_guidelines %}
+        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        {% if guidelines_review_nav %}
+          <a id="nav_guidelines_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#guidelinesComponents" data-parent="#sideAccordion" aria-expanded="true">
+        {% else %}
+          <a id="nav_guidelines_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#guidelinesComponents" data-parent="#sideAccordion" aria-expanded="false">
+        {% endif %}
+            <i class="fa fa-fw fa-book"></i>
+            <span class="nav-link-text">Guidelines</span>
+          </a>
+          <!-- submenu -->
+        {% if guidelines_review_nav %}
+          <ul class="sidenav-second-level collapse show" id="guidelinesComponents">
+        {% else  %}
+          <ul class="sidenav-second-level collapse" id="guidelinesComponents">
+        {% endif %}
+            <li class="nav-item {% if guidelines_review_nav %}active{% endif %}">
+              <a href="{% url 'guidelines_review' %}">Project review</a>
+            </li>
+          </ul>
+        </li>
       {% endif %}
-          <i class="fa fa-fw fa-book"></i>
-          <span class="nav-link-text">Guidelines</span>
-        </a>
-        <!-- submenu -->
-      {% if guidelines_review_nav %}
-        <ul class="sidenav-second-level collapse show" id="guidelinesComponents">
-      {% else  %}
-        <ul class="sidenav-second-level collapse" id="guidelinesComponents">
-      {% endif %}
-          <li class="nav-item {% if guidelines_review_nav %}active{% endif %}">
-            <a href="{% url 'guidelines_review' %}">Project review</a>
-          </li>
-        </ul>
-      </li>
 
       <!-- usage stats -->
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-      {% if stats_nav %}
-        <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion" aria-expanded="true">
-      {% else %}
-        <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion" aria-expanded="False">
-      {% endif %}
-          <i class="fa fa-fw fa-chart-area"></i>
-          <span class="nav-link-text">Usage Stats</span>
-        </a>
-        <!-- submenu -->
+      {% if perms.project.can_view_stats %}
+        <li class="nav-item" data-toggle="tooltip" data-placement="right">
         {% if stats_nav %}
-        <ul class="sidenav-second-level collapse show" id="statsComponents">
-        {% else  %}
-        <ul class="sidenav-second-level collapse" id="statsComponents">
+          <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion" aria-expanded="true">
+        {% else %}
+          <a id="nav_usage_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#statsComponents" data-parent="#sideAccordion" aria-expanded="False">
         {% endif %}
-          <li>
-          <li class="nav-item {% if submenu == 'editorial' %}active{% endif %}">
-            <a href="{% url 'editorial_stats' %}">Editorial</a>
-          </li>
-          <li class="nav-item {% if submenu == 'credential' %}active{% endif %}">
-            <a href="{% url 'credentialing_stats' %}">Credentialing</a>
-          </li>
-          <li class="nav-item {% if submenu == 'submissions' %}active{% endif %}">
-            <a href="{% url 'submission_stats' %}">Submissions</a>
-          </li>
-        </ul>
-      </li>
+            <i class="fa fa-fw fa-chart-area"></i>
+            <span class="nav-link-text">Usage Stats</span>
+          </a>
+          <!-- submenu -->
+          {% if stats_nav %}
+          <ul class="sidenav-second-level collapse show" id="statsComponents">
+          {% else  %}
+          <ul class="sidenav-second-level collapse" id="statsComponents">
+          {% endif %}
+            <li>
+            <li class="nav-item {% if submenu == 'editorial' %}active{% endif %}">
+              <a href="{% url 'editorial_stats' %}">Editorial</a>
+            </li>
+            <li class="nav-item {% if submenu == 'credential' %}active{% endif %}">
+              <a href="{% url 'credentialing_stats' %}">Credentialing</a>
+            </li>
+            <li class="nav-item {% if submenu == 'submissions' %}active{% endif %}">
+              <a href="{% url 'submission_stats' %}">Submissions</a>
+            </li>
+          </ul>
+        </li>
+      {% endif %}
 
       <!-- static pages -->
-      <li class="nav-item {% if static_pages_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
-        <a id="nav_console_news" class="nav-link" href="{% url 'static_pages' %}">
-          <i class="fa fa-fw fa-window-maximize"></i>
-          <span class="nav-link-text">Static Pages</span>
-        </a>
-      </li>
+      {% if perms.physionet.change_section %}
+        <li class="nav-item {% if static_pages_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+          <a id="nav_console_news" class="nav-link" href="{% url 'static_pages' %}">
+            <i class="fa fa-fw fa-window-maximize"></i>
+            <span class="nav-link-text">Static Pages</span>
+          </a>
+        </li>
+      {% endif %}
 
     <!-- end of menu items -->
     </ul>

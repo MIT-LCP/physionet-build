@@ -16,7 +16,7 @@ from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.sites.models import Site
 from django.core.exceptions import ObjectDoesNotExist
@@ -109,20 +109,18 @@ def handling_editor(base_view):
 # ------------------------- Views begin ------------------------- #
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@user_passes_test(is_admin, login_url='/login/')
 def console_home(request):
-    return redirect('submitted_projects')
+    return render(request, 'console/console_home.html', {'console_home_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_publishedproject', raise_exception=True)
 def submitted_projects(request):
     """
     List of active submissions. Editors are assigned here.
     """
     user = request.user
-    if request.method == 'POST':
+    if request.method == 'POST' and user.has_perm('project.can_assign_editor'):
         assign_editor_form = forms.AssignEditorForm(request.POST)
         if assign_editor_form.is_valid():
             # Move this into project method
@@ -186,8 +184,7 @@ def submitted_projects(request):
          'yesterday': yesterday})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_publishedproject', raise_exception=True)
 def editor_home(request):
     """
     List of submissions the editor is responsible for
@@ -233,8 +230,7 @@ def submission_info_redirect(request, project_slug):
     return redirect('submission_info', project_slug=project_slug)
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('physionet.change_section', raise_exception=True)
 def submission_info(request, project_slug):
     """
     View information about a project under submission
@@ -618,6 +614,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
          'reassign_editor_form': reassign_editor_form, 'editor_home': True})
 
 
+@permission_required('project.change_storagerequest', raise_exception=True)
 def process_storage_response(request, storage_response_formset):
     """
     Implement the response to a storage request.
@@ -644,8 +641,8 @@ def process_storage_response(request, storage_response_formset):
                 messages.success(request,
                     'The storage request has been {}'.format(notification.RESPONSE_ACTIONS[storage_request.response]))
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('project.change_storagerequest', raise_exception=True)
 def storage_requests(request):
     """
     Page for listing and responding to project storage requests
@@ -668,8 +665,7 @@ def storage_requests(request):
          'storage_requests_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_publishedproject', raise_exception=True)
 def unsubmitted_projects(request):
     """
     List of unsubmitted projects
@@ -682,8 +678,7 @@ def unsubmitted_projects(request):
         {'projects': projects, 'unsubmitted_projects_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_publishedproject', raise_exception=True)
 def published_projects(request):
     """
     List of published projects
@@ -713,6 +708,7 @@ def send_files_to_gcp(pid):
         project.gcp.save()
 
 
+@permission_required('project.change_publishedproject', raise_exception=True)
 def manage_doi_request(request, project):
     """
     Manage a request to register or update a Digital Object Identifier (DOI).
@@ -757,8 +753,7 @@ def manage_doi_request(request, project):
     return message
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_publishedproject', raise_exception=True)
 def manage_published_project(request, project_slug, version):
     """
     Manage a published project
@@ -905,6 +900,7 @@ def manage_published_project(request, project_slug, version):
     )
 
 
+@permission_required('project.change_publishedproject', raise_exception=True)
 def gcp_bucket_management(request, project, user):
     """
     Create the database object and cloud bucket if they do not exist, and send
@@ -946,8 +942,7 @@ def gcp_bucket_management(request, project, user):
     send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_publishedproject', raise_exception=True)
 def rejected_submissions(request):
     """
     List of rejected submissions
@@ -958,8 +953,7 @@ def rejected_submissions(request):
         {'projects': projects, 'rejected_projects_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.view_user', raise_exception=True)
 def users(request, group='all'):
     """
     List of users
@@ -984,8 +978,7 @@ def users(request, group='all'):
     return render(request, 'console/users.html', {'users': users, 'group': group, 'user_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.view_user', raise_exception=True)
 def user_management(request, username):
     """
     Admin page for managing an individual user account.
@@ -1018,8 +1011,7 @@ def user_management(request, username):
                                                             'credentialing_app': credentialing_app})
     
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.view_user', raise_exception=True)
 def users_search(request, group):
     """
     Search user list.
@@ -1052,8 +1044,7 @@ def users_search(request, group):
     raise Http404()
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def known_references_search(request):
     """
     Search credential applications and user list.
@@ -1081,24 +1072,23 @@ def known_references_search(request):
     raise Http404()
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def complete_credential_applications(request):
     """
     Legacy page for processing credentialing applications.
     """
     return redirect(credential_processing)
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def complete_list_credentialed_people(request):
     """
     Legacy page that displayed a list of all approved MIMIC users.
     """
     return redirect(credential_applications, "successful")
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def process_credential_application(request, application_slug):
     """
     Process a credential application. View details, advance to next stage,
@@ -1331,8 +1321,7 @@ def process_credential_application(request, application_slug):
          'contact_cred_ref_form': contact_cred_ref_form})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def credential_processing(request):
     """
     Process applications for credentialed access.
@@ -1381,8 +1370,7 @@ def credential_processing(request):
         'processing_credentials_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def view_credential_application(request, application_slug):
     """
     View a credential application in any status.
@@ -1405,8 +1393,7 @@ def view_credential_application(request, application_slug):
                    'form': form, 'past_credentials_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def credential_applications(request, status):
     """
     Inactive credential applications. Split into successful and
@@ -1476,6 +1463,7 @@ def credential_applications(request, status):
          'p_applications': pending_apps})
 
 
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def search_credential_applications(request):
     """
     Search past credentialing applications.
@@ -1522,8 +1510,7 @@ def search_credential_applications(request):
         return all_successful_apps, unsuccessful_apps, pending_apps
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def credentialed_user_info(request, username):
     try:
         c_user = User.objects.get(username__iexact=username)
@@ -1534,8 +1521,7 @@ def credentialed_user_info(request, username):
         {'c_user':c_user, 'application':application})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('notification.change_news', raise_exception=True)
 def news_console(request):
     """
     List of news items
@@ -1546,8 +1532,7 @@ def news_console(request):
         {'news_items': news_items, 'news_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('notification.change_news', raise_exception=True)
 def news_add(request):
     if request.method == 'POST':
         form = forms.NewsForm(data=request.POST)
@@ -1563,8 +1548,7 @@ def news_add(request):
         'news_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('notification.change_news', raise_exception=True)
 def news_search(request):
     """
     Filtered list of news items
@@ -1579,8 +1563,7 @@ def news_search(request):
     raise Http404()
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('notification.change_news', raise_exception=True)
 def news_edit(request, news_id):
     try:
         news = News.objects.get(id=news_id)
@@ -1608,8 +1591,7 @@ def news_edit(request, news_id):
     return response
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_edit_featured_content', raise_exception=True)
 def featured_content(request):
     """
     List of news items
@@ -1656,8 +1638,7 @@ def featured_content(request):
         {'featured_content': featured_content, 'featured_content_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_edit_featured_content', raise_exception=True)
 def add_featured(request):
     """
     List of news items
@@ -1687,8 +1668,8 @@ def add_featured(request):
         'projects': projects, 'form': form, 'valid_search': valid_search,
         'featured_content_nav': True})
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('project.can_view_project_guidelines', raise_exception=True)
 def guidelines_review(request):
     """
     Guidelines for reviewers.
@@ -1697,8 +1678,7 @@ def guidelines_review(request):
         {'guidelines_review_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_stats', raise_exception=True)
 def editorial_stats(request):
     """
     Editorial stats for reviewers.
@@ -1741,8 +1721,7 @@ def editorial_stats(request):
                   'submenu': 'editorial', 'stats': stats})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_stats', raise_exception=True)
 def credentialing_stats(request):
     """
     Credentialing metrics.
@@ -1807,8 +1786,7 @@ def credentialing_stats(request):
 
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_stats', raise_exception=True)
 def submission_stats(request):
     stats = OrderedDict()
     todays_date = datetime.today()
@@ -1862,8 +1840,7 @@ def submission_stats(request):
                   {'stats_nav': True, 'submenu': 'submission', 'stats': stats})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.can_view_access_logs', raise_exception=True)
 def download_credentialed_users(request):
     """
     CSV create and download for database access.
@@ -1919,8 +1896,7 @@ def download_credentialed_users(request):
     return response
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def project_access(request):
     """
     List all the people that has access to credentialed databases
@@ -1932,8 +1908,7 @@ def project_access(request):
         {'c_projects': c_projects, 'project_access_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def project_access_manage(request, pid):
     projects = PublishedProject.objects.prefetch_related('duasignature_set__user__profile')
     c_project = get_object_or_404(projects, id=pid, access_policy=AccessPolicy.CREDENTIALED)
@@ -1956,8 +1931,7 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
 
         return qs
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def known_references(request):
     """
     List all known references witht he option of removing the contact date
@@ -1985,14 +1959,13 @@ def known_references(request):
     return render(request, 'console/known_references.html', {
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('physionet.change_section', raise_exception=True)
 def static_pages(request):
     return render(request, 'console/static_pages.html', {'pages': Page.choices(), 'static_pages_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('physionet.change_section', raise_exception=True)
 def static_page_sections(request, page):
     if request.method == 'POST':
         section_form = forms.SectionForm(data=request.POST, page=Page(page))
@@ -2020,8 +1993,7 @@ def static_page_sections(request, page):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('physionet.change_section', raise_exception=True)
 def static_page_sections_delete(request, page, pk):
     if request.method == 'POST':
         section = get_object_or_404(Section, page=Page(page), pk=pk)
@@ -2031,8 +2003,7 @@ def static_page_sections_delete(request, page, pk):
     return redirect('static_page_sections', page=page)
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('physionet.change_section', raise_exception=True)
 def static_page_sections_edit(request, page, pk):
     section = get_object_or_404(Section, page=Page(page), pk=pk)
     if request.method == 'POST':
