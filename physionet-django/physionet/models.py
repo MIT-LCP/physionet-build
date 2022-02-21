@@ -11,6 +11,7 @@ class Section(models.Model):
     order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
+        default_permissions = ('change',)
         ordering = ('order',)
         unique_together = (('page', 'order'),)
 

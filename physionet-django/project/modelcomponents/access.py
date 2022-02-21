@@ -34,6 +34,9 @@ class DUASignature(models.Model):
                              related_name='dua_signatures')
     sign_datetime = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        default_permissions = ()
+
 
 class DataAccessRequest(models.Model):
     PENDING_VALUE = 0
@@ -76,6 +79,9 @@ class DataAccessRequest(models.Model):
 
     responder_comments = SafeHTMLField(blank=True, max_length=10000)
 
+    class Meta:
+        default_permissions = ()
+
     def is_accepted(self):
         return self.status == self.ACCEPT_REQUEST_VALUE
 
@@ -115,6 +121,9 @@ class DataAccessRequestReviewer(models.Model):
 
     revocation_date = models.DateTimeField(null=True)
 
+    class Meta:
+        default_permissions = ()
+
     def revoke(self):
         self.revocation_date = timezone.now()
         self.is_revoked = True
@@ -140,6 +149,9 @@ class DataAccess(models.Model):
     platform = models.PositiveSmallIntegerField(choices=PLATFORM_ACCESS)
     location = models.CharField(max_length=100, null=True)
 
+    class Meta:
+        default_permissions = ()
+
 
 class AnonymousAccess(models.Model):
     """
@@ -164,6 +176,7 @@ class AnonymousAccess(models.Model):
         on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
+        default_permissions = ()
         unique_together = (("content_type", "object_id"),)
 
     def generate_access(self):
@@ -223,6 +236,9 @@ class License(models.Model):
     dua_name = models.CharField(max_length=100, blank=True, default='')
     dua_html_content = SafeHTMLField(blank=True, default='')
     access_request_template = SafeHTMLField(blank=True, default='')
+
+    class Meta:
+        default_permissions = ()
 
     def __str__(self):
         return self.name
