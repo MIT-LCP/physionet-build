@@ -33,11 +33,13 @@ from notification.utility import (
 )
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 from physionet import utility
+from physionet.enums import Page
 from physionet.middleware.maintenance import (
     ServiceUnavailable,
     allow_post_during_maintenance,
     disallow_during_maintenance,
 )
+from physionet.models import Section
 from physionet.settings.base import StorageTypes
 from project.models import Author, DUASignature, License, PublishedProject
 from requests_oauthlib import OAuth2Session
@@ -58,13 +60,19 @@ logger = logging.getLogger(__name__)
 
 @method_decorator(allow_post_during_maintenance, 'dispatch')
 class LoginView(auth_views.LoginView):
-    template_name = 'user/login.html'
-    extra_context = {
-        'enable_sso': settings.ENABLE_SSO,
-        'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
-    }
+    template_name = 'sso/login.html' if settings.ENABLE_SSO else 'user/login.html'
     authentication_form = forms.LoginForm
     redirect_authenticated_user = True
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        if not settings.ENABLE_SSO:
+            return context
+        sso_extra_context = {
+            'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
+            'sections': Section.objects.filter(page=Page.LOGIN_INST),
+        }
+        return {**context, **sso_extra_context}
 
 
 class LogoutView(auth_views.LogoutView):
