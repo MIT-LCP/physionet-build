@@ -214,7 +214,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                 and DUASignature.objects.filter(project=self, user=user).exists()
             )
         elif self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
-            return user.is_authenticated and user.is_credentialed and DataAccessRequest.objects.filter(
+            return user.is_authenticated and user.is_credentialed and DataAccessRequest.objects.get_active(
                 project=self,
                 requester=user,
                 status=DataAccessRequest.ACCEPT_REQUEST_VALUE

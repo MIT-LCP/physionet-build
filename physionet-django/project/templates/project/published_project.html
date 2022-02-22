@@ -369,7 +369,20 @@
     {% include "project/published_project_denied_downloads.html" %}
   {% endif %}
   <br>
+  {% if accepted_access_requests %}
+    <div class="alert alert-danger col-md-8" role="alert">
+      You are only approved for the following proposals:
+      <ul>
+        {% for access_request in accepted_access_requests %}
+          <li>{{ access_request.data_use_title }}</li>
+        {% endfor %}
+      </ul>
+      If you would like to use the data for a different purpose, <a href="{% url 'data_access_request_status' project.slug project.version %}">please reapply</a>.
+    </div>
+  {% endif %} 
 </div>
+
+
 
 {% endblock %}
 

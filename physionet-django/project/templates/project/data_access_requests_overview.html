@@ -16,6 +16,7 @@
                     <thead>
                     <tr>
                         <th>Requester</th>
+                        <th>Data Use Title</th>
                         <th>Status</th>
                         <th>Details</th>
                     </tr>
@@ -24,9 +25,12 @@
                     {% for req in requests %}
                         <tr>
                             <td>{{ req.requester.get_full_name }}</td>
-                            <td>{{ req.status_text }}</td>
+                            <td>{{ req.data_use_title }}</td>
                             <td>
-                                <a href="{% url  'data_access_request_view' req.project.slug req.project.version req.requester.id %}">Details</a>
+                                {{ req.status_text }}{% if req.is_accepted %}, valid {% if req.valid_until %}until {{ req.valid_until }}{% else %}forever {% endif %}{% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url  'data_access_request_view' req.project.slug req.project.version req.pk %}">Details</a>
                             </td>
                         </tr>
                     {% endfor %}

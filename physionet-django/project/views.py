@@ -64,6 +64,8 @@ from project.validators import validate_filename
 from user.forms import AssociatedEmailChoiceForm, ProfileForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User
 
+from django.db.models import F, DateTimeField, ExpressionWrapper
+
 LOGGER = logging.getLogger(__name__)
 
 def project_auth(auth_mode=0, post_auth_mode=0):
@@ -1764,7 +1766,7 @@ def published_project(request, project_slug, version, subdir=''):
         project=project,
         user=user
     ).exists()
-    has_accepted_access_request = False if not user.is_authenticated else DataAccessRequest.objects.filter(
+    has_accepted_access_request = False if not user.is_authenticated else DataAccessRequest.objects.get_active(
         project=project,
         requester=user,
         status=DataAccessRequest.ACCEPT_REQUEST_VALUE
@@ -1808,7 +1810,7 @@ def published_project(request, project_slug, version, subdir=''):
             utility.readable_size(s) for s in (project.main_storage_size, project.compressed_storage_size)
         ]
         files_panel_url = reverse('published_files_panel', args=(project.slug, project.version))
-
+        accepted_access_request = [] if not user.is_authenticated else DataAccessRequest.objects.get_active(project=project, requester=user, status=DataAccessRequest.ACCEPT_REQUEST_VALUE)
         context = {
             **context,
             **{
@@ -1823,6 +1825,7 @@ def published_project(request, project_slug, version, subdir=''):
                 'file_error': file_error,
                 'current_site': get_current_site(request),
                 'data_access': data_access,
+                'accepted_access_requests': accepted_access_request,
             },
         }
     elif subdir:
@@ -1875,76 +1878,44 @@ def request_data_access(request, project_slug, version):
     """
     Form for a user (requester) to request access to the data of a self managed project.
     """
-    user = request.user
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
 
-    try:
-        proj = PublishedProject.objects.get(slug=project_slug, version=version)
-    except PublishedProject.DoesNotExist:
-        raise Http404(Exception("Project does not exist"))
+    if project.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
+        return redirect('published_project', project_slug=project_slug, version=version)
 
-    if proj.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
-        return redirect('published_project',
-                        project_slug=project_slug, version=version)
-
-    if DataAccessRequest.objects.filter(requester=user, project=proj, status=
-    DataAccessRequest.PENDING_VALUE):
-        return redirect('data_access_request_status', project_slug=proj.slug,
-                        version=proj.version)
-
-    # not request pending for that user and that project.
     if request.method == 'POST':
-        # process access request form
-        project_request_form = forms.DataAccessRequestForm(project=proj,
-                                                           requester=user,
-                                                           template=None,
-                                                           prefix="proj",
-                                                           data=request.POST)
-
-        if (project_request_form.is_valid()):
-            data_access_req = project_request_form.save()
-
-            # trigger e-mail notification to reviewers
-            corresponding_author = proj.corresponding_author().user
-
-            reviewers = [p.reviewer for p in
-                         DataAccessRequestReviewer.objects.filter(
-                             project=proj, reviewer=user, is_revoked=False)]
-
-            notification.notify_owner_data_access_request(reviewers + [corresponding_author],
-                                                          data_access_req,
-                                                          request.scheme,
-                                                          request.get_host())
-
-            notification.confirm_user_data_access_request(data_access_req,
-                                                          request.scheme,
-                                                          request.get_host())
-
-            response = render(
-                request, 'project/data_access_request_submitted.html',
-                {'project': proj})
-            set_saved_fields_cookie(project_request_form,
-                                    request.path, response)
-            return response
-    else:
-        project_request_form = forms.DataAccessRequestForm(
-            project=proj, requester=user, template=proj.license.access_request_template, prefix="proj"
+        access_request_form = forms.DataAccessRequestForm(
+            project=project, requester=request.user, template=None, prefix="proj", data=request.POST
         )
 
-    is_additional_request = DataAccessRequest.objects.filter(requester=user,
-                                                             project=proj,
-                                                             status=
-                                                             DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
+        if access_request_form.is_valid():
+            access_request = access_request_form.save()
 
-    needs_credentialing = proj.access_policy == AccessPolicy.CREDENTIALED and not user.is_credentialed
+            corresponding_author = project.corresponding_author().user
+            reviewers = [reviewer.reviewer for reviewer in DataAccessRequestReviewer.objects.filter(project=project, reviewer=request.user, is_revoked=False)]
 
-    full_user_name = user.get_full_name()
+            notification.notify_owner_data_access_request(reviewers + [corresponding_author], access_request, request.scheme, request.get_host())
+            notification.confirm_user_data_access_request(access_request, request.scheme, request.get_host())
+
+            response = render(request, 'project/data_access_request_submitted.html', {'project': project})
+            set_saved_fields_cookie(access_request_form, request.path, response)
+
+            return response
+    else:
+        project_request_form = forms.DataAccessRequestForm(project=project, requester=request.user, template=project.license.access_request_template, prefix="proj")
+
+    accepted_requests = DataAccessRequest.objects.filter(requester=request.user, project=project, status=DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
+
+    needs_credentialing = project.access_policy == AccessPolicy.CREDENTIALED and not request.user.is_credentialed
+
+    full_user_name = request.user.get_full_name()
 
     return render(request, 'project/request_data_access.html',
                   {'project_request_form': project_request_form,
                    'needs_credentialing': needs_credentialing,
                    'full_user_name': full_user_name,
-                   'project': proj,
-                   'is_additional_request': is_additional_request
+                   'project': project,
+                   'accepted_requests': accepted_requests,
                    })
 
 
@@ -1954,41 +1925,27 @@ def data_access_request_status(request, project_slug, version):
     Requester can view the state of his/her data access request for a self managed
     project
     """
-    user = request.user
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
 
-    try:
-        proj = PublishedProject.objects.get(slug=project_slug, version=version)
-    except PublishedProject.DoesNotExist:
-        raise Http404(Exception("Project doesn't not exist"))
+    if project.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
+        return redirect('published_project', project_slug=project_slug, version=version)
 
-    if proj.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
-        return redirect('published_project',
-                         project_slug=project_slug, version=version)
+    access_requests = DataAccessRequest.objects.filter(requester=request.user, project=project).order_by('-request_datetime')
 
-    da_requests = DataAccessRequest.objects.filter(requester=user,
-                                                   project=proj).order_by(
-        '-request_datetime')
+    if not access_requests.exists():
+        return redirect('request_data_access', project_slug=project.slug, version=project.version)
 
-    if not da_requests:
-        return redirect('request_data_access', project_slug=proj.slug,
-                        version=proj.version)
+    if request.method == 'POST' and 'withdraw_request_id' in request.POST.keys():
+        access_request = get_object_or_404(DataAccessRequest, requester=request.user, project=project, id=request.POST['withdraw_request_id'])
+        access_request.status = DataAccessRequest.WITHDRAWN_VALUE
+        access_request.decision_datetime = timezone.now()
+        access_request.save()
 
-    if request.method == 'POST' and 'cancel_request' in request.POST.keys():
-        withdraw_req = DataAccessRequest.objects.get(
-            id=request.POST['cancel_request'])
-        withdraw_req.status = DataAccessRequest.WITHDRAWN_VALUE
-        withdraw_req.decision_datetime = timezone.now()
-        withdraw_req.save()
-
-        da_requests = DataAccessRequest.objects.filter(requester=user,
-                                                       project=proj).order_by(
-            '-request_datetime')
-
-    return render(request, 'project/data_access_request_status.html',
-                  {'data_access_request': da_requests[0],
-                   'older_requests': da_requests[1:],
-                   'max_review_days': DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT
-                   })
+    return render(request, 'project/data_access_request_status.html', {
+        'access_requests': access_requests,
+        'project': project,
+        'max_review_days': DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT
+    })
 
 
 @login_required
@@ -2008,8 +1965,7 @@ def data_access_requests_overview(request, project_slug, version):
                         project_slug=project_slug, version=version)
 
     if not proj.can_approve_requests(reviewer):
-        raise Http404(
-            Exception("You don't have access to the project requests overview"))
+        raise Http404("You don't have access to the project requests overview.")
 
     if request.method == 'POST' and 'stop_review' in request.POST.keys():
         try:
@@ -2036,72 +1992,44 @@ def data_access_requests_overview(request, project_slug, version):
 
 
 @login_required
-def data_access_request_view(request, project_slug, version, user_id):
+def data_access_request_view(request, project_slug, version, pk):
     """
     Responder/reviewer can see the data associated with a specific access request
     to his/her project
     """
-    reviewer = request.user
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+    access_request = get_object_or_404(DataAccessRequest, pk=pk, project=project)
 
-    try:
-        requester = User.objects.get(id=user_id)
-    except User.DoesNotExist:
-        raise Http404(Exception("User doesn't exist"))
+    if project.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
+        return redirect('published_project', project_slug=project_slug, version=version)
 
-    try:
-        proj = PublishedProject.objects.get(slug=project_slug, version=version)
-    except PublishedProject.DoesNotExist:
-        raise Http404(Exception("Project doesn't exist"))
+    if not project.can_approve_requests(request.user):
+        raise Http404("You don't have access to the project requests overview")
 
-    if proj.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
-        return redirect('published_project',
-                        project_slug=project_slug, version=version)
-
-    if not proj.can_approve_requests(reviewer):
-        raise Http404(
-            Exception("You don't have access to the project requests overview"))
-
-    da_requests = DataAccessRequest.objects.filter(requester=requester,
-                                                   project_id=proj).order_by(
-        '-request_datetime')
-
-    if not da_requests:
-        raise Http404(Exception("No requests found"))
-
-    if request.method == 'POST' and 'data_access_response' in request.POST.keys():
-        entry = DataAccessRequest.objects.get(
-            id=request.POST['data_access_response'])
-        response_form = forms.DataAccessResponseForm(responder_id=reviewer.id,
-                                                     prefix="proj",
-                                                     data=request.POST,
-                                                     instance=entry)
+    if request.method == 'POST':
+        response_form = forms.DataAccessResponseForm(responder=request.user, prefix="proj", data=request.POST, instance=access_request)
 
         if response_form.is_valid():
             response_form.save()
-            notification.notify_user_data_access_request(entry, request.scheme,
-                                                         request.get_host())
-            return redirect('project_home')
+            notification.notify_user_data_access_request(access_request, request.scheme, request.get_host())
+            return redirect('data_access_requests_overview', project_slug=project_slug, version=version)
+        
+        access_request.refresh_from_db()
     else:
-        response_form = forms.DataAccessResponseForm(responder_id=reviewer.id,
-                                                     prefix="proj")
+        response_form = forms.DataAccessResponseForm(responder=request.user, prefix="proj")
 
-    credentialing_data_lst = CredentialApplication.objects.filter(
-        user_id=requester.id).order_by("-application_datetime")
-
-    credentialing_data = credentialing_data_lst[
-        0] if credentialing_data_lst else None
+    credentialing_data = CredentialApplication.objects.filter(user=request.user).order_by("-application_datetime").first()
 
     legacy_credentialing_data = None
-    if not credentialing_data:
-        legacy_credentialing_data_lst = LegacyCredential.objects.filter(
-            migrated_user_id=requester.id).order_by("-mimic_approval_date")
-        legacy_credentialing_data = legacy_credentialing_data_lst[
-            0] if legacy_credentialing_data_lst else None
+    if credentialing_data is None:
+        legacy_credentialing_data = LegacyCredential.objects.filter(migrated_user_id=access_request.user).order_by("-mimic_approval_date").first()
+
+    other_access_requests = DataAccessRequest.objects.exclude(pk=pk).filter(requester=access_request.requester, project=project).order_by('-request_datetime')
 
     return render(request, 'project/data_access_request_view.html',
-                  {'da_request': da_requests[0],
+                  {'access_request': access_request,
+                  'other_access_requests': other_access_requests,
                    'response_form': response_form,
-                   'older_requests': da_requests[1:],
                    'credentialing_data': credentialing_data,
                    'legacy_credentialing_data': legacy_credentialing_data
                    })

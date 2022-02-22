@@ -1,4 +1,4 @@
-{% if older_requests|length %}
+{% if other_access_requests|length %}
     <h2>Previous Requests</h2>
     <div class="table-responsive">
         <table class="table table-bordered" width="100%"
@@ -14,7 +14,7 @@
             </tr>
             </thead>
             <tbody>
-            {% for req in older_requests %}
+            {% for req in other_access_requests %}
                 <tr>
                     <td>{{ req.request_datetime|date }}</td>
                     <td>{{ req.status_text }}</td>

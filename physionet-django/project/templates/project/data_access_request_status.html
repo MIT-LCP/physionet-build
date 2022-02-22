@@ -1,103 +1,43 @@
 {% extends "base.html" %}
-
 {% load static %}
-
 {% block title %}Data Access Request Status{% endblock %}
-
 {% block content %}
     <div class="container">
-        <h1>Data Access Request Status</h1>
-
-        We received the following request on
-        {{ data_access_request.request_datetime|date }} to access to the
-        data of
-        {{ data_access_request.project }}.
-
-        <hr/>
-        <h4>{{ data_access_request.data_use_title }}</h4>
-        <p>
-            {{ data_access_request.data_use_purpose | safe }}
-        </p>
-        <hr/>
-
-        {% if data_access_request.is_accepted or data_access_request.is_rejected %}
-            The authors decided
-            to {% if data_access_request.is_accepted %}
-            accept{% else %}not grant{% endif %} this request.
-
-            {% if data_access_request.responder_comments %}
-                The authors response:
-                <hr/>
-                <p>
-                {{ data_access_request.responder_comments | safe }}
-                </p>
-                <hr/>
+        <h1>Data Access Requests - {{ project }}</h1>
+        The reviewers received the following requests:
+        {% for access_request in access_requests %}
+            <hr />
+            <h4>{{ access_request.data_use_title }}</h4>
+            <small class="text-muted">
+                submitted on {{ access_request.request_datetime }}{% if not access_request.is_pending and not access_request.is_rejected and not access_request.is_withdrawn %}, valid {% if access_request.valid_until %}until {{ access_request.valid_until }} {% else %}forever{% endif %}{% endif %}
+                {% include 'project/data_access_request_badge.html' with data_access_request=access_request %}
+            </small>
+            <p>
+                {{ access_request.data_use_purpose|safe }}
+            </p>
+            {% if access_request.responder_comments %}
+                <br>
+                <strong>Responder Comments</strong>
+                <p>{{ access_request.responder_comments|safe }}</p>
             {% endif %}
-
-            We remind you, that you agreed to the following license terms:
-
-            <div>
-                {{ data_access_request.project.license.dua_html_content|safe }}
-            </div>
-        {% elif data_access_request.is_pending %}
-            The request is currently pending with the authors. They will
-            review your request within {{ max_review_days }} days.
-            <br/>
-            <button id="withdraw-button" type="button" class="btn
-            btn-danger" data-toggle="modal"
-                    data-target="#withdraw-modal">Withdraw Request
-            </button>
-            <div class="modal fade" id="withdraw-modal" tabindex="-1"
-                 role="dialog" aria-labelledby="withdraw-modal"
-                 aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Withdraw Request</h5>
-                            <button type="button" class="close"
-                                    data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <form action="" method="post">
-                            <div class="modal-body">
-                                {% csrf_token %}
-                                <p>Are you sure you wish to withdraw the request?</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button id="withdraw-button-submit"
-                                        class="btn btn-danger"
-                                        name="cancel_request"
-                                        value="{{ data_access_request.id }}"
-                                        type="submit">Yes, withdraw
-                                </button>
-                                <button type="button" class="btn btn-secondary"
-                                        data-dismiss="modal">No
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        {%  elif data_access_request.is_withdrawn %}
-            You withdrew the request.
+            {% if access_request.is_pending %}
+                <form method="post" action="{% url 'data_access_request_status' project.slug project.version %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="withdraw_request_id" id="withdraw_request_id" value="{{ access_request.id }}">
+                    <button type="submit" class="btn btn-sm btn-danger">Withdraw</button>
+                </form>
+            {% endif %}
+        {% endfor %}
+        <hr />
+        {% if access_requests %}
+            <br>
+            <strong>By submitting an access request, you agreed with the following terms:</strong>
+            <p>{{ project.license.dua_html_content|safe }}</p>
         {% endif %}
-
-        {% if not data_access_request.is_pending %}
-            <br/>
-            <div class="btn-container-rsp">
-                <a class="btn btn-primary btn-rsp" href="{% url 'request_data_access' data_access_request.project.slug data_access_request.project.version %}"  role="button">
-                    {%  if is_rejected or data_access_request.is_withdrawn %}
-                    Reapply
-                    {% else %} {# in case of accepted request #}
-                    Additional Request
-                    {% endif %}
-                </a>
-            </div>
-        {% endif %}
-
-        <hr/>
-
-        {% include "project/data_access_request_table_snippet.html" %}
+        <br>
+        <p>
+            <strong>If you would like to use the data for a different purpose, please reapply.<strong>
+        </p>
+        <a class="btn btn-success" href="{% url 'request_data_access' project.slug project.version %}">Reapply</a>
     </div>
 {% endblock %}
