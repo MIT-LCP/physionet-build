@@ -15,12 +15,14 @@ urlpatterns = [
         name='published_projects'),
     path('rejected-submissions/', views.rejected_submissions,
         name='rejected_submissions'),
-    path('project-access', views.project_access,
-        name='protected_project_access'),
+    path('project-access/', views.project_access_logs,
+        name='project_access_logs'),
     path('project-access-manage/<pid>/', views.project_access_manage,
         name='project_access_manage'),
     path('published-projects/<project_slug>/<version>/',
         views.manage_published_project, name='manage_published_project'),
+    path('data-access-logs/', views.project_access_requests_list, name='project_access_requests_list'),
+    path('data-access-logs/<int:pk>/', views.project_access_requests_detail, name='project_access_requests_detail'),
 
     # Individual edit pages
     path('submitted-projects/<project_slug>/',

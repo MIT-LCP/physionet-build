@@ -42,6 +42,7 @@ from project.models import (
     ActiveProject,
     ArchivedProject,
     DataAccess,
+    DataAccessRequest,
     DUASignature,
     EditLog,
     Publication,
@@ -1921,7 +1922,7 @@ def download_credentialed_users(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def project_access(request):
+def project_access_logs(request):
     """
     List all the people that has access to credentialed databases
     """
@@ -1929,7 +1930,7 @@ def project_access(request):
         member_count=Count('duasignature'))
 
     return render(request, 'console/project_access.html',
-        {'c_projects': c_projects, 'project_access_nav': True})
+        {'c_projects': c_projects, 'project_access_logs_nav': True})
 
 
 @login_required
@@ -1940,7 +1941,39 @@ def project_access_manage(request, pid):
 
     return render(request, 'console/project_access_manage.html', {
         'c_project': c_project, 'project_members': c_project.duasignature_set.all(),
-        'project_access_nav': True})
+        'project_access_logs_nav': True})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_requests_list(request):
+    projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW).annotate(
+        access_requests_count=Count('data_access_requests')
+    ).order_by('-title')
+
+    q = request.GET.get('q')
+    if q:
+        projects = projects.filter(title__icontains=q)
+
+    projects = paginate(request, projects, 50)
+
+    return render(request, 'console/project_access_requests_list.html', {'access_requests_nav': True, 'projects': projects})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_requests_detail(request, pk):
+    project = get_object_or_404(PublishedProject, access_policy=AccessPolicy.CONTRIBUTOR_REVIEW, pk=pk)
+    access_requests = DataAccessRequest.objects.filter(project=project)
+
+    q = request.GET.get('q')
+    if q:
+        access_requests = access_requests.filter(requester__username__icontains=q)
+    
+    access_requests = access_requests.order_by('-request_datetime')
+    access_requests = paginate(request, access_requests, 50)
+
+    return render(request, 'console/project_access_requests_detail.html', {'access_requests_nav': True, 'project': project, 'access_requests': access_requests})
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
