@@ -10,6 +10,7 @@
     "last_login": "2020-04-10T15:51:15.446Z",
     "is_active": true,
     "is_admin": true,
+    "is_superuser": true,
     "is_credentialed": false,
     "credential_datetime": null
   }
