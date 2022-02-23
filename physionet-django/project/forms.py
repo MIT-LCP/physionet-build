@@ -806,8 +806,16 @@ class AccessMetadataForm(forms.ModelForm):
         if self.access_policy is None:
             self.access_policy = self.instance.access_policy
 
-        self.fields['license'].queryset = License.objects.filter(is_active=True, project_types=self.instance.resource_type, access_policy=self.access_policy)
-        self.fields['dua'].queryset = DUA.objects.filter(is_active=True, project_types=self.instance.resource_type, access_policy=self.access_policy)
+        self.fields['license'].queryset = License.objects.filter(
+            is_active=True,
+            project_types=self.instance.resource_type,
+            access_policy=self.access_policy
+        )
+        self.fields['dua'].queryset = DUA.objects.filter(
+            is_active=True,
+            project_types=self.instance.resource_type,
+            access_policy=self.access_policy
+        )
 
         if self.access_policy not in {AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW}:
             self.fields['required_trainings'].disabled = True
