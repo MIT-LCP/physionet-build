@@ -367,7 +367,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_staff(self):
         "Is the user a member of staff?"
-        return self.is_admin
+        return self.is_superuser
 
     # Custom fields and methods
     def get_emails(self, is_verified=True, include_primary=True):

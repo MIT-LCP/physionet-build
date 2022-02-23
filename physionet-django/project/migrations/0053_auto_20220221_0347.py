@@ -143,8 +143,4 @@ class Migration(migrations.Migration):
             name='uploadeddocument',
             options={'default_permissions': ()},
         ),
-        migrations.RemoveConstraint(
-            model_name='dataaccessrequestreviewer',
-            name='unique project reviewer',
-        ),
     ]
