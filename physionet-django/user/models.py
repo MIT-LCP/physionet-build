@@ -936,6 +936,21 @@ class CredentialApplication(models.Model):
         self.credential_review.status = review_status
         self.credential_review.save()
 
+    def get_review_status(self):
+        """
+        Get the current review status of a credentialing application. Hacky.
+        Could be simplified to return self.credential_review.status later.
+        """
+        if hasattr(self, 'credential_review') and self.credential_review.status >= 10:
+            title_dict = {a: k for a, k in CredentialReview.REVIEW_STATUS_LABELS}
+            status = title_dict[self.credential_review.status]
+            if "review" not in status and "check" not in status:
+                status = status + " review"
+        else:
+            status = 'Awaiting review'
+
+        return status
+
 
 class CredentialReview(models.Model):
     """
