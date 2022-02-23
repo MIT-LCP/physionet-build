@@ -141,7 +141,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         50: 'Awaiting authors to approve publication.',
         60: 'Awaiting editor to publish.',
     }
-    
+
     class Meta:
         default_permissions = ()
 

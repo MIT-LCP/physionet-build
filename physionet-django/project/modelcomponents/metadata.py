@@ -651,7 +651,7 @@ class Contact(models.Model):
     email = models.EmailField(max_length=255)
     project = models.OneToOneField('project.PublishedProject',
         related_name='contact', on_delete=models.CASCADE)
-    
+
     class Meta:
         default_permissions = ()
 

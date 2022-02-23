@@ -352,7 +352,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         default_permissions = ('view',)
-    
+
     # Mandatory methods for default authentication backend
     def get_full_name(self):
         return self.profile.get_full_name()
@@ -541,7 +541,7 @@ class LegacyCredential(models.Model):
     migrated = models.BooleanField(default=False)
     migration_date = models.DateTimeField(null=True)
     migrated_user = models.ForeignKey('user.User', null=True, on_delete=models.CASCADE)
-    
+
     reference_email = models.CharField(max_length=255, blank=True, default='')
 
     revoked_datetime = models.DateTimeField(null=True)

@@ -103,11 +103,6 @@ class DataAccessRequestReviewer(models.Model):
     A user who is invited to review data access requests of self managed
     credentialing projects.
     """
-
-    class Meta:
-        constraints = [models.UniqueConstraint(fields=['project', 'reviewer'],
-                                              name='unique project reviewer')]
-
     project = models.ForeignKey('project.PublishedProject',
                                 related_name='data_access_request_reviewers',
                                 on_delete=models.CASCADE)
@@ -123,6 +118,9 @@ class DataAccessRequestReviewer(models.Model):
 
     class Meta:
         default_permissions = ()
+        constraints = [
+            models.UniqueConstraint(fields=['project', 'reviewer'], name='unique project reviewer')
+        ]
 
     def revoke(self):
         self.revocation_date = timezone.now()

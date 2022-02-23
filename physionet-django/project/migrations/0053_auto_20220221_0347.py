@@ -104,7 +104,16 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='publishedproject',
-            options={'default_permissions': ('change',), 'permissions': [('can_edit_featured_content', 'Can edit featured content'), ('can_view_access_logs', 'Can view access logs'), ('can_view_project_guidelines', 'Can view project guidelines'), ('can_view_stats', 'Can view stats'), ('can_assign_editor', 'Can assign editor')]},
+            options={
+                'default_permissions': ('change',),
+                'permissions': [
+                    ('can_edit_featured_content', 'Can edit featured content'),
+                    ('can_view_access_logs', 'Can view access logs'),
+                    ('can_view_project_guidelines', 'Can view project guidelines'),
+                    ('can_view_stats', 'Can view stats'),
+                    ('can_assign_editor', 'Can assign editor')
+                ]
+            },
         ),
         migrations.AlterModelOptions(
             name='publishedpublication',

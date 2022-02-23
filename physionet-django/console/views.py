@@ -1785,7 +1785,6 @@ def credentialing_stats(request):
                    'stats': stats})
 
 
-
 @permission_required('project.can_view_stats', raise_exception=True)
 def submission_stats(request):
     stats = OrderedDict()
@@ -1930,6 +1929,7 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(username__icontains=self.q)
 
         return qs
+
 
 @permission_required('user.change_credentialapplication', raise_exception=True)
 def known_references(request):
