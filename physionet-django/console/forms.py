@@ -16,6 +16,7 @@ from notification.models import News
 from physionet.models import Section
 from project.models import (
     ActiveProject,
+    AccessPolicy,
     Contact,
     CopyeditLog,
     DataAccess,
@@ -944,10 +945,15 @@ class LicenseForm(forms.ModelForm):
         model = License
         fields = ('name', 'version', 'slug', 'is_active', 'html_content', 'home_page', 'access_policy', 'project_types')
         labels = {'html_content': 'Content'}
-        
+
 
 class DUAForm(forms.ModelForm):
     class Meta:
         model = DUA
         fields = ('name', 'version', 'slug', 'is_active', 'html_content', 'access_template', 'access_policy', 'project_types')
         labels = {'html_content': 'Content'}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['access_policy'].choices = AccessPolicy.choices(gte_value=AccessPolicy.CREDENTIALED)

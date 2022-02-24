@@ -42,13 +42,17 @@
                     {{ project_type.name }}{% if not forloop.last %},{% endif %}
                   {% endfor %}
                 </td>
+                <td>
                 {% if license.access_policy == AccessPolicy.OPEN %}
-                  <td>Open</td>
+                  Open
                 {% elif license.access_policy == AccessPolicy.RESTRICTED %}
-                  <td>Restricted</td>
+                  Restricted
                 {% elif license.access_policy == AccessPolicy.CREDENTIALED %}
-                  <td>Credentialed</td>
+                  Credentialed
+                {% elif license.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
+                  Contributor Review
                 {% endif %}
+                </td>
                 <td>
                   <a href="{% url 'license_detail' license.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
                   <a href="{% url 'license_new_version' license.pk %}" class="btn btn-sm btn-success" role="button">New version</a>

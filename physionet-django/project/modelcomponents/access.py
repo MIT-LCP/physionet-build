@@ -20,8 +20,8 @@ class AccessPolicy(IntEnum):
     do_not_call_in_templates = True
 
     @classmethod
-    def choices(cls):
-        return tuple((option.value, option.name.replace("_", " ").title()) for option in cls)
+    def choices(cls, gte_value=0):
+        return tuple((option.value, option.name.replace("_", " ").title()) for option in cls if option.value >= gte_value)
 
 
 class DUASignature(models.Model):

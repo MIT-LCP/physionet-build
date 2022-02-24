@@ -43,13 +43,17 @@
                     {{ project_type.name }}{% if not forloop.last %},{% endif %}
                   {% endfor %}
                 </td>
-                {% if dua.access_policy == AccessPolicy.OPEN %}
-                  <td>Open</td>
-                {% elif dua.access_policy == AccessPolicy.RESTRICTED %}
-                  <td>Restricted</td>
-                {% elif dua.access_policy == AccessPolicy.CREDENTIALED %}
-                  <td>Credentialed</td>
-                {% endif %}
+                <td>
+                  {% if dua.access_policy == AccessPolicy.OPEN %}
+                    Open
+                  {% elif dua.access_policy == AccessPolicy.RESTRICTED %}
+                    Restricted
+                  {% elif dua.access_policy == AccessPolicy.CREDENTIALED %}
+                    Credentialed
+                  {% elif dua.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
+                    Contributor Review
+                  {% endif %}
+                </td>
                 <td>
                   <a href="{% url 'dua_detail' dua.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
                   <a href="{% url 'dua_new_version' dua.pk %}" class="btn btn-sm btn-success" role="button">New version</a>
