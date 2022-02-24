@@ -2,23 +2,28 @@
 
 {% load static %}
 
-{% block title %}To be changed{% endblock %}
+{% block title %}{{ SITE_NAME }} - Training{% endblock %}
 
 {% block content %}
-<h1>To be changed</h1>
+<h1>{{ training.user.get_full_name }} - Process Training</h1>
 <hr>
 
 <div class="card-columns row">
     <div class="col-sm-5">
         <div class="card mb-4">
             <div class="card-header">
-                Training information
+                Application information
             </div>
             <div class="card-body">
+                <p>
+                    Username: <a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a><br>
+                    Applied: {{ training.application_datetime|date }}
+                </p>
+                <h5>{{ training.training_type.name }} Training</h5>
                 {% if training.completion_report %}
                     Document: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
                 {% endif %}
-                {% if training.completion_report_url %}
+                {% if training.completion_report_url %}\
                     URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
                 {% endif %}
                 Submitted on: {{ training.application_datetime|date }}
