@@ -2,6 +2,7 @@ from django.db import models
 
 from project.models import SafeHTMLField
 
+
 class StaticPage(models.Model):
     title = models.CharField(max_length=64)
     url = models.CharField(max_length=64, unique=True)
