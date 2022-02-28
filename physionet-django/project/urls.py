@@ -73,7 +73,7 @@ urlpatterns = [
     path('<project_slug>/ethics/edit-document/', views.edit_ethics, name='edit_ethics'),
     path('ethics/<path:file_name>/', views.serve_document, name='serve_document'),
     path(
-        '<project_slug>/view-required-trainings/',
+        '<project_slug>/view-required-training/',
         views.project_required_trainings_preview,
         name='project_required_trainings_preview',
     ),

@@ -41,7 +41,7 @@ urlpatterns = [
         name='published_project_license',
     ),
     path(
-        'content/<project_slug>/view-required-trainings/<version>/',
+        'content/<project_slug>/view-required-training/<version>/',
         project_views.published_project_required_trainings,
         name='published_project_required_trainings',
     ),
