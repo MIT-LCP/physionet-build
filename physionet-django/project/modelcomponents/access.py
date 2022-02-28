@@ -85,7 +85,9 @@ class DataAccessRequest(models.Model):
     objects = DataAccessRequestManager.from_queryset(DataAccessRequestQuerySet)()
 
     def is_accepted(self):
-        return self.status == self.ACCEPT_REQUEST_VALUE and (self.duration is None or self.decision_datetime + self.duration > timezone.now())
+        return self.status == self.ACCEPT_REQUEST_VALUE and (
+            self.duration is None or self.decision_datetime + self.duration > timezone.now()
+        )
 
     def is_rejected(self):
         return self.status == self.REJECT_REQUEST_VALUE

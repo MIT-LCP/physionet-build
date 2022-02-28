@@ -997,7 +997,9 @@ class DataAccessRequestForm(forms.ModelForm):
 
 
 class DataAccessResponseForm(forms.ModelForm):
-    duration = forms.IntegerField(min_value=0, initial=14, label='Duration (in days)', help_text="If you enter 0, the access will not expire.")
+    duration = forms.IntegerField(
+        min_value=0, initial=14, label='Duration (in days)', help_text="If you enter 0, the access will not expire."
+    )
 
     class Meta:
         model = DataAccessRequest

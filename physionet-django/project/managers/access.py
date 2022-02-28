@@ -15,9 +15,8 @@ class DataAccessRequestQuerySet(QuerySet):
 class DataAccessRequestManager(Manager):
     def get_queryset(self):
         return super().get_queryset().annotate(
-            valid_until=
-                ExpressionWrapper(
-                    F('decision_datetime') + F('duration'),
-                    output_field=DateTimeField()
-                )
+            valid_until=ExpressionWrapper(
+                F('decision_datetime') + F('duration'),
+                output_field=DateTimeField()
+            )
         )

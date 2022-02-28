@@ -1872,9 +1872,16 @@ def download_credentialed_users(request):
     # Create the HttpResponse object with the appropriate CSV header.
     project_access = DUASignature.objects.filter(project__access_policy=AccessPolicy.CREDENTIALED)
     added = []
-    dua_info_csv = [['First name', 'Last name', 'E-mail', 'Institution', 'Country',
-    'MIMIC approval date', 'eICU approval date',
-    'General research area for which the data will be used']]
+    dua_info_csv = [[
+        'First name',
+        'Last name',
+        'E-mail',
+        'Institution',
+        'Country',
+        'MIMIC approval date',
+        'eICU approval date',
+        'General research area for which the data will be used'
+    ]]
     for person in project_access:
         application = person.user.credential_applications.last()
         mimic_signature_date = eicu_signature_date = None
@@ -1929,8 +1936,9 @@ def project_access_logs(request):
     c_projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CREDENTIALED).annotate(
         member_count=Count('duasignature'))
 
-    return render(request, 'console/project_access.html',
-        {'c_projects': c_projects, 'project_access_logs_nav': True})
+    return render(request, 'console/project_access.html', {
+        'c_projects': c_projects, 'project_access_logs_nav': True
+    })
 
 
 @login_required
@@ -1957,7 +1965,9 @@ def project_access_requests_list(request):
 
     projects = paginate(request, projects, 50)
 
-    return render(request, 'console/project_access_requests_list.html', {'access_requests_nav': True, 'projects': projects})
+    return render(request, 'console/project_access_requests_list.html', {
+        'access_requests_nav': True, 'projects': projects
+    })
 
 
 @login_required
@@ -1973,7 +1983,9 @@ def project_access_requests_detail(request, pk):
     access_requests = access_requests.order_by('-request_datetime')
     access_requests = paginate(request, access_requests, 50)
 
-    return render(request, 'console/project_access_requests_detail.html', {'access_requests_nav': True, 'project': project, 'access_requests': access_requests})
+    return render(request, 'console/project_access_requests_detail.html', {
+        'access_requests_nav': True, 'project': project, 'access_requests': access_requests
+    })
 
 
 @login_required

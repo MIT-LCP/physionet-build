@@ -994,7 +994,7 @@ class TestSelfManagedProjectWorkflows(TestMixin):
             mail_outbox_size = len(mail.outbox)
 
             # submitter accepts with comment
-            response = self.client.post(reverse('data_access_request_view', args=(
+            self.client.post(reverse('data_access_request_view', args=(
                 project.slug, project.version, da_req.first().id)),
                              data={'proj-status': [
                                  str(DataAccessRequest.ACCEPT_REQUEST_VALUE)],
