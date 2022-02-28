@@ -14545,5 +14545,83 @@
     "gcp_email": 7,
     "aws_id": "0123456789"
   }
+},
+{
+  "model": "auth.group",
+  "pk": 1,
+  "fields": {
+      "name": "Admin",
+      "permissions": [
+          42,
+          43,
+          40,
+          36,
+          37,
+          38,
+          39,
+          35,
+          41,
+          34,
+          33
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 2,
+  "fields": {
+      "name": "Managing Editor",
+      "permissions": [
+          40,
+          37,
+          39,
+          35,
+          41
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 3,
+  "fields": {
+      "name": "Handling Editor",
+      "permissions": [
+          37,
+          35
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 4,
+  "fields": {
+      "name": "Reviewer",
+      "permissions": [
+          35
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 5,
+  "fields": {
+      "name": "Writer",
+      "permissions": [
+          42,
+          43,
+          36
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 6,
+  "fields": {
+      "name": "Credentialer",
+      "permissions": [
+          34,
+          33
+      ]
+  }
 }
 ]
