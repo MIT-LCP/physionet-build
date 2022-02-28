@@ -1,6 +1,5 @@
 from django.db import models
 
-from physionet.enums import Page
 from project.models import SafeHTMLField
 
 class StaticPage(models.Model):
