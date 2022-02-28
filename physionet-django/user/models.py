@@ -941,13 +941,14 @@ class CredentialApplication(models.Model):
         Get the current review status of a credentialing application. Hacky.
         Could be simplified to return self.credential_review.status later.
         """
-        if hasattr(self, 'credential_review') and self.credential_review.status >= 10:
-            title_dict = {a: k for a, k in CredentialReview.REVIEW_STATUS_LABELS}
-            status = title_dict[self.credential_review.status]
-            if "review" not in status and "check" not in status:
-                status = status + " review"
-        else:
+        if not hasattr(self, 'credential_review'):
             status = 'Awaiting review'
+        elif self.credential_review.status <= 40:
+            status = 'Awaiting review'
+        elif self.credential_review.status == 50:
+            status = 'Awaiting a response from your reference'
+        elif self.credential_review.status >= 60:
+            status = 'Awaiting final approval'
 
         return status
 
