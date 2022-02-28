@@ -936,6 +936,22 @@ class CredentialApplication(models.Model):
         self.credential_review.status = review_status
         self.credential_review.save()
 
+    def get_review_status(self):
+        """
+        Get the current review status of a credentialing application. Hacky.
+        Could be simplified to return self.credential_review.status later.
+        """
+        if not hasattr(self, 'credential_review'):
+            status = 'Awaiting review'
+        elif self.credential_review.status <= 40:
+            status = 'Awaiting review'
+        elif self.credential_review.status == 50:
+            status = 'Awaiting a response from your reference'
+        elif self.credential_review.status >= 60:
+            status = 'Awaiting final approval'
+
+        return status
+
 
 class CredentialReview(models.Model):
     """
