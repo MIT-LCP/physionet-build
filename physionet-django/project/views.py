@@ -1949,6 +1949,17 @@ def data_access_request_status(request, project_slug, version):
 
 
 @login_required
+def data_access_request_status_detail(request, project_slug, version, pk):
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+    access_request = get_object_or_404(DataAccessRequest, project=project, pk=pk)
+
+    return render(request, 'project/data_access_request_status_detail.html', {
+        'access_request': access_request,
+        'project': project,
+    })
+
+
+@login_required
 def data_access_requests_overview(request, project_slug, version):
     """
     Overview over all issued access requests for the request reviewer(s)
@@ -1967,16 +1978,21 @@ def data_access_requests_overview(request, project_slug, version):
     if not proj.can_approve_requests(reviewer):
         raise Http404("You don't have access to the project requests overview.")
 
-    if request.method == 'POST' and 'stop_review' in request.POST.keys():
-        try:
-            entry = DataAccessRequestReviewer.objects.get(
-                project=proj, reviewer_id=reviewer.id, is_revoked=False)
-            entry.revoke()
+    if request.method == 'POST':
+        if 'stop_review' in request.POST.keys():
+            try:
+                entry = DataAccessRequestReviewer.objects.get(
+                    project=proj, reviewer_id=reviewer.id, is_revoked=False)
+                entry.revoke()
 
-            notification.notify_owner_data_access_review_withdrawal(entry)
-            return redirect('project_home')
-        except DataAccessRequestReviewer.DoesNotExist:
-            pass
+                notification.notify_owner_data_access_review_withdrawal(entry)
+                return redirect('project_home')
+            except DataAccessRequestReviewer.DoesNotExist:
+                pass
+        elif 'revoke_request_id' in request.POST.keys():
+            access_request = get_object_or_404(DataAccessRequest, pk=request.POST['revoke_request_id'])
+            access_request.status = DataAccessRequest.REVOKED_VALUE
+            access_request.save()
 
     all_requests = DataAccessRequest.objects.filter(project_id=proj).order_by(
         '-request_datetime')
@@ -2013,7 +2029,7 @@ def data_access_request_view(request, project_slug, version, pk):
             response_form.save()
             notification.notify_user_data_access_request(access_request, request.scheme, request.get_host())
             return redirect('data_access_requests_overview', project_slug=project_slug, version=version)
-        
+
         access_request.refresh_from_db()
     else:
         response_form = forms.DataAccessResponseForm(responder=request.user, prefix="proj")

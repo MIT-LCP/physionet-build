@@ -20,9 +20,10 @@
       <table class="table table-bordered">
         <thead>
           <tr>
-            <th>Project Name</th>
+            <th>User</th>
             <th>Data Use Title</th>
             <th>Data Use Purpose</th>
+            <th>Reviewer</th>
             <th>Responder Comments</th>
             <th>Status</th>
           </tr>
@@ -37,7 +38,7 @@
               <td>{{ access_request.status_text }}{% if access_request.is_accepted %}, valid {% if access_request.valid_until %}until {{ access_request.valid_until }}{% else %}forever {% endif %}{% endif %}</td>
             </tr>
           {% endfor %}
-        </tbody> 
+        </tbody>
       </table>
       {% include "console/pagination.html" with pagination=access_requests %}
     </div>

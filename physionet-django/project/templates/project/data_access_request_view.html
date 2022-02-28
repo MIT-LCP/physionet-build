@@ -72,16 +72,19 @@
                         Submit
                         Decision
                     </button>
-                {% elif access_request.is_accepted or access_request.is_rejected %}
+                {% elif access_request.is_accepted or access_request.is_rejected or access_request.is_revoked %}
                     {{ access_request.responder }} decided
                     {{ access_request.decision_datetime|date }}
                     to
-                    {% if access_request.is_accepted %}
+                    {% if access_request.is_accepted or access_request.is_revoked %}
                         accept
                     {% else %}
                         not grant
                     {% endif %}
-                    this request.
+                    this request.<br>
+                    {% if access_request.is_revoked %}
+                        <strong>The access request was revoked.</strong>
+                    {% endif %}
                     {% if access_request.responder_comments %}
                         The response was:
                         <hr />

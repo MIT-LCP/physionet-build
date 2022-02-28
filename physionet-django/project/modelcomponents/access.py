@@ -42,6 +42,7 @@ class DataAccessRequest(models.Model):
     REJECT_REQUEST_VALUE = 1
     WITHDRAWN_VALUE = 2
     ACCEPT_REQUEST_VALUE = 3
+    REVOKED_VALUE = 4
 
     REJECT_ACCEPT = (
         (REJECT_REQUEST_VALUE, 'Reject'),
@@ -52,7 +53,8 @@ class DataAccessRequest(models.Model):
         PENDING_VALUE: "pending",
         REJECT_REQUEST_VALUE: "rejected",
         WITHDRAWN_VALUE: "withdrawn",
-        ACCEPT_REQUEST_VALUE: "accepted"
+        ACCEPT_REQUEST_VALUE: "accepted",
+        REVOKED_VALUE: "revoked",
     }
 
     DATA_ACCESS_REQUESTS_DAY_LIMIT = 14
@@ -93,6 +95,9 @@ class DataAccessRequest(models.Model):
 
     def is_pending(self):
         return self.status == self.PENDING_VALUE
+
+    def is_revoked(self):
+        return self.status == self.REVOKED_VALUE
 
     def status_text(self):
         return self.status_texts.get(self.status, 'unknown')

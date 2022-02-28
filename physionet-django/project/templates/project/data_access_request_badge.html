@@ -6,6 +6,8 @@
  <span class="badge badge-danger">Withdrawn</span>
 {% elif data_access_request.is_rejected %}
     <span class="badge badge-danger">Rejected</span>
+{% elif data_access_request.is_revoked %}
+    <span class="badge badge-danger">Revoked</span>
 {% else %}
     <span class="badge badge-danger">Expired</span>
 {% endif %}
