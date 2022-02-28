@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-
     def migrate_forward(apps, schema_editor):
         StaticPage = apps.get_model('physionet', 'StaticPage')
         Section = apps.get_model('physionet', 'Section')
@@ -47,4 +46,3 @@ class Migration(migrations.Migration):
         ),
         migrations.RunPython(migrate_forward, migrate_backward),
     ]
-
