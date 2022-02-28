@@ -1017,7 +1017,7 @@ def user_management(request, username):
                                                             'emails': emails,
                                                             'projects': projects,
                                                             'credentialing_app': credentialing_app})
-    
+
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -1026,7 +1026,7 @@ def users_search(request, group):
     Search user list.
 
     Args:
-        group (str): group of users to filter search. Either 'all' for all users or 
+        group (str): group of users to filter search. Either 'all' for all users or
             'inactive' to filter to inactive users only.
     """
 
@@ -1543,7 +1543,7 @@ def news_console(request):
     """
     news_items = News.objects.all().order_by('-publish_datetime')
     news_items = paginate(request, news_items, 50)
-    return render(request, 'console/news_console.html', 
+    return render(request, 'console/news_console.html',
         {'news_items': news_items, 'news_nav': True})
 
 
@@ -1872,8 +1872,8 @@ def download_credentialed_users(request):
     # Create the HttpResponse object with the appropriate CSV header.
     project_access = DUASignature.objects.filter(project__access_policy=AccessPolicy.CREDENTIALED)
     added = []
-    dua_info_csv = [['First name', 'Last name', 'E-mail', 'Institution', 'Country', 
-    'MIMIC approval date', 'eICU approval date', 
+    dua_info_csv = [['First name', 'Last name', 'E-mail', 'Institution', 'Country',
+    'MIMIC approval date', 'eICU approval date',
     'General research area for which the data will be used']]
     for person in project_access:
         application = person.user.credential_applications.last()
@@ -1969,11 +1969,19 @@ def project_access_requests_detail(request, pk):
     q = request.GET.get('q')
     if q:
         access_requests = access_requests.filter(requester__username__icontains=q)
-    
+
     access_requests = access_requests.order_by('-request_datetime')
     access_requests = paginate(request, access_requests, 50)
 
     return render(request, 'console/project_access_requests_detail.html', {'access_requests_nav': True, 'project': project, 'access_requests': access_requests})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def access_request(request, pk):
+    access_request = get_object_or_404(DataAccessRequest, pk=pk)
+
+    return render(request, 'console/access_request.html', {'access_request': access_request})
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):

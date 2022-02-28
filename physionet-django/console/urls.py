@@ -23,6 +23,7 @@ urlpatterns = [
         views.manage_published_project, name='manage_published_project'),
     path('data-access-logs/', views.project_access_requests_list, name='project_access_requests_list'),
     path('data-access-logs/<int:pk>/', views.project_access_requests_detail, name='project_access_requests_detail'),
+    path('data-access-request/<int:pk>/', views.access_request, name='access_request'),
 
     # Individual edit pages
     path('submitted-projects/<project_slug>/',

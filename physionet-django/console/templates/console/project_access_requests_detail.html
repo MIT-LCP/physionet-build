@@ -22,20 +22,19 @@
           <tr>
             <th>User</th>
             <th>Data Use Title</th>
-            <th>Data Use Purpose</th>
             <th>Reviewer</th>
-            <th>Responder Comments</th>
             <th>Status</th>
+            <th>View</th>
           </tr>
         </thead>
         <tbody>
           {% for access_request in access_requests %}
             <tr>
-              <td>{{ access_request.requester }}</td>
+              <td><a href="#">{{ access_request.requester }}</a></td>
               <td>{{ access_request.data_use_title }}</td>
-              <td>{{ access_request.data_use_purpose|safe }}</td>
-              <td>{{ access_request.responder_comments|safe }}</td>
+              <td>{{ access_request.responder.get_full_name }}</td>
               <td>{{ access_request.status_text }}{% if access_request.is_accepted %}, valid {% if access_request.valid_until %}until {{ access_request.valid_until }}{% else %}forever {% endif %}{% endif %}</td>
+              <td><a href="{% url 'access_request' access_request.pk %}" class="btn btn-sm btn-primary">View</a></td>
             </tr>
           {% endfor %}
         </tbody>
