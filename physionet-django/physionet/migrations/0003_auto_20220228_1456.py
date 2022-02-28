@@ -5,6 +5,7 @@ import django.db.models.deletion
 
 MIGRATE_AFTER_INSTALL = True
 
+
 class Migration(migrations.Migration):
 
     dependencies = [
