@@ -2674,7 +2674,6 @@ def code_of_conduct_list(request):
             messages.error(request, "Invalid submission. Check errors below.")
     else:
         code_of_conduct_form = forms.CodeOfConductForm()
-
     code_of_conducts = CodeOfConduct.objects.order_by('name', 'version')
     code_of_conducts = paginate(request, code_of_conducts, 20)
 
@@ -2685,7 +2684,6 @@ def code_of_conduct_list(request):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def code_of_conduct_detail(request, pk):
     code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
-
     if request.method == 'POST':
         code_of_conduct_form = forms.CodeOfConductForm(data=request.POST, instance=code_of_conduct)
         if code_of_conduct_form.is_valid():
@@ -2714,7 +2712,6 @@ def code_of_conduct_delete(request, pk):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def code_of_conduct_new_version(request, pk):
     code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
-
     if request.method == 'POST':
         code_of_conduct_form = forms.CodeOfConductForm(data=request.POST)
         if code_of_conduct_form.is_valid():
@@ -2736,7 +2733,7 @@ def code_of_conduct_new_version(request, pk):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def code_of_conduct_activate(request, pk):
     CodeOfConduct.objects.filter(is_active=True).update(is_active=False)
-    
+
     code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
     code_of_conduct.is_active = True
     code_of_conduct.save()

@@ -31,7 +31,7 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
-from user.models import CredentialApplication, CredentialReview, User, TrainingQuestion
+from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -996,3 +996,10 @@ class ProjectFilterForm(forms.ModelForm):
                 'class': 'border', 'data-placeholder': 'Search...'
             })
         }
+
+
+class CodeOfConductForm(forms.ModelForm):
+    class Meta:
+        model = CodeOfConduct
+        fields = ('name', 'version', 'slug', 'html_content')
+        labels = {'html_content': 'Content'}
