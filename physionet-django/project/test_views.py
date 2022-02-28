@@ -184,12 +184,12 @@ class TestAccessPresubmission(TestMixin):
 
         # Ensure valid license policy combination
         open_data_license = License.objects.filter(
-            access_policy=AccessPolicy.OPEN, project_type__pk=0
+            access_policy=AccessPolicy.OPEN, project_types__pk=0
         ).first()
         restricted_data_license = License.objects.filter(
-            access_policy=AccessPolicy.RESTRICTED, project_type__pk=0
+            access_policy=AccessPolicy.RESTRICTED, project_types__pk=0
         ).first()
-        software_license = License.objects.filter(project_type__pk=1).first()
+        software_license = License.objects.filter(project_types__pk=1).first()
 
         response = self.client.post(
             reverse('project_access', args=(project.slug,)),
