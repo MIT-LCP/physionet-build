@@ -668,8 +668,6 @@ class TrainingForm(forms.ModelForm):
         self.fields['training_type'].initial = self.training_type
 
         if self.training_type is not None:
-            self.fields['training_type'].help_text = self.training_type.description
-
             if self.training_type.required_field == RequiredField.DOCUMENT:
                 self.fields['completion_report'].disabled = False
                 self.fields['completion_report'].required = True

@@ -1,6 +1,6 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Trainings{% endblock %}
+{% block title %}Training{% endblock %}
 
 {% load console_templatetags %}
 
@@ -38,7 +38,7 @@
                     <th>Process Training</th>
                 </tr>
               </thead>
-              <tbody>  
+              <tbody>
               {% for training in review_trainings %}
                 <tr>
                   <td><a href="{% url 'user_management' training.user.username %}">{{ training.user }}</a></td>
@@ -70,7 +70,7 @@
                     <th>View</th>
                 </tr>
               </thead>
-              <tbody>  
+              <tbody>
               {% for training in valid_trainings %}
                 <tr>
                   <td><a href="{% url 'user_management' training.user.username %}">{{ training.user }}</a></td>
@@ -108,7 +108,7 @@
                   <th>View</th>
                 </tr>
               </thead>
-              <tbody> 
+              <tbody>
               {% for training in expired_trainings %}
                 <tr>
                   <td><a href="{% url 'user_management' training.user.username %}">{{ training.user }}</a></td>
@@ -141,7 +141,7 @@
                     <th>View</th>
                 </tr>
               </thead>
-              <tbody>  
+              <tbody>
               {% for training in rejected_trainings %}
                 <tr>
                   <td><a href="{% url 'user_management' training.user.username %}">{{ training.user }}</a></td>

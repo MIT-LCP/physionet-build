@@ -527,7 +527,7 @@ def training_report_path(instance, filename):
 
 
 def get_training_path(instance, filename):
-    return f'trainings/{instance.slug}/training-report.pdf'
+    return f'training/{instance.slug}/training-report.pdf'
 
 
 class LegacyCredential(models.Model):
@@ -551,7 +551,7 @@ class LegacyCredential(models.Model):
     migrated = models.BooleanField(default=False)
     migration_date = models.DateTimeField(null=True)
     migrated_user = models.ForeignKey('user.User', null=True, on_delete=models.CASCADE)
-    
+
     reference_email = models.CharField(max_length=255, blank=True, default='')
 
     revoked_datetime = models.DateTimeField(null=True)
