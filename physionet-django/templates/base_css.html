@@ -1,4 +1,7 @@
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'bootstrap/css/bootstrap.css' %}"/>
-<link rel="stylesheet" type="text/css" href="{% static 'font-awesome/css/all.css' %}"/>
+{% load compress %}
+{% compress css %}
+    <link rel="stylesheet" type="text/x-scss" href="{% static 'bootstrap/theme.scss' %}"/>
+{% endcompress %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/physionet.css' %}"/>
+<link rel="stylesheet" type="text/css" href="{% static 'font-awesome/css/all.css' %}"/>

@@ -30,6 +30,8 @@ python-json-logger = "^2.0.2"
 django-storages = { version = "^1.11.1", extras = ["google"] }
 "pdfminer.six" = "^20211012"
 requests = "2.27.1"
+django-compressor = "^3.1"
+django-libsass = "^0.9"
 
 [tool.poetry.dev-dependencies]
 coverage = "^4.4.2"

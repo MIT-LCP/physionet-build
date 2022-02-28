@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'search',
     'lightwave',
     'physionet',
+    'compressor',
 ]
 
 if ENABLE_SSO:
@@ -529,3 +530,13 @@ PLATFORM_WIDE_CITATION = {
 
 SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
                                      default='https://github.com/MIT-LCP/physionet-build')
+
+COMPRESS_PRECOMPILERS = (
+    ('text/x-scss', 'django_libsass.SassCompiler'),
+)
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+]
