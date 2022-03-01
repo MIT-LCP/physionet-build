@@ -237,11 +237,12 @@ def community_challenge(request):
     return render(request, 'about/community_challenge_index.html', {'community_challenges': community_challenges})
 
 
-def static_view(request, static_url):
+def static_view(request, static_url='about'):
     """
     accepts URL from StaticPage and renders the page
     """
 
+    # breakpoint()
     static_page = get_object_or_404(StaticPage, url=static_url)
     # CHECK TO SEE IF CAN ACCESS sections VIA static_page:
     sections = Section.objects.filter(static_page=static_page)

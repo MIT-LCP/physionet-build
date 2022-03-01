@@ -67,9 +67,12 @@ urlpatterns = [
     # path for about pages
     # path('about/.*', views.static_view, name='static_view'),
     # re_path(r'^about/.*', views.static_view, name='static_url'),
-    # path('about/<int:static_url>', views.static_view, name='static_view'),
+    # path('about/<str:static_url>', views.static_view, name='static_view'),
     # re_path(r'^about/(?P<static_url>.*)/$', views.static_view, name='static_view'),
-    path('about/<static_url>/', views.static_view, name='static_view'),
+    # path('about/<static_url>/', views.static_view, name='static_view'),
+    path('about/', views.static_view, name='static_view'),
+    # path('about/<str:static_url>/', views.static_view, name='static_view'),
+    path('about/<path:static_url>/', views.static_view, name='static_view'),
 
 
     # robots.txt for crawlers
