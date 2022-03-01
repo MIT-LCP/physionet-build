@@ -45,24 +45,24 @@ def ping(request):
     return HttpResponse(status=200)
 
 
-def about_publish(request):
-    """
-    Instructions for authors
-    """
-    licenses = OrderedDict()
-    descriptions = OrderedDict()
-    for resource_type in ProjectType.objects.all():
-        descriptions[resource_type.name] = resource_type.description
-        licenses[resource_type.name] = License.objects.filter(resource_types__contains=str(resource_type.id)).order_by(
-            'access_policy'
-        )
-
-    static_page = get_object_or_404(StaticPage, url="share")
-    sections = Section.objects.filter(static_page=static_page)
-
-    return render(
-        request, 'about/publish.html', {'licenses': licenses, 'descriptions': descriptions, 'sections': sections}
-    )
+# def about_publish(request):
+#     """
+#     Instructions for authors
+#     """
+#     licenses = OrderedDict()
+#     descriptions = OrderedDict()
+#     for resource_type in ProjectType.objects.all():
+#         descriptions[resource_type.name] = resource_type.description
+#         licenses[resource_type.name] = License.objects.filter(resource_types__contains=str(resource_type.id)).order_by(
+#             'access_policy'
+#         )
+#
+#     static_page = get_object_or_404(StaticPage, url="share")
+#     sections = Section.objects.filter(static_page=static_page)
+#
+#     return render(
+#         request, 'about/publish.html', {'licenses': licenses, 'descriptions': descriptions, 'sections': sections}
+#     )
 
 
 def license_content(request, license_slug):
@@ -77,26 +77,26 @@ def license_content(request, license_slug):
     return render(request, 'about/license_content.html', {'license': license})
 
 
-@allow_post_during_maintenance
-def about(request):
-    """
-    About the site content.
-    """
-    if request.method == 'POST':
-        contact_form = ContactForm(request.POST)
-        if contact_form.is_valid():
-            notification.send_contact_message(contact_form)
-            messages.success(request, 'Your message has been sent.')
-            contact_form = ContactForm()
-        else:
-            messages.error(request, 'Invalid submission. See form below.')
-    else:
-        contact_form = ContactForm()
-
-    static_page = get_object_or_404(StaticPage, url="about")
-    sections = Section.objects.filter(static_page=static_page)
-
-    return render(request, 'about/about.html', {'contact_form': contact_form, 'sections': sections})
+# @allow_post_during_maintenance
+# def about(request):
+#     """
+#     About the site content.
+#     """
+#     if request.method == 'POST':
+#         contact_form = ContactForm(request.POST)
+#         if contact_form.is_valid():
+#             notification.send_contact_message(contact_form)
+#             messages.success(request, 'Your message has been sent.')
+#             contact_form = ContactForm()
+#         else:
+#             messages.error(request, 'Invalid submission. See form below.')
+#     else:
+#         contact_form = ContactForm()
+#
+#     static_page = get_object_or_404(StaticPage, url="about")
+#     sections = Section.objects.filter(static_page=static_page)
+#
+#     return render(request, 'about/about.html', {'contact_form': contact_form, 'sections': sections})
 
 
 def timeline(request):
@@ -236,6 +236,61 @@ def community_challenge(request):
 
     return render(request, 'about/community_challenge_index.html', {'community_challenges': community_challenges})
 
+
+def static_view(request, static_url):
+    """
+    accepts URL from StaticPage and renders the page
+    """
+
+    parameters = {'static_page': static_page, 'sections': sections}
+
+    static_page = get_object_or_404(StaticPage, url=static_url)
+    # CHECK TO SEE IF CAN ACCESS sections VIA static_page:
+    sections = Section.objects.filter(static_page=static_page)
+
+    # get extra parameters for pages as needed
+    if static_url == 'about':
+        if request.method == 'POST':
+            contact_form = ContactForm(request.POST)
+            if contact_form.is_valid():
+                notification.send_contact_message(contact_form)
+                messages.success(request, 'Your message has been sent.')
+                contact_form = ContactForm()
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+        else:
+            contact_form = ContactForm()
+
+        parameters['contact_form'] = contact_form
+
+        # return render(
+        #     request, 'about/static_template.html', {'contact_form': contact_form, 'static_page': static_page,
+        #                                             'sections': sections}
+        # )
+    elif static_url == 'publish':
+        licenses = OrderedDict()
+        descriptions = OrderedDict()
+        for resource_type in ProjectType.objects.all():
+            descriptions[resource_type.name] = resource_type.description
+            licenses[resource_type.name] = License.objects.filter(
+                resource_types__contains=str(resource_type.id)).order_by(
+                'access_policy'
+            )
+
+        parameters['licenses'] = licenses
+        parameters['descriptions'] = descriptions
+
+        # return render(
+        #     request, 'about/static_template.html', {'licenses': licenses, 'descriptions': descriptions,
+        #                                             'static_page': static_page, 'sections': sections}
+        # )
+    # else:
+    #     return render(
+    #         request, 'about/static_template.html', {'static_page': static_page, 'sections': sections}
+
+    return render(
+        request, 'about/static_template.html', parameters
+    )
 
 def tutorial_overview(request):
     """
