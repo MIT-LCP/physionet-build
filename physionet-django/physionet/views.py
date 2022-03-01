@@ -242,11 +242,11 @@ def static_view(request, static_url):
     accepts URL from StaticPage and renders the page
     """
 
-    parameters = {'static_page': static_page, 'sections': sections}
-
     static_page = get_object_or_404(StaticPage, url=static_url)
     # CHECK TO SEE IF CAN ACCESS sections VIA static_page:
     sections = Section.objects.filter(static_page=static_page)
+
+    parameters = {'static_page': static_page, 'sections': sections}
 
     # get extra parameters for pages as needed
     if static_url == 'about':
