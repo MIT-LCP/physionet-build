@@ -3,10 +3,9 @@
 from django.db import migrations, models
 import django.db.models.deletion
 
-MIGRATE_AFTER_INSTALL = True
-
-
 class Migration(migrations.Migration):
+
+    MIGRATE_AFTER_INSTALL = True
 
     dependencies = [
         ('physionet', '0002_auto_20220228_1217'),
