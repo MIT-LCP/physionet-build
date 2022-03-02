@@ -14,17 +14,28 @@ class Migration(migrations.Migration):
             url='/about/', title='About')
 
         (about_pub_page, _) = StaticPage.objects.get_or_create(
-            url='/about/share', title='Share')
+            url='/about/publish', title='Share')
 
         for section in Section.objects.all():
             if section.page == 'Page.ABOUT':
                 section.static_page = about_page
-            if section.page == 'Page.SHARE':
+            elif section.page == 'Page.SHARE':
                 section.static_page = about_pub_page
+            else:
+                raise ValueError(section.page)
             section.save()
 
     def migrate_backward(apps, schema_editor):
-        pass
+        Section = apps.get_model('physionet', 'Section')
+
+        for section in Section.objects.all():
+            if section.static_page.url == '/about/':
+                    section.page = 'Page.ABOUT'
+            elif section.static_page.url == '/about/publish/':
+                section.page = 'Page.SHARE'
+            else:
+                raise ValueError(section.static_page.url)
+            section.save()
 
     dependencies = [
         ('physionet', '0001_initial'),
@@ -49,6 +60,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='section',
             name='page',
-            field=models.CharField(null=True, blank=True),
+            field=models.CharField(blank=True, null=True, max_length=16),
         )
     ]
