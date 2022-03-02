@@ -72,6 +72,8 @@ urlpatterns = [
     # path('about/<static_url>/', views.static_view, name='static_view'),
     path('about/', views.static_view, name='static_view'),
     # path('about/<str:static_url>/', views.static_view, name='static_view'),
+
+    # add validator
     path('about/<path:static_url>/', views.static_view, name='static_view'),
 
 
