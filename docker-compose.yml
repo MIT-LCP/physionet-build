@@ -48,7 +48,6 @@ services:
     environment:
       <<: *default-env
       DB_NAME: physionet_test
-      ENABLE_SSO: "True"
     env_file: .env.example
     command: ['sleep']
     volumes:
