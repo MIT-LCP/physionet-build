@@ -4,7 +4,7 @@
   "pk": 1,
   "fields": {
     "title": "About",
-    "url": "about"
+    "url": "/about/"
   }
 },
 {
@@ -12,7 +12,7 @@
   "pk": 2,
   "fields": {
     "title": "Share",
-    "url": "share"
+    "url": "/about/publish"
   }
 },
 {
