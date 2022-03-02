@@ -95,9 +95,9 @@ case ${DJANGO_SETTINGS_MODULE-none} in
 esac
 
 # Go to top level directory of the git repository
-scriptname=$(which "$0")
+scriptname=$(command -v "$0")
 topdir=$(dirname "$scriptname")
-topdir=$(realpath "$topdir")
+topdir=$(cd "$topdir" && pwd)
 cd "$topdir"
 
 # Identify the "old" revision to be upgraded from
@@ -144,7 +144,7 @@ msg_failure()
 msg_critical()
 {
     msg_failure
-    fgrep ' *** FAILED: ' "$topdir/$logfile" >&3
+    grep -F ' *** FAILED: ' "$topdir/$logfile" >&3
     exit 1
 }
 
@@ -214,11 +214,15 @@ mkdir -p "$olddir"
 git archive "$oldrev" | tar -x -C "$olddir"
 
 venvdir=$workdir/VE
-venvcachedir=$topdir/test-upgrade.cache
-mkdir -p "$venvcachedir"
 
-old_reqs_hash=$(md5sum "$olddir/requirements.txt" | cut -d' ' -f1)
-new_reqs_hash=$(md5sum "$topdir/requirements.txt" | cut -d' ' -f1)
+if [ -x "$(command -v md5sum)" ]; then
+    venvcachedir=$topdir/test-upgrade.cache
+    mkdir -p "$venvcachedir"
+    old_reqs_hash=$(md5sum "$olddir/requirements.txt" | cut -d' ' -f1)
+    new_reqs_hash=$(md5sum "$topdir/requirements.txt" | cut -d' ' -f1)
+else
+    venvcachedir=
+fi
 
 current_targets=$workdir/CURRENT-TARGETS
 old_targets=$workdir/OLD-TARGETS
@@ -236,7 +240,7 @@ export PATH=$venvdir/bin:$PATH
 
     msg_testing "Installing old requirements"
     cachefile=$venvcachedir/$old_reqs_hash.tar.gz
-    if [ -f "$cachefile" ]; then
+    if [ -n "$venvcachedir" ] && [ -f "$cachefile" ]; then
         prereq_cmd mkdir "$venvdir"
         prereq_cmd tar -xzf "$cachefile" -C "$venvdir"
     else
@@ -244,7 +248,9 @@ export PATH=$venvdir/bin:$PATH
                    --no-download -ppython3 "$venvdir"
         prereq_cmd pip3 install --require-hashes \
                    -r "$olddir/requirements.txt"
-        prereq_cmd tar -czf "$cachefile" -C "$venvdir" .
+        if [ -n "$venvcachedir" ]; then
+            prereq_cmd tar -czf "$cachefile" -C "$venvdir" .
+        fi
     fi
     msg_success
 
@@ -261,14 +267,16 @@ export PATH=$venvdir/bin:$PATH
     msg_testing "Installing new requirements"
     if ! cmp -s "$olddir/requirements.txt" "$topdir/requirements.txt"; then
         cachefile=$venvcachedir/$old_reqs_hash-$new_reqs_hash.tar.gz
-        if [ -f "$cachefile" ]; then
+        if [ -n "$venvcachedir" ] && [ -f "$cachefile" ]; then
             prereq_cmd rm -rf "$venvdir"
             prereq_cmd mkdir "$venvdir"
             prereq_cmd tar -xzf "$cachefile" -C "$venvdir"
         else
             prereq_cmd pip3 install --require-hashes \
                        -r "$topdir/requirements.txt"
-            prereq_cmd tar -czf "$cachefile" -C "$venvdir" .
+            if [ -n "$venvcachedir" ]; then
+                prereq_cmd tar -czf "$cachefile" -C "$venvdir" .
+            fi
         fi
     fi
     msg_success
@@ -388,7 +396,7 @@ export PATH=$venvdir/bin:$PATH
     check_cmd ./manage.py migrate --no-input
 )
 
-if fgrep ' *** FAILED: ' "$topdir/$logfile" >&3; then
+if grep -F ' *** FAILED: ' "$topdir/$logfile" >&3; then
     exit 1
 else
     find "$workdir" -type d -exec chmod u+w '{}' ';'
