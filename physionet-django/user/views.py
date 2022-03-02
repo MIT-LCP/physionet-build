@@ -68,9 +68,10 @@ class LoginView(auth_views.LoginView):
         context = super().get_context_data(*args, **kwargs)
         if not settings.ENABLE_SSO:
             return context
+
         sso_extra_context = {
             'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
-            'sections': Section.objects.filter(page=Page.LOGIN_INST),
+            'login_instruction_sections': Section.objects.filter(page=Page.LOGIN_INST),
         }
         return {**context, **sso_extra_context}
 
