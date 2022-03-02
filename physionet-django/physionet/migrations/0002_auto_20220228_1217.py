@@ -42,7 +42,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='section',
             name='static_page',
-            field=models.ForeignKey(null=True, default=None, on_delete=django.db.models.deletion.CASCADE, to='physionet.StaticPage'),
+            field=models.ForeignKey(null=True, default=None, on_delete=django.db.models.deletion.CASCADE,
+                                    to='physionet.StaticPage'),
         ),
         migrations.RunPython(migrate_forward, migrate_backward),
     ]
