@@ -46,4 +46,9 @@ class Migration(migrations.Migration):
                                     to='physionet.StaticPage'),
         ),
         migrations.RunPython(migrate_forward, migrate_backward),
+        migrations.AlterField(
+            model_name='section',
+            name='page',
+            field=models.CharField(null=True, blank=True),
+        )
     ]
