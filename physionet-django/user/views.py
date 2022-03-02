@@ -510,13 +510,7 @@ def register(request):
     else:
         form = forms.RegistrationForm()
 
-    context = {
-        'form': form,
-        'enable_sso': settings.ENABLE_SSO,
-        'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
-    }
-
-    return render(request, 'user/register.html', context)
+    return render(request, 'user/register.html', {'form': form})
 
 
 @login_required

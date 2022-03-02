@@ -29,9 +29,6 @@
   </form>
   <div class="form-signin">
     <p>New user? <a id="register" href="{% url 'register' %}">Create an account</a></p>
-    {% if enable_sso %}
-      <p><a id="sso_login" href="{% url 'sso_login'%}?next={{ next }}">{{ sso_login_button_text }}</a></p>
-    {% endif %}
   </div>
   <div class="alert alert-warning alert-dismissible fade show" role="alert">
     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
