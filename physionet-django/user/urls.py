@@ -7,19 +7,6 @@ urlpatterns = [
 
     path('logout/', views.logout, name='logout'),
 
-    # Request password reset
-    path('reset-password/', views.reset_password_request,
-         name='reset_password_request'),
-    # Page shown after reset email has been sent
-    path('reset-password/sent/', views.reset_password_sent,
-         name='reset_password_sent'),
-    # Prompt user to enter new password and carry out password reset (if url is valid)
-    re_path('^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-            views.reset_password_confirm, name='reset_password_confirm'),
-    # Password reset successfully carried out
-    path('reset/complete/', views.reset_password_complete,
-         name='reset_password_complete'),
-
     # Settings
     path('settings/', views.user_settings, name='user_settings'),
     path('settings/profile/', views.edit_profile, name='edit_profile'),
@@ -66,4 +53,16 @@ if not settings.ENABLE_SSO:
             views.activate_user,
             name='activate_user',
         ),
+        # Request password reset
+        path('reset-password/', views.reset_password_request,
+            name='reset_password_request'),
+        # Page shown after reset email has been sent
+        path('reset-password/sent/', views.reset_password_sent,
+            name='reset_password_sent'),
+        # Prompt user to enter new password and carry out password reset (if url is valid)
+        re_path('^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+                views.reset_password_confirm, name='reset_password_confirm'),
+        # Password reset successfully carried out
+        path('reset/complete/', views.reset_password_complete,
+            name='reset_password_complete'),
     ])
