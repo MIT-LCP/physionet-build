@@ -1,5 +1,4 @@
 import re
-from unittest import skipIf
 
 from django.conf import settings
 from django.conf.urls import include
@@ -11,9 +10,15 @@ from user.models import User
 
 authentication_backends = settings.AUTHENTICATION_BACKENDS + ['sso.auth.RemoteUserBackend']
 
+installed_apps = settings.INSTALLED_APPS + ['sso']
 
-@override_settings(AUTHENTICATION_BACKENDS=authentication_backends)
-@skipIf(not settings.ENABLE_SSO, 'SSO urls are disabled')
+
+@override_settings(
+    AUTHENTICATION_BACKENDS=authentication_backends,
+    INSTALLED_APPS=installed_apps,
+    ROOT_URLCONF='sso.tests.urls',
+    ENABLE_SSO=True
+)
 class TestViews(TestCase):
     def setUp(self):
         urlpatterns.append(path('', include('sso.urls')))

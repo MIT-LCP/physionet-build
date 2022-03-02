@@ -9,7 +9,6 @@ services:
       - gcs
     environment:
       DJANGO_SETTINGS_MODULE: physionet.settings.settings
-      ENABLE_SSO: "True"
       DB_HOST: db
       DB_NAME: physionet_test
       MEDIA_ROOT: /data/pn-media
