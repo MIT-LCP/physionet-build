@@ -57,7 +57,7 @@ def about_publish(request):
             'access_policy'
         )
 
-    static_page = get_object_or_404(StaticPage, url="share")
+    static_page = get_object_or_404(StaticPage, url="/about/publish/")
     sections = Section.objects.filter(static_page=static_page)
 
     return render(
@@ -93,7 +93,7 @@ def about(request):
     else:
         contact_form = ContactForm()
 
-    static_page = get_object_or_404(StaticPage, url="about")
+    static_page = get_object_or_404(StaticPage, url="/about/")
     sections = Section.objects.filter(static_page=static_page)
 
     return render(request, 'about/about.html', {'contact_form': contact_form, 'sections': sections})
