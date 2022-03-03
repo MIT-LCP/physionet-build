@@ -36,12 +36,13 @@
                 Reviewer Questions
             </div>
             <div class="card-body">
-                <form action="" method="post" class="form-signin">
+                <form action="" method="post" class="form-signin" onsubmit="return confirm ('Are you sure? ')">
                     {% csrf_token %}
                     {% include "console/formset_snippet.html" with formset=questions_formset %}
                     {% include "form_snippet.html" with form=training_review_form %}
                     <button class="btn btn-primary btn-fixed" name="accept" type="submit">Accept</button>
                     <button class="btn btn-danger btn-fixed" name="reject" type="submit">Reject</button>
+                    <button class="btn btn-success btn-fixed" name="accept_all" value="{{ training.user.id }}" type="submit">Approve All</button>
                   </form>
             </div>
         </div>
