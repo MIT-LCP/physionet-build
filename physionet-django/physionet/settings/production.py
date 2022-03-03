@@ -33,6 +33,7 @@ EMAIL_FROM_DOMAINS = ['physionet.org']
 DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@physionet.org>'
 CONTACT_EMAIL = 'PhysioNet Contact <contact@physionet.org>'
 SERVER_EMAIL = 'PhysioNet System <root@physionet.org>'
+ERROR_EMAIL = 'contact@physionet.org'
 
 ADMINS = [('PhysioNet Technical', 'technical@physionet.org')]
 
