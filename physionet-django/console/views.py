@@ -1332,7 +1332,7 @@ def credential_processing(request):
     )
     # Awaiting final review
     final_applications = applications.filter(
-        credential_review__status=60).order_by('application_datetime')
+        credential_review__status=50).order_by('application_datetime')
 
     if request.method == 'POST':
         if 'reset_application' in request.POST:
