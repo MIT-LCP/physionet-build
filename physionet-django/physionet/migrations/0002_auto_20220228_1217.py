@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             url='/about/', title='About')
 
         (about_pub_page, _) = StaticPage.objects.get_or_create(
-            url='/about/publish', title='Share')
+            url='/about/publish/', title='Share')
 
         for section in Section.objects.all():
             if section.page == 'Page.ABOUT':
@@ -56,10 +56,10 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=True, default=None, on_delete=django.db.models.deletion.CASCADE,
                                     to='physionet.StaticPage'),
         ),
-        migrations.RunPython(migrate_forward, migrate_backward),
         migrations.AlterField(
             model_name='section',
             name='page',
             field=models.CharField(blank=True, null=True, max_length=16),
-        )
+        ),
+        migrations.RunPython(migrate_forward, migrate_backward),
     ]
