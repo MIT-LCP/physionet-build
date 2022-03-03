@@ -161,9 +161,6 @@ PAUSE_CREDENTIALING = config('PAUSE_CREDENTIALING', cast=bool, default=False)
 PAUSE_CREDENTIALING_MESSAGE = config('PAUSE_CREDENTIALING_MESSAGE',
                                      default=None)
 
-# Set the credentialing email address
-CREDENTIAL_EMAIL = 'PhysioNet Credentialing <credentialing@physionet.org>'
-
 GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
 
 GCP_BUCKET_PREFIX = 'testing-delete.'
