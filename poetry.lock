@@ -142,14 +142,14 @@ six = ">=1.10.0"
 
 [[package]]
 name = "django-debug-toolbar"
-version = "1.11.1"
+version = "3.2.4"
 description = "A configurable set of panels that display various debug information about the current request/response."
 category = "dev"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-Django = ">=1.11"
+Django = ">=2.2"
 sqlparse = ">=0.2.0"
 
 [[package]]
@@ -655,7 +655,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "da3609997930c0fd3f30aeafcfa94130750b12209fb8ce747fe7f5f1e10641b6"
+content-hash = "174e98ecf23bafd7998c427595e7c051c3acfb1a7b6ff16885aba6ec185fae90"
 
 [metadata.files]
 bleach = [
@@ -793,8 +793,8 @@ django-compat = [
     {file = "django-compat-1.0.15.tar.gz", hash = "sha256:3ac9a3bedc56b9365d9eb241bc5157d0c193769bf995f9a78dc1bc24e7c2331b"},
 ]
 django-debug-toolbar = [
-    {file = "django-debug-toolbar-1.11.1.tar.gz", hash = "sha256:10f5ef59c97fad34b803b02e5850b6422082e2e44544c2ec03feb4eeee0f9158"},
-    {file = "django_debug_toolbar-1.11.1-py2.py3-none-any.whl", hash = "sha256:2d240517dac3b02b7d78c9109ee88546f99171a2ec2a3efa70450771cb55735e"},
+    {file = "django-debug-toolbar-3.2.4.tar.gz", hash = "sha256:644bbd5c428d3283aa9115722471769cac1bec189edf3a0c855fd8ff870375a9"},
+    {file = "django_debug_toolbar-3.2.4-py3-none-any.whl", hash = "sha256:6b633b6cfee24f232d73569870f19aa86c819d750e7f3e833f2344a9eb4b4409"},
 ]
 django-js-asset = [
     {file = "django-js-asset-1.2.2.tar.gz", hash = "sha256:c163ae80d2e0b22d8fb598047cd0dcef31f81830e127cfecae278ad574167260"},
