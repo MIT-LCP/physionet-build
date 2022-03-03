@@ -71,7 +71,7 @@ class LoginView(auth_views.LoginView):
 
         sso_extra_context = {
             'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
-            'login_instruction_sections': Section.objects.filter(page=Page.LOGIN_INST),
+            'login_instruction_sections': Section.objects.filter(page=Page.SSO_LOGIN),
         }
         return {**context, **sso_extra_context}
 

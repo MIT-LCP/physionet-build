@@ -4,7 +4,7 @@ from enum import Enum
 class Page(Enum):
     ABOUT = 'about'
     SHARE = 'share'
-    LOGIN_INST = 'login instr.'
+    SSO_LOGIN = 'sso login'
 
     @classmethod
     def choices(cls):
