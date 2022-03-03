@@ -536,7 +536,6 @@ class CredentialApplicationForm(forms.ModelForm):
             slug = get_random_string(20)
         credential_application.user = self.user
         credential_application.slug = slug
-        # credential_application.training_completion_report_url = self.report_url
         credential_application.save()
         return credential_application
 
