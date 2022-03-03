@@ -2126,7 +2126,7 @@ def complete_credential_applications_mailto(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_pages(request):
-    return render(request, 'console/static_pages.html', {'pages': Page.choices(), 'static_pages_nav': True})
+    return render(request, 'console/static_pages.html', {'pages': Page.available_choices(), 'static_pages_nav': True})
 
 
 @login_required
