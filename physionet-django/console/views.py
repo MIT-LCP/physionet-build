@@ -1548,6 +1548,29 @@ def training_proccess(request, pk):
                 questions_formset.save()
 
                 training.accept(reviewer=request.user)
+
+                messages.success(request, 'The training was approved.')
+                return redirect('training_list')
+
+            training_review_form = forms.TrainingReviewForm()
+
+        elif 'accept_all' in request.POST:
+
+            # populate all answer fields with True
+            data_copy = request.POST.copy()
+            answer_fields = [key for key, val in data_copy.items() if "answer" in key]
+            
+            for field in answer_fields:
+                data_copy[field] = 'True'
+
+            questions_formset = TrainingQuestionFormSet(data=data_copy, queryset=training.training_questions.all())
+
+            if questions_formset.is_valid():
+                questions_formset.save()
+
+                training.accept(reviewer=request.user)
+
+                messages.success(request, 'The training was approved.')
                 return redirect('training_list')
 
             training_review_form = forms.TrainingReviewForm()
@@ -1560,6 +1583,7 @@ def training_proccess(request, pk):
                     reviewer=request.user, reviewer_comments=training_review_form.cleaned_data['reviewer_comments']
                 )
 
+                messages.success(request, 'The training was not approved.')
                 return redirect('training_list')
 
             questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
