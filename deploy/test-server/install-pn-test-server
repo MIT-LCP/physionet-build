@@ -72,6 +72,17 @@ su pn -c '
    export DJANGO_SETTINGS_MODULE=physionet.settings.staging
    echo export DJANGO_SETTINGS_MODULE=$DJANGO_SETTINGS_MODULE >> .profile
 
+   echo  >.pythonrc "import atexit, os, readline, rlcompleter"
+   echo >>.pythonrc "readline.parse_and_bind(\"tab: complete\")"
+   echo >>.pythonrc "histfile = os.path.expanduser(\"~/.python_history\")"
+   echo >>.pythonrc "try:"
+   echo >>.pythonrc "    readline.read_history_file(histfile)"
+   echo >>.pythonrc "except Exception:"
+   echo >>.pythonrc "    pass"
+   echo >>.pythonrc "atexit.register(readline.write_history_file, histfile)"
+   echo >>.pythonrc "del atexit, histfile, os, readline, rlcompleter"
+   echo export PYTHONSTARTUP=\$HOME/.pythonrc >> .profile
+
    cd /physionet
    echo staging > deploy-branch
    mkdir -p physionet-build python-env deploy
