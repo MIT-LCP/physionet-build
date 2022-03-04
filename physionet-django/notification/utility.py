@@ -640,7 +640,7 @@ def mailto_administrators(project, error):
               [settings.CONTACT_EMAIL], fail_silently=False)
 
 
-def process_credential_complete(request, application, comments=True):
+def process_credential_complete(request, application, include_comments=True):
     """
     Notify user of credentialing decision
     """
@@ -652,7 +652,7 @@ def process_credential_complete(request, application, comments=True):
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
             'url_prefix': get_url_prefix(request),
-            'comments': comments,
+            'include_comments': include_comments,
             'signature': settings.EMAIL_SIGNATURE,
             'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
         })
