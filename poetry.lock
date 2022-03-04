@@ -108,7 +108,7 @@ tags = ["django-taggit"]
 
 [[package]]
 name = "django-background-tasks"
-version = "1.2.0"
+version = "1.2.5"
 description = "Database backed asynchronous task queue"
 category = "main"
 optional = false
@@ -655,7 +655,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "174e98ecf23bafd7998c427595e7c051c3acfb1a7b6ff16885aba6ec185fae90"
+content-hash = "f2464dd27cf4b233ceb520404a4332b4be17c4881025a3995764f5a9a543a011"
 
 [metadata.files]
 bleach = [
@@ -783,7 +783,7 @@ django-autocomplete-light = [
     {file = "django-autocomplete-light-3.8.2.tar.gz", hash = "sha256:25f0ea71b59a8f1f97a8a564e33e429570b0ea77c5eac81f7beb283073b4ba90"},
 ]
 django-background-tasks = [
-    {file = "django-background-tasks-1.2.0.tar.gz", hash = "sha256:35a9a54961f3e4486ab2f9482d1e8ac63ab4f47e5e0b7e654a22f7002299ffae"},
+    {file = "django-background-tasks-1.2.5.tar.gz", hash = "sha256:e1b19e8d495a276c9d64c5a1ff8b41132f75d2f58e45be71b78650dad59af9de"},
 ]
 django-ckeditor = [
     {file = "django-ckeditor-5.9.0.tar.gz", hash = "sha256:e4d112851a72c5bf8b586e1c674d34084cab16d28f2553ad15cc770d1e9639c7"},

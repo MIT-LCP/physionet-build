@@ -9,8 +9,8 @@ Django==2.2.27 \
     --hash=sha256:90763c764738586b11d7e1f44828032c153366e43ad7f782908193a1bb2d6d92
 django-autocomplete-light==3.3.4 \
     --hash=sha256:cff0b1cad0e233e49c8cce08dff22868951123cbb79a7c1768eda78845044568
-django-background-tasks==1.2.0 \
-    --hash=sha256:35a9a54961f3e4486ab2f9482d1e8ac63ab4f47e5e0b7e654a22f7002299ffae
+django-background-tasks==1.2.5 \
+    --hash=sha256:e1b19e8d495a276c9d64c5a1ff8b41132f75d2f58e45be71b78650dad59af9de
 django-ckeditor==5.7.1 \
     --hash=sha256:0147f8905dc64747e45157a185feedee4e39973fa4b571c9c82ad10d9d4b8974 \
     --hash=sha256:d79fb8248c50f29dc8f143e5ff7223bb4a916f14ffba6c3fcd998c6d986ad592

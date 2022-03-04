@@ -7,10 +7,7 @@ from django.conf import settings
 from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
 from django.http import Http404
 from django.shortcuts import redirect, render, reverse
-try:
-    from django.contrib.staticfiles.templatetags.staticfiles import static
-except ImportError:
-    from django.templatetags.static import static
+from django.templatetags.static import static
 from physionet.utility import paginate
 from project.models import PublishedProject, PublishedTopic
 from project.projectfiles import ProjectFiles
