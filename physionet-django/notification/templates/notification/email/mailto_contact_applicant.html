@@ -1,24 +1,26 @@
-{% autoescape off %}----------------
-{{ dua }}
-Application Date: {{ application.application_datetime|date }}
-My first (given) name(s): {{ application.first_names }}
-My last (family) name(s): {{ application.last_name }}
+{% autoescape off %}
+----------------
+Application date: {{ application.application_datetime|date }}
+
+First (given) name(s): {{ application.first_names }}
+Last (family) name(s): {{ application.last_name }}
 Suffix (e.g., Jr.), if applicable: {{ application.suffix }}
-My {{ SITE_NAME }} email: {{ application.user.email }}
-Researcher Category: {{ application.get_researcher_category_display }}
-Organization Name: {{ application.organization_name }}
+Email: {{ application.user.email }}
+
+Researcher category: {{ application.get_researcher_category_display }}
+Organization name: {{ application.organization_name }}
 Job title or position: {{ application.job_title }}
+
 City: {{ application.city }}
-State/Province: {{ application.state_province }}
-ZIP/postal code: {{ application.zip_code }}
+State or province: {{ application.state_province }}
+ZIP or postal code: {{ application.zip_code }}
 Country: {{ application.get_country_display }}
 Webpage: {% if application.webpage %}{{ application.webpage }}{% endif %}
 
-Reference Category: {{ application.get_reference_category_display }}
-Reference's Name: {{ application.reference_name }}
-Reference's Email: {{ application.reference_email }}
+Reference category: {{ application.get_reference_category_display }}
+Reference's name: {{ application.reference_name }}
+Reference's email: {{ application.reference_email }}
 Reference's job title or position: {{ application.reference_title }}
 
 General research area for which the data will be used: {{ application.research_summary }}
-Application Date: {{ application.application_datetime|date }}
 {% endautoescape %}
