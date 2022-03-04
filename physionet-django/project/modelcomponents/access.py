@@ -15,12 +15,13 @@ class AccessPolicy(IntEnum):
     OPEN = 0
     RESTRICTED = 1
     CREDENTIALED = 2
+    CONTRIBUTOR_REVIEW = 3
 
     do_not_call_in_templates = True
 
     @classmethod
     def choices(cls):
-        return tuple((option.value, option.name.capitalize()) for option in cls)
+        return tuple((option.value, option.name.replace("_", " ").title()) for option in cls)
 
 
 class DUASignature(models.Model):
@@ -221,6 +222,7 @@ class License(models.Model):
     # A protected license has associated DUA content
     dua_name = models.CharField(max_length=100, blank=True, default='')
     dua_html_content = SafeHTMLField(blank=True, default='')
+    access_request_template = SafeHTMLField(blank=True, default='')
 
     def __str__(self):
         return self.name

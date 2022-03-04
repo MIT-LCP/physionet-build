@@ -30,12 +30,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from notification.models import News
-from physionet.enums import Page
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.settings.base import StorageTypes
 from physionet.utility import paginate
-from physionet.models import Section
+from physionet.models import Section, StaticPage
 from project.models import (
     GCP,
     AccessPolicy,
@@ -964,22 +963,24 @@ def users(request, group='all'):
     """
     List of users
     """
-    show_inactive = False
+    user_list = User.objects.select_related('profile').annotate(
+        login_time_count=Count('login_time')
+    ).order_by('username')
     if group == 'admin':
-        admin_users = User.objects.filter(is_admin=True).order_by('username')
+        admin_users = user_list.filter(is_admin=True)
         return render(request, 'console/users_admin.html', {
-            'admin_users': admin_users, 'group': group, 'user_nav': True})
+            'admin_users': admin_users,
+            'group': group,
+            'user_nav': True,
+        })
     elif group == 'active':
-        user_list = User.objects.filter(is_active=True).order_by('username')
+        user_list = user_list.filter(is_active=True)
     elif group == 'inactive':
-        user_list = User.objects.filter(is_active=False).order_by('username')
-    else:
-        user_list = User.objects.all().order_by('username')
-        show_inactive = True
+        user_list = user_list.filter(is_active=False)
+
     users = paginate(request, user_list, 50)
 
-    return render(request, 'console/users.html', {'users': users,
-        'show_inactive': show_inactive, 'group': group, 'user_nav': True})
+    return render(request, 'console/users.html', {'users': users, 'group': group, 'user_nav': True})
 
 
 @login_required
@@ -1083,130 +1084,17 @@ def known_references_search(request):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def complete_credential_applications(request):
     """
-    KP's custom management page for credentialing.
+    Legacy page for processing credentialing applications.
     """
-    process_credential_form = forms.ProcessCredentialForm(
-        responder=request.user)
-
-    if request.method == 'POST':
-        if 'contact_reference' in request.POST and \
-         request.POST['contact_reference'].isdigit():
-            application_id = request.POST.get('contact_reference', '')
-            application = CredentialApplication.objects.get(id=application_id)
-            if not application.reference_contact_datetime:
-                application.reference_contact_datetime = timezone.now()
-                application.save()
-            # notification.contact_reference(request, application)
-            if application.reference_category == 0:
-                mailto = notification.mailto_supervisor(request, application)
-            else:
-                mailto = notification.mailto_reference(request, application)
-            # messages.success(request, 'The reference contact email has
-            #                  been created.')
-            return render(request, 'console/generate_reference_email.html',
-                          {'application': application, 'mailto': mailto})
-        if 'process_application' in request.POST and \
-         request.POST['process_application'].isdigit():
-            application_id = request.POST.get('process_application', '')
-            try:
-                application = CredentialApplication.objects.get(
-                    id=application_id, status=0)
-            except CredentialApplication.DoesNotExist:
-                messages.error(request, """The application has already been
-                    processed. It may have been withdrawn by the applicant or
-                    handled by another administrator.""")
-                return redirect('complete_credential_applications')
-            process_credential_form = forms.ProcessCredentialForm(
-                responder=request.user, data=request.POST,
-                instance=application)
-
-            if process_credential_form.is_valid():
-                application = process_credential_form.save()
-                notification.process_credential_complete(request, application,
-                                                         comments=False)
-                mailto = notification.mailto_process_credential_complete(
-                    request, application)
-                return render(request, 'console/generate_response_email.html',
-                              {'application': application, 'mailto': mailto})
-            else:
-                messages.error(request, 'Invalid submission. See form below.')
-
-    applications = CredentialApplication.objects.filter(status=0)
-
-    # TODO: Remove this step. Exclude applications that are being handled in
-    # the credential processing workflow. Avoid toes.
-    review_underway_list = [x[0] for x in CredentialReview.REVIEW_STATUS_LABELS
-                            if x[0] and x[0] > 10]
-    review_underway = Q(credential_review__status__in=review_underway_list)
-    applications = applications.exclude(review_underway)
-
-    # Get list of references who have been contacted before
-    # These are "known_refs" but using the ref_known_flag() method is slow
-    known_refs_new = CredentialApplication.objects.filter(
-        reference_contact_datetime__isnull=False).values_list(
-        'reference_email', flat=True)
-    known_refs_legacy = LegacyCredential.objects.exclude(
-        reference_email='').values_list('reference_email', flat=True)
-
-    known_refs = set(known_refs_new).union(set(known_refs_legacy))
-    known_refs = [x.lower() for x in known_refs if x]
-
-    # Group applications and sort by application date
-    # 1. reference not contacted, but with reference known
-    known_ref_no_contact = Q(reference_contact_datetime__isnull=True, reference_email__lower__in=known_refs)
-
-    # 2. reference not contacted, but with reference unknown
-    unknown_ref_no_contact = Q(reference_contact_datetime__isnull=True) & ~Q(reference_email__lower__in=known_refs)
-
-    # 3. reference contacted
-    contacted = Q(reference_contact_datetime__isnull=False)
-
-    applications = (
-        applications
-        .filter(known_ref_no_contact | unknown_ref_no_contact | contacted)
-        .select_related('user')
-        .annotate(
-            search_type_ordering=Case(
-                When(known_ref_no_contact, then=Value(2)),
-                When(unknown_ref_no_contact, then=Value(1)),
-                When(contacted, then=Value(0)),
-                default=Value(-1),
-                output_field=IntegerField(),
-            )
-        )
-        .order_by('-search_type_ordering', 'application_datetime')
-    )
-
-    return render(request, 'console/complete_credential_applications.html',
-                  {'process_credential_form': process_credential_form,
-                   'applications': applications, 'known_refs': known_refs,
-                   'complete_credentials_nav': True})
+    return redirect(credential_processing)
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def complete_list_credentialed_people(request):
-    legacy_cred_user = LegacyCredential.objects.all().order_by('-mimic_approval_date')
-    new_cred_user = CredentialApplication.objects.filter(status=2).order_by('-decision_datetime')
-
-    credentialed_people = []
-    for item in legacy_cred_user:
-        try:
-            credentialed_people.append([item.first_names, item.last_name,
-                item.email, item.country, datetime.strptime(item.mimic_approval_date, '%m/%d/%Y'),
-                datetime.strptime(item.eicu_approval_date, '%m/%d/%Y'), item.info])
-        except ValueError:
-            credentialed_people.append([item.first_names, item.last_name,
-                item.email, item.country, datetime.strptime(item.mimic_approval_date, '%m/%d/%Y'),
-                None, item.info])
-    for item in new_cred_user:
-        credentialed_people.append([item.first_names, item.last_name, 
-            item.user.email, item.country, item.decision_datetime.replace(tzinfo=None), 
-            item.decision_datetime.replace(tzinfo=None), item.research_summary])
-
-    credentialed_people = sorted(credentialed_people, key = lambda x: x[4])
-    return render(request, 'console/complete_list_credentialed_people.html',
-        {'credentialed_people': credentialed_people})
-
+    """
+    Legacy page that displayed a list of all approved MIMIC users.
+    """
+    return redirect(credential_applications, "successful")
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -1434,6 +1322,10 @@ def process_credential_application(request, application_slug):
                     {'application':application})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
+        elif 'immediate_accept' in request.POST:
+            application.accept(responder=request.user)
+            messages.success(request, 'The application has been accepted')
+            return redirect(credential_processing)
     return render(request, 'console/process_credential_application.html',
         {'application': application, 'app_user': application.user,
          'intermediate_credential_form': intermediate_credential_form,
@@ -1448,16 +1340,7 @@ def credential_processing(request):
     """
     Process applications for credentialed access.
     """
-    applications = CredentialApplication.objects.filter(status=0)
-
-    # TODO: Remove this step. If KP has contacted the reference, exclude the
-    # application from our list. Avoid toes.
-    review_not_underway = (Q(credential_review__status__lte=10) |
-                           Q(credential_review__isnull=True))
-
-    ref_contacted = Q(reference_contact_datetime__isnull=False)
-
-    applications = applications.select_related('user__profile').exclude(review_not_underway, ref_contacted)
+    applications = CredentialApplication.objects.filter(status=0).select_related('user__profile')
 
     # Awaiting initial review
     initial_1 = Q(credential_review__isnull=True)
@@ -1765,11 +1648,12 @@ def featured_content(request):
 
         # Swap positions
         PublishedProject.objects.filter(featured=idx+1).update(featured=idx)
-        move.featured = idx+1
+        move.featured = idx + 1
         move.save()
 
-
-    featured_content = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')
+    featured_content = PublishedProject.objects.select_related('resource_type').filter(
+        featured__isnull=False
+    ).order_by('featured')
 
     return render(request, 'console/featured_content.html',
         {'featured_content': featured_content, 'featured_content_nav': True})
@@ -2104,36 +1988,19 @@ def known_references(request):
     return render(request, 'console/known_references.html', {
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
 
-
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
-def complete_credential_applications_mailto(request):
-    """
-    Return the mailto link to a credentialing applicant.
-    """
-    app_id = request.GET['app_id']
-    try:
-        app = CredentialApplication.objects.get(id=app_id)
-    except CredentialApplication.DoesNotExist:
-        return JsonResponse({'mailtolink': 'false'})
-
-    mailto = notification.mailto_process_credential_complete(request, app,
-                                                             comments=False)
-
-    return JsonResponse({'mailtolink': mailto})
-
-
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_pages(request):
-    return render(request, 'console/static_pages.html', {'pages': Page.available_choices(), 'static_pages_nav': True})
+    pages = StaticPage.objects.all().values_list('url', flat=True)
+    return render(request, 'console/static_pages.html', {'pages': pages, 'static_pages_nav': True})
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_page_sections(request, page):
+    static_page = get_object_or_404(StaticPage, url=page)
     if request.method == 'POST':
-        section_form = forms.SectionForm(data=request.POST, page=Page(page))
+        section_form = forms.SectionForm(data=request.POST, static_page=static_page)
         if section_form.is_valid():
             section_form.save()
 
@@ -2147,42 +2014,44 @@ def static_page_sections(request, page):
             section = get_object_or_404(Section, pk=down)
             section.move_down()
 
-    section_form = forms.SectionForm(page=Page(page))
+    section_form = forms.SectionForm(static_page=static_page)
 
-    sections = Section.objects.filter(page=Page(page))
+    sections = Section.objects.filter(static_page=static_page)
 
     return render(
         request,
         'console/static_page_sections.html',
-        {'sections': sections, 'page': page, 'section_form': section_form, 'static_pages_nav': True},
+        {'sections': sections, 'page': static_page.title, 'section_form': section_form, 'static_pages_nav': True},
     )
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_page_sections_delete(request, page, pk):
+    static_page = get_object_or_404(StaticPage, url=page)
     if request.method == 'POST':
-        section = get_object_or_404(Section, page=Page(page), pk=pk)
+        section = get_object_or_404(Section, static_page=static_page, pk=pk)
         section.delete()
-        Section.objects.filter(page=page, order__gt=section.order).update(order=F('order') - 1)
+        Section.objects.filter(static_page=static_page, order__gt=section.order).update(order=F('order') - 1)
 
-    return redirect('static_page_sections', page=page)
+    return redirect('static_page_sections', page=static_page)
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_page_sections_edit(request, page, pk):
-    section = get_object_or_404(Section, page=Page(page), pk=pk)
+    static_page = get_object_or_404(StaticPage, url=page)
+    section = get_object_or_404(Section, static_page=static_page, pk=pk)
     if request.method == 'POST':
-        section_form = forms.SectionForm(instance=section, data=request.POST, page=Page(page))
+        section_form = forms.SectionForm(instance=section, data=request.POST, static_page=static_page)
         if section_form.is_valid():
             section_form.save()
-            return redirect('static_page_sections', page=page)
+            return redirect('static_page_sections', page=static_page)
     else:
-        section_form = forms.SectionForm(instance=section, page=Page(page))
+        section_form = forms.SectionForm(instance=section, static_page=static_page)
 
     return render(
         request,
         'console/static_page_sections_edit.html',
-        {'section_form': section_form, 'static_pages_nav': True, 'page': page, 'section': section},
+        {'section_form': section_form, 'static_pages_nav': True, 'page': static_page.title, 'section': section},
     )

@@ -29,7 +29,7 @@
             <td>{{ user.email }}</td>
             <td>{{ user.join_date }}</td>
             <td>{{ user.last_login|date }}</td>
-            <td>{{ user.login_time.values_list|length }} </td>
+            <td>{{ user.login_time_count }} </td>
             <td>{{ user.credential_datetime|date}}</td>
           </tr>
         {% endfor %}

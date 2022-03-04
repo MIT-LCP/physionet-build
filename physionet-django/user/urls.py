@@ -2,8 +2,12 @@ from django.urls import path, re_path
 from user import views
 from django.conf import settings
 
+
+login_view = views.sso_login if settings.ENABLE_SSO else views.login
+
+
 urlpatterns = [
-    path('login/', views.login, name='login'),
+    path('login/', login_view, name='login'),
 
     path('logout/', views.logout, name='logout'),
 

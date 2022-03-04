@@ -11,7 +11,7 @@
   <h1>Forbidden Access<br />(403)</h1>
   <br /><br />
   <p>You dont have access to see this page.</p>
-  <p>If you think this is an error, please email us at: <a href="mailto:contact@physionet.org?subject=Forbidden%20Access%20attempt%20in%20physionet.org&body=Dear%20Physionet%20Team%2C%0A%0AI%20Received%20an%20error%20of%20forbidden%20in%20{{ request.get_full_path_info|urlencode }}">contact@physionet.org</a>  </p>
+  <p>If you think this is an error, please email us at: <a href="mailto:{{ ERROR_EMAIL }}?subject=Forbidden%20Access%20attempt%20&body=Dear%20P{{ SITE_NAME }}%20Team%2C%0A%0AI%20Received%20an%20error%20of%20forbidden%20in%20{{ request.get_full_path_info|urlencode }}">{{ ERROR_EMAIL }}</a>  </p>
 
 </div>
 {% endblock %}

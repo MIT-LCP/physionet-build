@@ -37,6 +37,11 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def cp_file(self, source_path, target_path):
+        """Copy a file."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def mv(self, source_path, target_path):
         """Move files."""
         raise NotImplementedError

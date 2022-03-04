@@ -1,15 +1,30 @@
 <div class="alert alert-danger col-md-8" role="alert">
-  This is a restricted-access resource. To access the files, you must
-  {% if project.access_policy == AccessPolicy.CREDENTIALED and not user.is_credentialed %}
-  be a <a href="{% url 'edit_credentialing' %}">credentialed user</a> and
-  {% endif %}
-
-  {% if project.is_self_managed_access %}
-    <a
-        href="{% url 'data_access_request_status' project.slug project.version %}">submit a
-        request to the authors</a> to use the data for your project.
-  {% else %}
-    <a href="{% url 'sign_dua' project.slug project.version %}">sign the
-    data use agreement</a> for the project.
-  {% endif %}
+  This is a restricted-access resource. To access the files, you must fulfill all of the following requirements:
+  <ul>
+    {% if project.access_policy == AccessPolicy.CREDENTIALED %}
+      {% if not user.is_credentialed %}
+        <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
+      {% endif %}
+      {% if not has_signed_dua %}
+        <li>
+          <a href="{% url 'sign_dua' project.slug project.version %}">sign the data use agreement</a> for the project
+        </li>
+      {% endif %}
+    {% elif project.access_policy == AccessPolicy.RESTRICTED %}
+      {% if not has_signed_dua %}
+        <li>
+          <a href="{% url 'sign_dua' project.slug project.version %}">sign the data use agreement</a> for the project
+        </li>
+     {% endif %}
+    {% elif project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
+      {% if not user.is_credentialed %}
+        <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
+      {% endif %}
+      {% if not has_accepted_access_request %}
+        <li>
+          <a href="{% url 'data_access_request_status' project.slug project.version %}">submit a request to the authors</a> to use the data for your project
+        </li>
+      {% endif %}
+    {% endif %}
+  </ul>
 </div>

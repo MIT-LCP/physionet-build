@@ -33,7 +33,6 @@ from notification.utility import (
 )
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 from physionet import utility
-from physionet.enums import Page
 from physionet.middleware.maintenance import (
     ServiceUnavailable,
     allow_post_during_maintenance,
@@ -50,28 +49,39 @@ from user.models import (
     CredentialApplication,
     LegacyCredential,
     Orcid,
-    Profile,
     User,
 )
 from user.userfiles import UserFiles
+from physionet.models import StaticPage
+
 
 logger = logging.getLogger(__name__)
 
 
 @method_decorator(allow_post_during_maintenance, 'dispatch')
 class LoginView(auth_views.LoginView):
-    template_name = 'sso/login.html' if settings.ENABLE_SSO else 'user/login.html'
+    template_name = 'user/login.html'
+    authentication_form = forms.LoginForm
+    redirect_authenticated_user = True
+
+
+@method_decorator(allow_post_during_maintenance, 'dispatch')
+class SSOLoginView(auth_views.LoginView):
+    template_name = 'sso/login.html'
     authentication_form = forms.LoginForm
     redirect_authenticated_user = True
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        if not settings.ENABLE_SSO:
-            return context
+        try:
+            login_static_page = StaticPage.objects.get(url='/login/')
+            instruction_sections = Section.objects.filter(static_page=login_static_page)
+        except StaticPage.DoesNotExist:
+            instruction_sections = None
 
         sso_extra_context = {
             'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
-            'login_instruction_sections': Section.objects.filter(page=Page.SSO_LOGIN),
+            'login_instruction_sections': instruction_sections,
         }
         return {**context, **sso_extra_context}
 
@@ -112,6 +122,7 @@ class PasswordChangeView(auth_views.PasswordChangeView):
 
 
 login = LoginView.as_view()
+sso_login = SSOLoginView.as_view()
 logout = LogoutView.as_view()
 reset_password_request = PasswordResetView.as_view()
 reset_password_sent = PasswordResetDoneView.as_view()

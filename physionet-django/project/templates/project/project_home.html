@@ -202,7 +202,7 @@
           </p>
           <h3>
             <a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a>
-              {% if project.is_self_managed_access %}
+              {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
                   {% if project.requests_button %}
                       <a href="{% url 'data_access_requests_overview' project.slug project.version %}"
                          class="btn btn-primary ml-1" role="button" style="float:right">Requests</a>

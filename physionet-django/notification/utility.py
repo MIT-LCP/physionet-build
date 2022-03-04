@@ -642,7 +642,6 @@ def process_credential_complete(request, application, comments=True):
     Notify user of credentialing decision
     """
     applicant_name = application.get_full_name()
-    response = 'rejected' if application.status == 1 else 'accepted'
     subject = f'Your application for {settings.SITE_NAME} credentialing'
     body = loader.render_to_string(
         'notification/email/process_credential_complete.html', {
@@ -699,11 +698,11 @@ def notify_gcp_access_request(data_access, user, project):
             'data_access': data_access,
             'user': user,
             'project': project,
-            'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
         })
 
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [email], fail_silently=False)
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
 
 def notify_aws_access_request(user, project, data_access, successful):
     subject = f'{settings.SITE_NAME} Amazon Web Service storage access'

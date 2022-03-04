@@ -4,13 +4,13 @@ from re import fullmatch
 
 import notification.utility as notification
 from django.contrib import messages
+from django.conf import settings
 from django.db.models.functions import Lower
 from django.http import Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from notification.models import News
 from project.projectfiles import ProjectFiles
-from physionet.enums import Page
-from physionet.models import Section
+from physionet.models import Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, License, ProjectType, PublishedProject
 from user.forms import ContactForm
@@ -57,7 +57,8 @@ def about_publish(request):
             'access_policy'
         )
 
-    sections = Section.objects.filter(page=Page.SHARE)
+    static_page = get_object_or_404(StaticPage, url="/about/publish/")
+    sections = Section.objects.filter(static_page=static_page)
 
     return render(
         request, 'about/publish.html', {'licenses': licenses, 'descriptions': descriptions, 'sections': sections}
@@ -92,7 +93,8 @@ def about(request):
     else:
         contact_form = ContactForm()
 
-    sections = Section.objects.filter(page=Page.ABOUT)
+    static_page = get_object_or_404(StaticPage, url="/about/")
+    sections = Section.objects.filter(static_page=static_page)
 
     return render(request, 'about/about.html', {'contact_form': contact_form, 'sections': sections})
 
@@ -116,7 +118,7 @@ def error_404(request, exception=None):
     View for testing the 404 page. To test, uncomment the URL pattern
         in urls.py.
     """
-    return render(request,'404.html', status=404)
+    return render(request, '404.html', {'ERROR_EMAIL': settings.ERROR_EMAIL}, status=404)
 
 
 def error_403(request, exception=None):
@@ -124,7 +126,7 @@ def error_403(request, exception=None):
     View for testing the 404 page. To test, uncomment the URL pattern
         in urls.py.
     """
-    return render(request,'403.html', status=403)
+    return render(request, '403.html', {'ERROR_EMAIL': settings.ERROR_EMAIL}, status=403)
 
 
 def error_500(request, exception=None):
@@ -132,7 +134,7 @@ def error_500(request, exception=None):
     View for testing the 404 page. To test, uncomment the URL pattern
         in urls.py.
     """
-    return render(request, "500.html", status=500)
+    return render(request, '500.html', {'ERROR_EMAIL': settings.ERROR_EMAIL}, status=500)
 
 
 def content_overview(request):
