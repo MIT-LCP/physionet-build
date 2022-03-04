@@ -1991,14 +1991,14 @@ def known_references(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_pages(request):
-    pages = StaticPage.objects.all().values_list('url', flat=True)
+    pages = StaticPage.objects.all()
     return render(request, 'console/static_pages.html', {'pages': pages, 'static_pages_nav': True})
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def static_page_sections(request, page):
-    static_page = get_object_or_404(StaticPage, url=page)
+def static_page_sections(request, page_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
         section_form = forms.SectionForm(data=request.POST, static_page=static_page)
         if section_form.is_valid():
@@ -2021,37 +2021,37 @@ def static_page_sections(request, page):
     return render(
         request,
         'console/static_page_sections.html',
-        {'sections': sections, 'page': static_page.title, 'section_form': section_form, 'static_pages_nav': True},
+        {'sections': sections, 'page': static_page, 'section_form': section_form, 'static_pages_nav': True},
     )
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def static_page_sections_delete(request, page, pk):
-    static_page = get_object_or_404(StaticPage, url=page)
+def static_page_sections_delete(request, page_pk, section_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
-        section = get_object_or_404(Section, static_page=static_page, pk=pk)
+        section = get_object_or_404(Section, static_page=static_page, pk=section_pk)
         section.delete()
         Section.objects.filter(static_page=static_page, order__gt=section.order).update(order=F('order') - 1)
 
-    return redirect('static_page_sections', page=static_page)
+    return redirect('static_page_sections', page_pk=static_page.pk)
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def static_page_sections_edit(request, page, pk):
-    static_page = get_object_or_404(StaticPage, url=page)
-    section = get_object_or_404(Section, static_page=static_page, pk=pk)
+def static_page_sections_edit(request, page_pk, section_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
+    section = get_object_or_404(Section, static_page=static_page, pk=section_pk)
     if request.method == 'POST':
         section_form = forms.SectionForm(instance=section, data=request.POST, static_page=static_page)
         if section_form.is_valid():
             section_form.save()
-            return redirect('static_page_sections', page=static_page)
+            return redirect('static_page_sections', page_pk=static_page.pk)
     else:
         section_form = forms.SectionForm(instance=section, static_page=static_page)
 
     return render(
         request,
         'console/static_page_sections_edit.html',
-        {'section_form': section_form, 'static_pages_nav': True, 'page': static_page.title, 'section': section},
+        {'section_form': section_form, 'static_pages_nav': True, 'page': static_page, 'section': section},
     )

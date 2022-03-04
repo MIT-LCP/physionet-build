@@ -22,7 +22,7 @@
         {% for page in pages %}
             <tr>
                 <td>{{ page|title }} page</td>
-                <td><a href="{% url 'static_page_sections' page %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
+                <td><a href="{% url 'static_page_sections' page.pk %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
             </tr>
         {% endfor %}
         </tbody>
