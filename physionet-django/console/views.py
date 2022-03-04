@@ -1545,6 +1545,7 @@ def training_proccess(request, pk):
                 training.accept(reviewer=request.user)
 
                 messages.success(request, 'The training was approved.')
+                notification.process_training_complete(request, training)
                 return redirect('training_list')
 
             training_review_form = forms.TrainingReviewForm()
@@ -1566,6 +1567,7 @@ def training_proccess(request, pk):
                 training.accept(reviewer=request.user)
 
                 messages.success(request, 'The training was approved.')
+                notification.process_training_complete(request, training)
                 return redirect('training_list')
 
             training_review_form = forms.TrainingReviewForm()
@@ -1579,6 +1581,7 @@ def training_proccess(request, pk):
                 )
 
                 messages.success(request, 'The training was not approved.')
+                notification.process_training_complete(request, training)
                 return redirect('training_list')
 
             questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())

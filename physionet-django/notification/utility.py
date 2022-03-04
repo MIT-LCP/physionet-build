@@ -597,7 +597,7 @@ def mailto_supervisor(request, application):
 
 def mailto_process_credential_complete(request, application, comments=True):
     """
-    Notify user of credentialing decision
+    Notify user of credentialing decision. Legacy, used by KP. Could be removed.
     """
     applicant_name = application.get_full_name()
     subject = '{} clinical database access request for {}'.format(settings.SITE_NAME, applicant_name)
@@ -625,7 +625,7 @@ def mailto_process_credential_complete(request, application, comments=True):
 
 def mailto_administrators(project, error):
     """
-    Request verification from a credentialing applicant's reference
+    Notify administrators of an error with Google Cloud Storage.
     """
     subject = 'Error sending files to GCP for {}'.format(project.slug)
     body = loader.render_to_string(
@@ -638,6 +638,7 @@ def mailto_administrators(project, error):
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [settings.CONTACT_EMAIL], fail_silently=False)
+
 
 def process_credential_complete(request, application, comments=True):
     """
@@ -664,6 +665,33 @@ def process_credential_complete(request, application, comments=True):
         bcc=[settings.CREDENTIAL_EMAIL]
         )
     message.send(fail_silently=False)
+
+
+def process_training_complete(request, training, include_comments=True):
+    """
+    Notify user of training decision
+    """
+    subject = f'Your application for {settings.SITE_NAME} training'
+    body = loader.render_to_string(
+        'notification/email/process_training_complete.html', {
+            'training': training,
+            'applicant_name': training.user.get_full_name(),
+            'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
+            'include_comments': training.reviewer_comments,
+            'signature': settings.EMAIL_SIGNATURE,
+            'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+        })
+
+    message = EmailMessage(
+        subject=subject,
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[training.user.email],
+        bcc=[settings.CREDENTIAL_EMAIL]
+        )
+    message.send(fail_silently=False)
+
 
 def credential_application_request(request, application):
     """
