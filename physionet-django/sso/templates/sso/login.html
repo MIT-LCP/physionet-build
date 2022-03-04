@@ -20,7 +20,7 @@
       </div>
     </div>
   </div>
-  {% if login_instruction_sections %}
+  {% if login_instruction_sections|length > 0 %}
     {% include "sso/sso_instruction.html" with sections=login_instruction_sections %}
   {% endif %}
   <br>

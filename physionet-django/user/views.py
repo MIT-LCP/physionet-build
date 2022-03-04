@@ -77,7 +77,7 @@ class SSOLoginView(auth_views.LoginView):
             login_static_page = StaticPage.objects.get(url='/login/')
             instruction_sections = Section.objects.filter(static_page=login_static_page)
         except StaticPage.DoesNotExist:
-            instruction_sections = None
+            instruction_sections = []
 
         sso_extra_context = {
             'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,

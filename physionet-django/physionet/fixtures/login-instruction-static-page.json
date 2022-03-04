@@ -1,0 +1,10 @@
+[
+  {
+    "model": "physionet.staticpage",
+    "pk": 3,
+    "fields": {
+      "title": "Login Instructions",
+      "url": "/login/"
+    }
+  }
+]
