@@ -13,6 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='section',
             name='page',
-            field=models.CharField(choices=[('ABOUT', 'about'), ('SHARE', 'share'), ('SSO_LOGIN', 'sso login')], max_length=16),
+            field=models.CharField(
+                choices=[('ABOUT', 'about'), ('SHARE', 'share'), ('SSO_LOGIN', 'sso login')], max_length=16),
         ),
     ]

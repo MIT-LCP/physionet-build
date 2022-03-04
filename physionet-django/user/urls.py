@@ -48,21 +48,19 @@ if not settings.ENABLE_SSO:
         path('register/', views.register, name='register'),
         path('settings/password/', views.edit_password, name='edit_password'),
         path('settings/password/changed/', views.edit_password_complete, name='edit_password_complete'),
-        re_path(
-            '^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-            views.activate_user,
-            name='activate_user',
-        ),
+        re_path('^activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
+                views.activate_user,
+                name='activate_user'),
         # Request password reset
         path('reset-password/', views.reset_password_request,
-            name='reset_password_request'),
+             name='reset_password_request'),
         # Page shown after reset email has been sent
         path('reset-password/sent/', views.reset_password_sent,
-            name='reset_password_sent'),
+             name='reset_password_sent'),
         # Prompt user to enter new password and carry out password reset (if url is valid)
         re_path('^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
                 views.reset_password_confirm, name='reset_password_confirm'),
         # Password reset successfully carried out
         path('reset/complete/', views.reset_password_complete,
-            name='reset_password_complete'),
+             name='reset_password_complete'),
     ])
