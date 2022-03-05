@@ -1560,7 +1560,7 @@ def training_proccess(request, pk):
             # populate all answer fields with True
             data_copy = request.POST.copy()
             answer_fields = [key for key, val in data_copy.items() if "answer" in key]
-            
+
             for field in answer_fields:
                 data_copy[field] = 'True'
 

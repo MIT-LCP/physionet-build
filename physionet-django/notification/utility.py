@@ -358,6 +358,7 @@ def reopen_copyedit_notify(request, project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+
 def authors_approved_notify(request, project):
     """
     Notify ...
@@ -380,6 +381,7 @@ def authors_approved_notify(request, project):
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
+
 
 def publish_notify(request, published_project):
     """
@@ -543,6 +545,7 @@ def contact_supervisor(request, application):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.reference_email], fail_silently=False)
 
+
 def mailto_reference(request, application):
     """
     Request verification from a credentialing applicant's reference
@@ -663,7 +666,7 @@ def process_credential_complete(request, application, include_comments=True):
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[application.user.email],
         bcc=[settings.CREDENTIAL_EMAIL]
-        )
+    )
     message.send(fail_silently=False)
 
 
@@ -689,7 +692,7 @@ def process_training_complete(request, training, include_comments=True):
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[training.user.email],
         bcc=[settings.CREDENTIAL_EMAIL]
-        )
+    )
     message.send(fail_silently=False)
 
 
@@ -714,6 +717,7 @@ def credential_application_request(request, application):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.user.email], fail_silently=False)
 
+
 def notify_gcp_access_request(data_access, user, project):
     """
     Notify user of GCP access
@@ -733,6 +737,7 @@ def notify_gcp_access_request(data_access, user, project):
         })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
+
 
 def notify_aws_access_request(user, project, data_access, successful):
     subject = f'{settings.SITE_NAME} Amazon Web Service storage access'
