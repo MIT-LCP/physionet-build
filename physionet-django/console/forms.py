@@ -955,15 +955,15 @@ class SectionForm(forms.ModelForm):
         model = Section
         fields = ('title', 'content')
 
-    def __init__(self, page, *args, **kwargs):
+    def __init__(self, static_page, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.page = page
+        self.static_page = static_page
 
     def save(self):
         section = super().save(commit=False)
-        section.page = self.page
+        section.static_page = self.static_page
         if not section.order:
-            section.order = Section.objects.filter(page=self.page).count() + 1
+            section.order = Section.objects.filter(static_page=self.static_page).count() + 1
         section.save()
         return section
 

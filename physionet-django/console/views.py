@@ -25,11 +25,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from notification.models import News
-from physionet.enums import Page
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
-from physionet.models import Section
+from physionet.models import Section, StaticPage
 from project import forms as project_forms
 from project.models import (
     GCP,
@@ -977,22 +976,24 @@ def users(request, group='all'):
     """
     List of users
     """
-    show_inactive = False
+    user_list = User.objects.select_related('profile').annotate(
+        login_time_count=Count('login_time')
+    ).order_by('username')
     if group == 'admin':
-        admin_users = User.objects.filter(is_admin=True).order_by('username')
+        admin_users = user_list.filter(is_admin=True)
         return render(request, 'console/users_admin.html', {
-            'admin_users': admin_users, 'group': group, 'user_nav': True})
+            'admin_users': admin_users,
+            'group': group,
+            'user_nav': True,
+        })
     elif group == 'active':
-        user_list = User.objects.filter(is_active=True).order_by('username')
+        user_list = user_list.filter(is_active=True)
     elif group == 'inactive':
-        user_list = User.objects.filter(is_active=False).order_by('username')
-    else:
-        user_list = User.objects.all().order_by('username')
-        show_inactive = True
+        user_list = user_list.filter(is_active=False)
+
     users = paginate(request, user_list, 50)
 
-    return render(request, 'console/users.html', {'users': users,
-        'show_inactive': show_inactive, 'group': group, 'user_nav': True})
+    return render(request, 'console/users.html', {'users': users, 'group': group, 'user_nav': True})
 
 
 @login_required
@@ -1334,6 +1335,10 @@ def process_credential_application(request, application_slug):
                     {'application':application})
             else:
                 messages.error(request, 'Invalid submission. See form below.')
+        elif 'immediate_accept' in request.POST:
+            application.accept(responder=request.user)
+            messages.success(request, 'The application has been accepted')
+            return redirect(credential_processing)
     return render(request, 'console/process_credential_application.html',
         {'application': application, 'app_user': application.user,
          'intermediate_credential_form': intermediate_credential_form,
@@ -1656,11 +1661,12 @@ def featured_content(request):
 
         # Swap positions
         PublishedProject.objects.filter(featured=idx+1).update(featured=idx)
-        move.featured = idx+1
+        move.featured = idx + 1
         move.save()
 
-
-    featured_content = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')
+    featured_content = PublishedProject.objects.select_related('resource_type').filter(
+        featured__isnull=False
+    ).order_by('featured')
 
     return render(request, 'console/featured_content.html',
         {'featured_content': featured_content, 'featured_content_nav': True})
@@ -2248,14 +2254,16 @@ def known_references(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_pages(request):
-    return render(request, 'console/static_pages.html', {'pages': Page.choices(), 'static_pages_nav': True})
+    pages = StaticPage.objects.all()
+    return render(request, 'console/static_pages.html', {'pages': pages, 'static_pages_nav': True})
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def static_page_sections(request, page):
+def static_page_sections(request, page_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
-        section_form = forms.SectionForm(data=request.POST, page=Page(page))
+        section_form = forms.SectionForm(data=request.POST, static_page=static_page)
         if section_form.is_valid():
             section_form.save()
 
@@ -2269,42 +2277,44 @@ def static_page_sections(request, page):
             section = get_object_or_404(Section, pk=down)
             section.move_down()
 
-    section_form = forms.SectionForm(page=Page(page))
+    section_form = forms.SectionForm(static_page=static_page)
 
-    sections = Section.objects.filter(page=Page(page))
+    sections = Section.objects.filter(static_page=static_page)
 
     return render(
         request,
         'console/static_page_sections.html',
-        {'sections': sections, 'page': page, 'section_form': section_form, 'static_pages_nav': True},
+        {'sections': sections, 'page': static_page, 'section_form': section_form, 'static_pages_nav': True},
     )
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def static_page_sections_delete(request, page, pk):
+def static_page_sections_delete(request, page_pk, section_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
-        section = get_object_or_404(Section, page=Page(page), pk=pk)
+        section = get_object_or_404(Section, static_page=static_page, pk=section_pk)
         section.delete()
-        Section.objects.filter(page=page, order__gt=section.order).update(order=F('order') - 1)
+        Section.objects.filter(static_page=static_page, order__gt=section.order).update(order=F('order') - 1)
 
-    return redirect('static_page_sections', page=page)
+    return redirect('static_page_sections', page_pk=static_page.pk)
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def static_page_sections_edit(request, page, pk):
-    section = get_object_or_404(Section, page=Page(page), pk=pk)
+def static_page_sections_edit(request, page_pk, section_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
+    section = get_object_or_404(Section, static_page=static_page, pk=section_pk)
     if request.method == 'POST':
-        section_form = forms.SectionForm(instance=section, data=request.POST, page=Page(page))
+        section_form = forms.SectionForm(instance=section, data=request.POST, static_page=static_page)
         if section_form.is_valid():
             section_form.save()
-            return redirect('static_page_sections', page=page)
+            return redirect('static_page_sections', page_pk=static_page.pk)
     else:
-        section_form = forms.SectionForm(instance=section, page=Page(page))
+        section_form = forms.SectionForm(instance=section, static_page=static_page)
 
     return render(
         request,
         'console/static_page_sections_edit.html',
-        {'section_form': section_form, 'static_pages_nav': True, 'page': page, 'section': section},
+        {'section_form': section_form, 'static_pages_nav': True, 'page': static_page, 'section': section},
     )
