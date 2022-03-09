@@ -119,6 +119,7 @@ def invitation_notify(request, invite_author_form, target_email):
         'footer': email_footer(),
         'SITE_NAME': settings.SITE_NAME,
         'target_email': target_email,
+        'sso_enabled': settings.ENABLE_SSO,
     }
 
     body = loader.render_to_string('notification/email/invite_author.html',
