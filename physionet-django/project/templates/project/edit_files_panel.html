@@ -93,8 +93,6 @@
   </form>
 
   <script>
-    Dropzone.autoDiscover = false;
-
     $(document).ready(() => {
       const dropzoneObj = {
             method: 'PUT',
@@ -130,8 +128,8 @@
                 });
             }
         };
-        $("#myDropzone").dropzone(dropzoneObj);
         $("#myDropzone").addClass("dropzone");
+        $("#myDropzone").dropzone(dropzoneObj);
     });
 </script>
 
