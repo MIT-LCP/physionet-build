@@ -1,4 +1,5 @@
 {% load static %}
+{% load get_static_page %}
 <ul class="navbar-nav mr-auto">
 
   <li class="nav-item">
@@ -7,19 +8,33 @@
     </a>
   </li>
 
-  <!-- BG FIX AFTER DEVELOPING NEW MODEL - have to add back in brackert around url
+  <!-- BG FIX AFTER DEVELOPING NEW MODEL - have to add back in brackert around url   for menuitem in about_pages:
+
+  Template tag - get static pages
+  for page in static_pages
+    add static_url = page.url
+
   <li class="nav-item">
-    <a id="nav_publish" class="nav-link" href="% url 'about_publish' %">
+    <a id="nav_publish" class="nav-link" href="% url 'static_view' static_url='share' %">
         Share
     </a>
   </li>
 
   <li class="nav-item">
-    <a id="nav_about" class="nav-link" href="% url 'about' %">
+    <a id="nav_about" class="nav-link" href="% url 'static_view' %">
         About
     </a>
   </li>
+
 -->
+
+  {% for page in get_static_page %}
+    <li class="nav-item">
+      <a id={{ page.title }} class="nav-link" href="{% url page.url %}">
+        {{ page.title }}
+      </a>
+  </li>
+  {% endfor %}
 
   <li class="nav-item">
     <a id="nav_news" class="nav-link" href="{% url 'news' %}">

@@ -23,7 +23,7 @@
         <div class="card-body">
 
           <ul>
-            {% for section in static_page.sections %}
+            {% for section in sections %}
               <li><a href="#{{ section.order }}">{{ section.title }}</a></li>
             {% endfor %}
           </ul>

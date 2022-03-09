@@ -76,6 +76,39 @@ def license_content(request, license_slug):
 
     return render(request, 'about/license_content.html', {'license': license})
 
+def contact_params(request):
+    if request.method == 'POST':
+        contact_form = ContactForm(request.POST)
+        if contact_form.is_valid():
+            notification.send_contact_message(contact_form)
+            messages.success(request, 'Your message has been sent.')
+            contact_form = ContactForm()
+        else:
+            messages.error(request, 'Invalid submission. See form below.')
+    else:
+        contact_form = ContactForm()
+
+    return contact_form
+
+def license_params(request, return_var):
+    if return_var == 'licenses':
+        licenses = OrderedDict()
+        for resource_type in ProjectType.objects.all():
+            licenses[resource_type.name] = License.objects.filter(
+                resource_types__contains=str(resource_type.id)).order_by(
+                'access_policy'
+            )
+
+        return licenses
+    elif return_var == 'descriptions':
+        descriptions = OrderedDict()
+        for resource_type in ProjectType.objects.all():
+            descriptions[resource_type.name] = resource_type.description
+
+        return descriptions
+
+    else:
+        return None
 
 # @allow_post_during_maintenance
 # def about(request):
@@ -242,56 +275,21 @@ def static_view(request, static_url='about'):
     accepts URL from StaticPage and renders the page
     """
 
-    # breakpoint()
     static_page = get_object_or_404(StaticPage, url=static_url)
-    # CHECK TO SEE IF CAN ACCESS sections VIA static_page:
     sections = Section.objects.filter(static_page=static_page)
 
-    parameters = {'static_page': static_page, 'sections': sections}
+    params = {'static_page': static_page, 'sections': sections}
 
     # get extra parameters for pages as needed
     if static_url == 'about':
-        if request.method == 'POST':
-            contact_form = ContactForm(request.POST)
-            if contact_form.is_valid():
-                notification.send_contact_message(contact_form)
-                messages.success(request, 'Your message has been sent.')
-                contact_form = ContactForm()
-            else:
-                messages.error(request, 'Invalid submission. See form below.')
-        else:
-            contact_form = ContactForm()
+        params['contact_form'] = contact_params(request)
 
-        parameters['contact_form'] = contact_form
-
-        # return render(
-        #     request, 'about/static_template.html', {'contact_form': contact_form, 'static_page': static_page,
-        #                                             'sections': sections}
-        # )
     elif static_url == 'publish':
-        licenses = OrderedDict()
-        descriptions = OrderedDict()
-        for resource_type in ProjectType.objects.all():
-            descriptions[resource_type.name] = resource_type.description
-            licenses[resource_type.name] = License.objects.filter(
-                resource_types__contains=str(resource_type.id)).order_by(
-                'access_policy'
-            )
 
-        parameters['licenses'] = licenses
-        parameters['descriptions'] = descriptions
+        params['licenses'] = license_params(request,'licenses')
+        params['descriptions'] = license_params(request,'descriptions')
 
-        # return render(
-        #     request, 'about/static_template.html', {'licenses': licenses, 'descriptions': descriptions,
-        #                                             'static_page': static_page, 'sections': sections}
-        # )
-    # else:
-    #     return render(
-    #         request, 'about/static_template.html', {'static_page': static_page, 'sections': sections}
-
-    return render(
-        request, 'about/static_template.html', parameters
-    )
+    return render(request, 'about/static_template.html', params)
 
 def tutorial_overview(request):
     """
