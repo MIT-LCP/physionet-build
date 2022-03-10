@@ -685,7 +685,11 @@ def edit_training(request):
         'rejected': trainings.get_rejected(),
     }
 
-    return render(request, 'user/edit_training.html', {'training_form': training_form, 'trainings_by_status': trainings_by_status})
+    return render(
+        request,
+        'user/edit_training.html',
+        {'training_form': training_form, 'trainings_by_status': trainings_by_status}
+    )
 
 
 @login_required
