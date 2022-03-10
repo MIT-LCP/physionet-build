@@ -5,6 +5,13 @@
 {% block main_content %}
 <h1>{{ SITE_NAME }} Training</h1>
   <hr>
+    <p>In order to use the restricted-access clinical databases hosted on {{ SITE_NAME }}, users must:</p>
+    <ul>
+        <li>Complete a training program in human research subject protections and HIPAA regulations</li>
+        <li>{% lorem 1 %}</li>
+        <li><a href="{% url "citi_course" %}" target="_blank">Link to CITI Program Course Instructions</a></li>
+    </ul>
+  <hr>
   {% for status, trainings in trainings_by_status.items %}
     <div class="mb-3">
       <h4>{{ status|capfirst }} trainings</h4>
