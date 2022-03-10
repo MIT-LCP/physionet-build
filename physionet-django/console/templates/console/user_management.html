@@ -99,7 +99,21 @@
       {% endfor %}
     </ul>
   {% endfor %}
-
+  <br>
+  <h3>User Training</h3>
+    {% for status, training in trainings.items %}
+    <h5>{{ status }} Trainings</h5>
+      <ul>
+        {% for training in training %}
+          <li>
+            {{ training.training_type.name }}
+          </li>
+        {% empty %}
+          <li> N/A </li>
+        {% endfor %}
+      </ul>
+    {% endfor %}
+  <br>
   <h3>Credentialing history</h3>
   <ul>
   {% for cred_app in credentialing_app %}

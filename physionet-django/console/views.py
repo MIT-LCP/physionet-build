@@ -1005,6 +1005,15 @@ def user_management(request, username):
     """
     user = get_object_or_404(User, username__iexact=username)
 
+    _trainings = Training.objects.select_related('training_type').filter(user=user).order_by('-status')
+
+    trainings = {}
+    trainings['Valid'] = _trainings.get_valid()
+    trainings['Review'] = _trainings.get_review()
+    trainings['Expired'] = _trainings.get_expired()
+    trainings['Rejected'] = _trainings.get_rejected()
+
+
     emails = {}
     emails['primary'] = AssociatedEmail.objects.filter(user=user,
                                                        is_primary_email=True,
