@@ -5,20 +5,24 @@
 {% block main_content %}
 <h1>{{ SITE_NAME }} Training</h1>
   <hr>
-  <h4>Active training</h4>
-  <ul class="list-group list-group-flush">
-    {% for training in trainings %}
-      <li class="list-group-item d-flex align-items-center justify-content-between">
-        <div>
-          {{ training.training_type.name }} Training
-          {% include 'user/training_badge.html' %}
-        </div>
-        <a href="{% url 'edit_training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a>
-      </li>
-    {% empty %}
-      <p>You haven't submitted any training.</p>
-    {% endfor %}
-  </ul>
+  {% for status, trainings in trainings_by_status.items %}
+    <div class="mb-3">
+      <h4>{{ status|capfirst }} trainings</h4>
+      <ul class="list-group list-group-flush">
+        {% for training in trainings %}
+          <li class="list-group-item d-flex align-items-center justify-content-between {% if status == 'under review' %}list-group-item-warning{% endif %}">
+            <div>
+              {{ training.training_type.name }} Training
+              {% include 'user/training_badge.html' %}
+            </div>
+            <a href="{% url 'edit_training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a>
+          </li>
+        {% empty %}
+          <p>N/A</p>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endfor %}
   <hr>
   <h4>Submit evidence of a completed training course</h4>
   <p>Provide a completion report indicating that you have finished the respective training course.</p>

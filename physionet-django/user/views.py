@@ -678,8 +678,14 @@ def edit_training(request):
             training_form = forms.TrainingForm(user=request.user)
 
     trainings = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
+    trainings_by_status = {
+        'under review': trainings.get_review(),
+        'active': trainings.get_valid(),
+        'expired': trainings.get_expired(),
+        'rejected': trainings.get_rejected(),
+    }
 
-    return render(request, 'user/edit_training.html', {'training_form': training_form, 'trainings': trainings})
+    return render(request, 'user/edit_training.html', {'training_form': training_form, 'trainings_by_status': trainings_by_status})
 
 
 @login_required
