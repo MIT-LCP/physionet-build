@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from os import path
 from re import fullmatch
+from urllib.parse import urljoin
 
 import notification.utility as notification
 from django.contrib import messages
@@ -270,12 +271,17 @@ def community_challenge(request):
     return render(request, 'about/community_challenge_index.html', {'community_challenges': community_challenges})
 
 
-def static_view(request, static_url='about'):
+def static_view(request, static_url=None):
     """
     accepts URL from StaticPage and renders the page
     """
 
-    static_page = get_object_or_404(StaticPage, url=static_url)
+    if static_url:
+        # about_url='about/' + static_url + '/'
+        about_url = urljoin('/about/',static_url + '/')
+        static_page = get_object_or_404(StaticPage, url=about_url)
+    else:
+        static_page = get_object_or_404(StaticPage, url='/about/')
     sections = Section.objects.filter(static_page=static_page)
 
     params = {'static_page': static_page, 'sections': sections}

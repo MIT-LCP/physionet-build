@@ -1,5 +1,8 @@
 {% load static %}
-{% load get_static_page %}
+{% load physionet_templatetags %}
+
+{% get_static_page as static_pg %}
+
 <ul class="navbar-nav mr-auto">
 
   <li class="nav-item">
@@ -28,12 +31,14 @@
 
 -->
 
-  {% for page in get_static_page %}
-    <li class="nav-item">
-      <a id={{ page.title }} class="nav-link" href="{% url page.url %}">
-        {{ page.title }}
-      </a>
-  </li>
+  {% for page in static_pg %}
+    {% if page.nav_bar %}
+      <li class="nav-item">
+        <a id={{ page.title }} class="nav-link" href={{ page.url }} >
+          {{ page.title }}
+        </a>
+      </li>
+    {% endif %}
   {% endfor %}
 
   <li class="nav-item">
