@@ -4,7 +4,9 @@
   "pk": 1,
   "fields": {
     "title": "About",
-    "url": "/about/"
+    "url": "/about/",
+    "nav_bar": "True",
+    "nav_order": 2
   }
 },
 {
@@ -12,7 +14,9 @@
   "pk": 2,
   "fields": {
     "title": "Share",
-    "url": "/about/publish/"
+    "url": "/about/publish/",
+    "nav_bar": "True",
+    "nav_order": 1
   }
 },
 {
