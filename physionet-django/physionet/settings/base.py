@@ -506,3 +506,41 @@ FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)
 
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
 COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)
+
+#  Platform wide citation config
+SHOW_PLATFORM_WIDE_CITATION = config('SHOW_PLATFORM_WIDE_CITATION', cast=bool, default=True)
+PLATFORM_WIDE_CITATION_MLA = config('PLATFORM_WIDE_CITATION_MLA', default='Goldberger, A., et al. "PhysioBank, '
+                    'PhysioToolkit, and PhysioNet: Components of a '
+                    'new research resource for complex physiologic '
+                    'signals. Circulation [Online]. 101 (23), pp. '
+                    'e215–e220." (2000).')
+PLATFORM_WIDE_CITATION_APA = config('PLATFORM_WIDE_CITATION_APA', default='Goldberger, A., Amaral, L., Glass, L., '
+                    'Hausdorff, J., Ivanov, P. C., Mark, R., ... & '
+                    'Stanley, H. E. (2000). PhysioBank, '
+                    'PhysioToolkit, and PhysioNet: Components of a '
+                    'new research resource for complex physiologic '
+                    'signals. Circulation [Online]. 101 (23), pp. '
+                    'e215–e220.')
+PLATFORM_WIDE_CITATION_CHICAGO = config('PLATFORM_WIDE_CITATION_CHICAGO', default='Goldberger, A., L. Amaral, L. Glass, J. '
+                        'Hausdorff, P. C. Ivanov, R. Mark, J. E. '
+                        'Mietus, G. B. Moody, C. K. Peng, and H. E. '
+                        'Stanley. "PhysioBank, PhysioToolkit, and '
+                        'PhysioNet: Components of a new research '
+                        'resource for complex physiologic signals. '
+                        'Circulation [Online]. 101 (23), pp. '
+                        'e215–e220." (2000).')
+PLATFORM_WIDE_CITATION_HARVARD = config('PLATFORM_WIDE_CITATION_HARVARD', default='Goldberger, A., Amaral, L., Glass, L., '
+                        'Hausdorff, J., Ivanov, P.C., Mark, R., '
+                        'Mietus, J.E., Moody, G.B., Peng, C.K. and '
+                        'Stanley, H.E., 2000. PhysioBank, '
+                        'PhysioToolkit, and PhysioNet: Components of a '
+                        'new research resource for complex physiologic '
+                        'signals. Circulation [Online]. 101 (23), pp. '
+                        'e215–e220.')
+PLATFORM_WIDE_CITATION_VANCOUVER = config('PLATFORM_WIDE_CITATION_VANCOUVER', default='Goldberger A, Amaral L, Glass L, Hausdorff J, '
+                          'Ivanov PC, Mark R, Mietus JE, Moody GB, Peng '
+                          'CK, Stanley HE. PhysioBank, PhysioToolkit, '
+                          'and PhysioNet: Components of a new research '
+                          'resource for complex physiologic signals. '
+                          'Circulation [Online]. 101 (23), pp. '
+                          'e215–e220.')

@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -163,41 +164,11 @@ class Metadata(models.Model):
             dictionary containing the desired citation style
         """
         citation_styles = {
-            'MLA': ('Goldberger, A., et al. "PhysioBank, '
-                    'PhysioToolkit, and PhysioNet: Components of a '
-                    'new research resource for complex physiologic '
-                    'signals. Circulation [Online]. 101 (23), pp. '
-                    'e215–e220." (2000).'),
-            'APA': ('Goldberger, A., Amaral, L., Glass, L., '
-                    'Hausdorff, J., Ivanov, P. C., Mark, R., ... & '
-                    'Stanley, H. E. (2000). PhysioBank, '
-                    'PhysioToolkit, and PhysioNet: Components of a '
-                    'new research resource for complex physiologic '
-                    'signals. Circulation [Online]. 101 (23), pp. '
-                    'e215–e220.'),
-            'Chicago': ('Goldberger, A., L. Amaral, L. Glass, J. '
-                        'Hausdorff, P. C. Ivanov, R. Mark, J. E. '
-                        'Mietus, G. B. Moody, C. K. Peng, and H. E. '
-                        'Stanley. "PhysioBank, PhysioToolkit, and '
-                        'PhysioNet: Components of a new research '
-                        'resource for complex physiologic signals. '
-                        'Circulation [Online]. 101 (23), pp. '
-                        'e215–e220." (2000).'),
-            'Harvard': ('Goldberger, A., Amaral, L., Glass, L., '
-                        'Hausdorff, J., Ivanov, P.C., Mark, R., '
-                        'Mietus, J.E., Moody, G.B., Peng, C.K. and '
-                        'Stanley, H.E., 2000. PhysioBank, '
-                        'PhysioToolkit, and PhysioNet: Components of a '
-                        'new research resource for complex physiologic '
-                        'signals. Circulation [Online]. 101 (23), pp. '
-                        'e215–e220.'),
-            'Vancouver': ('Goldberger A, Amaral L, Glass L, Hausdorff J, '
-                          'Ivanov PC, Mark R, Mietus JE, Moody GB, Peng '
-                          'CK, Stanley HE. PhysioBank, PhysioToolkit, '
-                          'and PhysioNet: Components of a new research '
-                          'resource for complex physiologic signals. '
-                          'Circulation [Online]. 101 (23), pp. '
-                          'e215–e220.')
+            'MLA': settings.PLATFORM_WIDE_CITATION_MLA,
+            'APA': settings.PLATFORM_WIDE_CITATION_APA,
+            'Chicago': settings.PLATFORM_WIDE_CITATION_CHICAGO,
+            'Harvard': settings.PLATFORM_WIDE_CITATION_HARVARD,
+            'Vancouver': settings.PLATFORM_WIDE_CITATION_VANCOUVER,
         }
 
         return citation_styles
@@ -446,12 +417,13 @@ class Metadata(models.Model):
 
         shared_content = {'year': year,
                           'title': self.title,
-                          'version': self.version}
+                          'version': self.version,
+                          'platform_name': settings.SITE_NAME}
 
         if style == 'MLA':
 
             style_format = ('{author}. "{title}" (version {version}). '
-                            '<i>PhysioNet</i> ({year})')
+                            '<i>{platform_name}</i> ({year})')
 
             doi_format = (', <a href="https://doi.org/{doi}">'
                           'https://doi.org/{doi}</a>.')
@@ -469,7 +441,7 @@ class Metadata(models.Model):
         elif style == 'APA':
 
             style_format = ('{author} ({year}). {title} (version '
-                            '{version}). <i>PhysioNet</i>')
+                            '{version}). <i>{platform_name}</i>')
 
             doi_format = ('. <a href="https://doi.org/{doi}">'
                           'https://doi.org/{doi}</a>.')
@@ -494,7 +466,7 @@ class Metadata(models.Model):
         elif style == 'Chicago':
 
             style_format = ('{author}. "{title}" (version {version}). '
-                            '<i>PhysioNet</i> ({year})')
+                            '<i>{platform_name}</i> ({year})')
 
             doi_format = ('. <a href="https://doi.org/{doi}">'
                           'https://doi.org/{doi}</a>.')
@@ -511,7 +483,7 @@ class Metadata(models.Model):
         elif style == 'Harvard':
 
             style_format = ("{author} ({year}) '{title}' (version "
-                            "{version}), <i>PhysioNet</i>")
+                            "{version}), <i>{platform_name}</i>")
 
             doi_format = (". Available at: "
                           "<a href='https://doi.org/{doi}'>"
@@ -528,7 +500,7 @@ class Metadata(models.Model):
         elif style == 'Vancouver':
 
             style_format = ('{author}. {title} (version {version}). '
-                            'PhysioNet. {year}')
+                            '{platform_name}. {year}')
 
             doi_format = ('. Available from: '
                           '<a href="https://doi.org/{doi}">'

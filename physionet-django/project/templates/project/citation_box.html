@@ -57,12 +57,13 @@
       {% endif %}
     {% endif %}
   {% endif %}
-
-  <p>
-    <strong>Please include the standard citation for {{ SITE_NAME }}:</strong>
-    <a href="#citationModalPlatform" data-toggle="modal">(show more options)</a>
-    <br><span>{{ platform_citations.APA }}</span>
-  </p>
+  {% if SHOW_PLATFORM_WIDE_CITATION %}
+      <p>
+        <strong>Please include the standard citation for {{ SITE_NAME }}:</strong>
+        <a href="#citationModalPlatform" data-toggle="modal">(show more options)</a>
+            <br><span>{{ platform_citations.APA }}</span>
+      </p>
+  {% endif %}
 
   {% include 'modal_start.html' with id_name='citationModalPlatform' title='Cite' %}
   <table><tbody>

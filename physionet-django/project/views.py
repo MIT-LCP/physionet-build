@@ -1794,6 +1794,7 @@ def published_project(request, project_slug, version, subdir=''):
         'platform_citations': platform_citations,
         'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
         'is_wget_supported': ProjectFiles().is_wget_supported(),
+        'SHOW_PLATFORM_WIDE_CITATION': settings.SHOW_PLATFORM_WIDE_CITATION,
     }
     # The file and directory contents
     if has_access:
