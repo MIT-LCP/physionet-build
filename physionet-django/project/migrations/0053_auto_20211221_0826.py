@@ -30,7 +30,7 @@ def migrate_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0034_training_1'),
+        ('user', '0035_training_1'),
         ('project', '0052_auto_20220105_1219'),
     ]
 

@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
     MIGRATE_AFTER_INSTALL = True
 
     dependencies = [
-        ('user', '0034_training_1'),
+        ('user', '0035_training_1'),
     ]
 
     operations = [

@@ -27,6 +27,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 DEBUG = config('DEBUG', default=False, cast=bool)
 SECRET_KEY = config('SECRET_KEY')
+ENABLE_SSO = config('ENABLE_SSO', default=False, cast=bool)
+SSO_REMOTE_USER_HEADER = config('SSO_REMOTE_USER_HEADER', default='HTTP_REMOTE_USER')
+SSO_LOGIN_BUTTON_TEXT = config('SSO_LOGIN_BUTTON_TEXT', default='Login')
 
 
 # Application definition
@@ -55,6 +58,9 @@ INSTALLED_APPS = [
     'lightwave',
     'physionet',
 ]
+
+if ENABLE_SSO:
+    INSTALLED_APPS += ['sso']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -87,6 +93,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'physionet.context_processors.access_policy',
                 'physionet.context_processors.platform_config',
+                'sso.context_processors.sso_enabled',
             ],
         },
     },
@@ -108,6 +115,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = ['user.models.DualAuthModelBackend']
+
+if ENABLE_SSO:
+    AUTHENTICATION_BACKENDS += ['sso.auth.RemoteUserBackend']
 
 AUTH_USER_MODEL = 'user.User'
 

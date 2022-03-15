@@ -307,7 +307,7 @@ class RegistrationForm(forms.ModelForm):
             raise forms.ValidationError("A user with that username already exists.")
         return self.cleaned_data['username'].lower()
 
-    def save(self):
+    def save(self, sso_id=None):
         """
         Process the registration form
         """
@@ -316,6 +316,7 @@ class RegistrationForm(forms.ModelForm):
 
         user = super(RegistrationForm, self).save(commit=False)
         user.email = user.email.lower()
+        user.sso_id = sso_id
 
         with transaction.atomic():
             user.save()

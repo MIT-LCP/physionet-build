@@ -65,7 +65,7 @@ def migrate_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0033_credentialapplication_reference_organization'),
+        ('user', '0034_user_sso_id'),
     ]
 
     operations = [

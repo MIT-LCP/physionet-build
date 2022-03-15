@@ -7,7 +7,7 @@ You have been invited by {{ inviter_name }} ({{ inviter_email }}) to co-author a
 
 You may respond to the invitation from your project homepage ({{ url_prefix }}{% url "project_home" %}). If the email address {{ target_email }} is not associated with your {{ domain }} account, please add it to your profile.
 
-If you do not have an account, please register here: {{ url_prefix }}{% url "register" %}. Once you have registered, you will find the pending invitation on your project home page.
+If you do not have an account, please register here: {{ url_prefix }}{% if sso_enabled %}{% url "login" %}{% else %}{% url "register" %}{% endif %}. Once you have registered, you will find the pending invitation on your project home page.
 
 {{ signature }}
 

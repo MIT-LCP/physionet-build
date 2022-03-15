@@ -1,16 +1,14 @@
 """
 Module for generating notifications
 """
-from urllib import parse
 from email.utils import formataddr
+from urllib import parse
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage, send_mail, mail_admins
-from django.template import loader, defaultfilters
+from django.core.mail import EmailMessage, mail_admins, send_mail
+from django.template import defaultfilters, loader
 from django.utils import timezone
-
-
 from project.models import DataAccessRequest, License
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
@@ -121,6 +119,7 @@ def invitation_notify(request, invite_author_form, target_email):
         'footer': email_footer(),
         'SITE_NAME': settings.SITE_NAME,
         'target_email': target_email,
+        'sso_enabled': settings.ENABLE_SSO,
     }
 
     body = loader.render_to_string('notification/email/invite_author.html',
@@ -888,7 +887,7 @@ def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, ta
     mail_admins(subject, body, settings.DEFAULT_FROM_EMAIL)
 
 
-def notify_account_registration(request, user, uidb64, token):
+def notify_account_registration(request, user, uidb64, token, sso=False):
     """
     Send the registration email.
     """
@@ -900,9 +899,9 @@ def notify_account_registration(request, user, uidb64, token):
         'url_prefix': get_url_prefix(request),
         'uidb64': uidb64,
         'token': token,
+        'sso': sso,
         'SITE_NAME': settings.SITE_NAME,
     }
     body = loader.render_to_string('user/email/register_email.html', context)
     # Not resend the email if there was an integrity error
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [user.email], fail_silently=False)
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)

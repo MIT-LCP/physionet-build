@@ -335,6 +335,7 @@ class User(AbstractBaseUser):
         validators=[validators.UsernameValidator()],
         error_messages={
             'unique': "A user with that username already exists."})
+    sso_id = models.CharField(max_length=256, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
@@ -651,6 +652,7 @@ class Orcid(models.Model):
     @staticmethod
     def get_orcid_url():
         return settings.ORCID_DOMAIN
+
 
 class DualAuthModelBackend():
     """
