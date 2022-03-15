@@ -8,7 +8,6 @@ from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
-from django.db.models.fields.files import FieldFile
 from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
 from django.template.defaultfilters import slugify

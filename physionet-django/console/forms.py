@@ -966,3 +966,25 @@ class SectionForm(forms.ModelForm):
             section.order = Section.objects.filter(static_page=self.static_page).count() + 1
         section.save()
         return section
+
+
+class UserFilterForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('username',)
+        widgets = {
+            'username': autocomplete.ListSelect2(url='user-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
+        }
+
+
+class ProjectFilterForm(forms.ModelForm):
+    class Meta:
+        model = PublishedProject
+        fields = ('title',)
+        widgets = {
+            'title': autocomplete.ListSelect2(url='project-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
+        }

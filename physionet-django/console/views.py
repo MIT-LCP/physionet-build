@@ -9,19 +9,14 @@ from itertools import chain
 from statistics import StatisticsError, median
 
 import notification.utility as notification
-import project.forms as project_forms
 from background_task import background
-from console import forms, utility
 from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.contrib.sites.models import Site
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import validate_email
-from django.db import DatabaseError, transaction
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Case, Count, DurationField, F, IntegerField, Q, Value, When
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
@@ -32,11 +27,13 @@ from django.utils import timezone
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
-from physionet.settings.base import StorageTypes
 from physionet.utility import paginate
 from physionet.models import Section, StaticPage
+from project import forms as project_forms
 from project.models import (
     GCP,
+    GCPLog,
+    AccessLog,
     AccessPolicy,
     ActiveProject,
     ArchivedProject,
@@ -47,7 +44,6 @@ from project.models import (
     PublishedProject,
     Reference,
     StorageRequest,
-    SubmissionInfo,
     Topic,
     exists_project_slug,
 )
@@ -55,7 +51,12 @@ from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
-from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User
+from physionet.enums import LogCategory
+from user.models import (User, CredentialApplication, LegacyCredential,
+                         AssociatedEmail, CredentialReview)
+from console import forms, utility
+from console.forms import ProjectFilterForm, UserFilterForm
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -433,10 +434,22 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if 'subdir' not in vars():
         subdir = ''
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+    (
+        authors,
+        author_emails,
+        storage_info,
+        edit_logs,
+        copyedit_logs,
+        latest_version,
+    ) = project.info_card(force_calculate=True)
 
-    (display_files, display_dirs, dir_breadcrumbs, _,
-     file_error) = get_project_file_info(project=project, subdir=subdir)
+    (
+        display_files,
+        display_dirs,
+        dir_breadcrumbs,
+        _,
+        file_error
+    ) = get_project_file_info(project=project, subdir=subdir)
 
     (upload_files_form, create_folder_form, rename_item_form,
      move_items_form, delete_items_form) = get_file_forms(
@@ -1946,6 +1959,236 @@ def project_access_manage(request, pid):
         'project_access_nav': True})
 
 
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_logs(request):
+    c_projects = PublishedProject.objects.annotate(
+        log_count=Count('logs', filter=Q(logs__category=LogCategory.ACCESS)))
+
+    access_policy = request.GET.get('accessPolicy')
+    if access_policy:
+        c_projects = c_projects.filter(access_policy=access_policy)
+
+    q = request.GET.get('q')
+    if q is not None:
+        c_projects = c_projects.filter(title__icontains=q)
+
+    c_projects = paginate(request, c_projects, 50)
+
+    return render(request, 'console/project_access_logs.html', {
+        'c_projects': c_projects, 'project_access_logs_nav': True,
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_logs_detail(request, pid):
+    c_project = get_object_or_404(PublishedProject, id=pid)
+    logs = (
+        c_project.logs.filter(category=LogCategory.ACCESS)
+        .order_by("-creation_datetime")
+        .select_related("user__profile")
+        .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
+    )
+
+    user = request.GET.get('user')
+    if user:
+        logs = logs.filter(user=user)
+
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+    if start_date and end_date:
+        logs = logs.filter(creation_datetime__gte=start_date, creation_datetime__lte=end_date)
+
+    logs = paginate(request, logs, 50)
+
+    user_filter_form = UserFilterForm()
+
+    return render(request, 'console/project_access_logs_detail.html', {
+        'c_project': c_project, 'logs': logs,
+        'project_access_logs_nav': True, 'user_filter_form': user_filter_form
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def download_project_accesses(request, pk):
+    headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Count']
+
+    data = (
+        AccessLog.objects.filter(
+            content_type=ContentType.objects.get_for_model(PublishedProject), object_id=pk
+        )
+        .select_related("user__profile")
+        .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="project_{pk}_accesses.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for row in data:
+        writer.writerow([
+            row.user.get_full_name(),
+            row.user.email,
+            row.creation_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            row.last_access_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            str(row.duration).split('.')[0],
+            row.count
+        ])
+
+    return response
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def user_access_logs(request):
+    users = (
+        User.objects.filter(is_active=True)
+        .select_related("profile")
+        .annotate(logs_count=Count("logs", filter=Q(logs__category=LogCategory.ACCESS)))
+    )
+
+    q = request.GET.get('q')
+    if q:
+        for query in q.split('+'):
+            users = users.filter(
+                Q(username__icontains=query)
+                | Q(profile__first_names__icontains=query)
+                | Q(profile__last_name__icontains=query)
+            )
+
+    users = paginate(request, users, 50)
+
+    return render(request, 'console/user_access_logs.html', {
+        'users': users, 'user_access_logs_nav': True,
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def user_access_logs_detail(request, pid):
+    user = get_object_or_404(User, id=pid, is_active=True)
+    logs = (
+        user.logs.filter(category=LogCategory.ACCESS)
+        .order_by("-creation_datetime")
+        .prefetch_related("project")
+        .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
+    )
+
+    project = request.GET.get('project')
+    if project:
+        logs = logs.filter(object_id=project, content_type=ContentType.objects.get_for_model(PublishedProject))
+
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+    if start_date and end_date:
+        logs = logs.filter(creation_datetime__gte=start_date, creation_datetime__lte=end_date)
+
+    logs = paginate(request, logs, 50)
+
+    project_filter_form = ProjectFilterForm()
+
+    return render(request, 'console/user_access_logs_detail.html', {
+        'user': user, 'logs': logs, 'user_access_logs_nav': True,
+        'project_filter_form': project_filter_form
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def download_user_accesses(request, pk):
+    headers = ['Project name', 'First access', 'Last access', 'Duration', 'Count']
+
+    data = (
+        AccessLog.objects.filter(user=pk).select_related('user__profile')
+        .annotate(duration=F('last_access_datetime') - F('creation_datetime'))
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="user_{pk}_logs.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for row in data:
+        writer.writerow([
+            row.project,
+            row.creation_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            row.last_access_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            str(row.duration).split('.')[0],
+            row.count
+        ])
+
+    return response
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def gcp_signed_urls_logs(request):
+    projects = ActiveProject.objects.annotate(
+        log_count=Count('logs', filter=Q(logs__category=LogCategory.GCP)))
+
+    q = request.GET.get('q')
+    if q:
+        projects = projects.filter(title__icontains=q)
+
+    projects = paginate(request, projects, 50)
+
+    return render(request, 'console/gcp_logs.html', {
+        'projects': projects, 'gcp_logs_nav': True,
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def gcp_signed_urls_logs_detail(request, pk):
+    project = get_object_or_404(ActiveProject, pk=pk)
+    logs = project.logs.order_by('-creation_datetime').prefetch_related('project').annotate(
+        duration=F('last_access_datetime') - F('creation_datetime'))
+
+    logs = paginate(request, logs, 50)
+
+    return render(request, 'console/gcp_logs_detail.html', {
+        'project': project, 'logs': logs,
+        'gcp_logs_nav': True,
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def download_signed_urls_logs(request, pk):
+    headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Data', 'Count']
+
+    data = GCPLog.objects.filter(
+        content_type=ContentType.objects.get_for_model(ActiveProject),
+        object_id=pk
+    ).select_related('user__profile').annotate(
+        duration=F('last_access_datetime') - F('creation_datetime')
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="project_{pk}_signed_urls.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for row in data:
+        writer.writerow([
+            row.user.get_full_name(),
+            row.user.email,
+            row.creation_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            row.last_access_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            str(row.duration).split('.')[0],
+            row.data,
+            row.count
+        ])
+
+    return response
+
+
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         """
@@ -1955,9 +2198,29 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
         qs = User.objects.filter(is_active=True)
 
         if self.q:
-            qs = qs.filter(username__icontains=self.q)
+            for query in self.q.split('+'):
+                qs = qs.filter(
+                    Q(username__icontains=query)
+                    | Q(profile__first_names__icontains=query)
+                    | Q(profile__last_name__icontains=query)
+                )
 
         return qs
+
+
+class ProjectAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        """
+        Get all active users with usernames that match the request string,
+        excluding the user who is doing the search.
+        """
+        qs = PublishedProject.objects.all()
+
+        if self.q:
+            qs = qs.filter(title__icontains=self.q)
+
+        return qs
+
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
