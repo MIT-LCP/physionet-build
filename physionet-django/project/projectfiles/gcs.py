@@ -197,11 +197,11 @@ class GCSProjectFiles(BaseProjectFiles):
         return files, dirs
 
     def _dir_path(self, path):
-        return path if path.endswith('/') else path + '/'
+        return path if path == '' or path.endswith('/') else path + '/'
 
     def _local_filesystem_path_to_gcs_path(self, path):
         bucket_name, *object_name = os.path.normpath(path).split('/', 1)
 
-        object_name = object_name[0] if object_name else '/'
+        object_name = object_name[0] if object_name else ''
 
         return bucket_name, object_name
