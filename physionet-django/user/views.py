@@ -38,6 +38,7 @@ from physionet.middleware.maintenance import (
     allow_post_during_maintenance,
     disallow_during_maintenance,
 )
+from physionet.models import Section
 from physionet.settings.base import StorageTypes
 from project.models import Author, DUASignature, License, PublishedProject
 from requests_oauthlib import OAuth2Session
@@ -48,10 +49,11 @@ from user.models import (
     CredentialApplication,
     LegacyCredential,
     Orcid,
-    Profile,
     User,
 )
 from user.userfiles import UserFiles
+from physionet.models import StaticPage
+
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +63,27 @@ class LoginView(auth_views.LoginView):
     template_name = 'user/login.html'
     authentication_form = forms.LoginForm
     redirect_authenticated_user = True
+
+
+@method_decorator(allow_post_during_maintenance, 'dispatch')
+class SSOLoginView(auth_views.LoginView):
+    template_name = 'sso/login.html'
+    authentication_form = forms.LoginForm
+    redirect_authenticated_user = True
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        try:
+            login_static_page = StaticPage.objects.get(url='/login/')
+            instruction_sections = Section.objects.filter(static_page=login_static_page)
+        except StaticPage.DoesNotExist:
+            instruction_sections = []
+
+        sso_extra_context = {
+            'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
+            'login_instruction_sections': instruction_sections,
+        }
+        return {**context, **sso_extra_context}
 
 
 class LogoutView(auth_views.LogoutView):
@@ -99,6 +122,7 @@ class PasswordChangeView(auth_views.PasswordChangeView):
 
 
 login = LoginView.as_view()
+sso_login = SSOLoginView.as_view()
 logout = LogoutView.as_view()
 reset_password_request = PasswordResetView.as_view()
 reset_password_sent = PasswordResetDoneView.as_view()
@@ -647,10 +671,18 @@ def credential_application(request):
         research_form = forms.ResearchCAF(prefix="application")
         form = None
 
-    return render(request, 'user/credential_application.html', {'form':form,
-        'personal_form':personal_form, 'training_form':training_form,
-        'reference_form':reference_form, 'license':license, 
-        'research_form':research_form})
+    return render(
+        request,
+        'user/credential_application.html',
+        {
+            'form': form,
+            'personal_form': personal_form,
+            'training_form': training_form,
+            'reference_form': reference_form,
+            'license': license,
+            'research_form': research_form,
+        },
+    )
 
 
 @login_required
@@ -722,7 +754,7 @@ def credential_reference(request, application_slug):
 @login_required
 def edit_cloud(request):
     """
-    Page to add the information for cloud usage. 
+    Page to add the information for cloud usage.
     """
     user = request.user
     cloud_info = CloudInformation.objects.get_or_create(user=user)[0]

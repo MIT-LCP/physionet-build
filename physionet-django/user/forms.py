@@ -8,6 +8,7 @@ from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
+from project.models import PublishedProject
 from user.models import AssociatedEmail, CloudInformation, CredentialApplication, Profile, User
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
@@ -293,7 +294,7 @@ class RegistrationForm(forms.ModelForm):
             raise forms.ValidationError("A user with that username already exists.")
         return self.cleaned_data['username'].lower()
 
-    def save(self):
+    def save(self, sso_id=None):
         """
         Process the registration form
         """
@@ -302,6 +303,7 @@ class RegistrationForm(forms.ModelForm):
 
         user = super(RegistrationForm, self).save(commit=False)
         user.email = user.email.lower()
+        user.sso_id = sso_id
 
         with transaction.atomic():
             user.save()

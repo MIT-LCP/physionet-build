@@ -18,7 +18,6 @@ from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import ugettext as _
-
 from project.models import AccessPolicy
 from user import validators
 from user.userfiles import UserFiles
@@ -331,6 +330,7 @@ class User(AbstractBaseUser):
         validators=[validators.UsernameValidator()],
         error_messages={
             'unique': "A user with that username already exists."})
+    sso_id = models.CharField(max_length=256, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
@@ -543,7 +543,7 @@ class LegacyCredential(models.Model):
     migrated = models.BooleanField(default=False)
     migration_date = models.DateTimeField(null=True)
     migrated_user = models.ForeignKey('user.User', null=True, on_delete=models.CASCADE)
-    
+
     reference_email = models.CharField(max_length=255, blank=True, default='')
 
     revoked_datetime = models.DateTimeField(null=True)
@@ -643,6 +643,7 @@ class Orcid(models.Model):
     @staticmethod
     def get_orcid_url():
         return settings.ORCID_DOMAIN
+
 
 class DualAuthModelBackend():
     """
