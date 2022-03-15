@@ -92,6 +92,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'physionet.context_processors.access_policy',
+                'physionet.context_processors.storage_type',
                 'physionet.context_processors.platform_config',
                 'sso.context_processors.sso_enabled',
             ],
@@ -491,8 +492,6 @@ if os.getenv('PHYSIONET_LOCK_FILE'):
     # contrast, fcntl.lockf uses fcntl(2) and os.lockf uses lockf(3),
     # both of which are tied to the PID.
     fcntl.flock(_lockfd, fcntl.LOCK_SH)
-
-
 class StorageTypes:
     LOCAL = 'LOCAL'
     GCP = 'GCP'
@@ -516,3 +515,5 @@ FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)
 
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
 COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)
+
+LOG_TIMEDELTA = config('LOG_TIMEDELTA', cast=int, default='10')

@@ -7,6 +7,10 @@ def access_policy(request):
     return {'AccessPolicy': AccessPolicy}
 
 
+def storage_type(request):
+    return {'STORAGE_TYPE': settings.STORAGE_TYPE}
+
+
 def platform_config(request):
     return {
         'SITE_NAME': settings.SITE_NAME,

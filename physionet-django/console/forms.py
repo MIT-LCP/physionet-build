@@ -932,3 +932,25 @@ class TrainingReviewForm(forms.Form):
 
         if not self.cleaned_data['reviewer_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
+
+
+class UserFilterForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('username',)
+        widgets = {
+            'username': autocomplete.ListSelect2(url='user-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
+        }
+
+
+class ProjectFilterForm(forms.ModelForm):
+    class Meta:
+        model = PublishedProject
+        fields = ('title',)
+        widgets = {
+            'title': autocomplete.ListSelect2(url='project-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
+        }

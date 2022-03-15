@@ -22,21 +22,25 @@ urlpatterns = [
     path('published-projects/<project_slug>/<version>/',
         views.manage_published_project, name='manage_published_project'),
 
+    # Logs
+    path('project-access-logs/', views.project_access_logs, name='project_access_logs'),
+    path('project-access-logs/<pid>/', views.project_access_logs_detail, name='project_access_logs_detail'),
+    path('user-access-logs/', views.user_access_logs, name='user_access_logs'),
+    path('user-access-logs/<pid>/', views.user_access_logs_detail, name='user_access_logs_detail'),
+    path('download-project-accesses/<int:pk>/', views.download_project_accesses, name='download_project_accesses'),
+    path('download-user-accesses/<int:pk>/', views.download_user_accesses, name='download_user_accesses'),
+    path('gcp-signed-urls-logs/', views.gcp_signed_urls_logs, name='gcp_signed_urls_logs'),
+    path('gcp-signed-urls-logs/<int:pk>/', views.gcp_signed_urls_logs_detail, name='gcp_signed_urls_logs_detail'),
+    path('download-signed-urls-logs/<int:pk>/', views.download_signed_urls_logs, name='download_signed_urls_logs'),
+
     # Individual edit pages
-    path('submitted-projects/<project_slug>/',
-        views.submission_info_redirect, name='submission_info_redirect'),
-    path('submitted-projects/<project_slug>/info/',
-        views.submission_info, name='submission_info'),
-    path('submitted-projects/<project_slug>/edit/',
-        views.edit_submission, name='edit_submission'),
-    path('submitted-projects/<project_slug>/copyedit/',
-        views.copyedit_submission, name='copyedit_submission'),
-    path('submitted-projects/<project_slug>/awaiting-authors/',
-        views.awaiting_authors, name='awaiting_authors'),
-    path('submitted-projects/<project_slug>/publish/',
-        views.publish_submission, name='publish_submission'),
-    path('publish-slug-available/<project_slug>/',
-        views.publish_slug_available, name='publish_slug_available'),
+    path('submitted-projects/<project_slug>/', views.submission_info_redirect, name='submission_info_redirect'),
+    path('submitted-projects/<project_slug>/info/', views.submission_info, name='submission_info'),
+    path('submitted-projects/<project_slug>/edit/', views.edit_submission, name='edit_submission'),
+    path('submitted-projects/<project_slug>/copyedit/', views.copyedit_submission, name='copyedit_submission'),
+    path('submitted-projects/<project_slug>/awaiting-authors/', views.awaiting_authors, name='awaiting_authors'),
+    path('submitted-projects/<project_slug>/publish/', views.publish_submission, name='publish_submission'),
+    path('publish-slug-available/<project_slug>/', views.publish_slug_available, name='publish_slug_available'),
 
     path('storage-requests/', views.storage_requests,
         name='storage_requests'),
@@ -87,13 +91,12 @@ urlpatterns = [
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
 
-    path('user-autocomplete/', views.UserAutocomplete.as_view(),
-    name='user-autocomplete'),
+    path('user-autocomplete/', views.UserAutocomplete.as_view(), name='user-autocomplete'),
+    path('project-autocomplete/', views.ProjectAutocomplete.as_view(), name='project-autocomplete'),
 
     # editorial stats
     path('usage/editorial/stats/', views.editorial_stats, name='editorial_stats'),
-    path('usage/credentialing/stats/', views.credentialing_stats,
-         name='credentialing_stats'),
+    path('usage/credentialing/stats/', views.credentialing_stats, name='credentialing_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
     # static pages
     path('static-pages/', views.static_pages, name='static_pages'),
