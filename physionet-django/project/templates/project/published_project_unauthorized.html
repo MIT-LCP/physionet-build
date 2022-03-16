@@ -5,6 +5,9 @@
       {% if not user.is_credentialed %}
         <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
       {% endif %}
+      {% if not has_required_training %}
+        <li>finish required <a href="{% url 'edit_training' %}">training</a></li>
+      {% endif %}
       {% if not has_signed_dua %}
         <li>
           <a href="{% url 'sign_dua' project.slug project.version %}">sign the data use agreement</a> for the project
@@ -19,6 +22,15 @@
     {% elif project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
       {% if not user.is_credentialed %}
         <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
+      {% endif %}
+      {% if not has_required_training %}
+        <li>complete required training:</li>
+        <ul>
+          {% for required_training in project.required_training.all %}
+            <li><a href="{% url 'published_project_required_training' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
+          {% endfor %}
+          You may submit your training <a href="{% url 'edit_training' %}">here</a>.
+        </ul>
       {% endif %}
       {% if not has_accepted_access_request %}
         <li>

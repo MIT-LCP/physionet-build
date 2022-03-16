@@ -1,0 +1,52 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ SITE_NAME }} - Training{% endblock %}
+
+{% block content %}
+<h1>{{ training.user.get_full_name }} - Process Training</h1>
+<hr>
+
+<div class="card-columns row">
+    <div class="col-sm-5">
+        <div class="card mb-4">
+            <div class="card-header">
+                Application information
+            </div>
+            <div class="card-body">
+                <p>
+                    Username: <a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a><br>
+                    Applied: {{ training.application_datetime|date }}
+                </p>
+                <h5>{{ training.training_type.name }} Training</h5>
+                {% if training.completion_report %}
+                    Document: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
+                {% endif %}
+                {% if training.completion_report_url %}\
+                    URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
+                {% endif %}
+                Submitted on: {{ training.application_datetime|date }}
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-5">
+        <div class="card mb-4">
+            <div class="card-header">
+                Reviewer Questions
+            </div>
+            <div class="card-body">
+                <form action="" method="post" class="form-signin" onsubmit="return confirm ('Are you sure? ')">
+                    {% csrf_token %}
+                    {% include "console/formset_snippet.html" with formset=questions_formset %}
+                    {% include "form_snippet.html" with form=training_review_form %}
+                    <button class="btn btn-primary btn-fixed" name="accept" type="submit">Accept</button>
+                    <button class="btn btn-danger btn-fixed" name="reject" type="submit">Reject</button>
+                    <button class="btn btn-success btn-fixed" name="accept_all" value="{{ training.user.id }}" type="submit">Approve All</button>
+                  </form>
+            </div>
+        </div>
+  </div>
+</div>
+
+{% endblock %}

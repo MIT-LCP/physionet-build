@@ -4,16 +4,29 @@ from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
+from django.db.models import F, Q
 from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy
-from project.models import PublishedProject
-from user.models import AssociatedEmail, CloudInformation, CredentialApplication, Profile, User
+from user.models import (
+    AssociatedEmail,
+    CloudInformation,
+    CredentialApplication,
+    Profile,
+    User,
+    Training,
+    TrainingQuestion,
+    TrainingType,
+    TrainingStatus,
+    RequiredField,
+)
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
 from user.validators import UsernameValidator, validate_name
 from user.widgets import ProfilePhotoInput
+
+from django.db.models import OuterRef, Exists
 
 
 class AssociatedEmailChoiceForm(forms.Form):
@@ -396,30 +409,6 @@ class ResearchCAF(forms.ModelForm):
         }
 
 
-class TrainingCAF(forms.ModelForm):
-    """
-    Credential application form training course attributes
-    """
-    class Meta:
-        model = CredentialApplication
-        fields = ('training_completion_report',)
-        help_texts = {
-            'training_completion_report': """Do not upload the completion
-                certificate. Upload the completion report from the CITI
-                'Data or Specimens Only Research' training program which
-                lists all modules completed, with dates and scores.
-                Expired reports will not be accepted.""",
-        }
-
-    def clean_training_completion_report(self):
-        reportfile = self.cleaned_data['training_completion_report']
-        if reportfile and isinstance(reportfile, UploadedFile):
-            if reportfile.size > CredentialApplication.MAX_REPORT_SIZE:
-                raise forms.ValidationError(
-                    'Completion report exceeds size limit')
-        return reportfile
-
-
 class ReferenceCAF(forms.ModelForm):
     """
     Credential application form reference attributes
@@ -484,9 +473,6 @@ class CredentialApplicationForm(forms.ModelForm):
             'first_names', 'last_name', 'suffix', 'researcher_category',
             'organization_name', 'job_title', 'city', 'state_province',
             'zip_code', 'country', 'webpage',
-            # Training course
-            'training_course_name', 'training_completion_date',
-            'training_completion_report',
             # Reference
             'reference_category', 'reference_name', 'reference_email',
             'reference_organization', 'reference_title',
@@ -544,15 +530,6 @@ class CredentialApplicationForm(forms.ModelForm):
         if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
             raise forms.ValidationError('Outstanding application exists.')
 
-        # Check for a recognized CITI verification link.
-        try:
-            reportfile = data['training_completion_report']
-            self.report_url = find_training_report_url(reportfile)
-        except TrainingCertificateError:
-            raise forms.ValidationError(
-                'Please upload the "Completion Report" file, '
-                'not the "Completion Certificate".')
-
     def save(self):
         credential_application = super().save(commit=False)
         slug = get_random_string(20)
@@ -560,7 +537,6 @@ class CredentialApplicationForm(forms.ModelForm):
             slug = get_random_string(20)
         credential_application.user = self.user
         credential_application.slug = slug
-        credential_application.training_completion_report_url = self.report_url
         credential_application.save()
         return credential_application
 
@@ -670,3 +646,70 @@ class ActivationForm(forms.Form):
             self.cleaned_data.get('password1'), user=self.user)
 
         return password1
+
+
+class TrainingForm(forms.ModelForm):
+    completion_report = forms.FileField(widget=forms.HiddenInput(), disabled=True, required=False, label="Document")
+    completion_report_url = forms.URLField(widget=forms.HiddenInput(), disabled=True, required=False, label="URL")
+
+    class Meta:
+        model = Training
+        fields = ('training_type', 'completion_report', 'completion_report_url')
+        labels = {'training_type': 'Training Type'}
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        training_type_id = kwargs.pop('training_type', None)
+
+        super().__init__(*args, **kwargs)
+
+        self.training_type = TrainingType.objects.filter(id=training_type_id).first()
+
+        self.fields['training_type'].initial = self.training_type
+
+        if self.training_type is not None:
+            if self.training_type.required_field == RequiredField.DOCUMENT:
+                self.fields['completion_report'].disabled = False
+                self.fields['completion_report'].required = True
+                self.fields['completion_report'].widget = forms.FileInput()
+            elif self.training_type.required_field == RequiredField.URL:
+                self.fields['completion_report_url'].disabled = False
+                self.fields['completion_report_url'].required = True
+                self.fields['completion_report_url'].widget = forms.URLInput()
+
+    def clean(self):
+        data = super().clean()
+
+        training = Training.objects.filter(
+            Q(status=TrainingStatus.REVIEW)
+            | Q(status=TrainingStatus.ACCEPTED, training_type__valid_duration__isnull=True)
+            | Q(
+                status=TrainingStatus.ACCEPTED,
+                process_datetime__gte=timezone.now() - F('training_type__valid_duration'),
+            )
+        ).filter(training_type=OuterRef('pk'), user=self.user)
+        available_training_types = TrainingType.objects.annotate(training_exists=Exists(training)).filter(
+            training_exists=False
+        )
+
+        if data['training_type'] not in available_training_types:
+            raise forms.ValidationError('You have already submitted a training of this type.')
+
+    def save(self):
+        training = super().save(commit=False)
+
+        slug = get_random_string(20)
+        while Training.objects.filter(slug=slug).exists():
+            slug = get_random_string(20)
+
+        training.slug = slug
+        training.user = self.user
+        training.save()
+
+        training_questions = []
+        for question in training.training_type.questions.all():
+            training_questions.append(TrainingQuestion(training=training, question=question))
+
+        TrainingQuestion.objects.bulk_create(training_questions)
+
+        return training

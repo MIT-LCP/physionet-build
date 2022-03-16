@@ -8,6 +8,9 @@ from datetime import datetime, timedelta
 from itertools import chain
 from statistics import StatisticsError, median
 
+from django.forms.formsets import formset_factory
+from django.forms.models import inlineformset_factory
+
 import notification.utility as notification
 from background_task import background
 from console.tasks import associated_task, get_associated_tasks
@@ -51,9 +54,16 @@ from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
+from user.models import (
+    AssociatedEmail,
+    CredentialApplication,
+    CredentialReview,
+    LegacyCredential,
+    User,
+    Training,
+    TrainingQuestion,
+)
 from physionet.enums import LogCategory
-from user.models import (User, CredentialApplication, LegacyCredential,
-                         AssociatedEmail, CredentialReview)
 from console import forms, utility
 from console.forms import ProjectFilterForm, UserFilterForm
 
@@ -360,12 +370,16 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     description_form = project_forms.ContentForm(
         resource_type=project.resource_type.id, instance=project)
     ethics_form = project_forms.EthicsForm(instance=project)
-    access_form = project_forms.AccessMetadataForm(instance=project)
+
+    access_policy = request.GET.get('accessPolicy')
+    if access_policy:
+        access_form = project_forms.AccessMetadataForm(instance=project, access_policy=int(access_policy))
+    else:
+        access_form = project_forms.AccessMetadataForm(instance=project)
+
     discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
         instance=project)
     description_form_saved = False
-
-    access_form.set_license_queryset(access_policy=project.access_policy)
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
@@ -414,7 +428,6 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
-            access_form.set_license_queryset(access_policy=access_form.instance.access_policy)
         elif 'complete_copyedit' in request.POST:
             copyedit_form = forms.CopyeditForm(request.POST,
                 instance=copyedit_log)
@@ -1004,6 +1017,15 @@ def user_management(request, username):
     """
     user = get_object_or_404(User, username__iexact=username)
 
+    _training = Training.objects.select_related('training_type').filter(user=user).order_by('-status')
+
+    training = {}
+    training['Active'] = _training.get_valid()
+    training['Under review'] = _training.get_review()
+    training['Expired'] = _training.get_expired()
+    training['Rejected'] = _training.get_rejected()
+
+
     emails = {}
     emails['primary'] = AssociatedEmail.objects.filter(user=user,
                                                        is_primary_email=True,
@@ -1027,8 +1049,9 @@ def user_management(request, username):
                                                             'profile': user.profile,
                                                             'emails': emails,
                                                             'projects': projects,
+                                                            'training_list': training,
                                                             'credentialing_app': credentialing_app})
-    
+
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -1037,7 +1060,7 @@ def users_search(request, group):
     Search user list.
 
     Args:
-        group (str): group of users to filter search. Either 'all' for all users or 
+        group (str): group of users to filter search. Either 'all' for all users or
             'inactive' to filter to inactive users only.
     """
 
@@ -1140,14 +1163,12 @@ def process_credential_application(request, application_slug):
     if application.credential_review.status == 10:
         intermediate_credential_form = forms.InitialCredentialForm(responder=request.user, instance=application)
     if application.credential_review.status == 20:
-        intermediate_credential_form = forms.TrainingCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 30:
         intermediate_credential_form = forms.PersonalCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 40:
+    if application.credential_review.status == 30:
         intermediate_credential_form = forms.ReferenceCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 50:
+    if application.credential_review.status == 40:
         intermediate_credential_form = forms.ResponseCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 60:
+    if application.credential_review.status == 50:
         intermediate_credential_form = forms.ProcessCredentialReviewForm(responder=request.user, instance=application)
 
     if request.method == 'POST':
@@ -1162,7 +1183,7 @@ def process_credential_application(request, application_slug):
                     return render(request, 'console/process_credential_complete.html',
                         {'application':application})
                 page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.TrainingCredentialForm(
+                intermediate_credential_form = forms.PersonalCredentialForm(
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
@@ -1178,38 +1199,6 @@ def process_credential_application(request, application_slug):
                 for field in valid_fields:
                     data_copy[field] = '1'
                 intermediate_credential_form = forms.InitialCredentialForm(
-                    responder=request.user, data=data_copy, instance=application)
-                intermediate_credential_form.save()
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.TrainingCredentialForm(
-                    responder=request.user, instance=application)
-        elif 'approve_training' in request.POST:
-            intermediate_credential_form = forms.TrainingCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
-            if intermediate_credential_form.is_valid():
-                intermediate_credential_form.save()
-                if intermediate_credential_form.cleaned_data['decision'] == '0':
-                    notification.process_credential_complete(request,
-                                                             application)
-                    return render(request, 'console/process_credential_complete.html',
-                        {'application':application})
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.PersonalCredentialForm(
-                    responder=request.user, instance=application)
-            else:
-                messages.error(request, 'Invalid review. See form below.')
-        elif 'approve_training_all' in request.POST:
-            if request.POST['decision'] == '0':
-                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
-            else:
-                data_copy = request.POST.copy()
-                valid_fields = set(request.POST.keys())
-                valid_fields.difference_update({'csrfmiddlewaretoken',
-                                                'responder_comments',
-                                                'approve_training_all'})
-                for field in valid_fields:
-                    data_copy[field] = '1'
-                intermediate_credential_form = forms.TrainingCredentialForm(
                     responder=request.user, data=data_copy, instance=application)
                 intermediate_credential_form.save()
                 page_title = title_dict[application.credential_review.status]
@@ -1323,7 +1312,7 @@ def process_credential_application(request, application_slug):
                                                subject=subject, body=body)
                 messages.success(request, 'The reference has been contacted.')
         elif 'skip_reference' in request.POST:
-            application.update_review_status(60)
+            application.update_review_status(50)
             application.save()
         elif 'process_application' in request.POST:
             process_credential_form = forms.ProcessCredentialReviewForm(
@@ -1360,22 +1349,17 @@ def credential_processing(request):
     initial_2 = Q(credential_review__status=10)
     initial_applications = applications.filter(
         initial_1 | initial_2).order_by('application_datetime')
-    # Awaiting training check
-    training_applications = applications.filter(
-        credential_review__status=20).order_by('application_datetime')
     # Awaiting ID check
-    personal_applications = applications.filter(
-        credential_review__status=30).order_by('application_datetime')
+    personal_applications = applications.filter(credential_review__status=20).order_by('application_datetime')
     # Awaiting reference check
-    reference_applications = applications.filter(
-        credential_review__status=40).order_by('application_datetime')
+    reference_applications = applications.filter(credential_review__status=30).order_by('application_datetime')
     # Awaiting reference response
-    response_applications = applications.filter(
-        credential_review__status=50).order_by('-reference_response',
-                                               'application_datetime')
+    response_applications = applications.filter(credential_review__status=40).order_by(
+        '-reference_response', 'application_datetime'
+    )
     # Awaiting final review
     final_applications = applications.filter(
-        credential_review__status=60).order_by('application_datetime')
+        credential_review__status=50).order_by('application_datetime')
 
     if request.method == 'POST':
         if 'reset_application' in request.POST:
@@ -1389,7 +1373,6 @@ def credential_processing(request):
     return render(request, 'console/credential_processing.html',
         {'applications': applications,
         'initial_applications': initial_applications,
-        'training_applications': training_applications,
         'personal_applications': personal_applications,
         'reference_applications': reference_applications,
         'response_applications': response_applications,
@@ -1546,8 +1529,106 @@ def credentialed_user_info(request, username):
         application = CredentialApplication.objects.get(user=c_user, status=2)
     except (User.DoesNotExist, CredentialApplication.DoesNotExist):
         raise Http404()
-    return render(request, 'console/credentialed_user_info.html',
-        {'c_user':c_user, 'application':application})
+    return render(request, 'console/credentialed_user_info.html', {'c_user': c_user, 'application': application})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def training_list(request):
+    review_training = Training.objects.select_related('user__profile', 'training_type').get_review()
+    valid_training = Training.objects.select_related('user__profile', 'training_type').get_valid()
+    expired_training = Training.objects.select_related('user__profile', 'training_type').get_expired()
+    rejected_training = Training.objects.select_related('user__profile', 'training_type').get_rejected()
+
+    return render(
+        request,
+        'console/training_list.html',
+        {
+            'review_training': review_training,
+            'valid_training': valid_training,
+            'expired_training': expired_training,
+            'rejected_training': rejected_training,
+            'training_nav': True,
+        },
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def training_proccess(request, pk):
+    training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
+
+    TrainingQuestionFormSet = modelformset_factory(
+        model=TrainingQuestion, form=forms.TrainingQuestionForm, formset=forms.TrainingQuestionFormSet, extra=0
+    )
+
+    if request.method == 'POST':
+        if 'accept' in request.POST:
+            questions_formset = TrainingQuestionFormSet(data=request.POST, queryset=training.training_questions.all())
+
+            if questions_formset.is_valid():
+                questions_formset.save()
+
+                training.accept(reviewer=request.user)
+
+                messages.success(request, 'The training was approved.')
+                notification.process_training_complete(request, training)
+                return redirect('training_list')
+
+            training_review_form = forms.TrainingReviewForm()
+
+        elif 'accept_all' in request.POST:
+
+            # populate all answer fields with True
+            data_copy = request.POST.copy()
+            answer_fields = [key for key, val in data_copy.items() if "answer" in key]
+
+            for field in answer_fields:
+                data_copy[field] = 'True'
+
+            questions_formset = TrainingQuestionFormSet(data=data_copy, queryset=training.training_questions.all())
+
+            if questions_formset.is_valid():
+                questions_formset.save()
+
+                training.accept(reviewer=request.user)
+
+                messages.success(request, 'The training was approved.')
+                notification.process_training_complete(request, training)
+                return redirect('training_list')
+
+            training_review_form = forms.TrainingReviewForm()
+
+        elif 'reject' in request.POST:
+            training_review_form = forms.TrainingReviewForm(data=request.POST)
+
+            if training_review_form.is_valid():
+                training.reject(
+                    reviewer=request.user, reviewer_comments=training_review_form.cleaned_data['reviewer_comments']
+                )
+
+                messages.success(request, 'The training was not approved.')
+                notification.process_training_complete(request, training)
+                return redirect('training_list')
+
+            questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
+    else:
+        questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
+        training_review_form = forms.TrainingReviewForm()
+
+    return render(
+        request,
+        'console/training_process.html',
+        {'training': training, 'questions_formset': questions_formset, 'training_review_form': training_review_form},
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def training_detail(request, pk):
+    training = get_object_or_404(Training.objects.prefetch_related('training_type'), pk=pk)
+
+    return render(request, 'console/training_detail.html', {'training': training})
 
 
 @login_required
@@ -1558,7 +1639,7 @@ def news_console(request):
     """
     news_items = News.objects.all().order_by('-publish_datetime')
     news_items = paginate(request, news_items, 50)
-    return render(request, 'console/news_console.html', 
+    return render(request, 'console/news_console.html',
         {'news_items': news_items, 'news_nav': True})
 
 
@@ -1887,9 +1968,16 @@ def download_credentialed_users(request):
     # Create the HttpResponse object with the appropriate CSV header.
     project_access = DUASignature.objects.filter(project__access_policy=AccessPolicy.CREDENTIALED)
     added = []
-    dua_info_csv = [['First name', 'Last name', 'E-mail', 'Institution', 'Country', 
-    'MIMIC approval date', 'eICU approval date', 
-    'General research area for which the data will be used']]
+    dua_info_csv = [[
+        'First name',
+        'Last name',
+        'E-mail',
+        'Institution',
+        'Country',
+        'MIMIC approval date',
+        'eICU approval date',
+        'General research area for which the data will be used'
+    ]]
     for person in project_access:
         application = person.user.credential_applications.last()
         mimic_signature_date = eicu_signature_date = None

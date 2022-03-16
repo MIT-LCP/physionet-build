@@ -1,0 +1,40 @@
+{# Personal details #}
+
+<p>User: <a href="{% url 'user_management' application.user.username %}">{{ application.user.username }}</a>
+
+{{ SITE_NAME }} e-mail: {{ application.user.email }}<br>
+
+My first (given) name(s): {{ application.first_names }}<br>
+
+My last (family) name(s): {{ application.last_name }}<br>
+
+Suffix (e.g., Jr.), if applicable: {{ application.suffix }}<br>
+
+Organization Name: {{ application.organization_name }}<br>
+
+Job title or position: {{ application.job_title }}<br>
+
+City: {{ application.city }}<br>
+
+State/Province: {{ application.state_province }}<br>
+
+ZIP/postal code: {{ application.zip_code }}<br>
+
+Country: {{ application.get_country_display }}<br>
+
+Webpage: {{ application.webpage }}<br></p>
+
+{# Reference #}
+
+<p>Reference Category: {{ application.get_reference_category_display }}<br>
+
+Reference's Name: {{ application.reference_name }}<br>
+
+Reference's Email: {{ application.reference_email }}<br>
+
+Reference's job title or position: {{ application.reference_title }}</p>
+
+
+<p>Research Topic: {{ application.research_summary }}<br>
+
+Date of this agreement: {{application.application_datetime}}<br></p>

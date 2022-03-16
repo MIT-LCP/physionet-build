@@ -84,6 +84,15 @@
           </li>
         </ul>
       </li>
+      
+      <!-- training -->
+      <li class="nav-item {% if training_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <a id="nav_storage_requests" class="nav-link" href="{% url 'training_list' %}">
+          <i class="fa fa-fw fa-school"></i>
+          <span class="nav-link-text">Training</span>
+        </a>
+      </li>
+
       <!-- project access -->
       <li class="nav-item {% if project_access_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
         <a id="nav_protected_project_access" class="nav-link" href="{% url 'protected_project_access' %}">

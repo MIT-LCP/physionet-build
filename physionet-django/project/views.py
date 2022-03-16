@@ -54,7 +54,7 @@ from project.models import (
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename
 from user.forms import AssociatedEmailChoiceForm
-from user.models import CloudInformation, CredentialApplication, LegacyCredential, User
+from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
 
 LOGGER = logging.getLogger(__name__)
 
@@ -713,47 +713,25 @@ def project_access(request, project_slug, **kwargs):
     else:
         editable = False
 
-    if 'access_policy' in request.POST:
-        # The first validation is to check for valid access policy choice
-        access_form = forms.AccessMetadataForm(data=request.POST,
-                                               instance=project,
-                                               editable=editable)
+    if request.method == 'POST':
+        access_form = forms.AccessMetadataForm(data=request.POST, instance=project, editable=editable)
         if access_form.is_valid():
-            # The second validation is to check for valid license choice
-            access_form.set_license_queryset(
-                access_policy=access_form.cleaned_data['access_policy'])
-            if access_form.is_valid():
-                access_form.save()
-                messages.success(request, 'Your access metadata has been updated.')
+            access_form.save()
+            messages.success(request, 'Your access metdata has been updated.')
         else:
-            messages.error(request,
-                'Invalid submission. See errors below.')
+            messages.error(request, 'Invalid submission. See errors below.')
     else:
-        # Access form
-        access_form = forms.AccessMetadataForm(instance=project,
-                                               editable=editable)
-        access_form.set_license_queryset(access_policy=project.access_policy)
+        access_policy = request.GET.get('accessPolicy')
+        if access_policy:
+            access_form = forms.AccessMetadataForm(
+                instance=project, editable=editable, access_policy=int(access_policy)
+            )
+        else:
+            access_form = forms.AccessMetadataForm(instance=project, editable=editable)
+
 
     return render(request, 'project/project_access.html', {'project':project,
         'access_form':access_form, 'is_submitting':kwargs['is_submitting']})
-
-
-def load_license(request, project_slug):
-    """
-    Reload the license input queryset with the right options for the
-    access form's current access policy choice. Called via ajax.
-    """
-    user = request.user
-    project = ActiveProject.objects.filter(slug=project_slug)
-    if project:
-        project = project.get()
-    else:
-        raise Http404()
-    form = forms.AccessMetadataForm(instance=project)
-    form.set_license_queryset(access_policy=int(request.GET['access_policy']))
-
-    return render(request, 'project/license_input.html', {'form':form})
-
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
@@ -1238,6 +1216,21 @@ def project_license_preview(request, project_slug, **kwargs):
         'license_content':license_content})
 
 
+@project_auth(auth_mode=3)
+def project_required_training_preview(request, project_slug, **kwargs):
+    """
+    View a project's license
+    """
+    project = kwargs['project']
+    required_training = project.required_training.all()
+
+    return render(
+        request,
+        'project/project_required_training_preview.html',
+        {'project': project, 'required_training': required_training},
+    )
+
+
 @project_auth(auth_mode=0)
 def project_proofread(request, project_slug, **kwargs):
     """
@@ -1709,6 +1702,19 @@ def published_project_license(request, project_slug, version):
         'license_content':license_content})
 
 
+def published_project_required_training(request, project_slug, version):
+    """Displays a published project's required training"""
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+
+    required_training = project.required_training.all()
+
+    return render(
+        request,
+        'project/published_project_required_training.html',
+        {'project': project, 'required_training': required_training},
+    )
+
+
 def published_project_latest(request, project_slug):
     """
     Redirect to latest project version
@@ -1762,6 +1768,12 @@ def published_project(request, project_slug, version, subdir=''):
         requester=user,
         status=DataAccessRequest.ACCEPT_REQUEST_VALUE
     ).exists()
+    has_required_training = (
+        False
+        if not user.is_authenticated
+        else Training.objects.get_valid().filter(training_type__in=project.required_training.all(), user=user).count()
+        == project.required_training.count()
+    )
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
@@ -1776,6 +1788,7 @@ def published_project(request, project_slug, version, subdir=''):
         'has_access': has_access,
         'has_signed_dua': has_signed_dua,
         'has_accepted_access_request': has_accepted_access_request,
+        'has_required_training': has_required_training,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
         'citations': citations,

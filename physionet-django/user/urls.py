@@ -22,6 +22,8 @@ urlpatterns = [
     path('settings/credentialing/', views.edit_credentialing, name='edit_credentialing'),
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),
+    path('settings/training/', views.edit_training, name='edit_training'),
+    path('settings/training/<int:training_id>/', views.edit_training_detail, name='edit_training_detail'),
     path('settings/agreements/', views.view_agreements, name='edit_agreements'),
     path('settings/agreements/<id>/',
         views.view_signed_agreement, name='view_signed_agreement'),
@@ -41,8 +43,7 @@ urlpatterns = [
         name='credential_application'),
     path('credential-reference/<application_slug>/',
         views.credential_reference, name='credential_reference'),
-    path('credential-applications/<application_slug>/training-report/',
-        views.training_report, name='training_report'),
+    path('training/<int:training_id>/report/', views.training_report, name='training_report'),
     path('credential-applications/<application_slug>/training-report/view/',
         views.training_report_view, name='training_report_view'),
 ]

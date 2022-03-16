@@ -20,7 +20,7 @@
   </div>
 {% endif %}
 
-<form action="{% url 'project_access' project.slug %}" method="post" class="no-pd">
+<form action="{% url 'project_access' project.slug %}" method="post" class="no-pd" id="access">
   {% include "project/content_inline_form_snippet.html" with form=access_form %}
   {% if is_submitting and project.author_editable %}
   <hr>
@@ -31,10 +31,9 @@
 
 {% block local_js_bottom %}
 <script src="{% static 'custom/js/enable-popover.js' %}"></script>
-<script src="{% static 'project/js/control-access-form.js' %}"></script>
 <script>
-  load_url = "{% url 'load_license' project.slug %}"
-  access_policy_input = document.getElementById("id_access_policy");
-  access_policy_input.onchange = loadLicense;
+  $(document).on('change', '#id_access_policy', function() {
+    $("#access").load(`{% url 'project_access' project.slug %}?accessPolicy=${this.value} #access>`);
+  });
 </script>
 {% endblock %}
