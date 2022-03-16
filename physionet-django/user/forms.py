@@ -680,7 +680,7 @@ class TrainingForm(forms.ModelForm):
     def clean(self):
         data = super().clean()
 
-        trainings = Training.objects.filter(
+        training = Training.objects.filter(
             Q(status=TrainingStatus.REVIEW)
             | Q(status=TrainingStatus.ACCEPTED, training_type__valid_duration__isnull=True)
             | Q(
@@ -688,7 +688,7 @@ class TrainingForm(forms.ModelForm):
                 process_datetime__gte=timezone.now() - F('training_type__valid_duration'),
             )
         ).filter(training_type=OuterRef('pk'), user=self.user)
-        available_training_types = TrainingType.objects.annotate(training_exists=Exists(trainings)).filter(
+        available_training_types = TrainingType.objects.annotate(training_exists=Exists(training)).filter(
             training_exists=False
         )
 

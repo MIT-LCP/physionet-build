@@ -456,7 +456,7 @@ class NewProjectVersionForm(forms.ModelForm):
 
         UploadedDocument.objects.bulk_create(documents)
 
-        project.required_trainings.set(self.latest_project.required_trainings.all())
+        project.required_training.set(self.latest_project.required_training.all())
 
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
@@ -772,11 +772,11 @@ class LanguageFormSet(BaseGenericInlineFormSet):
 class AccessMetadataForm(forms.ModelForm):
     class Meta:
         model = ActiveProject
-        fields = ('access_policy', 'license', 'required_trainings', 'allow_file_downloads')
+        fields = ('access_policy', 'license', 'required_training', 'allow_file_downloads')
         help_texts = {
             'access_policy': '* Access policy for files.',
             'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
-            'required_trainings': '* Choose required training to access the dataset.',
+            'required_training': '* Choose required training to access the dataset.',
             'allow_file_downloads': (
                 '* This option allows to enable/disable direct files downloads from the '
                 'platform. It cannot be changed after the publication of the project!'
@@ -807,9 +807,9 @@ class AccessMetadataForm(forms.ModelForm):
         )
 
         if self.access_policy not in {AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW}:
-            self.fields['required_trainings'].disabled = True
-            self.fields['required_trainings'].required = False
-            self.fields['required_trainings'].widget = forms.HiddenInput()
+            self.fields['required_training'].disabled = True
+            self.fields['required_training'].required = False
+            self.fields['required_training'].widget = forms.HiddenInput()
 
         if not self.editable:
             for field in self.fields.values():

@@ -1017,13 +1017,13 @@ def user_management(request, username):
     """
     user = get_object_or_404(User, username__iexact=username)
 
-    _trainings = Training.objects.select_related('training_type').filter(user=user).order_by('-status')
+    _training = Training.objects.select_related('training_type').filter(user=user).order_by('-status')
 
-    trainings = {}
-    trainings['Valid'] = _trainings.get_valid()
-    trainings['Review'] = _trainings.get_review()
-    trainings['Expired'] = _trainings.get_expired()
-    trainings['Rejected'] = _trainings.get_rejected()
+    training = {}
+    training['Active'] = _training.get_valid()
+    training['Under review'] = _training.get_review()
+    training['Expired'] = _training.get_expired()
+    training['Rejected'] = _training.get_rejected()
 
 
     emails = {}
@@ -1049,6 +1049,7 @@ def user_management(request, username):
                                                             'profile': user.profile,
                                                             'emails': emails,
                                                             'projects': projects,
+                                                            'training_list': training,
                                                             'credentialing_app': credentialing_app})
 
 
@@ -1534,19 +1535,19 @@ def credentialed_user_info(request, username):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def training_list(request):
-    review_trainings = Training.objects.select_related('user__profile', 'training_type').get_review()
-    valid_trainings = Training.objects.select_related('user__profile', 'training_type').get_valid()
-    expired_trainings = Training.objects.select_related('user__profile', 'training_type').get_expired()
-    rejected_trainings = Training.objects.select_related('user__profile', 'training_type').get_rejected()
+    review_training = Training.objects.select_related('user__profile', 'training_type').get_review()
+    valid_training = Training.objects.select_related('user__profile', 'training_type').get_valid()
+    expired_training = Training.objects.select_related('user__profile', 'training_type').get_expired()
+    rejected_training = Training.objects.select_related('user__profile', 'training_type').get_rejected()
 
     return render(
         request,
         'console/training_list.html',
         {
-            'review_trainings': review_trainings,
-            'valid_trainings': valid_trainings,
-            'expired_trainings': expired_trainings,
-            'rejected_trainings': rejected_trainings,
+            'review_training': review_training,
+            'valid_training': valid_training,
+            'expired_training': expired_training,
+            'rejected_training': rejected_training,
             'training_nav': True,
         },
     )

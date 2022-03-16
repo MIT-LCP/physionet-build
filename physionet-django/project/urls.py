@@ -74,8 +74,8 @@ urlpatterns = [
     path('ethics/<path:file_name>/', views.serve_document, name='serve_document'),
     path(
         '<project_slug>/view-required-training/',
-        views.project_required_trainings_preview,
-        name='project_required_trainings_preview',
+        views.project_required_training_preview,
+        name='project_required_training_preview',
     ),
     path(
         '<project_slug>/<version>/request_access/<int:access_type>',

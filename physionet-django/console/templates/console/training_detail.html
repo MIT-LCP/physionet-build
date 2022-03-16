@@ -1,13 +1,13 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Submitted Projects{% endblock %}
+{% block title %}Submitted training{% endblock %}
 
 {% load console_templatetags %}
 
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-    {{ training.training_type.name }} Training - {{ training.user.get_full_name }} {% include "user/training_badge.html" %}
+    {{ training.training_type.name }} Training - {{ training.user.get_full_name }}
   </div>
   <div class="card-body">
     {% if training.completion_report %}

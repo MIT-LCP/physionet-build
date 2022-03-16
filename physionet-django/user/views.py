@@ -701,18 +701,18 @@ def edit_training(request):
         else:
             training_form = forms.TrainingForm(user=request.user)
 
-    trainings = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
-    trainings_by_status = {
-        'under review': trainings.get_review(),
-        'active': trainings.get_valid(),
-        'expired': trainings.get_expired(),
-        'rejected': trainings.get_rejected(),
+    training = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
+    training_by_status = {
+        'under review': training.get_review(),
+        'active': training.get_valid(),
+        'expired': training.get_expired(),
+        'rejected': training.get_rejected(),
     }
 
     return render(
         request,
         'user/edit_training.html',
-        {'training_form': training_form, 'trainings_by_status': trainings_by_status}
+        {'training_form': training_form, 'training_by_status': training_by_status}
     )
 
 
@@ -733,11 +733,11 @@ def training_report(request, training_id):
     """
     Serve a training report file
     """
-    trainings = Training.objects.all()
+    all_training = Training.objects.all()
     if not request.user.is_admin:
-        trainings = trainings.filter(user=request.user)
+        all_training = all_training.filter(user=request.user)
 
-    training = get_object_or_404(trainings, id=training_id)
+    training = get_object_or_404(all_training, id=training_id)
 
     if settings.STORAGE_TYPE == StorageTypes.GCP:
         return redirect(training.completion_report.url)

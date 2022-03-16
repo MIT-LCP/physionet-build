@@ -1217,17 +1217,17 @@ def project_license_preview(request, project_slug, **kwargs):
 
 
 @project_auth(auth_mode=3)
-def project_required_trainings_preview(request, project_slug, **kwargs):
+def project_required_training_preview(request, project_slug, **kwargs):
     """
     View a project's license
     """
     project = kwargs['project']
-    required_trainings = project.required_trainings.all()
+    required_training = project.required_training.all()
 
     return render(
         request,
-        'project/project_required_trainings_preview.html',
-        {'project': project, 'required_trainings': required_trainings},
+        'project/project_required_training_preview.html',
+        {'project': project, 'required_training': required_training},
     )
 
 
@@ -1702,16 +1702,16 @@ def published_project_license(request, project_slug, version):
         'license_content':license_content})
 
 
-def published_project_required_trainings(request, project_slug, version):
+def published_project_required_training(request, project_slug, version):
     """Displays a published project's required training"""
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
 
-    required_trainings = project.required_trainings.all()
+    required_training = project.required_training.all()
 
     return render(
         request,
-        'project/published_project_required_trainings.html',
-        {'project': project, 'required_trainings': required_trainings},
+        'project/published_project_required_training.html',
+        {'project': project, 'required_training': required_training},
     )
 
 
@@ -1768,11 +1768,11 @@ def published_project(request, project_slug, version, subdir=''):
         requester=user,
         status=DataAccessRequest.ACCEPT_REQUEST_VALUE
     ).exists()
-    has_required_trainings = (
+    has_required_training = (
         False
         if not user.is_authenticated
-        else Training.objects.get_valid().filter(training_type__in=project.required_trainings.all(), user=user).count()
-        == project.required_trainings.count()
+        else Training.objects.get_valid().filter(training_type__in=project.required_training.all(), user=user).count()
+        == project.required_training.count()
     )
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
@@ -1788,7 +1788,7 @@ def published_project(request, project_slug, version, subdir=''):
         'has_access': has_access,
         'has_signed_dua': has_signed_dua,
         'has_accepted_access_request': has_accepted_access_request,
-        'has_required_trainings': has_required_trainings,
+        'has_required_training': has_required_training,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
         'citations': citations,

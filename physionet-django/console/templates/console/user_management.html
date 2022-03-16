@@ -7,9 +7,10 @@
 {% block content %}
 
 <div class="col-md-9 no-pd">
-  <h1>{{ subject.username }}</h1>
-  <hr>
+  <h1>{{ subject.get_full_name }} ({{ subject.username }})</h1>
+  <br />
   <h3>Profile</h3>
+  <hr>
   <div class="row mb-1">
     <div class="col-md-3">
       Name:
@@ -20,23 +21,33 @@
   </div>
   <div class="row mb-1">
     <div class="col-md-3">
-      Activation status:
+      Account activated:
     </div>
     <div class="col-md-9">
       {{ subject.is_active }}
     </div>
   </div>
-
-  {% if profile.affiliation %}
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Credentialed:
+    </div>
+    <div class="col-md-9">
+      {{ subject.is_credentialed }}
+    </div>
+  </div>
+  
     <div class="row mb-1">
       <div class="col-md-3">
         Affiliation:
       </div>
       <div class="col-md-9">
-        {{ profile.affiliation }}
+        {% if profile.affiliation %}
+          {{ profile.affiliation }}
+        {% else %}
+          Not provided.
+        {% endif %}
       </div>
     </div>
-  {% endif %}
 
   {% if profile.location %}
     <div class="row mb-1">
@@ -77,6 +88,7 @@
 
   <br />
   <h3>Projects</h3>
+  <hr>
   {% for status, group in projects.items %}
   <h4>{{ status }} projects</h4>
     <ul>
@@ -99,33 +111,47 @@
       {% endfor %}
     </ul>
   {% endfor %}
+
   <br>
-  <h3>User Training</h3>
-    {% for status, training in trainings.items %}
-    <h5>{{ status }} Trainings</h5>
+  <h3>Training</h3>
+  <hr>
+    {% for status, training in training_list.items %}
+    <h4>{{ status }}</h4>
       <ul>
-        {% for training in training %}
+        {% for train in training %}
           <li>
-            {{ training.training_type.name }}
+            {{ train.training_type.name }}
           </li>
         {% empty %}
           <li> N/A </li>
         {% endfor %}
       </ul>
     {% endfor %}
-  <br>
+  
+  <br />
   <h3>Credentialing history</h3>
+  <hr>
   <ul>
   {% for cred_app in credentialing_app %}
-    <li><strong> Application {{ forloop.counter }}</strong><br />
-    Date: {{ cred_app.application_datetime }}<br />
+    <li><strong>Submitted: {{ cred_app.application_datetime }}</strong><br />
     {% if cred_app.status == 0 %} 
       Status: Pending<br />
     {% else %}
       Status: {{ cred_app.get_status_display }}<br />
     {% endif %}
-    Reviewer: {{ cred_app.responder }}<br />
-    Reviewer comments: {{ cred_app.responder_comments }}
+    Reviewer: 
+      {% if cred_app.responder %}
+        {{ cred_app.responder }}
+      {% else %}
+        N/A
+      {% endif %}
+    <br />
+    Reviewer comments: 
+      {% if cred_app.responder_comments %}
+        {{ cred_app.responder_comments }}
+      {% else %}
+        N/A
+      {% endif %}
     </li>
   {% empty %}
     <li>No applications found.</li>
