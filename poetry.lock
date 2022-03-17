@@ -390,6 +390,22 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 pyparsing = ">=2.0.2"
 
 [[package]]
+name = "pdfminer.six"
+version = "20211012"
+description = "PDF parser and analyzer"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+chardet = {version = "*", markers = "python_version > \"3.0\""}
+cryptography = "*"
+
+[package.extras]
+dev = ["nose", "tox", "mypy (==0.910)"]
+docs = ["sphinx", "sphinx-argparse"]
+
+[[package]]
 name = "pillow"
 version = "8.3.2"
 description = "Python Imaging Library (Fork)"
@@ -655,7 +671,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "f2464dd27cf4b233ceb520404a4332b4be17c4881025a3995764f5a9a543a011"
+content-hash = "33e37c55a5c58d51d8a4a16299dcdfb72f1209eadf8e9a472d87a814679bc1fb"
 
 [metadata.files]
 bleach = [
@@ -890,6 +906,10 @@ oauthlib = [
 packaging = [
     {file = "packaging-20.9-py2.py3-none-any.whl", hash = "sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a"},
     {file = "packaging-20.9.tar.gz", hash = "sha256:5b327ac1320dc863dca72f4514ecc086f31186744b84a230374cc1fd776feae5"},
+]
+"pdfminer.six" = [
+    {file = "pdfminer.six-20211012-py3-none-any.whl", hash = "sha256:d3efb75c0249b51c1bf795e3a8bddf1726b276c77bf75fb136adea471ee2825b"},
+    {file = "pdfminer.six-20211012.tar.gz", hash = "sha256:0351f17d362ee2d48b158be52bcde6576d96460efd038a3e89a043fba6d634d7"},
 ]
 pillow = [
     {file = "Pillow-8.3.2-cp310-cp310-macosx_10_10_universal2.whl", hash = "sha256:c691b26283c3a31594683217d746f1dad59a7ae1d4cfc24626d7a064a11197d4"},

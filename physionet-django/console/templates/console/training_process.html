@@ -1,6 +1,7 @@
 {% extends "console/base_console.html" %}
 
 {% load static %}
+{% load console_templatetags %}
 
 {% block title %}{{ SITE_NAME }} - Training{% endblock %}
 
@@ -17,7 +18,9 @@
             <div class="card-body">
                 <p>
                     Username: <a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a><br>
-                    Applied: {{ training.application_datetime|date }}
+                    Email: {{ training.user.email }} <br>
+                    Applied: {{ training.application_datetime|date }} <br>
+                    Is credentialed: {{ training.user.is_credentialed|yesno:"Yes,No" }}
                 </p>
                 <h5>{{ training.training_type.name }} Training</h5>
                 {% if training.completion_report %}
@@ -28,6 +31,43 @@
                 {% endif %}
                 Submitted on: {{ training.application_datetime|date }}
             </div>
+        </div>
+        <div class="card mb-4">
+            {% if parsed_training_pdf.unknown_cert_type %}
+                <div class="card-header">
+                    Unknown certificate type
+                </div>
+            {% else %}
+                <div class="card-header">
+                    Informations from document
+                </div>
+                <div class="card-body">
+                    <h5><strong>Training: </strong>{{ parsed_training_pdf.shortname }}</h5>
+                    <p>
+{#                    Consider for loop here#}
+                        <strong><i>Username:</i></strong> {{ parsed_training_pdf.username }} <br>
+                        {% if parsed_training_pdf.email != None %}
+                            <strong><i>Email:</i></strong> {{ parsed_training_pdf.email }} <br>
+                        {% endif %}
+                        {% if parsed_training_pdf.certificate_id != None %}
+                            <strong><i>Certificate ID:</i></strong> {{ parsed_training_pdf.certificate_id }} <br>
+                        {% endif %}
+                        {% if parsed_training_pdf.institution != None %}
+                            <strong><i>Institution:</i></strong> {{ parsed_training_pdf.institution }} <br>
+                        {% endif %}
+                        {% if parsed_training_pdf.reported_score != None %}
+                            <strong><i>Reported Score</i></strong> {{ parsed_training_pdf.reported_score }} <br>
+                        {% endif %}
+                        <strong><i>Issued on:</i></strong> {{ parsed_training_pdf.date }} <br>
+                        {% if parsed_training_pdf.expiration_date %}
+                            <strong><i>Expiration date:</i></strong> {{ parsed_training_pdf.expiration_date }} <br>
+                        {% endif %}
+                        {% if parsed_training_pdf.fullname %}
+                            <strong><i>Course name:</i></strong> <i>{{ parsed_training_pdf.fullname }}</i>
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
         </div>
     </div>
     <div class="col-sm-5">

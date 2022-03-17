@@ -13,6 +13,7 @@ from django.forms.models import inlineformset_factory
 
 import notification.utility as notification
 from background_task import background
+from console import forms, utility, services
 from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
@@ -30,7 +31,7 @@ from django.utils import timezone
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
-from physionet.utility import paginate
+from physionet.utility import paginate, serve_file
 from physionet.models import Section, StaticPage
 from project import forms as project_forms
 from project.models import (
@@ -1557,6 +1558,7 @@ def training_list(request):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def training_proccess(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
+    training_info_from_pdf = services.get_info_from_certificate_pdf(training.completion_report.path)
 
     TrainingQuestionFormSet = modelformset_factory(
         model=TrainingQuestion, form=forms.TrainingQuestionForm, formset=forms.TrainingQuestionFormSet, extra=0
@@ -1619,7 +1621,12 @@ def training_proccess(request, pk):
     return render(
         request,
         'console/training_process.html',
-        {'training': training, 'questions_formset': questions_formset, 'training_review_form': training_review_form},
+        {
+            'training': training,
+            'questions_formset': questions_formset,
+            'training_review_form': training_review_form,
+            'parsed_training_pdf': training_info_from_pdf,
+        },
     )
 
 
