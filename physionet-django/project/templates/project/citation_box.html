@@ -57,21 +57,23 @@
       {% endif %}
     {% endif %}
   {% endif %}
-  {% if SHOW_PLATFORM_WIDE_CITATION %}
+    {% if show_platform_wide_citation %}
       <p>
         <strong>Please include the standard citation for {{ SITE_NAME }}:</strong>
         <a href="#citationModalPlatform" data-toggle="modal">(show more options)</a>
-            <br><span>{{ platform_citations.APA }}</span>
+          <br><span>{{ main_platform_citation }}</span>
       </p>
-  {% endif %}
+    {% endif %}
 
   {% include 'modal_start.html' with id_name='citationModalPlatform' title='Cite' %}
   <table><tbody>
     {% for style, citation in platform_citations.items %}
-      <tr>
-        <th>{{ style }}</th>
-        <td>{{ citation }}</td>
-      </tr>
+        {% if citation != None %}
+          <tr>
+            <th>{{ style }}</th>
+            <td>{{ citation }}</td>
+          </tr>
+        {% endif %}
     {% endfor %}
   </tbody></table>
   {% include 'modal_end.html' %}

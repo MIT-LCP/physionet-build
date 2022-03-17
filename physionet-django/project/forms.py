@@ -576,7 +576,8 @@ class DiscoveryForm(forms.ModelForm):
     parent_projects = forms.ModelMultipleChoiceField(
         queryset=PublishedProject.objects.all().order_by(Lower('title'),
         'version_order'), widget=autocomplete.ModelSelect2Multiple(url='project-autocomplete'),
-        help_text=f'The existing {settings.SITE_NAME} project(s) this resource was derived from. Hold ctrl to select multiple.',
+        help_text=f'The existing {settings.SITE_NAME} project(s) this '
+                  f'resource was derived from. Hold ctrl to select multiple.',
         required=False)
 
     class Meta:

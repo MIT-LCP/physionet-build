@@ -163,13 +163,7 @@ class Metadata(models.Model):
         citation_styles [dict]:
             dictionary containing the desired citation style
         """
-        citation_styles = {
-            'MLA': settings.PLATFORM_WIDE_CITATION_MLA,
-            'APA': settings.PLATFORM_WIDE_CITATION_APA,
-            'Chicago': settings.PLATFORM_WIDE_CITATION_CHICAGO,
-            'Harvard': settings.PLATFORM_WIDE_CITATION_HARVARD,
-            'Vancouver': settings.PLATFORM_WIDE_CITATION_VANCOUVER,
-        }
+        citation_styles = settings.PLATFORM_WIDE_CITATION
 
         return citation_styles
 

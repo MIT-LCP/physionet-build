@@ -1184,7 +1184,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     languages = project.programming_languages.all()
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
-
+    show_platform_wide_citation = any(platform_citations.values())
+    main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
     passes_checks = project.check_integrity()
 
     if passes_checks:
@@ -1227,6 +1228,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
             'parent_projects': parent_projects,
             'has_passphrase': has_passphrase,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+            'show_platform_wide_citation': show_platform_wide_citation,
+            'main_platform_citation': main_platform_citation,
         },
     )
 
@@ -1754,6 +1757,8 @@ def published_project(request, project_slug, version, subdir=''):
     user = request.user
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
+    show_platform_wide_citation = any(platform_citations.values())
+    main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
@@ -1794,7 +1799,8 @@ def published_project(request, project_slug, version, subdir=''):
         'platform_citations': platform_citations,
         'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
         'is_wget_supported': ProjectFiles().is_wget_supported(),
-        'SHOW_PLATFORM_WIDE_CITATION': settings.SHOW_PLATFORM_WIDE_CITATION,
+        'show_platform_wide_citation': show_platform_wide_citation,
+        'main_platform_citation': main_platform_citation,
     }
     # The file and directory contents
     if has_access:
