@@ -577,6 +577,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     copyedit_log.project = published_project
                     copyedit_log.save()
 
+                published_project.required_training.set(self.required_training.all())
+
                 # Set files read only and make zip file if requested
                 move_files_as_readonly(
                     published_project.id,

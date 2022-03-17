@@ -17,7 +17,7 @@ class ObjectPath(object):
         self._bucket = None
 
         try:
-            normalized_path = os.path.normpath(path)
+            normalized_path = path.normpath(path)
             self._bucket_name, self._key = normalized_path.split('/', 1)
         except ValueError:
             raise ValueError('path should specify the bucket an object key/prefix')

@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('physionet', '0001_initial'),
+        ('physionet', '0003_auto_20220228_1456'),
     ]
 
     operations = [

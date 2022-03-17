@@ -220,6 +220,7 @@ class SubmissionInfo(models.Model):
 
     edit_logs = GenericRelation('project.EditLog')
     copyedit_logs = GenericRelation('project.CopyeditLog')
+    logs = GenericRelation('project.Log')
 
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)

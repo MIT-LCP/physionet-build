@@ -1,0 +1,166 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Training{% endblock %}
+
+{% load console_templatetags %}
+
+{% block content %}
+  <div class="card">
+      <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+          <li class="nav-item">
+            <a class="nav-link active" id="review-tab" data-toggle="tab" href="#review" role="tab" aria-controls="assignment" aria-selected="true">Review {{ review_training|task_count_badge|safe }}</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="valid-tab" data-toggle="tab" href="#valid" role="tab" aria-controls="valid" aria-selected="false">Valid <span class="badge badge-pill badge-info">{{ valid_training|length }}</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="expired-tab" data-toggle="tab" href="#expired" role="tab" aria-controls="expired" aria-selected="false">Expired <span class="badge badge-pill badge-info">{{ expired_training|length }}</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="rejected-tab" data-toggle="tab" href="#rejected" role="tab" aria-controls="rejected" aria-selected="false">Rejected <span class="badge badge-pill badge-info">{{ rejected_training|length }}</span></a>
+          </li>
+        </ul>
+      </div>
+    <div class="card-body">
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="review" role="tabpanel" aria-labelledby="review-tab">
+          {% if review_training %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-cred" id="reviewt">
+              <thead>
+                <tr class="header">
+                    <th>User</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Training Type</th>
+                    <th>Submitted on</th>
+                    <th>Process Training</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for training in review_training %}
+                <tr>
+                  <td><a href="{% url 'user_management' training.user.username %}">{{ training.user }}</a></td>
+                  <td>{{ training.user.get_full_name }}</td>
+                  <td>{{ training.user.email }}</td>
+                  <td>{{ training.training_type.name }}</td>
+                  <td>{{ training.application_datetime }}</td>
+                  <td><a href="{% url 'training_process' training.id %}" class="btn btn-sm btn-primary" role="button">Process</a></td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+            <p><i class="fas fa-check" style="color:green"></i> No training to show.</p>
+          {% endif %}
+        </div>
+        <div class="tab-pane fade show" id="valid" role="tabpanel" aria-labelledby="valid-tab">
+          {% if valid_training %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-cred" id="validt">
+              <thead>
+                <tr class="header">
+                    <th>User</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Training Type</th>
+                    <th>Valid until</th>
+                    <th>View</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for training in valid_training %}
+                <tr>
+                  <td><a href="{% url 'user_management' training.user.username %}">{{ training.user }}</a></td>
+                  <td>{{ training.user.get_full_name }}</td>
+                  <td>{{ training.user.email }}</td>
+                  <td>{{ training.training_type.name }}</td>
+                  <td>
+                    {% if training.valid_datetime %}
+                      {{ training.valid_datetime }}
+                    {% else %}
+                      End of the world
+                    {% endif %}
+                  </td>
+                  <td><a href="{% url 'training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+            <p><i class="fas fa-check" style="color:green"></i> No training to show.</p>
+          {% endif %}
+        </div>
+        <div class="tab-pane fade show" id="expired" role="tabpanel" aria-labelledby="expired-tab">
+          {% if expired_training %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-cred" id="expiredt">
+              <thead>
+                <tr class="header">
+                  <th>User</th>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Training Type</th>
+                  <th>Valid until</th>
+                  <th>View</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for training in expired_training %}
+                <tr>
+                  <td><a href="{% url 'user_management' training.user.username %}">{{ training.user }}</a></td>
+                  <td>{{ training.user.get_full_name }}</td>
+                  <td>{{ training.user.email }}</td>
+                  <td>{{ training.training_type.name }}</td>
+                  <td>{{ training.valid_datetime }}</td>
+                  <td><a href="{% url 'training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+            <p><i class="fas fa-check" style="color:green"></i> No training to show.</p>
+          {% endif %}
+        </div>
+        <div class="tab-pane fade show" id="rejected" role="tabpanel" aria-labelledby="rejected-tab">
+          {% if rejected_training %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-cred" id="rejectedt">
+              <thead>
+                <tr class="header">
+                    <th>User</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Training Type</th>
+                    <th>Submitted on</th>
+                    <th>Rejected on</th>
+                    <th>View</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for training in rejected_training %}
+                <tr>
+                  <td><a href="{% url 'user_management' training.user.username %}">{{ training.user }}</a></td>
+                  <td>{{ training.user.get_full_name }}</td>
+                  <td>{{ training.user.email }}</td>
+                  <td>{{ training.training_type.name }}</td>
+                  <td>{{ training.application_datetime }}</td>
+                  <td>{{ training.process_datetime }}</td>
+                  <td><a href="{% url 'training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+            <p><i class="fas fa-check" style="color:green"></i> No training to show.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

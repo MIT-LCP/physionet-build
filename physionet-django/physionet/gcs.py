@@ -200,7 +200,7 @@ class GCSObject:
                 self.bucket.copy_blob(
                     blob,
                     gcs_obj.bucket,
-                    new_name=new_name.strip('/'),
+                    new_name=new_name.lstrip('/'),
                 )
         except ValueError:
             pass

@@ -27,6 +27,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 ENVIRONMENT = config('ENVIRONMENT', default='production')
 DEBUG = config('DEBUG', default=False, cast=bool)
 SECRET_KEY = config('SECRET_KEY')
+ENABLE_SSO = config('ENABLE_SSO', default=False, cast=bool)
+SSO_REMOTE_USER_HEADER = config('SSO_REMOTE_USER_HEADER', default='HTTP_REMOTE_USER')
+SSO_LOGIN_BUTTON_TEXT = config('SSO_LOGIN_BUTTON_TEXT', default='Login')
 
 
 # Application definition
@@ -55,6 +58,9 @@ INSTALLED_APPS = [
     'lightwave',
     'physionet',
 ]
+
+if ENABLE_SSO:
+    INSTALLED_APPS += ['sso']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -86,7 +92,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'physionet.context_processors.access_policy',
+                'physionet.context_processors.storage_type',
                 'physionet.context_processors.platform_config',
+                'sso.context_processors.sso_enabled',
             ],
         },
     },
@@ -108,6 +116,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend']
+
+if ENABLE_SSO:
+    AUTHENTICATION_BACKENDS += ['sso.auth.RemoteUserBackend']
 
 AUTH_USER_MODEL = 'user.User'
 
@@ -160,9 +171,6 @@ SYSTEM_MAINTENANCE_MESSAGE = config('SYSTEM_MAINTENANCE_MESSAGE',
 PAUSE_CREDENTIALING = config('PAUSE_CREDENTIALING', cast=bool, default=False)
 PAUSE_CREDENTIALING_MESSAGE = config('PAUSE_CREDENTIALING_MESSAGE',
                                      default=None)
-
-# Set the credentialing email address
-CREDENTIAL_EMAIL = 'PhysioNet Credentialing <credentialing@physionet.org>'
 
 GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
 
@@ -484,8 +492,6 @@ if os.getenv('PHYSIONET_LOCK_FILE'):
     # contrast, fcntl.lockf uses fcntl(2) and os.lockf uses lockf(3),
     # both of which are tied to the PID.
     fcntl.flock(_lockfd, fcntl.LOCK_SH)
-
-
 class StorageTypes:
     LOCAL = 'LOCAL'
     GCP = 'GCP'
@@ -509,3 +515,5 @@ FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)
 
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
 COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)
+
+LOG_TIMEDELTA = config('LOG_TIMEDELTA', cast=int, default='10')

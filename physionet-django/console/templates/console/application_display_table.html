@@ -55,16 +55,6 @@ Applied: {{ application.application_datetime|date }}</p>
       {{ application.webpage }}</a>{% else %}N/A{% endif %}</mark></li>
 </ul>
 
-<h5>Training</h5>
-
-<ul>
-  {% if application.training_completion_report_url %}
-  <li>Report (CITI): <mark><a href="{{ application.training_completion_report_url }}" target="_blank">View file</a></mark></li>
-  {% else %}
-  <li>Report (Unknown): <mark><a href="{% url 'training_report' application.slug %}" target="_blank">Download</a></mark></li>
-  {% endif %}
-</ul>
-
 <h5>Reference</h5>
 
 {% if application.reference_email %}

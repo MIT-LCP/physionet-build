@@ -1,0 +1,62 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+{% load console_templatetags %}
+
+{% block title %}Project Access{% endblock %}
+
+{% block local_js_top %}
+  <script src="{% static 'daterangepicker/js/moment.min.js' %}"></script> 
+  <script src="{% static 'daterangepicker/js/daterangepicker.min.js' %}"></script>
+  <script src="{% static 'console/js/generic-filter.js' %}"></script>
+  {{ user_filter_form.media.js }}
+{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'daterangepicker/css/daterangepicker.css' %}">
+  {{ user_filter_form.media.css }}
+{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    {{ project }} - logs<span class="badge badge-pill badge-info">{{ logs.paginator.count }}</span>
+  </div>
+  <div class="card-body">
+    <a href="{% url 'download_signed_urls_logs' project.id %}" class="btn btn-md btn-success">Download CSV</a>
+    <hr>
+    <div class="table-responsive" id="searchitems">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>First generation</th>
+            <th>Last generation</th>
+            <th>Duration</th>
+            <th>Data</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+              <tr>
+                <td><a href="{% url 'public_profile' log.user.username %}">{{ log.user.get_full_name }}</a></td>
+                <td>{{ log.creation_datetime }}</td>
+                <td>{{ log.last_access_datetime }}</td>
+                <td>{{ log.duration|smooth_timedelta }}</td>
+                <td>
+                  {% for data in log.get_data %}
+                    <p>{{ data }}</p>
+                  {% endfor %}
+                </td>
+                <td>{{ log.count }}</td>
+              </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=logs %}
+    </div>
+  </div>
+</div>
+{% endblock %}

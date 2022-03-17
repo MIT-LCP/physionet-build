@@ -1,9 +1,9 @@
 from enum import Enum
 
 
-class Page(Enum):
-    ABOUT = 'about'
-    SHARE = 'share'
+class LogCategory(Enum):
+    ACCESS = 'Access'
+    GCP = 'GCP'
 
     @classmethod
     def choices(cls):
