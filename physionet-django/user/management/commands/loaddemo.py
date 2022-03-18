@@ -39,14 +39,19 @@ class Command(BaseCommand):
 
         # Load fixtures for default project types
         project_types_fixtures = os.path.join(settings.BASE_DIR, 'project',
-                                          'fixtures', 'project-types.json')
+                                              'fixtures', 'project-types.json')
         call_command('loaddata', project_types_fixtures, verbosity=1)
 
         # Load fixtures for default sites
         site_fixtures = os.path.join(settings.BASE_DIR, 'physionet',
-                                          'fixtures', 'sites.json')
+                                     'fixtures', 'sites.json')
         call_command('loaddata', site_fixtures, verbosity=1)
 
+        # Load SSO login instruction static page
+        if settings.ENABLE_SSO:
+            sso_fixtures = os.path.join(settings.BASE_DIR, 'physionet',
+                                        'fixtures', 'login-instruction-static-page.json')
+            call_command('loaddata', sso_fixtures, verbosity=1)
 
         # Load other app fixtures
         project_apps = get_project_apps()
@@ -88,10 +93,13 @@ def copy_demo_media():
     for subdir in os.listdir(demo_media_root):
         demo_subdir = os.path.join(demo_media_root, subdir)
         target_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
-
         for item in [i for i in os.listdir(demo_subdir) if i != '.gitkeep']:
-            shutil.copytree(os.path.join(demo_subdir, item),
-                            os.path.join(target_subdir, item))
+            path = os.path.join(demo_subdir, item)
+            if os.path.isdir(path):
+                shutil.copytree(os.path.join(demo_subdir, item),
+                                os.path.join(target_subdir, item))
+            else:
+                shutil.copy(path, target_subdir)
 
     # Published project files should have been made read-only at
     # the time of publication

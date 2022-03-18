@@ -1,6 +1,7 @@
 import os
 import uuid
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -80,6 +81,7 @@ class Metadata(models.Model):
     allow_file_downloads = models.BooleanField(default=True)
 
     ethics_statement = SafeHTMLField(blank=True)
+    required_training = models.ManyToManyField('user.TrainingType', related_name='%(class)s')
 
     class Meta:
         abstract = True

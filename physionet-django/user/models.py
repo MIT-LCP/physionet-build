@@ -1,6 +1,7 @@
 import logging
 import os
 import pdb
+import uuid
 from datetime import timedelta
 
 from django.conf import settings
@@ -9,8 +10,11 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, signals
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.validators import EmailValidator, FileExtensionValidator, integer_validator, validate_integer
+from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
+from django.contrib.contenttypes.fields import GenericRelation
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.db.models import CharField
 from django.db.models.functions import Lower
 from django.db.models.signals import post_save
@@ -19,9 +23,12 @@ from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import ugettext as _
 
-from project.models import AccessPolicy
+from project.modelcomponents.access import AccessPolicy
+from project.modelcomponents.fields import SafeHTMLField
 from user import validators
 from user.userfiles import UserFiles
+from user.enums import TrainingStatus, RequiredField
+from user.managers import TrainingQuerySet
 
 logger = logging.getLogger(__name__)
 
@@ -331,6 +338,7 @@ class User(AbstractBaseUser):
         validators=[validators.UsernameValidator()],
         error_messages={
             'unique': "A user with that username already exists."})
+    sso_id = models.CharField(max_length=256, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
@@ -522,6 +530,10 @@ def training_report_path(instance, filename):
     return 'credential-applications/{}/{}'.format(instance.slug, 'training-report.pdf')
 
 
+def get_training_path(instance, filename):
+    return f'training/{instance.slug}/training-report.pdf'
+
+
 class LegacyCredential(models.Model):
     """
     Stores instances of profiles that were credentialed on the old
@@ -543,7 +555,7 @@ class LegacyCredential(models.Model):
     migrated = models.BooleanField(default=False)
     migration_date = models.DateTimeField(null=True)
     migrated_user = models.ForeignKey('user.User', null=True, on_delete=models.CASCADE)
-    
+
     reference_email = models.CharField(max_length=255, blank=True, default='')
 
     revoked_datetime = models.DateTimeField(null=True)
@@ -644,6 +656,7 @@ class Orcid(models.Model):
     def get_orcid_url():
         return settings.ORCID_DOMAIN
 
+
 class DualAuthModelBackend():
     """
     This is a ModelBacked that allows authentication with either a username or an email address.
@@ -738,14 +751,6 @@ class CredentialApplication(models.Model):
         validators=[validators.validate_zipcode])
     suffix = models.CharField(max_length=60,
         validators=[validators.validate_suffix], default='', blank=True)
-    # Human resources training
-    training_course_name = models.CharField(max_length=100, default='',
-        blank=True, validators=[validators.validate_training_course])
-    training_completion_date = models.DateField(null=True, blank=True)
-    training_completion_report = models.FileField(
-        upload_to=training_report_path, validators=[FileExtensionValidator(
-            ['pdf'], 'File must be a pdf.')])
-    training_completion_report_url = models.URLField(blank=True, null=True)
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES,
         null=True, blank=True)
@@ -936,6 +941,22 @@ class CredentialApplication(models.Model):
         self.credential_review.status = review_status
         self.credential_review.save()
 
+    def get_review_status(self):
+        """
+        Get the current review status of a credentialing application. Hacky.
+        Could be simplified to return self.credential_review.status later.
+        """
+        if not hasattr(self, 'credential_review'):
+            status = 'Awaiting review'
+        elif self.credential_review.status <= 40:
+            status = 'Awaiting review'
+        elif self.credential_review.status == 50:
+            status = 'Awaiting a response from your reference'
+        elif self.credential_review.status >= 60:
+            status = 'Awaiting final approval'
+
+        return status
+
 
 class CredentialReview(models.Model):
     """
@@ -952,11 +973,10 @@ class CredentialReview(models.Model):
         ('', '-----------'),
         (0,  'Not in review'),
         (10, 'Initial review'),
-        (20, 'Training'),
-        (30, 'ID check'),
-        (40, 'Reference'),
-        (50, 'Reference response'),
-        (60, 'Final review')
+        (20, 'ID check'),
+        (30, 'Reference'),
+        (40, 'Reference response'),
+        (50, 'Final review'),
     )
 
     application = models.OneToOneField('user.CredentialApplication',
@@ -970,13 +990,6 @@ class CredentialReview(models.Model):
     fields_complete = models.NullBooleanField(null=True)
     appears_correct = models.NullBooleanField(null=True)
     lang_understandable = models.NullBooleanField(null=True)
-
-    # Training check questions
-    citi_report_attached = models.NullBooleanField(null=True)
-    training_current = models.NullBooleanField(null=True)
-    training_all_modules = models.NullBooleanField(null=True)
-    training_privacy_complete = models.NullBooleanField(null=True)
-    training_name_match = models.NullBooleanField(null=True)
 
     # ID check questions
     user_searchable = models.NullBooleanField(null=True)
@@ -1002,6 +1015,94 @@ class CredentialReview(models.Model):
 
     responder_comments = models.CharField(max_length=500, default='',
                                           blank=True)
+
+
+class Question(models.Model):
+    content = models.CharField(max_length=256)
+
+    def __str__(self):
+        return self.content
+
+
+class TrainingType(models.Model):
+    name = models.CharField(max_length=128)
+    description = SafeHTMLField()
+    valid_duration = models.DurationField(null=True)
+    questions = models.ManyToManyField(Question, related_name='training_types')
+    required_field = models.PositiveSmallIntegerField(choices=RequiredField.choices(), default=RequiredField.DOCUMENT)
+    home_page = models.URLField(blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Training(models.Model):
+    slug = models.SlugField(max_length=20, unique=True)
+    training_type = models.ForeignKey(TrainingType, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='training', on_delete=models.CASCADE)
+    status = models.PositiveSmallIntegerField(choices=TrainingStatus.choices(), default=TrainingStatus.REVIEW)
+    completion_report = models.FileField(
+        upload_to=get_training_path, validators=[FileExtensionValidator(['pdf'], 'File must be a pdf.')], blank=True
+    )
+    completion_report_url = models.URLField(blank=True)
+    application_datetime = models.DateTimeField(auto_now_add=True)
+    process_datetime = models.DateTimeField(null=True)
+    reviewer = models.ForeignKey(User, related_name='reviewed_training', null=True, on_delete=models.SET_NULL)
+    reviewer_comments = models.CharField(max_length=512)
+
+    objects = TrainingQuerySet.as_manager()
+
+    def delete(self, *args, **kwargs):
+        if self.completion_report is not None:
+            self.completion_report.delete()
+
+        return super().delete(*args, **kwargs)
+
+    def withdraw(self):
+        self.status = TrainingStatus.WITHDRAWN
+        self.save(update_fields=['status'])
+
+    def accept(self, reviewer):
+        self.status = TrainingStatus.ACCEPTED
+        self.reviewer = reviewer
+        self.process_datetime = timezone.now()
+        self.save(update_fields=['status', 'reviewer', 'process_datetime'])
+
+    def reject(self, reviewer, reviewer_comments):
+        self.status = TrainingStatus.REJECTED
+        self.reviewer = reviewer
+        self.reviewer_comments = reviewer_comments
+        self.process_datetime = timezone.now()
+        self.save(update_fields=['status', 'reviewer', 'reviewer_comments', 'process_datetime'])
+
+    def is_withdrawn(self):
+        return self.status == TrainingStatus.WITHDRAWN
+
+    def is_valid(self):
+        if self.status == TrainingStatus.ACCEPTED:
+            if not self.training_type.valid_duration:
+                return True
+            else:
+                return self.process_datetime + self.training_type.valid_duration >= timezone.now()
+
+    def is_expired(self):
+        if self.status == TrainingStatus.ACCEPTED:
+            if not self.training_type.valid_duration:
+                return True
+            else:
+                return self.process_datetime + self.training_type.valid_duration < timezone.now()
+
+    def is_rejected(self):
+        return self.status == TrainingStatus.REJECTED
+
+    def is_review(self):
+        return self.status == TrainingStatus.REVIEW
+
+
+class TrainingQuestion(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    training = models.ForeignKey(Training, related_name='training_questions', on_delete=models.CASCADE)
+    answer = models.NullBooleanField()
 
 
 class CloudInformation(models.Model):

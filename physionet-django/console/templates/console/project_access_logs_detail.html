@@ -1,0 +1,125 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+{% load console_templatetags %}
+
+{% block title %}Project Access{% endblock %}
+
+{% block local_js_top %}
+  <script src="{% static 'daterangepicker/js/moment.min.js' %}"></script> 
+  <script src="{% static 'daterangepicker/js/daterangepicker.min.js' %}"></script>
+  <script src="{% static 'console/js/generic-filter.js' %}"></script>
+  {{ user_filter_form.media.js }}
+{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+  <link rel="stylesheet" type="text/css" href="{% static 'daterangepicker/css/daterangepicker.css' %}">
+  {{ user_filter_form.media.css }}
+{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    {{ c_project }} - logs<span class="badge badge-pill badge-info">{{ logs.paginator.count }}</span>
+  </div>
+  <div class="card-body">
+    <a href="{% url 'download_project_accesses' c_project.id %}" class="btn btn-md btn-success">Download CSV</a>
+    <hr>
+    <div class="row">
+      <div class="col-sm-6">
+        <label class="font-weight-bold" for="username">Filter by username:</label>
+      </div>
+      <div class="col-sm-6">
+        <label class="font-weight-bold" for="datefilter">Filter by time period:</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-6">
+        {{ user_filter_form.username }}
+      </div>
+      <div class="col-sm-6">
+        <div id="datefilter" style="cursor: pointer;" class="border py-1 px-2 text-dark">
+          <i class="far fa-calendar"></i>
+          <span>Select period</span>
+          <i class="fa fa-angle-down"></i>
+        </div>
+      </div>
+    </div>
+    <div class="table-responsive" id="searchitems">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>First access</th>
+            <th>Last access</th>
+            <th>Duration</th>
+            <th>Count</th>
+            <th>User logs</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+              <tr>
+                <td><a href="{% url 'public_profile' log.user.username %}">{{ log.user.get_full_name }}</a></td>
+                <td>{{ log.creation_datetime }}</td>
+                <td>{{ log.last_access_datetime }}</td>
+                <td>{{ log.duration|smooth_timedelta }}</td>
+                <td>{{ log.count }}</td>
+                <td><a href="{% url 'user_access_logs_detail' user.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+              </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=logs %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script>
+  let startDate = null;
+  let endDate = null;
+  
+  const search = () => {
+    const start = startDate !== null ? startDate : '';
+    const end = endDate !== null ? endDate : '';
+    const user = $('#id_username').val() !== null ? $('#id_username').val() : '';
+  
+    filter('{% url 'project_access_logs_detail' c_project.id %}', {
+      startDate: start,
+      endDate: end,
+      user: user
+    });
+  }
+
+  $('#id_username').change(() => search());
+
+$(() => {
+  $('#datefilter').daterangepicker({
+    autoUpdateInput: false,
+    timePicker: true,
+    locale: {
+      cancelLabel: 'Clear'
+    }
+  });
+
+  $('#datefilter').on('apply.daterangepicker', function(ev, picker) {
+    startDate = picker.startDate.format('YYYY-MM-DD hh:mm');
+    endDate = picker.endDate.format('YYYY-MM-DD hh:mm');
+    $('#datefilter span').html(picker.startDate.format('M/DD hh:mm A') + ' - ' + picker.endDate.format('M/DD hh:mm A'));
+    search();
+  });
+
+  $('#datefilter').on('cancel.daterangepicker', function(ev, picker) {
+    $('#datefilter span').html('Select period');
+    picker.setStartDate(moment().startOf('day'))
+    picker.setEndDate(moment().endOf('day'))
+    startDate = null;
+    endDate = null;
+    search();
+  });
+});
+</script>
+{% endblock %}

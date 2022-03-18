@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Register
+{% endblock %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/login-register.css' %}"/>
+{% endblock %}
+
+
+{% block content %}
+<div class="container">
+  <form action="{% url 'sso_register' %}" method="post" class="form-signin">
+    <h2 class="form-signin-heading">Register Account</h2>
+    {% csrf_token %}
+    {% include "form_snippet.html" %}
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
+  </form>
+</div>
+{% endblock %}
