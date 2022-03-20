@@ -794,10 +794,10 @@ class AccessMetadataForm(forms.ModelForm):
         if self.access_policy is None and data is not None:
             self.access_policy = int(data.get('access_policy'))
 
+        super().__init__(*args, **kwargs)
+
         if not settings.ENABLE_FILE_DOWNLOADS_OPTION:
             del self.fields['allow_file_downloads']
-
-        super().__init__(*args, **kwargs)
 
         if self.access_policy is None:
             self.access_policy = self.instance.access_policy
