@@ -778,7 +778,7 @@ def credential_reference(request, application_slug):
             # their application.
             if application.reference_response == 1:
                 process_credential_complete(request, application,
-                                            comments=False)
+                                            include_comments=False)
 
             response = 'verifying' if application.reference_response == 2 else 'denying'
             return render(request, 'user/credential_reference_complete.html',
