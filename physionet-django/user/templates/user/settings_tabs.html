@@ -1,0 +1,8 @@
+<div class="col-6 col-md-3 sidebar-offcanvas sett-side" id="sidebar">
+  <div class="list-group">
+    {% for setting in settings_tabs %}
+      {% url 'edit_'|add:setting|lower as settings_url %}
+      <a href={{ settings_url }} class="list-group-item list-group-item-action{% if settings_url == request.path %} active{% endif %}">{{ setting }}</a>
+    {% endfor %}
+  </div>
+</div>

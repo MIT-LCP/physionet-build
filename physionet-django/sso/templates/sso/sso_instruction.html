@@ -1,0 +1,14 @@
+<div class="instruction-container d-flex justify-content-center">
+  <div class="card" style="width: 36rem;">
+    <div class="card-body">
+      {% for section in sections %}
+        <section id="{{ section.order }}">
+            <h5 class="text-center">{{ section.title }}</h5>
+            <div class="indented-box">
+              {{ section.content|safe }}
+            </div>
+        </section>
+      {% endfor %}
+    </div>
+  </div>
+</div>
