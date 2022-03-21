@@ -578,7 +578,8 @@ class DiscoveryForm(forms.ModelForm):
     parent_projects = forms.ModelMultipleChoiceField(
         queryset=PublishedProject.objects.all().order_by(Lower('title'),
         'version_order'), widget=autocomplete.ModelSelect2Multiple(url='project-autocomplete'),
-        help_text='The existing PhysioNet project(s) this resource was derived from. Hold ctrl to select multiple.',
+        help_text=f'The existing {settings.SITE_NAME} project(s) this '
+                  f'resource was derived from. Hold ctrl to select multiple.',
         required=False)
 
     class Meta:
@@ -1015,7 +1016,7 @@ class DataAccessResponseForm(forms.ModelForm):
 class InviteDataAccessReviewerForm(forms.ModelForm):
     reviewer = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control'}),
-        required=True, label='Physionet Username')
+        required=True, label=f'{settings.SITE_NAME} Username')
 
     class Meta:
         model = DataAccessRequestReviewer
