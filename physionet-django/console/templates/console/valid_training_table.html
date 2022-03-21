@@ -1,0 +1,35 @@
+<div class="tab-pane fade show active" id="valid" role="tabpanel" aria-labelledby="valid-tab">
+    <div class="table-responsive">
+        <table class="table table-bordered table-cred" id="validt">
+            <thead>
+                <tr class="header">
+                    <th>User</th>
+                    <th>Full Name</th>
+                    <th>Email</th>
+                    <th>Training Type</th>
+                    <th>Valid until</th>
+                    <th>View</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for training in trainings %}
+                    <tr>
+                        <td><a href="{% url 'user_management' training.user.username %}">{{ training.user }}</a></td>
+                        <td>{{ training.user.get_full_name }}</td>
+                        <td>{{ training.user.email }}</td>
+                        <td>{{ training.training_type.name }}</td>
+                        <td>
+                        {% if training.valid_datetime %}
+                            {{ training.valid_datetime }}
+                        {% else %}
+                            End of the world
+                        {% endif %}
+                        </td>
+                        <td><a href="{% url 'training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include "console/pagination.html" with pagination=trainings %}
+    </div>
+</div>
