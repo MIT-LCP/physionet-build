@@ -10,6 +10,8 @@ from django.utils.crypto import get_random_string
 from html2text import html2text
 from project.modelcomponents.fields import SafeHTMLField
 
+from project.managers.access import DataAccessRequestQuerySet, DataAccessRequestManager
+
 
 class AccessPolicy(IntEnum):
     OPEN = 0
@@ -40,6 +42,7 @@ class DataAccessRequest(models.Model):
     REJECT_REQUEST_VALUE = 1
     WITHDRAWN_VALUE = 2
     ACCEPT_REQUEST_VALUE = 3
+    REVOKED_VALUE = 4
 
     REJECT_ACCEPT = (
         (REJECT_REQUEST_VALUE, 'Reject'),
@@ -50,7 +53,8 @@ class DataAccessRequest(models.Model):
         PENDING_VALUE: "pending",
         REJECT_REQUEST_VALUE: "rejected",
         WITHDRAWN_VALUE: "withdrawn",
-        ACCEPT_REQUEST_VALUE: "accepted"
+        ACCEPT_REQUEST_VALUE: "accepted",
+        REVOKED_VALUE: "revoked",
     }
 
     DATA_ACCESS_REQUESTS_DAY_LIMIT = 14
@@ -70,14 +74,20 @@ class DataAccessRequest(models.Model):
 
     decision_datetime = models.DateTimeField(null=True)
 
+    duration = models.DurationField(null=True, blank=True)
+
     responder = models.ForeignKey('user.User', null=True,
                                   related_name='data_access_request_user',
                                   on_delete=models.SET_NULL)
 
     responder_comments = SafeHTMLField(blank=True, max_length=10000)
 
+    objects = DataAccessRequestManager.from_queryset(DataAccessRequestQuerySet)()
+
     def is_accepted(self):
-        return self.status == self.ACCEPT_REQUEST_VALUE
+        return self.status == self.ACCEPT_REQUEST_VALUE and (
+            self.duration is None or self.decision_datetime + self.duration > timezone.now()
+        )
 
     def is_rejected(self):
         return self.status == self.REJECT_REQUEST_VALUE
@@ -87,6 +97,9 @@ class DataAccessRequest(models.Model):
 
     def is_pending(self):
         return self.status == self.PENDING_VALUE
+
+    def is_revoked(self):
+        return self.status == self.REVOKED_VALUE
 
     def status_text(self):
         return self.status_texts.get(self.status, 'unknown')

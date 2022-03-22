@@ -16,17 +16,47 @@
                     <thead>
                     <tr>
                         <th>Requester</th>
+                        <th>Data Use Title</th>
                         <th>Status</th>
-                        <th>Details</th>
+                        <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
                     {% for req in requests %}
                         <tr>
                             <td>{{ req.requester.get_full_name }}</td>
-                            <td>{{ req.status_text }}</td>
+                            <td>{{ req.data_use_title }}</td>
                             <td>
-                                <a href="{% url  'data_access_request_view' req.project.slug req.project.version req.requester.id %}">Details</a>
+                                {{ req.status_text }}{% if req.is_accepted %}, valid {% if req.valid_until %}until {{ req.valid_until }}{% else %}forever {% endif %}{% endif %}
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-primary mb-1" href="{% url  'data_access_request_view' req.project.slug req.project.version req.pk %}">Details</a>
+                                {% if req.is_accepted %}
+                                    <form method="post" action="{% url 'data_access_requests_overview' project.slug project.version %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="revoke_request_id" id="revoke_request_id" value="{{ req.id }}">
+                                        <button type="button" data-target="#revoke-access-request" tabindex="-1" role="dialog" data-toggle="modal" class="btn btn-sm btn-danger">Revoke</button>
+                                        <div class="modal fade" id="revoke-access-request" tabindex="-1" role="dialog" aria-labelledby="revoke-access-request-modal" aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Revoke Access Request</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <p>Are you sure you want to revoke the access request?</p>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button class="btn btn-danger" type="submit">Revoke</button>
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}

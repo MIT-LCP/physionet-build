@@ -38,35 +38,34 @@ urlpatterns = [
     path(
         'content/<project_slug>/view-license/<version>/',
         project_views.published_project_license,
-        name='published_project_license',
-    ),
+        name='published_project_license'),
     path(
         'content/<project_slug>/view-required-training/<version>/',
         project_views.published_project_required_training,
         name='published_project_required_training',
     ),
-    path('sign-dua/<project_slug>/<version>/', project_views.sign_dua, name='sign_dua'),
-    path('request-access/<project_slug>/<version>/', project_views.request_data_access, name='request_data_access'),
-    path(
-        'request-access-status/<project_slug>/<version>/',
-        project_views.data_access_request_status,
-        name='data_access_request_status',
-    ),
-    path(
-        'access-requests/<project_slug>/<version>/<user_id>/',
-        project_views.data_access_request_view,
-        name='data_access_request_view',
-    ),
-    path(
-        'access-requests/<project_slug>/<version>/',
-        project_views.data_access_requests_overview,
-        name='data_access_requests_overview',
-    ),
-    path(
-        'manage-reviewers/<project_slug>/<version>/',
-        project_views.manage_data_access_reviewers,
-        name='manage_data_access_reviewers',
-    ),
+
+    path('sign-dua/<project_slug>/<version>/', project_views.sign_dua,
+         name='sign_dua'),
+    path('request-access/<project_slug>/<version>/',
+         project_views.request_data_access,
+         name='request_data_access'),
+    path('request-access-status/<project_slug>/<version>/',
+         project_views.data_access_request_status,
+         name='data_access_request_status'),
+    path('request-access-status/<project_slug>/<version>/<int:pk>/',
+         project_views.data_access_request_status_detail,
+         name='data_access_request_status_detail'),
+    path('access-requests/<project_slug>/<version>/<int:pk>/',
+         project_views.data_access_request_view,
+         name='data_access_request_view'),
+    path('access-requests/<project_slug>/<version>/',
+         project_views.data_access_requests_overview,
+         name='data_access_requests_overview'),
+    path('manage-reviewers/<project_slug>/<version>/',
+         project_views.manage_data_access_reviewers,
+         name='manage_data_access_reviewers'),
+
     path('charts/', views.charts, name='charts'),
 
     # Redirect from legacy

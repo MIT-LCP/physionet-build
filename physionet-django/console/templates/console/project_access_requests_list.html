@@ -1,0 +1,53 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Project Access{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+ <script src="{% static 'console/js/generic-filter.js' %}"></script>
+ <div class="card mb-3">
+  <div class="card-header">
+    Projects - Access Requests <span class="badge badge-pill badge-info">{{ projects.paginator.count }}</span>
+  </div>
+  <div class="card-body" >
+    <input id="searchbox" type="search" oninput="search();"  placeholder="Search...">
+    <div class="table-responsive" id="searchitems">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Access Requests</th>
+            <th>View</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in projects %}
+            <tr>
+              <td>{{ project }}</td>
+              <td>{{ project.access_requests_count }}</td>
+              <td><a class="btn btn-primary" href="{% url 'project_access_requests_detail' project.id %}">View</a></td>
+            </tr>
+          {% endfor %}
+        </tbody> 
+      </table>
+      {% include "console/pagination.html" with pagination=projects %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script>
+    const search = () => {
+      const filters = {
+        q: $('#searchbox').val()
+      }
+      filter('{% url 'project_access_requests_list' %}', filters)
+    }
+  </script>
+{% endblock %}

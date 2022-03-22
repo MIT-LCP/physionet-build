@@ -983,9 +983,13 @@ class DataAccessRequestForm(forms.ModelForm):
 
 
 class DataAccessResponseForm(forms.ModelForm):
+    duration = forms.IntegerField(
+        min_value=0, initial=14, label='Duration (in days)', help_text="If you enter 0, the access will not expire."
+    )
+
     class Meta:
         model = DataAccessRequest
-        fields = ('status', 'responder_comments')
+        fields = ('status', 'duration', 'responder_comments')
         help_texts = {
             'responder_comments': """Brief justification in case of rejection or comment for the requester""",
         }
@@ -999,18 +1003,31 @@ class DataAccessResponseForm(forms.ModelForm):
             'responder_comments': 'Comment or Justification'
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if cleaned_data['status'] == DataAccessRequest.REJECT_REQUEST_VALUE and not cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject the request, you must state why.')
+
+    def clean_duration(self):
+        duration = self.cleaned_data['duration']
+        if not duration:
+            return None
+
+        return timezone.timedelta(days=duration)
+
     def save(self):
         r = super().save(commit=False)
         r.decision_datetime = timezone.now()
-        r.responder_id = self.responder_id
+        r.responder = self.responder
         r.save()
 
         return r
 
-    def __init__(self, responder_id, *args, **kwargs):
+    def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.responder_id = responder_id
+        self.responder = responder
 
 
 class InviteDataAccessReviewerForm(forms.ModelForm):
