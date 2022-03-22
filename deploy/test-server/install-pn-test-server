@@ -16,6 +16,14 @@ if [ -d "$REPOSITORY" ]; then
     REPOSITORY=$(readlink -f "$REPOSITORY")
 fi
 
+if [ -z "${WFDB_REPOSITORY+set}" ]; then
+    WFDB_REPOSITORY=https://github.com/bemoody/wfdb.git
+fi
+
+if [ -z "${LIGHTWAVE_REPOSITORY+set}" ]; then
+    LIGHTWAVE_REPOSITORY=https://github.com/bemoody/lightwave.git
+fi
+
 ################################################################
 
 ADMIN=$(getent passwd 1000 | cut -d: -f1)
@@ -49,6 +57,27 @@ apt-get install -y \
         postfix postfix-pcre dovecot-imapd \
         `# Cryptography related packages` \
         rustc libssl-dev
+
+################################################################
+
+if [ -n "$WFDB_REPOSITORY" ]; then
+    git clone "$WFDB_REPOSITORY" $HOME/wfdb
+    (
+        cd $HOME/wfdb
+        git checkout "${WFDB_REVISION:-master}"
+        ./configure --without-netfiles
+        make -j$(nproc) -Clib install
+        make -j$(nproc) -Cdata install
+    )
+    if [ -n "$LIGHTWAVE_REPOSITORY" ]; then
+        git clone "$LIGHTWAVE_REPOSITORY" $HOME/lightwave
+        (
+            cd $HOME/lightwave
+            git checkout "${LIGHTWAVE_REVISION:-master}"
+            make -j$(nproc) CGIDIR=/usr/local/bin/ sandboxed-server
+        )
+    fi
+fi
 
 ################################################################
 
