@@ -1535,7 +1535,7 @@ def credentialed_user_info(request, username):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def training_list(request, status):
-    trainings = Training.objects.select_related('user__profile', 'training_type').order_by('-application_datetime')
+    trainings = Training.objects.select_related('user__profile', 'training_type').order_by('application_datetime')
     review_training = trainings.get_review()
     valid_training = trainings.get_valid()
     expired_training = trainings.get_expired()
@@ -1550,6 +1550,22 @@ def training_list(request, status):
 
     display_training = training_by_status[status]
 
+    if request.method == 'POST':
+        if "search" in request.POST:
+            display_training = search_training_applications(request, display_training)
+            if status == 'review':
+                return render(request, 'console/review_training_table.html',
+                              {'trainings': display_training, 'status': status})
+            elif status == 'valid':
+                return render(request, 'console/valid_training_table.html',
+                              {'trainings': display_training, 'status': status})
+            elif status == 'expired':
+                return render(request, 'console/expired_training_table.html',
+                              {'trainings': display_training, 'status': status})
+            elif status == 'rejected':
+                return render(request, 'console/rejected_training_table.html',
+                              {'trainings': display_training, 'status': status})
+
     return render(
         request,
         'console/training_list.html',
@@ -1563,6 +1579,27 @@ def training_list(request, status):
             'training_nav': True,
         },
     )
+
+
+def search_training_applications(request, display_training):
+    """
+    Search training applications.
+
+    Args:
+        request (obj): Django WSGIRequest object.
+    """
+    search_field = request.POST['search']
+    if search_field:
+        display_training = display_training.filter(Q(user__username__icontains=search_field)
+                                                   | Q(user__profile__first_names__icontains=search_field)
+                                                   | Q(user__profile__last_name__icontains=search_field)
+                                                   | Q(user__email__icontains=search_field))
+
+    # prevent formatting issue if search field is empty
+    if len(search_field) == 0:
+        display_training = paginate(request, display_training, 50)
+
+    return display_training
 
 
 @login_required
