@@ -2,6 +2,7 @@
 
 {% load static %}
 
+{% load user_templatetags %}
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
@@ -11,17 +12,7 @@
 {% block content %}
 <div class="container">
   <div class="row row-offcanvas row-offcanvas-right">
-    <div class="col-6 col-md-3 sidebar-offcanvas sett-side" id="sidebar">
-      <div class="list-group">
-        {% with 'Profile Password Emails Username Cloud ORCID Credentialing Training Agreements' as setting_options %}
-            {% for setting in setting_options.split %}
-              {% url 'edit_'|add:setting|lower as settings_url %}
-              <a href={{ settings_url }} class="list-group-item list-group-item-action{% if settings_url == request.path %} active{% endif %}">{{ setting }}</a>
-            {% endfor %}
-        {% endwith %}
-      </div>
-    </div><!--/span-->
-
+    {% settings_tabs sso_enabled %}
     <div class="col-10 col-md-9 sett-side">
       {% include "message_snippet.html" %}
       {% block main_content %}

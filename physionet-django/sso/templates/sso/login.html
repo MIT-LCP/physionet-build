@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Login{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/login-register.css' %}"/>
+{% endblock %}
+
+{% block content %}
+  <div class="container d-flex justify-content-center" >
+    <div class="card text-center" style="width: 36rem;">
+      <div class="card-body">
+        <h5 class="card-title">Single Sign-On</h5>
+        <h6 class="card-subtitle mb-2 text-muted">Login through an external institute</h6>
+        <a type="button" class="btn btn-primary center" href="{% url 'sso_login' %}" aria-disabled="true">
+          {{ sso_login_button_text }}
+        </a>
+      </div>
+    </div>
+  </div>
+  {% if login_instruction_sections|length > 0 %}
+    {% include "sso/sso_instruction.html" with sections=login_instruction_sections %}
+  {% endif %}
+  <br>
+{% endblock %}

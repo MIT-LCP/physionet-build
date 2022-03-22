@@ -68,14 +68,18 @@ urlpatterns = [
          name='community_challenge'),
 
     # robots.txt for crawlers
-    path('robots.txt', lambda x: HttpResponse("User-Agent: *\Allow: /",
-        content_type="text/plain"), name="robots_file"),
+    path(
+        'robots.txt', lambda x: HttpResponse("User-Agent: *\\Allow: /", content_type="text/plain"), name="robots_file"
+    ),
 ]
 
 if ProjectFiles().is_lightwave_supported:
     urlpatterns.append(path('lightwave/', include('lightwave.urls')))
     # backward compatibility for LightWAVE
     urlpatterns.append(path('cgi-bin/lightwave', lightwave_views.lightwave_server))
+
+if settings.ENABLE_SSO:
+    urlpatterns.append(path('', include('sso.urls')))
 
 if settings.DEBUG:
     import debug_toolbar

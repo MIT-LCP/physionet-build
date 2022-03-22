@@ -1,0 +1,8 @@
+{% for project in projects %}
+    <tr>
+        <td><a href="{% url 'project_overview_redirect' project.slug %}">{{ project }}</a></td>
+        <td>{{ project.modified_datetime }}</td>
+        <td>{{ project.log_count }}</td>
+        <td><a href="{% url 'gcp_signed_urls_logs_detail' project.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+    </tr>
+{% endfor %}

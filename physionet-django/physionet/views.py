@@ -7,11 +7,10 @@ from django.contrib import messages
 from django.conf import settings
 from django.db.models.functions import Lower
 from django.http import Http404, HttpResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import render, get_object_or_404
 from notification.models import News
 from project.projectfiles import ProjectFiles
-from physionet.enums import Page
-from physionet.models import Section
+from physionet.models import Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
 from user.forms import ContactForm
@@ -58,7 +57,8 @@ def about_publish(request):
             'access_policy'
         )
 
-    sections = Section.objects.filter(page=Page.SHARE)
+    static_page = get_object_or_404(StaticPage, url="/about/publish/")
+    sections = Section.objects.filter(static_page=static_page)
 
     return render(
         request, 'about/publish.html', {'licenses': licenses, 'descriptions': descriptions, 'sections': sections}
@@ -100,7 +100,8 @@ def about(request):
     else:
         contact_form = ContactForm()
 
-    sections = Section.objects.filter(page=Page.ABOUT)
+    static_page = get_object_or_404(StaticPage, url="/about/")
+    sections = Section.objects.filter(static_page=static_page)
 
     return render(request, 'about/about.html', {'contact_form': contact_form, 'sections': sections})
 

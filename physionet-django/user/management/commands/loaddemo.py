@@ -39,14 +39,19 @@ class Command(BaseCommand):
 
         # Load fixtures for default project types
         project_types_fixtures = os.path.join(settings.BASE_DIR, 'project',
-                                          'fixtures', 'project-types.json')
+                                              'fixtures', 'project-types.json')
         call_command('loaddata', project_types_fixtures, verbosity=1)
 
         # Load fixtures for default sites
         site_fixtures = os.path.join(settings.BASE_DIR, 'physionet',
-                                          'fixtures', 'sites.json')
+                                     'fixtures', 'sites.json')
         call_command('loaddata', site_fixtures, verbosity=1)
 
+        # Load SSO login instruction static page
+        if settings.ENABLE_SSO:
+            sso_fixtures = os.path.join(settings.BASE_DIR, 'physionet',
+                                        'fixtures', 'login-instruction-static-page.json')
+            call_command('loaddata', sso_fixtures, verbosity=1)
 
         # Load other app fixtures
         project_apps = get_project_apps()

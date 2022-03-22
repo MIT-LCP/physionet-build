@@ -37,7 +37,7 @@
           <div class="modal-body">
             <p>Individual file size limit: {{ individual_size_limit }}.</p>
               {% if storage_type == "GCP" %}
-                <div class="dropzone" id="myDropzone"></div>
+                <div id="myDropzone"></div>
               {% else %}
                 {{ upload_files_form.file_field }}
               {% endif %}

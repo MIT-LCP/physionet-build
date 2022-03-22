@@ -21,7 +21,7 @@ def migrate_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0054_license_dua_1'),
+        ('project', '0056_license_dua_1'),
     ]
 
     operations = [

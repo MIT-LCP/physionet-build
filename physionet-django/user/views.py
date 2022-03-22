@@ -38,6 +38,7 @@ from physionet.middleware.maintenance import (
     allow_post_during_maintenance,
     disallow_during_maintenance,
 )
+from physionet.models import Section
 from physionet.settings.base import StorageTypes
 from project.models import Author, DUASignature, License, PublishedProject
 from requests_oauthlib import OAuth2Session
@@ -48,12 +49,13 @@ from user.models import (
     CredentialApplication,
     LegacyCredential,
     Orcid,
-    Profile,
     User,
     Training,
     TrainingType,
 )
 from user.userfiles import UserFiles
+from physionet.models import StaticPage
+
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +65,27 @@ class LoginView(auth_views.LoginView):
     template_name = 'user/login.html'
     authentication_form = forms.LoginForm
     redirect_authenticated_user = True
+
+
+@method_decorator(allow_post_during_maintenance, 'dispatch')
+class SSOLoginView(auth_views.LoginView):
+    template_name = 'sso/login.html'
+    authentication_form = forms.LoginForm
+    redirect_authenticated_user = True
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        try:
+            login_static_page = StaticPage.objects.get(url='/login/')
+            instruction_sections = Section.objects.filter(static_page=login_static_page)
+        except StaticPage.DoesNotExist:
+            instruction_sections = []
+
+        sso_extra_context = {
+            'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
+            'login_instruction_sections': instruction_sections,
+        }
+        return {**context, **sso_extra_context}
 
 
 class LogoutView(auth_views.LogoutView):
@@ -101,6 +124,7 @@ class PasswordChangeView(auth_views.PasswordChangeView):
 
 
 login = LoginView.as_view()
+sso_login = SSOLoginView.as_view()
 logout = LogoutView.as_view()
 reset_password_request = PasswordResetView.as_view()
 reset_password_sent = PasswordResetDoneView.as_view()
@@ -255,7 +279,7 @@ def add_email(request, add_email_form):
 
         # Send an email to the newly added email with a verification link
         uidb64 = force_text(urlsafe_base64_encode(force_bytes(associated_email.pk)))
-        subject = "PhysioNet Email Verification"
+        subject = f"{settings.SITE_NAME} Email Verification"
         context = {
             'name': user.get_full_name(),
             'domain': get_current_site(request),
@@ -677,9 +701,19 @@ def edit_training(request):
         else:
             training_form = forms.TrainingForm(user=request.user)
 
-    trainings = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
+    training = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
+    training_by_status = {
+        'under review': training.get_review(),
+        'active': training.get_valid(),
+        'expired': training.get_expired(),
+        'rejected': training.get_rejected(),
+    }
 
-    return render(request, 'user/edit_training.html', {'training_form': training_form, 'trainings': trainings})
+    return render(
+        request,
+        'user/edit_training.html',
+        {'training_form': training_form, 'training_by_status': training_by_status}
+    )
 
 
 @login_required
@@ -744,7 +778,7 @@ def credential_reference(request, application_slug):
             # their application.
             if application.reference_response == 1:
                 process_credential_complete(request, application,
-                                            comments=False)
+                                            include_comments=False)
 
             response = 'verifying' if application.reference_response == 2 else 'denying'
             return render(request, 'user/credential_reference_complete.html',
@@ -758,7 +792,7 @@ def credential_reference(request, application_slug):
 @login_required
 def edit_cloud(request):
     """
-    Page to add the information for cloud usage. 
+    Page to add the information for cloud usage.
     """
     user = request.user
     cloud_info = CloudInformation.objects.get_or_create(user=user)[0]

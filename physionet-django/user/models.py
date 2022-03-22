@@ -10,8 +10,11 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model, signals
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.core.validators import EmailValidator, FileExtensionValidator, integer_validator, validate_integer
+from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
+from django.contrib.contenttypes.fields import GenericRelation
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.db.models import CharField
 from django.db.models.functions import Lower
 from django.db.models.signals import post_save
@@ -335,6 +338,7 @@ class User(AbstractBaseUser):
         validators=[validators.UsernameValidator()],
         error_messages={
             'unique': "A user with that username already exists."})
+    sso_id = models.CharField(max_length=256, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
@@ -551,7 +555,7 @@ class LegacyCredential(models.Model):
     migrated = models.BooleanField(default=False)
     migration_date = models.DateTimeField(null=True)
     migrated_user = models.ForeignKey('user.User', null=True, on_delete=models.CASCADE)
-    
+
     reference_email = models.CharField(max_length=255, blank=True, default='')
 
     revoked_datetime = models.DateTimeField(null=True)
@@ -651,6 +655,7 @@ class Orcid(models.Model):
     @staticmethod
     def get_orcid_url():
         return settings.ORCID_DOMAIN
+
 
 class DualAuthModelBackend():
     """
@@ -935,6 +940,22 @@ class CredentialApplication(models.Model):
         """
         self.credential_review.status = review_status
         self.credential_review.save()
+
+    def get_review_status(self):
+        """
+        Get the current review status of a credentialing application. Hacky.
+        Could be simplified to return self.credential_review.status later.
+        """
+        if not hasattr(self, 'credential_review'):
+            status = 'Awaiting review'
+        elif self.credential_review.status <= 40:
+            status = 'Awaiting review'
+        elif self.credential_review.status == 50:
+            status = 'Awaiting a response from your reference'
+        elif self.credential_review.status >= 60:
+            status = 'Awaiting final approval'
+
+        return status
 
 
 class CredentialReview(models.Model):

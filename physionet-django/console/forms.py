@@ -4,6 +4,8 @@ import resource
 
 from django.forms.widgets import RadioSelect
 
+from django.forms.widgets import RadioSelect
+
 from console.utility import generate_doi_payload, register_doi
 from dal import autocomplete
 from django import forms
@@ -891,15 +893,15 @@ class SectionForm(forms.ModelForm):
         model = Section
         fields = ('title', 'content')
 
-    def __init__(self, page, *args, **kwargs):
+    def __init__(self, static_page, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.page = page
+        self.static_page = static_page
 
     def save(self):
         section = super().save(commit=False)
-        section.page = self.page
+        section.static_page = self.static_page
         if not section.order:
-            section.order = Section.objects.filter(page=self.page).count() + 1
+            section.order = Section.objects.filter(static_page=self.static_page).count() + 1
         section.save()
         return section
 
@@ -939,7 +941,6 @@ class TrainingReviewForm(forms.Form):
             raise forms.ValidationError('If you reject, you must explain why.')
 
 
-
 class LicenseForm(forms.ModelForm):
     class Meta:
         model = License
@@ -957,3 +958,25 @@ class DUAForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['access_policy'].choices = AccessPolicy.choices(gte_value=AccessPolicy.CREDENTIALED)
+
+
+class UserFilterForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('username',)
+        widgets = {
+            'username': autocomplete.ListSelect2(url='user-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
+        }
+
+
+class ProjectFilterForm(forms.ModelForm):
+    class Meta:
+        model = PublishedProject
+        fields = ('title',)
+        widgets = {
+            'title': autocomplete.ListSelect2(url='project-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
+        }

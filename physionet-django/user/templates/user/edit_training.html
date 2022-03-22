@@ -3,25 +3,54 @@
 {% block title %}{{ SITE_NAME }} Training{% endblock %}
 
 {% block main_content %}
-<h1>{{ SITE_NAME }} Training</h1>
+<h1>Training</h1>
   <hr>
-  <h4>Active training</h4>
-  <ul class="list-group list-group-flush">
-    {% for training in trainings %}
-      <li class="list-group-item d-flex align-items-center justify-content-between">
-        <div>
-          {{ training.training_type.name }} Training
-          {% include 'user/training_badge.html' %}
+    <p>To gain access to certain datasets on {{ SITE_NAME }}, you are required to demonstrate that you have completed relevant training. You can find specific training requirements in the "Files" section of the project description.</p>
+  
+    {% for status, group in training_by_status.items %}
+      {% if not status == 'under review' %}
+        <div class="mb-3">
+          <h4>{{ status|capfirst }}</h4>
+          <ul class="list-group list-group-flush">
+            {% for course in group %}
+              <li class="list-group-item d-flex align-items-center justify-content-between">
+                <div>
+                  {{ course.training_type.name }} 
+                </div>
+                <a href="{% url 'edit_training_detail' course.id %}" class="btn btn-sm btn-primary" role="button">View</a>
+              </li>
+            {% empty %}
+              <p>N/A</p>
+            {% endfor %}
+          </ul>
         </div>
-        <a href="{% url 'edit_training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a>
-      </li>
-    {% empty %}
-      <p>You haven't submitted any training.</p>
+      {% endif %}
     {% endfor %}
-  </ul>
+
   <hr>
-  <h4>Submit evidence of a completed training course</h4>
-  <p>Provide a completion report indicating that you have finished the respective training course.</p>
+  <h4>Submit evidence of a completed course</h4>
+
+    {% for status, group in training_by_status.items %}
+      {% if status == 'under review' and group %}
+        <div class="mb-3">
+          <div class="alert alert-warning">
+            The following training is under review:
+          <ul class="list-group list-group-flush">
+            {% for course in group %}
+              <li class="d-flex align-items-center justify-content-between">
+                <div>
+                  {{ course.training_type.name }}
+                </div>
+                <a href="{% url 'edit_training_detail' course.id %}" class="btn btn-sm btn-primary" role="button">View</a>
+              </li>
+            {% endfor %}
+          </div>
+          </ul>
+        </div>
+    {% endif %}
+  {% endfor %}
+
+  <p>Please use the form below to submit a new completion report. For CITI training, please refer to our <a href="{% url "citi_course" %}" target="_blank">step-by-step instructions</a>. </p>
   <form action="{% url "edit_training" %}" method="post" enctype="multipart/form-data" id="training">
       {% include "descriptive_inline_form_snippet.html" with form=training_form %}
       <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#submit-training">Submit Training</button>

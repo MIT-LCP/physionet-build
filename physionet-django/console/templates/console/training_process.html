@@ -1,6 +1,7 @@
 {% extends "console/base_console.html" %}
 
 {% load static %}
+{% load console_templatetags %}
 
 {% block title %}{{ SITE_NAME }} - Training{% endblock %}
 
@@ -17,16 +18,37 @@
             <div class="card-body">
                 <p>
                     Username: <a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a><br>
-                    Applied: {{ training.application_datetime|date }}
+                    Submitted: {{ training.application_datetime|date }}
                 </p>
-                <h5>{{ training.training_type.name }} Training</h5>
-                {% if training.completion_report %}
-                    Document: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
-                {% endif %}
-                {% if training.completion_report_url %}\
-                    URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
-                {% endif %}
-                Submitted on: {{ training.application_datetime|date }}
+
+                <h5>Personal</h5>
+                <p>[<a href="https://www.google.com/search?q={{ application.first_names }} {{ application.last_name }} {{ application.organization_name }}" target="_blank">Search for name and affiliation.</a>]</p>
+                <ul>
+                  <li>First name: <mark>{{ training.user.profile.first_names }}</mark></mark></li>
+                  <li>Last name: <mark>{{ training.user.profile.last_name }}</mark></li>
+                  {% if application.suffix %}<li>Suffix: {{ training.user.profile.suffix }}</mark></li>{% endif %}
+                  <li>Credentialed: <mark>{{ application.ref_credentialed_flag|yesno:"Yes,No" }}</mark></li>
+                  <li>Email (primary): <mark>{{ training.user.email }}</mark></li>
+                  <li>Emails (other): 
+                    {% with associated_emails=training.user|get_verified_emails %}
+                    {% for email in associated_emails %}
+                      <mark>{{ email }}</mark>{% if not forloop.last %}, {% endif %}
+                    {% empty %}N/A
+                    {% endfor %}
+                    {% endwith %}
+                  </li>
+                </ul>
+
+                <h5>Training</h5>
+                <ul>
+                  <li>Type: <mark>{{ training.training_type.name }}</mark></li>
+                  {% if training.completion_report %}
+                  <li>Document: <mark><a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a></mark></li>
+                  {% endif %}
+                  {% if training.completion_report_url %}
+                    <li>URL: <mark><a href="{{ training.completion_report_url }}" target="_blank">External link</a></mark></li>
+                  {% endif %}
+                </ul>
             </div>
         </div>
     </div>
@@ -36,12 +58,13 @@
                 Reviewer Questions
             </div>
             <div class="card-body">
-                <form action="" method="post" class="form-signin">
+                <form action="" method="post" class="form-signin" onsubmit="return confirm ('Are you sure? ')">
                     {% csrf_token %}
                     {% include "console/formset_snippet.html" with formset=questions_formset %}
                     {% include "form_snippet.html" with form=training_review_form %}
                     <button class="btn btn-primary btn-fixed" name="accept" type="submit">Accept</button>
                     <button class="btn btn-danger btn-fixed" name="reject" type="submit">Reject</button>
+                    <button class="btn btn-success btn-fixed" name="accept_all" value="{{ training.user.id }}" type="submit">Approve All</button>
                   </form>
             </div>
         </div>

@@ -10,7 +10,7 @@ bleach = "^3.3.0"
 chardet = "^3.0.4"
 Django = "^2.2.27"
 django-autocomplete-light = "^3.3.4"
-django-background-tasks = "=1.2.0"
+django-background-tasks = "=1.2.5"
 django-ckeditor = "^5.7.1"
 djangorestframework = "^3.11.2"
 google-cloud-storage = "^1.41.1"
@@ -31,7 +31,7 @@ django-storages = { version = "^1.11.1", extras = ["google"] }
 
 [tool.poetry.dev-dependencies]
 coverage = "^4.4.2"
-django-debug-toolbar = "^1.11.1"
+django-debug-toolbar = "^3.2.4"
 requests = "^2.21.0"
 requests-mock = "^1.7.0"
 selenium = "^3.141.0"

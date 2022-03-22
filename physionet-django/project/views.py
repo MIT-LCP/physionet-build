@@ -1,10 +1,6 @@
 import datetime as dt
 import logging
 import os
-import pdb
-import re
-from ast import literal_eval
-from urllib.parse import quote_plus
 
 import notification.utility as notification
 from dal import autocomplete
@@ -18,8 +14,8 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.forms import formset_factory, inlineformset_factory, modelformset_factory
-from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
+from django.forms import inlineformset_factory, modelformset_factory
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse
@@ -33,24 +29,20 @@ from physionet.utility import serve_file
 from project import forms, utility
 from project.fileviews import display_project_file
 from project.models import (
-    GCP,
     AccessPolicy,
+    AccessLog,
     ActiveProject,
     Affiliation,
     AnonymousAccess,
     ArchivedProject,
     Author,
     AuthorInvitation,
-    Contact,
-    CopyeditLog,
-    CoreProject,
     DataAccess,
     DataAccessRequest,
     DataAccessRequestReviewer,
     DUASignature,
-    EditLog,
+    GCPLog,
     License,
-    ProgrammingLanguage,
     Publication,
     PublishedAuthor,
     PublishedProject,
@@ -61,7 +53,7 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename
-from user.forms import AssociatedEmailChoiceForm, ProfileForm
+from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
 
 LOGGER = logging.getLogger(__name__)
@@ -939,6 +931,7 @@ def project_files_panel(request, project_slug, **kwargs):
             'is_submitting': is_submitting,
             'is_editor': is_editor,
             'files_editable': files_editable,
+            'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         },
     )
 
@@ -1162,7 +1155,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     languages = project.programming_languages.all()
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
-
+    show_platform_wide_citation = any(platform_citations.values())
+    main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
     passes_checks = project.check_integrity()
 
     if passes_checks:
@@ -1205,6 +1199,8 @@ def project_preview(request, project_slug, subdir='', **kwargs):
             'parent_projects': parent_projects,
             'has_passphrase': has_passphrase,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+            'show_platform_wide_citation': show_platform_wide_citation,
+            'main_platform_citation': main_platform_citation,
         },
     )
 
@@ -1781,6 +1777,8 @@ def published_project(request, project_slug, version, subdir=''):
     user = request.user
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
+    show_platform_wide_citation = any(platform_citations.values())
+    main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
@@ -1828,9 +1826,14 @@ def published_project(request, project_slug, version, subdir=''):
         'platform_citations': platform_citations,
         'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
         'is_wget_supported': ProjectFiles().is_wget_supported(),
+        'show_platform_wide_citation': show_platform_wide_citation,
+        'main_platform_citation': main_platform_citation,
     }
     # The file and directory contents
     if has_access:
+        if user.is_authenticated:
+            AccessLog.objects.update_or_create(project=project, user=request.user)
+
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
         if file_error:
@@ -2325,5 +2328,8 @@ def generate_signed_url(request, project_slug):
         method='PUT',
         headers={'X-Upload-Content-Length': str(size)},
     )
+
+    data = f'filename: {filename};size: {size // (1024)}kB'
+    GCPLog.objects.update_or_create(project=project, user=request.user, data=data)
 
     return JsonResponse({'url': url})

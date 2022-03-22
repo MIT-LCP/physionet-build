@@ -20,7 +20,7 @@ def migrate_forward(apps, schema_editor):
         ArchivedProject.objects.filter(filter),
         PublishedProject.objects.filter(filter)
     ):
-        project.required_trainings.add(training_type)
+        project.required_training.add(training_type)
 
 
 def migrate_backward(apps, schema_editor):
@@ -30,24 +30,24 @@ def migrate_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0034_training_1'),
-        ('project', '0052_auto_20220105_1219'),
+        ('user', '0035_training_1'),
+        ('project', '0054_auto_20211021_0751'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='activeproject',
-            name='required_trainings',
+            name='required_training',
             field=models.ManyToManyField(related_name='activeproject', to='user.TrainingType'),
         ),
         migrations.AddField(
             model_name='archivedproject',
-            name='required_trainings',
+            name='required_training',
             field=models.ManyToManyField(related_name='archivedproject', to='user.TrainingType'),
         ),
         migrations.AddField(
             model_name='publishedproject',
-            name='required_trainings',
+            name='required_training',
             field=models.ManyToManyField(related_name='publishedproject', to='user.TrainingType'),
         ),
         migrations.RunPython(migrate_forward, migrate_backward),

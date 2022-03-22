@@ -65,7 +65,7 @@ def migrate_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0033_credentialapplication_reference_organization'),
+        ('user', '0034_user_sso_id'),
     ]
 
     operations = [
@@ -105,7 +105,7 @@ class Migration(migrations.Migration):
                     models.ForeignKey(
                         null=True,
                         on_delete=django.db.models.deletion.SET_NULL,
-                        related_name='reviewed_trainings',
+                        related_name='reviewed_training',
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),
@@ -153,7 +153,7 @@ class Migration(migrations.Migration):
             model_name='training',
             name='user',
             field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE, related_name='trainings', to=settings.AUTH_USER_MODEL
+                on_delete=django.db.models.deletion.CASCADE, related_name='training', to=settings.AUTH_USER_MODEL
             ),
         ),
         migrations.AlterField(

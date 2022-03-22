@@ -25,7 +25,7 @@ def migrate_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0053_auto_20211221_0826'),
+        ('project', '0055_auto_20211221_0826'),
     ]
 
     operations = [
