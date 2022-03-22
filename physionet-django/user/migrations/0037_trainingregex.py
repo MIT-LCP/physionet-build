@@ -17,7 +17,9 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=48)),
                 ('regex', models.CharField(max_length=128)),
-                ('training_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='certificate_regexes', to='user.TrainingType')),
+                ('training_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                                    related_name='certificate_regexes',
+                                                    to='user.TrainingType')),
             ],
         ),
     ]

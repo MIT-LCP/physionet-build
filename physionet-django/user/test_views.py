@@ -6,13 +6,14 @@ import re
 import shutil
 
 from django.conf import settings
+
 from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
 from django.contrib import messages as msgs
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -22,6 +23,8 @@ from user.models import AssociatedEmail, Profile, User, Training, TrainingType, 
 from user.views import (activate_user, edit_emails, edit_profile,
     edit_password_complete, public_profile, register, user_settings,
     verify_email)
+
+from unittest.mock import patch
 
 
 def prevent_request_warnings(original_function):
@@ -426,7 +429,14 @@ class TrainingTestCase(TestCase):
         cls.training_type_1.questions.add(cls.question)
         cls.training_type_2.questions.add(cls.question)
 
-        cls.training = Training.objects.create(training_type=cls.training_type_2, user=cls.user)
+        training_completion_report = SimpleUploadedFile(
+            "hello_world.pdf",
+            b"Hello World"   # note the b in front of the string [bytes]
+        )
+        cls.training = Training.objects.create(
+            training_type=cls.training_type_2,
+            user=cls.user,
+            completion_report=training_completion_report)
         training_question = TrainingQuestion.objects.create(training=cls.training, question=cls.question)
         cls.training_view_url = reverse('edit_training_detail', kwargs={'training_id': cls.training.pk})
 
@@ -533,7 +543,9 @@ class TrainingTestCase(TestCase):
         self.assertRedirects(response, self.console_training_url)
         self.assertEqual(self.training.status, TrainingStatus.ACCEPTED)
 
-    def test_accept_training_invalid(self):
+    @patch('console.services.get_info_from_certificate_pdf')
+    def test_accept_training_invalid(self, mock_get_info_from_certificate_pdf):
+        mock_get_info_from_certificate_pdf.return_value = {"Foo": "Bar"}
         self.client.force_login(user=self.admin)
 
         response = self.client.post(
@@ -556,7 +568,9 @@ class TrainingTestCase(TestCase):
         self.assertRedirects(response, self.console_training_url)
         self.assertEqual(self.training.status, TrainingStatus.REJECTED)
 
-    def test_reject_training_invalid(self):
+    @patch('console.services.get_info_from_certificate_pdf')
+    def test_reject_training_invalid(self, mock_get_info_from_certificate_pdf):
+        mock_get_info_from_certificate_pdf.return_value = {"Foo": "Bar"}
         self.client.force_login(user=self.admin)
 
         response = self.client.post(self.training_process_url, {**self.training_process_data, 'reject': ['']})

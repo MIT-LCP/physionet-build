@@ -1570,7 +1570,6 @@ def training_list(request, status):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def training_proccess(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
-    training_info_from_pdf = services.get_info_from_certificate_pdf(training)
 
     TrainingQuestionFormSet = modelformset_factory(
         model=TrainingQuestion, form=forms.TrainingQuestionForm, formset=forms.TrainingQuestionFormSet, extra=0
@@ -1629,6 +1628,8 @@ def training_proccess(request, pk):
     else:
         questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
         training_review_form = forms.TrainingReviewForm()
+
+    training_info_from_pdf = services.get_info_from_certificate_pdf(training)
 
     return render(
         request,
