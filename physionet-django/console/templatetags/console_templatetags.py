@@ -38,11 +38,3 @@ def smooth_timedelta(timedelta):
     seconds -= minutes * 60
 
     return f'{int(hours):02d}:{int(minutes):02d}:{int(seconds):02d}'
-
-
-@register.filter(name='yesno')
-def yesno(is_credentialed, options):
-    options = options.split(',')
-    if is_credentialed:
-        return options[0]
-    return options[1]

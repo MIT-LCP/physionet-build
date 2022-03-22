@@ -19,9 +19,3 @@ class RequiredField(IntEnum):
     @classmethod
     def choices(cls):
         return tuple((option.value, option.name) for option in cls)
-
-
-class TrainingCertificateType(Enum):
-    CITI = 'CITI'
-    OCAP = 'OCAP'
-    TCPS = 'TCPS'
