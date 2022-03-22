@@ -73,8 +73,8 @@ urlpatterns = [
         views.download_credentialed_users,
         name="download_credentialed_users"),
 
-    path('training/<status>', views.training_list, name='training_list'),
-    path('training/<int:pk>/', views.training_detail, name='training_detail'),
+    path('training/<status>/', views.training_list, name='training_list'),
+    path('training/view/<int:pk>/', views.training_detail, name='training_detail'),
     path('training/process/<int:pk>/', views.training_proccess, name='training_process'),
     path('users/search/<group>/', views.users_search, name='users_list_search'),
     path('users/<group>/', views.users, name='users'),

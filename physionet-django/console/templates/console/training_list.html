@@ -6,6 +6,12 @@
 
 {% load console_templatetags %}
 
+{% block local_js_top %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'project/js/dynamic-formset.js' %}"></script>
+<script src="{% static 'console/js/search-console.js' %}"></script>
+{% endblock %}
+
 {% block local_css %}
   <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
 {% endblock %}
@@ -39,6 +45,7 @@
     <div class="card-body">
       <div class="tab-content">
         {% if trainings %}
+          <input type="search" oninput="search('{% url "training_list" status=status %}', value);" placeholder="Search..." >
           {% if status == 'review' %}
             {% include 'console/review_training_table.html' %}
           {% elif status == 'valid' %}
