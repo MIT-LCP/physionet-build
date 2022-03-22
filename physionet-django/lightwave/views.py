@@ -144,10 +144,18 @@ def lightwave_project_server(request, project_slug, project, **kwargs):
     """
     Request LightWAVE data for an active project.
     """
-    # Kludge: override the db parameter in the URL, since we are
-    # chrooting to project.file_root(), but the client should see each
-    # project as a distinct database for annotation purposes
-    return serve_lightwave(query_string=('db=.&' + request.GET.urlencode()),
+    # Kludge: override the db parameter in the URL.  The client
+    # expects to find the top-level directory at (for example)
+    # /SHuKI1APLrwWCqxSQnSk/, but since the server is chrooted, it is
+    # actually the server's root/working directory.  For example, if
+    # the request is '?action=rlist&db=SHuKI1APLrwWCqxSQnSk/foo', this
+    # should become '?action=rlist&db=./foo'.
+    params = request.GET.copy()
+    path = params.get('db')
+    if path is not None:
+        params['db'] = os.path.relpath(path, project_slug)
+
+    return serve_lightwave(query_string=params.urlencode(),
                            root=project.file_root(),
                            dblist=(project_slug + '\t' + project.title),
                            public=False)
