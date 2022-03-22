@@ -279,7 +279,7 @@ def add_email(request, add_email_form):
 
         # Send an email to the newly added email with a verification link
         uidb64 = force_text(urlsafe_base64_encode(force_bytes(associated_email.pk)))
-        subject = "PhysioNet Email Verification"
+        subject = f"{settings.SITE_NAME} Email Verification"
         context = {
             'name': user.get_full_name(),
             'domain': get_current_site(request),
@@ -778,7 +778,7 @@ def credential_reference(request, application_slug):
             # their application.
             if application.reference_response == 1:
                 process_credential_complete(request, application,
-                                            comments=False)
+                                            include_comments=False)
 
             response = 'verifying' if application.reference_response == 2 else 'denying'
             return render(request, 'user/credential_reference_complete.html',

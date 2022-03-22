@@ -578,7 +578,8 @@ class DiscoveryForm(forms.ModelForm):
     parent_projects = forms.ModelMultipleChoiceField(
         queryset=PublishedProject.objects.all().order_by(Lower('title'),
         'version_order'), widget=autocomplete.ModelSelect2Multiple(url='project-autocomplete'),
-        help_text='The existing PhysioNet project(s) this resource was derived from. Hold ctrl to select multiple.',
+        help_text=f'The existing {settings.SITE_NAME} project(s) this '
+                  f'resource was derived from. Hold ctrl to select multiple.',
         required=False)
 
     class Meta:
@@ -794,10 +795,10 @@ class AccessMetadataForm(forms.ModelForm):
         if self.access_policy is None and data is not None:
             self.access_policy = int(data.get('access_policy'))
 
+        super().__init__(*args, **kwargs)
+
         if not settings.ENABLE_FILE_DOWNLOADS_OPTION:
             del self.fields['allow_file_downloads']
-
-        super().__init__(*args, **kwargs)
 
         if self.access_policy is None:
             self.access_policy = self.instance.access_policy
@@ -1015,7 +1016,7 @@ class DataAccessResponseForm(forms.ModelForm):
 class InviteDataAccessReviewerForm(forms.ModelForm):
     reviewer = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control'}),
-        required=True, label='Physionet Username')
+        required=True, label=f'{settings.SITE_NAME} Username')
 
     class Meta:
         model = DataAccessRequestReviewer

@@ -415,7 +415,7 @@ class TrainingTestCase(TestCase):
     def setUpTestData(cls):
         cls.training_url = reverse('edit_training')
         cls.login_url = reverse('login')
-        cls.console_training_url = reverse('training_list')
+        cls.console_training_url = reverse('training_list', kwargs={'status': 'review'})
         cls.user = User.objects.create(username='user', email='user@example.com')
         cls.admin = User.objects.create(username='admin_user', email='admin@example.com', is_admin=True)
         cls.profile = Profile.objects.create(user=cls.user, first_names="Rafał", last_name="F")

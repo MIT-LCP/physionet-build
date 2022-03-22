@@ -1535,20 +1535,32 @@ def credentialed_user_info(request, username):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def training_list(request):
-    review_training = Training.objects.select_related('user__profile', 'training_type').get_review()
-    valid_training = Training.objects.select_related('user__profile', 'training_type').get_valid()
-    expired_training = Training.objects.select_related('user__profile', 'training_type').get_expired()
-    rejected_training = Training.objects.select_related('user__profile', 'training_type').get_rejected()
+def training_list(request, status):
+    trainings = Training.objects.select_related('user__profile', 'training_type').order_by('-application_datetime')
+    review_training = trainings.get_review()
+    valid_training = trainings.get_valid()
+    expired_training = trainings.get_expired()
+    rejected_training = trainings.get_rejected()
+
+    training_by_status = {
+        'review': review_training,
+        'valid': valid_training,
+        'expired': expired_training,
+        'rejected': rejected_training,
+    }
+
+    display_training = training_by_status[status]
 
     return render(
         request,
         'console/training_list.html',
         {
-            'review_training': review_training,
-            'valid_training': valid_training,
-            'expired_training': expired_training,
-            'rejected_training': rejected_training,
+            'trainings': paginate(request, display_training, 50),
+            'status': status,
+            'review_count': review_training.count(),
+            'valid_count': valid_training.count(),
+            'expired_count': expired_training.count(),
+            'rejected_count': rejected_training.count(),
             'training_nav': True,
         },
     )
@@ -1575,7 +1587,7 @@ def training_proccess(request, pk):
 
                 messages.success(request, 'The training was approved.')
                 notification.process_training_complete(request, training)
-                return redirect('training_list')
+                return redirect('training_list', status='review')
 
             training_review_form = forms.TrainingReviewForm()
 
@@ -1597,7 +1609,7 @@ def training_proccess(request, pk):
 
                 messages.success(request, 'The training was approved.')
                 notification.process_training_complete(request, training)
-                return redirect('training_list')
+                return redirect('training_list', status='review')
 
             training_review_form = forms.TrainingReviewForm()
 
@@ -1611,7 +1623,7 @@ def training_proccess(request, pk):
 
                 messages.success(request, 'The training was not approved.')
                 notification.process_training_complete(request, training)
-                return redirect('training_list')
+                return redirect('training_list', status='review')
 
             questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
     else:
