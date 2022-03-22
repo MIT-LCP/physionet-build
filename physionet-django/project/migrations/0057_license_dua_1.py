@@ -8,12 +8,12 @@ from project.modelcomponents.access import AccessPolicy
 
 
 def migrate_forward(apps, schema_editor):
-    License = apps.get_model('project', 'License')
-    ProjectType = apps.get_model('project', 'ProjectType')
-    DUA = apps.get_model('project', 'DUA')
+    License = apps.get_model("project", "License")
+    ProjectType = apps.get_model("project", "ProjectType")
+    DUA = apps.get_model("project", "DUA")
 
     for license in License.objects.all():
-        resource_types_ids = license.resource_types.split(',')
+        resource_types_ids = license.resource_types.split(",")
         project_types = ProjectType.objects.filter(pk__in=resource_types_ids)
 
         # Set project_types after rename from resource_types in License
@@ -24,7 +24,7 @@ def migrate_forward(apps, schema_editor):
             dua = DUA.objects.create(
                 name=license.dua_name,
                 slug=license.slug,
-                version='1.0.0',
+                version="1.0.0",
                 access_template=license.access_request_template,
                 access_policy=license.access_policy,
                 html_content=license.dua_html_content,
@@ -39,60 +39,115 @@ def migrate_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0056_dataaccessrequest_duration'),
+        ("project", "0056_dataaccessrequest_duration"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='license',
-            name='is_active',
+            model_name="license",
+            name="is_active",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='license',
-            name='project_types',
-            field=models.ManyToManyField(related_name='licenses', to='project.ProjectType'),
+            model_name="license",
+            name="project_types",
+            field=models.ManyToManyField(
+                related_name="licenses", to="project.ProjectType"
+            ),
         ),
         migrations.AddField(
-            model_name='license',
-            name='version',
-            field=models.CharField(default='', max_length=15, validators=[project.validators.validate_version]),
+            model_name="license",
+            name="version",
+            field=models.CharField(
+                default="",
+                max_length=15,
+                validators=[project.validators.validate_version],
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='license',
-            unique_together={('name', 'version')},
+            name="license",
+            unique_together={("name", "version")},
         ),
         migrations.CreateModel(
-            name='DUA',
+            name="DUA",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('slug', models.SlugField(max_length=120, unique=True)),
-                ('version', models.CharField(default='', max_length=15, validators=[project.validators.validate_version])),
-                ('is_active', models.BooleanField(default=True)),
-                ('html_content', project.modelcomponents.fields.SafeHTMLField(default='')),
-                ('access_template', project.modelcomponents.fields.SafeHTMLField(default='')),
-                ('access_policy', models.PositiveSmallIntegerField(choices=[(0, 'Open'), (1, 'Restricted'), (2, 'Credentialed'), (3, 'Contributor Review')], default=AccessPolicy(0))),
-                ('project_types', models.ManyToManyField(related_name='duas', to='project.ProjectType')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("slug", models.SlugField(max_length=120, unique=True)),
+                (
+                    "version",
+                    models.CharField(
+                        default="",
+                        max_length=15,
+                        validators=[project.validators.validate_version],
+                    ),
+                ),
+                ("is_active", models.BooleanField(default=True)),
+                (
+                    "html_content",
+                    project.modelcomponents.fields.SafeHTMLField(default=""),
+                ),
+                (
+                    "access_template",
+                    project.modelcomponents.fields.SafeHTMLField(default=""),
+                ),
+                (
+                    "access_policy",
+                    models.PositiveSmallIntegerField(
+                        choices=[
+                            (0, "Open"),
+                            (1, "Restricted"),
+                            (2, "Credentialed"),
+                            (3, "Contributor Review"),
+                        ],
+                        default=AccessPolicy(0),
+                    ),
+                ),
+                (
+                    "project_types",
+                    models.ManyToManyField(
+                        related_name="duas", to="project.ProjectType"
+                    ),
+                ),
             ],
             options={
-                'unique_together': {('name', 'version')},
+                "unique_together": {("name", "version")},
             },
         ),
         migrations.AddField(
-            model_name='activeproject',
-            name='dua',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='project.DUA'),
+            model_name="activeproject",
+            name="dua",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="project.DUA",
+            ),
         ),
         migrations.AddField(
-            model_name='archivedproject',
-            name='dua',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='project.DUA'),
+            model_name="archivedproject",
+            name="dua",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="project.DUA",
+            ),
         ),
         migrations.AddField(
-            model_name='publishedproject',
-            name='dua',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='project.DUA'),
+            model_name="publishedproject",
+            name="dua",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="project.DUA",
+            ),
         ),
         migrations.RunPython(migrate_forward),
     ]

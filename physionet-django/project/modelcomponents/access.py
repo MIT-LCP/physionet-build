@@ -23,7 +23,10 @@ class AccessPolicy(IntEnum):
 
     @classmethod
     def choices(cls, gte_value=0):
-        return tuple((option.value, option.name.replace("_", " ").title()) for option in cls if option.value >= gte_value)
+        return tuple(
+            (option.value, option.name.replace("_", " ").title())
+            for option in cls if option.value >= gte_value
+        )
 
 
 class DUASignature(models.Model):

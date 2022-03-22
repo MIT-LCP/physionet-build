@@ -944,14 +944,32 @@ class TrainingReviewForm(forms.Form):
 class LicenseForm(forms.ModelForm):
     class Meta:
         model = License
-        fields = ('name', 'version', 'slug', 'is_active', 'html_content', 'home_page', 'access_policy', 'project_types')
+        fields = (
+            'name',
+            'version',
+            'slug',
+            'is_active',
+            'html_content',
+            'home_page',
+            'access_policy',
+            'project_types',
+        )
         labels = {'html_content': 'Content'}
 
 
 class DUAForm(forms.ModelForm):
     class Meta:
         model = DUA
-        fields = ('name', 'version', 'slug', 'is_active', 'html_content', 'access_template', 'access_policy', 'project_types')
+        fields = (
+            'name',
+            'version',
+            'slug',
+            'is_active',
+            'html_content',
+            'access_template',
+            'access_policy',
+            'project_types',
+        )
         labels = {'html_content': 'Content'}
 
     def __init__(self, *args, **kwargs):

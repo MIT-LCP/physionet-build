@@ -2522,14 +2522,18 @@ def license_list(request):
     licenses = License.objects.prefetch_related('project_types').order_by('access_policy', 'name')
     licenses = paginate(request, licenses, 20)
 
-    return render(request, 'console/license_list.html', {'license_nav': True, 'licenses': licenses, 'license_form': license_form})
+    return render(
+        request,
+        'console/license_list.html',
+        {'license_nav': True, 'licenses': licenses, 'license_form': license_form}
+    )
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def license_detail(request, pk):
     license = get_object_or_404(License, pk=pk)
-    
+
     if request.method == 'POST':
         license_form = forms.LicenseForm(data=request.POST, instance=license)
         if license_form.is_valid():
@@ -2541,7 +2545,11 @@ def license_detail(request, pk):
     else:
         license_form = forms.LicenseForm(instance=license)
 
-    return render(request, 'console/license_detail.html', {'license_nav': True, 'license': license, 'license_form': license_form})
+    return render(
+        request,
+        'console/license_detail.html',
+        {'license_nav': True, 'license': license, 'license_form': license_form}
+    )
 
 
 @login_required
@@ -2558,7 +2566,7 @@ def license_delete(request, pk):
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def license_new_version(request, pk):
     license = get_object_or_404(License, pk=pk)
-    
+
     if request.method == 'POST':
         license_form = forms.LicenseForm(data=request.POST)
         if license_form.is_valid():
@@ -2572,7 +2580,11 @@ def license_new_version(request, pk):
         license_data['version'] = None
         license_form = forms.LicenseForm(initial=license_data)
 
-    return render(request, 'console/license_new_version.html', {'license_nav': True, 'license': license, 'license_form': license_form})
+    return render(
+        request,
+        'console/license_new_version.html',
+        {'license_nav': True, 'license': license, 'license_form': license_form}
+    )
 
 
 @login_required
@@ -2589,7 +2601,7 @@ def dua_list(request):
             messages.error(request, "Invalid submission. Check errors below.")
     else:
         dua_form = forms.DUAForm()
-    
+
     duas = DUA.objects.order_by('access_policy', 'name')
     duas = paginate(request, duas, 20)
 
