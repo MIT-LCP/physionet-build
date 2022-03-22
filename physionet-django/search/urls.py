@@ -46,7 +46,7 @@ urlpatterns = [
     ),
 
     path('sign-dua/<project_slug>/<version>/', project_views.sign_dua,
-        name='sign_dua'),
+         name='sign_dua'),
     path('request-access/<project_slug>/<version>/',
          project_views.request_data_access,
          name='request_data_access'),
