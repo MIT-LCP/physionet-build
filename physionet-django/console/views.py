@@ -43,6 +43,7 @@ from project.models import (
     ArchivedProject,
     DataAccess,
     DUA,
+    DataAccessRequest,
     DUASignature,
     License,
     EditLog,
@@ -1539,7 +1540,10 @@ def credentialed_user_info(request, username):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def training_list(request, status):
-    trainings = Training.objects.select_related('user__profile', 'training_type').order_by('-application_datetime')
+    """
+    List all training applications.
+    """
+    trainings = Training.objects.select_related('user__profile', 'training_type').order_by('application_datetime')
     review_training = trainings.get_review()
     valid_training = trainings.get_valid()
     expired_training = trainings.get_expired()
@@ -1554,6 +1558,16 @@ def training_list(request, status):
 
     display_training = training_by_status[status]
 
+    if request.method == 'POST':
+        if "search" in request.POST:
+            display_training = search_training_applications(request, display_training)
+            template_by_status = {
+                'review': 'console/review_training_table.html',
+                'valid': 'console/valid_training_table.html',
+                'expired': 'console/expired_training_table.html',
+                'rejected': 'console/rejected_training_table.html', }
+            return render(request, template_by_status[status], {'trainings': display_training, 'status': status})
+
     return render(
         request,
         'console/training_list.html',
@@ -1567,6 +1581,28 @@ def training_list(request, status):
             'training_nav': True,
         },
     )
+
+
+def search_training_applications(request, display_training):
+    """
+    Search training applications.
+
+    Args:
+        request (obj): Django WSGIRequest object.
+        display_training (obj): Training queryset.
+    """
+    search_field = request.POST['search']
+    if search_field:
+        display_training = display_training.filter(Q(user__username__icontains=search_field)
+                                                   | Q(user__profile__first_names__icontains=search_field)
+                                                   | Q(user__profile__last_name__icontains=search_field)
+                                                   | Q(user__email__icontains=search_field))
+
+    # prevent formatting issue if search field is empty
+    if len(search_field) == 0:
+        display_training = paginate(request, display_training, 50)
+
+    return display_training
 
 
 @login_required
@@ -2041,15 +2077,16 @@ def download_credentialed_users(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def project_access(request):
+def project_access_logs(request):
     """
     List all the people that has access to credentialed databases
     """
     c_projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CREDENTIALED).annotate(
         member_count=Count('duasignature'))
 
-    return render(request, 'console/project_access.html',
-        {'c_projects': c_projects, 'project_access_nav': True})
+    return render(request, 'console/project_access.html', {
+        'c_projects': c_projects, 'project_access_logs_nav': True
+    })
 
 
 @login_required
@@ -2060,7 +2097,51 @@ def project_access_manage(request, pid):
 
     return render(request, 'console/project_access_manage.html', {
         'c_project': c_project, 'project_members': c_project.duasignature_set.all(),
-        'project_access_nav': True})
+        'project_access_logs_nav': True})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_requests_list(request):
+    projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW).annotate(
+        access_requests_count=Count('data_access_requests')
+    ).order_by('-title')
+
+    q = request.GET.get('q')
+    if q:
+        projects = projects.filter(title__icontains=q)
+
+    projects = paginate(request, projects, 50)
+
+    return render(request, 'console/project_access_requests_list.html', {
+        'access_requests_nav': True, 'projects': projects
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_requests_detail(request, pk):
+    project = get_object_or_404(PublishedProject, access_policy=AccessPolicy.CONTRIBUTOR_REVIEW, pk=pk)
+    access_requests = DataAccessRequest.objects.filter(project=project)
+
+    q = request.GET.get('q')
+    if q:
+        access_requests = access_requests.filter(requester__username__icontains=q)
+
+    access_requests = access_requests.order_by('-request_datetime')
+    access_requests = paginate(request, access_requests, 50)
+
+    return render(request, 'console/project_access_requests_detail.html', {
+        'access_requests_nav': True, 'project': project, 'access_requests': access_requests
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def access_request(request, pk):
+    access_request = get_object_or_404(DataAccessRequest, pk=pk)
+
+    return render(request, 'console/access_request.html', {'access_request': access_request})
 
 
 @login_required

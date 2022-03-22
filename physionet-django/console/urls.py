@@ -15,14 +15,15 @@ urlpatterns = [
         name='published_projects'),
     path('rejected-submissions/', views.rejected_submissions,
         name='rejected_submissions'),
-    path('project-access', views.project_access,
-        name='protected_project_access'),
     path('project-access-manage/<pid>/', views.project_access_manage,
         name='project_access_manage'),
     path('published-projects/<project_slug>/<version>/',
         views.manage_published_project, name='manage_published_project'),
+    path('data-access-request/<int:pk>/', views.access_request, name='access_request'),
 
     # Logs
+    path('data-access-logs/', views.project_access_requests_list, name='project_access_requests_list'),
+    path('data-access-logs/<int:pk>/', views.project_access_requests_detail, name='project_access_requests_detail'),
     path('project-access-logs/', views.project_access_logs, name='project_access_logs'),
     path('project-access-logs/<pid>/', views.project_access_logs_detail, name='project_access_logs_detail'),
     path('user-access-logs/', views.user_access_logs, name='user_access_logs'),
@@ -72,8 +73,8 @@ urlpatterns = [
         views.download_credentialed_users,
         name="download_credentialed_users"),
 
-    path('training/<status>', views.training_list, name='training_list'),
-    path('training/<int:pk>/', views.training_detail, name='training_detail'),
+    path('training/<status>/', views.training_list, name='training_list'),
+    path('training/view/<int:pk>/', views.training_detail, name='training_detail'),
     path('training/process/<int:pk>/', views.training_proccess, name='training_process'),
     path('users/search/<group>/', views.users_search, name='users_list_search'),
     path('users/<group>/', views.users, name='users'),

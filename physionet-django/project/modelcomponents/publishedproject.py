@@ -222,8 +222,10 @@ class PublishedProject(Metadata, SubmissionInfo):
             return (
                 user.is_authenticated
                 and user.is_credentialed
-                and DataAccessRequest.objects.filter(
-                    project=self, requester=user, status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+                and DataAccessRequest.objects.get_active(
+                    project=self,
+                    requester=user,
+                    status=DataAccessRequest.ACCEPT_REQUEST_VALUE
                 ).exists()
                 and Training.objects.get_valid()
                 .filter(training_type__in=self.required_trainings.all(), user=user)

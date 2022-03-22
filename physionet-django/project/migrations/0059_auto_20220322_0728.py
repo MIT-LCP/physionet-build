@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0057_license_dua_2'),
+        ('project', '0058_license_dua_2'),
     ]
 
     operations = [

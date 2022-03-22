@@ -1,0 +1,57 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Project Access{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+ <script src="{% static 'console/js/generic-filter.js' %}"></script>
+ <div class="card mb-3">
+  <div class="card-header">
+    {{ project }} - Access Requests <span class="badge badge-pill badge-info">{{ projects.paginator.count }}</span>
+  </div>
+  <div class="card-body" >
+    <input id="searchbox" type="search" oninput="search();"  placeholder="Search...">
+    <div class="table-responsive" id="searchitems">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Data Use Title</th>
+            <th>Reviewer</th>
+            <th>Status</th>
+            <th>View</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for access_request in access_requests %}
+            <tr>
+              <td><a href="#">{{ access_request.requester }}</a></td>
+              <td>{{ access_request.data_use_title }}</td>
+              <td>{{ access_request.responder.get_full_name }}</td>
+              <td>{{ access_request.status_text }}{% if access_request.is_accepted %}, valid {% if access_request.valid_until %}until {{ access_request.valid_until }}{% else %}forever {% endif %}{% endif %}</td>
+              <td><a href="{% url 'access_request' access_request.pk %}" class="btn btn-sm btn-primary">View</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=access_requests %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script>
+    const search = () => {
+      const filters = {
+        q: $('#searchbox').val()
+      }
+      filter('{% url 'project_access_requests_detail' project.pk %}', filters)
+    }
+  </script>
+{% endblock %}

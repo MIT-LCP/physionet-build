@@ -17,7 +17,6 @@ Request Access to {{ project.title }} {{ project.version }}
 {% endblock %}
 
 {% block content %}
-
     <div class="container">
         <h1>Request Access to {{ project.title }} {{ project.version }}</h1>
         <p>
@@ -30,7 +29,6 @@ Request Access to {{ project.title }} {{ project.version }}
             within 14 days. You will be notified by email
             ({{ user.email }}) about their decision.
         </p>
-
         {% if not project.is_latest_version %}
             <p>
                 <em>Warning:</em> This is not the latest version of this resource. Find the latest <a

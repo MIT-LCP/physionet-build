@@ -995,10 +995,10 @@ class TestSelfManagedProjectWorkflows(TestMixin):
 
             # submitter accepts with comment
             self.client.post(reverse('data_access_request_view', args=(
-                project.slug, project.version,
-                User.objects.get(username=self.REQUESTER).id)),
+                project.slug, project.version, da_req.first().id)),
                              data={'proj-status': [
                                  str(DataAccessRequest.ACCEPT_REQUEST_VALUE)],
+                                 'proj-duration': ['14'],
                                  'proj-responder_comments': ['great!'],
                                  'data_access_response': [str(da_req[0].id)]}
                              )
