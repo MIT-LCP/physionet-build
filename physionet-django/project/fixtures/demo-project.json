@@ -1071,7 +1071,7 @@
     "short_description": "",
     "access_policy": 1,
     "license": 1,
-    "dua": null,
+    "dua": 2,
     "project_home_page": "",
     "core_project": "2e780890-644d-4166-b0ca-e3d31596405b",
     "editor": null,
@@ -1257,7 +1257,7 @@
     "short_description": "",
     "access_policy": 2,
     "license": 6,
-    "dua": null,
+    "dua": 3,
     "project_home_page": "https://eicu-crd.mit.edu/",
     "core_project": "66951d55-e473-4a98-a24f-4fad05ed967b",
     "editor": [
@@ -1428,7 +1428,7 @@
     "short_description": "",
     "access_policy": 3,
     "license": 10,
-    "dua": null,
+    "dua": 1,
     "project_home_page": "",
     "core_project": "77951d15-e473-4a98-a24f-4fad05ed967b",
     "editor": [
@@ -1708,6 +1708,60 @@
   "fields": {
     "name": "Swift"
   }
+},
+{
+    "model": "project.dua",
+    "pk": 1,
+    "fields": {
+        "name": "PhysioNet Contributor Review Health Data Use Agreement",
+        "slug": "physionet-contributor-review-health-data-dua",
+        "version": "1.5.0",
+        "is_active": true,
+        "html_content": "<p>The Department for Intensive Care Medicine of the University Hospital of Bern, Bern, Switzerland (ICU) and the Department of Computer Science, ETH Zurich, Zurich, Switzerland (ETHZ) grant access to the HiRID patient database to make data available for research purposes, but only if the data are used and protected in accordance with the terms and conditions stated in this License. It is hereby agreed between the data requestor, hereinafter referred to as the &quot;LICENSEE&quot;, and ICU / ETHZ, that:</p>\n\n<ol>\n\t<li>The LICENSEE will not share access to HiRID data with anyone else.</li>\n\t<li>The LICENSEE will exercise all reasonable and prudent care to maintain the physical and electronic security of HiRID data.</li>\n\t<li>The LICENSEE will use the data for the sole purpose of lawful use in scientific research.</li>\n\t<li>The LICENSEE will not attempt to identify any individual referenced in the HiRID data.</li>\n\t<li>The LICENSEE will exercise all reasonable and prudent care to avoid disclosure of the identity of any individual referenced in HiRID data in any publication or other communication.</li>\n\t<li>If the LICENSEE finds information within HiRID data that he or she believes might permit the identification of any individual or institution, the LICENSEE will report the location of this information promptly by email to&nbsp;<a href=\"mailto:hirid@intensivecare.ai\">hirid@intensivecare.ai</a>&nbsp;citing the location of the specific information in question.</li>\n\t<li>The LICENSEE agrees to share any code associated with publications arising from this data on a defined HiRID repository (<a href=\"https://github.com/HIRID/HiRID_v1\">https://github.com/HIRID/HiRID_v1</a>).</li>\n\t<li>The LICENSEE will be responsible for ensuring that he or she maintains up to date certification of training in Good Clinical Practice (GCP) according to ICH-GCP international guidelines. Training in GCP may be achieved through a class or course, academic training program, or certification from a recognized clinical research professional organization.</li>\n\t<li>This agreement may be terminated by either party at any time, but the LICENSEE&#39;s obligations with respect to HRID data shall continue after termination.</li>\n</ol>\n\n<p>The data are provided without any warranty of any kind, expressed or implied. In no event shall the ICU or ETHZ be liable for any claim, damages or other liability arising from, out of or in connection with HiRID or the use or other dealing with HiRID.</p>",
+        "access_template": "",
+        "access_policy": 3,
+        "project_types": [
+            0,
+            2,
+            3
+        ]
+    }
+},
+{
+    "model": "project.dua",
+    "pk": 2,
+    "fields": {
+        "name": "PhysioNet Restricted Health Data Use Agreement",
+        "slug": "physionet-restricted-health-data-dua",
+        "version": "1.5.0",
+        "is_active": true,
+        "html_content": "<p>If I am granted access to the database:</p>\n\n<ol>\n\t<li>I will not attempt to identify any individual or institution referenced in PhysioNet restricted data.</li>\n\t<li>I will exercise all reasonable and prudent care to avoid disclosure of the identity of any individual or institution referenced in PhysioNet restricted data in any publication or other communication.</li>\n\t<li>I will not share access to PhysioNet restricted data with anyone else.</li>\n\t<li>I will exercise all reasonable and prudent care to maintain the physical and electronic security of PhysioNet restricted data.</li>\n\t<li>If I find information within PhysioNet restricted data that I believe&nbsp;might permit identification of any individual or institution, I&nbsp;will report the location of this information promptly by email to PHI-report@physionet.org, citing the location of the specific information in question.</li>\n\t<li>I will use the data for the sole purpose of lawful use in scientific research and no other.</li>\n\t<li>I agree to contribute&nbsp;code associated with publications arising from this data to a repository that is open to the research community.</li>\n\t<li>This agreement may be terminated by either party at any time, but my obligations with respect to PhysioNet data shall continue after termination. &nbsp;</li>\n</ol>",
+        "access_template": "",
+        "access_policy": 1,
+        "project_types": [
+            0,
+            2,
+            3
+        ]
+    }
+},
+{
+    "model": "project.dua",
+    "pk": 3,
+    "fields": {
+        "name": "PhysioNet Credentialed Health Data Use Agreement",
+        "slug": "physionet-credentialed-health-data-dua",
+        "version": "1.5.0",
+        "is_active": true,
+        "html_content": "<p>If I am granted access to the database:</p>\n\n<ol>\n\t<li>I will not attempt to identify any individual or institution referenced in PhysioNet restricted data.</li>\n\t<li>I will exercise all reasonable and prudent care to avoid disclosure of the identity of any individual or institution referenced in PhysioNet restricted data in any publication or other communication.</li>\n\t<li>I will not share access to PhysioNet restricted data with anyone else.</li>\n\t<li>I will exercise all reasonable and prudent care to maintain the physical and electronic security of PhysioNet restricted data.</li>\n\t<li>If I find information within PhysioNet restricted data that I believe&nbsp;might permit identification of any individual or institution, I&nbsp;will report the location of this information promptly by email to PHI-report@physionet.org, citing the location of the specific information in question.</li>\n\t<li>I have requested access to PhysioNet restricted data for the sole purpose of lawful use in scientific research, and I will use my privilege of access, if it is granted, for this purpose and no other.</li>\n\t<li>I have completed a training program in human research subject protections and HIPAA regulations, and I am submitting proof of having done so.</li>\n\t<li>I will indicate the general purpose for which I intend to use the database in my application.</li>\n\t<li>If I openly disseminate my results, I will also contribute the code used to produce those results to a repository that is open to the research community.</li>\n\t<li>This agreement may be terminated by either party at any time, but my obligations with respect to PhysioNet data shall continue after termination. &nbsp;</li>\n</ol>",
+        "access_template": "",
+        "access_policy": 2,
+        "project_types": [
+            0,
+            2,
+            3
+        ]
+    }
 },
 {
   "model": "project.license",
