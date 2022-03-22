@@ -1535,6 +1535,9 @@ def credentialed_user_info(request, username):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def training_list(request, status):
+    """
+    List all training applications.
+    """
     trainings = Training.objects.select_related('user__profile', 'training_type').order_by('application_datetime')
     review_training = trainings.get_review()
     valid_training = trainings.get_valid()
@@ -1553,18 +1556,12 @@ def training_list(request, status):
     if request.method == 'POST':
         if "search" in request.POST:
             display_training = search_training_applications(request, display_training)
-            if status == 'review':
-                return render(request, 'console/review_training_table.html',
-                              {'trainings': display_training, 'status': status})
-            elif status == 'valid':
-                return render(request, 'console/valid_training_table.html',
-                              {'trainings': display_training, 'status': status})
-            elif status == 'expired':
-                return render(request, 'console/expired_training_table.html',
-                              {'trainings': display_training, 'status': status})
-            elif status == 'rejected':
-                return render(request, 'console/rejected_training_table.html',
-                              {'trainings': display_training, 'status': status})
+            template_by_status = {
+                'review': 'console/review_training_table.html',
+                'valid': 'console/valid_training_table.html',
+                'expired': 'console/expired_training_table.html',
+                'rejected': 'console/rejected_training_table.html', }
+            return render(request, template_by_status[status], {'trainings': display_training, 'status': status})
 
     return render(
         request,
@@ -1587,6 +1584,7 @@ def search_training_applications(request, display_training):
 
     Args:
         request (obj): Django WSGIRequest object.
+        display_training (obj): Training queryset.
     """
     search_field = request.POST['search']
     if search_field:

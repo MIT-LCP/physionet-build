@@ -45,17 +45,14 @@
     <div class="card-body">
       <div class="tab-content">
         {% if trainings %}
+          <input type="search" oninput="search('{% url "training_list" status=status %}', value);" placeholder="Search..." >
           {% if status == 'review' %}
-            <input type="search" oninput="search('{% url "training_list" status="review" %}', value);" placeholder="Search...">
             {% include 'console/review_training_table.html' %}
           {% elif status == 'valid' %}
-            <input type="search" oninput="search('{% url "training_list" status="valid" %}', value);" placeholder="Search...">
             {% include 'console/valid_training_table.html' %}
           {% elif status == 'expired' %}
-            <input type="search" oninput="search('{% url "training_list" status="expired" %}', value);" placeholder="Search...">
             {% include 'console/expired_training_table.html' %}
           {% elif status == 'rejected' %}
-            <input type="search" oninput="search('{% url "training_list" status="rejected" %}', value);" placeholder="Search...">
             {% include 'console/rejected_training_table.html' %}
           {% endif %}
         {% else %}
