@@ -10,12 +10,26 @@ from project.modelcomponents.access import AccessPolicy
 def migrate_forward(apps, schema_editor):
     License = apps.get_model('project', 'License')
     ProjectType = apps.get_model('project', 'ProjectType')
+    DUA = apps.get_model('project', 'DUA')
 
     for license in License.objects.all():
-        ids = license.resource_types.split(',')
-        license.project_types.set(ProjectType.objects.filter(pk__in=ids))
+        resource_types_ids = license.resource_types.split(',')
+        project_types = ProjectType.objects.filter(pk__in=resource_types_ids)
 
-    # Additionally create a DUA for every existing license (?)
+        # Set project_types after rename from resource_types in License
+        license.project_types.set(project_types)
+
+        # Migrate DUA data from License to DUA if it exists
+        if license.dua_name:
+            dua = DUA.objects.create(
+                name=license.dua_name,
+                slug=license.slug,
+                version='1.0.0',
+                access_template=license.access_request_template,
+                access_policy=license.access_policy,
+                html_content=license.dua_html_content,
+            )
+            dua.project_types.set(project_types)
 
 
 def migrate_backward(apps, schema_editor):
