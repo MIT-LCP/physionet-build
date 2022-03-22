@@ -1964,7 +1964,7 @@ def request_data_access(request, project_slug, version):
             return response
     else:
         project_request_form = forms.DataAccessRequestForm(
-            project=proj, requester=user, template=proj.dua.access_request_template, prefix="proj"
+            project=proj, requester=user, template=proj.dua.access_template, prefix="proj"
         )
 
     is_additional_request = DataAccessRequest.objects.filter(requester=user,
