@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
     MIGRATE_AFTER_INSTALL = True
 
     dependencies = [
-        ('project', '0057_license_dua_1'),
+        ('project', '0058_license_dua_1'),
     ]
 
     operations = [

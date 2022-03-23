@@ -46,7 +46,7 @@ def migrate_backward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("project", "0056_dataaccessrequest_duration"),
+        ("project", "0057_add_renamed_required_trainings"),
     ]
 
     operations = [
