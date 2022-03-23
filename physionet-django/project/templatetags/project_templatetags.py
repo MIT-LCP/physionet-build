@@ -89,11 +89,10 @@ def access_description(access_policy):
         AccessPolicy.RESTRICTED: (
             'Only logged in users who sign the specified data use agreement can access the files.'
         ),
-        AccessPolicy.CREDENTIALED: ('Only credentialed users who sign the specified DUA can access the files.'),
+        AccessPolicy.CREDENTIALED: ('Only credentialed users who sign the DUA can access the files.'),
         AccessPolicy.CONTRIBUTOR_REVIEW: (
-            'In addition to the requirements for Credentialed projects, '
-            'users must have individual studies reviewed by you as the contributor. This is an extremely '
-            'burdensome access mode and we do not recommend its use.'
+            'Only credentialed users who sign the DUA can access the files.'
+            'In addition, users must have individual studies reviewed by the contributor.'
         ),
     }
     try:
