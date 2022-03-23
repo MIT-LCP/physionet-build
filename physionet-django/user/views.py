@@ -637,7 +637,7 @@ def credential_application(request):
     Page to apply for credentially
     """
     user = request.user
-    dua = DUA.objects.get(id='6')  # FIXME: Which DUA to get?
+    dua = DUA.objects.get(id='1')  # FIXME: Which DUA to get?
     if user.is_credentialed or CredentialApplication.objects.filter(
             user=user, status=0):
         return redirect('edit_credentialing')
