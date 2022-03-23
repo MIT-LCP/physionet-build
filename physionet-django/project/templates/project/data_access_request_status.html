@@ -68,7 +68,7 @@
         {% if access_requests %}
             <br>
             <strong>By submitting an access request, you agreed with the following terms:</strong>
-            <p>{{ project.license.dua_html_content|safe }}</p>
+            <p>{{ project.dua.html_content|safe }}</p>
         {% endif %}
     </div>
 {% endblock %}
