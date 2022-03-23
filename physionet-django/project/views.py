@@ -2244,12 +2244,8 @@ def anonymous_login(request, anonymous_url):
             # Invalid form error
             messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-    # For anonymous access, use the "restricted" license/DUA
-    dua_slug = 'physionet-restricted-health-data-dua'  # FIXME: Which DUA to get?
-    dua = DUA.objects.get(slug=dua_slug)
-
     return render(request, 'project/anonymous_login.html', {'anonymous_url': anonymous_url,
-                  'form': form, 'dua': dua})
+                  'form': form})
 
 
 @login_required
