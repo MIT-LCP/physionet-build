@@ -5,12 +5,13 @@ from project.models import SafeHTMLField
 
 class StaticPage(models.Model):
     """
-    A static page object which holds the url path and whether to link to the page in the nav bar and in what order
+    Allows pages on the site to be created via the admin tool. Controls whether a given page appears in the navigation
+    bar.
     """
     title = models.CharField(max_length=64)
     url = models.CharField(max_length=64, unique=True)
     nav_bar = models.BooleanField(default=False)
-    nav_order = models.IntegerField(unique=True, null=True)
+    nav_order = models.PositiveSmallIntegerField(unique=True, null=True, blank=True)
 
     def __str__(self):
         return self.title
@@ -18,7 +19,7 @@ class StaticPage(models.Model):
 
 class Section(models.Model):
     """
-    An object which holds sections of content for static page objects
+    Holds sections of content for StaticPage.
     """
     static_page = models.ForeignKey(StaticPage, on_delete=models.CASCADE)
     title = models.CharField(max_length=64)

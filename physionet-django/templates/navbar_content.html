@@ -14,7 +14,7 @@
   {% for page in static_pg %}
     {% if page.nav_bar %}
       <li class="nav-item">
-        <a id="nav_{{ page.title | lower }}" class="nav-link" href={{ page.url }} >
+        <a id="nav_{{ page.title | underscore | lower }}" class="nav-link" href="{{ page.url }}" >
           {{ page.title }}
         </a>
       </li>

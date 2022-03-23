@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls import handler404, handler500, include
 from django.contrib import admin
 from django.http import HttpResponse
-from django.urls import path, re_path
+from django.urls import path
 from physionet import views
 from physionet.settings.base import StorageTypes
 from project.projectfiles import ProjectFiles

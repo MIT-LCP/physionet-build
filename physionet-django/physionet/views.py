@@ -57,46 +57,6 @@ def license_content(request, license_slug):
 
     return render(request, 'about/license_content.html', {'license': license})
 
-# def contact_params(request):
-#     """
-#     Code to generate the contact form
-#     """
-#     if request.method == 'POST':
-#         contact_form = ContactForm(request.POST)
-#         if contact_form.is_valid():
-#             notification.send_contact_message(contact_form)
-#             messages.success(request, 'Your message has been sent.')
-#             contact_form = ContactForm()
-#         else:
-#             messages.error(request, 'Invalid submission. See form below.')
-#     else:
-#         contact_form = ContactForm()
-#
-#     return contact_form
-#
-# def license_params(request, return_var):
-#     """
-#     Code to generate the list of licenses or their descriptions
-#     """
-#     if return_var == 'licenses':
-#         licenses = OrderedDict()
-#         for resource_type in ProjectType.objects.all():
-#             licenses[resource_type.name] = License.objects.filter(
-#                 resource_types__contains=str(resource_type.id)).order_by(
-#                 'access_policy'
-#             )
-#
-#         return licenses
-#     elif return_var == 'descriptions':
-#         descriptions = OrderedDict()
-#         for resource_type in ProjectType.objects.all():
-#             descriptions[resource_type.name] = resource_type.description
-#
-#         return descriptions
-#     else:
-#
-#         return None
-
 def timeline(request):
     """
     Frequently asked questions
@@ -237,13 +197,14 @@ def community_challenge(request):
 
 def static_view(request, static_url=None):
     """
-    accepts URL from StaticPage and renders the page
+    checks for a URL starting with /about/ in StaticPage and attempts to render the requested page
     """
     if static_url:
         about_url = urljoin('/about/', static_url + '/')
         static_page = get_object_or_404(StaticPage, url=about_url)
     else:
         static_page = get_object_or_404(StaticPage, url='/about/')
+
     sections = Section.objects.filter(static_page=static_page)
     params = {'static_page': static_page, 'sections': sections}
 

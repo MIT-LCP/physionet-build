@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load static %}
+{% load physionet_templatetags %}
 
 {% block title %}
   {{ static_page.title }}
@@ -24,7 +25,7 @@
 
           <ul>
             {% for section in sections %}
-              <li><a href="#{{ section.order }}">{{ section.title }}</a></li>
+              <li><a href="#{{ section.title | underscore | lower }}">{{ section.title }}</a></li>
             {% endfor %}
           </ul>
 
@@ -32,7 +33,7 @@
       </div>
     </div><div class="main-content">
       {% for section in sections %}
-        <section id="{{ section.order }}">
+        <section id="{{ section.title | underscore | lower }}">
           <h1>{{ section.title }}</h1>
           <div>
             {{ section.content|safe }}
