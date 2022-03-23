@@ -42,7 +42,7 @@ from project.models import (
     DataAccessRequestReviewer,
     DUASignature,
     GCPLog,
-    License,
+    DUA,
     Publication,
     PublishedAuthor,
     PublishedProject,
@@ -2245,11 +2245,11 @@ def anonymous_login(request, anonymous_url):
             messages.error(request, 'Submission unsuccessful. See form for errors.')
 
     # For anonymous access, use the "restricted" license/DUA
-    license_slug = 'physionet-restricted-health-data-license-150'
-    license = License.objects.get(slug=license_slug)
+    dua_slug = 'physionet-restricted-health-data-dua'  # FIXME: Which DUA to get?
+    dua = DUA.objects.get(slug=dua_slug)
 
     return render(request, 'project/anonymous_login.html', {'anonymous_url': anonymous_url,
-                  'form': form, 'license': license})
+                  'form': form, 'dua': dua})
 
 
 @login_required

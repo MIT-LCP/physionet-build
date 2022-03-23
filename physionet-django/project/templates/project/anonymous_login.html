@@ -17,13 +17,13 @@
       <h2 class="form-signin-heading text-center">Reviewer Login</h2>
       {{ form.passphrase }}
     </div>
-    {% if license.dua_html_content %}
+    {% if dua.html_content %}
       <div class="card text-left">
         <div class="card-header">
           Data Use Agreement (DUA)
         </div>
         <div class="card-body">
-          {{ license.dua_html_content|safe }}
+          {{ dua.html_content|safe }}
         </div>
       </div>
     {% endif %}
@@ -33,7 +33,7 @@
       </div>
     {% endfor %}
     <button id="login" class="btn btn-lg btn-success btn-rsp" type="submit">
-      {% if license.dua_html_content %}
+      {% if dua.html_content %}
         Accept and log in
       {% else %}
         Log in
