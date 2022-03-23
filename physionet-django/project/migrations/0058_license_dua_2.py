@@ -19,6 +19,7 @@ def migrate_backward(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    MIGRATE_AFTER_INSTALL = True
 
     dependencies = [
         ('project', '0057_license_dua_1'),
