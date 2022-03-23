@@ -14,7 +14,7 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    container: debian:10
+    container: debian:11
     env:
       DJANGO_SETTINGS_MODULE: physionet.settings.settings
       TEST_GCS_INTEGRATION: false

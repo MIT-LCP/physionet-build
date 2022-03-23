@@ -12,7 +12,7 @@ jobs:
   testupgrade:
     name: Upgrade Test
     runs-on: ubuntu-latest
-    container: debian:10
+    container: debian:11
     steps:
       - name: Install dependencies
         run: |
