@@ -38,7 +38,7 @@ urlpatterns = [
         name='about_publish'),
     path('about/', views.about, name='about'),
     path('about/timeline', views.timeline, name='timeline'),
-    path('about/licenses/<slug:dua_slug>/', views.license_content, name='license_content'),
+    path('about/licenses/<slug:license_slug>/', views.license_content, name='license_content'),
     path('about/duas/<slug:dua_slug>/', views.dua_content, name='dua_content'),
     path('about/citi-course/', views.citi_course, name='citi_course'),
 
