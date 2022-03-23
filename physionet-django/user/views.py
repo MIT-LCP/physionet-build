@@ -40,7 +40,7 @@ from physionet.middleware.maintenance import (
 )
 from physionet.models import Section
 from physionet.settings.base import StorageTypes
-from project.models import Author, DUASignature, License, PublishedProject
+from project.models import Author, DUASignature, DUA, PublishedProject
 from requests_oauthlib import OAuth2Session
 from user import forms, validators
 from user.models import (
@@ -637,7 +637,7 @@ def credential_application(request):
     Page to apply for credentially
     """
     user = request.user
-    license = License.objects.get(id='6')
+    dua = DUA.objects.get(id='6')  # FIXME: Which DUA to get?
     if user.is_credentialed or CredentialApplication.objects.filter(
             user=user, status=0):
         return redirect('edit_credentialing')
@@ -675,7 +675,7 @@ def credential_application(request):
             'form': form,
             'personal_form': personal_form,
             'reference_form': reference_form,
-            'license': license,
+            'dua': dua,
             'research_form': research_form,
         },
     )
