@@ -91,7 +91,7 @@ def access_description(access_policy):
         ),
         AccessPolicy.CREDENTIALED: ('Only credentialed users who sign the DUA can access the files.'),
         AccessPolicy.CONTRIBUTOR_REVIEW: (
-            'Only credentialed users who sign the DUA can access the files.'
+            'Only credentialed users who sign the DUA can access the files. '
             'In addition, users must have individual studies reviewed by the contributor.'
         ),
     }
