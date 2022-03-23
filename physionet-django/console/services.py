@@ -9,16 +9,16 @@ from user.models import Training
 logging.getLogger("pdfminer").setLevel(logging.WARNING)
 
 
-def _get_regex_value_from_text(text: str, regex: str) -> str:
-    result = None
-    try:
-        regex = re.compile(regex)
-        result = regex.search(text)
-        if len(result.groups()) >= 1:
-            result = regex.search(text).group(1)
-    except Exception:
-        pass
-    return result
+def _get_regex_value_from_text(text: str, regex: str) -> Optional[str]:
+    regex = re.compile(regex)
+    match = regex.search(text)
+    if match is None:
+        return None
+    if match.groups():
+        # The parsed value consists of combined groups if the regex defines capture groups.
+        # This is done to enable matching on surrounding text without including it in the extracted value.
+        return ' '.join(match.groups())
+    return match.group(0)
 
 
 def _parse_pdf_to_string(training_path: str) -> str:
@@ -28,7 +28,5 @@ def _parse_pdf_to_string(training_path: str) -> str:
 
 def get_info_from_certificate_pdf(training: Training) -> dict:
     text = _parse_pdf_to_string(training.completion_report.path)
-    result2 = {}
-    for regex in training.training_type.certificate_regexes.all():
-        result2[regex.name] = _get_regex_value_from_text(text, regex.regex)
-    return result2
+    regexes = training.training_type.certificate_regexes.all()
+    return {regex.name: _get_regex_value_from_text(text, regex.regex) for regex in regexes}

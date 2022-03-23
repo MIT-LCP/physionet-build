@@ -50,28 +50,22 @@
             </div>
         </div>
         <div class="card mb-4">
-            {% if parsed_training_pdf.unknown_cert_type %}
-                <div class="card-header">
-                    Unknown certificate type
+            <div class="card-header">
+                Document information
+            </div>
+            <div class="card-body">
+                <p>
+                    {% for field_name, matched_value in parsed_training_pdf.items %}
+                        <strong><i>{{ field_name }}: </i></strong> {{ matched_value }} <br>
+                    {% empty %}
+                        Cannot parse document
+                    {% endfor %}
+                </p>
+                <div>
+                  <iframe src="{% url 'training_report' training.pk %}" style="width:100%;height:24rem;"></iframe>
+                  <a href="{% url 'training_report' training.pk %}" target="_blank"><button class="btn btn-primary">Open</button></a><br>
                 </div>
-            {% else %}
-                <div class="card-header">
-                    Document information
-                </div>
-                <div class="card-body">
-                    <p>
-                        {% for key, value in parsed_training_pdf.items %}
-                            <strong><i>{{ key }}: </i></strong> {{ value }} <br>
-                        {% empty %}
-                            Cannot parse document
-                        {% endfor %}
-                    </p>
-                    <div>
-                      <iframe src="{% url 'training_report' training.pk %}" style="width:100%;height:24rem;"></iframe>
-                      <a href="{% url 'training_report' training.pk %}" target="_blank"><button class="btn btn-primary">Open</button></a><br>
-                    </div>
-                </div>
-            {% endif %}
+            </div>
         </div>
     </div>
     <div class="col-sm-5">

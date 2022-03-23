@@ -1,19 +1,13 @@
 import csv
 import logging
 import os
-import pdb
-import re
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
 
-from django.forms.formsets import formset_factory
-from django.forms.models import inlineformset_factory
-
 import notification.utility as notification
 from background_task import background
-from console import forms, utility, services
 from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
@@ -21,7 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Case, Count, DurationField, F, IntegerField, Q, Value, When
+from django.db.models import Count, DurationField, F, Q
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
 from django.http import Http404, HttpResponse, JsonResponse
@@ -31,7 +25,7 @@ from django.utils import timezone
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
-from physionet.utility import paginate, serve_file
+from physionet.utility import paginate
 from physionet.models import Section, StaticPage
 from project import forms as project_forms
 from project.models import (
@@ -65,7 +59,7 @@ from user.models import (
     TrainingQuestion,
 )
 from physionet.enums import LogCategory
-from console import forms, utility
+from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
 
 
