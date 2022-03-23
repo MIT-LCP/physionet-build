@@ -16,6 +16,7 @@ def migrate_backward(apps, schema_editor):
 
     for license in License.objects.all():
         license.resource_types = ','.join(str(pk) for pk in license.project_types.values_list('pk', flat=True))
+        license.save()
 
 
 class Migration(migrations.Migration):
