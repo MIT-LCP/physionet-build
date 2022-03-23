@@ -248,7 +248,7 @@ class License(models.Model):
 
 class DUA(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=120, unique=True)
+    slug = models.SlugField(max_length=120)
     version = models.CharField(max_length=15, default='', validators=[validate_version])
     is_active = models.BooleanField(default=True)
     html_content = SafeHTMLField(default='')

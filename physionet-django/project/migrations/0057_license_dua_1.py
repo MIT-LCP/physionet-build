@@ -81,7 +81,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("name", models.CharField(max_length=100)),
-                ("slug", models.SlugField(max_length=120, unique=True)),
+                ("slug", models.SlugField(max_length=120)),
                 (
                     "version",
                     models.CharField(

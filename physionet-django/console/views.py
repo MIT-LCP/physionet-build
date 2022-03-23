@@ -2654,6 +2654,6 @@ def dua_new_version(request, pk):
         dua_data = model_to_dict(dua)
         dua_data['id'] = None
         dua_data['version'] = None
-        dua_form = forms.LicenseForm(initial=dua_data)
+        dua_form = forms.DUAForm(initial=dua_data)
 
     return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
