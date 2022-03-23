@@ -156,5 +156,5 @@ class Migration(migrations.Migration):
                 to="project.DUA",
             ),
         ),
-        migrations.RunPython(migrate_forward),
+        migrations.RunPython(migrate_forward, migrate_backward),
     ]
