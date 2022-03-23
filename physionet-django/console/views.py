@@ -2572,6 +2572,7 @@ def license_new_version(request, pk):
         if license_form.is_valid():
             license_form.save()
             messages.success(request, "The license has been created.")
+            return redirect("license_list")
         else:
             messages.error(request, "Invalid submission. Check errors below.")
     else:

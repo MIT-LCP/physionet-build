@@ -10,7 +10,7 @@
         {{ dua.name }} - new version
     </div>
     <div class="card-body">
-        <form method="post" action="{% url 'dua_detail' dua.pk %}">
+        <form method="post" action="{% url 'dua_new_version' dua.pk %}">
             {% include "inline_form_snippet.html" with form=dua_form %}
           <button class="btn btn-primary btn-fixed" type="submit">Create</button>
         </form>
