@@ -11,6 +11,9 @@ def migrate_forward(apps, schema_editor):
     License = apps.get_model("project", "License")
     ProjectType = apps.get_model("project", "ProjectType")
     DUA = apps.get_model("project", "DUA")
+    PublishedProject = apps.get_model("project", "PublishedProject")
+    ActiveProject = apps.get_model("project", "ActiveProject")
+    ArchivedProject = apps.get_model("project", "ArchivedProject")
 
     for license in License.objects.all():
         resource_types_ids = license.resource_types.split(",")
@@ -30,6 +33,10 @@ def migrate_forward(apps, schema_editor):
                 html_content=license.dua_html_content,
             )
             dua.project_types.set(project_types)
+
+            PublishedProject.objects.filter(license=license).update(dua=dua)
+            ActiveProject.objects.filter(license=license).update(dua=dua)
+            ArchivedProject.objects.filter(license=license).update(dua=dua)
 
 
 def migrate_backward(apps, schema_editor):
