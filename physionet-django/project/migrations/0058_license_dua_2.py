@@ -26,6 +26,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(migrate_forward, migrate_backward),
+        migrations.AlterField(
+            model_name='license',
+            name='resource_types',
+            field=models.CharField(default='', null=True, max_length=100),
+        ),
         migrations.RemoveField(
             model_name='license',
             name='access_request_template',
