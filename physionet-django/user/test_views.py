@@ -431,7 +431,7 @@ class TrainingTestCase(TestCase):
 
         training_completion_report = SimpleUploadedFile(
             "hello_world.pdf",
-            b"Hello World"   # note the b in front of the string [bytes]
+            b"Hello World"
         )
         cls.training = Training.objects.create(
             training_type=cls.training_type_2,

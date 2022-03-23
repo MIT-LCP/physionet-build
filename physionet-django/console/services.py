@@ -21,18 +21,14 @@ def _get_regex_value_from_text(text: str, regex: str) -> str:
     return result
 
 
-def _parse_certificate(training: Training) -> dict:
-    text = _parse_pdf_to_string(training.completion_report.path)
-    result2 = {}
-    for regex in training.training_type.certificate_regexes.all():
-        result2[regex.name] = _get_regex_value_from_text(text, regex.regex)
-    return result2
-
-
 def _parse_pdf_to_string(training_path: str) -> str:
     text = extract_text(training_path)
     return ' '.join(text.split())
 
 
 def get_info_from_certificate_pdf(training: Training) -> dict:
-    return _parse_certificate(training)
+    text = _parse_pdf_to_string(training.completion_report.path)
+    result2 = {}
+    for regex in training.training_type.certificate_regexes.all():
+        result2[regex.name] = _get_regex_value_from_text(text, regex.regex)
+    return result2

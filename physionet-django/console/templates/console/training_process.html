@@ -16,21 +16,14 @@
                 Application information
             </div>
             <div class="card-body">
-                <p>
-                    Username: <a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a><br>
-                    Email: {{ training.user.email }} <br>
-                    Applied: {{ training.application_datetime|date }} <br>
-                    Is credentialed: {{ training.user.is_credentialed|yesno:"Yes,No" }}
-                    Submitted: {{ training.application_datetime|date }}
-
-                </p>
-
                 <h5>Personal</h5>
-                <p>[<a href="https://www.google.com/search?q={{ application.first_names }} {{ application.last_name }} {{ application.organization_name }}" target="_blank">Search for name and affiliation.</a>]</p>
                 <ul>
-                  <li>First name: <mark>{{ training.user.profile.first_names }}</mark></mark></li>
+                  <li>Username:
+                      <mark><a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a></mark>
+                  </li>
+                  <li>First name: <mark>{{ training.user.profile.first_names }}</mark></li>
                   <li>Last name: <mark>{{ training.user.profile.last_name }}</mark></li>
-                  {% if application.suffix %}<li>Suffix: {{ training.user.profile.suffix }}</mark></li>{% endif %}
+                  {% if application.suffix %}<li>Suffix: {{ training.user.profile.suffix }} </li>{% endif %}
                   <li>Credentialed: <mark>{{ application.ref_credentialed_flag|yesno:"Yes,No" }}</mark></li>
                   <li>Email (primary): <mark>{{ training.user.email }}</mark></li>
                   <li>Emails (other): 
@@ -52,6 +45,7 @@
                   {% if training.completion_report_url %}
                     <li>URL: <mark><a href="{{ training.completion_report_url }}" target="_blank">External link</a></mark></li>
                   {% endif %}
+                  <li>Submitted: {{ training.application_datetime|date }}</li>
                 </ul>
             </div>
         </div>
