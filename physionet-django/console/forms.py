@@ -975,7 +975,7 @@ class DUAForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.fields['access_policy'].choices = AccessPolicy.choices(gte_value=AccessPolicy.CREDENTIALED)
+        self.fields['access_policy'].choices = AccessPolicy.choices(gte_value=AccessPolicy.RESTRICTED)
 
 
 class UserFilterForm(forms.ModelForm):
