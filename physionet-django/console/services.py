@@ -28,5 +28,8 @@ def _parse_pdf_to_string(training_path: str) -> str:
 
 def get_info_from_certificate_pdf(training: Training) -> dict:
     text = _parse_pdf_to_string(training.completion_report.path)
-    regexes = training.training_type.certificate_regexes.all()
-    return {regex.name: _get_regex_value_from_text(text, regex.regex) for regex in regexes}
+    regexes = training.training_type.certificate_regexes.all().order_by('display_order')
+    return {
+        regex.name: _get_regex_value_from_text(text, regex.regex)
+        for regex in regexes
+    }

@@ -1039,7 +1039,11 @@ class TrainingType(models.Model):
 class TrainingRegex(models.Model):
     name = models.CharField(max_length=48)
     regex = models.CharField(max_length=128)
+    display_order = models.PositiveSmallIntegerField()
     training_type = models.ForeignKey(TrainingType, related_name='certificate_regexes', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('display_order', 'training_type')
 
     def __str__(self):
         return self.name
