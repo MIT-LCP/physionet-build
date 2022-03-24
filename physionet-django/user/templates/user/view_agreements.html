@@ -21,7 +21,7 @@
       {% for agreement in signed %}  
         <tr>
           <td>{{ agreement.sign_datetime|date }}</td>
-          <td>{{ agreement.project.license.dua_name }}</td>
+          <td>{{ agreement.project.dua.name }}</td>
           <td>{{ agreement.project.title }} (v{{ agreement.project.version }})</td>
           <td><a href="{% url 'view_signed_agreement' agreement.id %}" target="_blank">View</a></td>
         </tr>

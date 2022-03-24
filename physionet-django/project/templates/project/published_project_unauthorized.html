@@ -1,11 +1,11 @@
 <div class="alert alert-danger col-md-8" role="alert">
   This is a restricted-access resource. To access the files, you must fulfill all of the following requirements:
   <ul>
-    {% if project.access_policy == AccessPolicy.CREDENTIALED %}
+    {% if project.access_policy == AccessPolicy.CREDENTIALED or project.access_policy == AccessPolicy.RESTRICTED %}
       {% if not user.is_credentialed %}
         <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
       {% endif %}
-      {% if not has_required_training %}
+      {% if not has_required_trainings %}
         <li>finish required <a href="{% url 'edit_training' %}">training</a></li>
       {% endif %}
       {% if not has_signed_dua %}
@@ -13,21 +13,15 @@
           <a href="{% url 'sign_dua' project.slug project.version %}">sign the data use agreement</a> for the project
         </li>
       {% endif %}
-    {% elif project.access_policy == AccessPolicy.RESTRICTED %}
-      {% if not has_signed_dua %}
-        <li>
-          <a href="{% url 'sign_dua' project.slug project.version %}">sign the data use agreement</a> for the project
-        </li>
-     {% endif %}
     {% elif project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
       {% if not user.is_credentialed %}
         <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
       {% endif %}
-      {% if not has_required_training %}
+      {% if not has_required_trainings %}
         <li>complete required training:</li>
         <ul>
-          {% for required_training in project.required_training.all %}
-            <li><a href="{% url 'published_project_required_training' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
+          {% for required_training in project.required_trainings.all %}
+            <li><a href="{% url 'published_project_required_trainings' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
           {% endfor %}
           You may submit your training <a href="{% url 'edit_training' %}">here</a>.
         </ul>

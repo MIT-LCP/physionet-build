@@ -40,7 +40,7 @@ from physionet.middleware.maintenance import (
 )
 from physionet.models import Section
 from physionet.settings.base import StorageTypes
-from project.models import Author, DUASignature, License, PublishedProject
+from project.models import Author, DUASignature, DUA, PublishedProject
 from requests_oauthlib import OAuth2Session
 from user import forms, validators
 from user.models import (
@@ -637,7 +637,6 @@ def credential_application(request):
     Page to apply for credentially
     """
     user = request.user
-    license = License.objects.get(id='6')
     if user.is_credentialed or CredentialApplication.objects.filter(
             user=user, status=0):
         return redirect('edit_credentialing')
@@ -675,7 +674,6 @@ def credential_application(request):
             'form': form,
             'personal_form': personal_form,
             'reference_form': reference_form,
-            'license': license,
             'research_form': research_form,
         },
     )
@@ -733,11 +731,11 @@ def training_report(request, training_id):
     """
     Serve a training report file
     """
-    all_training = Training.objects.all()
+    trainings = Training.objects.all()
     if not request.user.is_admin:
-        all_training = all_training.filter(user=request.user)
+        trainings = trainings.filter(user=request.user)
 
-    training = get_object_or_404(all_training, id=training_id)
+    training = get_object_or_404(trainings, id=training_id)
 
     if settings.STORAGE_TYPE == StorageTypes.GCP:
         return redirect(training.completion_report.url)

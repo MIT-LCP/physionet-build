@@ -531,7 +531,7 @@ def training_report_path(instance, filename):
 
 
 def get_training_path(instance, filename):
-    return f'training/{instance.slug}/training-report.pdf'
+    return f'trainings/{instance.slug}/training-report.pdf'
 
 
 class LegacyCredential(models.Model):
@@ -1039,7 +1039,7 @@ class TrainingType(models.Model):
 class Training(models.Model):
     slug = models.SlugField(max_length=20, unique=True)
     training_type = models.ForeignKey(TrainingType, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name='training', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='trainings', on_delete=models.CASCADE)
     status = models.PositiveSmallIntegerField(choices=TrainingStatus.choices(), default=TrainingStatus.REVIEW)
     completion_report = models.FileField(
         upload_to=get_training_path, validators=[FileExtensionValidator(['pdf'], 'File must be a pdf.')], blank=True
@@ -1047,7 +1047,7 @@ class Training(models.Model):
     completion_report_url = models.URLField(blank=True)
     application_datetime = models.DateTimeField(auto_now_add=True)
     process_datetime = models.DateTimeField(null=True)
-    reviewer = models.ForeignKey(User, related_name='reviewed_training', null=True, on_delete=models.SET_NULL)
+    reviewer = models.ForeignKey(User, related_name='reviewed_trainings', null=True, on_delete=models.SET_NULL)
     reviewer_comments = models.CharField(max_length=512)
 
     objects = TrainingQuerySet.as_manager()

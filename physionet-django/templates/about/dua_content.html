@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Data Use Agreement Content
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="text-center">{{ dua.name }} <a href="{{ dua.home_page }}"><i class="fas fa-external-link-alt"></i></a></h1>
+  <hr>
+  {{ dua.html_content|safe }}
+  <br>
+</div>
+{% endblock %}

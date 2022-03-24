@@ -42,7 +42,7 @@ from project.models import (
     DataAccessRequestReviewer,
     DUASignature,
     GCPLog,
-    License,
+    DUA,
     Publication,
     PublishedAuthor,
     PublishedProject,
@@ -1222,18 +1222,28 @@ def project_license_preview(request, project_slug, **kwargs):
 
 
 @project_auth(auth_mode=3)
-def project_required_training_preview(request, project_slug, **kwargs):
+def project_required_trainings_preview(request, project_slug, **kwargs):
     """
     View a project's license
     """
     project = kwargs['project']
-    required_training = project.required_training.all()
+    required_trainings = project.required_trainings.all()
 
     return render(
         request,
-        'project/project_required_training_preview.html',
-        {'project': project, 'required_training': required_training},
+        'project/project_required_trainings_preview.html',
+        {'project': project, 'required_trainings': required_trainings},
     )
+
+
+@project_auth(auth_mode=3)
+def project_dua_preview(request, project_slug, **kwargs):
+    """
+    View a project's dua
+    """
+    project = kwargs['project']
+
+    return render(request, 'project/project_dua_preview.html', {'project': project, 'dua': project.dua})
 
 
 @project_auth(auth_mode=0)
@@ -1707,17 +1717,28 @@ def published_project_license(request, project_slug, version):
         'license_content':license_content})
 
 
-def published_project_required_training(request, project_slug, version):
+def published_project_required_trainings(request, project_slug, version):
     """Displays a published project's required training"""
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
 
-    required_training = project.required_training.all()
+    required_trainings = project.required_trainings.all()
 
     return render(
         request,
-        'project/published_project_required_training.html',
-        {'project': project, 'required_training': required_training},
+        'project/published_project_required_trainings.html',
+        {'project': project, 'required_trainings': required_trainings},
     )
+
+
+def published_project_dua(request, project_slug, version):
+    """Displays a published project's dua"""
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+
+    return render(
+        request,
+        'project/published_project_dua.html', {'project': project},
+    )
+
 
 
 def published_project_latest(request, project_slug):
@@ -1775,11 +1796,11 @@ def published_project(request, project_slug, version, subdir=''):
         requester=user,
         status=DataAccessRequest.ACCEPT_REQUEST_VALUE
     ).exists()
-    has_required_training = (
+    has_required_trainings = (
         False
         if not user.is_authenticated
-        else Training.objects.get_valid().filter(training_type__in=project.required_training.all(), user=user).count()
-        == project.required_training.count()
+        else Training.objects.get_valid().filter(training_type__in=project.required_trainings.all(), user=user).count()
+        == project.required_trainings.count()
     )
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
@@ -1795,7 +1816,7 @@ def published_project(request, project_slug, version, subdir=''):
         'has_access': has_access,
         'has_signed_dua': has_signed_dua,
         'has_accepted_access_request': has_accepted_access_request,
-        'has_required_training': has_required_training,
+        'has_required_trainings': has_required_trainings,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
         'citations': citations,
@@ -1927,7 +1948,7 @@ def request_data_access(request, project_slug, version):
             return response
     else:
         project_request_form = forms.DataAccessRequestForm(
-            project=project, requester=request.user, template=project.license.access_request_template, prefix="proj"
+            project=project, requester=request.user, template=project.dua.access_template, prefix="proj"
         )
 
     accepted_requests = DataAccessRequest.objects.filter(
@@ -2223,12 +2244,8 @@ def anonymous_login(request, anonymous_url):
             # Invalid form error
             messages.error(request, 'Submission unsuccessful. See form for errors.')
 
-    # For anonymous access, use the "restricted" license/DUA
-    license_slug = 'physionet-restricted-health-data-license-150'
-    license = License.objects.get(slug=license_slug)
-
     return render(request, 'project/anonymous_login.html', {'anonymous_url': anonymous_url,
-                  'form': form, 'license': license})
+                  'form': form})
 
 
 @login_required

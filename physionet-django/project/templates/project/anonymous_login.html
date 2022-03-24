@@ -17,27 +17,48 @@
       <h2 class="form-signin-heading text-center">Reviewer Login</h2>
       {{ form.passphrase }}
     </div>
-    {% if license.dua_html_content %}
-      <div class="card text-left">
-        <div class="card-header">
-          Data Use Agreement (DUA)
-        </div>
-        <div class="card-body">
-          {{ license.dua_html_content|safe }}
-        </div>
+    <div class="card text-left">
+      <div class="card-header">
+        Data Use Agreement (DUA)
       </div>
-    {% endif %}
+      <div class="card-body">
+        If I am granted access to the database:
+
+        <ol>
+          <li>
+            I will not attempt to identify any individual or institution referenced in {{ SITE_NAME }} restricted data.
+          </li>
+          <li>
+            I will exercise all reasonable and prudent care to avoid disclosure of the identity of any individual or institution referenced in {{ SITE_NAME }} restricted data in any publication or other communication.
+          </li>
+          <li>
+            I will not share access to {{ SITE_NAME }} restricted data with anyone else.
+          </li>
+          <li>
+            I will exercise all reasonable and prudent care to maintain the physical and electronic security of {{ SITE_NAME }} restricted data.
+          </li>
+          <li>
+            If I find information within {{ SITE_NAME }} restricted data that I believe might permit identification of any individual or institution, I will report the location of this information promptly by email, citing the location of the specific information in question.
+          </li>
+          <li>
+            I will use the data for the sole purpose of lawful use in scientific research and no other.
+          </li>
+          <li>
+            I agree to contribute code associated with publications arising from this data to a repository that is open to the research community.
+          </li>
+          <li>
+            This agreement may be terminated by either party at any time, but my obligations with respect to {{ SITE_NAME }} data shall continue after termination.
+          </li>
+        </ol>
+      </div>
+    </div>
     {% for error in form.non_field_errors %}
       <div class="alert alert-danger">
         <strong>{{ error|escape }}</strong>
       </div>
     {% endfor %}
     <button id="login" class="btn btn-lg btn-success btn-rsp" type="submit">
-      {% if license.dua_html_content %}
-        Accept and log in
-      {% else %}
-        Log in
-      {% endif %}
+      Accept and log in
     </button>
   </form>
 </div>

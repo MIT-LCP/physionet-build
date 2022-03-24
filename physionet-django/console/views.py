@@ -23,6 +23,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Case, Count, DurationField, F, IntegerField, Q, Value, When
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
+from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -41,9 +42,12 @@ from project.models import (
     ActiveProject,
     ArchivedProject,
     DataAccess,
+    DUA,
     DataAccessRequest,
     DUASignature,
+    License,
     EditLog,
+    ProjectType,
     Publication,
     PublishedProject,
     Reference,
@@ -2499,3 +2503,158 @@ def static_page_sections_edit(request, page_pk, section_pk):
         'console/static_page_sections_edit.html',
         {'section_form': section_form, 'static_pages_nav': True, 'page': static_page, 'section': section},
     )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_list(request):
+    if request.method == 'POST':
+        license_form = forms.LicenseForm(data=request.POST)
+        if license_form.is_valid():
+            license_form.save()
+            license_form = forms.LicenseForm()
+            messages.success(request, "The license has been created.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        license_form = forms.LicenseForm()
+
+    licenses = License.objects.prefetch_related('project_types').order_by('access_policy', 'name')
+    licenses = paginate(request, licenses, 20)
+
+    return render(
+        request,
+        'console/license_list.html',
+        {'license_nav': True, 'licenses': licenses, 'license_form': license_form}
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_detail(request, pk):
+    license = get_object_or_404(License, pk=pk)
+
+    if request.method == 'POST':
+        license_form = forms.LicenseForm(data=request.POST, instance=license)
+        if license_form.is_valid():
+            license_form.save()
+            messages.success(request, "The license has been updated.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+
+    else:
+        license_form = forms.LicenseForm(instance=license)
+
+    return render(
+        request,
+        'console/license_detail.html',
+        {'license_nav': True, 'license': license, 'license_form': license_form}
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_delete(request, pk):
+    if request.method == 'POST':
+        license = get_object_or_404(License, pk=pk)
+        license.delete()
+
+    return redirect('license_list')
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_new_version(request, pk):
+    license = get_object_or_404(License, pk=pk)
+
+    if request.method == 'POST':
+        license_form = forms.LicenseForm(data=request.POST)
+        if license_form.is_valid():
+            license_form.save()
+            messages.success(request, "The license has been created.")
+            return redirect("license_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        license_data = model_to_dict(license)
+        license_data['id'] = None
+        license_data['version'] = None
+        license_form = forms.LicenseForm(initial=license_data)
+
+    return render(
+        request,
+        'console/license_new_version.html',
+        {'license_nav': True, 'license': license, 'license_form': license_form}
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_list(request):
+    if request.method == 'POST':
+        dua_form = forms.DUAForm(data=request.POST)
+        if dua_form.is_valid():
+            dua_form.save()
+            dua_form = forms.DUAForm()
+            messages.success(request, "The DUA has been created.")
+            return redirect("dua_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        dua_form = forms.DUAForm()
+
+    duas = DUA.objects.order_by('access_policy', 'name')
+    duas = paginate(request, duas, 20)
+
+    return render(request, 'console/dua_list.html', {'dua_nav': True, 'duas': duas, 'dua_form': dua_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_detail(request, pk):
+    dua = get_object_or_404(DUA, pk=pk)
+
+    if request.method == 'POST':
+        dua_form = forms.DUAForm(data=request.POST, instance=dua)
+        if dua_form.is_valid():
+            dua_form.save()
+            messages.success(request, "The dua has been created.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+
+    else:
+        dua_form = forms.DUAForm(instance=dua)
+
+    return render(request, 'console/dua_detail.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_delete(request, pk):
+    if request.method == 'POST':
+        dua = get_object_or_404(DUA, pk=pk)
+        dua.delete()
+
+    return redirect("dua_list")
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_new_version(request, pk):
+    dua = get_object_or_404(DUA, pk=pk)
+
+    if request.method == 'POST':
+        dua_form = forms.DUAForm(data=request.POST)
+        if dua_form.is_valid():
+            dua_form.save()
+            messages.success(request, "The DUA has been created.")
+            return redirect("dua_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        dua_data = model_to_dict(dua)
+        dua_data['id'] = None
+        dua_data['version'] = None
+        dua_form = forms.DUAForm(initial=dua_data)
+
+    return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})

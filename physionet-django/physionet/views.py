@@ -13,7 +13,7 @@ from notification.models import News
 from project.projectfiles import ProjectFiles
 from physionet.models import Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.models import AccessPolicy, License, ProjectType, PublishedProject
+from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
 from user.forms import ContactForm
 
 
@@ -50,12 +50,19 @@ def license_content(request, license_slug):
     """
     Content for an individual license
     """
-    try:
-        license = License.objects.get(slug=license_slug)
-    except License.DoesNotExist:
-        raise Http404()
+    license = get_object_or_404(License, slug=license_slug)
 
     return render(request, 'about/license_content.html', {'license': license})
+
+
+def dua_content(request, dua_slug):
+    """
+    Content for an individual license
+    """
+    dua = get_object_or_404(DUA, slug=dua_slug)
+
+    return render(request, 'about/dua_content.html', {'dua': dua})
+
 
 def timeline(request):
     """

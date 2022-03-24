@@ -35,8 +35,8 @@ urlpatterns = [
 
     # about pages
     path('about/timeline', views.timeline, name='timeline'),
-    path('about/licenses/<license_slug>/', views.license_content,
-        name='license_content'),
+    path('about/licenses/<slug:license_slug>/', views.license_content, name='license_content'),
+    path('about/duas/<slug:dua_slug>/', views.dua_content, name='dua_content'),
     path('about/citi-course/', views.citi_course, name='citi_course'),
 
     # # Custom error pages for testing
