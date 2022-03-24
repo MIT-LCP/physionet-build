@@ -660,7 +660,10 @@ def credential_application(request):
             application = form.save()
             credential_application_request(request, application)
 
-            CodeOfConductSignature.objects.get_or_create(code_of_conduct=CodeOfConduct.objects.filter(is_active=True).first(), user=request.user)
+            CodeOfConductSignature.objects.get_or_create(
+                code_of_conduct=CodeOfConduct.objects.filter(is_active=True).first(),
+                user=request.user,
+            )
 
             return render(request, 'user/credential_application_complete.html')
         else:
@@ -821,8 +824,15 @@ def view_agreements(request):
     signed_agreements = DUASignature.objects.filter(user=user).order_by('-sign_datetime')
     signed_code_of_conducts = CodeOfConductSignature.objects.filter(user=user).order_by('-sign_datetime')
 
-    return render(request, 'user/view_agreements.html', {'user': user,
-                                                         'signed_agreements': signed_agreements, 'signed_code_of_conducts': signed_code_of_conducts})
+    return render(
+        request,
+        'user/view_agreements.html',
+        {
+            'user': user,
+            'signed_agreements': signed_agreements,
+            'signed_code_of_conducts': signed_code_of_conducts,
+        },
+    )
 
 @login_required
 def view_signed_agreement(request, id):

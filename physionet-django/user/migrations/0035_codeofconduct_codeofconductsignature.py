@@ -20,7 +20,14 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
                 ('slug', models.SlugField(max_length=120, unique=True)),
-                ('version', models.CharField(default='', max_length=15, validators=[project.validators.validate_version])),
+                (
+                    'version',
+                    models.CharField(
+                        default='',
+                        max_length=15,
+                        validators=[project.validators.validate_version],
+                    ),
+                ),
                 ('is_active', models.BooleanField(default=False)),
                 ('html_content', project.modelcomponents.fields.SafeHTMLField(default='')),
             ],
@@ -33,7 +40,13 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('sign_datetime', models.DateTimeField(auto_now_add=True)),
-                ('code_of_conduct', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='user.CodeOfConduct')),
+                (
+                    'code_of_conduct',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='user.CodeOfConduct',
+                    ),
+                ),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
         ),

@@ -61,6 +61,7 @@ from user.models import (
     User,
     Training,
     TrainingQuestion,
+    CodeOfConduct,
 )
 from physionet.enums import LogCategory
 from console import forms, utility, services
@@ -2677,7 +2678,15 @@ def code_of_conduct_list(request):
     code_of_conducts = CodeOfConduct.objects.order_by('name', 'version')
     code_of_conducts = paginate(request, code_of_conducts, 20)
 
-    return render(request, 'console/code_of_conduct_list.html', {'code_of_conduct_nav': True, 'code_of_conducts': code_of_conducts, 'code_of_conduct_form': code_of_conduct_form})
+    return render(
+        request,
+        'console/code_of_conduct_list.html',
+        {
+            'code_of_conduct_nav': True,
+            'code_of_conducts': code_of_conducts,
+            'code_of_conduct_form': code_of_conduct_form,
+        },
+    )
 
 
 @login_required
@@ -2695,7 +2704,15 @@ def code_of_conduct_detail(request, pk):
     else:
         code_of_conduct_form = forms.CodeOfConductForm(instance=code_of_conduct)
 
-    return render(request, 'console/code_of_conduct_detail.html', {'code_of_conduct_nav': True, 'code_of_conduct': code_of_conduct, 'code_of_conduct_form': code_of_conduct_form})
+    return render(
+        request,
+        'console/code_of_conduct_detail.html',
+        {
+            'code_of_conduct_nav': True,
+            'code_of_conduct': code_of_conduct,
+            'code_of_conduct_form': code_of_conduct_form,
+        },
+    )
 
 
 @login_required
@@ -2726,7 +2743,15 @@ def code_of_conduct_new_version(request, pk):
         code_of_conduct_data['version'] = None
         code_of_conduct_form = forms.CodeOfConductForm(initial=code_of_conduct_data)
 
-    return render(request, 'console/code_of_conduct_new_version.html', {'code_of_conduct_nav': True, 'code_of_conduct': code_of_conduct, 'code_of_conduct_form': code_of_conduct_form})
+    return render(
+        request,
+        'console/code_of_conduct_new_version.html',
+        {
+            'code_of_conduct_nav': True,
+            'code_of_conduct': code_of_conduct,
+            'code_of_conduct_form': code_of_conduct_form,
+        },
+    )
 
 
 @login_required
