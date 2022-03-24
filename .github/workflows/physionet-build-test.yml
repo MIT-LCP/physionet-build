@@ -60,7 +60,7 @@ jobs:
         # add virtual env path to github_path so each run: process will see it
         run: |
           export VIRTUAL_ENV=/env3
-          virtualenv -p python3.7 $VIRTUAL_ENV
+          virtualenv -ppython3 $VIRTUAL_ENV
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           source $VIRTUAL_ENV/bin/activate
           if [ ${{matrix.pip3}} = 'poetry' ]; then
