@@ -1,6 +1,5 @@
 import logging
 import os
-import pdb
 import uuid
 from datetime import timedelta
 
@@ -23,6 +22,7 @@ from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import ugettext as _
 
+from project.validators import validate_version
 from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.fields import SafeHTMLField
 from user import validators
@@ -1127,3 +1127,23 @@ class CloudInformation(models.Model):
     gcp_email = models.OneToOneField('user.AssociatedEmail', related_name='gcp_email',
         on_delete=models.SET_NULL, null=True)
     aws_id = models.CharField(max_length=60, null=True,  blank=True, default=None)
+
+
+class CodeOfConduct(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120, unique=True)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=False)
+    html_content = SafeHTMLField(default='')
+
+    class Meta:
+        unique_together = (('name', 'version'),)
+
+    def __str__(self):
+        return self.name
+
+
+class CodeOfConductSignature(models.Model):
+    code_of_conduct = models.ForeignKey(CodeOfConduct, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    sign_datetime = models.DateTimeField(auto_now_add=True)

@@ -3,9 +3,9 @@
 {% block title %} Agreements {% endblock %}
 
 {% block main_content %}
-<h1>Data Use Agreements</h1>
 
-{% if signed %} 
+<h2>Data Use Agreements</h2>
+{% if signed_agreements %} 
 <p>You have signed the following Data Use Agreements:</p>
   <div class="table-responsive">
     <table class="table table-bordered">
@@ -18,7 +18,7 @@
         </tr>
       </thead>
       <tbody>
-      {% for agreement in signed %}  
+      {% for agreement in signed_agreements %}  
         <tr>
           <td>{{ agreement.sign_datetime|date }}</td>
           <td>{{ agreement.project.dua.name }}</td>
@@ -31,6 +31,36 @@
   </div>
 {% else %}
 <p>No agreements found.</p>
+{% endif %} 
+
+<br>
+
+<h2>Code of Conduct</h2>
+{% if signed_code_of_conducts %} 
+<p>You have signed the following Code of Conduct:</p>
+  <div class="table-responsive">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Date of Agreement</th>
+          <th>Name</th>
+          <th>Version</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for signed_code_of_conduct in signed_code_of_conducts %}  
+        <tr>
+          <td>{{ signed_code_of_conduct.sign_datetime|date }}</td>
+          <td>{{ signed_code_of_conduct.code_of_conduct.name }}</td>
+          <td>{{ signed_code_of_conduct.code_of_conduct.version }}</td>
+
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+<p>No code of conduct found.</p>
 {% endif %} 
 
 

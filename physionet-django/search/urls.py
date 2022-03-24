@@ -40,6 +40,11 @@ urlpatterns = [
         project_views.published_project_license,
         name='published_project_license'),
     path(
+        'content/<project_slug>/view-dua/<version>/',
+        project_views.published_project_dua,
+        name='published_project_dua',
+    ),
+    path(
         'content/<project_slug>/view-required-trainings/<version>/',
         project_views.published_project_required_trainings,
         name='published_project_required_trainings',
