@@ -36,6 +36,7 @@ jobs:
                   build-essential \
                   flake8 \
                   git \
+                  libffi-dev \
                   libpq-dev \
                   libseccomp-dev \
                   postgresql \
