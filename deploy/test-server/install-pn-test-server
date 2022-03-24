@@ -46,7 +46,7 @@ apt-get install -y \
         `# Database server` \
         postgresql postgresql-contrib \
         `# Python application server` \
-        virtualenv python3-dev libpq-dev \
+        virtualenv python3-dev libpq-dev libffi-dev \
         `# Requirements for building LightWAVE` \
         build-essential libseccomp-dev \
         `# Other tools required by PhysioNet` \
