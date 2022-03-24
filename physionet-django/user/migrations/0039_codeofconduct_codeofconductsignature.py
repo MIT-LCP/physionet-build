@@ -10,7 +10,7 @@ import project.validators
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0035_training_2'),
+        ('user', '0038_trainingregex'),
     ]
 
     operations = [
