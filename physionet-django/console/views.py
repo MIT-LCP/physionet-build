@@ -2648,8 +2648,8 @@ def dua_new_version(request, pk):
         dua_form = forms.DUAForm(data=request.POST)
         if dua_form.is_valid():
             dua_form.save()
-            messages.success(request, "The license has been created.")
-            return redirect('dua_list')
+            messages.success(request, "The DUA has been created.")
+            return redirect("dua_list")
         else:
             messages.error(request, "Invalid submission. Check errors below.")
     else:
