@@ -57,9 +57,9 @@
                 <td>
                   <a href="{% url 'dua_detail' dua.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
                   <a href="{% url 'dua_new_version' dua.pk %}" class="btn btn-sm btn-success" role="button">New version</a>
-                  <button type="button" class="btn btn-sm btn-danger " data-toggle="modal" data-target="#remove-dua">Delete</button>
+                  <button type="button" class="btn btn-sm btn-danger " data-toggle="modal" data-target="#remove-dua-{{ dua.pk }}">Delete</button>
 
-                  <div class="modal fade" id="remove-dua" tabindex="1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
+                  <div class="modal fade" id="remove-dua-{{ dua.pk }}" tabindex="1" role="dialog" aria-hidden="true">
                     <form method="post" action="{% url 'dua_delete' dua.pk %}">
                       {% csrf_token %}
                       <div class="modal-dialog" role="document">
