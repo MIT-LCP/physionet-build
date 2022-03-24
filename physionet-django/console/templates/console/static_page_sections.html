@@ -39,7 +39,7 @@
                         <a href="{% url 'static_page_sections_edit' page.pk section.id %}" class="btn btn-sm btn-primary" role="button">Edit</a>
                     </td>
                     <td>
-                        <form method="post" action="{% url 'static_page_sections_delete' page.pk section.id %}">
+                        <form method="post" action="{% url 'static_page_sections_delete' page.pk section.id %}" onsubmit="return confirm ('Are you sure? ')">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-sm btn-danger" role="button">Remove</button>
                         </form>

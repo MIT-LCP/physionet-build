@@ -1,6 +1,7 @@
 from collections import OrderedDict
 from os import path
 from re import fullmatch
+from urllib.parse import urljoin
 
 import notification.utility as notification
 from django.contrib import messages
@@ -45,26 +46,6 @@ def ping(request):
     return HttpResponse(status=200)
 
 
-def about_publish(request):
-    """
-    Instructions for authors
-    """
-    licenses = OrderedDict()
-    descriptions = OrderedDict()
-    for project_type in ProjectType.objects.all():
-        descriptions[project_type.name] = project_type.description
-        licenses[project_type.name] = License.objects.filter(project_types=project_type).order_by(
-            'access_policy'
-        )
-
-    static_page = get_object_or_404(StaticPage, url="/about/publish/")
-    sections = Section.objects.filter(static_page=static_page)
-
-    return render(
-        request, 'about/publish.html', {'licenses': licenses, 'descriptions': descriptions, 'sections': sections}
-    )
-
-
 def license_content(request, license_slug):
     """
     Content for an individual license
@@ -81,29 +62,6 @@ def dua_content(request, dua_slug):
     dua = get_object_or_404(DUA, slug=dua_slug)
 
     return render(request, 'about/dua_content.html', {'dua': dua})
-
-
-
-@allow_post_during_maintenance
-def about(request):
-    """
-    About the site content.
-    """
-    if request.method == 'POST':
-        contact_form = ContactForm(request.POST)
-        if contact_form.is_valid():
-            notification.send_contact_message(contact_form)
-            messages.success(request, 'Your message has been sent.')
-            contact_form = ContactForm()
-        else:
-            messages.error(request, 'Invalid submission. See form below.')
-    else:
-        contact_form = ContactForm()
-
-    static_page = get_object_or_404(StaticPage, url="/about/")
-    sections = Section.objects.filter(static_page=static_page)
-
-    return render(request, 'about/about.html', {'contact_form': contact_form, 'sections': sections})
 
 
 def timeline(request):
@@ -243,6 +201,21 @@ def community_challenge(request):
 
     return render(request, 'about/community_challenge_index.html', {'community_challenges': community_challenges})
 
+
+def static_view(request, static_url=None):
+    """
+    checks for a URL starting with /about/ in StaticPage and attempts to render the requested page
+    """
+    if static_url:
+        about_url = urljoin('/about/', static_url + '/')
+        static_page = get_object_or_404(StaticPage, url=about_url)
+    else:
+        static_page = get_object_or_404(StaticPage, url='/about/')
+
+    sections = Section.objects.filter(static_page=static_page)
+    params = {'static_page': static_page, 'sections': sections}
+
+    return render(request, 'about/static_template.html', params)
 
 def tutorial_overview(request):
     """
