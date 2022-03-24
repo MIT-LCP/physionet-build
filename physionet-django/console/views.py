@@ -2649,11 +2649,11 @@ def dua_new_version(request, pk):
         if dua_form.is_valid():
             dua_form.save()
             messages.success(request, "The license has been created.")
-            return redirect('license_list')
+            return redirect('dua_list')
         else:
             messages.error(request, "Invalid submission. Check errors below.")
     else:
-        dua_data = model_to_dict(license)
+        dua_data = model_to_dict(dua)
         dua_data['id'] = None
         dua_data['version'] = None
         dua_form = forms.DUAForm(initial=dua_data)
