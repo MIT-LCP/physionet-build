@@ -16,17 +16,14 @@
                 Application information
             </div>
             <div class="card-body">
-                <p>
-                    Username: <a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a><br>
-                    Submitted: {{ training.application_datetime|date }}
-                </p>
-
                 <h5>Personal</h5>
-                <p>[<a href="https://www.google.com/search?q={{ application.first_names }} {{ application.last_name }} {{ application.organization_name }}" target="_blank">Search for name and affiliation.</a>]</p>
                 <ul>
-                  <li>First name: <mark>{{ training.user.profile.first_names }}</mark></mark></li>
+                  <li>Username:
+                      <mark><a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a></mark>
+                  </li>
+                  <li>First name: <mark>{{ training.user.profile.first_names }}</mark></li>
                   <li>Last name: <mark>{{ training.user.profile.last_name }}</mark></li>
-                  {% if application.suffix %}<li>Suffix: {{ training.user.profile.suffix }}</mark></li>{% endif %}
+                  {% if application.suffix %}<li>Suffix: {{ training.user.profile.suffix }} </li>{% endif %}
                   <li>Credentialed: <mark>{{ application.ref_credentialed_flag|yesno:"Yes,No" }}</mark></li>
                   <li>Email (primary): <mark>{{ training.user.email }}</mark></li>
                   <li>Emails (other): 
@@ -48,7 +45,26 @@
                   {% if training.completion_report_url %}
                     <li>URL: <mark><a href="{{ training.completion_report_url }}" target="_blank">External link</a></mark></li>
                   {% endif %}
+                  <li>Submitted: {{ training.application_datetime|date }}</li>
                 </ul>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                Document information
+            </div>
+            <div class="card-body">
+                <p>
+                    {% for field_name, matched_value in parsed_training_pdf.items %}
+                        <strong><i>{{ field_name }}: </i></strong> {{ matched_value }} <br>
+                    {% empty %}
+                        Cannot parse document
+                    {% endfor %}
+                </p>
+                <div>
+                  <iframe src="{% url 'training_report' training.pk %}" style="width:100%;height:24rem;"></iframe>
+                  <a href="{% url 'training_report' training.pk %}" target="_blank"><button class="btn btn-primary">Open</button></a><br>
+                </div>
             </div>
         </div>
     </div>

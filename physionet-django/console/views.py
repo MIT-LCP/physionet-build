@@ -1,15 +1,10 @@
 import csv
 import logging
 import os
-import pdb
-import re
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
-
-from django.forms.formsets import formset_factory
-from django.forms.models import inlineformset_factory
 
 import notification.utility as notification
 from background_task import background
@@ -20,7 +15,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Case, Count, DurationField, F, IntegerField, Q, Value, When
+from django.db.models import Count, DurationField, F, Q
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
 from django.forms.models import model_to_dict
@@ -69,7 +64,7 @@ from user.models import (
     TrainingQuestion,
 )
 from physionet.enums import LogCategory
-from console import forms, utility
+from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
 
 
@@ -1668,10 +1663,17 @@ def training_proccess(request, pk):
         questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
         training_review_form = forms.TrainingReviewForm()
 
+    training_info_from_pdf = services.get_info_from_certificate_pdf(training)
+
     return render(
         request,
         'console/training_process.html',
-        {'training': training, 'questions_formset': questions_formset, 'training_review_form': training_review_form},
+        {
+            'training': training,
+            'questions_formset': questions_formset,
+            'training_review_form': training_review_form,
+            'parsed_training_pdf': training_info_from_pdf,
+        },
     )
 
 

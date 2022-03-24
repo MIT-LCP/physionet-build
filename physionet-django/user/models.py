@@ -1036,6 +1036,15 @@ class TrainingType(models.Model):
         return self.name
 
 
+class TrainingRegex(models.Model):
+    name = models.CharField(max_length=48)
+    regex = models.CharField(max_length=128)
+    training_type = models.ForeignKey(TrainingType, related_name='certificate_regexes', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
 class Training(models.Model):
     slug = models.SlugField(max_length=20, unique=True)
     training_type = models.ForeignKey(TrainingType, on_delete=models.CASCADE)
