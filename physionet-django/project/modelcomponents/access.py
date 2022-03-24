@@ -7,8 +7,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from html2text import html2text
 from project.modelcomponents.fields import SafeHTMLField
+from project.validators import validate_version
 
 from project.managers.access import DataAccessRequestQuerySet, DataAccessRequestManager
 
@@ -22,8 +22,11 @@ class AccessPolicy(IntEnum):
     do_not_call_in_templates = True
 
     @classmethod
-    def choices(cls):
-        return tuple((option.value, option.name.replace("_", " ").title()) for option in cls)
+    def choices(cls, gte_value=0):
+        return tuple(
+            (option.value, option.name.replace("_", " ").title())
+            for option in cls if option.value >= gte_value
+        )
 
 
 class DUASignature(models.Model):
@@ -222,6 +225,8 @@ class AnonymousAccess(models.Model):
 class License(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=120)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=True)
     text_content = models.TextField(default='')
     html_content = SafeHTMLField(default='')
     home_page = models.URLField()
@@ -231,18 +236,28 @@ class License(models.Model):
     # A license can be used for one or more resource types.
     # This is a comma delimited char field containing allowed types.
     # ie. '0' or '0,2' or '1,3,4'
-    resource_types = models.CharField(max_length=100)
+    project_types = models.ManyToManyField('project.ProjectType', related_name='licenses')
     # A protected license has associated DUA content
-    dua_name = models.CharField(max_length=100, blank=True, default='')
-    dua_html_content = SafeHTMLField(blank=True, default='')
-    access_request_template = SafeHTMLField(blank=True, default='')
+
+    class Meta:
+        unique_together = (('name', 'version'),)
 
     def __str__(self):
         return self.name
 
-    def dua_text_content(self):
-        """
-        Returns dua_html_content as plain text. Used when adding the DUA to
-        plain text emails.
-        """
-        return html2text(self.dua_html_content)
+
+class DUA(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=True)
+    html_content = SafeHTMLField(default='')
+    access_template = SafeHTMLField(default='')
+    access_policy = models.PositiveSmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN)
+    project_types = models.ManyToManyField('project.ProjectType', related_name='duas')
+
+    class Meta:
+        unique_together = (('name', 'version'),)
+
+    def __str__(self):
+        return self.name

@@ -1,0 +1,11 @@
+{% if training.is_valid %}
+    <span class="badge badge-success">Valid</span>
+{% elif training.is_expired %}
+    <span class="badge badge-danger">Expired</span>
+{% elif training.is_withdrawn %}
+    <span class="badge badge-danger">Withdrawn</span>
+{% elif training.is_rejected %}
+    <span class="badge badge-danger">Rejected</span>
+{% elif training.is_review %}
+    <span class="badge badge-primary">Review</span>
+{% endif %}

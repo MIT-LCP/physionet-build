@@ -12,7 +12,7 @@ from notification.models import News
 from project.projectfiles import ProjectFiles
 from physionet.models import Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.models import AccessPolicy, License, ProjectType, PublishedProject
+from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
 from user.forms import ContactForm
 
 
@@ -51,9 +51,9 @@ def about_publish(request):
     """
     licenses = OrderedDict()
     descriptions = OrderedDict()
-    for resource_type in ProjectType.objects.all():
-        descriptions[resource_type.name] = resource_type.description
-        licenses[resource_type.name] = License.objects.filter(resource_types__contains=str(resource_type.id)).order_by(
+    for project_type in ProjectType.objects.all():
+        descriptions[project_type.name] = project_type.description
+        licenses[project_type.name] = License.objects.filter(project_types=project_type).order_by(
             'access_policy'
         )
 
@@ -69,12 +69,19 @@ def license_content(request, license_slug):
     """
     Content for an individual license
     """
-    try:
-        license = License.objects.get(slug=license_slug)
-    except License.DoesNotExist:
-        raise Http404()
+    license = get_object_or_404(License, slug=license_slug)
 
     return render(request, 'about/license_content.html', {'license': license})
+
+
+def dua_content(request, dua_slug):
+    """
+    Content for an individual license
+    """
+    dua = get_object_or_404(DUA, slug=dua_slug)
+
+    return render(request, 'about/dua_content.html', {'dua': dua})
+
 
 
 @allow_post_during_maintenance

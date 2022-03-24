@@ -668,6 +668,8 @@ class TrainingForm(forms.ModelForm):
         self.fields['training_type'].initial = self.training_type
 
         if self.training_type is not None:
+            self.fields['training_type'].help_text = self.training_type.description
+
             if self.training_type.required_field == RequiredField.DOCUMENT:
                 self.fields['completion_report'].disabled = False
                 self.fields['completion_report'].required = True
@@ -680,7 +682,7 @@ class TrainingForm(forms.ModelForm):
     def clean(self):
         data = super().clean()
 
-        training = Training.objects.filter(
+        trainings = Training.objects.filter(
             Q(status=TrainingStatus.REVIEW)
             | Q(status=TrainingStatus.ACCEPTED, training_type__valid_duration__isnull=True)
             | Q(
@@ -688,7 +690,7 @@ class TrainingForm(forms.ModelForm):
                 process_datetime__gte=timezone.now() - F('training_type__valid_duration'),
             )
         ).filter(training_type=OuterRef('pk'), user=self.user)
-        available_training_types = TrainingType.objects.annotate(training_exists=Exists(training)).filter(
+        available_training_types = TrainingType.objects.annotate(training_exists=Exists(trainings)).filter(
             training_exists=False
         )
 

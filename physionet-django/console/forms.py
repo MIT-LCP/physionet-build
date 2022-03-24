@@ -1,5 +1,8 @@
 import pdb
 import re
+import resource
+
+from django.forms.widgets import RadioSelect
 
 from django.forms.widgets import RadioSelect
 
@@ -15,10 +18,14 @@ from notification.models import News
 from physionet.models import Section
 from project.models import (
     ActiveProject,
+    AccessPolicy,
     Contact,
     CopyeditLog,
     DataAccess,
+    DUA,
     EditLog,
+    License,
+    ProjectType,
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
@@ -932,6 +939,43 @@ class TrainingReviewForm(forms.Form):
 
         if not self.cleaned_data['reviewer_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
+
+
+class LicenseForm(forms.ModelForm):
+    class Meta:
+        model = License
+        fields = (
+            'name',
+            'version',
+            'slug',
+            'is_active',
+            'html_content',
+            'home_page',
+            'access_policy',
+            'project_types',
+        )
+        labels = {'html_content': 'Content'}
+
+
+class DUAForm(forms.ModelForm):
+    class Meta:
+        model = DUA
+        fields = (
+            'name',
+            'version',
+            'slug',
+            'is_active',
+            'html_content',
+            'access_template',
+            'access_policy',
+            'project_types',
+        )
+        labels = {'html_content': 'Content'}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['access_policy'].choices = AccessPolicy.choices(gte_value=AccessPolicy.RESTRICTED)
 
 
 class UserFilterForm(forms.ModelForm):

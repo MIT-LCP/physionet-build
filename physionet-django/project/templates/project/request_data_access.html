@@ -79,8 +79,9 @@ Request Access to {{ project.title }} {{ project.version }}
                     </div>
                 {% endfor %}
 
+                <h2>{{ project.dua.name }}</h2>
                 <div>
-                    {{ project.license.dua_html_content|safe }}
+                    {{ project.dua.html_content|safe }}
                 </div>
 
                 <div >
