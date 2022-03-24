@@ -42,9 +42,9 @@
                     <a href="{% url 'code_of_conduct_activate' code_of_conduct.pk %}" class="btn btn-sm btn-success" role="button">Activate</a>
                   {% endif %}
                   <a href="{% url 'code_of_conduct_new_version' code_of_conduct.pk %}" class="btn btn-sm btn-success" role="button">New version</a>
-                  <button type="button" class="btn btn-sm btn-danger " data-toggle="modal" data-target="#remove-code_of_conduct">Delete</button>
+                  <button type="button" class="btn btn-sm btn-danger " data-toggle="modal" data-target="#remove-code_of_conduct-{{ code_of_conduct.pk }}">Delete</button>
 
-                  <div class="modal fade" id="remove-code_of_conduct" tabindex="1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
+                  <div class="modal fade" id="remove-code_of_conduct-{{ code_of_conduct.pk }}" tabindex="1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
                     <form method="post" action="{% url 'code_of_conduct_delete' code_of_conduct.pk %}">
                       {% csrf_token %}
                       <div class="modal-dialog" role="document">
