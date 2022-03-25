@@ -531,7 +531,7 @@ def training_report_path(instance, filename):
 
 
 def get_training_path(instance, filename):
-    return f'trainings/{instance.slug}/training-report.pdf'
+    return f'training/{instance.slug}/training-report.pdf'
 
 
 class LegacyCredential(models.Model):
