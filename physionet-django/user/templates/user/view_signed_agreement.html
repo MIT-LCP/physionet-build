@@ -20,11 +20,11 @@ Signed Data Use Agreement
   <div id="agreement">
     <div id="outer-border">
       <div id="inner-border">
-        <h1>{{ signed.project.license.dua_name|wordwrap:30|linebreaksbr }}</h1>
+        <h1>{{ signed.project.dua.name|wordwrap:30|linebreaksbr }}</h1>
         <h2>Data Use Agreement for the<br />
             {{ signed.project.title }} (v{{ signed.project.version }})</h2>
         <br />
-        {{ signed.project.license.dua_html_content|safe }}
+        {{ signed.project.dua.html_content|safe }}
         <br />
         <p>SIGNED: <b>{{ signed.user.get_full_name }}</b></p>
         <br />

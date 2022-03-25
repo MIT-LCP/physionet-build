@@ -201,12 +201,20 @@
             <br>
             <a href="{% url 'published_project_license' project.slug project.version %}">{{ project.license }}</a>
           </p>
+          {% if project.dua %}
+            <p>
+              <strong>Data Use Agreement:</strong>
+              <br>
+              <a href="{% url 'published_project_dua' project.slug project.version %}">{{ project.dua }}</a>
+            </p>
+          {% endif %}
+
           {% if project.access_policy == AccessPolicy.CREDENTIALED or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
             <p>
               <strong>Required training:</strong>
-              {% for training in project.required_training.all %}
+              {% for training in project.required_trainings.all %}
                 <br>
-                <a href="{% url 'published_project_required_training' project.slug project.version %}#{{ training.id }}"{{ training }}>{{ training }}</a>
+                <a href="{% url 'published_project_required_trainings' project.slug project.version %}#{{ training.id }}"{{ training }}>{{ training }}</a>
               {% endfor%}
             </p>
           {% endif %}
@@ -378,7 +386,20 @@
     {% include "project/published_project_denied_downloads.html" %}
   {% endif %}
   <br>
+  {% if accepted_access_requests %}
+    <div class="alert alert-danger col-md-8" role="alert">
+      You are only approved for the following proposals:
+      <ul>
+        {% for access_request in accepted_access_requests %}
+          <li>{{ access_request.data_use_title }}</li>
+        {% endfor %}
+      </ul>
+      If you would like to use the data for a different purpose, <a href="{% url 'data_access_request_status' project.slug project.version %}">please reapply</a>.
+    </div>
+  {% endif %} 
 </div>
+
+
 
 {% endblock %}
 

@@ -34,12 +34,9 @@ urlpatterns = [
     path('ping/', views.ping),
 
     # about pages
-    path('about/publish/', views.about_publish,
-        name='about_publish'),
-    path('about/', views.about, name='about'),
     path('about/timeline', views.timeline, name='timeline'),
-    path('about/licenses/<license_slug>/', views.license_content,
-        name='license_content'),
+    path('about/licenses/<slug:license_slug>/', views.license_content, name='license_content'),
+    path('about/duas/<slug:dua_slug>/', views.dua_content, name='dua_content'),
     path('about/citi-course/', views.citi_course, name='citi_course'),
 
     # # Custom error pages for testing
@@ -66,6 +63,10 @@ urlpatterns = [
          name='moody_challenge'),
     path('about/challenge/community-challenge', views.community_challenge,
          name='community_challenge'),
+
+    # path for about static pages
+    path('about/', views.static_view, name='static_view'),
+    path('about/<path:static_url>/', views.static_view, name='static_view'),
 
     # robots.txt for crawlers
     path(

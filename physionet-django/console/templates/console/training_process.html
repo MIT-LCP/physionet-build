@@ -1,6 +1,7 @@
 {% extends "console/base_console.html" %}
 
 {% load static %}
+{% load console_templatetags %}
 
 {% block title %}{{ SITE_NAME }} - Training{% endblock %}
 
@@ -15,18 +16,55 @@
                 Application information
             </div>
             <div class="card-body">
+                <h5>Personal</h5>
+                <ul>
+                  <li>Username:
+                      <mark><a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a></mark>
+                  </li>
+                  <li>First name: <mark>{{ training.user.profile.first_names }}</mark></li>
+                  <li>Last name: <mark>{{ training.user.profile.last_name }}</mark></li>
+                  {% if application.suffix %}<li>Suffix: {{ training.user.profile.suffix }} </li>{% endif %}
+                  <li>Credentialed: <mark>{{ application.ref_credentialed_flag|yesno:"Yes,No" }}</mark></li>
+                  <li>Email (primary): <mark>{{ training.user.email }}</mark></li>
+                  <li>Emails (other): 
+                    {% with associated_emails=training.user|get_verified_emails %}
+                    {% for email in associated_emails %}
+                      <mark>{{ email }}</mark>{% if not forloop.last %}, {% endif %}
+                    {% empty %}N/A
+                    {% endfor %}
+                    {% endwith %}
+                  </li>
+                </ul>
+
+                <h5>Training</h5>
+                <ul>
+                  <li>Type: <mark>{{ training.training_type.name }}</mark></li>
+                  {% if training.completion_report %}
+                  <li>Document: <mark><a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a></mark></li>
+                  {% endif %}
+                  {% if training.completion_report_url %}
+                    <li>URL: <mark><a href="{{ training.completion_report_url }}" target="_blank">External link</a></mark></li>
+                  {% endif %}
+                  <li>Submitted: {{ training.application_datetime|date }}</li>
+                </ul>
+            </div>
+        </div>
+        <div class="card mb-4">
+            <div class="card-header">
+                Document information
+            </div>
+            <div class="card-body">
                 <p>
-                    Username: <a href="{% url 'user_management' training.user.username %}">{{ training.user.username }}</a><br>
-                    Applied: {{ training.application_datetime|date }}
+                    {% for field_name, matched_value in parsed_training_pdf.items %}
+                        <strong><i>{{ field_name }}: </i></strong> {{ matched_value }} <br>
+                    {% empty %}
+                        Cannot parse document
+                    {% endfor %}
                 </p>
-                <h5>{{ training.training_type.name }} Training</h5>
-                {% if training.completion_report %}
-                    Document: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
-                {% endif %}
-                {% if training.completion_report_url %}\
-                    URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
-                {% endif %}
-                Submitted on: {{ training.application_datetime|date }}
+                <div>
+                  <iframe src="{% url 'training_report' training.pk %}" style="width:100%;height:24rem;"></iframe>
+                  <a href="{% url 'training_report' training.pk %}" target="_blank"><button class="btn btn-primary">Open</button></a><br>
+                </div>
             </div>
         </div>
     </div>

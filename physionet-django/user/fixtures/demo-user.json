@@ -20779,5 +20779,16 @@
       "training": 108,
       "answer": null
   }
+},
+{
+    "model": "user.codeofconduct",
+    "pk": 1,
+    "fields": {
+        "name": "Sample Code of Conduct",
+        "slug": "sample-coc",
+        "version": "1.0.0",
+        "is_active": true,
+        "html_content": "<p>This is a sample CoC.</p>"
+    }
 }
 ]

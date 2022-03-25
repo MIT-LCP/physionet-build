@@ -65,6 +65,9 @@ class ProjectType(models.Model):
     class Meta:
         default_permissions = ()
 
+    def __str__(self):
+        return self.name
+
 
 class ProgrammingLanguage(models.Model):
     """

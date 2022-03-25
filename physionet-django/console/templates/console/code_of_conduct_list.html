@@ -1,0 +1,96 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block title %}{{ SITE_NAME }} - Code of Conduct{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Code of Conduct <span class="badge badge-pill badge-info">{{ code_of_conducts|length }}</span>
+  </div>
+  <div class="card-body">
+    {% if code_of_conducts %}
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for code_of_conduct in code_of_conducts %}
+            <tr>
+                <td>
+                  {{ code_of_conduct.name }}
+                  {% if code_of_conduct.is_active %}
+                    <span class="badge badge-success">Active</span>
+                  {% else %}
+                    <span class="badge badge-danger">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>{{ code_of_conduct.version }}</td>
+                <td>
+                  <a href="{% url 'code_of_conduct_detail' code_of_conduct.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
+                  {% if not code_of_conduct.is_active %}
+                    <a href="{% url 'code_of_conduct_activate' code_of_conduct.pk %}" class="btn btn-sm btn-success" role="button">Activate</a>
+                  {% endif %}
+                  <a href="{% url 'code_of_conduct_new_version' code_of_conduct.pk %}" class="btn btn-sm btn-success" role="button">New version</a>
+                  <button type="button" class="btn btn-sm btn-danger " data-toggle="modal" data-target="#remove-code_of_conduct-{{ code_of_conduct.pk }}">Delete</button>
+
+                  <div class="modal fade" id="remove-code_of_conduct-{{ code_of_conduct.pk }}" tabindex="1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
+                    <form method="post" action="{% url 'code_of_conduct_delete' code_of_conduct.pk %}">
+                      {% csrf_token %}
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Delete Code of Conduct</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                              <p>Are you sure you want to delete the Code of Conduct?</p>
+                          </div>
+                          <div class="modal-footer">
+                              <button class="btn btn-danger" type="submit">Delete</button>
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=code_of_conducts %}
+    </div>
+    {% else %}
+      <p>There aren't any codes of conduct.</p>
+    {% endif %}
+  </div>
+</div>
+<div class="card mb-3">
+  <div class="card-header">
+    New Code of Conduct
+  </div>
+  <div class="card-body">
+      <form method="post" action="{% url 'code_of_conduct_list' %}">
+          {% include "inline_form_snippet.html" with form=code_of_conduct_form %}
+          <button class="btn btn-primary btn-fixed" type="submit">Create</button>
+      </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}

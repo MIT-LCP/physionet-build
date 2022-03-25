@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Data Access Request Status{% endblock %}
+{% block content %}
+    <div class="container">
+        <h1>Data Access Request - {{ project }}</h1>
+        <hr><br>
+        <h2>{{ access_request.data_use_title }}</h2>
+        <small class="text-muted">submitted on {{ access_request.request_datetime }}{% if access_request.is_accepted %}, valid {% if access_request.valid_until %}until {{ access_request.valid_until }}{% else %}forever {% endif %}{% endif %}{% include 'project/data_access_request_badge.html' with data_access_request=access_request %}</small>
+        <p>{{ access_request.data_use_purpose|safe }}</p>
+    </div>
+{% endblock %}

@@ -184,12 +184,12 @@ class TestAccessPresubmission(TestMixin):
 
         # Ensure valid license policy combination
         open_data_license = License.objects.filter(
-            access_policy=AccessPolicy.OPEN, resource_types__contains='0'
+            access_policy=AccessPolicy.OPEN, project_types__pk=0
         ).first()
         restricted_data_license = License.objects.filter(
-            access_policy=AccessPolicy.RESTRICTED, resource_types__contains='0'
+            access_policy=AccessPolicy.RESTRICTED, project_types__pk=0
         ).first()
-        software_license = License.objects.filter(resource_types__contains='1').first()
+        software_license = License.objects.filter(project_types__pk=1).first()
 
         response = self.client.post(
             reverse('project_access', args=(project.slug,)),
@@ -995,10 +995,10 @@ class TestSelfManagedProjectWorkflows(TestMixin):
 
             # submitter accepts with comment
             self.client.post(reverse('data_access_request_view', args=(
-                project.slug, project.version,
-                User.objects.get(username=self.REQUESTER).id)),
+                project.slug, project.version, da_req.first().id)),
                              data={'proj-status': [
                                  str(DataAccessRequest.ACCEPT_REQUEST_VALUE)],
+                                 'proj-duration': ['14'],
                                  'proj-responder_comments': ['great!'],
                                  'data_access_response': [str(da_req[0].id)]}
                              )

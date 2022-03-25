@@ -1,6 +1,5 @@
 import logging
 import os
-import pdb
 import uuid
 from datetime import timedelta
 
@@ -23,6 +22,7 @@ from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import ugettext as _
 
+from project.validators import validate_version
 from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.fields import SafeHTMLField
 from user import validators
@@ -529,7 +529,7 @@ def training_report_path(instance, filename):
 
 
 def get_training_path(instance, filename):
-    return f'training/{instance.slug}/training-report.pdf'
+    return f'trainings/{instance.slug}/training-report.pdf'
 
 
 class LegacyCredential(models.Model):
@@ -1025,10 +1025,23 @@ class TrainingType(models.Model):
         return self.name
 
 
+class TrainingRegex(models.Model):
+    name = models.CharField(max_length=48)
+    regex = models.CharField(max_length=128)
+    display_order = models.PositiveSmallIntegerField()
+    training_type = models.ForeignKey(TrainingType, related_name='certificate_regexes', on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('display_order', 'training_type')
+
+    def __str__(self):
+        return self.name
+
+
 class Training(models.Model):
     slug = models.SlugField(max_length=20, unique=True)
     training_type = models.ForeignKey(TrainingType, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, related_name='training', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='trainings', on_delete=models.CASCADE)
     status = models.PositiveSmallIntegerField(choices=TrainingStatus.choices(), default=TrainingStatus.REVIEW)
     completion_report = models.FileField(
         upload_to=get_training_path, validators=[FileExtensionValidator(['pdf'], 'File must be a pdf.')], blank=True
@@ -1036,7 +1049,7 @@ class Training(models.Model):
     completion_report_url = models.URLField(blank=True)
     application_datetime = models.DateTimeField(auto_now_add=True)
     process_datetime = models.DateTimeField(null=True)
-    reviewer = models.ForeignKey(User, related_name='reviewed_training', null=True, on_delete=models.SET_NULL)
+    reviewer = models.ForeignKey(User, related_name='reviewed_trainings', null=True, on_delete=models.SET_NULL)
     reviewer_comments = models.CharField(max_length=512)
 
     objects = TrainingQuerySet.as_manager()
@@ -1106,3 +1119,22 @@ class CloudInformation(models.Model):
 
     class Meta:
         default_permissions = ()
+
+class CodeOfConduct(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120, unique=True)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=False)
+    html_content = SafeHTMLField(default='')
+
+    class Meta:
+        unique_together = (('name', 'version'),)
+
+    def __str__(self):
+        return self.name
+
+
+class CodeOfConductSignature(models.Model):
+    code_of_conduct = models.ForeignKey(CodeOfConduct, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    sign_datetime = models.DateTimeField(auto_now_add=True)

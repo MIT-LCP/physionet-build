@@ -3,6 +3,8 @@ import re
 
 from django.forms.widgets import RadioSelect
 
+from django.forms.widgets import RadioSelect
+
 from console.utility import generate_doi_payload, register_doi
 from dal import autocomplete
 from django import forms
@@ -15,10 +17,13 @@ from notification.models import News
 from physionet.models import Section
 from project.models import (
     ActiveProject,
+    AccessPolicy,
     Contact,
     CopyeditLog,
     DataAccess,
+    DUA,
     EditLog,
+    License,
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
@@ -26,7 +31,7 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
-from user.models import CredentialApplication, CredentialReview, User, TrainingQuestion
+from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -934,6 +939,43 @@ class TrainingReviewForm(forms.Form):
             raise forms.ValidationError('If you reject, you must explain why.')
 
 
+class LicenseForm(forms.ModelForm):
+    class Meta:
+        model = License
+        fields = (
+            'name',
+            'version',
+            'slug',
+            'is_active',
+            'html_content',
+            'home_page',
+            'access_policy',
+            'project_types',
+        )
+        labels = {'html_content': 'Content'}
+
+
+class DUAForm(forms.ModelForm):
+    class Meta:
+        model = DUA
+        fields = (
+            'name',
+            'version',
+            'slug',
+            'is_active',
+            'html_content',
+            'access_template',
+            'access_policy',
+            'project_types',
+        )
+        labels = {'html_content': 'Content'}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['access_policy'].choices = AccessPolicy.choices(gte_value=AccessPolicy.RESTRICTED)
+
+
 class UserFilterForm(forms.ModelForm):
     class Meta:
         model = User
@@ -954,3 +996,10 @@ class ProjectFilterForm(forms.ModelForm):
                 'class': 'border', 'data-placeholder': 'Search...'
             })
         }
+
+
+class CodeOfConductForm(forms.ModelForm):
+    class Meta:
+        model = CodeOfConduct
+        fields = ('name', 'version', 'slug', 'html_content')
+        labels = {'html_content': 'Content'}

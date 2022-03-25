@@ -5,7 +5,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('auth', '0011_update_proxy_permissions'),
-        ('user', '0036_training_2'),
+        ('user', '0039_codeofconduct_codeofconductsignature'),
     ]
 
     operations = [
