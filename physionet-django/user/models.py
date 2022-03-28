@@ -417,9 +417,10 @@ class User(AbstractBaseUser):
 
     def file_root(self, relative=False):
         "Where the user's files are stored"
+        # GCSUserFiles expects trailing slash for directories
         if relative:
-            return os.path.join(User.RELATIVE_FILE_ROOT, self.username)
-        return os.path.join(User.FILE_ROOT, self.username)
+            return os.path.join(User.RELATIVE_FILE_ROOT, self.username, '')
+        return os.path.join(User.FILE_ROOT, self.username, '')
 
 
 class UserLogin(models.Model):
