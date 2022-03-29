@@ -1,3 +1,8 @@
 <div class="alert alert-danger col-md-8" role="alert">
   This project is access restricted and the files are only available via a research environment.
+  {% if ENABLE_RESEARCH_ENVIRONMENTS %}
+    <a href="{% url 'research_environments' %}" class="btn btn-sm btn-outline-danger mt-4" role="button">
+      Go to research environments console
+    </a>
+  {% endif %}
 </div>

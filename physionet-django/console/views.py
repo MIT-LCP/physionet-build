@@ -6,6 +6,9 @@ from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
 
+from django.forms.formsets import formset_factory
+from django.forms.models import inlineformset_factory
+
 import notification.utility as notification
 from background_task import background
 from console.tasks import associated_task, get_associated_tasks
@@ -17,6 +20,7 @@ from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, DurationField, F, Q
 from django.db.models.functions import Cast
+from django.db import transaction
 from django.forms import Select, Textarea, modelformset_factory
 from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponse, JsonResponse
@@ -40,6 +44,7 @@ from project.models import (
     DUA,
     DataAccessRequest,
     DUASignature,
+    License,
     EditLog,
     License,
     Publication,
@@ -602,8 +607,14 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']
-            published_project = project.publish(slug=slug,
-                make_zip=int(publish_form.cleaned_data['make_zip']))
+
+            with transaction.atomic():
+                published_project = project.publish(slug=slug,
+                    make_zip=int(publish_form.cleaned_data['make_zip']))
+
+                environment_group_name = publish_form.cleaned_data.get('environment_group_name')
+                if environment_group_name:
+                    DataAccess.objects.create(project=published_project, platform=5, location=environment_group_name)
 
             notification.publish_notify(request, published_project)
 

@@ -94,6 +94,7 @@ TEMPLATES = [
                 'physionet.context_processors.access_policy',
                 'physionet.context_processors.storage_type',
                 'physionet.context_processors.platform_config',
+                'physionet.context_processors.environments_config',
                 'sso.context_processors.sso_enabled',
             ],
         },
@@ -515,6 +516,17 @@ FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)
 
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
 COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)
+
+ENABLE_RESEARCH_ENVIRONMENTS = config('ENABLE_RESEARCH_ENVIRONMENTS', default=False, cast=bool)
+
+if ENABLE_RESEARCH_ENVIRONMENTS:
+    RESEARCH_ENVIRONMENT_API_JWT_SERVICE_ACCOUNT_PATH = os.path.join(
+        BASE_DIR,
+        config('RESEARCH_ENVIRONMENT_API_JWT_SERVICE_ACCOUNT_PATH')
+    )
+    RESEARCH_ENVIRONMENT_API_URL = config('RESEARCH_ENVIRONMENT_API_URL')
+    RESEARCH_ENVIRONMENT_API_JWT_AUDIENCE = config('RESEARCH_ENVIRONMENT_API_JWT_AUDIENCE')
+    INSTALLED_APPS.append('environment.apps.EnvironmentConfig')
 
 LOG_TIMEDELTA = config('LOG_TIMEDELTA', cast=int, default='10')
 

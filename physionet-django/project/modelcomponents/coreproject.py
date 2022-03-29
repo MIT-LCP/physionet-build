@@ -6,6 +6,7 @@ from django.db import models
 from project.modelcomponents.activeproject import ActiveProject
 from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.publishedproject import PublishedProject
+from project.modelcomponents.access import DataAccess
 
 
 class CoreProject(models.Model):
@@ -81,3 +82,14 @@ def exists_project_slug(slug):
     return bool(ActiveProject.objects.filter(slug=slug)
             or ArchivedProject.objects.filter(slug=slug)
             or PublishedProject.objects.filter(slug=slug))
+
+
+def exists_environment_group(group_name):
+    """
+    Whether the group name has been taken by an existing project.
+    """
+    return DataAccess.objects.filter(platform=5, location=group_name).exists()
+
+
+def project_has_environment_group(project):
+    return DataAccess.objects.filter(platform=5, project=project).exists()

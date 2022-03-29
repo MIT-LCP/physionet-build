@@ -1,6 +1,7 @@
 import re
 
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.utils.translation import ugettext as _
 
 MAX_FILENAME_LENGTH = 60
@@ -126,3 +127,9 @@ def validate_topic(value):
     """
     if not re.fullmatch(r'[a-zA-Z\d][\w -]*', value):
         raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')
+
+
+validate_environment_group_name = RegexValidator(
+    "^[a-z](?:[-a-z0-9]{4,28}[a-z0-9])$",
+    message="The Google Group name in not valid",
+)

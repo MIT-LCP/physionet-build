@@ -1,5 +1,10 @@
 import pdb
 import re
+import resource
+
+from django.forms.widgets import RadioSelect
+
+from django.forms.widgets import RadioSelect
 
 from django.forms.widgets import RadioSelect
 
@@ -28,9 +33,11 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
     exists_project_slug,
+    exists_environment_group,
+    project_has_environment_group,
 )
 from project.projectfiles import ProjectFiles
-from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
+from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_environment_group_name
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
 RESPONSE_CHOICES = (
@@ -292,6 +299,9 @@ class PublishForm(forms.Form):
                            validators=[validate_slug])
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
 
+    if settings.ENABLE_RESEARCH_ENVIRONMENTS:
+        environment_group_name = forms.CharField(validators=[validate_environment_group_name])
+
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project
@@ -314,6 +324,16 @@ class PublishForm(forms.Form):
         if data != self.project.slug:
             if exists_project_slug(data):
                 raise forms.ValidationError('The slug is already taken by another project.')
+        return data
+
+    def clean_environment_group_name(self):
+        """
+        Ensure that the environment group name is valid and not taken.
+        """
+        data = self.cleaned_data['environment_group_name']
+        if exists_environment_group(data):
+            raise forms.ValidationError('The group name is already taken by another project.')
+
         return data
 
 
@@ -780,6 +800,9 @@ class DataAccessForm(forms.ModelForm):
     """
     To add all of the forms to access the data for a project.
     """
+
+    platform = forms.TypedChoiceField(choices=DataAccess.platform_access_choices(), coerce=int)
+
     class Meta:
         model = DataAccess
         fields = ('platform', 'location')
@@ -788,16 +811,26 @@ class DataAccessForm(forms.ModelForm):
             'location': """URL for aws-open-data:<br> https://URL<br><br>
                            Bucket name for aws-s3:<br> s3://BUCKET_NAME<br><br>
                            Organizational Google Group managing access for gcp-bucket:<br> EMAIL@ORGANIZATION<br><br>
-                           Organizational Google Group managing access for gcp-bigquery:<br> EMAIL@ORGANIZATION""",
+                           Organizational Google Group managing access for gcp-bigquery:<br> EMAIL@ORGANIZATION<br><br>
+                           Google Group managing access for gcp-research-environment:<br> GROUP[@research-environment-organization]""",
             }
 
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project
 
+    def clean_platform(self):
+        if project_has_environment_group(self.project):
+            raise forms.ValidationError('The project already has an environment group.')
+        return self.cleaned_data['platform']
+
     def clean_location(self):
-        platform = self.cleaned_data['platform']
+        platform = self.cleaned_data.get('platform')
         location = self.cleaned_data['location']
+        # Don't clean location if platform was invalid
+        if not platform:
+            return location
+
         if platform == 1:
             validate = URLValidator()
             validate(location)
@@ -809,6 +842,8 @@ class DataAccessForm(forms.ModelForm):
                 raise forms.ValidationError('The AWS Bucket name is not valid')
         elif platform in [3, 4]:
             validate_email(location)
+        elif platform == 5:
+            validate_environment_group_name(location)
         return location
 
     def save(self):

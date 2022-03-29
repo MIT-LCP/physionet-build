@@ -87,3 +87,6 @@ if settings.DEBUG:
 
     # debug toolbar
     urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+
+if settings.ENABLE_RESEARCH_ENVIRONMENTS:
+    urlpatterns.append(path('environments/', include('environment.urls')))
