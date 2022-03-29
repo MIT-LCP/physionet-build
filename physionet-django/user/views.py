@@ -673,8 +673,8 @@ def credential_application(request):
         reference_form = forms.ReferenceCAF(prefix="application", user=user)
         research_form = forms.ResearchCAF(prefix="application")
         form = None
-        code_of_conduct = CodeOfConduct.objects.filter(is_active=True).first()
 
+    code_of_conduct = CodeOfConduct.objects.filter(is_active=True).first()
 
     return render(
         request,
