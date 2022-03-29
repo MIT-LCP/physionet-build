@@ -14,6 +14,7 @@ from project.models import AccessPolicy
 from project.projectfiles import ProjectFiles
 from project.utility import StorageInfo, clear_directory, get_tree_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
+from project.managers.project import PublishedProjectManager
 from user.models import Training
 
 
@@ -21,6 +22,8 @@ class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
     """
+    objects = PublishedProjectManager()
+
     # File storage sizes in bytes
     main_storage_size = models.BigIntegerField(default=0)
     compressed_storage_size = models.BigIntegerField(default=0)
