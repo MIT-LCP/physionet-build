@@ -8,9 +8,9 @@ from django.conf import settings
 from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
-from django.db.models.fields.files import FieldFile
 from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
+from django.forms.widgets import HiddenInput
 from django.template.defaultfilters import slugify
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -28,6 +28,7 @@ from project.models import (
     CoreProject,
     DataAccessRequest,
     DataAccessRequestReviewer,
+    DUA,
     License,
     Metadata,
     ProgrammingLanguage,
@@ -40,7 +41,7 @@ from project.models import (
     UploadedDocument,
 )
 from project.projectfiles import ProjectFiles
-from user.models import User
+from user.models import User, TrainingType
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -456,6 +457,8 @@ class NewProjectVersionForm(forms.ModelForm):
 
         UploadedDocument.objects.bulk_create(documents)
 
+        project.required_trainings.set(self.latest_project.required_trainings.all())
+
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
 
@@ -576,7 +579,8 @@ class DiscoveryForm(forms.ModelForm):
     parent_projects = forms.ModelMultipleChoiceField(
         queryset=PublishedProject.objects.all().order_by(Lower('title'),
         'version_order'), widget=autocomplete.ModelSelect2Multiple(url='project-autocomplete'),
-        help_text='The existing PhysioNet project(s) this resource was derived from. Hold ctrl to select multiple.',
+        help_text=f'The existing {settings.SITE_NAME} project(s) this '
+                  f'resource was derived from. Hold ctrl to select multiple.',
         required=False)
 
     class Meta:
@@ -768,67 +772,64 @@ class LanguageFormSet(BaseGenericInlineFormSet):
 
 
 class AccessMetadataForm(forms.ModelForm):
-    """
-    For editing project access metadata
-    """
     class Meta:
         model = ActiveProject
-        fields = ('access_policy', 'license', 'allow_file_downloads')
+        fields = ('access_policy', 'license', 'dua', 'required_trainings', 'allow_file_downloads')
         help_texts = {
             'access_policy': '* Access policy for files.',
             'license': "* License for usage. <a href='/about/publish/#licenses' target='_blank'>View available.</a>",
+            'dua': "* Insert DUA help text!",
+            'required_trainings': '* Choose required training to access the dataset.',
             'allow_file_downloads': (
                 '* This option allows to enable/disable direct files downloads from the '
                 'platform. It cannot be changed after the publication of the project!'
             ),
         }
+        labels = {'dua': 'Data Use Agreement'}
 
-    def __init__(self, editable=True, **kwargs):
-        """
-        Control the available access policies based on the existing
-        licenses. The license queryset is set in the following
-        `set_license_queryset` function.
+    def __init__(self, *args, **kwargs):
+        self.access_policy = kwargs.pop('access_policy', None)
+        self.editable = kwargs.pop('editable', True)
 
-        Each license has one access policy, and potentially multiple
-        resource types.
-        """
-        super().__init__(**kwargs)
+        if self.access_policy is not None:
+            kwargs.setdefault('initial', {}).update({'access_policy': self.access_policy})
 
-        # Get licenses for this resource type
-        licenses = License.objects.filter(
-            resource_types__icontains=str(self.instance.resource_type.id))
-        # Set allowed access policies based on license policies
-        available_policies = (
-            (val, label) for (val, label) in AccessPolicy.choices() if licenses.filter(access_policy=val).exists()
-        )
-        self.fields['access_policy'].choices = available_policies
+        data = kwargs.get('data')
+        if self.access_policy is None and data is not None:
+            self.access_policy = int(data.get('access_policy'))
+
+        super().__init__(*args, **kwargs)
 
         if not settings.ENABLE_FILE_DOWNLOADS_OPTION:
             del self.fields['allow_file_downloads']
 
-        if not editable:
-            for f in self.fields.values():
-                f.disabled = True
+        if self.access_policy is None:
+            self.access_policy = self.instance.access_policy
 
-    def set_license_queryset(self, access_policy):
-        """
-        Set the license queryset according to the set or selected
-        access policy.
-        """
         self.fields['license'].queryset = License.objects.filter(
-            resource_types__icontains=str(self.instance.resource_type.id),
-            access_policy=access_policy)
+            is_active=True,
+            project_types=self.instance.resource_type,
+            access_policy=self.access_policy
+        )
+        self.fields['dua'].queryset = DUA.objects.filter(
+            is_active=True,
+            project_types=self.instance.resource_type,
+            access_policy=self.access_policy
+        )
 
-    def clean(self):
-        """
-        Ensure valid license access policy combinations
-        """
-        data = super().clean()
-        if (str(self.instance.resource_type.id) in data['license'].resource_types
-                and data['access_policy'] == data['license'].access_policy):
-            return data
+        if self.access_policy not in {AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW}:
+            self.fields['required_trainings'].disabled = True
+            self.fields['required_trainings'].required = False
+            self.fields['required_trainings'].widget = forms.HiddenInput()
 
-        raise forms.ValidationError('Invalid policy license combination.')
+        if self.access_policy == AccessPolicy.OPEN:
+            self.fields['dua'].disabled = True
+            self.fields['dua'].required = False
+            self.fields['dua'].widget = forms.HiddenInput()
+
+        if not self.editable:
+            for field in self.fields.values():
+                field.disabled = True
 
 
 class AuthorCommentsForm(forms.Form):
@@ -987,7 +988,7 @@ class DataAccessRequestForm(forms.ModelForm):
 
     def __init__(self, project, requester, template, *args, **kwargs):
         kwargs.update(initial={
-            'data_use_purpose': template
+            'data_use_purpose': project.dua.access_template
         })
 
         super().__init__(*args, **kwargs)
@@ -997,9 +998,13 @@ class DataAccessRequestForm(forms.ModelForm):
 
 
 class DataAccessResponseForm(forms.ModelForm):
+    duration = forms.IntegerField(
+        min_value=0, initial=14, label='Duration (in days)', help_text="If you enter 0, the access will not expire."
+    )
+
     class Meta:
         model = DataAccessRequest
-        fields = ('status', 'responder_comments')
+        fields = ('status', 'duration', 'responder_comments')
         help_texts = {
             'responder_comments': """Brief justification in case of rejection or comment for the requester""",
         }
@@ -1013,24 +1018,37 @@ class DataAccessResponseForm(forms.ModelForm):
             'responder_comments': 'Comment or Justification'
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if cleaned_data['status'] == DataAccessRequest.REJECT_REQUEST_VALUE and not cleaned_data['responder_comments']:
+            raise forms.ValidationError('If you reject the request, you must state why.')
+
+    def clean_duration(self):
+        duration = self.cleaned_data['duration']
+        if not duration:
+            return None
+
+        return timezone.timedelta(days=duration)
+
     def save(self):
         r = super().save(commit=False)
         r.decision_datetime = timezone.now()
-        r.responder_id = self.responder_id
+        r.responder = self.responder
         r.save()
 
         return r
 
-    def __init__(self, responder_id, *args, **kwargs):
+    def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.responder_id = responder_id
+        self.responder = responder
 
 
 class InviteDataAccessReviewerForm(forms.ModelForm):
     reviewer = forms.CharField(widget=forms.TextInput(
         attrs={'class': 'form-control'}),
-        required=True, label='Physionet Username')
+        required=True, label=f'{settings.SITE_NAME} Username')
 
     class Meta:
         model = DataAccessRequestReviewer
@@ -1122,7 +1140,7 @@ class UploadedDocumentFormSet(BaseGenericInlineFormSet):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        url = f'{reverse_lazy("about_publish")}#guidelines'
+        url = f"{reverse_lazy('static_view', kwargs={'static_url':'publish'} )}#author_guidelines"
         self.help_text = (
             "Please provide an ethics statement following the "
             f"<a href='{url}' target='_blank'>author guidelines</a>. "

@@ -1,54 +1,51 @@
 import csv
 import logging
 import os
-import pdb
-import re
 from collections import OrderedDict
-from datetime import datetime, timedelta
+from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
 
 import notification.utility as notification
-import project.forms as project_forms
 from background_task import background
-from console import forms, utility
 from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.contrib.sites.models import Site
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.validators import validate_email
-from django.db import DatabaseError, transaction
-from django.db.models import Case, Count, DurationField, F, IntegerField, Q, Value, When
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count, DurationField, F, Q
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
+from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from notification.models import News
-from physionet.enums import Page
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
-from physionet.settings.base import StorageTypes
 from physionet.utility import paginate
-from physionet.models import Section
+from physionet.models import Section, StaticPage
+from project import forms as project_forms
 from project.models import (
     GCP,
+    GCPLog,
+    AccessLog,
     AccessPolicy,
     ActiveProject,
     ArchivedProject,
     DataAccess,
+    DUA,
+    DataAccessRequest,
     DUASignature,
     EditLog,
+    License,
     Publication,
     PublishedProject,
     Reference,
     StorageRequest,
-    SubmissionInfo,
     Topic,
     exists_project_slug,
 )
@@ -56,7 +53,20 @@ from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
-from user.models import AssociatedEmail, CredentialApplication, CredentialReview, LegacyCredential, User
+from user.models import (
+    AssociatedEmail,
+    CredentialApplication,
+    CredentialReview,
+    LegacyCredential,
+    User,
+    Training,
+    TrainingQuestion,
+    CodeOfConduct,
+)
+from physionet.enums import LogCategory
+from console import forms, utility, services
+from console.forms import ProjectFilterForm, UserFilterForm
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -360,12 +370,16 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     description_form = project_forms.ContentForm(
         resource_type=project.resource_type.id, instance=project)
     ethics_form = project_forms.EthicsForm(instance=project)
-    access_form = project_forms.AccessMetadataForm(instance=project)
+
+    access_policy = request.GET.get('accessPolicy')
+    if access_policy:
+        access_form = project_forms.AccessMetadataForm(instance=project, access_policy=int(access_policy))
+    else:
+        access_form = project_forms.AccessMetadataForm(instance=project)
+
     discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
         instance=project)
     description_form_saved = False
-
-    access_form.set_license_queryset(access_policy=project.access_policy)
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
@@ -414,7 +428,6 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             else:
                 messages.error(request,
                     'Invalid submission. See errors below.')
-            access_form.set_license_queryset(access_policy=access_form.instance.access_policy)
         elif 'complete_copyedit' in request.POST:
             copyedit_form = forms.CopyeditForm(request.POST,
                 instance=copyedit_log)
@@ -434,10 +447,22 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if 'subdir' not in vars():
         subdir = ''
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+    (
+        authors,
+        author_emails,
+        storage_info,
+        edit_logs,
+        copyedit_logs,
+        latest_version,
+    ) = project.info_card(force_calculate=True)
 
-    (display_files, display_dirs, dir_breadcrumbs, _,
-     file_error) = get_project_file_info(project=project, subdir=subdir)
+    (
+        display_files,
+        display_dirs,
+        dir_breadcrumbs,
+        _,
+        file_error
+    ) = get_project_file_info(project=project, subdir=subdir)
 
     (upload_files_form, create_folder_form, rename_item_form,
      move_items_form, delete_items_form) = get_file_forms(
@@ -992,6 +1017,15 @@ def user_management(request, username):
     """
     user = get_object_or_404(User, username__iexact=username)
 
+    _training = Training.objects.select_related('training_type').filter(user=user).order_by('-status')
+
+    training = {}
+    training['Active'] = _training.get_valid()
+    training['Under review'] = _training.get_review()
+    training['Expired'] = _training.get_expired()
+    training['Rejected'] = _training.get_rejected()
+
+
     emails = {}
     emails['primary'] = AssociatedEmail.objects.filter(user=user,
                                                        is_primary_email=True,
@@ -1015,8 +1049,9 @@ def user_management(request, username):
                                                             'profile': user.profile,
                                                             'emails': emails,
                                                             'projects': projects,
+                                                            'training_list': training,
                                                             'credentialing_app': credentialing_app})
-    
+
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -1025,7 +1060,7 @@ def users_search(request, group):
     Search user list.
 
     Args:
-        group (str): group of users to filter search. Either 'all' for all users or 
+        group (str): group of users to filter search. Either 'all' for all users or
             'inactive' to filter to inactive users only.
     """
 
@@ -1128,14 +1163,12 @@ def process_credential_application(request, application_slug):
     if application.credential_review.status == 10:
         intermediate_credential_form = forms.InitialCredentialForm(responder=request.user, instance=application)
     if application.credential_review.status == 20:
-        intermediate_credential_form = forms.TrainingCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 30:
         intermediate_credential_form = forms.PersonalCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 40:
+    if application.credential_review.status == 30:
         intermediate_credential_form = forms.ReferenceCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 50:
+    if application.credential_review.status == 40:
         intermediate_credential_form = forms.ResponseCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 60:
+    if application.credential_review.status == 50:
         intermediate_credential_form = forms.ProcessCredentialReviewForm(responder=request.user, instance=application)
 
     if request.method == 'POST':
@@ -1150,7 +1183,7 @@ def process_credential_application(request, application_slug):
                     return render(request, 'console/process_credential_complete.html',
                         {'application':application})
                 page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.TrainingCredentialForm(
+                intermediate_credential_form = forms.PersonalCredentialForm(
                     responder=request.user, instance=application)
             else:
                 messages.error(request, 'Invalid review. See form below.')
@@ -1166,38 +1199,6 @@ def process_credential_application(request, application_slug):
                 for field in valid_fields:
                     data_copy[field] = '1'
                 intermediate_credential_form = forms.InitialCredentialForm(
-                    responder=request.user, data=data_copy, instance=application)
-                intermediate_credential_form.save()
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.TrainingCredentialForm(
-                    responder=request.user, instance=application)
-        elif 'approve_training' in request.POST:
-            intermediate_credential_form = forms.TrainingCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
-            if intermediate_credential_form.is_valid():
-                intermediate_credential_form.save()
-                if intermediate_credential_form.cleaned_data['decision'] == '0':
-                    notification.process_credential_complete(request,
-                                                             application)
-                    return render(request, 'console/process_credential_complete.html',
-                        {'application':application})
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.PersonalCredentialForm(
-                    responder=request.user, instance=application)
-            else:
-                messages.error(request, 'Invalid review. See form below.')
-        elif 'approve_training_all' in request.POST:
-            if request.POST['decision'] == '0':
-                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
-            else:
-                data_copy = request.POST.copy()
-                valid_fields = set(request.POST.keys())
-                valid_fields.difference_update({'csrfmiddlewaretoken',
-                                                'responder_comments',
-                                                'approve_training_all'})
-                for field in valid_fields:
-                    data_copy[field] = '1'
-                intermediate_credential_form = forms.TrainingCredentialForm(
                     responder=request.user, data=data_copy, instance=application)
                 intermediate_credential_form.save()
                 page_title = title_dict[application.credential_review.status]
@@ -1311,7 +1312,7 @@ def process_credential_application(request, application_slug):
                                                subject=subject, body=body)
                 messages.success(request, 'The reference has been contacted.')
         elif 'skip_reference' in request.POST:
-            application.update_review_status(60)
+            application.update_review_status(50)
             application.save()
         elif 'process_application' in request.POST:
             process_credential_form = forms.ProcessCredentialReviewForm(
@@ -1348,22 +1349,17 @@ def credential_processing(request):
     initial_2 = Q(credential_review__status=10)
     initial_applications = applications.filter(
         initial_1 | initial_2).order_by('application_datetime')
-    # Awaiting training check
-    training_applications = applications.filter(
-        credential_review__status=20).order_by('application_datetime')
     # Awaiting ID check
-    personal_applications = applications.filter(
-        credential_review__status=30).order_by('application_datetime')
+    personal_applications = applications.filter(credential_review__status=20).order_by('application_datetime')
     # Awaiting reference check
-    reference_applications = applications.filter(
-        credential_review__status=40).order_by('application_datetime')
+    reference_applications = applications.filter(credential_review__status=30).order_by('application_datetime')
     # Awaiting reference response
-    response_applications = applications.filter(
-        credential_review__status=50).order_by('-reference_response',
-                                               'application_datetime')
+    response_applications = applications.filter(credential_review__status=40).order_by(
+        '-reference_response', 'application_datetime'
+    )
     # Awaiting final review
     final_applications = applications.filter(
-        credential_review__status=60).order_by('application_datetime')
+        credential_review__status=50).order_by('application_datetime')
 
     if request.method == 'POST':
         if 'reset_application' in request.POST:
@@ -1377,7 +1373,6 @@ def credential_processing(request):
     return render(request, 'console/credential_processing.html',
         {'applications': applications,
         'initial_applications': initial_applications,
-        'training_applications': training_applications,
         'personal_applications': personal_applications,
         'reference_applications': reference_applications,
         'response_applications': response_applications,
@@ -1534,8 +1529,160 @@ def credentialed_user_info(request, username):
         application = CredentialApplication.objects.get(user=c_user, status=2)
     except (User.DoesNotExist, CredentialApplication.DoesNotExist):
         raise Http404()
-    return render(request, 'console/credentialed_user_info.html',
-        {'c_user':c_user, 'application':application})
+    return render(request, 'console/credentialed_user_info.html', {'c_user': c_user, 'application': application})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def training_list(request, status):
+    """
+    List all training applications.
+    """
+    trainings = Training.objects.select_related('user__profile', 'training_type').order_by('application_datetime')
+    review_training = trainings.get_review()
+    valid_training = trainings.get_valid()
+    expired_training = trainings.get_expired()
+    rejected_training = trainings.get_rejected()
+
+    training_by_status = {
+        'review': review_training,
+        'valid': valid_training,
+        'expired': expired_training,
+        'rejected': rejected_training,
+    }
+
+    display_training = training_by_status[status]
+
+    if request.method == 'POST':
+        if "search" in request.POST:
+            display_training = search_training_applications(request, display_training)
+            template_by_status = {
+                'review': 'console/review_training_table.html',
+                'valid': 'console/valid_training_table.html',
+                'expired': 'console/expired_training_table.html',
+                'rejected': 'console/rejected_training_table.html', }
+            return render(request, template_by_status[status], {'trainings': display_training, 'status': status})
+
+    return render(
+        request,
+        'console/training_list.html',
+        {
+            'trainings': paginate(request, display_training, 50),
+            'status': status,
+            'review_count': review_training.count(),
+            'valid_count': valid_training.count(),
+            'expired_count': expired_training.count(),
+            'rejected_count': rejected_training.count(),
+            'training_nav': True,
+        },
+    )
+
+
+def search_training_applications(request, display_training):
+    """
+    Search training applications.
+
+    Args:
+        request (obj): Django WSGIRequest object.
+        display_training (obj): Training queryset.
+    """
+    search_field = request.POST['search']
+    if search_field:
+        display_training = display_training.filter(Q(user__username__icontains=search_field)
+                                                   | Q(user__profile__first_names__icontains=search_field)
+                                                   | Q(user__profile__last_name__icontains=search_field)
+                                                   | Q(user__email__icontains=search_field))
+
+    # prevent formatting issue if search field is empty
+    if len(search_field) == 0:
+        display_training = paginate(request, display_training, 50)
+
+    return display_training
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def training_proccess(request, pk):
+    training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
+
+    TrainingQuestionFormSet = modelformset_factory(
+        model=TrainingQuestion, form=forms.TrainingQuestionForm, formset=forms.TrainingQuestionFormSet, extra=0
+    )
+
+    if request.method == 'POST':
+        if 'accept' in request.POST:
+            questions_formset = TrainingQuestionFormSet(data=request.POST, queryset=training.training_questions.all())
+
+            if questions_formset.is_valid():
+                questions_formset.save()
+
+                training.accept(reviewer=request.user)
+
+                messages.success(request, 'The training was approved.')
+                notification.process_training_complete(request, training)
+                return redirect('training_list', status='review')
+
+            training_review_form = forms.TrainingReviewForm()
+
+        elif 'accept_all' in request.POST:
+
+            # populate all answer fields with True
+            data_copy = request.POST.copy()
+            answer_fields = [key for key, val in data_copy.items() if "answer" in key]
+
+            for field in answer_fields:
+                data_copy[field] = 'True'
+
+            questions_formset = TrainingQuestionFormSet(data=data_copy, queryset=training.training_questions.all())
+
+            if questions_formset.is_valid():
+                questions_formset.save()
+
+                training.accept(reviewer=request.user)
+
+                messages.success(request, 'The training was approved.')
+                notification.process_training_complete(request, training)
+                return redirect('training_list', status='review')
+
+            training_review_form = forms.TrainingReviewForm()
+
+        elif 'reject' in request.POST:
+            training_review_form = forms.TrainingReviewForm(data=request.POST)
+
+            if training_review_form.is_valid():
+                training.reject(
+                    reviewer=request.user, reviewer_comments=training_review_form.cleaned_data['reviewer_comments']
+                )
+
+                messages.success(request, 'The training was not approved.')
+                notification.process_training_complete(request, training)
+                return redirect('training_list', status='review')
+
+            questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
+    else:
+        questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
+        training_review_form = forms.TrainingReviewForm()
+
+    training_info_from_pdf = services.get_info_from_certificate_pdf(training)
+
+    return render(
+        request,
+        'console/training_process.html',
+        {
+            'training': training,
+            'questions_formset': questions_formset,
+            'training_review_form': training_review_form,
+            'parsed_training_pdf': training_info_from_pdf,
+        },
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def training_detail(request, pk):
+    training = get_object_or_404(Training.objects.prefetch_related('training_type'), pk=pk)
+
+    return render(request, 'console/training_detail.html', {'training': training})
 
 
 @login_required
@@ -1546,7 +1693,7 @@ def news_console(request):
     """
     news_items = News.objects.all().order_by('-publish_datetime')
     news_items = paginate(request, news_items, 50)
-    return render(request, 'console/news_console.html', 
+    return render(request, 'console/news_console.html',
         {'news_items': news_items, 'news_nav': True})
 
 
@@ -1875,9 +2022,16 @@ def download_credentialed_users(request):
     # Create the HttpResponse object with the appropriate CSV header.
     project_access = DUASignature.objects.filter(project__access_policy=AccessPolicy.CREDENTIALED)
     added = []
-    dua_info_csv = [['First name', 'Last name', 'E-mail', 'Institution', 'Country', 
-    'MIMIC approval date', 'eICU approval date', 
-    'General research area for which the data will be used']]
+    dua_info_csv = [[
+        'First name',
+        'Last name',
+        'E-mail',
+        'Institution',
+        'Country',
+        'MIMIC approval date',
+        'eICU approval date',
+        'General research area for which the data will be used'
+    ]]
     for person in project_access:
         application = person.user.credential_applications.last()
         mimic_signature_date = eicu_signature_date = None
@@ -1925,15 +2079,16 @@ def download_credentialed_users(request):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def project_access(request):
+def project_access_logs(request):
     """
     List all the people that has access to credentialed databases
     """
     c_projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CREDENTIALED).annotate(
         member_count=Count('duasignature'))
 
-    return render(request, 'console/project_access.html',
-        {'c_projects': c_projects, 'project_access_nav': True})
+    return render(request, 'console/project_access.html', {
+        'c_projects': c_projects, 'project_access_logs_nav': True
+    })
 
 
 @login_required
@@ -1944,7 +2099,281 @@ def project_access_manage(request, pid):
 
     return render(request, 'console/project_access_manage.html', {
         'c_project': c_project, 'project_members': c_project.duasignature_set.all(),
-        'project_access_nav': True})
+        'project_access_logs_nav': True})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_requests_list(request):
+    projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW).annotate(
+        access_requests_count=Count('data_access_requests')
+    ).order_by('-title')
+
+    q = request.GET.get('q')
+    if q:
+        projects = projects.filter(title__icontains=q)
+
+    projects = paginate(request, projects, 50)
+
+    return render(request, 'console/project_access_requests_list.html', {
+        'access_requests_nav': True, 'projects': projects
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_requests_detail(request, pk):
+    project = get_object_or_404(PublishedProject, access_policy=AccessPolicy.CONTRIBUTOR_REVIEW, pk=pk)
+    access_requests = DataAccessRequest.objects.filter(project=project)
+
+    q = request.GET.get('q')
+    if q:
+        access_requests = access_requests.filter(requester__username__icontains=q)
+
+    access_requests = access_requests.order_by('-request_datetime')
+    access_requests = paginate(request, access_requests, 50)
+
+    return render(request, 'console/project_access_requests_detail.html', {
+        'access_requests_nav': True, 'project': project, 'access_requests': access_requests
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def access_request(request, pk):
+    access_request = get_object_or_404(DataAccessRequest, pk=pk)
+
+    return render(request, 'console/access_request.html', {'access_request': access_request})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_logs(request):
+    c_projects = PublishedProject.objects.annotate(
+        log_count=Count('logs', filter=Q(logs__category=LogCategory.ACCESS)))
+
+    access_policy = request.GET.get('accessPolicy')
+    if access_policy:
+        c_projects = c_projects.filter(access_policy=access_policy)
+
+    q = request.GET.get('q')
+    if q is not None:
+        c_projects = c_projects.filter(title__icontains=q)
+
+    c_projects = paginate(request, c_projects, 50)
+
+    return render(request, 'console/project_access_logs.html', {
+        'c_projects': c_projects, 'project_access_logs_nav': True,
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def project_access_logs_detail(request, pid):
+    c_project = get_object_or_404(PublishedProject, id=pid)
+    logs = (
+        c_project.logs.filter(category=LogCategory.ACCESS)
+        .order_by("-creation_datetime")
+        .select_related("user__profile")
+        .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
+    )
+
+    user = request.GET.get('user')
+    if user:
+        logs = logs.filter(user=user)
+
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+    if start_date and end_date:
+        logs = logs.filter(creation_datetime__gte=start_date, creation_datetime__lte=end_date)
+
+    logs = paginate(request, logs, 50)
+
+    user_filter_form = UserFilterForm()
+
+    return render(request, 'console/project_access_logs_detail.html', {
+        'c_project': c_project, 'logs': logs,
+        'project_access_logs_nav': True, 'user_filter_form': user_filter_form
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def download_project_accesses(request, pk):
+    headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Count']
+
+    data = (
+        AccessLog.objects.filter(
+            content_type=ContentType.objects.get_for_model(PublishedProject), object_id=pk
+        )
+        .select_related("user__profile")
+        .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="project_{pk}_accesses.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for row in data:
+        writer.writerow([
+            row.user.get_full_name(),
+            row.user.email,
+            row.creation_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            row.last_access_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            str(row.duration).split('.')[0],
+            row.count
+        ])
+
+    return response
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def user_access_logs(request):
+    users = (
+        User.objects.filter(is_active=True)
+        .select_related("profile")
+        .annotate(logs_count=Count("logs", filter=Q(logs__category=LogCategory.ACCESS)))
+    )
+
+    q = request.GET.get('q')
+    if q:
+        for query in q.split('+'):
+            users = users.filter(
+                Q(username__icontains=query)
+                | Q(profile__first_names__icontains=query)
+                | Q(profile__last_name__icontains=query)
+            )
+
+    users = paginate(request, users, 50)
+
+    return render(request, 'console/user_access_logs.html', {
+        'users': users, 'user_access_logs_nav': True,
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def user_access_logs_detail(request, pid):
+    user = get_object_or_404(User, id=pid, is_active=True)
+    logs = (
+        user.logs.filter(category=LogCategory.ACCESS)
+        .order_by("-creation_datetime")
+        .prefetch_related("project")
+        .annotate(duration=F("last_access_datetime") - F("creation_datetime"))
+    )
+
+    project = request.GET.get('project')
+    if project:
+        logs = logs.filter(object_id=project, content_type=ContentType.objects.get_for_model(PublishedProject))
+
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+    if start_date and end_date:
+        logs = logs.filter(creation_datetime__gte=start_date, creation_datetime__lte=end_date)
+
+    logs = paginate(request, logs, 50)
+
+    project_filter_form = ProjectFilterForm()
+
+    return render(request, 'console/user_access_logs_detail.html', {
+        'user': user, 'logs': logs, 'user_access_logs_nav': True,
+        'project_filter_form': project_filter_form
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def download_user_accesses(request, pk):
+    headers = ['Project name', 'First access', 'Last access', 'Duration', 'Count']
+
+    data = (
+        AccessLog.objects.filter(user=pk).select_related('user__profile')
+        .annotate(duration=F('last_access_datetime') - F('creation_datetime'))
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="user_{pk}_logs.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for row in data:
+        writer.writerow([
+            row.project,
+            row.creation_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            row.last_access_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            str(row.duration).split('.')[0],
+            row.count
+        ])
+
+    return response
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def gcp_signed_urls_logs(request):
+    projects = ActiveProject.objects.annotate(
+        log_count=Count('logs', filter=Q(logs__category=LogCategory.GCP)))
+
+    q = request.GET.get('q')
+    if q:
+        projects = projects.filter(title__icontains=q)
+
+    projects = paginate(request, projects, 50)
+
+    return render(request, 'console/gcp_logs.html', {
+        'projects': projects, 'gcp_logs_nav': True,
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def gcp_signed_urls_logs_detail(request, pk):
+    project = get_object_or_404(ActiveProject, pk=pk)
+    logs = project.logs.order_by('-creation_datetime').prefetch_related('project').annotate(
+        duration=F('last_access_datetime') - F('creation_datetime'))
+
+    logs = paginate(request, logs, 50)
+
+    return render(request, 'console/gcp_logs_detail.html', {
+        'project': project, 'logs': logs,
+        'gcp_logs_nav': True,
+    })
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def download_signed_urls_logs(request, pk):
+    headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Data', 'Count']
+
+    data = GCPLog.objects.filter(
+        content_type=ContentType.objects.get_for_model(ActiveProject),
+        object_id=pk
+    ).select_related('user__profile').annotate(
+        duration=F('last_access_datetime') - F('creation_datetime')
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="project_{pk}_signed_urls.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for row in data:
+        writer.writerow([
+            row.user.get_full_name(),
+            row.user.email,
+            row.creation_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            row.last_access_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+            str(row.duration).split('.')[0],
+            row.data,
+            row.count
+        ])
+
+    return response
 
 
 class UserAutocomplete(autocomplete.Select2QuerySetView):
@@ -1956,9 +2385,29 @@ class UserAutocomplete(autocomplete.Select2QuerySetView):
         qs = User.objects.filter(is_active=True)
 
         if self.q:
-            qs = qs.filter(username__icontains=self.q)
+            for query in self.q.split('+'):
+                qs = qs.filter(
+                    Q(username__icontains=query)
+                    | Q(profile__first_names__icontains=query)
+                    | Q(profile__last_name__icontains=query)
+                )
 
         return qs
+
+
+class ProjectAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        """
+        Get all active users with usernames that match the request string,
+        excluding the user who is doing the search.
+        """
+        qs = PublishedProject.objects.all()
+
+        if self.q:
+            qs = qs.filter(title__icontains=self.q)
+
+        return qs
+
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
@@ -1992,14 +2441,16 @@ def known_references(request):
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def static_pages(request):
-    return render(request, 'console/static_pages.html', {'pages': Page.choices(), 'static_pages_nav': True})
+    pages = StaticPage.objects.all()
+    return render(request, 'console/static_pages.html', {'pages': pages, 'static_pages_nav': True})
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def static_page_sections(request, page):
+def static_page_sections(request, page_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
-        section_form = forms.SectionForm(data=request.POST, page=Page(page))
+        section_form = forms.SectionForm(data=request.POST, static_page=static_page)
         if section_form.is_valid():
             section_form.save()
 
@@ -2013,42 +2464,305 @@ def static_page_sections(request, page):
             section = get_object_or_404(Section, pk=down)
             section.move_down()
 
-    section_form = forms.SectionForm(page=Page(page))
+    section_form = forms.SectionForm(static_page=static_page)
 
-    sections = Section.objects.filter(page=Page(page))
+    sections = Section.objects.filter(static_page=static_page)
 
     return render(
         request,
         'console/static_page_sections.html',
-        {'sections': sections, 'page': page, 'section_form': section_form, 'static_pages_nav': True},
+        {'sections': sections, 'page': static_page, 'section_form': section_form, 'static_pages_nav': True},
     )
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def static_page_sections_delete(request, page, pk):
+def static_page_sections_delete(request, page_pk, section_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
-        section = get_object_or_404(Section, page=Page(page), pk=pk)
+        section = get_object_or_404(Section, static_page=static_page, pk=section_pk)
         section.delete()
-        Section.objects.filter(page=page, order__gt=section.order).update(order=F('order') - 1)
+        Section.objects.filter(static_page=static_page, order__gt=section.order).update(order=F('order') - 1)
 
-    return redirect('static_page_sections', page=page)
+    return redirect('static_page_sections', page_pk=static_page.pk)
 
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def static_page_sections_edit(request, page, pk):
-    section = get_object_or_404(Section, page=Page(page), pk=pk)
+def static_page_sections_edit(request, page_pk, section_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
+    section = get_object_or_404(Section, static_page=static_page, pk=section_pk)
     if request.method == 'POST':
-        section_form = forms.SectionForm(instance=section, data=request.POST, page=Page(page))
+        section_form = forms.SectionForm(instance=section, data=request.POST, static_page=static_page)
         if section_form.is_valid():
             section_form.save()
-            return redirect('static_page_sections', page=page)
+            return redirect('static_page_sections', page_pk=static_page.pk)
     else:
-        section_form = forms.SectionForm(instance=section, page=Page(page))
+        section_form = forms.SectionForm(instance=section, static_page=static_page)
 
     return render(
         request,
         'console/static_page_sections_edit.html',
-        {'section_form': section_form, 'static_pages_nav': True, 'page': page, 'section': section},
+        {'section_form': section_form, 'static_pages_nav': True, 'page': static_page, 'section': section},
     )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_list(request):
+    if request.method == 'POST':
+        license_form = forms.LicenseForm(data=request.POST)
+        if license_form.is_valid():
+            license_form.save()
+            license_form = forms.LicenseForm()
+            messages.success(request, "The license has been created.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        license_form = forms.LicenseForm()
+
+    licenses = License.objects.prefetch_related('project_types').order_by('access_policy', 'name', '-version')
+    licenses = paginate(request, licenses, 20)
+
+    return render(
+        request,
+        'console/license_list.html',
+        {'license_nav': True, 'licenses': licenses, 'license_form': license_form}
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_detail(request, pk):
+    license = get_object_or_404(License, pk=pk)
+
+    if request.method == 'POST':
+        license_form = forms.LicenseForm(data=request.POST, instance=license)
+        if license_form.is_valid():
+            license_form.save()
+            messages.success(request, "The license has been updated.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+
+    else:
+        license_form = forms.LicenseForm(instance=license)
+
+    return render(
+        request,
+        'console/license_detail.html',
+        {'license_nav': True, 'license': license, 'license_form': license_form}
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_delete(request, pk):
+    if request.method == 'POST':
+        license = get_object_or_404(License, pk=pk)
+        license.delete()
+
+    return redirect('license_list')
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def license_new_version(request, pk):
+    license = get_object_or_404(License, pk=pk)
+
+    if request.method == 'POST':
+        license_form = forms.LicenseForm(data=request.POST)
+        if license_form.is_valid():
+            license_form.save()
+            messages.success(request, "The license has been created.")
+            return redirect("license_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        license_data = model_to_dict(license)
+        license_data['id'] = None
+        license_data['version'] = None
+        license_form = forms.LicenseForm(initial=license_data)
+
+    return render(
+        request,
+        'console/license_new_version.html',
+        {'license_nav': True, 'license': license, 'license_form': license_form}
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_list(request):
+    if request.method == 'POST':
+        dua_form = forms.DUAForm(data=request.POST)
+        if dua_form.is_valid():
+            dua_form.save()
+            dua_form = forms.DUAForm()
+            messages.success(request, "The DUA has been created.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        dua_form = forms.DUAForm()
+
+    duas = DUA.objects.order_by('access_policy', 'name')
+    duas = paginate(request, duas, 20)
+
+    return render(request, 'console/dua_list.html', {'dua_nav': True, 'duas': duas, 'dua_form': dua_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_detail(request, pk):
+    dua = get_object_or_404(DUA, pk=pk)
+
+    if request.method == 'POST':
+        dua_form = forms.DUAForm(data=request.POST, instance=dua)
+        if dua_form.is_valid():
+            dua_form.save()
+            messages.success(request, "The dua has been created.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+
+    else:
+        dua_form = forms.DUAForm(instance=dua)
+
+    return render(request, 'console/dua_detail.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_delete(request, pk):
+    if request.method == 'POST':
+        dua = get_object_or_404(DUA, pk=pk)
+        dua.delete()
+
+    return redirect("dua_list")
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def dua_new_version(request, pk):
+    dua = get_object_or_404(DUA, pk=pk)
+
+    if request.method == 'POST':
+        dua_form = forms.DUAForm(data=request.POST)
+        if dua_form.is_valid():
+            dua_form.save()
+            messages.success(request, "The DUA has been created.")
+            return redirect("dua_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        dua_data = model_to_dict(dua)
+        dua_data['id'] = None
+        dua_data['version'] = None
+        dua_form = forms.DUAForm(initial=dua_data)
+
+    return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_list(request):
+    if request.method == 'POST':
+        code_of_conduct_form = forms.CodeOfConductForm(data=request.POST)
+        if code_of_conduct_form.is_valid():
+            code_of_conduct_form.save()
+            code_of_conduct_form = forms.CodeOfConductForm()
+            messages.success(request, "The Code of Conduct has been created.")
+            return redirect("code_of_conduct_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        code_of_conduct_form = forms.CodeOfConductForm()
+    code_of_conducts = CodeOfConduct.objects.order_by('name', 'version')
+    code_of_conducts = paginate(request, code_of_conducts, 20)
+
+    return render(
+        request,
+        'console/code_of_conduct_list.html',
+        {
+            'code_of_conduct_nav': True,
+            'code_of_conducts': code_of_conducts,
+            'code_of_conduct_form': code_of_conduct_form,
+        },
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_detail(request, pk):
+    code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
+    if request.method == 'POST':
+        code_of_conduct_form = forms.CodeOfConductForm(data=request.POST, instance=code_of_conduct)
+        if code_of_conduct_form.is_valid():
+            code_of_conduct_form.save()
+            messages.success(request, "The Code of Conduct has been updated.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+
+    else:
+        code_of_conduct_form = forms.CodeOfConductForm(instance=code_of_conduct)
+
+    return render(
+        request,
+        'console/code_of_conduct_detail.html',
+        {
+            'code_of_conduct_nav': True,
+            'code_of_conduct': code_of_conduct,
+            'code_of_conduct_form': code_of_conduct_form,
+        },
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_delete(request, pk):
+    if request.method == 'POST':
+        code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
+        code_of_conduct.delete()
+
+    return redirect("code_of_conduct_list")
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_new_version(request, pk):
+    code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
+    if request.method == 'POST':
+        code_of_conduct_form = forms.CodeOfConductForm(data=request.POST)
+        if code_of_conduct_form.is_valid():
+            code_of_conduct_form.save()
+            messages.success(request, "The Code of Conduct has been created.")
+            return redirect("code_of_conduct_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        code_of_conduct_data = model_to_dict(code_of_conduct)
+        code_of_conduct_data['id'] = None
+        code_of_conduct_data['version'] = None
+        code_of_conduct_form = forms.CodeOfConductForm(initial=code_of_conduct_data)
+
+    return render(
+        request,
+        'console/code_of_conduct_new_version.html',
+        {
+            'code_of_conduct_nav': True,
+            'code_of_conduct': code_of_conduct,
+            'code_of_conduct_form': code_of_conduct_form,
+        },
+    )
+
+
+@login_required
+@user_passes_test(is_admin, redirect_field_name='project_home')
+def code_of_conduct_activate(request, pk):
+    CodeOfConduct.objects.filter(is_active=True).update(is_active=False)
+
+    code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
+    code_of_conduct.is_active = True
+    code_of_conduct.save()
+
+    messages.success(request, f"The {code_of_conduct.name} has been activated.")
+
+    return redirect("code_of_conduct_list")

@@ -1,6 +1,10 @@
 import pdb
 import re
 
+from django.forms.widgets import RadioSelect
+
+from django.forms.widgets import RadioSelect
+
 from console.utility import generate_doi_payload, register_doi
 from dal import autocomplete
 from django import forms
@@ -13,10 +17,13 @@ from notification.models import News
 from physionet.models import Section
 from project.models import (
     ActiveProject,
+    AccessPolicy,
     Contact,
     CopyeditLog,
     DataAccess,
+    DUA,
     EditLog,
+    License,
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
@@ -24,7 +31,7 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
-from user.models import CredentialApplication, CredentialReview, User
+from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -58,9 +65,9 @@ YES_NO_UNDETERMINED = (
 )
 
 YES_NO_UNDETERMINED_REVIEW = (
-    (1, 'Yes'),
-    (0, 'No'),
-    (None, 'Undetermined')
+    (True, 'Yes'),
+    (False, 'No'),
+    (None, 'Undetermined'),
 )
 
 YES_NO_NA_UNDETERMINED = (
@@ -517,77 +524,6 @@ class InitialCredentialForm(forms.ModelForm):
         return application
 
 
-class TrainingCredentialForm(forms.ModelForm):
-    """
-    Form to respond to a credential application in the training check stage
-    """
-
-    decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
-            widget=forms.RadioSelect)
-
-    class Meta:
-        model = CredentialReview
-        fields = ('citi_report_attached', 'training_current', 'training_all_modules',
-                  'training_privacy_complete', 'training_name_match',
-                  'responder_comments', 'decision')
-
-        labels = {
-            'citi_report_attached': 'Is the CITI Completion Report attached?',
-            'training_current': 'Is the report up to date (i.e. not expired)?',
-            'training_all_modules': 'Are all of the required modules complete?',
-            'training_privacy_complete': 'Has the "Research and HIPAA Privacy Protections" module been completed?',
-            'training_name_match': 'Does the name on the training form match the name listed in the user profile?',
-            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
-            'decision': 'Decision',
-        }
-
-        widgets = {
-            'citi_report_attached': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'training_current': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'training_all_modules': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'training_privacy_complete': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'training_name_match': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'responder_comments': forms.Textarea(attrs={'rows': 5}),
-            'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
-        }
-
-    def __init__(self, responder, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # This will be used in clean
-        self.quality_assurance_fields = ('citi_report_attached', 'training_current',
-                                         'training_all_modules', 'training_privacy_complete',
-                                         'training_name_match')
-
-        self.responder = responder
-        self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
-
-    def clean(self):
-        if self.errors:
-            return
-
-        if self.cleaned_data['decision'] == '1':
-            for field in self.quality_assurance_fields:
-                if not self.cleaned_data[field]:
-                    raise forms.ValidationError(
-                        'The quality assurance fields must all pass '
-                          'before you approve the application')
-
-        if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
-            raise forms.ValidationError('If you reject, you must explain why.')
-
-    def save(self):
-        application = super().save()
-        if self.cleaned_data['decision'] == '0':
-            application.reject(self.responder)
-        elif self.cleaned_data['decision'] == '1':
-            application.update_review_status(30)
-        else:
-            raise forms.ValidationError('Application status not valid.')
-
-        return application
-
-
 class PersonalCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application in the ID check stage
@@ -661,7 +597,7 @@ class PersonalCredentialForm(forms.ModelForm):
         if self.cleaned_data['decision'] == '0':
             application.reject(self.responder)
         elif self.cleaned_data['decision'] == '1':
-            application.update_review_status(40)
+            application.update_review_status(30)
         else:
             raise forms.ValidationError('Application status not valid.')
 
@@ -736,7 +672,7 @@ class ReferenceCredentialForm(forms.ModelForm):
         if self.cleaned_data['decision'] == '0':
             application.reject(self.responder)
         elif self.cleaned_data['decision'] == '1':
-            application.update_review_status(50)
+            application.update_review_status(40)
         else:
             raise forms.ValidationError('Application status not valid.')
 
@@ -803,7 +739,7 @@ class ResponseCredentialForm(forms.ModelForm):
         if self.cleaned_data['decision'] == '0':
             application.reject(self.responder)
         elif self.cleaned_data['decision'] == '1':
-            application.update_review_status(60)
+            application.update_review_status(50)
         else:
             raise forms.ValidationError('Application status not valid.')
 
@@ -955,14 +891,115 @@ class SectionForm(forms.ModelForm):
         model = Section
         fields = ('title', 'content')
 
-    def __init__(self, page, *args, **kwargs):
+    def __init__(self, static_page, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.page = page
+        self.static_page = static_page
 
     def save(self):
         section = super().save(commit=False)
-        section.page = self.page
+        section.static_page = self.static_page
         if not section.order:
-            section.order = Section.objects.filter(page=self.page).count() + 1
+            section.order = Section.objects.filter(static_page=self.static_page).count() + 1
         section.save()
         return section
+
+
+class TrainingQuestionForm(forms.ModelForm):
+    class Meta:
+        model = TrainingQuestion
+        fields = ('answer',)
+        widgets = {'answer': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW)}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['answer'].label = self.instance.question.content
+
+
+class TrainingQuestionFormSet(forms.BaseModelFormSet):
+    def clean(self):
+        if any(self.errors):
+            return
+
+        for form in self.forms:
+            if not form.cleaned_data['answer']:
+                raise forms.ValidationError(
+                    'The quality assurance fields must all pass before you approve the application.'
+                )
+
+
+class TrainingReviewForm(forms.Form):
+    reviewer_comments = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}), required=False)
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if not self.cleaned_data['reviewer_comments']:
+            raise forms.ValidationError('If you reject, you must explain why.')
+
+
+class LicenseForm(forms.ModelForm):
+    class Meta:
+        model = License
+        fields = (
+            'name',
+            'version',
+            'slug',
+            'is_active',
+            'html_content',
+            'home_page',
+            'access_policy',
+            'project_types',
+        )
+        labels = {'html_content': 'Content'}
+
+
+class DUAForm(forms.ModelForm):
+    class Meta:
+        model = DUA
+        fields = (
+            'name',
+            'version',
+            'slug',
+            'is_active',
+            'html_content',
+            'access_template',
+            'access_policy',
+            'project_types',
+        )
+        labels = {'html_content': 'Content'}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['access_policy'].choices = AccessPolicy.choices(gte_value=AccessPolicy.RESTRICTED)
+
+
+class UserFilterForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('username',)
+        widgets = {
+            'username': autocomplete.ListSelect2(url='user-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
+        }
+
+
+class ProjectFilterForm(forms.ModelForm):
+    class Meta:
+        model = PublishedProject
+        fields = ('title',)
+        widgets = {
+            'title': autocomplete.ListSelect2(url='project-autocomplete', attrs={
+                'class': 'border', 'data-placeholder': 'Search...'
+            })
+        }
+
+
+class CodeOfConductForm(forms.ModelForm):
+    class Meta:
+        model = CodeOfConduct
+        fields = ('name', 'version', 'slug', 'html_content')
+        labels = {'html_content': 'Content'}

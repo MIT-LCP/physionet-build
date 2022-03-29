@@ -16,7 +16,7 @@ from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
 from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -38,20 +38,26 @@ from physionet.middleware.maintenance import (
     allow_post_during_maintenance,
     disallow_during_maintenance,
 )
+from physionet.models import Section
 from physionet.settings.base import StorageTypes
-from project.models import Author, DUASignature, License, PublishedProject
+from project.models import Author, DUASignature, DUA, PublishedProject
 from requests_oauthlib import OAuth2Session
 from user import forms, validators
 from user.models import (
     AssociatedEmail,
+    CodeOfConduct,
+    CodeOfConductSignature,
     CloudInformation,
     CredentialApplication,
     LegacyCredential,
     Orcid,
-    Profile,
     User,
+    Training,
+    TrainingType,
 )
 from user.userfiles import UserFiles
+from physionet.models import StaticPage
+
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +67,27 @@ class LoginView(auth_views.LoginView):
     template_name = 'user/login.html'
     authentication_form = forms.LoginForm
     redirect_authenticated_user = True
+
+
+@method_decorator(allow_post_during_maintenance, 'dispatch')
+class SSOLoginView(auth_views.LoginView):
+    template_name = 'sso/login.html'
+    authentication_form = forms.LoginForm
+    redirect_authenticated_user = True
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        try:
+            login_static_page = StaticPage.objects.get(url='/login/')
+            instruction_sections = Section.objects.filter(static_page=login_static_page)
+        except StaticPage.DoesNotExist:
+            instruction_sections = []
+
+        sso_extra_context = {
+            'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
+            'login_instruction_sections': instruction_sections,
+        }
+        return {**context, **sso_extra_context}
 
 
 class LogoutView(auth_views.LogoutView):
@@ -99,6 +126,7 @@ class PasswordChangeView(auth_views.PasswordChangeView):
 
 
 login = LoginView.as_view()
+sso_login = SSOLoginView.as_view()
 logout = LogoutView.as_view()
 reset_password_request = PasswordResetView.as_view()
 reset_password_sent = PasswordResetDoneView.as_view()
@@ -253,7 +281,7 @@ def add_email(request, add_email_form):
 
         # Send an email to the newly added email with a verification link
         uidb64 = force_text(urlsafe_base64_encode(force_bytes(associated_email.pk)))
-        subject = "PhysioNet Email Verification"
+        subject = f"{settings.SITE_NAME} Email Verification"
         context = {
             'name': user.get_full_name(),
             'domain': get_current_site(request),
@@ -611,7 +639,6 @@ def credential_application(request):
     Page to apply for credentially
     """
     user = request.user
-    license = License.objects.get(id='6')
     if user.is_credentialed or CredentialApplication.objects.filter(
             user=user, status=0):
         return redirect('edit_credentialing')
@@ -623,56 +650,107 @@ def credential_application(request):
         # We use the individual forms to render the errors in the template
         # if not all valid
         personal_form = forms.PersonalCAF(user=user, data=request.POST, prefix="application")
-        training_form = forms.TrainingCAF(data=request.POST,
-            files=request.FILES, prefix="application")
         research_form = forms.ResearchCAF(data=request.POST, prefix="application")
         reference_form = forms.ReferenceCAF(data=request.POST, prefix="application", user=user)
 
         form = forms.CredentialApplicationForm(user=user, data=request.POST,
             files=request.FILES,  prefix="application")
 
-        if (personal_form.is_valid() and training_form.is_valid()
-                and reference_form.is_valid()
-                and form.is_valid()) and research_form.is_valid():
+        if (personal_form.is_valid() and reference_form.is_valid() and form.is_valid()) and research_form.is_valid():
             application = form.save()
             credential_application_request(request, application)
+
+            CodeOfConductSignature.objects.get_or_create(
+                code_of_conduct=CodeOfConduct.objects.filter(is_active=True).first(),
+                user=request.user,
+            )
 
             return render(request, 'user/credential_application_complete.html')
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     else:
         personal_form = forms.PersonalCAF(user=user, prefix="application")
-        training_form = forms.TrainingCAF(prefix="application")
         reference_form = forms.ReferenceCAF(prefix="application", user=user)
         research_form = forms.ResearchCAF(prefix="application")
         form = None
 
-    return render(request, 'user/credential_application.html', {'form':form,
-        'personal_form':personal_form, 'training_form':training_form,
-        'reference_form':reference_form, 'license':license, 
-        'research_form':research_form})
+    code_of_conduct = CodeOfConduct.objects.filter(is_active=True).first()
+
+    return render(
+        request,
+        'user/credential_application.html',
+        {
+            'form': form,
+            'personal_form': personal_form,
+            'reference_form': reference_form,
+            'research_form': research_form,
+            'code_of_conduct': code_of_conduct,
+        },
+    )
 
 
 @login_required
-def training_report(request, application_slug, attach=True):
+def edit_training(request):
+    if request.method == 'POST':
+        training_form = forms.TrainingForm(
+            user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type')
+        )
+        if training_form.is_valid():
+            training_form.save()
+            messages.success(request, 'The training has been submitted successfully.')
+            training_form = forms.TrainingForm(user=request.user)
+        else:
+            messages.error(request, 'Invalid submission. Check the errors below.')
+
+    else:
+        training_type = request.GET.get('trainingType')
+        if training_type:
+            training_form = forms.TrainingForm(user=request.user, training_type=training_type)
+        else:
+            training_form = forms.TrainingForm(user=request.user)
+
+    training = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
+    training_by_status = {
+        'under review': training.get_review(),
+        'active': training.get_valid(),
+        'expired': training.get_expired(),
+        'rejected': training.get_rejected(),
+    }
+
+    return render(
+        request,
+        'user/edit_training.html',
+        {'training_form': training_form, 'training_by_status': training_by_status}
+    )
+
+
+@login_required
+def edit_training_detail(request, training_id):
+    training = get_object_or_404(Training, pk=training_id, user=request.user)
+
+    if request.method == 'POST':
+        if request.POST.get('withdraw') is not None and not training.is_withdrawn():
+            training.withdraw()
+            messages.success(request, 'The training has been withdrawn.')
+
+    return render(request, 'user/edit_training_detail.html', {'training': training})
+
+
+@login_required
+def training_report(request, training_id):
     """
     Serve a training report file
     """
-    try:
-        application = CredentialApplication.objects.get(slug=application_slug)
-    except ObjectDoesNotExist:
-        raise Http404()
+    trainings = Training.objects.all()
+    if not request.user.is_admin:
+        trainings = trainings.filter(user=request.user)
 
-    if request.user == application.user or request.user.is_admin:
-        try:
-            if settings.STORAGE_TYPE == StorageTypes.GCP:
-                return redirect(application.training_completion_report.url)
-            return utility.serve_file(application.training_completion_report.path,
-                                      attach=attach)
-        except FileNotFoundError:
-            raise Http404()
+    training = get_object_or_404(trainings, id=training_id)
 
-    raise PermissionDenied()
+    if settings.STORAGE_TYPE == StorageTypes.GCP:
+        return redirect(training.completion_report.url)
+
+    return utility.serve_file(training.completion_report.path, attach=False)
 
 
 @login_required
@@ -708,7 +786,7 @@ def credential_reference(request, application_slug):
             # their application.
             if application.reference_response == 1:
                 process_credential_complete(request, application,
-                                            comments=False)
+                                            include_comments=False)
 
             response = 'verifying' if application.reference_response == 2 else 'denying'
             return render(request, 'user/credential_reference_complete.html',
@@ -722,7 +800,7 @@ def credential_reference(request, application_slug):
 @login_required
 def edit_cloud(request):
     """
-    Page to add the information for cloud usage. 
+    Page to add the information for cloud usage.
     """
     user = request.user
     cloud_info = CloudInformation.objects.get_or_create(user=user)[0]
@@ -743,10 +821,18 @@ def view_agreements(request):
     View a list of signed agreements in the user profile.
     """
     user = request.user
-    signed = DUASignature.objects.filter(user=user).order_by('-sign_datetime')
+    signed_agreements = DUASignature.objects.filter(user=user).order_by('-sign_datetime')
+    signed_code_of_conducts = CodeOfConductSignature.objects.filter(user=user).order_by('-sign_datetime')
 
-    return render(request, 'user/view_agreements.html', {'user': user,
-                                                         'signed': signed})
+    return render(
+        request,
+        'user/view_agreements.html',
+        {
+            'user': user,
+            'signed_agreements': signed_agreements,
+            'signed_code_of_conducts': signed_code_of_conducts,
+        },
+    )
 
 @login_required
 def view_signed_agreement(request, id):

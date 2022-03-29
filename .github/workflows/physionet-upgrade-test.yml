@@ -12,7 +12,7 @@ jobs:
   testupgrade:
     name: Upgrade Test
     runs-on: ubuntu-latest
-    container: debian:10
+    container: debian:11
     steps:
       - name: Install dependencies
         run: |
@@ -21,6 +21,7 @@ jobs:
                   build-essential \
                   flake8 \
                   git \
+                  libffi-dev \
                   libpq-dev \
                   libseccomp-dev \
                   python3-dev \

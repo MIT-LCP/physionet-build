@@ -48,7 +48,6 @@ urlpatterns = [
     # Edit a metadata item and reload the formset section
     path('<project_slug>/content/edit-item/', views.edit_content_item, name='edit_content_item'),
     path('<project_slug>/access/', views.project_access, name='project_access'),
-    path('<project_slug>/access/load-license/', views.load_license, name='load_license'),
     path('<project_slug>/discovery/', views.project_discovery, name='project_discovery'),
     path('<project_slug>/files/', views.project_files, name='project_files'),
     path('<project_slug>/files/<path:subdir>/', views.project_files, name='project_files'),
@@ -68,11 +67,17 @@ urlpatterns = [
     ),
     path('<project_slug>/preview-files-panel/', views.preview_files_panel, name='preview_files_panel'),
     path('<project_slug>/view-license/', views.project_license_preview, name='project_license_preview'),
+    path('<project_slug>/view-dua/', views.project_dua_preview, name='project_dua_preview'),
     path('<project_slug>/integrity/', views.check_integrity, name='check_integrity'),
     path('<project_slug>/submission/', views.project_submission, name='project_submission'),
     path('<project_slug>/ethics/', views.project_ethics, name='project_ethics'),
     path('<project_slug>/ethics/edit-document/', views.edit_ethics, name='edit_ethics'),
     path('ethics/<path:file_name>/', views.serve_document, name='serve_document'),
+    path(
+        '<project_slug>/view-required-trainings/',
+        views.project_required_trainings_preview,
+        name='project_required_trainings_preview',
+    ),
     path(
         '<project_slug>/<version>/request_access/<int:access_type>',
         views.published_project_request_access,

@@ -8,7 +8,7 @@ IMAGE=physionet-test.img
 IMAGE_SIZE=20G
 IMAGE_FORMAT=qcow2
 
-INSTALLER_IMAGE=$(ls -v debian-10.*.*-amd64-netinst.iso | tail -1)
+INSTALLER_IMAGE=$(ls -v debian-11.*.*-amd64-netinst.iso | tail -1)
 INSTALLER_KERNEL=install.amd/vmlinuz
 INSTALLER_INITRD=install.amd/initrd.gz
 

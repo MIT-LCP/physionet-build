@@ -12,9 +12,9 @@ Sign Data Use Agreement for {{ project }}
   <hr>
   <p>Sign the following data use agreement to access the files in <a href="{% url 'published_project' project.slug project.version %}">{{ project }}</a>.</p>
   <hr>
-  <h2>{{ license.dua_name }}</h2>
+  <h2>{{ project.dua.name }}</h2>
 
-  {{ license.dua_html_content|safe }}
+  {{ project.dua.html_content|safe }}
   <hr>
   <form method="POST">
     {% csrf_token %}

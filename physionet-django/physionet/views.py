@@ -1,19 +1,19 @@
 from collections import OrderedDict
 from os import path
 from re import fullmatch
+from urllib.parse import urljoin
 
 import notification.utility as notification
 from django.contrib import messages
 from django.conf import settings
 from django.db.models.functions import Lower
 from django.http import Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from notification.models import News
 from project.projectfiles import ProjectFiles
-from physionet.enums import Page
-from physionet.models import Section
+from physionet.models import Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.models import AccessPolicy, License, ProjectType, PublishedProject
+from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
 from user.forms import ContactForm
 
 
@@ -46,56 +46,22 @@ def ping(request):
     return HttpResponse(status=200)
 
 
-def about_publish(request):
-    """
-    Instructions for authors
-    """
-    licenses = OrderedDict()
-    descriptions = OrderedDict()
-    for resource_type in ProjectType.objects.all():
-        descriptions[resource_type.name] = resource_type.description
-        licenses[resource_type.name] = License.objects.filter(resource_types__contains=str(resource_type.id)).order_by(
-            'access_policy'
-        )
-
-    sections = Section.objects.filter(page=Page.SHARE)
-
-    return render(
-        request, 'about/publish.html', {'licenses': licenses, 'descriptions': descriptions, 'sections': sections}
-    )
-
-
 def license_content(request, license_slug):
     """
     Content for an individual license
     """
-    try:
-        license = License.objects.get(slug=license_slug)
-    except License.DoesNotExist:
-        raise Http404()
+    license = get_object_or_404(License, slug=license_slug)
 
     return render(request, 'about/license_content.html', {'license': license})
 
 
-@allow_post_during_maintenance
-def about(request):
+def dua_content(request, dua_slug):
     """
-    About the site content.
+    Content for an individual license
     """
-    if request.method == 'POST':
-        contact_form = ContactForm(request.POST)
-        if contact_form.is_valid():
-            notification.send_contact_message(contact_form)
-            messages.success(request, 'Your message has been sent.')
-            contact_form = ContactForm()
-        else:
-            messages.error(request, 'Invalid submission. See form below.')
-    else:
-        contact_form = ContactForm()
+    dua = get_object_or_404(DUA, slug=dua_slug)
 
-    sections = Section.objects.filter(page=Page.ABOUT)
-
-    return render(request, 'about/about.html', {'contact_form': contact_form, 'sections': sections})
+    return render(request, 'about/dua_content.html', {'dua': dua})
 
 
 def timeline(request):
@@ -235,6 +201,21 @@ def community_challenge(request):
 
     return render(request, 'about/community_challenge_index.html', {'community_challenges': community_challenges})
 
+
+def static_view(request, static_url=None):
+    """
+    checks for a URL starting with /about/ in StaticPage and attempts to render the requested page
+    """
+    if static_url:
+        about_url = urljoin('/about/', static_url + '/')
+        static_page = get_object_or_404(StaticPage, url=about_url)
+    else:
+        static_page = get_object_or_404(StaticPage, url='/about/')
+
+    sections = Section.objects.filter(static_page=static_page)
+    params = {'static_page': static_page, 'sections': sections}
+
+    return render(request, 'about/static_template.html', params)
 
 def tutorial_overview(request):
     """

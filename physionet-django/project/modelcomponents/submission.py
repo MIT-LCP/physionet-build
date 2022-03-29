@@ -2,6 +2,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from project.quota import DemoQuotaManager
+from django.conf import settings
 
 
 class EditLog(models.Model):
@@ -59,7 +60,7 @@ class EditLog(models.Model):
 
     COMMON_LABELS = {
         'reusable': 'Does the project include everything needed for reuse by the community?',
-        'pn_suitable': 'Is the content suitable for PhysioNet?',
+        'pn_suitable': f'Is the content suitable for {settings.SITE_NAME}?',
         'editor_comments': 'Comments to authors',
         'no_phi': 'Is the project free of protected health information?',
         'data_machine_readable': 'Are all files machine-readable?',
@@ -214,6 +215,7 @@ class SubmissionInfo(models.Model):
 
     edit_logs = GenericRelation('project.EditLog')
     copyedit_logs = GenericRelation('project.CopyeditLog')
+    logs = GenericRelation('project.Log')
 
     # For ordering projects with multiple versions
     version_order = models.PositiveSmallIntegerField(default=0)

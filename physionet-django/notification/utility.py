@@ -1,16 +1,14 @@
 """
 Module for generating notifications
 """
-from urllib import parse
 from email.utils import formataddr
+from urllib import parse
 
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.mail import EmailMessage, send_mail, mail_admins
-from django.template import loader, defaultfilters
+from django.core.mail import EmailMessage, mail_admins, send_mail
+from django.template import defaultfilters, loader
 from django.utils import timezone
-
-
 from project.models import DataAccessRequest, License
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
@@ -121,6 +119,7 @@ def invitation_notify(request, invite_author_form, target_email):
         'footer': email_footer(),
         'SITE_NAME': settings.SITE_NAME,
         'target_email': target_email,
+        'sso_enabled': settings.ENABLE_SSO,
     }
 
     body = loader.render_to_string('notification/email/invite_author.html',
@@ -358,6 +357,7 @@ def reopen_copyedit_notify(request, project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+
 def authors_approved_notify(request, project):
     """
     Notify ...
@@ -380,6 +380,7 @@ def authors_approved_notify(request, project):
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
+
 
 def publish_notify(request, published_project):
     """
@@ -543,6 +544,7 @@ def contact_supervisor(request, application):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.reference_email], fail_silently=False)
 
+
 def mailto_reference(request, application):
     """
     Request verification from a credentialing applicant's reference
@@ -597,15 +599,13 @@ def mailto_supervisor(request, application):
 
 def mailto_process_credential_complete(request, application, comments=True):
     """
-    Notify user of credentialing decision
+    Notify user of credentialing decision. Legacy, used by KP. Could be removed.
     """
     applicant_name = application.get_full_name()
     subject = '{} clinical database access request for {}'.format(settings.SITE_NAME, applicant_name)
-    dua = License.objects.get(slug='physionet-credentialed-health-data-license-150')
     body = loader.render_to_string(
         'notification/email/mailto_contact_applicant.html', {
             'application': application,
-            'dua': dua.dua_text_content()
         }).replace('\n', '\n> ')
 
     if comments:
@@ -625,7 +625,7 @@ def mailto_process_credential_complete(request, application, comments=True):
 
 def mailto_administrators(project, error):
     """
-    Request verification from a credentialing applicant's reference
+    Notify administrators of an error with Google Cloud Storage.
     """
     subject = 'Error sending files to GCP for {}'.format(project.slug)
     body = loader.render_to_string(
@@ -639,7 +639,8 @@ def mailto_administrators(project, error):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [settings.CONTACT_EMAIL], fail_silently=False)
 
-def process_credential_complete(request, application, comments=True):
+
+def process_credential_complete(request, application, include_comments=True):
     """
     Notify user of credentialing decision
     """
@@ -651,7 +652,7 @@ def process_credential_complete(request, application, comments=True):
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
             'url_prefix': get_url_prefix(request),
-            'comments': comments,
+            'include_comments': include_comments,
             'signature': settings.EMAIL_SIGNATURE,
             'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
         })
@@ -662,8 +663,35 @@ def process_credential_complete(request, application, comments=True):
         from_email=settings.DEFAULT_FROM_EMAIL,
         to=[application.user.email],
         bcc=[settings.CREDENTIAL_EMAIL]
-        )
+    )
     message.send(fail_silently=False)
+
+
+def process_training_complete(request, training, include_comments=True):
+    """
+    Notify user of training decision
+    """
+    subject = f'Your application for {settings.SITE_NAME} training'
+    body = loader.render_to_string(
+        'notification/email/process_training_complete.html', {
+            'training': training,
+            'applicant_name': training.user.get_full_name(),
+            'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
+            'include_comments': training.reviewer_comments,
+            'signature': settings.EMAIL_SIGNATURE,
+            'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+        })
+
+    message = EmailMessage(
+        subject=subject,
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[training.user.email],
+        bcc=[settings.CREDENTIAL_EMAIL]
+    )
+    message.send(fail_silently=False)
+
 
 def credential_application_request(request, application):
     """
@@ -671,20 +699,19 @@ def credential_application_request(request, application):
     """
     applicant_name = application.get_full_name()
     subject = f'{settings.SITE_NAME} credentialing application notification'
-    dua = License.objects.get(slug='physionet-credentialed-health-data-license-150')
     body = loader.render_to_string(
         'notification/email/notify_credential_request.html', {
             'application': application,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
             'url_prefix': get_url_prefix(request),
-            'dua': dua.dua_text_content(),
             'signature': settings.EMAIL_SIGNATURE,
             'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
         })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [application.user.email], fail_silently=False)
+
 
 def notify_gcp_access_request(data_access, user, project):
     """
@@ -705,6 +732,7 @@ def notify_gcp_access_request(data_access, user, project):
         })
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
+
 
 def notify_aws_access_request(user, project, data_access, successful):
     subject = f'{settings.SITE_NAME} Amazon Web Service storage access'
@@ -855,7 +883,7 @@ def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, ta
     mail_admins(subject, body, settings.DEFAULT_FROM_EMAIL)
 
 
-def notify_account_registration(request, user, uidb64, token):
+def notify_account_registration(request, user, uidb64, token, sso=False):
     """
     Send the registration email.
     """
@@ -867,9 +895,9 @@ def notify_account_registration(request, user, uidb64, token):
         'url_prefix': get_url_prefix(request),
         'uidb64': uidb64,
         'token': token,
+        'sso': sso,
         'SITE_NAME': settings.SITE_NAME,
     }
     body = loader.render_to_string('user/email/register_email.html', context)
     # Not resend the email if there was an integrity error
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
-              [user.email], fail_silently=False)
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)

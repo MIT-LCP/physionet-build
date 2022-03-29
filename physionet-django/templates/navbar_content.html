@@ -1,4 +1,8 @@
 {% load static %}
+{% load physionet_templatetags %}
+
+{% get_static_page as static_pg %}
+
 <ul class="navbar-nav mr-auto">
 
   <li class="nav-item">
@@ -7,17 +11,15 @@
     </a>
   </li>
 
-  <li class="nav-item">
-    <a id="nav_publish" class="nav-link" href="{% url 'about_publish' %}">
-        Share
-    </a>
-  </li>
-
-  <li class="nav-item">
-    <a id="nav_about" class="nav-link" href="{% url 'about' %}">
-        About
-    </a>
-  </li>
+  {% for page in static_pg %}
+    {% if page.nav_bar %}
+      <li class="nav-item">
+        <a id="nav_{{ page.title | underscore | lower }}" class="nav-link" href="{{ page.url }}" >
+          {{ page.title }}
+        </a>
+      </li>
+    {% endif %}
+  {% endfor %}
 
   <li class="nav-item">
     <a id="nav_news" class="nav-link" href="{% url 'news' %}">
@@ -36,13 +38,13 @@
   {% endif %}
 
   <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="nav_account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
       {% if user.is_authenticated %}
-        {% if user.is_admin %}
-          <i class="fa fa-user-secret"></i> {{ user }}
-        {% else %}
-          <i class="fa fa-user"></i> {{ user }}
-        {% endif %}
+        <a class="nav-link dropdown-toggle" href="#" id="nav_account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          {% if user.is_admin %}
+            <i class="fa fa-user-secret"></i> {{ user }}
+          {% else %}
+            <i class="fa fa-user"></i> {{ user }}
+          {% endif %}
         </a>
         <div class="dropdown-menu" aria-labelledby="nav_account_dropdown">
           <a class="dropdown-item" href="{% url 'user_settings' %}">
@@ -56,17 +58,25 @@
           <a id="nav_logout" class="dropdown-item" href="{% url 'logout' %}">
             Logout
           </a>
+        </div>
       {% else %}
-        Account
-        </a>
-        <div class="dropdown-menu" aria-labelledby="nav_account_dropdown">
-        <a id="nav_login" class="dropdown-item" href="{% url 'login' %}">
-          Login
-        </a>
-        <a id="nav_register" class="dropdown-item" href="{% url 'register' %}">
-          Register
-        </a>
+          {% if sso_enabled %}
+            <a id="nav_sso" class="nav-link" href="{% url 'login' %}">
+              Single Sign-On
+            </a>
+          {% else %}
+            <a class="nav-link dropdown-toggle" href="#" id="nav_account_dropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Account
+            </a>
+            <div class="dropdown-menu" aria-labelledby="nav_account_dropdown">
+                <a id="nav_login" class="dropdown-item" href="{% url 'login' %}">
+                  Login
+                </a>
+                <a id="nav_register" class="dropdown-item" href="{% url 'register' %}">
+                  Register
+                </a>
+            </div>
+          {% endif %}
       {% endif %}
-    </div>
   </li>
 </ul>

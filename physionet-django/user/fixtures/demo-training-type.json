@@ -1,0 +1,55 @@
+[
+    {
+        "model": "user.trainingtype",
+        "pk": 1,
+        "fields": {
+            "name": "CITI Data or Specimens Only Research",
+            "description": "<p>The CITI Data or Specimens only course covers important aspects of research with human participant data. Modules covered include:</p>\n\n<ul>\n\t<li>Defining Research with Human Subjects</li>\n\t<li>Privacy and Confidentiality</li>\n\t<li>Assessing Risk</li>\n\t<li>Research with Children</li>\n\t<li>International Research</li>\n\t<li>History and Ethical Principles</li>\n\t<li>Regulations and Process</li>\n\t<li>SBR Methodologies in Biomedical Research</li>\n\t<li>Genetics Research</li>\n\t<li>Records-Based Research</li>\n\t<li>Populations in Research Requiring Additional Considerations and/or Protections</li>\n\t<li>HIPAA and Human Subjects Research</li>\n\t<li>Conflicts of Interest in Research Involving Human Subjects</li>\n</ul>",
+            "home_page": "/about/citi-course/",
+            "valid_duration": "1095 00:00:00",
+            "required_field": 0,
+            "questions": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ]
+        }
+    },
+    {
+        "model": "user.question",
+        "pk": 1,
+        "fields": {
+            "content": "Is the CITI Completion Report attached?"
+        }
+    },
+    {
+        "model": "user.question",
+        "pk": 2,
+        "fields": {
+            "content": "Is the report up to date (i.e. not expired)?"
+        }
+    },
+    {
+        "model": "user.question",
+        "pk": 3,
+        "fields": {
+            "content": "Are all of the required modules complete?"
+        }
+    },
+    {
+        "model": "user.question",
+        "pk": 4,
+        "fields": {
+            "content": "Has the \"Research and HIPAA Privacy Protections\" module been completed?"
+        }
+    },
+    {
+        "model": "user.question",
+        "pk": 5,
+        "fields": {
+            "content": "Does the name on the training form match the name listed in the user profile?"
+        }
+    }
+]
