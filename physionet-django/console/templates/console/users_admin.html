@@ -1,11 +1,11 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}PhysioNet Users{% endblock %}
+{% block title %}{{ SITE_NAME }} Users{% endblock %}
 
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-      PhysioNet Administrators <span class="badge badge-pill badge-info">{{ admin_users|length }}</span>
+      {{ SITE_NAME }} Administrators <span class="badge badge-pill badge-info">{{ admin_users|length }}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -29,7 +29,7 @@
             <td>{{ user.email }}</td>
             <td>{{ user.join_date }}</td>
             <td>{{ user.last_login|date }}</td>
-            <td>{{ user.login_time.values_list|length }} </td>
+            <td>{{ user.login_time_count }} </td>
             <td>{{ user.credential_datetime|date}}</td>
           </tr>
         {% endfor %}

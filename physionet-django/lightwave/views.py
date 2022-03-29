@@ -5,21 +5,17 @@ import subprocess
 
 from django.conf import settings
 from django.http import HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
-
-from project.models import PublishedProject
+from project.models import AccessPolicy, PublishedProject
 from project.views import project_auth
 
-
 # PUBLIC_ROOT: chroot directory for public databases
-if settings.STATIC_ROOT:
-    PUBLIC_ROOT = settings.STATIC_ROOT
-else:
-    PUBLIC_ROOT = os.path.join(settings.BASE_DIR, 'static')
+# (note that all files located within this directory are treated as public)
+PUBLIC_ROOT = os.path.dirname(PublishedProject.PUBLIC_FILE_ROOT)
 
 # PUBLIC_DBPATH: path to main database directory within PUBLIC_ROOT
-PUBLIC_DBPATH = 'published-projects'
+PUBLIC_DBPATH = os.path.basename(PublishedProject.PUBLIC_FILE_ROOT)
 
 # ORIGINAL_DBCAL_FILE: absolute path to the wfdbcal file from WFDB
 ORIGINAL_DBCAL_FILE = '/usr/local/database/wfdbcal'
@@ -131,10 +127,9 @@ def lightwave_server(request):
     """
     if request.GET.get('action', '') == 'dblist':
         projects = PublishedProject.objects.filter(
-            has_wfdb=True, access_policy=0, deprecated_files=False).order_by(
-            'title', '-version_order')
-        dblist = '\n'.join(
-            '{}/{}\t{}'.format(p.slug, p.version, p) for p in projects)
+            has_wfdb=True, access_policy=AccessPolicy.OPEN, deprecated_files=False
+        ).order_by('title', '-version_order')
+        dblist = '\n'.join('{}/{}\t{}'.format(p.slug, p.version, p) for p in projects)
     else:
         dblist = None
     return serve_lightwave(query_string=request.GET.urlencode(),
@@ -149,10 +144,18 @@ def lightwave_project_server(request, project_slug, project, **kwargs):
     """
     Request LightWAVE data for an active project.
     """
-    # Kludge: override the db parameter in the URL, since we are
-    # chrooting to project.file_root(), but the client should see each
-    # project as a distinct database for annotation purposes
-    return serve_lightwave(query_string=('db=.&' + request.GET.urlencode()),
+    # Kludge: override the db parameter in the URL.  The client
+    # expects to find the top-level directory at (for example)
+    # /SHuKI1APLrwWCqxSQnSk/, but since the server is chrooted, it is
+    # actually the server's root/working directory.  For example, if
+    # the request is '?action=rlist&db=SHuKI1APLrwWCqxSQnSk/foo', this
+    # should become '?action=rlist&db=./foo'.
+    params = request.GET.copy()
+    path = params.get('db')
+    if path is not None:
+        params['db'] = os.path.relpath(path, project_slug)
+
+    return serve_lightwave(query_string=params.urlencode(),
                            root=project.file_root(),
                            dblist=(project_slug + '\t' + project.title),
                            public=False)

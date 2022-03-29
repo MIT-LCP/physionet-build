@@ -1,0 +1,33 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}Static Pages{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Static Pages <span class="badge badge-pill badge-info">{{ pages|length }}</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th>Manage</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for page in pages %}
+            <tr>
+                <td>{{ page|title }} page</td>
+                <td><a href="{% url 'static_page_sections' page.pk %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

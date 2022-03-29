@@ -41,6 +41,18 @@ The code should dynamically reload in development, however, if there are any iss
 
 Docker-compose uses volumes to persist the database contents and data directories (media and static files). To clean up the created containers, networks and volumes stop `docker-compose up` and run `docker-compose down -v`. Do not run `docker-compose down -v` if you want to retain current database contents.
 
+## Using a debugger with Docker
+
+To access a debug prompt raised using `breakpoint()`:
+
+- Run `docker container ls` to get a list of active containers
+- Find the "CONTAINER_ID" for the dev_1 container
+- In a new shell, attach to the container with `docker attach CONTAINER_ID`
+
+The debugger should now be available in the new shell. 
+
+- To detach from the container, press "Control+p, "Control+q" in a sequence. Note: "Control+c" will stop the container dev_1. 
+
 ## Contribution Guidelines
 
 - Familiarise yourself with the [PEP8 style guidelines](https://www.python.org/dev/peps/pep-0008/).
@@ -56,6 +68,8 @@ If using docker, all of the commands should run inside the test container (`dock
 - Unit tests for each app are kept in their `test*.py` files.
 - To run the unit tests, change to the `physionet-django` directory and run `python manage.py test`.
 - To check test coverage, change to the `physionet-django` directory and run `coverage run --source='.' manage.py test`. Next run `coverage html` to generate an html output of the coverage results.
+- To check code style, change to the `physionet-django` directory and run `flake8 [PATH_TO_FILE(s)]`. As part of the `physionet-build-test` workflow, flake8 will be run only against modified code relative to `dev` or the base PR branch. 
+Note: `flake8` is only installed in the workflow. To install it for local testing, see [here](https://flake8.pycqa.org/en/latest/).
 - To run the browser tests in the `test_browser.py` files, selenium and the [firefox driver](https://github.com/mozilla/geckodriver/releases) are required. If you want to see the test run in your browser, remove the `options.set_headless(True)` lines in the `setUpClass` of the browser testing modules.
 
 ## Database Content During Development

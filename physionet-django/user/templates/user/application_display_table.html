@@ -1,6 +1,3 @@
-{# Status section #}
-<p><a href="{% url 'training_report' application.slug %}" target="_blank">Training Completion Report</a><br></p>
-
 {# Personal details #}
 
 <p>User: <a href="{% url 'public_profile' application.user.username %}">{{ application.user.username }}</a><br>
@@ -11,7 +8,7 @@ My last (family) name(s): {{ application.last_name }}<br>
 
 Suffix (e.g., Jr.), if applicable: {{ application.suffix }}<br>
 
-PhysioNet e-mail: {{ application.user.email }}<br>
+{{ SITE_NAME }} e-mail: {{ application.user.email }}<br>
 
 Researcher's Category: {{ application.get_researcher_category_display }}<br>
 

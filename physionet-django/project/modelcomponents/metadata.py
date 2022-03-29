@@ -1,16 +1,24 @@
 import os
+import uuid
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 from django.utils.html import format_html
 from html2text import html2text
-
-from project.modelcomponents.access import ACCESS_POLICIES, AnonymousAccess
+from project.modelcomponents.access import AccessPolicy, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
-from project.utility import LinkFilter, get_file_info, get_directory_info, list_items
-from project.validators import validate_version, validate_title, validate_topic
+from project.projectfiles import ProjectFiles
+from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
+from project.validators import validate_title, validate_topic, validate_version
+
+
+def get_document_path(instance, filename):
+    extension = filename.split('.')[-1]
+    name = instance.document_type.name.replace(" ", "_")
+    return f'ethics/{name}_{uuid.uuid4()}.{extension}'
 
 
 class Metadata(models.Model):
@@ -57,14 +65,11 @@ class Metadata(models.Model):
     short_description = models.CharField(max_length=250, blank=True)
 
     # Access information
-    access_policy = models.SmallIntegerField(choices=ACCESS_POLICIES,
-                                             default=0)
-    is_self_managed_access = models.BooleanField(default=False)
-    self_managed_dua = SafeHTMLField(blank=True, default='')
-    self_managed_request_template = SafeHTMLField(blank=True, default='')
+    access_policy = models.SmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN)
 
     license = models.ForeignKey('project.License', null=True,
         on_delete=models.SET_NULL)
+    dua = models.ForeignKey('project.DUA', null=True, on_delete=models.SET_NULL)
     project_home_page = models.URLField(default='', blank=True)
     parent_projects = models.ManyToManyField('project.PublishedProject',
         blank=True, related_name='derived_%(class)ss')
@@ -74,11 +79,13 @@ class Metadata(models.Model):
     core_project = models.ForeignKey('project.CoreProject',
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
+    allow_file_downloads = models.BooleanField(default=True)
+
+    ethics_statement = SafeHTMLField(blank=True)
+    required_trainings = models.ManyToManyField('user.TrainingType', related_name='%(class)s')
 
     class Meta:
         abstract = True
-
-    # TODO: Add abstractmethod is_published
 
     def author_contact_info(self, only_submitting=False):
         """
@@ -158,43 +165,7 @@ class Metadata(models.Model):
         citation_styles [dict]:
             dictionary containing the desired citation style
         """
-        citation_styles = {
-            'MLA': ('Goldberger, A., et al. "PhysioBank, '
-                    'PhysioToolkit, and PhysioNet: Components of a '
-                    'new research resource for complex physiologic '
-                    'signals. Circulation [Online]. 101 (23), pp. '
-                    'e215–e220." (2000).'),
-            'APA': ('Goldberger, A., Amaral, L., Glass, L., '
-                    'Hausdorff, J., Ivanov, P. C., Mark, R., ... & '
-                    'Stanley, H. E. (2000). PhysioBank, '
-                    'PhysioToolkit, and PhysioNet: Components of a '
-                    'new research resource for complex physiologic '
-                    'signals. Circulation [Online]. 101 (23), pp. '
-                    'e215–e220.'),
-            'Chicago': ('Goldberger, A., L. Amaral, L. Glass, J. '
-                        'Hausdorff, P. C. Ivanov, R. Mark, J. E. '
-                        'Mietus, G. B. Moody, C. K. Peng, and H. E. '
-                        'Stanley. "PhysioBank, PhysioToolkit, and '
-                        'PhysioNet: Components of a new research '
-                        'resource for complex physiologic signals. '
-                        'Circulation [Online]. 101 (23), pp. '
-                        'e215–e220." (2000).'),
-            'Harvard': ('Goldberger, A., Amaral, L., Glass, L., '
-                        'Hausdorff, J., Ivanov, P.C., Mark, R., '
-                        'Mietus, J.E., Moody, G.B., Peng, C.K. and '
-                        'Stanley, H.E., 2000. PhysioBank, '
-                        'PhysioToolkit, and PhysioNet: Components of a '
-                        'new research resource for complex physiologic '
-                        'signals. Circulation [Online]. 101 (23), pp. '
-                        'e215–e220.'),
-            'Vancouver': ('Goldberger A, Amaral L, Glass L, Hausdorff J, '
-                          'Ivanov PC, Mark R, Mietus JE, Moody GB, Peng '
-                          'CK, Stanley HE. PhysioBank, PhysioToolkit, '
-                          'and PhysioNet: Components of a new research '
-                          'resource for complex physiologic signals. '
-                          'Circulation [Online]. 101 (23), pp. '
-                          'e215–e220.')
-        }
+        citation_styles = settings.PLATFORM_WIDE_CITATION
 
         return citation_styles
 
@@ -337,36 +308,15 @@ class Metadata(models.Model):
         project directory, replacing any existing file with that name.
         """
         fname = os.path.join(self.file_root(), 'LICENSE.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-        with open(fname, 'x') as outfile:
-            outfile.write(self.license_content(fmt='text'))
+        ProjectFiles().fwrite(fname, self.license_content(fmt='text'))
 
     def get_directory_content(self, subdir=''):
         """
         Return information for displaying files and directories from
         the project's file root.
         """
-        # Get folder to inspect if valid
         inspect_dir = self.get_inspect_dir(subdir)
-        file_names, dir_names = list_items(inspect_dir)
-        display_files, display_dirs = [], []
-
-        # Files require desciptive info and download links
-        for file in file_names:
-            file_info = get_file_info(os.path.join(inspect_dir, file))
-            file_info.url = self.file_display_url(subdir=subdir, file=file)
-            file_info.raw_url = self.file_url(subdir=subdir, file=file)
-            file_info.download_url = file_info.raw_url + '?download'
-            display_files.append(file_info)
-
-        # Directories require links
-        for dir_name in dir_names:
-            dir_info = get_directory_info(os.path.join(inspect_dir, dir_name))
-            dir_info.full_subdir = os.path.join(subdir, dir_name)
-            display_dirs.append(dir_info)
-
-        return display_files, display_dirs
+        return ProjectFiles().get_project_directory_content(inspect_dir, subdir, self.file_display_url, self.file_url)
 
     def schema_org_resource_type(self):
         """
@@ -463,12 +413,13 @@ class Metadata(models.Model):
 
         shared_content = {'year': year,
                           'title': self.title,
-                          'version': self.version}
+                          'version': self.version,
+                          'platform_name': settings.SITE_NAME}
 
         if style == 'MLA':
 
             style_format = ('{author}. "{title}" (version {version}). '
-                            '<i>PhysioNet</i> ({year})')
+                            '<i>{platform_name}</i> ({year})')
 
             doi_format = (', <a href="https://doi.org/{doi}">'
                           'https://doi.org/{doi}</a>.')
@@ -486,7 +437,7 @@ class Metadata(models.Model):
         elif style == 'APA':
 
             style_format = ('{author} ({year}). {title} (version '
-                            '{version}). <i>PhysioNet</i>')
+                            '{version}). <i>{platform_name}</i>')
 
             doi_format = ('. <a href="https://doi.org/{doi}">'
                           'https://doi.org/{doi}</a>.')
@@ -511,7 +462,7 @@ class Metadata(models.Model):
         elif style == 'Chicago':
 
             style_format = ('{author}. "{title}" (version {version}). '
-                            '<i>PhysioNet</i> ({year})')
+                            '<i>{platform_name}</i> ({year})')
 
             doi_format = ('. <a href="https://doi.org/{doi}">'
                           'https://doi.org/{doi}</a>.')
@@ -528,7 +479,7 @@ class Metadata(models.Model):
         elif style == 'Harvard':
 
             style_format = ("{author} ({year}) '{title}' (version "
-                            "{version}), <i>PhysioNet</i>")
+                            "{version}), <i>{platform_name}</i>")
 
             doi_format = (". Available at: "
                           "<a href='https://doi.org/{doi}'>"
@@ -545,7 +496,7 @@ class Metadata(models.Model):
         elif style == 'Vancouver':
 
             style_format = ('{author}. {title} (version {version}). '
-                            'PhysioNet. {year}')
+                            '{platform_name}. {year}')
 
             doi_format = ('. Available from: '
                           '<a href="https://doi.org/{doi}">'
@@ -699,3 +650,22 @@ class PublishedPublication(BasePublication):
     """
     project = models.ForeignKey('project.PublishedProject',
         db_index=True, related_name='publications', on_delete=models.CASCADE)
+
+
+class DocumentType(models.Model):
+    name = models.CharField(max_length=128)
+
+    def __str__(self):
+        return self.name
+
+
+class UploadedDocument(models.Model):
+    document_type = models.ForeignKey(DocumentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+    document = models.FileField(upload_to=get_document_path)
+
+    def delete(self, *args, **kwargs):
+        self.document.delete()
+        super().delete(*args, **kwargs)

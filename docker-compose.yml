@@ -20,6 +20,7 @@ networks:
 x-env: &default-env
   DJANGO_SETTINGS_MODULE: physionet.settings.settings
   DB_HOST: db
+  GCS_HOST: gcs
   MEDIA_ROOT: /data/pn-media
   STATIC_ROOT: /data/pn-static
 
@@ -57,6 +58,8 @@ services:
       - test_data:/data:rw
     networks:
       - test
+    depends_on:
+      - gcs
   db:
     image: postgres:13-alpine
     environment:
@@ -70,3 +73,14 @@ services:
     networks:
       - dev
       - test
+    ports:
+      - 5432:5432
+
+  gcs:
+    image: fsouza/fake-gcs-server
+    command: ["-scheme", "http", "-backend", "memory"]
+    networks:
+      - dev
+      - test
+    ports:
+      - 4443:4443

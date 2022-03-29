@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}PhysioNet Users{% endblock %}
+{% block title %}{{ SITE_NAME }} Users{% endblock %}
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
@@ -15,7 +15,7 @@
 
 <div class="card mb-3">
   <div class="card-header">
-    PhysioNet Users <span class="badge badge-pill badge-info">{{ users.paginator.count }}</span>
+    {{ SITE_NAME }} Users <span class="badge badge-pill badge-info">{{ users.paginator.count }}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">

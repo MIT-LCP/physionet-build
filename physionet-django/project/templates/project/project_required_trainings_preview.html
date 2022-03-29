@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Required training for {{ project }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="text-center">{{ project }} - required training</h1>
+  <hr>
+  <br>
+  {% for training in required_trainings %}
+    <div id="training.id">
+      <h2>{{ training.name }} <a href="{{ training.home_page }}"><i class="fas fa-external-link-alt"></i></a></h2>
+      <hr>
+      {{ training.description|safe }}
+    </div>
+  {% endfor %}
+  <br>
+</div>
+{% endblock %}

@@ -4,13 +4,13 @@
 {% load project_templatetags %}
 
 {% block title %}
-PhysioNet
+{{ SITE_NAME }}
 {% endblock %}
 
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
-<link rel="alternate" type="application/rss+xml" title="PhysioNet News" href="{% url 'news_rss' %}"/>
+<link rel="alternate" type="application/rss+xml" title="{{ SITE_NAME }} News" href="{% url 'news_rss' %}"/>
 {% endblock %}
 
 {# avoid using flexbody style #}
@@ -32,9 +32,9 @@ PhysioNet
 
   <div class="main-header">
     <div class="center">
-      <h1>PhysioNet</h1>
+      <h1>{{ SITE_NAME }}</h1>
       <p>
-        The Research Resource for Complex Physiologic Signals
+        {{ STRAPLINE }}
       </p>
       <br>
       <div>

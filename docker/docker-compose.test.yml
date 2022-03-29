@@ -6,12 +6,14 @@ services:
     build: ..
     depends_on:
       - db
+      - gcs
     environment:
       DJANGO_SETTINGS_MODULE: physionet.settings.settings
       DB_HOST: db
       DB_NAME: physionet_test
       MEDIA_ROOT: /data/pn-media
       STATIC_ROOT: /data/pn-static
+      GCS_HOST: gcs
     env_file: ../.env.example
     entrypoint: ./docker/test-entrypoint.sh
   db:
@@ -20,3 +22,7 @@ services:
       POSTGRES_USER: physionet
       POSTGRES_PASSWORD: password
       POSTGRES_DB: physionet_test
+
+  gcs:
+    image: fsouza/fake-gcs-server
+    command: ["-scheme", "http", "-backend", "memory"]

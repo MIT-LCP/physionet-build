@@ -1,25 +1,35 @@
-from datetime import timedelta
-from html import unescape
 import logging
 import os
+import uuid
 import shutil
+from datetime import timedelta
+from html import unescape
 
 from background_task import background
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
+from django.db.models.fields.files import FieldFile
 from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
-
+from physionet.settings.base import StorageTypes
+from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
-from project.modelcomponents.metadata import Contact, Metadata, PublishedPublication, PublishedReference
+from project.modelcomponents.metadata import (
+    Contact,
+    Metadata,
+    PublishedPublication,
+    PublishedReference,
+    UploadedDocument,
+)
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
+from project.projectfiles import ProjectFiles
 from project.validators import validate_subdir
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -35,24 +45,26 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
     published_project.make_checksum_file()
 
-    quota = published_project.quota_manager()
-    published_project.incremental_storage_size = quota.bytes_used
-    published_project.save(update_fields=['incremental_storage_size'])
+    if settings.STORAGE_TYPE == StorageTypes.LOCAL:
+        quota = published_project.quota_manager()
+        published_project.incremental_storage_size = quota.bytes_used
+        published_project.save(update_fields=['incremental_storage_size'])
 
     published_project.set_storage_info()
 
     # Make the files read only
-    file_root = published_project.project_file_root()
-    for root, dirs, files in os.walk(file_root):
-        for f in files:
-            fline = open(os.path.join(root, f), 'rb').read(2)
-            if fline[:2] == b'#!':
-                os.chmod(os.path.join(root, f), 0o555)
-            else:
-                os.chmod(os.path.join(root, f), 0o444)
+    if settings.STORAGE_TYPE == StorageTypes.LOCAL:
+        file_root = published_project.project_file_root()
+        for root, dirs, files in os.walk(file_root):
+            for f in files:
+                fline = open(os.path.join(root, f), 'rb').read(2)
+                if fline[:2] == b'#!':
+                    os.chmod(os.path.join(root, f), 0o555)
+                else:
+                    os.chmod(os.path.join(root, f), 0o444)
 
-        for d in dirs:
-            os.chmod(os.path.join(root, d), 0o555)
+            for d in dirs:
+                os.chmod(os.path.join(root, d), 0o555)
 
     if make_zip:
         published_project.make_zip()
@@ -80,7 +92,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     MAX_SUBMITTING_PROJECTS = 10
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
     # Where all the active project files are kept
-    FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'active-projects')
+
+    FILE_ROOT = os.path.join(ProjectFiles().file_root, 'active-projects')
 
     REQUIRED_FIELDS = (
         # 0: Database
@@ -139,8 +152,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         versions of this CoreProject.  (The QuotaManager should ensure
         that the same file is not counted twice in this total.)
         """
-        current = self.quota_manager().bytes_used
+        current = ProjectFiles().active_project_storage_used(self)
         published = self.core_project.total_published_size
+
         return current + published
 
     def storage_allowance(self):
@@ -244,6 +258,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             copyedit_log.save()
         for parent_project in self.parent_projects.all():
             archived_project.parent_projects.add(parent_project)
+
+        UploadedDocument.objects.filter(
+            object_id=self.pk, content_type=ContentType.objects.get_for_model(ActiveProject)
+        ).update(object_id=archived_project.pk, content_type=ContentType.objects.get_for_model(ArchivedProject))
+
         if self.resource_type.id == 1:
             languages = self.programming_languages.all()
             if languages:
@@ -303,6 +322,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
 
+        # Ethics
+        if not self.ethics_statement:
+            self.integrity_errors.append('Missing required field: Ethics Statement')
+
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
             published_versions = [p.version for p in published_projects]
@@ -311,6 +334,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.version_clash = True
             else:
                 self.version_clash = False
+
+        if self.access_policy != AccessPolicy.OPEN and self.dua is None:
+            self.integrity_errors.append('You have to choose one of the data use agreements.')
 
         if self.integrity_errors:
             return False
@@ -433,7 +459,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Delete the project file directory
         """
-        shutil.rmtree(self.file_root())
+        ProjectFiles().rmtree(self.file_root())
 
     def publish(self, slug=None, make_zip=True, title=None):
         """
@@ -451,16 +477,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         published_project = PublishedProject(has_wfdb=self.has_wfdb())
 
         # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
-            setattr(published_project, attr, getattr(self, attr))
+        for field in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
+            setattr(published_project, field, getattr(self, field))
 
         published_project.slug = slug or self.slug
 
         # Create project file root if this is first version or the first
         # version with a different access policy
-        if not os.path.isdir(published_project.project_file_root()):
-            os.mkdir(published_project.project_file_root())
-        os.rename(self.file_root(), published_project.file_root())
+
+        ProjectFiles().publish_initial(self, published_project)
 
         try:
             with transaction.atomic():
@@ -529,12 +554,21 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         published_affiliation = PublishedAffiliation.objects.create(
                             name=affiliation.name, author=published_author)
 
+                    UploadedDocument.objects.filter(
+                        object_id=self.pk, content_type=ContentType.objects.get_for_model(ActiveProject)
+                    ).update(
+                        object_id=published_project.pk,
+                        content_type=ContentType.objects.get_for_model(PublishedProject),
+                    )
+
                     if author.is_corresponding:
                         published_author.corresponding_email = author.corresponding_email.email
                         published_author.save()
-                        contact = Contact.objects.create(name=author.get_full_name(),
-                        affiliations='; '.join(a.name for a in affiliations),
-                        email=author.corresponding_email, project=published_project)
+                        Contact.objects.create(
+                            name=author.get_full_name(),
+                            affiliations='; '.join(a.name for a in affiliations),
+                            email=author.corresponding_email, project=published_project
+                        )
 
                 # Move the edit and copyedit logs
                 for edit_log in self.edit_logs.all():
@@ -544,17 +578,25 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     copyedit_log.project = published_project
                     copyedit_log.save()
 
+                published_project.required_trainings.set(self.required_trainings.all())
+
                 # Set files read only and make zip file if requested
-                move_files_as_readonly(published_project.id, self.file_root(),
-                    published_project.file_root(), make_zip,
-                    verbose_name='Read Only Files - {}'.format(published_project))
+                move_files_as_readonly(
+                    published_project.id,
+                    self.file_root(),
+                    published_project.file_root(),
+                    make_zip,
+                    verbose_name='Read Only Files - {}'.format(published_project),
+                )
 
                 # Remove the ActiveProject
                 self.delete()
 
-                return published_project
+        except BaseException:
+            ProjectFiles().publish_rollback(self, published_project)
 
-        except:
-            # Move the files to the active project directory
-            os.rename(published_project.file_root(), self.file_root())
             raise
+
+        ProjectFiles().publish_complete(self, published_project)
+
+        return published_project

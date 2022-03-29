@@ -1,22 +1,22 @@
 <section id="physionet">
-    <h1>PhysioNet: Brief Introduction</h1>
+    <h1>{{ SITE_NAME }}: Brief Introduction</h1>
   <div class="indented-box">
-    <p>PhysioNet, the moniker of the <em>Research Resource for Complex Physiologic Signals</em>, was established in 1999 under the auspices of the National Institutes of Health (NIH), as described further below. The PhysioNet Resource’s original and ongoing missions were to conduct and catalyze for biomedical research and education, in part by offering free access to large collections of physiological and clinical data and related open-source software. In cooperation with the annual <a href="http://www.cinc.org/">Computing in Cardiology</a> conference, PhysioNet also hosts an annual series of challenges, focusing research on unsolved problems in clinical and basic science. Members of PhysioNet’s team are actively involved in innovative work on analysis of physiologic signals, both from basic and translational perspectives.</p>
-    <p>The PhysioNet platform is managed by members of the <a href="https://lcp.mit.edu/">MIT Laboratory for Computational Physiology</a>. The other core laboratory of the PhysioNet Resource is the <a href="http://reylab.bidmc.harvard.edu/">Margret and H.A. Rey Institute for Nonlinear Dynamics</a> at Beth Israel Deaconess Medical Center.</p>
+    <p>{{ SITE_NAME }}, the moniker of the <em>Research Resource for Complex Physiologic Signals</em>, was established in 1999 under the auspices of the National Institutes of Health (NIH), as described further below. The {{ SITE_NAME }} Resource’s original and ongoing missions were to conduct and catalyze for biomedical research and education, in part by offering free access to large collections of physiological and clinical data and related open-source software. In cooperation with the annual <a href="http://www.cinc.org/">Computing in Cardiology</a> conference, {{ SITE_NAME }} also hosts an annual series of challenges, focusing research on unsolved problems in clinical and basic science. Members of {{ SITE_NAME }}’s team are actively involved in innovative work on analysis of physiologic signals, both from basic and translational perspectives.</p>
+    <p>The {{ SITE_NAME }} platform is managed by members of the <a href="https://lcp.mit.edu/">MIT Laboratory for Computational Physiology</a>. The other core laboratory of the {{ SITE_NAME }} Resource is the <a href="http://reylab.bidmc.harvard.edu/">Margret and H.A. Rey Institute for Nonlinear Dynamics</a> at Beth Israel Deaconess Medical Center.</p>
   </div>
 </section>
 <br>
 <section id="resource">
   <h1>A Community Resource</h1>
   <div class="indented-box">
-    <p>The PhysioNet resource has three closely interdependent components:</p>
+    <p>The {{ SITE_NAME }} resource has three closely interdependent components:</p>
     <ul>
       <li>
         <p>An  <a href="{% url 'database_overview' %}">extensive archive</a> ("PhysioBank") of well-characterized digital recordings of physiologic signals, time series, and related
-          data for use by the biomedical research community. PhysioNet includes collections of cardiopulmonary, neural, and other biomedical signals from healthy subjects and patients
+          data for use by the biomedical research community. {{ SITE_NAME }} includes collections of cardiopulmonary, neural, and other biomedical signals from healthy subjects and patients
           with a variety of conditions with major public health implications, including sudden
           cardiac death, congestive heart failure, epilepsy, gait disorders, sleep apnea, and aging.
-          These collections include data from a wide range of studies, as developed and contributed by members of the research community. PhysioNet also includes clinical and imaging data related to critical care.</p>
+          These collections include data from a wide range of studies, as developed and contributed by members of the research community. {{ SITE_NAME }} also includes clinical and imaging data related to critical care.</p>
       </li>
       <li>
         <p>A large and growing <a href="{% url 'software_overview' %}">library of software</a> ("PhysioToolkit") for physiologic signal processing and analysis, detection of
@@ -31,44 +31,44 @@
       </li>
     </ul>
     <p>
-    PhysioNet, as noted, is not only the name of the Research Resource for Complex Physiologic Signals, but also of its web site, <a href="https://physionet.org/">physionet.org</a>. The website was established by the Resource as its mechanism for free and open
+    {{ SITE_NAME }}, as noted, is not only the name of the Research Resource for Complex Physiologic Signals, but also of its web site, <a href="https://physionet.org/">physionet.org</a>. The website was established by the Resource as its mechanism for free and open
     dissemination and exchange of recorded biomedical signals and open-source
     software for analyzing them, by providing facilities for cooperative analysis
     of data and evaluation of proposed new algorithms.  In addition to providing
-    free electronic access to data and software, the PhysioNet web site offers service and training via on-line
+    free electronic access to data and software, the {{ SITE_NAME }} web site offers service and training via on-line
     tutorials to assist users at entry and more advanced levels.  In cooperation
     with the annual <a href=http://www.cinc.org/ target="other">Computing in
-    Cardiology</a> conference, PhysioNet hosts an annual series
+    Cardiology</a> conference, {{ SITE_NAME }} hosts an annual series
     of <a href="{% url 'challenge_overview' %}">challenges</a>, in which researchers and students
     address unsolved problems of clinical or basic scientific interest using data
-    and software provided by PhysioNet.</p>
+    and software provided by {{ SITE_NAME }}.</p>
 
     <p>
-    All data and software included in PhysioNet are carefully reviewed.  We invite you to participate in the ongoing review process.  By sharing common data sets, and software in source form, the research community benefits from access to materials that have been rigorously
+    All data and software included in {{ SITE_NAME }} are carefully reviewed.  We invite you to participate in the ongoing review process.  By sharing common data sets, and software in source form, the research community benefits from access to materials that have been rigorously
     scrutinized by many investigators.  We further invite researchers to contribute
     data and software for review and possible inclusion in our resource collection.  Please review our
-    <a href="{% url 'about_publish' %}">guidelines for contributors</a> before submitting
+    <a href="{% url 'static_view' static_url='publish' %}#author_guidelines">guidelines for contributors</a> before submitting
     material.</p>
   </div>
 </section>
 <br>
 <section id="history">
-  <h1>PhysioNet: Brief Historical Background</h1>
+  <h1>{{ SITE_NAME }}: Brief Historical Background</h1>
   <div class="indented-box">
-    <p>Beginning in the mid-1970s, members of the PhysioNet team who were then working on some of the first microcomputer-based instruments for cardiac arrhythmia monitoring foresaw the usefulness of establishing shared databases of well-characterized ECG recordings, as a basis for evaluation, iterative improvement, and objective comparison of algorithms for automated arrhythmia analysis. A five-year effort culminated in the publication of the MIT-BIH Arrhythmia Database in 1980, which soon became the standard reference collection of its type, used by over 500 academic, hospital, and industry researchers and developers worldwide during the 1980s and 1990s. Other databases of ECGs and eventually other physiologic signals followed. By 1999, the MIT group distributed CD-ROMs containing 11 such collections, and had participated in the development of several others. Over the same period, other members of the PhysioNet team helped pioneer the development of concepts and computational tools from nonlinear dynamics (including fractals and complex systems) to biomedicine and in creating and sharing ECG/Holter databases of patients with chronic heart failure and healthy controls.</p>
+    <p>Beginning in the mid-1970s, members of the {{ SITE_NAME }} team who were then working on some of the first microcomputer-based instruments for cardiac arrhythmia monitoring foresaw the usefulness of establishing shared databases of well-characterized ECG recordings, as a basis for evaluation, iterative improvement, and objective comparison of algorithms for automated arrhythmia analysis. A five-year effort culminated in the publication of the MIT-BIH Arrhythmia Database in 1980, which soon became the standard reference collection of its type, used by over 500 academic, hospital, and industry researchers and developers worldwide during the 1980s and 1990s. Other databases of ECGs and eventually other physiologic signals followed. By 1999, the MIT group distributed CD-ROMs containing 11 such collections, and had participated in the development of several others. Over the same period, other members of the {{ SITE_NAME }} team helped pioneer the development of concepts and computational tools from nonlinear dynamics (including fractals and complex systems) to biomedicine and in creating and sharing ECG/Holter databases of patients with chronic heart failure and healthy controls.</p>
 
-    <p>PhysioNet was formally established in 1999 as the outreach component of the <em>Research Resource for Complex Physiologic Signals</em>, a cooperative project initiated by a diverse group of computer scientists, physicists, mathematicians, biomedical researchers, clinicians, and educators at
+    <p>{{ SITE_NAME }} was formally established in 1999 as the outreach component of the <em>Research Resource for Complex Physiologic Signals</em>, a cooperative project initiated by a diverse group of computer scientists, physicists, mathematicians, biomedical researchers, clinicians, and educators at
     <a href="http://reylab.bidmc.harvard.edu/"
-    target="_blank">Boston's Beth Israel Deaconess Medical Center</a>/<a href="https://hms.harvard.edu/">Harvard Medical School</a> and <a href="https://lcp.mit.edu/">MIT</a>. Over the years, colleagues from Boston University, the University of Massachusetts Medical Center and McGill University have played seminal roles in the founding and development of the PhysioNet Resource. Many of us have worked together for 20 years or even longer on problems relating to characterizing and understanding the dynamics of human physiology, the implications of dynamical change in diagnosis and treatment of pathophysiology, novel and robust techniques for physiologic monitoring in ambulatory subjects and critical care patients, and applications of model-based reasoning to medical decision support in intensive care. The MIT group contributed its 11 databases, and the software it had developed for exploring and analyzing them, to establish PhysioBank and PhysioToolkit. Free availability of these resources via the Internet catalyzed an even greater explosion of interest in them, as researchers and students worldwide who had no previous access to such data or software began new programs of research, and specialists began comparing their methods. The initial contributions were quickly supplemented by additional collections of data and software from collaborators, and soon after, from many researchers worldwide. PhysioBank and PhysioToolkit have grown to many times their original sizes, and most of the growth has been thanks to the hard work and generosity of an international community of researchers.</p>
+    target="_blank">Boston's Beth Israel Deaconess Medical Center</a>/<a href="https://hms.harvard.edu/">Harvard Medical School</a> and <a href="https://lcp.mit.edu/">MIT</a>. Over the years, colleagues from Boston University, the University of Massachusetts Medical Center and McGill University have played seminal roles in the founding and development of the {{ SITE_NAME }} Resource. Many of us have worked together for 20 years or even longer on problems relating to characterizing and understanding the dynamics of human physiology, the implications of dynamical change in diagnosis and treatment of pathophysiology, novel and robust techniques for physiologic monitoring in ambulatory subjects and critical care patients, and applications of model-based reasoning to medical decision support in intensive care. The MIT group contributed its 11 databases, and the software it had developed for exploring and analyzing them, to establish PhysioBank and PhysioToolkit. Free availability of these resources via the Internet catalyzed an even greater explosion of interest in them, as researchers and students worldwide who had no previous access to such data or software began new programs of research, and specialists began comparing their methods. The initial contributions were quickly supplemented by additional collections of data and software from collaborators, and soon after, from many researchers worldwide. PhysioBank and PhysioToolkit have grown to many times their original sizes, and most of the growth has been thanks to the hard work and generosity of an international community of researchers.</p>
 
-    <p>At the time PhysioNet was established, members of the PhysioNet team at MIT were preparing to host Computers in Cardiology (CinC) 2000. We hoped to introduce PhysioNet to our international colleagues who would be attending CinC, by encouraging participation in an activity that made effective use of the facilities provided by PhysioNet to stimulate rapid progress on an unsolved problem of practical clinical significance. A timely contribution of data made it possible to create the first
-    <a href="/challenge/">PhysioNet/CinC Challenge</a>, which attracted the attention of more than a dozen teams to the subject of detecting sleep apnea from the ECG. Their efforts were broadly successful, they discussed their findings at CinC 2000, and an annual tradition was born. For a summary, see our <a href="{% url 'timeline' %}">timeline</a>.</p>
-    <p>The novelty and impact of the Resource for industry was recognized by the granting of the 2016 Association for the Advancement of Medical Instrumentation’s highest award, the Laufman-Greatbatch prize, to PhysioNet’s founding and current joint directors.</p>
-    <p>For a further description of founding of PhysioNet, see:
+    <p>At the time {{ SITE_NAME }} was established, members of the {{ SITE_NAME }} team at MIT were preparing to host Computers in Cardiology (CinC) 2000. We hoped to introduce {{ SITE_NAME }} to our international colleagues who would be attending CinC, by encouraging participation in an activity that made effective use of the facilities provided by {{ SITE_NAME }} to stimulate rapid progress on an unsolved problem of practical clinical significance. A timely contribution of data made it possible to create the first
+    <a href="/challenge/">{{ SITE_NAME }}/CinC Challenge</a>, which attracted the attention of more than a dozen teams to the subject of detecting sleep apnea from the ECG. Their efforts were broadly successful, they discussed their findings at CinC 2000, and an annual tradition was born. For a summary, see our <a href="{% url 'timeline' %}">timeline</a>.</p>
+    <p>The novelty and impact of the Resource for industry was recognized by the granting of the 2016 Association for the Advancement of Medical Instrumentation’s highest award, the Laufman-Greatbatch prize, to {{ SITE_NAME }}’s founding and current joint directors.</p>
+    <p>For a further description of founding of {{ SITE_NAME }}, see:
       Goldberger AL, Amaral LAN, Glass L,
         Hausdorff JM, Ivanov PCh, Mark RG,
       Mietus JE, Moody GB, Peng C-K, Stanley HE.  PhysioBank, PhysioToolkit, and
-      PhysioNet: Components of a New Research Resource for Complex Physiologic
+      {{ SITE_NAME }}: Components of a New Research Resource for Complex Physiologic
       Signals.
       <i>Circulation</i> <b>101</b>(23):e215-e220 [Circulation Electronic Pages;
       <a href="http://circ.ahajournals.org/content/101/23/e215.full"
@@ -80,18 +80,18 @@
 <section id="funding">
   <h1>Funding</h1>
   <div class="indented-box">
-    <p>PhysioNet was originally established under the auspices of the National Center for Research Resources (NCRR) of the National Institutes of Health (NIH). The NCRR was discontinued in 2011 as part of a major NIH reorganization. We now gratefully acknowledge ongoing support from the National Institute of Biomedical Imaging and Bioengineering (NIBIB) under grant <em>R01EB030362</em>.</p>
+    <p>{{ SITE_NAME }} was originally established under the auspices of the National Center for Research Resources (NCRR) of the National Institutes of Health (NIH). The NCRR was discontinued in 2011 as part of a major NIH reorganization. We now gratefully acknowledge ongoing support from the National Institute of Biomedical Imaging and Bioengineering (NIBIB) under grant <em>R01EB030362</em>.</p>
   </div>
 </section>
 <br>
 <section id="citation">
   <h1>Citation of the Resource</h1>
   <div class="indented-box">
-    <p><strong>If you use data or software from PhysioNet in a publication, please credit the author(s) when referencing it</strong>. You can find authors' names, and in many cases their publications introducing the data or software, on the project pages for their contributions. If you are unsure how to cite a specific project, please <a href="mailto:webmaster@physionet.org?subject=citing%20software">ask us</a>!. Please also include the standard citation for PhysioNet:</p>
+    <p><strong>If you use data or software from {{ SITE_NAME }} in a publication, please credit the author(s) when referencing it</strong>. You can find authors' names, and in many cases their publications introducing the data or software, on the project pages for their contributions. If you are unsure how to cite a specific project, please <a href="mailto:webmaster@physionet.org?subject=citing%20software">ask us</a>!. Please also include the standard citation for {{ SITE_NAME }}:</p>
       <p class="alert alert-primary" role="alert">Goldberger AL, Amaral LAN, Glass L,
         Hausdorff JM, Ivanov PCh, Mark RG,
       Mietus JE, Moody GB, Peng C-K, Stanley HE.  PhysioBank, PhysioToolkit, and
-      PhysioNet: Components of a New Research Resource for Complex Physiologic
+      {{ SITE_NAME }}: Components of a New Research Resource for Complex Physiologic
       Signals.
       <i>Circulation</i> <b>101</b>(23):e215-e220 [Circulation Electronic Pages;
       <a href="http://circ.ahajournals.org/content/101/23/e215.full"

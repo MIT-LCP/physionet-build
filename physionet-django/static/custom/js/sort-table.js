@@ -8,9 +8,9 @@ function sortTable(n, table_name) {
     document.getElementById(id_name).className = "fas fa-sort-down";
   }
   if ((table_name == "responset") || (table_name == "finalt")) {
-    var valid_ids = [0,1,2,3,7];
+    var valid_ids = [0,1,2,3,6];
   } else {
-    var valid_ids = [0,1,2,3,5];
+    var valid_ids = [0,1,2,3,4];
   }
   for (var i=0; i<valid_ids.length; i++) {
     if (valid_ids[i] != n) {
@@ -30,9 +30,9 @@ function sortTable(n, table_name) {
       should_switch = false;
       x = rows[i].getElementsByTagName("TD")[n];
       y = rows[i+1].getElementsByTagName("TD")[n];
-      if ((n == 5) || (n == 7)) {
-        x_sort = parseInt(x.innerHTML);
-        y_sort = parseInt(y.innerHTML);
+      if ((n == 4) || (n == 6)) {
+        x_sort = Date.parse(x.innerHTML);
+        y_sort = Date.parse(y.innerHTML);
       } else {
         x_sort = x.innerHTML.toLowerCase();
         y_sort = y.innerHTML.toLowerCase();

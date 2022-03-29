@@ -6,9 +6,11 @@
   <div class="container">
     <div class="row row-centered">
       <div class="col-xs-10 center col-centered">
-        <p>PhysioNet is a repository of freely-available medical research data, managed by the <a href="http://lcp.mit.edu/" target="_blank">MIT Laboratory for Computational Physiology</a>.</p>
-        <p>Supported by the <a href="https://www.nibib.nih.gov/" target="_blank">National Institute of Biomedical Imaging and Bioengineering (NIBIB)</a> under NIH grant number R01EB030362.</p>
-        <p>For more accessibility options, see <a href="https://accessibility.mit.edu">MIT's accessibility page</a>.</p>
+        <p>{{ SITE_NAME }} is a repository of freely-available medical research data, managed by the {{ FOOTER_MANAGED_BY }}.</p>
+        <p>Supported by the {{ FOOTER_SUPPORTED_BY }}.</p>
+        {% if FOOTER_ACCESSIBILITY_PAGE %}
+          <p>For more accessibility options, see {{ FOOTER_ACCESSIBILITY_PAGE|safe }}.</p>
+        {% endif %}
         <p><a href="#">Back to top</a></p>
       </div>
     </div>

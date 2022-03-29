@@ -24,7 +24,7 @@
   </div>
 
 <!-- Outstanding tasks -->
-{% if invitation_response_formset|length or pending_author_approvals|length or missing_affiliations|length or data_access_requests|length %}
+{% if pending_revisions|length or invitation_response_formset|length or pending_author_approvals|length or missing_affiliations|length or data_access_requests|length %}
   <div class="card" >
     <div class="card-header">
       <h2>Outstanding Tasks</h2>
@@ -38,7 +38,7 @@
           <div class="col-md-2"><strong>Date</strong></div>
           <div class="col-md-2"></div>
         </div>
-      </li>
+      </li>    
     {% if invitation_response_formset|length %}
       <form action="" method="post">
         {{ invitation_response_formset.management_form }}
@@ -99,6 +99,20 @@
         </li>
       {% endfor %}
     {% endif %}
+    {% if pending_revisions|length %}
+      {% for project in pending_revisions %}
+        <li class="list-group-item">
+          <div class="row">
+            <div class="col-md-5"><a href="{% url 'project_overview' project.slug %}">{{ project.title }}</a></div>
+            <div class="col-md-3">Revisions requested</div>
+            <div class="col-md-2">{{ project.revision_request_datetime|date }}</div>
+            <div class="col-md-2">
+              <a href="{% url 'project_submission' project.slug %}" class="btn btn-sm btn-primary">Resubmit project</a>
+            </div>
+          </div>
+        </li>
+      {% endfor %}
+    {% endif %}
     {% if pending_author_approvals|length %}
       {% for project in pending_author_approvals %}
         <li class="list-group-item">
@@ -124,7 +138,7 @@
                  <div class="col-md-2">{{ da_request.request_datetime|date }}</div>
                  <div class="col-md-2">
                      <a class="btn btn-sm btn-primary" href=
-                             "{% url 'data_access_request_view' da_request.project.slug da_request.project.version da_request.requester.id %}"><i class="fa fa-reply"></i>Respond</a>
+                             "{% url 'data_access_request_view' da_request.project.slug da_request.project.version da_request.id %}"><i class="fa fa-reply"></i>Respond</a>
                  </div>
              </div>
           </li>
@@ -188,7 +202,7 @@
           </p>
           <h3>
             <a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a>
-              {% if project.is_self_managed_access %}
+              {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
                   {% if project.requests_button %}
                       <a href="{% url 'data_access_requests_overview' project.slug project.version %}"
                          class="btn btn-primary ml-1" role="button" style="float:right">Requests</a>

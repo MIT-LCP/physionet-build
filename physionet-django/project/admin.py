@@ -1,12 +1,12 @@
+from background_task.models import Task
+from background_task.models import CompletedTask
 from ckeditor.fields import RichTextField
 from ckeditor.widgets import CKEditorWidget
 from django.contrib import admin
 from django.db.models import CharField, TextField
-from django.forms import TextInput, Textarea
-from background_task.models_completed import CompletedTask
-from background_task.models import Task
-
+from django.forms import Textarea, TextInput
 from project import models
+from project.modelcomponents.log import AccessLog, GCPLog
 
 
 class LicenseAdmin(admin.ModelAdmin):
@@ -78,6 +78,11 @@ class CompletedTaskAdmin(admin.ModelAdmin):
         'attempts', 'has_error', 'locked_by', 'locked_by_pid_running', ]
 
 
+class LogAdmin(admin.ModelAdmin):
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user').prefetch_related('project')
+
+
 # Unregister the tasks to add the custom tasks to the amdin page
 admin.site.unregister(Task)
 admin.site.unregister(CompletedTask)
@@ -107,6 +112,8 @@ admin.site.register(models.PublishedPublication)
 admin.site.register(models.PublishedReference)
 admin.site.register(models.StorageRequest)
 admin.site.register(models.GCP)
+admin.site.register(AccessLog, LogAdmin)
+admin.site.register(GCPLog, LogAdmin)
 
 # Add the custom tasks to the admin page
 admin.site.register(Task, TaskAdmin)

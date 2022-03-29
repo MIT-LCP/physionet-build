@@ -13,7 +13,7 @@
   <svg width="200px" height="200px" version="1.1" viewBox="0.0 0.0 287.244094488189 258.16272965879267" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><clipPath id="p.0"><path d="m0 0l287.24408 0l0 258.16272l-287.24408 0l0 -258.16272z" clip-rule="nonzero"/></clipPath><g clip-path="url(#p.0)"><path fill="#000000" fill-opacity="0.0" d="m0 0l287.24408 0l0 258.16272l-287.24408 0z" fill-rule="evenodd"/><path fill="#000000" fill-opacity="0.0" d="m10.734908 80.00339l69.620186 -69.620186l126.680885 0l69.62018 69.620186l0 98.46042l-69.62018 69.62018l-126.680885 0l-69.620186 -69.62018z" fill-rule="evenodd"/><path stroke="#f1c232" stroke-width="16.0" stroke-linejoin="round" stroke-linecap="butt" d="m10.734908 80.00339l69.620186 -69.620186l126.680885 0l69.62018 69.620186l0 98.46042l-69.62018 69.62018l-126.680885 0l-69.620186 -69.62018z" fill-rule="evenodd"/><path fill="#f1c232" d="m138.88336 160.82109l-4.65625 -65.75001l0 -27.515625l18.875 0l0 27.515625l-4.390625 65.75001l-9.828125 0zm-3.96875 30.8125l0 -17.34375l17.515625 0l0 17.34375l-17.515625 0z" fill-rule="nonzero"/></g></svg>
   <br /><br />
   <p>This wasn't supposed to happen!</p>
-  <p>If the error persists, please contact us at: <a href="mailto:contact@physionet.org?subject=Internal%20Server%20Error%20-%20Physionet.org">contact@physionet.org</a>.</p>
+  <p>If the error persists, please contact us at: <a href="mailto:{{ ERROR_EMAIL }}?subject=Internal%20Server%20Error%20-%20{{ SITE_NAME }}">{{ ERROR_EMAIL }}</a>.</p>
 
 </div>
 {% endblock %}

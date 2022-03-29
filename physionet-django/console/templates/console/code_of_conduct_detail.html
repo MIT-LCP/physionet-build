@@ -1,0 +1,23 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ SITE_NAME }} - Code of Conduct{% endblock %}
+
+{% block content %}
+  <div class="card mb-3">
+    <div class="card-header">
+        {{ code_of_conduct.name }} - edit
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'code_of_conduct_detail' code_of_conduct.pk %}">
+            {% include "inline_form_snippet.html" with form=code_of_conduct_form %}
+          <button class="btn btn-primary btn-fixed" type="submit">Save</button>
+        </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}

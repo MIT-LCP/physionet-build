@@ -1,0 +1,62 @@
+<div class="alert alert-info" role="alert">
+    For information on the current George B. Moody PhysioNet Challenge, see:
+    <a href="http://moody-challenge.physionet.org/">http://moody-challenge.physionet.org/</a>
+</div>
+
+<div class="alert alert-secondary" role="alert">
+  Additional Challenge content:
+  <ul>
+    <li><a href="/about/challenge">Challenges (overview)</a></li>
+    <li><a href="/about/challenge/moody-challenge-overview">George B. Moody PhysioNet
+      Challenges (description)</a></li>
+    <li><a href="/about/challenge/community-challenge">Community Challenges</a></li>
+    </li>
+  </ul>
+</div>
+
+<section id="moody-challenges">
+  <h1>Moody PhysioNet Challenges</h1>
+  <p>Since the turn of the century, PhysioNet has run an annual Challenge in collaboration with Computing in Cardiology.
+    More information on these challenges can be found <a href="moody-challenge-overview">here</a>. The
+    following is a list of past Challenges, with links to descriptions of the Challenge, associated open access data,
+    open source code and resultant publications:
+  </p>
+  {% if moody_challenges %}
+    <table align="left">
+      <thead>
+      <tr>
+        <th scope="col">Year</th>
+        <th scope="col">Title</th>
+        <th scope="col" style="white-space:nowrap;"># Papers</th>
+        <th scope="col" style="white-space:nowrap;"># Software</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for md_challenge in moody_challenges %}
+        <tr>
+          <td>{{ md_challenge.year }}</td>
+          <td><a href="{% url 'published_project_latest' md_challenge.slug %}">{{ md_challenge.title }}</a></td>
+          <td>
+            {% if md_challenge.papers %}
+              <a href="{% url 'serve_published_project_file' md_challenge.slug md_challenge.version 'papers/index.html' %}"
+                 class="btn btn-sm btn-primary" role="button">{{ md_challenge.get_paper_count }}
+                <div class="fa fa-file-alt"></div></a>
+            {% endif %}
+          </td>
+          <td>
+            {% if md_challenge.sources and md_challenge.sources_index %}
+              <a href="{% url 'serve_published_project_file' md_challenge.slug md_challenge.version 'sources/index.html' %}"
+                 class="btn btn-sm btn-primary" role="button">{{ md_challenge.get_program_count }}
+                <div class="fa fa-code"></div></a>
+            {% elif md_challenge.sources %}
+              <a href="{% url 'serve_published_project_file' md_challenge.slug md_challenge.version 'sources' %}"
+                 class="btn btn-sm btn-primary" role="button">{{ md_challenge.get_program_count }}
+                <div class="fa fa-code"></div></a>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+</section>

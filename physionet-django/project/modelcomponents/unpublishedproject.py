@@ -2,13 +2,14 @@ import logging
 import os
 import shutil
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
-
+from physionet.settings.base import StorageTypes
 from project.modelcomponents.metadata import Metadata
+from project.projectfiles import ProjectFiles
 from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -40,6 +41,10 @@ class UnpublishedProject(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def is_legacy(self):
+        return False
+
     def is_published(self):
         return False
 
@@ -48,6 +53,12 @@ class UnpublishedProject(models.Model):
         Root directory containing the project's files
         """
         return os.path.join(self.__class__.FILE_ROOT, self.slug)
+
+    def bucket(self):
+        """
+        Object storage bucket name
+        """
+        return self.__class__.FILE_ROOT
 
     def get_storage_info(self, force_calculate=True):
         """
@@ -88,7 +99,7 @@ class UnpublishedProject(models.Model):
         """
         Whether the project has wfdb files.
         """
-        return os.path.isfile(os.path.join(self.file_root(), 'RECORDS'))
+        return ProjectFiles().has_wfdb_files(self)
 
     def content_modified(self):
         """

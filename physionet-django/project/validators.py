@@ -3,7 +3,7 @@ import re
 from django.core.exceptions import ValidationError
 from django.utils.translation import ugettext as _
 
-MAX_FILENAME_LENGTH = 50
+MAX_FILENAME_LENGTH = 60
 MAX_PROJECT_SLUG_LENGTH = 30
 
 _good_name_pattern = re.compile(r'\w+([\w\-\.]*\w+)?', re.ASCII)

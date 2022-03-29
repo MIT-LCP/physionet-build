@@ -3,7 +3,8 @@ from requests.auth import HTTPBasicAuth
 from requests import post, put, get
 import json
 
-from oauth2client.service_account import ServiceAccountCredentials
+import google.auth
+import google.auth.impersonated_credentials
 from google.api_core.exceptions import BadRequest
 from googleapiclient.errors import HttpError
 from googleapiclient.discovery import build
@@ -247,15 +248,14 @@ def create_directory_service(user_email, group=False):
         Admin SDK Directory Service object.
     """
     logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
-    credentials = ServiceAccountCredentials.from_p12_keyfile(
-        settings.SERVICE_ACCOUNT_EMAIL,
-        settings.SERVICE_ACCOUNT_PKCS12_FILE_PATH,
-        settings.GCP_SECRET_KEY,
-        scopes=['https://www.googleapis.com/auth/admin.directory.group',
-                'https://www.googleapis.com/auth/apps.groups.settings'])
+    credentials, _  = google.auth.default(scopes=[
+        'https://www.googleapis.com/auth/admin.directory.group',
+        'https://www.googleapis.com/auth/apps.groups.settings',
+    ])
 
     # The email for delegating credentials to the service account is required.
-    credentials = credentials.create_delegated(user_email)
+    credentials = credentials.with_claims({'sub': user_email})
+
     if group:
         return build('groupssettings', 'v1', credentials=credentials)
     return build('admin', 'directory_v1', credentials=credentials)

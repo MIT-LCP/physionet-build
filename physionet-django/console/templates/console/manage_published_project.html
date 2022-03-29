@@ -101,7 +101,7 @@
           You can generate a passphrase that will allow anonymous access to the
           <i><a href="{% url 'published_project' project.slug project.version %}" target="_blank">content</a></i> of this project.
           This is useful if the authors are submitting an article to a peer-reviewed journal and access
-          to a PhysioNet resource is needed during the review process.
+          to a {{ SITE_NAME }} resource is needed during the review process.
           <br>
           {% if anonymous_url %}
             The URL for reviewer access is:
@@ -112,7 +112,7 @@
           {% if not passphrase %}
             class="alert alert-danger">
             <p class='m-0'>Note: When providing anonymous access to third parties, keep in mind that any changes made during
-              the PhysioNet review process will impact anyone viewing the project through that access.</p>
+              the {{ SITE_NAME }} review process will impact anyone viewing the project through that access.</p>
           {% else %}
             class="alert alert-success">
             Passphrase: {{ passphrase }}
@@ -200,36 +200,42 @@
   </div>
   <div class="card-body mb-2">
     <ul class="list-group list-group-flush">
-      <li class="list-group-item">
-      <h5 class="card-title mb-1">Generate special files</h5>
-      <p>Generate (or regenerate) the project checksum file and zip file. If you regenerate these files, they will need to be resent to the cloud servers.</p>
-
-      {% for task in rw_tasks %}
-      <div class="alert alert-warning">
-        <strong>Pending task:</strong> {{ task }}
-      </div>
-      {% endfor %}
-
-      {% for task in ro_tasks %}
-      <div class="alert alert-info">
-        <strong>Pending task:</strong> {{ task }} (read-only)
-      </div>
-      {% endfor %}
-
-      {% if project.deprecated_files %}
-        <p>This project's files are deprecated.</p>
-      {% else %}
-        <form action="" method="post">
-          {% csrf_token %}
-          <button class="btn btn-primary btn-fixed" name="make_checksum_file"
-                  {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
-                  type="submit">Make checksum</button>
-          <button class="btn btn-primary btn-fixed" name="make_zip"
-                  {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
-                  type="submit">Make zip</button>
-        </form>
+      {% if can_make_zip or can_make_checksum %}
+        <li class="list-group-item">
+        <h5 class="card-title mb-1">Generate special files</h5>
+        <p>Generate (or regenerate) the project checksum file and zip file. If you regenerate these files, they will need to be resent to the cloud servers.</p>
+  
+        {% for task in rw_tasks %}
+        <div class="alert alert-warning">
+          <strong>Pending task:</strong> {{ task }}
+        </div>
+        {% endfor %}
+  
+        {% for task in ro_tasks %}
+        <div class="alert alert-info">
+          <strong>Pending task:</strong> {{ task }} (read-only)
+        </div>
+        {% endfor %}
+  
+        {% if project.deprecated_files %}
+          <p>This project's files are deprecated.</p>
+        {% else %}
+          <form action="" method="post">
+            {% csrf_token %}
+            {% if can_make_checksum %}
+            <button class="btn btn-primary btn-fixed" name="make_checksum_file"
+                    {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                    type="submit">Make checksum</button>
+            {% endif %}
+            {% if can_make_zip %}
+            <button class="btn btn-primary btn-fixed" name="make_zip"
+                    {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                    type="submit">Make zip</button>
+            {% endif %}
+          </form>
+        {% endif %}
+        </li>
       {% endif %}
-      </li>
       <li class="list-group-item">
       <h5 class="card-title mb-1">Deprecate files</h5>
       <p>If you deprecate the project files, they will no longer be available for people to download. A message will be displayed in the file section, explaining that the files have been removed.</p>

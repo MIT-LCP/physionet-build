@@ -1,14 +1,14 @@
-from errno import ENAMETOOLONG
 import os
+from errno import ENAMETOOLONG
 
 from django.http import Http404
 from django.shortcuts import redirect
-
 from project.fileviews.base import RawFileView
 from project.fileviews.csv import CSVFileView, GzippedCSVFileView
 from project.fileviews.image import ImageFileView
 from project.fileviews.inline import InlineFileView
 from project.fileviews.text import TextFileView
+from project.projectfiles import ProjectFiles
 
 _suffixes = {
     '.bmp': ImageFileView,
@@ -32,24 +32,21 @@ def display_project_file(request, project, file_path):
     file_path is the name of the file relative to project.file_root().
     """
 
-    abs_path = os.path.join(project.file_root(), file_path)
     try:
-        infile = open(abs_path, 'rb')
+        abs_path = os.path.join(project.file_root(), file_path)
+
+        infile = ProjectFiles().open(abs_path)
     except IsADirectoryError:
         return redirect(request.path + '/')
     except (FileNotFoundError, NotADirectoryError):
         raise Http404()
     except (IOError, OSError) as err:
-        if err.errno == ENAMETOOLONG:
-            raise Http404()
-        else:
-            raise err
+        raise (Http404() if err.errno == ENAMETOOLONG else err)
 
-    with infile:
-        if file_path.endswith('.csv.gz'):
-            cls = GzippedCSVFileView
-        else:
-            (_, suffix) = os.path.splitext(file_path)
-            cls = _suffixes.get(suffix, TextFileView)
-        view = cls(project, file_path, infile)
-        return view.render(request)
+    if file_path.endswith('.csv.gz'):
+        cls = GzippedCSVFileView
+    else:
+        (_, suffix) = os.path.splitext(file_path)
+        cls = _suffixes.get(suffix, TextFileView)
+    view = cls(project, file_path, infile)
+    return view.render(request)

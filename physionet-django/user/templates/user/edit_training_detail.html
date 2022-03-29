@@ -1,0 +1,46 @@
+{% extends "user/settings.html" %}
+
+{% block title %}{{ SITE_NAME }} Trainings{% endblock %}
+
+{% block main_content %}
+<h1>{{ SITE_NAME }} Training</h1>
+<hr>
+<h4>{{ training.training_type.name }} Training</h4>
+  <p>
+    {% if training.completion_report %}
+      Document: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
+    {% endif %}
+    {% if training.completion_report_url %}
+      URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
+    {% endif %}
+    Submitted on: {{ training.application_datetime|date }}<br>
+  {% if training.is_review %}
+    <hr>
+    <form action="{% url 'edit_training_detail' training.pk %}" method="post">
+      {% csrf_token %}
+      <button type="button" class="btn btn-danger btn-rsp" data-toggle="modal" data-target="#withdraw-training">Withdraw Training</button>
+      <div class="modal fade" id="withdraw-training" tabindex="-1" role="dialog" aria-labelledby="withdraw-credential-modal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Withdraw Training</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to withdraw the submission?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" name="withdraw" type="submit">Withdraw</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  {% elif training.is_rejected %}
+    Reviewer comments: {{ training.reviewer_comments }}
+
+  {% endif %}
+{% endblock %}

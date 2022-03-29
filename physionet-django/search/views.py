@@ -1,17 +1,18 @@
+import operator
 import pdb
 import re
-import operator
 from functools import reduce
 
-from django.contrib.staticfiles.templatetags.staticfiles import static
-from django.shortcuts import render, redirect, reverse
-from django.db.models import Q, Count, Case, When, Value, IntegerField, Sum
 from django.conf import settings
+from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
 from django.http import Http404
-
-from search import forms
-from project.models import PublishedProject, PublishedTopic
+from django.shortcuts import redirect, render, reverse
+from django.templatetags.static import static
 from physionet.utility import paginate
+from project.models import PublishedProject, PublishedTopic
+from project.projectfiles import ProjectFiles
+from search import forms
+
 
 def topic_search(request):
     """
@@ -163,12 +164,18 @@ def content_index(request, resource_type=None):
 
     querystring = params.urlencode()
 
-    return render(request, 'search/content_index.html',
-                  {'form_order': form_order,
-                   'projects': projects,
-                   'form_type': form_type,
-                   'form_topic': form_topic,
-                   'querystring': querystring})
+    return render(
+        request,
+        'search/content_index.html',
+        {
+            'form_order': form_order,
+            'projects': projects,
+            'form_type': form_type,
+            'form_topic': form_topic,
+            'querystring': querystring,
+            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+        },
+    )
 
 
 def database_index(request):

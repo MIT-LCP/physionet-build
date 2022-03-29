@@ -1,0 +1,81 @@
+<div class="alert alert-secondary">
+
+  {% if "The PhysioNet/Computing in Cardiology Challenge" in project.title %}
+    {% if publication %}
+      <strong>When using this resource, please cite the original publication:</strong>
+      {% if publication.url %}
+        <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
+      {% else %}
+        <p>{{ publication.citation }}</p>
+      {% endif %}
+    {% endif %}
+
+    {% if not project.is_legacy %}
+      <p>
+        <strong>{% if publication %}Additionally, when {% else %}When {% endif %}using this resource, please cite: </strong>
+        <a href="#citationModal" data-toggle="modal">(show more options)</a>
+        <br><span>{{ citations.APA }}</span>
+      </p>
+
+      {% include 'modal_start.html' with id_name='citationModal' title='Cite' %}
+      <table><tbody>
+        {% for style, citation in citations.items %}
+          <tr>
+            <th>{{ style }}</th>
+            <td>{{ citation }}</td>
+          </tr>
+        {% endfor %}
+      </tbody></table>
+      {% include 'modal_end.html' %}
+    {% endif %}
+  {% else %}
+    {% if not project.is_legacy %}
+      <p>
+        <strong>When using this resource, please cite: </strong>
+        <a href="#citationModal" data-toggle="modal">(show more options)</a>
+        <br><span>{{ citations.APA }}</span>
+      </p>
+
+      {% include 'modal_start.html' with id_name='citationModal' title='Cite' %}
+      <table><tbody>
+        {% for style, citation in citations.items %}
+          <tr>
+            <th>{{ style }}</th>
+            <td>{{ citation }}</td>
+          </tr>
+        {% endfor %}
+      </tbody></table>
+      {% include 'modal_end.html' %}
+    {% endif %}
+
+    {% if publication %}
+      <strong>{% if project.is_legacy %}When using this resource{% else %}Additionally{% endif %}, please cite the original publication:</strong>
+      {% if publication.url %}
+        <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
+      {% else %}
+        <p>{{ publication.citation }}</p>
+      {% endif %}
+    {% endif %}
+  {% endif %}
+    {% if show_platform_wide_citation %}
+      <p>
+        <strong>Please include the standard citation for {{ SITE_NAME }}:</strong>
+        <a href="#citationModalPlatform" data-toggle="modal">(show more options)</a>
+          <br><span>{{ main_platform_citation }}</span>
+      </p>
+    {% endif %}
+
+  {% include 'modal_start.html' with id_name='citationModalPlatform' title='Cite' %}
+  <table><tbody>
+    {% for style, citation in platform_citations.items %}
+        {% if citation != None %}
+          <tr>
+            <th>{{ style }}</th>
+            <td>{{ citation }}</td>
+          </tr>
+        {% endif %}
+    {% endfor %}
+  </tbody></table>
+  {% include 'modal_end.html' %}
+
+</div>

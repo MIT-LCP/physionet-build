@@ -3,7 +3,7 @@
 
 Dear {{ name }},
 
-The project entitled "{{ project.title }}" has been submitted to PhysioNet. {% if project.author_comments %}The author included the following comment with the submission: 
+The project entitled "{{ project.title }}" has been submitted to {{ SITE_NAME }}. {% if project.author_comments %}The author included the following comment with the submission: 
 
 {{ project.author_comments }}{% endif %}
 

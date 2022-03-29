@@ -1,0 +1,65 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}{{ page }} page - sections {% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    {{ page|title }} page - sections <span class="badge badge-pill badge-info">{{ sections|length }}</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Title</th>
+                <th>Order</th>
+                <th>Edit</th>
+                <th>Remove</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for section in sections %}
+                <tr>
+                    <td>{{ section.title }}</td>
+                    <td>
+                        <form method="post">
+                            {% csrf_token %}
+                            {% if not forloop.first %}
+                                <button class="btn btn-sm" name="up" value="{{ section.id }}" title="Move section up" style="background:none"><i class="fas fa-arrow-up"></i></button>
+                            {% endif %}
+                            {% if not forloop.last %}
+                                <button class="btn btn-sm" name="down" value="{{ section.id }}" title="Move section down" style="background:none"><i class="fas fa-arrow-down"></i></button>
+                            {% endif %}
+                        </form>
+                    </td>
+                    <td>
+                        <a href="{% url 'static_page_sections_edit' page.pk section.id %}" class="btn btn-sm btn-primary" role="button">Edit</a>
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'static_page_sections_delete' page.pk section.id %}" onsubmit="return confirm ('Are you sure? ')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-danger" role="button">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+  </div>
+</div>
+<div class="card mb-3">
+    <div class="card-header">
+        Create new section
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'static_page_sections' page.pk %}">
+            {% include "inline_form_snippet.html" with form=section_form %}
+            <button class="btn btn-primary btn-fixed" name="set_legacy_author" type="submit">Create</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

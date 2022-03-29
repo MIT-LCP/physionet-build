@@ -3,7 +3,7 @@
 
 Dear {{ name }},
 
-We are delighted to inform you that your project entitled "{{ published_project.title }}" (version {{ published_project.version }}) has been published on PhysioNet. The project is available at: {% if published_project.doi %}https://doi.org/{{ published_project.doi }}{% else %}{{ url_prefix }}{% url 'published_project' published_project.slug published_project.version %}{% endif %}
+We are delighted to inform you that your project entitled "{{ published_project.title }}" (version {{ published_project.version }}) has been published on {{ SITE_NAME }}. The project is available at: {% if published_project.doi %}https://doi.org/{{ published_project.doi }}{% else %}{{ url_prefix }}{% url 'published_project' published_project.slug published_project.version %}{% endif %}
 
 The formal citation is:
 {{ published_project.citation_text_all.APA|html_to_text }}

@@ -2,26 +2,25 @@ import base64
 import datetime
 import errno
 import html.parser
+import json
+import logging
 import os
-import shutil
 import pdb
+import re
+import shutil
 import urllib.parse
 import uuid
-import logging
-import re
-import requests
-import json
 
+import requests
+from console.utility import create_directory_service
+from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.sites.shortcuts import get_current_site
-from django.conf import settings
-from django.core.exceptions import (PermissionDenied, ValidationError)
-from django.http import HttpResponse, Http404
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.http import Http404, HttpResponse
 from django.utils.crypto import constant_time_compare
 from googleapiclient.errors import HttpError
 
-from console.utility import create_directory_service
-from user.models import User
 
 LOGGER = logging.getLogger(__name__)
 
@@ -33,12 +32,18 @@ class FileInfo():
     def __init__(self, name, size, last_modified):
         self.name = name
         self.size = size
-        self.last_modified= last_modified
+        self.last_modified = last_modified
+
+    def __lt__(self, other):
+        return self.name < other.name
 
 
 class DirectoryInfo():
     def __init__(self, name):
         self.name = name
+
+    def __lt__(self, other):
+        return self.name < other.name
 
 
 class DirectoryBreadcrumb():
@@ -129,24 +134,6 @@ class StorageInfo():
             self.readable_compressed_used = readable_size(compressed_used)
 
 
-def list_files(directory):
-    "List files in a directory"
-    files = []
-    for ent in os.scandir(directory):
-        if not ent.is_dir():
-            files.append(ent.name)
-    return sorted(files)
-
-
-def list_directories(directory):
-    "List directories in a directory"
-    dirs = []
-    for ent in os.scandir(directory):
-        if ent.is_dir():
-            dirs.append(ent.name)
-    return sorted(dirs)
-
-
 def list_items(directory, return_separate=True):
     "List files and directories in a directory. Return separate or combine lists"
     if return_separate:
@@ -189,7 +176,8 @@ def clear_directory(directory):
     """
     Delete all files and folders in a directory.
     """
-    remove_items(os.path.join(directory, i) for i in os.listdir(directory))
+    for i in os.listdir(directory):
+        remove_items([os.path.join(directory, i)])
 
 def rename_file(old_path, new_path):
     """
@@ -403,6 +391,7 @@ def check_http_auth(request):
     This should be invoked at the start of the view before checking
     user credentials, and should be paired with require_http_auth().
     """
+    from user.models import User
 
     if 'HTTP_AUTHORIZATION' in request.META:
         # If an Authorization header is supplied, but this request is

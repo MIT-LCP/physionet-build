@@ -15,10 +15,9 @@
     <h2 class="form-signin-heading">Create New Project</h2>
     <hr>
     <p>Complete the fields below to create a new project. Once created, it must be submitted for publication within 180 days.</p>
-    <p>Before creating your project, please read the <a href="{% url 'about_publish' %}#guidelines'" target="_blank">author guidelines</a>. Note that the resource type <strong>cannot</strong> be changed after the project is created.</p>
+    <p>Before creating your project, please read the <a href="{% url 'static_view' static_url='publish' %}#author_guidelines" target="_blank">author guidelines</a>. Note that the resource type <strong>cannot</strong> be changed after the project is created.</p>
     <hr>
     {{ form.media }}
-    {% csrf_token %}
     {% include "inline_form_snippet.html" %}
     <hr>
     <button id="create_project" class="btn btn-primary btn-rsp" type="submit">Create Project</button>

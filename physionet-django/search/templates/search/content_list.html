@@ -27,8 +27,10 @@
     </p>
     <p class="pub-details">Published: {{ published_project.publish_datetime|date }}.
       Version: {{ published_project.version }}</p>
-    {% if published_project.has_wfdb and not published_project.deprecated_files %}
-    <a href="{% url 'lightwave_home' %}?db={{ published_project.slug }}/{{ published_project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a>
+    {% if is_lightwave_supported %}
+      {% if published_project.has_wfdb and not published_project.deprecated_files %}
+      <a href="{% url 'lightwave_home' %}?db={{ published_project.slug }}/{{ published_project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a>
+      {% endif %}
     {% endif %}
     <hr>
   </div>

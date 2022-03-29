@@ -1,9 +1,12 @@
+import os
+
 from django import template
 from django.shortcuts import reverse
 from django.utils.html import format_html, escape
 from django.utils.http import urlencode
 import html2text
 
+from project.models import AccessPolicy
 from notification.utility import mailto_url
 
 
@@ -60,20 +63,42 @@ def delimit(items):
 @register.filter(name='access_badge')
 def access_badge(access_policy):
     badges = {
-        0: '<span class="badge badge-success"><i class="fas fa-lock-open"></i> Open Access</span>',
-        1: '<span class="badge badge-warning"><i class="fas fa-unlock-alt"></i> Restricted Access</span>',
-        2: '<span class="badge badge-danger"><i class="fas fa-lock"></i> Credentialed Access</span>',
+        AccessPolicy.OPEN: '<span class="badge badge-success"><i class="fas fa-lock-open"></i> Open Access</span>',
+        AccessPolicy.RESTRICTED: (
+            '<span class="badge badge-warning"><i class="fas fa-unlock-alt"></i> Restricted Access</span>'
+        ),
+        AccessPolicy.CREDENTIALED: (
+            '<span class="badge badge-danger"><i class="fas fa-lock"></i> Credentialed Access</span>'
+        ),
+        AccessPolicy.CONTRIBUTOR_REVIEW: (
+            '<span class="badge badge-danger"><i class="fas fa-lock"></i> Contributor Review</span>'
+        ),
     }
-    return badges[access_policy]
+    try:
+        return badges[access_policy]
+    except KeyError:
+        return format_html('<!-- unknown access_policy: {} -->', access_policy)
+
 
 @register.filter(name='access_description')
 def access_description(access_policy):
     descriptions = {
-        0: 'Anyone can access the files, as long as they conform to the terms of the specified license.',
-        1: 'Only logged in users who sign the specified data use agreement can access the files.',
-        2: 'Only credentialed users who sign the specified DUA can access the files.',
+        AccessPolicy.OPEN: (
+            'Anyone can access the files, as long as they conform to the terms of the specified license.'
+        ),
+        AccessPolicy.RESTRICTED: (
+            'Only logged in users who sign the specified data use agreement can access the files.'
+        ),
+        AccessPolicy.CREDENTIALED: ('Only credentialed users who sign the DUA can access the files.'),
+        AccessPolicy.CONTRIBUTOR_REVIEW: (
+            'Only credentialed users who sign the DUA can access the files. '
+            'In addition, users must have individual studies reviewed by the contributor.'
+        ),
     }
-    return descriptions[access_policy]
+    try:
+        return descriptions[access_policy]
+    except KeyError:
+        return format_html('<!-- unknown access_policy: {} -->', access_policy)
 
 @register.filter(name='bytes_to_gb')
 def bytes_to_gb(n_bytes):
@@ -159,3 +184,8 @@ def mailto_link(*recipients, **params):
     url = mailto_url(*recipients, **params)
     label = ', '.join(recipients)
     return format_html('<a href="{0}">{1}</a>', url, label)
+
+
+@register.filter
+def filename(value):
+    return os.path.basename(value.name)

@@ -14,9 +14,10 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
-    container: debian:10
+    container: debian:11
     env:
       DJANGO_SETTINGS_MODULE: physionet.settings.settings
+      TEST_GCS_INTEGRATION: false
     defaults:
       run:
         shell: bash
@@ -25,22 +26,41 @@ jobs:
       matrix:
         pip3: ['poetry', 'requirements.txt']
     steps:
-      - name: Checkout physionet-build repo
-        uses: actions/checkout@v2
 
       - name: Update packages
         run: apt-get update --yes
 
       - name: Install and configure needed software
         run: |
-          apt-get install sudo python3-dev python3-pip build-essential libpq-dev postgresql zip wget python-virtualenv --yes
+          apt-get install --yes \
+                  build-essential \
+                  flake8 \
+                  git \
+                  libffi-dev \
+                  libpq-dev \
+                  libseccomp-dev \
+                  postgresql \
+                  python3-dev \
+                  sudo \
+                  virtualenv \
+                  wget \
+                  zip
+
+      # Note: run checkout after updating git
+      - name: Checkout physionet-build repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Create .env file
+        run: |
           ln -sT .env.example .env
 
       - name: Install repo dependencies
         # add virtual env path to github_path so each run: process will see it
         run: |
           export VIRTUAL_ENV=/env3
-          virtualenv -p python3.7 $VIRTUAL_ENV
+          virtualenv -ppython3 $VIRTUAL_ENV
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           source $VIRTUAL_ENV/bin/activate
           if [ ${{matrix.pip3}} = 'poetry' ]; then
@@ -50,9 +70,6 @@ jobs:
           else
             pip3 install -r requirements.txt
           fi
-
-      - name: Install libseccomp-dev for syscall filtering
-        run: apt-get install libseccomp-dev
 
       - name: Setup postgres
         run: |
@@ -83,3 +100,16 @@ jobs:
           python manage.py loaddemo
           coverage run --source='.' manage.py test --verbosity=3 --keepdb
           coverage report -m
+
+      - name: Run code style check on changed files relative to PR base branch
+        if: github.event_name == 'pull_request'
+        run: |
+          git rev-parse --verify ${{ github.event.pull_request.base.sha }}
+          git diff -U0 ${{ github.event.pull_request.base.sha }} HEAD | \
+              flake8 --diff
+
+      - name: Run code style check relative to local dev branch
+        if: github.event_name != 'pull_request'
+        run: |
+          git fetch origin dev
+          git diff -U0 origin/dev HEAD | flake8 --diff

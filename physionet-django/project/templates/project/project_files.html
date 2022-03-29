@@ -8,10 +8,16 @@
 
 {% block local_js_top %}
 <script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'dropzone/dropzone.min.js' %}"></script>
+{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'dropzone/dropzone.min.css' %}">
 {% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">5. Project Files</h2>
+<h2 class="form-signin-heading">6. Project Files</h2>
 <hr>
 {% include "about/files.html" %}
 <br>
@@ -29,7 +35,6 @@
     {{ maintenance_message }}
   </div>
 {% endif %}
-
 <div class="card">
   <div class="card-body">
     {% include "project/project_storage_allowance.html" %}
@@ -97,9 +102,10 @@
   </div>
 </div>
 <br>
-
-{% if project.has_wfdb %}
-  <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}" target="_blank"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+{% if is_lightwave_supported %}
+  {% if project.has_wfdb %}
+    <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}" target="_blank"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+  {% endif %}
 {% endif %}
 {% include "project/edit_files_panel.html" %}
 

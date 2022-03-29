@@ -74,8 +74,7 @@ th, td {
   clip: rect(1px, 1px, 1px, 1px);
 }
 
-.navbar{
-  display: block;
+.navbar {
   height: 55px;
   padding: 6px 20px;
 }
@@ -83,6 +82,10 @@ th, td {
 .navbar-brand, .navbar-search{
   display: inline-block;
   margin: auto;
+}
+
+.navbar-search .form-inline {
+  flex-wrap: nowrap;
 }
 
 #navbarCollapse, #navbarResponsive{
@@ -104,7 +107,8 @@ th, td {
   position: relative;
   top: 1px;
   padding-left: 15px;
-  width: 150px;
+  padding-right: 15px;
+  padding-top: 0;
 }
 
 .navbar-icon, .navbar-icon:hover{
@@ -573,4 +577,12 @@ a, code{
 .tooltip-inner {
   text-align: left;
   max-width: 350px;
+}
+
+.select2 {
+  width: 100% !important;
+}
+
+.calendar-time select {
+  display: inline-block !important;
 }

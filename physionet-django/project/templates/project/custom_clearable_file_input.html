@@ -1,0 +1,12 @@
+{% load project_templatetags %}
+
+<input type="{{ widget.type }}" class="my-1" name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>
+{% if widget.is_initial %}
+    <span><a href="{% url 'serve_document' widget.value|filename %}" target="_blank">{{ widget.initial_text }}</a></span>
+    <br>
+    {% if not widget.required %}
+        <button class="btn btn-danger my-1" type="submit" value="1" name="{{ widget.checkbox_name }}" id="{{ widget.checkbox_id }}" {% if widget.attrs.disabled %} disabled {% endif %}>
+        {{ widget.clear_checkbox_label }}
+    </button>
+    {% endif %}
+{% endif %}

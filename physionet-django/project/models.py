@@ -7,5 +7,6 @@ from project.modelcomponents.fields import *
 from project.modelcomponents.legacy import *
 from project.modelcomponents.metadata import *
 from project.modelcomponents.publishedproject import *
-from project.modelcomponents.submission import *
 from project.modelcomponents.storage import *
+from project.modelcomponents.submission import *
+from project.modelcomponents.log import *

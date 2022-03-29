@@ -1,7 +1,9 @@
 <section id="overview">
     <h2>Overview</h2>
-  <p>This page displays an alphabetical list of all software projects on PhysioNet. To search content on PhysioNet, <a href="{% url 'content_index' %}?types=1">visit the search page</a>. Enter the search terms, add a filter for resource type if needed, and select how you would like the results to be ordered (for example, by relevance, by date, or by title).</p>
-  <p>Many of the time series datasets on PhysioNet (for example, ECGs) are shared in waveform-database (WFDB) compatible file formats.  For more information on these formats, see the <a href="/physiotools/wag" />WFDB Applications Guide</a>. WFDB-formatted datasets can also be viewed online with <a href="{% url 'lightwave_home' %}">LightWAVE</a>.</p>
+  <p>This page displays an alphabetical list of all software projects on {{ SITE_NAME }}. To search content on {{ SITE_NAME }}, <a href="{% url 'content_index' %}?types=1">visit the search page</a>. Enter the search terms, add a filter for resource type if needed, and select how you would like the results to be ordered (for example, by relevance, by date, or by title).</p>
+  {% if is_lightwave_supported %}
+    <p>Many of the time series datasets on {{ SITE_NAME }} (for example, ECGs) are shared in waveform-database (WFDB) compatible file formats.  For more information on these formats, see the <a href="/physiotools/wag" />WFDB Applications Guide</a>. WFDB-formatted datasets can also be viewed online with <a href="{% url 'lightwave_home' %}">LightWAVE</a>.</p>
+  {% endif %}
 </section>
 
 <hr>

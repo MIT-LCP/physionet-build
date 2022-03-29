@@ -1,4 +1,5 @@
 from datetime import timedelta
+from enum import IntEnum
 
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -6,16 +7,26 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from html2text import html2text
-
 from project.modelcomponents.fields import SafeHTMLField
+from project.validators import validate_version
+
+from project.managers.access import DataAccessRequestQuerySet, DataAccessRequestManager
 
 
-ACCESS_POLICIES = (
-    (0, 'Open'),
-    (1, 'Restricted'),
-    (2, 'Credentialed'),
-)
+class AccessPolicy(IntEnum):
+    OPEN = 0
+    RESTRICTED = 1
+    CREDENTIALED = 2
+    CONTRIBUTOR_REVIEW = 3
+
+    do_not_call_in_templates = True
+
+    @classmethod
+    def choices(cls, gte_value=0):
+        return tuple(
+            (option.value, option.name.replace("_", " ").title())
+            for option in cls if option.value >= gte_value
+        )
 
 
 class DUASignature(models.Model):
@@ -34,6 +45,7 @@ class DataAccessRequest(models.Model):
     REJECT_REQUEST_VALUE = 1
     WITHDRAWN_VALUE = 2
     ACCEPT_REQUEST_VALUE = 3
+    REVOKED_VALUE = 4
 
     REJECT_ACCEPT = (
         (REJECT_REQUEST_VALUE, 'Reject'),
@@ -44,7 +56,8 @@ class DataAccessRequest(models.Model):
         PENDING_VALUE: "pending",
         REJECT_REQUEST_VALUE: "rejected",
         WITHDRAWN_VALUE: "withdrawn",
-        ACCEPT_REQUEST_VALUE: "accepted"
+        ACCEPT_REQUEST_VALUE: "accepted",
+        REVOKED_VALUE: "revoked",
     }
 
     DATA_ACCESS_REQUESTS_DAY_LIMIT = 14
@@ -64,14 +77,20 @@ class DataAccessRequest(models.Model):
 
     decision_datetime = models.DateTimeField(null=True)
 
+    duration = models.DurationField(null=True, blank=True)
+
     responder = models.ForeignKey('user.User', null=True,
                                   related_name='data_access_request_user',
                                   on_delete=models.SET_NULL)
 
     responder_comments = SafeHTMLField(blank=True, max_length=10000)
 
+    objects = DataAccessRequestManager.from_queryset(DataAccessRequestQuerySet)()
+
     def is_accepted(self):
-        return self.status == self.ACCEPT_REQUEST_VALUE
+        return self.status == self.ACCEPT_REQUEST_VALUE and (
+            self.duration is None or self.decision_datetime + self.duration > timezone.now()
+        )
 
     def is_rejected(self):
         return self.status == self.REJECT_REQUEST_VALUE
@@ -81,6 +100,9 @@ class DataAccessRequest(models.Model):
 
     def is_pending(self):
         return self.status == self.PENDING_VALUE
+
+    def is_revoked(self):
+        return self.status == self.REVOKED_VALUE
 
     def status_text(self):
         return self.status_texts.get(self.status, 'unknown')
@@ -202,28 +224,40 @@ class AnonymousAccess(models.Model):
 
 class License(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=120)
+    slug = models.SlugField(max_length=120, unique=True)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=True)
     text_content = models.TextField(default='')
     html_content = SafeHTMLField(default='')
     home_page = models.URLField()
     # A project must choose a license with a matching access policy and
     # compatible resource type
-    access_policy = models.PositiveSmallIntegerField(choices=ACCESS_POLICIES,
-        default=0)
+    access_policy = models.PositiveSmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN)
     # A license can be used for one or more resource types.
     # This is a comma delimited char field containing allowed types.
     # ie. '0' or '0,2' or '1,3,4'
-    resource_types = models.CharField(max_length=100)
+    project_types = models.ManyToManyField('project.ProjectType', related_name='licenses')
     # A protected license has associated DUA content
-    dua_name = models.CharField(max_length=100, blank=True, default='')
-    dua_html_content = SafeHTMLField(blank=True, default='')
+
+    class Meta:
+        unique_together = (('name', 'version'),)
 
     def __str__(self):
         return self.name
 
-    def dua_text_content(self):
-        """
-        Returns dua_html_content as plain text. Used when adding the DUA to
-        plain text emails.
-        """
-        return html2text(self.dua_html_content)
+
+class DUA(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120, unique=True)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=True)
+    html_content = SafeHTMLField(default='')
+    access_template = SafeHTMLField(default='')
+    access_policy = models.PositiveSmallIntegerField(choices=AccessPolicy.choices(), default=AccessPolicy.OPEN)
+    project_types = models.ManyToManyField('project.ProjectType', related_name='duas')
+
+    class Meta:
+        unique_together = (('name', 'version'),)
+
+    def __str__(self):
+        return self.name

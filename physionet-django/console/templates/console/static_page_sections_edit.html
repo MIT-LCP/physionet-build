@@ -1,0 +1,19 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}{{ section.title }} - edit {% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+    <div class="card-header">
+        {{ section.title }} - edit
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'static_page_sections_edit' page.pk section.id %}">
+            {% include "inline_form_snippet.html" with form=section_form %}
+            <button class="btn btn-primary btn-fixed" type="submit">Save</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

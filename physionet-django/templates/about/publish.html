@@ -21,27 +21,23 @@ Publish
         <h2 class="card-header">Share</h2>
         <div class="card-body">
           <ul>
-            <li><a href="#sharing">Sharing on PhysioNet</a></li>
-            <li><a href="#overview">Submission Overview</a></li>
-            <li><a href="#guidelines">Author Guidelines</a></li>
-            <li><a href="#licenses">Licenses</a></li>
-            <li><a href="#submit">Submit your Project</a></li>
+            {% for section in sections %}
+              <li><a href="#{{ section.order }}">{{ section.title }}</a></li>
+            {% endfor %}
           </ul>
         </div>
       </div>
-    </div><div class="main-content">
-      <h1 id="sharing">Sharing on PhysioNet</h1>
-      <div>{% include "about/share.html" %}</div><br>
-      <h1 id="overview">Submission Overview</h1>
-      <div>{% include "about/submission_overview.html" %}</div><br>
-      <h1 id="guidelines">Author Guidelines</h1>
-      <div>{% include "about/author_guidelines.html" %}</div><br>
-      <h1 id="licenses">Licenses</h1>
-      <div>{% include "about/licenses.html" %}</div><br>
-      <h1 id="submit">Submit your Project</h1>
-      <div class="indented-box">
-          <p><a href="{% url 'create_project' %}">Click here</a> to create your project.</p>
-      </div>
+    </div>
+    <div class="main-content">
+      {% for section in sections %}
+        <section id="{{ section.order }}">
+          <h1>{{ section.title }}</h1>
+          <div class="indented-box">
+            {{ section.content|safe }}
+          </div>
+        </section>
+        <br>
+      {% endfor %}
     </div>
   </div>
 </div>

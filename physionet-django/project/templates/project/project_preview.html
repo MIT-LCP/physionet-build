@@ -95,51 +95,8 @@
   <div class="row">
     <!-- Main column -->
     <div class="col-md-8" style="padding-left: 0;">
-    <div class="alert alert-secondary">
-    <p>
-      <strong>When using this resource, please cite: </strong>
-      <a href="#citationModal" data-toggle="modal">(show more options)</a>
-      <br><span>{{ citations.APA }}</span>
-    </p>
 
-    {% include 'modal_start.html' with id_name='citationModal' title='Cite' %}
-    <table><tbody>
-      {% for style, citation in citations.items %}
-        <tr>
-          <th>{{ style }}</th>
-          <td>{{ citation }}</td>
-        </tr>
-      {% endfor %}
-    </tbody></table>
-    {% include 'modal_end.html' %}
-
-    {% if publication %}
-      <strong>In addition, please cite the original publication:</strong>
-      {% if publication.url %}
-        <p><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
-      {% else %}
-        <p>{{ publication.citation }}</p>
-      {% endif %}
-    {% endif %}
-
-    <p>
-      <strong>Please include the standard citation for PhysioNet:</strong>
-      <a href="#citationModalPlatform" data-toggle="modal">(show more options)</a>
-      <br><span>{{ platform_citations.APA }}</span>
-    </p>
-
-    {% include 'modal_start.html' with id_name='citationModalPlatform' title='Cite' %}
-    <table><tbody>
-      {% for style, citation in platform_citations.items %}
-        <tr>
-          <th>{{ style }}</th>
-          <td>{{ citation }}</td>
-        </tr>
-      {% endfor %}
-    </tbody></table>
-    {% include 'modal_end.html' %}
-
-    </div>
+      {% include "project/citation_box.html" %}
 
       {# 0: Database #}
       {% if project.resource_type.id == 0 %}
@@ -194,6 +151,26 @@
               <a style="color:red"><strong>* Required field missing</strong></a>
             {% endif %}
           </p>
+          {% if project.dua %}
+            <p>
+              <strong>Data Use Agreement:</strong>
+              <br>
+              {% if project.license %}
+                <a href="{% url 'project_dua_preview' project.slug %}">{{ project.dua }}</a>
+              {% else %}
+                <a style="color:red"><strong>* Required field missing</strong></a>
+              {% endif %}
+            </p>
+          {% endif %}
+          {% if project.access_policy == AccessPolicy.CREDENTIALED or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
+            <p>
+              <strong>Required training:</strong>
+              {% for training in project.required_trainings.all %}
+                <br>
+                <a href="{% url 'project_required_trainings_preview' project.slug %}#{{ training.id }}">{{ training }}</a>
+              {% endfor%}
+            </p>
+          {% endif %}
         </div>
       </div>
 
@@ -240,13 +217,14 @@
             </p>
         </div>
       </div>
-
     </div>
     <!-- /.sidebar -->
   </div>
   <h2>Files</h2>
-  {% if project.has_wfdb %}
-    <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+  {% if is_lightwave_supported %}
+    {% if project.has_wfdb %}
+      <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+    {% endif %}
   {% endif %}
   <div id="files-panel" class="card">
     {% include "project/files_panel.html" %}

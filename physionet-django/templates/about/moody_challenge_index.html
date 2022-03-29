@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Moody Challenges
+{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="main">
+  <div class="row">
+    <div class="main-side">
+
+      <div class="card">
+        <h2 class="card-header">Moody PhysioNet Challenges</h2>
+        <div class="card-body">
+
+            <!-- Challenges -->
+            <ul>
+              <li><a href="#moody-challenges">Moody PhysioNet Challenges</a></li>
+            </ul>
+
+        </div>
+      </div>
+    </div><div class="main-content">
+      <div>{% include "about/moody_challenge_content.html" %}</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

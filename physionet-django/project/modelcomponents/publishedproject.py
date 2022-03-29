@@ -1,26 +1,25 @@
-from distutils.version import StrictVersion
-import hashlib
 import os
 import shutil
+from distutils.version import StrictVersion
 
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
-
-from physionet.utility import sorted_tree_files, zip_dir
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
-from project.utility import clear_directory, get_tree_size, StorageInfo
+from project.models import AccessPolicy
+from project.projectfiles import ProjectFiles
+from project.utility import StorageInfo, clear_directory, get_tree_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
+from user.models import Training
 
 
 class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
-
     """
     # File storage sizes in bytes
     main_storage_size = models.BigIntegerField(default=0)
@@ -46,6 +45,9 @@ class PublishedProject(Metadata, SubmissionInfo):
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
     # Workaround for development
+    # Note that all files located within the *parent directory* of
+    # PUBLIC_FILE_ROOT are treated as public (see
+    # physionet-django/lightwave/views.py).
     if settings.STATIC_ROOT is None:
         PUBLIC_FILE_ROOT = os.path.join(settings.STATICFILES_DIRS[0], 'published-projects')
     else:
@@ -75,24 +77,22 @@ class PublishedProject(Metadata, SubmissionInfo):
         This is the parent directory of the main and special file
         directories.
         """
-        if self.access_policy:
-            return os.path.join(PublishedProject.PROTECTED_FILE_ROOT, self.slug)
-        else:
-            return os.path.join(PublishedProject.PUBLIC_FILE_ROOT, self.slug)
+        return ProjectFiles().get_project_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def file_root(self):
         """
         Root directory where the main user uploaded files are located
         """
-        return os.path.join(self.project_file_root(), self.version)
+        return ProjectFiles().get_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def storage_used(self):
         """
         Bytes of storage used by main files and compressed file if any
         """
-        main = get_tree_size(self.file_root())
-        compressed = os.path.getsize(self.zip_name(full=True)) if os.path.isfile(self.zip_name(full=True)) else 0
-        return main, compressed
+        storage_used = ProjectFiles().published_project_storage_used(self)
+        zip_file_size = ProjectFiles().get_zip_file_size(self)
+
+        return storage_used, zip_file_size
 
     def set_storage_info(self):
         """
@@ -122,15 +122,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make a (new) zip file of the main files.
         """
-        fname = self.zip_name(full=True)
-        if os.path.isfile(fname):
-            os.remove(fname)
-
-        zip_dir(zip_name=fname, target_dir=self.file_root(),
-            enclosing_folder=self.slugged_label())
-
-        self.compressed_storage_size = os.path.getsize(fname)
-        self.save()
+        return ProjectFiles().make_zip(project=self)
 
     def remove_zip(self):
         fname = self.zip_name(full=True)
@@ -153,29 +145,13 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make the checksums file for the main files
         """
-        fname = os.path.join(self.file_root(), 'SHA256SUMS.txt')
-        if os.path.isfile(fname):
-            os.remove(fname)
-
-        with open(fname, 'w') as outfile:
-            for f in sorted_tree_files(self.file_root()):
-                if f != 'SHA256SUMS.txt':
-                    h = hashlib.sha256()
-                    with open(os.path.join(self.file_root(), f), 'rb') as fp:
-                        block = fp.read(h.block_size)
-                        while block:
-                            h.update(block)
-                            block = fp.read(h.block_size)
-                    outfile.write('{} {}\n'.format(h.hexdigest(), f))
-
-        self.set_storage_info()
+        return ProjectFiles().make_checksum_file(self)
 
     def remove_files(self):
         """
         Remove files of this project
         """
-        clear_directory(self.file_root())
-        self.remove_zip()
+        ProjectFiles().rm_dir(self.file_root(), remove_zip=self.remove_zip)
         self.set_storage_info()
 
     def deprecate_files(self, delete_files):
@@ -225,21 +201,39 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.deprecated_files:
             return False
 
-        if self.access_policy == 2 and (
-            not user.is_authenticated or not user.is_credentialed):
-            return False
-        elif self.access_policy == 1 and not user.is_authenticated:
+        if not self.allow_file_downloads:
             return False
 
-        if self.is_self_managed_access:
-            return DataAccessRequest.objects.filter(
-                project=self, requester=user,
-                status=DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
-        elif self.access_policy:
-            return DUASignature.objects.filter(
-                project=self, user=user).exists()
+        if self.access_policy == AccessPolicy.OPEN:
+            return True
+        elif self.access_policy == AccessPolicy.RESTRICTED:
+            return user.is_authenticated and DUASignature.objects.filter(project=self, user=user).exists()
+        elif self.access_policy == AccessPolicy.CREDENTIALED:
+            return (
+                user.is_authenticated
+                and user.is_credentialed
+                and DUASignature.objects.filter(project=self, user=user).exists()
+                and Training.objects.get_valid()
+                .filter(training_type__in=self.required_trainings.all(), user=user)
+                .count()
+                == self.required_trainings.count()
+            )
+        elif self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
+            return (
+                user.is_authenticated
+                and user.is_credentialed
+                and DataAccessRequest.objects.get_active(
+                    project=self,
+                    requester=user,
+                    status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+                ).exists()
+                and Training.objects.get_valid()
+                .filter(training_type__in=self.required_trainings.all(), user=user)
+                .count()
+                == self.required_trainings.count()
+            )
 
-        return True
+        return False
 
     def can_approve_requests(self, user):
         """
@@ -365,3 +359,19 @@ class PublishedProject(Metadata, SubmissionInfo):
             if sorted_versions[-1] == version:
                 tmp.is_latest_version = True
             tmp.save()
+
+    def get_paper_count(self):
+        """
+        Get a count of the number of files/directories minus one (for the index.html) in a projects papers folder.
+        This is designed to work with the project structure for challenges but could be used elsewhere also.
+        """
+        paper_count = len(os.listdir(os.path.join(self.file_root(), 'papers/'))) - 1
+        return(paper_count)
+
+    def get_program_count(self):
+        """
+        Get a count of the number of files/directories minus one (for the index.html) in a projects sources folder.
+        This is designed to work with the project structure for challenges but could be used elsewhere also.
+        """
+        program_count = len(os.listdir(os.path.join(self.file_root(), 'sources/'))) - 1
+        return(program_count)

@@ -27,6 +27,11 @@ if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
 
+    if ENVIRONMENT == 'development' and not RUNNING_TEST_SUITE:
+        DEBUG_TOOLBAR_CONFIG = {'SHOW_TOOLBAR_CALLBACK': 'physionet.settings.settings.show_toolbar'}
+        def show_toolbar(request):
+            return True
+
 # When ready, use the following:
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' if DEBUG else 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = config('EMAIL_HOST', default='localhost')
@@ -39,6 +44,9 @@ EMAIL_FROM_DOMAINS = ['physionet.org']
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='PhysioNet Automated System <noreply@physionet.org>')
 CONTACT_EMAIL = config('CONTACT_EMAIL', default='PhysioNet Contact <contact@physionet.org>')
 SERVER_EMAIL = config('SERVER_EMAIL', default='PhysioNet System <root@physionet.org>')
+CREDENTIAL_EMAIL = config('CREDENTIAL_EMAIL', default='PhysioNet Credentialing <credentialing@physionet.org>')
+ERROR_EMAIL = config('ERROR_EMAIL', default='contact@physionet.org')
+
 
 ADMINS = [(config('ADMINS_NAME', default='PhysioNet Technical'),
            config('ADMINS_MAIL', default='technical@dev.physionet.org'))]

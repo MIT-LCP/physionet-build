@@ -2,7 +2,7 @@
 {% load project_templatetags %}
 
 {% block title %}
-PhysioNet Topics
+{{ SITE_NAME }} Topics
 {% endblock %}
 
 {% load static %}
@@ -13,9 +13,9 @@ PhysioNet Topics
 
 {% block content %}
 <div class="container">
-  <h1>PhysioNet Topics</h1>
+  <h1>{{ SITE_NAME }} Topics</h1>
   <hr>
-  <p>Here are all the keyword topics that tag published PhysioNet projects.</p>
+  <p>Here are all the keyword topics that tag published {{ SITE_NAME }} projects.</p>
   </p>
   <p>
     {% for topic in topics %}

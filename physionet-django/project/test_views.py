@@ -1,18 +1,30 @@
+
 import base64
 import os
+from http import HTTPStatus
+import json
+from unittest import mock
 
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
-
 from project.forms import ContentForm
-from project.models import (ArchivedProject, ActiveProject, PublishedProject,
-                            Author, AuthorInvitation, License, StorageRequest,
-                            DataAccessRequest, DataAccessRequestReviewer,
-                            PublishedAuthor)
+from project.models import (
+    AccessPolicy,
+    ActiveProject,
+    ArchivedProject,
+    Author,
+    AuthorInvitation,
+    DataAccessRequest,
+    DataAccessRequestReviewer,
+    License,
+    PublishedAuthor,
+    PublishedProject,
+    StorageRequest,
+)
 from user.models import User
-from user.test_views import prevent_request_warnings, TestMixin
+from user.test_views import TestMixin, prevent_request_warnings
 
 PROJECT_VIEWS = [
     'project_overview', 'project_authors', 'project_content',
@@ -171,33 +183,38 @@ class TestAccessPresubmission(TestMixin):
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
         # Ensure valid license policy combination
-        open_data_license = License.objects.filter(access_policy=0,
-            resource_types__contains='0').first()
-        restricted_data_license = License.objects.filter(access_policy=1,
-            resource_types__contains='0').first()
-        software_license = License.objects.filter(
-            resource_types__contains='1').first()
+        open_data_license = License.objects.filter(
+            access_policy=AccessPolicy.OPEN, project_types__pk=0
+        ).first()
+        restricted_data_license = License.objects.filter(
+            access_policy=AccessPolicy.RESTRICTED, project_types__pk=0
+        ).first()
+        software_license = License.objects.filter(project_types__pk=1).first()
 
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':0, 'license':open_data_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': open_data_license.id},
+        )
         self.assertMessage(response, 25)
 
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':0, 'license':restricted_data_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': restricted_data_license.id},
+        )
         self.assertMessage(response, 40)
 
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':0, 'license':software_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': software_license.id},
+        )
         self.assertMessage(response, 40)
 
         # Non-submitting author is not allowed
         self.client.login(username='aewj@mit.edu', password='Tester11!')
-        response = self.client.post(reverse(
-            'project_access', args=(project.slug,)),
-            data={'access_policy':0, 'license':open_data_license.id})
+        response = self.client.post(
+            reverse('project_access', args=(project.slug,)),
+            data={'access_policy': AccessPolicy.OPEN.value, 'license': open_data_license.id},
+        )
         self.assertEqual(response.status_code, 403)
 
     @prevent_request_warnings
@@ -978,10 +995,10 @@ class TestSelfManagedProjectWorkflows(TestMixin):
 
             # submitter accepts with comment
             self.client.post(reverse('data_access_request_view', args=(
-                project.slug, project.version,
-                User.objects.get(username=self.REQUESTER).id)),
+                project.slug, project.version, da_req.first().id)),
                              data={'proj-status': [
                                  str(DataAccessRequest.ACCEPT_REQUEST_VALUE)],
+                                 'proj-duration': ['14'],
                                  'proj-responder_comments': ['great!'],
                                  'data_access_response': [str(da_req[0].id)]}
                              )
@@ -1106,9 +1123,75 @@ class TestInviteDataAccessReviewer(TestMixin):
         project = PublishedProject.objects.get(title=self.PROJECT_NAME)
 
         self.client.login(username=self.SUBMITTER, password=self.PASSWORD)
-        response = self.client.post(reverse('manage_data_access_reviewers',
-                                 args=(project.slug, project.version,)),
-                         data={'reviewer': self.SUBMITTER,
-                               'invite_reviewer' : ['']})
+        response = self.client.post(
+            reverse('manage_data_access_reviewers', args=(project.slug, project.version,)),
+            data={'reviewer': self.SUBMITTER, 'invite_reviewer': ['']}
+        )
 
         self.assertContains(response, "is already allowed to review requests!")
+
+
+class TestGenerateSignedUrl(TestMixin):
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse(
+            'generate_signed_url',
+            kwargs={"project_slug": ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database').slug},
+        )
+        cls.user_credentials = {'username': 'rgmark@mit.edu', 'password': 'Tester11!'}
+        cls.invalid_size_data_1 = {'size': -10, 'filename': 'random.txt'}
+        cls.invalid_size_data_2 = {'size': 'file_size', 'filename': 'random.txt'}
+        cls.invalid_size_data_3 = {'filename': 'random.txt'}
+        cls.invalid_filename_data_1 = {'size': 250000, 'filename': 'ran dom.txt'}
+        cls.invalid_filename_data_2 = {'size': 250000, 'filename': 'random§.txt'}
+        cls.valid_data = {'size': 250000, 'filename': 'random.txt'}
+
+    def test_invalid_size(self):
+        self.client.login(**self.user_credentials)
+
+        with self.subTest('A negative file size returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_size_data_1, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+        with self.subTest('A non-numeric file size returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_size_data_2, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+        with self.subTest('Missing file size returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_size_data_3, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+    def test_invalid_filename(self):
+        self.client.login(**self.user_credentials)
+
+        with self.subTest('A filename containing whitespaces returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_filename_data_1, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+        with self.subTest('A filename containing non-ascii characters returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_filename_data_2, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+        with self.subTest('Non-numeric file size returns a bad request.'):
+            response = self.client.post(self.url, self.invalid_size_data_2, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+    @mock.patch('project.views.generate_signed_url_v4')
+    @mock.patch('project.views.MediaStorage')
+    def test_valid_size_and_filename(self, media_mock, signed_url_mock):
+        media_mock.return_value.bucket.name = "media-bucket"
+        signed_url_mock.return_value = 'https://example.com'
+
+        self.client.login(**self.user_credentials)
+        response = self.client.post(self.url, self.valid_data, format='json')
+
+        media_mock.assert_called_once()
+        signed_url_mock.assert_called_once()
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(json.loads(response.content).get('url'), 'https://example.com')

@@ -10,16 +10,15 @@
 <div class="container" align='center'>
   <h1>Page Not Found<br />(404)</h1>
   <br /><br />
-  <p>It might be located at: <a href="https://archive.physionet.org{{ request.get_full_path_info }}">https://archive.physionet.org{{ request.get_full_path_info }}</a>.
 
-  <p>If you think this is an error, please email us at: <a href="mailto:contact@physionet.org?subject=Missing%20URL%20on%20physionet.org&body={% filter urlencode %}Dear PhysioNet Team,
+  <p>If you think this is an error, please email us at: <a href="mailto:{{ ERROR_EMAIL }}?subject=Missing%20URL%20on%20{{ SITE_NAME }}&body={% filter urlencode %}Dear {{ SITE_NAME }} Team,
 
 The following URL is missing from the website:
 {{ request.get_raw_uri }}
 {% if request.META.HTTP_REFERER %}
 This URL is linked from:
 {{ request.META.HTTP_REFERER }}
-{% endif %}{% endfilter %}">contact@physionet.org</a>  </p>
+{% endif %}{% endfilter %}">{{ ERROR_EMAIL }}</a>  </p>
 
 
 </div>

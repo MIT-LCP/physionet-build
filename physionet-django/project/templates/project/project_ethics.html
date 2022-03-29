@@ -1,0 +1,37 @@
+{% extends "project/project.html" %}
+
+{% load static %}
+
+{% block title %}Project Ethics - {{ project }}{% endblock %}
+
+{% block main_content %}
+<h2 class="form-signin-heading">5. Ethics</h2>
+<hr>
+<p>Please provide an ethics statement following the <a href="{% url 'static_view' static_url='publish' %}#author_guidelines" target="_blank">author guidelines</a>. Statements on ethics approval should appear here. Your statement will be included in the public project description. </p>
+
+{% if not project.author_editable %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>The project cannot be edited right now.</strong>
+  </div>
+  {% elif not is_submitting %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>Only the submitting author may edit the approvals.</strong>
+  </div>
+{% endif %}
+
+<form enctype="multipart/form-data" action="{% url 'project_ethics' project.slug %}" method="post" class="no-pd">
+  {% include "project/content_inline_form_snippet.html" with form=ethics_form %}
+  <p>You may upload supporting documents here. These documents will be reviewed by our editorial staff, but they will not be shared publicly. For further guidance, please refer to our <a href="{% url 'static_view' static_url='publish' %}#author_guidelines" target="_blank">author guidelines</a>.</p>
+  {% include 'project/item_list.html' with item="document" item_label=documents_formset.item_label formset=documents_formset form_name=documents_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}  {% if is_submitting and project.author_editable %}
+  <hr>
+  <button class="btn btn-primary btn-rsp" type="submit" name="edit_ethics">Save Ethics</button>
+  {% endif %}
+</form>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+  <script src="{% static 'custom/js/enable-popover.js' %}"></script>
+  <script src="{% static 'custom/js/cookie.js' %}"></script>
+  <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
+{% endblock %}
