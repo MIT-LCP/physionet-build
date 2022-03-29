@@ -1,0 +1,111 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block title %}{{ SITE_NAME }} - DUAs{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Data Use Agreements <span class="badge badge-pill badge-info">{{ duas|length }}</span>
+  </div>
+  <div class="card-body">
+    {% if duas %}
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Resource types</th>
+            <th>Access policy</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for dua in duas %}
+            <tr>
+                <td>
+                  {{ dua.name }}
+                  {% if dua.is_active %}
+                    <span class="badge badge-success">Active</span>
+                  {% else %}
+                    <span class="badge badge-danger">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>{{ dua.version }}</td>
+                <td>
+                  {% for project_type in dua.project_types.all %}
+                    {{ project_type.name }}{% if not forloop.last %},{% endif %}
+                  {% endfor %}
+                </td>
+                <td>
+                  {% if dua.access_policy == AccessPolicy.OPEN %}
+                    Open
+                  {% elif dua.access_policy == AccessPolicy.RESTRICTED %}
+                    Restricted
+                  {% elif dua.access_policy == AccessPolicy.CREDENTIALED %}
+                    Credentialed
+                  {% elif dua.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
+                    Contributor Review
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'dua_detail' dua.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
+                  <a href="{% url 'dua_new_version' dua.pk %}" class="btn btn-sm btn-success" role="button">New version</a>
+                  <button type="button" class="btn btn-sm btn-danger " data-toggle="modal" data-target="#remove-dua-{{ dua.pk }}">Delete</button>
+
+                  <div class="modal fade" id="remove-dua-{{ dua.pk }}" tabindex="1" role="dialog" aria-hidden="true">
+                    <form method="post" action="{% url 'dua_delete' dua.pk %}">
+                      {% csrf_token %}
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Delete DUA</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                              <p>Are you sure you want to delete the DUA?</p>
+                          </div>
+                          <div class="modal-footer">
+                              <button class="btn btn-danger" type="submit">Delete</button>
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=duas %}
+    </div>
+    {% else %}
+      <p>There aren't any data use agreements.</p>
+    {% endif %}
+  </div>
+</div>
+<div class="card mb-3">
+  <div class="card-header">
+    New Data Use Agreement
+  </div>
+  <div class="card-body">
+      <form method="post" action="{% url 'dua_list' %}">
+          {% include "inline_form_snippet.html" with form=dua_form %}
+          <button class="btn btn-primary btn-fixed" type="submit">Create</button>
+      </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}

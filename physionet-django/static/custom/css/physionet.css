@@ -578,3 +578,11 @@ a, code{
   text-align: left;
   max-width: 350px;
 }
+
+.select2 {
+  width: 100% !important;
+}
+
+.calendar-time select {
+  display: inline-block !important;
+}

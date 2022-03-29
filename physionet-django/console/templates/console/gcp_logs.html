@@ -1,0 +1,48 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Project Access{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+ <script src="{% static 'console/js/generic-filter.js' %}"></script>
+ <div class="card mb-3">
+  <div class="card-header">
+    Projects - logs<span class="badge badge-pill badge-info">{{ c_projects.paginator.count }}</span>
+  </div>
+  <div class="card-body" >
+    <input id="searchbox" type="search" oninput="search();"  placeholder="Search...">
+    <div class="table-responsive" id="searchitems">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Last modification</th>
+            <th>Logs count</th>
+            <th>Logs</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% include "console/gcp_logs_list.html" %}
+        </tbody> 
+      </table>
+      {% include "console/pagination.html" with pagination=c_projects %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script>
+    const search = () => {
+      const filters = {
+        q: $('#searchbox').val()
+      }
+      filter('{% url 'gcp_signed_urls_logs' %}', filters)
+    }
+  </script>
+{% endblock %}

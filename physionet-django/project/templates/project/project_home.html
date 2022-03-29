@@ -138,7 +138,7 @@
                  <div class="col-md-2">{{ da_request.request_datetime|date }}</div>
                  <div class="col-md-2">
                      <a class="btn btn-sm btn-primary" href=
-                             "{% url 'data_access_request_view' da_request.project.slug da_request.project.version da_request.requester.id %}"><i class="fa fa-reply"></i>Respond</a>
+                             "{% url 'data_access_request_view' da_request.project.slug da_request.project.version da_request.id %}"><i class="fa fa-reply"></i>Respond</a>
                  </div>
              </div>
           </li>
@@ -202,7 +202,7 @@
           </p>
           <h3>
             <a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a>
-              {% if project.is_self_managed_access %}
+              {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
                   {% if project.requests_button %}
                       <a href="{% url 'data_access_requests_overview' project.slug project.version %}"
                          class="btn btn-primary ml-1" role="button" style="float:right">Requests</a>

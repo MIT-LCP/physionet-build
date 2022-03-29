@@ -13,12 +13,15 @@ function cloneFormElement(selector, form_name){
   var total_forms = $('#id_' + form_name + '-TOTAL_FORMS').val();
 
   // Set the names and ids of each input element of the new form
-  newElement.find('input').each(function() {
+  newElement.find('input, select').each(function() {
       var name = $(this).attr('name').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-');
       var id = 'id_' + name;
       // What about the actual object id hidden input?
+      
       $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
   });
+
+  newElement.find('span').remove();
   // Update the formset total forms indicator
   $('#id_' + form_name + '-TOTAL_FORMS').val(++total_forms);
   // Insert the new content after the original selected content

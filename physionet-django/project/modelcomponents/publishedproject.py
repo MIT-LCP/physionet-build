@@ -14,12 +14,12 @@ from project.models import AccessPolicy
 from project.projectfiles import ProjectFiles
 from project.utility import StorageInfo, clear_directory, get_tree_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
+from user.models import Training
 
 
 class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
-
     """
     # File storage sizes in bytes
     main_storage_size = models.BigIntegerField(default=0)
@@ -77,13 +77,13 @@ class PublishedProject(Metadata, SubmissionInfo):
         This is the parent directory of the main and special file
         directories.
         """
-        return ProjectFiles().get_project_file_root(self.slug, self.access_policy, PublishedProject)
+        return ProjectFiles().get_project_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def file_root(self):
         """
         Root directory where the main user uploaded files are located
         """
-        return os.path.join(self.project_file_root(), self.version)
+        return ProjectFiles().get_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def storage_used(self):
         """
@@ -201,22 +201,39 @@ class PublishedProject(Metadata, SubmissionInfo):
         if self.deprecated_files:
             return False
 
-        if self.access_policy == AccessPolicy.CREDENTIALED and (
-            not user.is_authenticated or not user.is_credentialed
-        ):
-            return False
-        elif self.access_policy == AccessPolicy.RESTRICTED and not user.is_authenticated:
+        if not self.allow_file_downloads:
             return False
 
-        if self.is_self_managed_access:
-            return DataAccessRequest.objects.filter(
-                project=self, requester=user,
-                status=DataAccessRequest.ACCEPT_REQUEST_VALUE).exists()
-        elif self.access_policy:
-            return DUASignature.objects.filter(
-                project=self, user=user).exists()
+        if self.access_policy == AccessPolicy.OPEN:
+            return True
+        elif self.access_policy == AccessPolicy.RESTRICTED:
+            return user.is_authenticated and DUASignature.objects.filter(project=self, user=user).exists()
+        elif self.access_policy == AccessPolicy.CREDENTIALED:
+            return (
+                user.is_authenticated
+                and user.is_credentialed
+                and DUASignature.objects.filter(project=self, user=user).exists()
+                and Training.objects.get_valid()
+                .filter(training_type__in=self.required_trainings.all(), user=user)
+                .count()
+                == self.required_trainings.count()
+            )
+        elif self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
+            return (
+                user.is_authenticated
+                and user.is_credentialed
+                and DataAccessRequest.objects.get_active(
+                    project=self,
+                    requester=user,
+                    status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+                ).exists()
+                and Training.objects.get_valid()
+                .filter(training_type__in=self.required_trainings.all(), user=user)
+                .count()
+                == self.required_trainings.count()
+            )
 
-        return True
+        return False
 
     def can_approve_requests(self, user):
         """

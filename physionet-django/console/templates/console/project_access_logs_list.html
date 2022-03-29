@@ -1,0 +1,8 @@
+{% for project in c_projects %}
+    <tr>
+        <td><a href="{% url 'published_project' project.slug project.version %}">{{ project }}</a></td>
+        <td>{{ project.publish_datetime }}</td>
+        <td>{{ project.log_count }}</td>
+        <td><a href="{% url 'project_access_logs_detail' project.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+    </tr>
+{% endfor %}

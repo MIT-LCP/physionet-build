@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load physionet_templatetags %}
+
+{% block title %}
+  {{ static_page.title }}
+{% endblock %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/about.css' %}">
+{% endblock %}
+
+
+{% block content %}
+
+<div class="main">
+  <div class="row">
+    <div class="main-side">
+
+      <div class="card">
+        <h2 class="card-header">{{ static_page.title }}</h2>
+        <div class="card-body">
+
+          <ul>
+            {% for section in sections %}
+              <li><a href="#{{ section.title | underscore | lower }}">{{ section.title }}</a></li>
+            {% endfor %}
+          </ul>
+
+        </div>
+      </div>
+    </div><div class="main-content">
+      {% for section in sections %}
+        <section id="{{ section.title | underscore | lower }}">
+          <h1>{{ section.title }}</h1>
+          <div>
+            {{ section.content|safe }}
+          </div>
+        </section>
+        <br>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

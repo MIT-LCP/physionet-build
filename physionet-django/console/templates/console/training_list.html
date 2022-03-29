@@ -1,0 +1,64 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Trainings{% endblock %}
+
+{% load static %}
+
+{% load console_templatetags %}
+
+{% block local_js_top %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'project/js/dynamic-formset.js' %}"></script>
+<script src="{% static 'console/js/search-console.js' %}"></script>
+{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="card">
+      <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+          <li class="nav-item">
+            <a class="nav-link {% if status == 'review' %}active{% endif %}" id="review-tab" href="{% url 'training_list' 'review' %}" role="tab">
+              Review <span class="badge badge-pill badge-info">{{ review_count }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if status == 'valid' %}active{% endif %}" id="valid-tab" href="{% url 'training_list' 'valid' %}" role="tab">
+              Valid <span class="badge badge-pill badge-info">{{ valid_count }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if status == 'expired' %}active{% endif %}" id="expired-tab" href="{% url 'training_list' 'expired' %}" role="tab">
+              Expired <span class="badge badge-pill badge-info">{{ expired_count }}</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if status == 'rejected' %}active{% endif %}" id="rejected-tab" href="{% url 'training_list' 'rejected' %}" role="tab">
+              Rejected <span class="badge badge-pill badge-info">{{ rejected_count }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    <div class="card-body">
+      <div class="tab-content">
+        {% if trainings %}
+          <input type="search" oninput="search('{% url "training_list" status=status %}', value);" placeholder="Search..." >
+          {% if status == 'review' %}
+            {% include 'console/review_training_table.html' %}
+          {% elif status == 'valid' %}
+            {% include 'console/valid_training_table.html' %}
+          {% elif status == 'expired' %}
+            {% include 'console/expired_training_table.html' %}
+          {% elif status == 'rejected' %}
+            {% include 'console/rejected_training_table.html' %}
+          {% endif %}
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No training to show.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% endblock %}

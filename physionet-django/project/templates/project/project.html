@@ -5,13 +5,14 @@
 {% load project_templatetags %}
 
 {% block local_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-content.css' %}">
 {% endblock %}
 
 
 {% block content %}
 <div class="container">
-  <div class="row row-offcanvas row-offcanvas-right">
+  <div class="row row-offcanvas row-offcanvas-right">    
     <div class="col-6 col-md-2 sidebar-offcanvas" id="sidebar">
       {# Overview box is separate from preparation steps #}
       <div class="list-group">
@@ -21,7 +22,7 @@
       <br>
 
       <div class="list-group">
-        {% with 'authors content access discovery files proofread' as project_settings %}
+        {% with 'authors content access discovery ethics files proofread' as project_settings %}
           {% for setting in project_settings.split %}
             {% url 'project_'|add:setting project.slug as setting_url %}
             <a id="{{ setting }}_tab" href="{{ setting_url }}" class="list-group-item list-group-item-action{% if setting_url == request.path %} active{% endif %}">{{ forloop.counter }}. {{ setting|title }}</a>

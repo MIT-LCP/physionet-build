@@ -3,7 +3,7 @@ import os
 import shutil
 
 from django.conf import settings
-from physionet.utility import sorted_tree_files, zip_dir
+from physionet.utility import serve_file, sorted_tree_files, zip_dir
 from project.projectfiles.base import BaseProjectFiles
 from project.utility import (
     clear_directory,
@@ -42,6 +42,9 @@ class LocalProjectFiles(BaseProjectFiles):
 
     def rename(self, source_path, target_path):
         rename_file(source_path, target_path)
+
+    def cp_file(self, source_path, target_path):
+        shutil.copyfile(source_path, target_path)
 
     def mv(self, source_path, target_path):
         move_items([source_path], target_path)
@@ -119,11 +122,14 @@ class LocalProjectFiles(BaseProjectFiles):
     def publish_complete(self, active_project, published_project):
         pass
 
-    def get_project_file_root(self, slug, access_policy, klass):
+    def get_project_file_root(self, slug, version, access_policy, klass):
         if access_policy:
             return os.path.join(klass.PROTECTED_FILE_ROOT, slug)
         else:
             return os.path.join(klass.PUBLIC_FILE_ROOT, slug)
+
+    def get_file_root(self, slug, version, access_policy, klass):
+        return os.path.join(self.get_project_file_root(slug, version, access_policy, klass), version)
 
     def active_project_storage_used(self, project):
         return project.quota_manager().bytes_used
@@ -181,3 +187,6 @@ class LocalProjectFiles(BaseProjectFiles):
 
     def is_wget_supported(self):
         return True
+
+    def serve_file_field(self, field):
+        return serve_file(field.path, attach=False)

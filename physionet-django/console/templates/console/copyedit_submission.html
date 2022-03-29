@@ -52,9 +52,12 @@
           <h3>Description</h3>
           {{ description_form.media }}
           {% include "project/content_inline_form_snippet.html" with form=description_form %}
+          {% include "project/content_inline_form_snippet.html" with form=ethics_form %}
           {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
           <h3>Access</h3>
-          {% include "project/content_inline_form_snippet.html" with form=access_form %}
+          <div id="access">
+            {% include "project/content_inline_form_snippet.html" with form=access_form %}
+          </div>
           <h3>Discovery</h3>
           {% include "project/content_inline_form_snippet.html" with form=discovery_form %}
           {% include 'project/item_list.html' with item="publication" item_label=publication_formset.item_label formset=publication_formset form_name=publication_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
@@ -85,10 +88,11 @@
 <script src="{% static 'custom/js/enable-popover.js' %}"></script>
 <script src="{% static 'project/js/control-access-form.js' %}"></script>
 <script>
-  load_url = "{% url 'load_license' project.slug %}"
-  access_policy_input = document.getElementById("id_access_policy");
-  access_policy_input.onchange = loadLicense;
+  $(document).on('change', '#id_access_policy', function() {
+    $("#access").load(`{% url 'copyedit_submission' project.slug %}?accessPolicy=${this.value} #access>`);
+  });
 </script>
+
 <script>disableAddButtons();</script>
 {% if project.has_other_versions or project.version_order %}
   <script src="{% static 'custom/js/disable-title.js' %}"></script>

@@ -6,19 +6,25 @@ import re
 import shutil
 
 from django.conf import settings
+
 from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
+from django.contrib import messages as msgs
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.core.management import call_command
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from user.models import AssociatedEmail, Profile, User
+from user.enums import TrainingStatus
+from user.models import AssociatedEmail, Profile, User, Training, TrainingType, Question, TrainingQuestion
 from user.views import (activate_user, edit_emails, edit_profile,
     edit_password_complete, public_profile, register, user_settings,
     verify_email)
+
+from unittest.mock import patch
 
 
 def prevent_request_warnings(original_function):
@@ -405,3 +411,170 @@ class TestPublic(TestMixin):
         # active accounts should be unaffected
         self.assertEqual(num_active_accounts,
                          User.objects.filter(is_active=True).count())
+
+
+class TrainingTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.training_url = reverse('edit_training')
+        cls.login_url = reverse('login')
+        cls.console_training_url = reverse('training_list', kwargs={'status': 'review'})
+        cls.user = User.objects.create(username='user', email='user@example.com')
+        cls.admin = User.objects.create(username='admin_user', email='admin@example.com', is_admin=True)
+        cls.profile = Profile.objects.create(user=cls.user, first_names="Rafał", last_name="F")
+
+        cls.question = Question.objects.create(content='Is it okay?')
+        cls.training_type_1 = TrainingType.objects.create(name='Example', valid_duration=datetime.timedelta(days=10))
+        cls.training_type_2 = TrainingType.objects.create(name='Another', valid_duration=datetime.timedelta(days=10))
+        cls.training_type_1.questions.add(cls.question)
+        cls.training_type_2.questions.add(cls.question)
+
+        training_completion_report = SimpleUploadedFile(
+            "hello_world.pdf",
+            b"Hello World"
+        )
+        cls.training = Training.objects.create(
+            training_type=cls.training_type_2,
+            user=cls.user,
+            completion_report=training_completion_report)
+        training_question = TrainingQuestion.objects.create(training=cls.training, question=cls.question)
+        cls.training_view_url = reverse('edit_training_detail', kwargs={'training_id': cls.training.pk})
+
+        cls.training_process_url = reverse('training_process', kwargs={'pk': cls.training.pk})
+        cls.training_process_data = {
+            'form-TOTAL_FORMS': ['1'],
+            'form-INITIAL_FORMS': ['1'],
+            'form-MIN_NUM_FORMS': ['0'],
+            'form-MAX_NUM_FORMS': ['1000'],
+            'form-0-id': [str(training_question.pk)],
+        }
+
+    def setUp(self):
+        self.training_report = SimpleUploadedFile('training-report.pdf', b'training_report')
+        self.training_payload_valid = {
+            'training_type': self.training_type_1.pk,
+            'completion_report': self.training_report,
+        }
+        self.training_payload_invalid = {
+            'training_type': self.training_type_2.pk,
+            'completion_report': self.training_report,
+        }
+
+    def test_access_training_page_not_authenticated(self):
+        response = self.client.get(self.training_url)
+
+        self.assertRedirects(response, f'{self.login_url}?next={self.training_url}')
+
+    def test_access_training_page_authenticated(self):
+        self.client.force_login(user=self.user)
+
+        response = self.client.get(self.training_url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_submit_new_training_valid(self):
+        self.client.force_login(user=self.user)
+
+        response = self.client.post(self.training_url, self.training_payload_valid)
+        messages = list(response.context['messages'])
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0].level, msgs.SUCCESS)
+        self.assertEqual(Training.objects.count(), 110)
+
+    def test_submit_new_training_invalid(self):
+        self.client.force_login(user=self.user)
+
+        response = self.client.post(self.training_url, self.training_payload_invalid)
+        messages = list(response.context['messages'])
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0].level, msgs.ERROR)
+        self.assertEqual(Training.objects.count(), 109)
+
+    def test_view_training_not_authenticated(self):
+        response = self.client.get(self.training_view_url)
+
+        self.assertRedirects(response, f'{self.login_url}?next={self.training_view_url}')
+
+    def test_view_training_authenticated(self):
+        self.client.force_login(user=self.user)
+
+        response = self.client.get(self.training_view_url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_view_training_authenticated_as_other_user(self):
+        self.client.force_login(user=self.admin)
+
+        response = self.client.get(self.training_view_url)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_withdraw_training(self):
+        self.client.force_login(user=self.user)
+
+        response = self.client.post(self.training_view_url, {'withdraw': ''})
+        messages = list(response.context['messages'])
+        self.training.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.training.status, TrainingStatus.WITHDRAWN)
+        self.assertEqual(len(messages), 1)
+        self.assertEqual(messages[0].level, msgs.SUCCESS)
+
+    def test_access_training_list(self):
+        self.client.force_login(user=self.admin)
+
+        response = self.client.get(self.console_training_url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_accept_training_valid(self):
+        self.client.force_login(user=self.admin)
+
+        response = self.client.post(
+            self.training_process_url, {**self.training_process_data, 'form-0-answer': ['True'], 'accept': ['']}
+        )
+        self.training.refresh_from_db()
+
+        self.assertRedirects(response, self.console_training_url)
+        self.assertEqual(self.training.status, TrainingStatus.ACCEPTED)
+
+    @patch('console.services.get_info_from_certificate_pdf')
+    def test_accept_training_invalid(self, mock_get_info_from_certificate_pdf):
+        mock_get_info_from_certificate_pdf.return_value = {"Foo": "Bar"}
+        self.client.force_login(user=self.admin)
+
+        response = self.client.post(
+            self.training_process_url, {**self.training_process_data, 'form-0-answer': ['False'], 'accept': ['']}
+        )
+        self.training.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.training.status, TrainingStatus.REVIEW)
+
+    def test_reject_training_valid(self):
+        self.client.force_login(user=self.admin)
+
+        response = self.client.post(
+            self.training_process_url,
+            {**self.training_process_data, 'reject': [''], 'reviewer_comments': ['You have been rejected.']},
+        )
+        self.training.refresh_from_db()
+
+        self.assertRedirects(response, self.console_training_url)
+        self.assertEqual(self.training.status, TrainingStatus.REJECTED)
+
+    @patch('console.services.get_info_from_certificate_pdf')
+    def test_reject_training_invalid(self, mock_get_info_from_certificate_pdf):
+        mock_get_info_from_certificate_pdf.return_value = {"Foo": "Bar"}
+        self.client.force_login(user=self.admin)
+
+        response = self.client.post(self.training_process_url, {**self.training_process_data, 'reject': ['']})
+        self.training.refresh_from_db()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.training.status, TrainingStatus.REVIEW)
