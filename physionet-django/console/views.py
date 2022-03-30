@@ -124,7 +124,7 @@ def console_home(request):
     return render(request, 'console/console_home.html', {'console_home_nav': True})
 
 
-@permission_required('project.change_publishedproject', raise_exception=True)
+@permission_required('project.change_activeproject', raise_exception=True)
 def submitted_projects(request):
     """
     List of active submissions. Editors are assigned here.
@@ -194,7 +194,7 @@ def submitted_projects(request):
          'yesterday': yesterday})
 
 
-@permission_required('project.change_publishedproject', raise_exception=True)
+@permission_required('project.change_activeproject', raise_exception=True)
 def editor_home(request):
     """
     List of submissions the editor is responsible for
@@ -240,7 +240,7 @@ def submission_info_redirect(request, project_slug):
     return redirect('submission_info', project_slug=project_slug)
 
 
-@permission_required('physionet.change_staticpage', raise_exception=True)
+@permission_required('physionet.change_activeproject', raise_exception=True)
 def submission_info(request, project_slug):
     """
     View information about a project under submission
@@ -690,7 +690,7 @@ def storage_requests(request):
          'storage_requests_nav': True})
 
 
-@permission_required('project.change_publishedproject', raise_exception=True)
+@permission_required('project.change_activeproject', raise_exception=True)
 def unsubmitted_projects(request):
     """
     List of unsubmitted projects
@@ -967,7 +967,7 @@ def gcp_bucket_management(request, project, user):
     send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
 
 
-@permission_required('project.change_publishedproject', raise_exception=True)
+@permission_required('project.view_archivedproject', raise_exception=True)
 def rejected_submissions(request):
     """
     List of rejected submissions
