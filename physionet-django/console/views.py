@@ -240,7 +240,7 @@ def submission_info_redirect(request, project_slug):
     return redirect('submission_info', project_slug=project_slug)
 
 
-@permission_required('physionet.change_section', raise_exception=True)
+@permission_required('physionet.change_staticpage', raise_exception=True)
 def submission_info(request, project_slug):
     """
     View information about a project under submission
@@ -2387,13 +2387,13 @@ def known_references(request):
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
 
 
-@permission_required('physionet.change_section', raise_exception=True)
+@permission_required('physionet.change_staticpage', raise_exception=True)
 def static_pages(request):
     pages = StaticPage.objects.all()
     return render(request, 'console/static_pages.html', {'pages': pages, 'static_pages_nav': True})
 
 
-@permission_required('physionet.change_section', raise_exception=True)
+@permission_required('physionet.change_staticpage', raise_exception=True)
 def static_page_sections(request, page_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
@@ -2422,7 +2422,7 @@ def static_page_sections(request, page_pk):
     )
 
 
-@permission_required('physionet.change_section', raise_exception=True)
+@permission_required('physionet.change_staticpage', raise_exception=True)
 def static_page_sections_delete(request, page_pk, section_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
@@ -2433,7 +2433,7 @@ def static_page_sections_delete(request, page_pk, section_pk):
     return redirect('static_page_sections', page_pk=static_page.pk)
 
 
-@permission_required('physionet.change_section', raise_exception=True)
+@permission_required('physionet.change_staticpage', raise_exception=True)
 def static_page_sections_edit(request, page_pk, section_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     section = get_object_or_404(Section, static_page=static_page, pk=section_pk)
@@ -2452,8 +2452,7 @@ def static_page_sections_edit(request, page_pk, section_pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_license', raise_exception=True)
 def license_list(request):
     if request.method == 'POST':
         license_form = forms.LicenseForm(data=request.POST)
@@ -2476,8 +2475,7 @@ def license_list(request):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_license', raise_exception=True)
 def license_detail(request, pk):
     license = get_object_or_404(License, pk=pk)
 
@@ -2499,8 +2497,7 @@ def license_detail(request, pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_license', raise_exception=True)
 def license_delete(request, pk):
     if request.method == 'POST':
         license = get_object_or_404(License, pk=pk)
@@ -2509,8 +2506,7 @@ def license_delete(request, pk):
     return redirect('license_list')
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_license', raise_exception=True)
 def license_new_version(request, pk):
     license = get_object_or_404(License, pk=pk)
 
@@ -2535,8 +2531,7 @@ def license_new_version(request, pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_dua', raise_exception=True)
 def dua_list(request):
     if request.method == 'POST':
         dua_form = forms.DUAForm(data=request.POST)
@@ -2555,8 +2550,7 @@ def dua_list(request):
     return render(request, 'console/dua_list.html', {'dua_nav': True, 'duas': duas, 'dua_form': dua_form})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_dua', raise_exception=True)
 def dua_detail(request, pk):
     dua = get_object_or_404(DUA, pk=pk)
 
@@ -2574,8 +2568,7 @@ def dua_detail(request, pk):
     return render(request, 'console/dua_detail.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_dua', raise_exception=True)
 def dua_delete(request, pk):
     if request.method == 'POST':
         dua = get_object_or_404(DUA, pk=pk)
@@ -2584,8 +2577,7 @@ def dua_delete(request, pk):
     return redirect("dua_list")
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_dua', raise_exception=True)
 def dua_new_version(request, pk):
     dua = get_object_or_404(DUA, pk=pk)
 
@@ -2606,8 +2598,7 @@ def dua_new_version(request, pk):
     return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_list(request):
     if request.method == 'POST':
         code_of_conduct_form = forms.CodeOfConductForm(data=request.POST)
@@ -2634,8 +2625,7 @@ def code_of_conduct_list(request):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_detail(request, pk):
     code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
     if request.method == 'POST':
@@ -2660,8 +2650,7 @@ def code_of_conduct_detail(request, pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_delete(request, pk):
     if request.method == 'POST':
         code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
@@ -2670,8 +2659,7 @@ def code_of_conduct_delete(request, pk):
     return redirect("code_of_conduct_list")
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_new_version(request, pk):
     code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
     if request.method == 'POST':
@@ -2699,8 +2687,7 @@ def code_of_conduct_new_version(request, pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_activate(request, pk):
     CodeOfConduct.objects.filter(is_active=True).update(is_active=False)
 

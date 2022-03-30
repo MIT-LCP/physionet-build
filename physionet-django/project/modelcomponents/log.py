@@ -18,6 +18,9 @@ class Log(models.Model):
     creation_datetime = models.DateTimeField(auto_now_add=True)
     last_access_datetime = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        default_permissions = ()
+
     def __str__(self):
         return f'[{self.category}] {self.project} - {self.user}'
 
@@ -30,6 +33,7 @@ class AccessLog(Log):
     objects = AccessLogManager.from_queryset(AccessLogQuerySet)()
 
     class Meta:
+        default_permissions = ()
         proxy = True
 
 
@@ -38,4 +42,5 @@ class GCPLog(Log):
     objects = GCPLogManager.from_queryset(GCPLogQuerySet)()
 
     class Meta:
+        default_permissions = ()
         proxy = True

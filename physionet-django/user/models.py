@@ -1009,6 +1009,9 @@ class CredentialReview(models.Model):
 class Question(models.Model):
     content = models.CharField(max_length=256)
 
+    class Meta:
+        default_permissions = ()
+
     def __str__(self):
         return self.content
 
@@ -1021,6 +1024,9 @@ class TrainingType(models.Model):
     required_field = models.PositiveSmallIntegerField(choices=RequiredField.choices(), default=RequiredField.DOCUMENT)
     home_page = models.URLField(blank=True)
 
+    class Meta:
+        default_permissions = ()
+
     def __str__(self):
         return self.name
 
@@ -1032,6 +1038,7 @@ class TrainingRegex(models.Model):
     training_type = models.ForeignKey(TrainingType, related_name='certificate_regexes', on_delete=models.CASCADE)
 
     class Meta:
+        default_permissions = ()
         unique_together = ('display_order', 'training_type')
 
     def __str__(self):
@@ -1053,6 +1060,9 @@ class Training(models.Model):
     reviewer_comments = models.CharField(max_length=512)
 
     objects = TrainingQuerySet.as_manager()
+
+    class Meta:
+        default_permissions = ()
 
     def delete(self, *args, **kwargs):
         if self.completion_report is not None:
@@ -1106,6 +1116,9 @@ class TrainingQuestion(models.Model):
     training = models.ForeignKey(Training, related_name='training_questions', on_delete=models.CASCADE)
     answer = models.NullBooleanField()
 
+    class Meta:
+        default_permissions = ()
+
 
 class CloudInformation(models.Model):
     """
@@ -1128,6 +1141,7 @@ class CodeOfConduct(models.Model):
     html_content = SafeHTMLField(default='')
 
     class Meta:
+        default_permissions = ('add',)
         unique_together = (('name', 'version'),)
 
     def __str__(self):
@@ -1138,3 +1152,6 @@ class CodeOfConductSignature(models.Model):
     code_of_conduct = models.ForeignKey(CodeOfConduct, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     sign_datetime = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        default_permissions = ()

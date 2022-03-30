@@ -251,7 +251,7 @@ class License(models.Model):
     # A protected license has associated DUA content
 
     class Meta:
-        default_permissions = ()
+        default_permissions = ('add',)
         unique_together = (('name', 'version'),)
 
     def __str__(self):
@@ -269,6 +269,7 @@ class DUA(models.Model):
     project_types = models.ManyToManyField('project.ProjectType', related_name='duas')
 
     class Meta:
+        default_permissions = ('add',)
         unique_together = (('name', 'version'),)
 
     def __str__(self):

@@ -110,32 +110,40 @@
       {% endif %}
 
       <!-- legal -->
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        {% if license_nav or dua_nav or code_of_conduct_nav %}
-          <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#license" data-parent="#sideAccordion" aria-expanded="true">
-        {% else %}
-          <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#license" data-parent="#sideAccordion" aria-expanded="false">
-        {% endif %}
-            <i class="fa fa-fw fa-handshake"></i>
-            <span class="nav-link-text">Legal</span>
-          </a>
-          <!-- submenu -->
-        {% if license_nav or dua_nav or code_of_conduct_nav %}
-          <ul class="sidenav-second-level collapse show" id="license">
-        {% else  %}
-          <ul class="sidenav-second-level collapse" id="license">
-        {% endif %}
-            <li class="nav-item {% if license_nav %}active{% endif %}">
-              <a id="nav_active_users" class="nav-link" href="{% url 'license_list' %}">Licenses</a>
-            </li>
-            <li class="nav-item {% if dua_nav %}active{% endif %}">
-              <a id="nav_active_users" class="nav-link" href="{% url 'dua_list' %}">DUAs</a>
-            </li>
-            <li class="nav-item {% if code_of_conduct_nav %}active{% endif %}">
-              <a id="code_of_conduct_nav" class="nav-link" href="{% url 'code_of_conduct_list' %}">Code of Conduct</a>
-            </li>
-          </ul>
-      </li>
+      {% if perms.project.add_dua or perms.project.add_codeofconduct or perms.project.add_license %}
+        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+          {% if license_nav or dua_nav or code_of_conduct_nav %}
+            <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#license" data-parent="#sideAccordion" aria-expanded="true">
+          {% else %}
+            <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#license" data-parent="#sideAccordion" aria-expanded="false">
+          {% endif %}
+              <i class="fa fa-fw fa-handshake"></i>
+              <span class="nav-link-text">Legal</span>
+            </a>
+            <!-- submenu -->
+          {% if license_nav or dua_nav or code_of_conduct_nav %}
+            <ul class="sidenav-second-level collapse show" id="license">
+          {% else  %}
+            <ul class="sidenav-second-level collapse" id="license">
+          {% endif %}
+              {% if perms.project.add_license %}
+                <li class="nav-item {% if license_nav %}active{% endif %}">
+                  <a id="nav_active_users" class="nav-link" href="{% url 'license_list' %}">Licenses</a>
+                </li>
+              {% endif %}
+              {% if perms.project.add_dua %}
+                <li class="nav-item {% if dua_nav %}active{% endif %}">
+                  <a id="nav_active_users" class="nav-link" href="{% url 'dua_list' %}">DUAs</a>
+                </li>
+              {% endif %}
+              {% if perms.project.add_codeofconduct %}
+                <li class="nav-item {% if code_of_conduct_nav %}active{% endif %}">
+                  <a id="code_of_conduct_nav" class="nav-link" href="{% url 'code_of_conduct_list' %}">Code of Conduct</a>
+                </li>
+              {% endif %}
+            </ul>
+        </li>
+      {% endif %}
       
       <!-- logs -->
       {% if perms.project.can_view_access_logs %}
@@ -167,17 +175,12 @@
               <li class="nav-item {% if gcp_logs_nav %}active{% endif %}">
                 <a id="nav_gcp_logs" class="nav-link" href="{% url 'gcp_signed_urls_logs' %}">GCP Logs</a>
               </li>
-              <li class="nav-item {% if user_access_logs_nav %}active{% endif %}">
-                <a id="nav_user_access_logs" class="nav-link" href="{% url 'user_access_logs' %}">User Logs</a>
-              </li>
-              {% if storage_type == 'GCP' %}
-                <li class="nav-item {% if gcp_logs_nav %}active{% endif %}">
-                  <a id="nav_gcp_logs" class="nav-link" href="{% url 'gcp_signed_urls_logs' %}">GCP Logs</a>
-                </li>
-              {% endif %}
-            </ul>
-          </li>
-        {% endif %}
+            {% endif %}
+            <li class="nav-item {% if user_access_logs_nav %}active{% endif %}">
+              <a id="nav_user_access_logs" class="nav-link" href="{% url 'user_access_logs' %}">User Logs</a>
+            </li>
+          </ul>
+        </li>
       {% endif %}
       
 
@@ -290,7 +293,7 @@
       {% endif %}
 
       <!-- static pages -->
-      {% if perms.physionet.change_section %}
+      {% if perms.physionet.change_staticpage %}
         <li class="nav-item {% if static_pages_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
           <a id="nav_console_news" class="nav-link" href="{% url 'static_pages' %}">
             <i class="fa fa-fw fa-window-maximize"></i>
