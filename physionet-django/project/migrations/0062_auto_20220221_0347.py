@@ -11,19 +11,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterModelOptions(
-            name='activeproject',
-            options={'default_permissions': ()},
-        ),
-        migrations.AlterModelOptions(
             name='affiliation',
             options={'default_permissions': ()},
         ),
         migrations.AlterModelOptions(
             name='anonymousaccess',
-            options={'default_permissions': ()},
-        ),
-        migrations.AlterModelOptions(
-            name='archivedproject',
             options={'default_permissions': ()},
         ),
         migrations.AlterModelOptions(
@@ -76,10 +68,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='legacyproject',
-            options={'default_permissions': ()},
-        ),
-        migrations.AlterModelOptions(
-            name='license',
             options={'default_permissions': ()},
         ),
         migrations.AlterModelOptions(
@@ -142,5 +130,33 @@ class Migration(migrations.Migration):
         migrations.AlterModelOptions(
             name='uploadeddocument',
             options={'default_permissions': ()},
+        ),
+        migrations.AlterModelOptions(
+            name='accesslog',
+            options={'default_permissions': ()},
+        ),
+        migrations.AlterModelOptions(
+            name='dua',
+            options={'default_permissions': ('add',)},
+        ),
+        migrations.AlterModelOptions(
+            name='gcplog',
+            options={'default_permissions': ()},
+        ),
+        migrations.AlterModelOptions(
+            name='license',
+            options={'default_permissions': ('add',)},
+        ),
+        migrations.AlterModelOptions(
+            name='log',
+            options={'default_permissions': ()},
+        ),
+        migrations.AlterModelOptions(
+            name='activeproject',
+            options={'default_permissions': ('view',)},
+        ),
+        migrations.AlterModelOptions(
+            name='archivedproject',
+            options={'default_permissions': ('view',)},
         ),
     ]
