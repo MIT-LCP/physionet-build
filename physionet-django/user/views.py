@@ -504,7 +504,7 @@ def register(request):
         return redirect('home')
 
     if request.method == 'POST':
-        form = forms.RegistrationForm(request.POST)
+        form = forms.RegistrationForm(request=request, data=request.POST)
         if form.is_valid():
             # Create the new user
             try:
@@ -523,9 +523,11 @@ def register(request):
             return render(request, 'user/register_done.html', {
                 'email': user.email})
     else:
-        form = forms.RegistrationForm()
+        form = forms.RegistrationForm(request=request)
 
-    return render(request, 'user/register.html', {'form': form})
+    response = render(request, 'user/register.html', {'form': form})
+    form.set_response_cookies(response)
+    return response
 
 
 @login_required

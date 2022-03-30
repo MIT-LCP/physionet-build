@@ -1,3 +1,5 @@
+import time
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as auth_forms
@@ -293,6 +295,11 @@ class RegistrationForm(forms.ModelForm):
                     widget=forms.TextInput(attrs={'class': 'form-control'}),
                     validators=[validate_name])
 
+    # Minimum and maximum number of seconds from when the client first
+    # loads the page until the form may be submitted.
+    MIN_SUBMISSION_SECONDS = 15
+    MAX_SUBMISSION_SECONDS = 60 * 60
+
     class Meta:
         model = User
         fields = ('email','username',)
@@ -300,6 +307,51 @@ class RegistrationForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'username': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+    def __init__(self, *args, request=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.request = request
+        self.current_time = int(time.time())
+
+        if request is None:
+            self.remote_addr = None
+            self.form_load_time = None
+        else:
+            # Determine client's IP address.
+            self.remote_addr = request.META['REMOTE_ADDR']
+
+            # Determine the time when the form was initially loaded.
+            # Set to zero (i.e., 1970-01-01) if the cookie is invalid.
+            # The cookie becomes invalid if the client's IP address changes.
+            cookie = request.get_signed_cookie('register_time', default='',
+                                               salt=self.remote_addr)
+            try:
+                self.form_load_time = int(cookie)
+            except ValueError:
+                self.form_load_time = 0
+
+    def clean(self):
+        data = super().clean()
+        if not self.errors and self.request is not None:
+            elapsed_time = self.current_time - self.form_load_time
+            if (elapsed_time < self.MIN_SUBMISSION_SECONDS
+                    or elapsed_time > self.MAX_SUBMISSION_SECONDS):
+                raise forms.ValidationError(
+                    "Please wait a few seconds and try again."
+                )
+
+        return data
+
+    def set_response_cookies(self, response):
+        # Update the register_time cookie if it is invalid or too old,
+        # or if elapsed time is negative indicating a major clock
+        # problem.  If the cookie is too new, leave it as-is.
+        elapsed_time = self.current_time - self.form_load_time
+        if elapsed_time < 0 or elapsed_time > self.MAX_SUBMISSION_SECONDS:
+            response.set_signed_cookie('register_time', self.current_time,
+                                       salt=self.remote_addr,
+                                       secure=(not settings.DEBUG),
+                                       httponly=True, samesite='Lax')
 
     def clean_username(self):
         "Record the original username in case it is needed"
