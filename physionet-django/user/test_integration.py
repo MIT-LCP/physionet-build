@@ -9,7 +9,7 @@ import re
 import pdb
 
 from user.models import User, AssociatedEmail
-from user.test_views import TestMixin
+from user.test_views import TestMixin, offset_system_clock
 
 
 class TestAuth(TestCase):
@@ -225,6 +225,10 @@ class TestCredentialing(TestMixin):
         more than once.
 
         """
+        # Load registration page 60 seconds ago
+        with offset_system_clock(seconds=-60):
+            self.client.get(reverse('register'))
+
         # Register and activate a user with old credentialed account
         response = self.client.post(reverse('register'),
             data={'email':'admin@upr.edu', 'username':'adminupr',
@@ -261,6 +265,8 @@ class TestCredentialing(TestMixin):
 
         # Another person tries to register again with that same email
         # hoping to get automatic credentialing
+        with offset_system_clock(seconds=-60):
+            self.client.get(reverse('register'))
         response = self.client.post(reverse('register'),
             data={'email':'admin@upr.edu', 'username':'sneakyfriend',
             'first_names': 'admin', 'last_name': 'upr',
