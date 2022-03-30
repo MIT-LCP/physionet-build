@@ -328,14 +328,12 @@ class TestPublic(TestMixin):
         Test user account registration and activation
         """
         # Register the new user
-        self.make_get_request('register')
-        self.tst_get_request(register, status_code=200)
-        self.make_post_request('register',
-            data={'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
+        response = self.client.post(reverse('register'), data={
+            'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
             'first_names': 'Jack', 'last_name': 'Reacher',
             'password1': 'Very5trongt0t@11y', 'password2': 'Very5trongt0t@11y'})
         # Recall that register uses same view upon success, so not 302
-        self.tst_post_request(register, status_code=200)
+        self.assertEqual(response.status_code, 200)
         # Check user object was created
         self.assertIsNotNone(User.objects.filter(email='jackreacher@mit.edu'))
         self.assertFalse(User.objects.get(email='jackreacher@mit.edu').is_active)
@@ -366,15 +364,15 @@ class TestPublic(TestMixin):
 
         # Register two new user accounts without activating
 
-        self.make_post_request('register', data={
+        response = self.client.post(reverse('register'), data={
             'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
             'first_names': 'Jack', 'last_name': 'Reacher'})
-        self.tst_post_request(register, status_code=200)
+        self.assertEqual(response.status_code, 200)
 
-        self.make_post_request('register', data={
+        response = self.client.post(reverse('register'), data={
             'email': 'admin@upr.edu', 'username': 'adminupr',
             'first_names': 'admin', 'last_name': 'upr'})
-        self.tst_post_request(register, status_code=200)
+        self.assertEqual(response.status_code, 200)
 
         user1 = User.objects.get(email='jackreacher@mit.edu')
         user2 = User.objects.get(email='admin@upr.edu')
