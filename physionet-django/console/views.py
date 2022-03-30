@@ -23,6 +23,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.core.exceptions import PermissionDenied
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -119,8 +120,9 @@ def handling_editor(base_view):
 # ------------------------- Views begin ------------------------- #
 
 
-@user_passes_test(is_admin, login_url='/login/')
 def console_home(request):
+    if not request.user.is_authenticated or not request.user.is_admin:
+        raise PermissionDenied
     return render(request, 'console/console_home.html', {'console_home_nav': True})
 
 
