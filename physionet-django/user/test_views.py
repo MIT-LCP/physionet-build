@@ -373,6 +373,18 @@ class TestPublic(TestMixin):
         """
         Test user account registration and activation
         """
+        # Clear cookies
+        self.client.logout()
+        # Load registration page
+        self.client.get(reverse('register'))
+        # Try to register
+        response = self.client.post(reverse('register'), data={
+            'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
+            'first_names': 'Jack', 'last_name': 'Reacher'})
+        # User object should not have been created, since we submitted
+        # the form too quickly
+        self.assertFalse(User.objects.filter(username='awesomeness'))
+
         # Load registration page 60 seconds ago
         with offset_system_clock(seconds=-60):
             self.client.get(reverse('register'))
@@ -384,7 +396,7 @@ class TestPublic(TestMixin):
         # Recall that register uses same view upon success, so not 302
         self.assertEqual(response.status_code, 200)
         # Check user object was created
-        self.assertIsNotNone(User.objects.filter(email='jackreacher@mit.edu'))
+        self.assertTrue(User.objects.filter(email='jackreacher@mit.edu'))
         self.assertFalse(User.objects.get(email='jackreacher@mit.edu').is_active)
 
         # Get the activation info from the sent email
