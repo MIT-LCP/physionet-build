@@ -1,3 +1,4 @@
+import datetime
 import time
 
 from django import forms
@@ -300,6 +301,14 @@ class RegistrationForm(forms.ModelForm):
     MIN_SUBMISSION_SECONDS = 15
     MAX_SUBMISSION_SECONDS = 60 * 60
 
+    # Rate limit for unactivated users (per IP address).
+    MAX_UNACTIVATED_USERS = 20
+    UNACTIVATED_USER_TIME_LIMIT = datetime.timedelta(hours=1)
+
+    # Rate limit for activated+unactivated users (per IP address).
+    MAX_NEW_USERS = 100
+    NEW_USER_TIME_LIMIT = datetime.timedelta(hours=24)
+
     class Meta:
         model = User
         fields = ('email','username',)
@@ -340,6 +349,24 @@ class RegistrationForm(forms.ModelForm):
                     "Please wait a few seconds and try again."
                 )
 
+            old_users = User.objects.filter(registration_ip=self.remote_addr)
+
+            if self.UNACTIVATED_USER_TIME_LIMIT:
+                t = timezone.now() - self.UNACTIVATED_USER_TIME_LIMIT
+                n = old_users.filter(join_date__gte=t, is_active=False).count()
+                if n >= self.MAX_UNACTIVATED_USERS:
+                    raise forms.ValidationError(
+                        "You have tried to register too many accounts at once."
+                    )
+
+            if self.NEW_USER_TIME_LIMIT:
+                t = timezone.now() - self.NEW_USER_TIME_LIMIT
+                n = old_users.filter(join_date__gte=t).count()
+                if n >= self.MAX_NEW_USERS:
+                    raise forms.ValidationError(
+                        "You have tried to register too many accounts at once."
+                    )
+
         return data
 
     def set_response_cookies(self, response):
@@ -369,6 +396,7 @@ class RegistrationForm(forms.ModelForm):
         user = super(RegistrationForm, self).save(commit=False)
         user.email = user.email.lower()
         user.sso_id = sso_id
+        user.registration_ip = self.remote_addr
 
         with transaction.atomic():
             user.save()
