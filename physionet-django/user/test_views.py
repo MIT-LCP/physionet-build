@@ -380,8 +380,7 @@ class TestPublic(TestMixin):
         # Register the new user
         response = self.client.post(reverse('register'), data={
             'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
-            'first_names': 'Jack', 'last_name': 'Reacher',
-            'password1': 'Very5trongt0t@11y', 'password2': 'Very5trongt0t@11y'})
+            'first_names': 'Jack', 'last_name': 'Reacher'})
         # Recall that register uses same view upon success, so not 302
         self.assertEqual(response.status_code, 200)
         # Check user object was created
