@@ -45,6 +45,34 @@ class Migration(migrations.Migration):
             name='userlogin',
             options={'default_permissions': ()},
         ),
+        migrations.AlterModelOptions(
+            name='codeofconduct',
+            options={'default_permissions': ('add',)},
+        ),
+        migrations.AlterModelOptions(
+            name='codeofconductsignature',
+            options={'default_permissions': ()},
+        ),
+        migrations.AlterModelOptions(
+            name='question',
+            options={'default_permissions': ()},
+        ),
+        migrations.AlterModelOptions(
+            name='training',
+            options={'default_permissions': ()},
+        ),
+        migrations.AlterModelOptions(
+            name='trainingquestion',
+            options={'default_permissions': ()},
+        ),
+        migrations.AlterModelOptions(
+            name='trainingregex',
+            options={'default_permissions': ()},
+        ),
+        migrations.AlterModelOptions(
+            name='trainingtype',
+            options={'default_permissions': ()},
+        ),
         migrations.AddField(
             model_name='user',
             name='groups',
