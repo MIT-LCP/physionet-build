@@ -342,6 +342,10 @@ class User(AbstractBaseUser):
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
+    # IP address used when account was registered
+    registration_ip = models.CharField(max_length=40, db_index=True,
+                                       blank=True, null=True)
+
     # Mandatory fields for the default authentication backend
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
