@@ -23,7 +23,7 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'archived-projects')
 
     class Meta:
-        default_permissions = ('view',)
+        default_permissions = ('change',)
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))

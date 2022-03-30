@@ -144,7 +144,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     }
 
     class Meta:
-        default_permissions = ('view',)
+        default_permissions = ('change',)
 
     def storage_used(self):
         """

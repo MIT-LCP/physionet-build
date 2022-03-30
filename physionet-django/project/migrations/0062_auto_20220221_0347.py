@@ -153,10 +153,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='activeproject',
-            options={'default_permissions': ('view',)},
+            options={'default_permissions': ('change',)},
         ),
         migrations.AlterModelOptions(
             name='archivedproject',
-            options={'default_permissions': ('view',)},
+            options={'default_permissions': ('change',)},
         ),
     ]
