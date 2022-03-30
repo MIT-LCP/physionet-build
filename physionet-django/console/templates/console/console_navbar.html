@@ -20,7 +20,7 @@
       </li>
 
       <!-- editor home -->
-      {% if perms.project.change_publishedproject %}
+      {% if perms.project.change_activeproject or perms.project.change_publishedproject or perms.project.change_archivedproject %}
         <li class="nav-item {% if editor_home %}active{% endif %}" data-toggle="tooltip" data-placement="right">
           <a id="nav_editor_home" class="nav-link" href="{% url 'editor_home' %}">
             <i class="fa fa-fw fa-book-open"></i>
