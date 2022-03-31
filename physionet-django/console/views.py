@@ -1992,7 +1992,7 @@ def submission_stats(request):
                   {'stats_nav': True, 'submenu': 'submission', 'stats': stats})
 
 
-@permission_required('user.can_view_access_logs', raise_exception=True)
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def download_credentialed_users(request):
     """
     CSV create and download for database access.
@@ -2186,7 +2186,7 @@ def download_project_accesses(request, pk):
     return response
 
 
-@permission_required('user.can_view_access_logs', raise_exception=True)
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def user_access_logs(request):
     users = (
         User.objects.filter(is_active=True)
@@ -2210,7 +2210,7 @@ def user_access_logs(request):
     })
 
 
-@permission_required('user.can_view_access_logs', raise_exception=True)
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def user_access_logs_detail(request, pid):
     user = get_object_or_404(User, id=pid, is_active=True)
     logs = (
@@ -2239,7 +2239,7 @@ def user_access_logs_detail(request, pid):
     })
 
 
-@permission_required('user.can_view_access_logs', raise_exception=True)
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def download_user_accesses(request, pk):
     headers = ['Project name', 'First access', 'Last access', 'Duration', 'Count']
 
