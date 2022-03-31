@@ -545,7 +545,7 @@ class PersonalCredentialForm(forms.ModelForm):
             'research_summary_clear': 'Is the research summary sufficiently descriptive?',
             'course_name_provided': 'If applicable, does the research summary include course name and number?',
             'user_understands_privacy': 'Does the research summary indicate an understanding that data must not be shared (e.g. no plural pronouns such as "we", "us", etc.)?',
-            'user_org_known': 'Does the organization have a website or other online presence (*not* "MIT Affiliates")?',
+            'user_org_known': 'Does the organization have a website or other online presence?',
             'user_details_consistent': 'Is the information consistent (independent researcher should not list an organization, obvious students should be listed as either "student" or "postdoc", MD\'s with a hospital as their organization should be "hospital researcher", the county and state mismatches, etc.)?',
             'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
             'decision': 'Decision',
