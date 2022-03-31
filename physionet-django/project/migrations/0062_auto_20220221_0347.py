@@ -152,15 +152,15 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='activeproject',
-            options={'default_permissions': ('change',)},
-        ),
-        migrations.AlterModelOptions(
-            name='archivedproject',
             options={
                 'default_permissions': ('change',),
                 'permissions': [
                     ('can_assign_editor', 'Can assign editor')
                 ]
             },
+        ),
+        migrations.AlterModelOptions(
+            name='archivedproject',
+            options={'default_permissions': ('change',)},
         ),
     ]
