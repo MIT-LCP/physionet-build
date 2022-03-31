@@ -341,6 +341,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
+    # IP address used when account was registered
+    registration_ip = models.CharField(max_length=40, db_index=True,
+                                       blank=True, null=True)
+
     # Mandatory fields for the default authentication backend
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
@@ -408,9 +412,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def file_root(self, relative=False):
         "Where the user's files are stored"
+        # GCSUserFiles expects trailing slash for directories
         if relative:
-            return os.path.join(User.RELATIVE_FILE_ROOT, self.username)
-        return os.path.join(User.FILE_ROOT, self.username)
+            return os.path.join(User.RELATIVE_FILE_ROOT, self.username, '')
+        return os.path.join(User.FILE_ROOT, self.username, '')
 
 
 class UserLogin(models.Model):
@@ -529,7 +534,7 @@ def training_report_path(instance, filename):
 
 
 def get_training_path(instance, filename):
-    return f'trainings/{instance.slug}/training-report.pdf'
+    return f'training/{instance.slug}/training-report.pdf'
 
 
 class LegacyCredential(models.Model):

@@ -719,7 +719,7 @@ def project_access(request, project_slug, **kwargs):
         access_form = forms.AccessMetadataForm(data=request.POST, instance=project, editable=editable)
         if access_form.is_valid():
             access_form.save()
-            messages.success(request, 'Your access metdata has been updated.')
+            messages.success(request, 'Your access metadata has been updated.')
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     else:
