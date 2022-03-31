@@ -969,7 +969,7 @@ def gcp_bucket_management(request, project, user):
     send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
 
 
-@permission_required('project.view_archivedproject', raise_exception=True)
+@permission_required('project.change_archivedproject', raise_exception=True)
 def rejected_submissions(request):
     """
     List of rejected submissions
