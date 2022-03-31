@@ -1327,6 +1327,7 @@ def process_credential_application(request, application_slug):
         elif 'immediate_accept' in request.POST:
             application.accept(responder=request.user)
             messages.success(request, 'The application has been accepted')
+            notification.process_credential_complete(request, application)
             return redirect(credential_processing)
     return render(request, 'console/process_credential_application.html',
         {'application': application, 'app_user': application.user,

@@ -1,0 +1,13 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ applicant_name }},
+
+Thank you for submitting your request for training to {{ SITE_NAME }}. If your request is approved, you will gain access to certain datasets.
+
+Please note that each dataset may have its own data usage terms and/or training requirements. The specific training requirements and data usage terms for each dataset are listed in the project description.
+
+It may take several weeks to process your request. Thank you for your understanding and patience. You can follow the status of your application at: {{ url_prefix }}{% url 'edit_training' %}.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

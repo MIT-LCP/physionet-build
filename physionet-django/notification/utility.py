@@ -693,6 +693,23 @@ def process_training_complete(request, training, include_comments=True):
     message.send(fail_silently=False)
 
 
+def training_application_request(request, training):
+    """ Notify user of training submit """
+
+    subject = f'{settings.SITE_NAME} training application notification'
+    body = loader.render_to_string(
+        'notification/email/notify_training_request.html', {
+            'training': training,
+            'applicant_name': training.user.get_full_name(),
+            'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
+            'signature': settings.EMAIL_SIGNATURE,
+            'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
+        })
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [training.user.email], fail_silently=False)
+
+
 def credential_application_request(request, application):
     """
     Notify user of credentialing decision
