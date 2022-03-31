@@ -242,7 +242,7 @@ def submission_info_redirect(request, project_slug):
     return redirect('submission_info', project_slug=project_slug)
 
 
-@permission_required('physionet.change_activeproject', raise_exception=True)
+@permission_required('project.change_activeproject', raise_exception=True)
 def submission_info(request, project_slug):
     """
     View information about a project under submission
