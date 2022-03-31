@@ -145,6 +145,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     class Meta:
         default_permissions = ('change',)
+        permissions = [('can_assign_editor', 'Can assign editor')]
 
     def storage_used(self):
         """

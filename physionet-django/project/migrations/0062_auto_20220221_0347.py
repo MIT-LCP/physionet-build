@@ -98,8 +98,7 @@ class Migration(migrations.Migration):
                     ('can_edit_featured_content', 'Can edit featured content'),
                     ('can_view_access_logs', 'Can view access logs'),
                     ('can_view_project_guidelines', 'Can view project guidelines'),
-                    ('can_view_stats', 'Can view stats'),
-                    ('can_assign_editor', 'Can assign editor')
+                    ('can_view_stats', 'Can view stats')
                 ]
             },
         ),
@@ -157,6 +156,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelOptions(
             name='archivedproject',
-            options={'default_permissions': ('change',)},
+            options={
+                'default_permissions': ('change',),
+                'permissions': [
+                    ('can_assign_editor', 'Can assign editor')
+                ]
+            },
         ),
     ]
