@@ -115,7 +115,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['user.models.DualAuthModelBackend']
+AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend']
 
 if ENABLE_SSO:
     AUTHENTICATION_BACKENDS += ['sso.auth.RemoteUserBackend']

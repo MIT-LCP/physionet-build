@@ -143,6 +143,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         60: 'Awaiting editor to publish.',
     }
 
+    class Meta:
+        default_permissions = ('change',)
+        permissions = [('can_assign_editor', 'Can assign editor')]
+
     def storage_used(self):
         """
         Total storage used in bytes.

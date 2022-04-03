@@ -129,6 +129,9 @@ class EditLog(models.Model):
     editor_comments = models.CharField(max_length=20000)
     auto_doi = models.BooleanField(default=True)
 
+    class Meta:
+        default_permissions = ()
+
     def set_quality_assurance_results(self):
         """
         Prepare the string fields for the editor's decisions of the
@@ -171,6 +174,9 @@ class CopyeditLog(models.Model):
     made_changes = models.NullBooleanField(null=True)
     changelog_summary = models.CharField(default='', max_length=10000, blank=True)
     complete_datetime = models.DateTimeField(null=True)
+
+    class Meta:
+        default_permissions = ()
 
 
 class SubmissionInfo(models.Model):

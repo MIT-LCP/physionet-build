@@ -23,6 +23,9 @@ class CoreProject(models.Model):
         validators=[MaxValueValidator(109951162777600),
                     MinValueValidator(104857600)])
 
+    class Meta:
+        default_permissions = ()
+
     def active_new_version(self):
         "Whether there is a new version being worked on"
         return bool(self.activeprojects.filter())
@@ -59,6 +62,9 @@ class ProjectType(models.Model):
     name = models.CharField(max_length=20)
     description = models.TextField()
 
+    class Meta:
+        default_permissions = ()
+
     def __str__(self):
         return self.name
 
@@ -68,6 +74,9 @@ class ProgrammingLanguage(models.Model):
     Language to tag all projects
     """
     name = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        default_permissions = ()
 
     def __str__(self):
         return self.name

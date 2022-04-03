@@ -17,5 +17,8 @@ class News(models.Model):
     guid = models.CharField(max_length=64, default=uuid.uuid4)
     front_page_banner = models.BooleanField(default=False)
 
+    class Meta:
+        default_permissions = ('change',)
+
     def __str__(self):
         return '{} - {}'.format(self.title, self.publish_datetime.date())
