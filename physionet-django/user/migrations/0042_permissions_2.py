@@ -5,7 +5,7 @@ class Migration(migrations.Migration):
     MIGRATE_AFTER_INSTALL = True
 
     dependencies = [
-        ('user', '0040_permissions_1'),
+        ('user', '0041_permissions_1'),
     ]
 
     operations = [
