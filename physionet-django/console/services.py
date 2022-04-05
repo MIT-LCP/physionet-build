@@ -1,10 +1,14 @@
+import io
 import logging
 import re
 from typing import Optional
 
 from pdfminer.high_level import extract_text
+from django.conf import settings
 
 from user.models import Training
+from physionet.settings.base import StorageTypes
+
 
 logging.getLogger("pdfminer").setLevel(logging.WARNING)
 
@@ -27,7 +31,12 @@ def _parse_pdf_to_string(training_path: str) -> str:
 
 
 def get_info_from_certificate_pdf(training: Training) -> dict:
-    text = _parse_pdf_to_string(training.completion_report.path)
+    if settings.STORAGE_TYPE == StorageTypes.GCP:
+        report_path_or_io = io.BytesIO(training.completion_report.read())
+    else:
+        report_path_or_io = training.completion_report.path
+
+    text = _parse_pdf_to_string(report_path_or_io)
     regexes = training.training_type.certificate_regexes.all().order_by('display_order')
     return {
         regex.name: _get_regex_value_from_text(text, regex.regex)
