@@ -30,6 +30,7 @@ from notification.utility import (
     get_url_prefix,
     notify_account_registration,
     process_credential_complete,
+    training_application_request,
 )
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 from physionet import utility
@@ -700,6 +701,7 @@ def edit_training(request):
         if training_form.is_valid():
             training_form.save()
             messages.success(request, 'The training has been submitted successfully.')
+            training_application_request(request, training_form)
             training_form = forms.TrainingForm(user=request.user)
         else:
             messages.error(request, 'Invalid submission. Check the errors below.')
