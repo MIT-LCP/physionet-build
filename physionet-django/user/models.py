@@ -939,11 +939,11 @@ class CredentialApplication(models.Model):
         """
         if not hasattr(self, 'credential_review'):
             status = 'Awaiting review'
-        elif self.credential_review.status <= 30:
+        elif self.credential_review.status <= 20:
             status = 'Awaiting review'
-        elif self.credential_review.status == 40:
+        elif self.credential_review.status == 30:
             status = 'Awaiting a response from your reference'
-        elif self.credential_review.status >= 50:
+        elif self.credential_review.status >= 40:
             status = 'Awaiting final approval'
 
         return status
@@ -957,17 +957,16 @@ class CredentialReview(models.Model):
     -----
     This relational model will be deleted in the case that a credential
     reviewer decides to "reset" the application, meaning reset it back to the
-    "initial review" stage.
+    "Not in review" stage.
 
     """
     REVIEW_STATUS_LABELS = (
         ('', '-----------'),
         (0,  'Not in review'),
-        (10, 'Initial review'),
-        (20, 'ID check'),
-        (30, 'Reference'),
-        (40, 'Reference response'),
-        (50, 'Final review'),
+        (10, 'ID check'),
+        (20, 'Reference'),
+        (30, 'Reference response'),
+        (40, 'Final review'),
     )
 
     application = models.OneToOneField('user.CredentialApplication',
@@ -978,6 +977,7 @@ class CredentialReview(models.Model):
         choices=REVIEW_STATUS_LABELS)
 
     # Initial review questions
+    # No longer checked. Consider removing these.
     fields_complete = models.NullBooleanField(null=True)
     appears_correct = models.NullBooleanField(null=True)
     lang_understandable = models.NullBooleanField(null=True)

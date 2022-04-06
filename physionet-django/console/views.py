@@ -1152,51 +1152,18 @@ def process_credential_application(request, application_slug):
     page_title = None
     title_dict = {a: k for a, k in CredentialReview.REVIEW_STATUS_LABELS}
     page_title = title_dict[application.credential_review.status]
+
     if application.credential_review.status == 10:
-        intermediate_credential_form = forms.InitialCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 20:
         intermediate_credential_form = forms.PersonalCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 30:
+    if application.credential_review.status == 20:
         intermediate_credential_form = forms.ReferenceCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 40:
+    if application.credential_review.status == 30:
         intermediate_credential_form = forms.ResponseCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 50:
+    if application.credential_review.status == 40:
         intermediate_credential_form = forms.ProcessCredentialReviewForm(responder=request.user, instance=application)
 
     if request.method == 'POST':
-        if 'approve_initial' in request.POST:
-            intermediate_credential_form = forms.InitialCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
-            if intermediate_credential_form.is_valid():
-                intermediate_credential_form.save()
-                if intermediate_credential_form.cleaned_data['decision'] == '0':
-                    notification.process_credential_complete(request,
-                                                             application)
-                    return render(request, 'console/process_credential_complete.html',
-                        {'application':application})
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.PersonalCredentialForm(
-                    responder=request.user, instance=application)
-            else:
-                messages.error(request, 'Invalid review. See form below.')
-        elif 'approve_initial_all' in request.POST:
-            if request.POST['decision'] == '0':
-                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
-            else:
-                data_copy = request.POST.copy()
-                valid_fields = set(request.POST.keys())
-                valid_fields.difference_update({'csrfmiddlewaretoken',
-                                                'responder_comments',
-                                                'approve_initial_all'})
-                for field in valid_fields:
-                    data_copy[field] = '1'
-                intermediate_credential_form = forms.InitialCredentialForm(
-                    responder=request.user, data=data_copy, instance=application)
-                intermediate_credential_form.save()
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.PersonalCredentialForm(
-                    responder=request.user, instance=application)
-        elif 'approve_personal' in request.POST:
+        if 'approve_personal' in request.POST:
             intermediate_credential_form = forms.PersonalCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
             if intermediate_credential_form.is_valid():
@@ -1339,19 +1306,17 @@ def credential_processing(request):
     # Awaiting initial review
     initial_1 = Q(credential_review__isnull=True)
     initial_2 = Q(credential_review__status=10)
-    initial_applications = applications.filter(
+    personal_applications = applications.filter(
         initial_1 | initial_2).order_by('application_datetime')
-    # Awaiting ID check
-    personal_applications = applications.filter(credential_review__status=20).order_by('application_datetime')
     # Awaiting reference check
-    reference_applications = applications.filter(credential_review__status=30).order_by('application_datetime')
+    reference_applications = applications.filter(credential_review__status=20).order_by('application_datetime')
     # Awaiting reference response
-    response_applications = applications.filter(credential_review__status=40).order_by(
+    response_applications = applications.filter(credential_review__status=30).order_by(
         '-reference_response', 'application_datetime'
     )
     # Awaiting final review
     final_applications = applications.filter(
-        credential_review__status=50).order_by('application_datetime')
+        credential_review__status=40).order_by('application_datetime')
 
     if request.method == 'POST':
         if 'reset_application' in request.POST:
@@ -1363,13 +1328,12 @@ def credential_processing(request):
             messages.success(request, 'The application has been reset')
 
     return render(request, 'console/credential_processing.html',
-        {'applications': applications,
-        'initial_applications': initial_applications,
-        'personal_applications': personal_applications,
-        'reference_applications': reference_applications,
-        'response_applications': response_applications,
-        'final_applications': final_applications,
-        'processing_credentials_nav': True})
+                  {'applications': applications,
+                   'personal_applications': personal_applications,
+                   'reference_applications': reference_applications,
+                   'response_applications': response_applications,
+                   'final_applications': final_applications,
+                   'processing_credentials_nav': True})
 
 
 @permission_required('user.change_credentialapplication', raise_exception=True)

@@ -76,11 +76,12 @@ YES_NO_NA_UNDETERMINED = (
     (None, 'N/A or Undetermined')
 )
 
+
 class AssignEditorForm(forms.Form):
     """
     Assign an editor to a project under submission
     """
-    project = forms.IntegerField(widget = forms.HiddenInput())
+    project = forms.IntegerField(widget=forms.HiddenInput())
     editor = forms.ModelChoiceField(queryset=User.objects.filter(
         is_admin=True))
 
@@ -250,8 +251,8 @@ class CopyeditForm(forms.ModelForm):
         model = CopyeditLog
         fields = ('made_changes', 'changelog_summary')
         widgets = {
-            'made_changes':forms.Select(choices=YES_NO),
-            'changelog_summary':forms.Textarea()
+            'made_changes': forms.Select(choices=YES_NO),
+            'changelog_summary': forms.Textarea()
         }
 
     def __init__(self, *args, **kwargs):
@@ -322,7 +323,7 @@ class TopicForm(forms.Form):
     Form to set tags for a published project
     """
     topics = forms.CharField(required=False, max_length=800,
-        label='Comma delimited topics')
+                             label='Comma delimited topics')
 
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -351,8 +352,8 @@ class TopicForm(forms.Form):
         for t in topics:
             if not re.fullmatch(r'[\w][\w\ -]*', t):
                 raise forms.ValidationError('Each topic must contain letters, '
-                    'numbers, spaces, underscores, and hyphens only, and '
-                    'begin with a letter or number.')
+                                            'numbers, spaces, underscores, and hyphens only, and '
+                                            'begin with a letter or number.')
 
         self.topic_descriptions = [t.lower() for t in topics]
         return data
@@ -382,8 +383,8 @@ class ProcessCredentialForm(forms.ModelForm):
         model = CredentialApplication
         fields = ('responder_comments', 'status')
         labels = {
-            'responder_comments':'Comments (required for rejected applications). This will be sent to the applicant.',
-            'status':'Decision',
+            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'status': 'Decision',
         }
         # widgets = {
         #     'responder_comments': forms.Textarea(attrs={'rows': 5}),
@@ -425,8 +426,8 @@ class ProcessCredentialReviewForm(forms.ModelForm):
         model = CredentialApplication
         fields = ('responder_comments', 'status')
         labels = {
-            'responder_comments':'Comments (required for rejected applications). This will be sent to the applicant.',
-            'status':'Decision',
+            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
+            'status': 'Decision',
         }
         widgets = {
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
@@ -459,78 +460,13 @@ class ProcessCredentialReviewForm(forms.ModelForm):
         return application
 
 
-class InitialCredentialForm(forms.ModelForm):
-    """
-    Form to respond to a credential application in the initial review stage
-    """
-
-    decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
-            widget=forms.RadioSelect)
-
-    class Meta:
-        model = CredentialReview
-        fields = ('fields_complete', 'appears_correct', 'lang_understandable',
-                  'responder_comments', 'decision')
-
-        labels = {
-            'fields_complete': 'Are all of the required fields complete?',
-            'appears_correct': 'Does the application clearly avoid frivolous text such as "aa"?',
-            'lang_understandable': 'Is any non-English text (e.g. job titles) easily translated?',
-            'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
-            'decision': 'Decision',
-        }
-
-        widgets = {
-            'fields_complete': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'appears_correct': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'lang_understandable': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'responder_comments': forms.Textarea(attrs={'rows': 5}),
-            'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
-        }
-
-    def __init__(self, responder, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # This will be used in clean
-        self.quality_assurance_fields = ('fields_complete', 'appears_correct',
-                                         'lang_understandable')
-
-        self.responder = responder
-        self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
-
-    def clean(self):
-        if self.errors:
-            return
-
-        if self.cleaned_data['decision'] == '1':
-            for field in self.quality_assurance_fields:
-                if not self.cleaned_data[field]:
-                    raise forms.ValidationError(
-                        'The quality assurance fields must all pass '
-                          'before you approve the application')
-
-        if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
-            raise forms.ValidationError('If you reject, you must explain why.')
-
-    def save(self):
-        application = super().save()
-        if self.cleaned_data['decision'] == '0':
-            application.reject(self.responder)
-        elif self.cleaned_data['decision'] == '1':
-            application.update_review_status(20)
-        else:
-            raise forms.ValidationError('Application status not valid.')
-
-        return application
-
-
 class PersonalCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application in the ID check stage
     """
 
     decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
-            widget=forms.RadioSelect)
+                                 widget=forms.RadioSelect)
 
     class Meta:
         model = CredentialReview
@@ -567,7 +503,8 @@ class PersonalCredentialForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # This will be used in clean
-        self.quality_assurance_fields = ('research_summary_clear', 'user_understands_privacy', 'user_org_known', 'user_details_consistent')
+        self.quality_assurance_fields = ('research_summary_clear', 'user_understands_privacy',
+                                         'user_org_known', 'user_details_consistent')
         self.categorical_fields = ('user_searchable', 'user_has_papers', 'course_name_provided')
 
         self.responder = responder
@@ -582,12 +519,12 @@ class PersonalCredentialForm(forms.ModelForm):
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass '
-                          'before you approve the application')
+                        'before you approve the application')
             for field in self.categorical_fields:
                 if self.cleaned_data[field] is False:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass '
-                          'before you approve the application')
+                        'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
@@ -597,7 +534,7 @@ class PersonalCredentialForm(forms.ModelForm):
         if self.cleaned_data['decision'] == '0':
             application.reject(self.responder)
         elif self.cleaned_data['decision'] == '1':
-            application.update_review_status(30)
+            application.update_review_status(20)
         else:
             raise forms.ValidationError('Application status not valid.')
 
@@ -610,7 +547,7 @@ class ReferenceCredentialForm(forms.ModelForm):
     """
 
     decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
-            widget=forms.RadioSelect)
+                                 widget=forms.RadioSelect)
 
     class Meta:
         model = CredentialReview
@@ -657,12 +594,12 @@ class ReferenceCredentialForm(forms.ModelForm):
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass '
-                          'before you approve the application')
+                        'before you approve the application')
             for field in self.categorical_fields:
                 if self.cleaned_data[field] is False:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass '
-                          'before you approve the application')
+                        'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
@@ -672,7 +609,7 @@ class ReferenceCredentialForm(forms.ModelForm):
         if self.cleaned_data['decision'] == '0':
             application.reject(self.responder)
         elif self.cleaned_data['decision'] == '1':
-            application.update_review_status(40)
+            application.update_review_status(30)
         else:
             raise forms.ValidationError('Application status not valid.')
 
@@ -686,7 +623,7 @@ class ResponseCredentialForm(forms.ModelForm):
     """
 
     decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
-            widget=forms.RadioSelect)
+                                 widget=forms.RadioSelect)
 
     class Meta:
         model = CredentialReview
@@ -729,7 +666,7 @@ class ResponseCredentialForm(forms.ModelForm):
                 if not self.cleaned_data[field]:
                     raise forms.ValidationError(
                         'The quality assurance fields must all pass '
-                          'before you approve the application')
+                        'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
@@ -739,7 +676,7 @@ class ResponseCredentialForm(forms.ModelForm):
         if self.cleaned_data['decision'] == '0':
             application.reject(self.responder)
         elif self.cleaned_data['decision'] == '1':
-            application.update_review_status(50)
+            application.update_review_status(40)
         else:
             raise forms.ValidationError('Application status not valid.')
 
@@ -789,7 +726,7 @@ class DataAccessForm(forms.ModelForm):
                            Bucket name for aws-s3:<br> s3://BUCKET_NAME<br><br>
                            Organizational Google Group managing access for gcp-bucket:<br> EMAIL@ORGANIZATION<br><br>
                            Organizational Google Group managing access for gcp-bigquery:<br> EMAIL@ORGANIZATION""",
-            }
+        }
 
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
