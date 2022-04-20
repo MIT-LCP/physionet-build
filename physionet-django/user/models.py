@@ -526,14 +526,11 @@ def photo_path(instance, filename):
     """
     return 'users/{0}/{1}'.format(instance.user.username, '.'.join(['profile-photo', filename.split('.')[-1]]))
 
-def training_report_path(instance, filename):
-    """
-    Storage path of CITI training report
-    """
-    return 'credential-applications/{}/{}'.format(instance.slug, 'training-report.pdf')
-
 
 def get_training_path(instance, filename):
+    """
+    Storage path for training reports relative to media root.
+    """
     return f'training/{instance.slug}/training-report.pdf'
 
 

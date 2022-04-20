@@ -11,7 +11,7 @@ from django.db.models.fields import DurationField
 
 from project.modelcomponents.fields import SafeHTMLField
 from user.enums import TrainingStatus, RequiredField
-from user.models import get_training_path, training_report_path
+from user.models import get_training_path
 from user.validators import validate_alphaplusplus
 
 
@@ -160,7 +160,7 @@ class Migration(migrations.Migration):
             model_name='credentialapplication',
             name='training_completion_report',
             field=models.FileField(
-                upload_to=training_report_path,
+                upload_to=get_training_path,
                 null=True,
                 validators=[django.core.validators.FileExtensionValidator(['pdf'], 'File must be a pdf.')]
             )
