@@ -135,10 +135,10 @@
   {% for cred_app in credentialing_app %}
     <li><strong>Submitted: {{ cred_app.application_datetime }}</strong><br />
     {% if cred_app.status == 0 %} 
-      Status: Pending<br />
+      Status: Pending <a href="{% url 'process_credential_application' cred_app.slug %}">(View application)</a>
     {% else %}
-      Status: {{ cred_app.get_status_display }}<br />
-    {% endif %}
+      Status: {{ cred_app.get_status_display }}
+    {% endif %}<br />
     Reviewer: 
       {% if cred_app.responder %}
         {{ cred_app.responder }}
