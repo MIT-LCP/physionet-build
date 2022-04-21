@@ -121,6 +121,9 @@
         {% for train in training %}
           <li>
             {{ train.training_type.name }}
+            {% if status == "Under review" %}
+              <a href="{% url 'training_process' train.id %}">(View training)</a>
+            {% endif %}
           </li>
         {% empty %}
           <li> N/A </li>
