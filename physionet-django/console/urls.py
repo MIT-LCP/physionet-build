@@ -75,7 +75,7 @@ urlpatterns = [
 
     path('training/<status>/', views.training_list, name='training_list'),
     path('training/view/<int:pk>/', views.training_detail, name='training_detail'),
-    path('training/process/<int:pk>/', views.training_proccess, name='training_process'),
+    path('training/process/<int:pk>/', views.training_process, name='training_process'),
     path('users/search/<group>/', views.users_search, name='users_list_search'),
     path('users/<group>/', views.users, name='users'),
     path('user/manage/<username>/', views.user_management,

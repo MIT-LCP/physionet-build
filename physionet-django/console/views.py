@@ -1271,7 +1271,7 @@ def process_credential_application(request, application_slug):
                                                subject=subject, body=body)
                 messages.success(request, 'The reference has been contacted.')
         elif 'skip_reference' in request.POST:
-            application.update_review_status(50)
+            application.update_review_status(40)
             application.save()
         elif 'process_application' in request.POST:
             process_credential_form = forms.ProcessCredentialReviewForm(
@@ -1556,7 +1556,7 @@ def search_training_applications(request, display_training):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def training_proccess(request, pk):
+def training_process(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
 
     TrainingQuestionFormSet = modelformset_factory(
