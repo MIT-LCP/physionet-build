@@ -1556,7 +1556,7 @@ def search_training_applications(request, display_training):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def training_proccess(request, pk):
+def training_process(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
 
     TrainingQuestionFormSet = modelformset_factory(
