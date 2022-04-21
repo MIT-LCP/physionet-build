@@ -1271,7 +1271,7 @@ def process_credential_application(request, application_slug):
                                                subject=subject, body=body)
                 messages.success(request, 'The reference has been contacted.')
         elif 'skip_reference' in request.POST:
-            application.update_review_status(50)
+            application.update_review_status(40)
             application.save()
         elif 'process_application' in request.POST:
             process_credential_form = forms.ProcessCredentialReviewForm(
