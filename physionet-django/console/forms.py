@@ -464,37 +464,19 @@ class PersonalCredentialForm(forms.ModelForm):
     """
     Form to respond to a credential application in the ID check stage
     """
-
     decision = forms.ChoiceField(choices=REVIEW_RESPONSE_CHOICES,
                                  widget=forms.RadioSelect)
 
     class Meta:
         model = CredentialReview
-        fields = ('user_searchable', 'user_has_papers',
-                  'research_summary_clear', 'course_name_provided', 'user_understands_privacy',
-                  'user_org_known', 'user_details_consistent',
-                  'responder_comments', 'decision')
+        fields = ('responder_comments', 'decision')
 
         labels = {
-            'user_searchable': 'Do you find search results for the applicant\'s name (possibly include their organization in the search query)?',
-            'user_has_papers': 'Can you find publications linked to the applicant (possibly include the reference in the search query)?',
-            'research_summary_clear': 'Is the research summary sufficiently descriptive?',
-            'course_name_provided': 'If applicable, does the research summary include course name and number?',
-            'user_understands_privacy': 'Does the research summary indicate an understanding that data must not be shared (e.g. no plural pronouns such as "we", "us", etc.)?',
-            'user_org_known': 'Does the organization have a website or other online presence?',
-            'user_details_consistent': 'Is the information consistent (independent researcher should not list an organization, obvious students should be listed as either "student" or "postdoc", MD\'s with a hospital as their organization should be "hospital researcher", the county and state mismatches, etc.)?',
             'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
             'decision': 'Decision',
         }
 
         widgets = {
-            'user_searchable': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
-            'user_has_papers': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
-            'research_summary_clear': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'course_name_provided': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
-            'user_understands_privacy': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'user_org_known': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'user_details_consistent': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
@@ -502,29 +484,12 @@ class PersonalCredentialForm(forms.ModelForm):
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # This will be used in clean
-        self.quality_assurance_fields = ('research_summary_clear', 'user_understands_privacy',
-                                         'user_org_known', 'user_details_consistent')
-        self.categorical_fields = ('user_searchable', 'user_has_papers', 'course_name_provided')
-
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
 
     def clean(self):
         if self.errors:
             return
-
-        if self.cleaned_data['decision'] == '1':
-            for field in self.quality_assurance_fields:
-                if not self.cleaned_data[field]:
-                    raise forms.ValidationError(
-                        'The quality assurance fields must all pass '
-                        'before you approve the application')
-            for field in self.categorical_fields:
-                if self.cleaned_data[field] is False:
-                    raise forms.ValidationError(
-                        'The quality assurance fields must all pass '
-                        'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
