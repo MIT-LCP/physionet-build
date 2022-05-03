@@ -516,55 +516,26 @@ class ReferenceCredentialForm(forms.ModelForm):
 
     class Meta:
         model = CredentialReview
-        fields = ('ref_appropriate', 'ref_searchable', 'ref_has_papers',
-                  'ref_is_supervisor', 'ref_course_list',
-                  'responder_comments', 'decision')
+        fields = ('responder_comments', 'decision')
 
         labels = {
-            'ref_appropriate': 'Is the reference appropriate?',
-            'ref_searchable': 'Is the reference easily searchable?',
-            'ref_has_papers': 'Can you find publications linked to the reference?',
-            'ref_is_supervisor': 'If applicable (for students and postdocs only), is the reference in a supervisory position?',
-            'ref_course_list': 'If applicable (for students and postdocs only), is the applicant included in a list of course participants?',
             'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
             'decision': 'Decision',
         }
 
         widgets = {
-            'ref_appropriate': forms.RadioSelect(choices=YES_NO_UNDETERMINED_REVIEW),
-            'ref_searchable': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
-            'ref_has_papers': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
-            'ref_is_supervisor': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
-            'ref_course_list': forms.RadioSelect(choices=YES_NO_NA_UNDETERMINED),
             'responder_comments': forms.Textarea(attrs={'rows': 5}),
             'decision': forms.RadioSelect(choices=REVIEW_RESPONSE_CHOICES)
         }
 
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # This will be used in clean
-        self.quality_assurance_fields = ('ref_appropriate',)
-        self.categorical_fields = ('ref_searchable', 'ref_has_papers', 'ref_is_supervisor', 'ref_course_list')
-
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
 
     def clean(self):
         if self.errors:
             return
-
-        if self.cleaned_data['decision'] == '1':
-            for field in self.quality_assurance_fields:
-                if not self.cleaned_data[field]:
-                    raise forms.ValidationError(
-                        'The quality assurance fields must all pass '
-                        'before you approve the application')
-            for field in self.categorical_fields:
-                if self.cleaned_data[field] is False:
-                    raise forms.ValidationError(
-                        'The quality assurance fields must all pass '
-                        'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
