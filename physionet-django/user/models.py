@@ -1001,10 +1001,12 @@ class CredentialReview(models.Model):
     ref_skipped = models.NullBooleanField(null=True)
 
     # Reference response check questions
+    # No longer checked. Consider removing these.
     ref_knows_applicant = models.NullBooleanField(null=True)
     ref_approves = models.NullBooleanField(null=True)
     ref_understands_privacy = models.NullBooleanField(null=True)
 
+    # Reference response check questions
     responder_comments = models.CharField(max_length=500, default='',
                                           blank=True)
 
