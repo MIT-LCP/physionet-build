@@ -563,13 +563,9 @@ class ResponseCredentialForm(forms.ModelForm):
 
     class Meta:
         model = CredentialReview
-        fields = ('ref_knows_applicant', 'ref_approves',
-                  'ref_understands_privacy', 'responder_comments', 'decision')
+        fields = ('responder_comments', 'decision')
 
         labels = {
-            'ref_knows_applicant': 'Does the reference know the applicant?',
-            'ref_approves': 'Does the reference approve the applicant for use of restricted data?',
-            'ref_understands_privacy': 'Does the response indicate an understanding that data must not be shared (e.g. no plural pronouns such as "we", "us", etc.)?',
             'responder_comments': 'Comments (required for rejected applications). This will be sent to the applicant.',
             'decision': 'Decision',
         }
@@ -584,25 +580,12 @@ class ResponseCredentialForm(forms.ModelForm):
 
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # This will be used in clean
-        self.quality_assurance_fields = ('ref_knows_applicant',
-                                         'ref_approves',
-                                         'ref_understands_privacy')
-
         self.responder = responder
         self.fields['decision'].choices = REVIEW_RESPONSE_CHOICES
 
     def clean(self):
         if self.errors:
             return
-
-        if self.cleaned_data['decision'] == '1':
-            for field in self.quality_assurance_fields:
-                if not self.cleaned_data[field]:
-                    raise forms.ValidationError(
-                        'The quality assurance fields must all pass '
-                        'before you approve the application')
 
         if self.cleaned_data['decision'] == '0' and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
