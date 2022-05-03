@@ -47,6 +47,27 @@ Applied: {{ application.application_datetime|date }}</p>
       {{ application.webpage }}</a>{% else %}N/A{% endif %}</mark></li>
 </ul>
 
+<h5>Training</h5>
+  <ul>
+    {% for status, training in training_list.items %}
+      <li><h6>{{ status }}</h6>
+        <ul>
+          {% for train in training %}
+            <li>
+              {{ train.training_type.name }}
+              {% if status == "Under review" %}
+                <a href="{% url 'training_process' train.id %}">(Review training)</a>
+              {% endif %}
+            </li>
+          {% empty %}
+            <li> N/A </li>
+          {% endfor %}
+        </ul>
+      </li>
+    {% endfor %}
+  </ul>
+
+
 <h5>Reference</h5>
 
 {% if application.reference_contact_datetime %}

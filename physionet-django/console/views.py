@@ -1142,6 +1142,14 @@ def process_credential_application(request, application_slug):
             handled by another administrator.""")
         return redirect('credential_applications', status='pending')
 
+    # get training list
+    _training = Training.objects.select_related('training_type').filter(user=application.user).order_by('-status')
+    training = {}
+    training['Active'] = _training.get_valid()
+    training['Under review'] = _training.get_review()
+    training['Expired'] = _training.get_expired()
+    training['Rejected'] = _training.get_rejected()
+
     process_credential_form = forms.ProcessCredentialReviewForm(responder=request.user,
         instance=application)
 
@@ -1242,7 +1250,8 @@ def process_credential_application(request, application_slug):
          'intermediate_credential_form': intermediate_credential_form,
          'process_credential_form': process_credential_form,
          'processing_credentials_nav': True, 'page_title': page_title,
-         'contact_cred_ref_form': contact_cred_ref_form})
+         'contact_cred_ref_form': contact_cred_ref_form,
+         'training_list': training})
 
 
 @permission_required('user.change_credentialapplication', raise_exception=True)
