@@ -5,14 +5,6 @@
 <p>Username: <a href="{% url 'user_management' application.user.username %}">{{ application.user.username }}</a></br>
 Applied: {{ application.application_datetime|date }}</p>
 
-{% if application.reference_contact_datetime %}
-  Reference contact date: {{ application.reference_contact_datetime|date }}<br />
-  {% if application.reference_response_datetime %}
-    Reference response date: {{ application.reference_response_datetime|date }}<br />
-    Reference verified: {{ application.get_reference_response_display }}<br />
-  {% endif %}
-{% endif %}
-
 {% if application.decision_datetime %}
   Decision date: {{ application.decision_datetime|date }}<br />
 {% endif %}
@@ -56,6 +48,20 @@ Applied: {{ application.application_datetime|date }}</p>
 </ul>
 
 <h5>Reference</h5>
+
+{% if application.reference_contact_datetime %}
+  <ul><li>Contact date: {{ application.reference_contact_datetime|date }}<br />
+  {% if application.reference_response_datetime %}
+    Response date: {{ application.reference_response_datetime|date }}<br />
+    Approved: {{ application.get_reference_response_display }}<br />
+    Comments: {{ application.reference_response_text }}
+  {% else %}
+    Response date: Awaiting response.<br />
+    Approved: Awaiting response.<br />
+  {% endif %}
+  </li>
+  </ul>
+{% endif %}
 
 {% if application.reference_email %}
   <p>[<a href="https://www.google.com/search?q={{ application.reference_name }} {{ application.reference_email }}" target="_blank">Search for reference name and email.</a>]</p>
