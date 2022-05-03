@@ -980,6 +980,7 @@ class CredentialReview(models.Model):
     lang_understandable = models.NullBooleanField(null=True)
 
     # ID check questions
+    # No longer checked. Consider removing these.
     user_searchable = models.NullBooleanField(null=True)
     user_has_papers = models.NullBooleanField(null=True)
     research_summary_clear = models.NullBooleanField(null=True)
