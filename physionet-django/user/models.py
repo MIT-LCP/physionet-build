@@ -990,11 +990,14 @@ class CredentialReview(models.Model):
     user_details_consistent = models.NullBooleanField(null=True)
 
     # Reference check questions
+    # No longer checked. Consider removing these.
     ref_appropriate = models.NullBooleanField(null=True)
     ref_searchable = models.NullBooleanField(null=True)
     ref_has_papers = models.NullBooleanField(null=True)
     ref_is_supervisor = models.NullBooleanField(null=True)
     ref_course_list = models.NullBooleanField(null=True)
+
+    # Log skipped reference
     ref_skipped = models.NullBooleanField(null=True)
 
     # Reference response check questions
