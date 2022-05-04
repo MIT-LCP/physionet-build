@@ -46,7 +46,7 @@ from django.core.management.base import BaseCommand
 from django.template import loader
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_encode
 
 from user.models import AssociatedEmail
@@ -95,7 +95,7 @@ class Command(BaseCommand):
 
             # Send an updated email (this mimics user.views.add_email)
 
-            uidb64 = force_text(urlsafe_base64_encode(force_bytes(associated_email.pk)))
+            uidb64 = force_str(urlsafe_base64_encode(force_bytes(associated_email.pk)))
             subject = "PhysioNet Email Verification (CORRECTION)"
             context = {
                 'name': user.get_full_name(),
