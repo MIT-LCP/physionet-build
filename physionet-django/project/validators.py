@@ -1,7 +1,7 @@
 import re
 
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 MAX_FILENAME_LENGTH = 60
 MAX_PROJECT_SLUG_LENGTH = 30

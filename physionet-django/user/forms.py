@@ -11,7 +11,7 @@ from django.db.models import F, Q
 from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from django.utils.translation import ugettext_lazy
+from django.utils.translation import gettext
 from user.models import (
     AssociatedEmail,
     CloudInformation,
@@ -107,11 +107,11 @@ class LoginForm(auth_forms.AuthenticationForm):
     remember = forms.BooleanField(label='Remember Me', required=False)
 
     error_messages = {
-        'invalid_login': ugettext_lazy(
+        'invalid_login': gettext(
             "Please enter a correct username/email and password. Note that the password "
             "field is case-sensitive."
         ),
-        'inactive': ugettext_lazy("This account has not been activated. Please check your "
+        'inactive': gettext("This account has not been activated. Please check your "
             "email for the activation link."),
     }
 
