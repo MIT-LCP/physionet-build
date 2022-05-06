@@ -9,7 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.db import transaction
 from django.shortcuts import redirect, render
 from django.utils import timezone
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from notification.utility import notify_account_registration
 from physionet.middleware.maintenance import disallow_during_maintenance
@@ -81,7 +81,7 @@ def sso_register(request):
 
         if form.is_valid():
             user = form.save()
-            uidb64 = force_text(urlsafe_base64_encode(force_bytes(user.pk)))
+            uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
             notify_account_registration(request, user, uidb64, token, sso=True)
             return render(request, 'user/register_done.html', {'email': user.email, 'sso': True})
@@ -107,7 +107,7 @@ def sso_activate_user(request, uidb64, token):
     context = {'title': 'Invalid Activation Link', 'isvalid': False}
 
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_str(urlsafe_base64_decode(uidb64))
         remote_sso_id = request.META.get(settings.SSO_REMOTE_USER_HEADER)
         user = User.objects.get(pk=uid, sso_id=remote_sso_id)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):

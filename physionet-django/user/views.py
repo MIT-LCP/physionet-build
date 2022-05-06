@@ -22,7 +22,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.decorators import method_decorator
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.debug import sensitive_post_parameters
 from notification.utility import (
@@ -150,7 +150,7 @@ def activate_user(request, uidb64, token):
     context = {'title': 'Invalid Activation Link', 'isvalid': False}
 
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
@@ -281,7 +281,7 @@ def add_email(request, add_email_form):
             verification_token=token)
 
         # Send an email to the newly added email with a verification link
-        uidb64 = force_text(urlsafe_base64_encode(force_bytes(associated_email.pk)))
+        uidb64 = force_str(urlsafe_base64_encode(force_bytes(associated_email.pk)))
         subject = f"{settings.SITE_NAME} Email Verification"
         context = {
             'name': user.get_full_name(),
@@ -516,7 +516,7 @@ def register(request):
                     raise
                 user = User.objects.get(username=form.data['username'])
             else:
-                uidb64 = force_text(urlsafe_base64_encode(force_bytes(
+                uidb64 = force_str(urlsafe_base64_encode(force_bytes(
                     user.pk)))
                 token = default_token_generator.make_token(user)
                 notify_account_registration(request, user, uidb64, token)
@@ -548,7 +548,7 @@ def verify_email(request, uidb64, token):
     """
     user = request.user
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_str(urlsafe_base64_decode(uidb64))
         associated_email = AssociatedEmail.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, AssociatedEmail.DoesNotExist):
         associated_email = None
