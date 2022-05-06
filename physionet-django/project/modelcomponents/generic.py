@@ -9,7 +9,7 @@ class BaseInvitation(models.Model):
         related_name='%(class)ss', on_delete=models.CASCADE)
     request_datetime = models.DateTimeField(auto_now_add=True)
     response_datetime = models.DateTimeField(null=True)
-    response = models.NullBooleanField(null=True)
+    response = models.BooleanField(null=True)
     is_active = models.BooleanField(default=True)
 
     class Meta:
