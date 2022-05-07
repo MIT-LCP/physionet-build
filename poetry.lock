@@ -682,7 +682,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "ed9f0273fd23910fdc156e14b0a518564e6cb865c5d77d086ccbe0d74201a287"
+content-hash = "3a42f174f31e3b67097a683c5726b42f89bd2d54b677db61d30513ddd8ed1817"
 
 [metadata.files]
 bleach = [
