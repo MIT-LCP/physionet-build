@@ -186,9 +186,9 @@ pyparsing==2.4.7 \
 sqlparse==0.4.2 \
     --hash=sha256:0c00730c74263a94e5a9919ade150dfc3b19c574389985446148402998287dae \
     --hash=sha256:48719e356bb8b42991bdbb1e8b83223757b93789c00910a616a071910ca4a64d
-django-js-asset==0.1.1 \
-    --hash=sha256:0dd2c5f64f2b24eb8a7270a6a59cb914a03f205335bd0eb6207bf61cf7410828 \
-    --hash=sha256:c6637e4f3fef12024564057a48bef484db6491c610273d76d25d8dbe6ecc4ac1
+django-js-asset==1.2.2 \
+    --hash=sha256:8ec12017f26eec524cab436c64ae73033368a372970af4cf42d9354fcb166bdd \
+    --hash=sha256:c163ae80d2e0b22d8fb598047cd0dcef31f81830e127cfecae278ad574167260
 django-compat==1.0.15 \
     --hash=sha256:3ac9a3bedc56b9365d9eb241bc5157d0c193769bf995f9a78dc1bc24e7c2331b
 google-cloud-core==1.7.0 \
