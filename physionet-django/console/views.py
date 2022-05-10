@@ -354,15 +354,18 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
                                                      fields=('description',), extra=0,
-                                                     max_num=project_forms.ReferenceFormSet.max_forms, can_delete=False,
+                                                     max_num=project_forms.ReferenceFormSet.max_forms,
+                                                     can_delete=False,
                                                      formset=project_forms.ReferenceFormSet, validate_max=True)
     TopicFormSet = generic_inlineformset_factory(Topic,
                                                  fields=('description',), extra=0,
-                                                 max_num=project_forms.TopicFormSet.max_forms, can_delete=False,
+                                                 max_num=project_forms.TopicFormSet.max_forms,
+                                                 can_delete=False,
                                                  formset=project_forms.TopicFormSet, validate_max=True)
     PublicationFormSet = generic_inlineformset_factory(Publication,
                                                        fields=('citation', 'url'), extra=0,
-                                                       max_num=project_forms.PublicationFormSet.max_forms, can_delete=False,
+                                                       max_num=project_forms.PublicationFormSet.max_forms,
+                                                       can_delete=False,
                                                        formset=project_forms.PublicationFormSet, validate_max=True)
 
     description_form = project_forms.ContentForm(
@@ -666,7 +669,8 @@ def process_storage_response(request, storage_response_formset):
 
                 notification.storage_response_notify(storage_request)
                 messages.success(request,
-                                 'The storage request has been {}'.format(notification.RESPONSE_ACTIONS[storage_request.response]))
+                                 (f"The storage request has been "
+                                  f"{notification.RESPONSE_ACTIONS[storage_request.response]}"))
 
 
 @permission_required('project.change_storagerequest', raise_exception=True)
@@ -1376,17 +1380,23 @@ def credential_applications(request, status):
                                'u_applications': unsuccessful_apps,
                                'p_applications': pending_apps})
 
-    legacy_apps = LegacyCredential.objects.filter(migrated=True,
-                                                  migrated_user__is_credentialed=True).order_by('-migration_date').select_related('migrated_user__profile')
+    legacy_apps = (LegacyCredential.objects.filter(migrated=True,
+                                                   migrated_user__is_credentialed=True)
+                   .order_by('-migration_date')
+                   .select_related('migrated_user__profile'))
 
-    successful_apps = CredentialApplication.objects.filter(status=2
-                                                           ).order_by('-decision_datetime').select_related('user__profile', 'responder__profile')
+    successful_apps = (CredentialApplication.objects.filter(status=2
+                                                            ).
+                       order_by('-decision_datetime')
+                       .select_related('user__profile', 'responder__profile'))
 
     unsuccessful_apps = CredentialApplication.objects.filter(
         status__in=[1, 3, 4]).order_by('-decision_datetime').select_related('user__profile', 'responder')
 
-    pending_apps = CredentialApplication.objects.filter(status=0
-                                                        ).order_by('-application_datetime').select_related('user__profile', 'credential_review')
+    pending_apps = (CredentialApplication.objects.filter(status=0
+                                                         )
+                    .order_by('-application_datetime')
+                    .select_related('user__profile', 'credential_review'))
 
     # Merge legacy applications and new applications
     all_successful_apps = list(chain(successful_apps, legacy_apps))
@@ -1412,12 +1422,13 @@ def search_credential_applications(request):
     if request.POST:
         search_field = request.POST['search']
 
-        legacy_apps = LegacyCredential.objects.filter(Q(migrated=True) &
-                                                      Q(migrated_user__is_credentialed=True)
-                                                      & (Q(migrated_user__username__icontains=search_field) |
-                                                         Q(migrated_user__profile__first_names__icontains=search_field)
-                                                         | Q(migrated_user__profile__last_name__icontains=search_field)
-                                                         | Q(migrated_user__email__icontains=search_field))).order_by('-migration_date')
+        legacy_apps = (LegacyCredential.objects.filter(
+            Q(migrated=True)
+            & Q(migrated_user__is_credentialed=True)
+            & (Q(migrated_user__username__icontains=search_field)
+               | Q(migrated_user__profile__first_names__icontains=search_field)
+               | Q(migrated_user__profile__last_name__icontains=search_field)
+               | Q(migrated_user__email__icontains=search_field))).order_by('-migration_date'))
 
         successful_apps = CredentialApplication.objects.filter(
             Q(status=2) & (Q(user__username__icontains=search_field) |
@@ -1755,7 +1766,9 @@ def add_featured(request):
         form = forms.FeaturedForm()
 
     return render(request, 'console/add_featured.html', {'title': title,
-                                                         'projects': projects, 'form': form, 'valid_search': valid_search,
+                                                         'projects': projects,
+                                                         'form': form,
+                                                         'valid_search': valid_search,
                                                          'featured_content_nav': True})
 
 
