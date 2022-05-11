@@ -784,6 +784,17 @@ class TrainingQuestionFormSet(forms.BaseModelFormSet):
                 )
 
 
+class CredentialReviewForm(forms.Form):
+    reviewer_comments = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}), required=False)
+
+    def clean(self):
+        if self.errors:
+            return
+
+        if not self.cleaned_data['reviewer_comments']:
+            raise forms.ValidationError('If you reject, you must explain why.')
+
+
 class TrainingReviewForm(forms.Form):
     reviewer_comments = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}), required=False)
 
