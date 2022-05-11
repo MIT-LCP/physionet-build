@@ -1189,8 +1189,10 @@ def process_credential_application(request, application_slug):
                 application.responder_comments = credential_review_form.cleaned_data['reviewer_comments']
                 application.save()
             application.update_review_status(20)
-            page_title = title_dict[application.credential_review.status]
             messages.success(request, 'The ID was approved.')
+            page_title = title_dict[application.credential_review.status]
+            # reset form
+            credential_review_form = forms.CredentialReviewForm()
         elif 'full_approve' in request.POST:
             credential_review_form = forms.CredentialReviewForm(data=request.POST)
             if credential_review_form.is_valid():
@@ -1202,10 +1204,6 @@ def process_credential_application(request, application_slug):
             return redirect(credential_processing)
         # PROCESS REFERENCE CHECK STAGE
         elif 'accept_ref' in request.POST:
-            credential_review_form = forms.CredentialReviewForm(data=request.POST)
-            if credential_review_form.is_valid():
-                application.responder_comments = credential_review_form.cleaned_data['reviewer_comments']
-                application.save()
             contact_cred_ref_form = forms.ContactCredentialRefForm(data=request.POST)
             if contact_cred_ref_form.is_valid():
                 application.update_review_status(30)
@@ -1217,6 +1215,8 @@ def process_credential_application(request, application_slug):
                                                subject=subject, body=body)
                 messages.success(request, 'The reference was contacted.')
                 page_title = title_dict[application.credential_review.status]
+                # reset form
+                contact_cred_ref_form = forms.ContactCredentialRefForm(initial=ref_email)
         elif 'skip_ref' in request.POST:
             credential_review_form = forms.CredentialReviewForm(data=request.POST)
             if credential_review_form.is_valid():
@@ -1225,6 +1225,8 @@ def process_credential_application(request, application_slug):
             application.update_review_status(40)
             messages.success(request, 'The reference was skipped.')
             page_title = title_dict[application.credential_review.status]
+            # reset form
+            credential_review_form = forms.CredentialReviewForm()
         # CONTACT REFERENCE AGAIN
         elif 'contact_reference' in request.POST:
             contact_cred_ref_form = forms.ContactCredentialRefForm(
