@@ -771,9 +771,6 @@ def credential_reference(request, application_slug):
     """
     Page for a reference to verify or reject a credential application
     """
-    # application = CredentialApplication.objects.filter(
-    #     slug=application_slug, reference_contact_datetime__isnull=False,
-    #     reference_response_datetime=None)
     application = CredentialApplication.objects.filter(
         slug=application_slug, reference_response_datetime=None)
 
