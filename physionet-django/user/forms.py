@@ -642,9 +642,11 @@ class CredentialReferenceForm(forms.ModelForm):
         """
         application = super().save(commit=False)
 
-        # Deny
+        # Deny (1) or approve (2)
         if self.cleaned_data['reference_response'] == 1:
             application.status = 1
+        elif self.cleaned_data['reference_response'] == 2:
+            application.update_review_status(40)
 
         application.reference_response_datetime = timezone.now()
         application.reference_response_text = self.cleaned_data['reference_response_text']
