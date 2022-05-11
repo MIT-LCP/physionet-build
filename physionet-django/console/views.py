@@ -1189,8 +1189,8 @@ def process_credential_application(request, application_slug):
                 application.responder_comments = credential_review_form.cleaned_data['reviewer_comments']
                 application.save()
             application.update_review_status(20)
+            page_title = title_dict[application.credential_review.status]
             messages.success(request, 'The ID was approved.')
-            return redirect(credential_processing)
         elif 'full_approve' in request.POST:
             credential_review_form = forms.CredentialReviewForm(data=request.POST)
             if credential_review_form.is_valid():
@@ -1216,7 +1216,7 @@ def process_credential_application(request, application_slug):
                 notification.contact_reference(request, application,
                                                subject=subject, body=body)
                 messages.success(request, 'The reference was contacted.')
-                return redirect(credential_processing)
+                page_title = title_dict[application.credential_review.status]
         elif 'skip_ref' in request.POST:
             credential_review_form = forms.CredentialReviewForm(data=request.POST)
             if credential_review_form.is_valid():
@@ -1224,7 +1224,7 @@ def process_credential_application(request, application_slug):
                 application.save()
             application.update_review_status(40)
             messages.success(request, 'The reference was skipped.')
-            return redirect(credential_processing)
+            page_title = title_dict[application.credential_review.status]
         # CONTACT REFERENCE AGAIN
         elif 'contact_reference' in request.POST:
             contact_cred_ref_form = forms.ContactCredentialRefForm(
