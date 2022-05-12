@@ -300,9 +300,13 @@ class TestAccessPresubmission(TestMixin):
                 data={'upload_files':'', 'subdir':'notes',
                       'file_field':SimpleUploadedFile(f.name, f.read())})
         self.assertMessage(response, 25)
-        self.assertEqual(
-            open(os.path.join(project.file_root(), 'D_ITEMS.csv.gz'), 'rb').read(),
-            open(os.path.join(project.file_root(), 'notes/D_ITEMS.csv.gz'), 'rb').read())
+
+        with open(os.path.join(project.file_root(), 'D_ITEMS.csv.gz'), 'rb') as f:
+            f1 = f.read()
+        with open(os.path.join(project.file_root(), 'notes', 'D_ITEMS.csv.gz'), 'rb') as f:
+            f2 = f.read()
+        self.assertEqual(f1, f2)
+
         project.refresh_from_db()
         self.assertGreater(project.modified_datetime, timestamp)
 
