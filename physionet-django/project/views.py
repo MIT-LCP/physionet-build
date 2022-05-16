@@ -2095,9 +2095,12 @@ def data_access_request_view(request, project_slug, version, pk):
 
     legacy_credentialing_data = None
     if credentialing_data is None:
-        legacy_credentialing_data = LegacyCredential.objects.filter(
-            migrated_user_id=access_request.user
-        ).order_by("-mimic_approval_date").first()
+        try:
+            legacy_credentialing_data = LegacyCredential.objects.filter(
+                migrated_user_id=access_request.requester
+            ).order_by("-mimic_approval_date").first()
+        except LegacyCredential.DoesNotExist:
+            pass
 
     other_access_requests = DataAccessRequest.objects.exclude(pk=pk).filter(
         requester=access_request.requester, project=project
