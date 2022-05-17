@@ -367,7 +367,7 @@ protobuf = ["grpcio-tools (>=1.45.0)"]
 
 [[package]]
 name = "hdn-research-environment"
-version = "0.0.1"
+version = "1.0.0"
 description = "A Django app for supporting cloud-native research environments"
 category = "main"
 optional = false
@@ -722,7 +722,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "583edd6f17ea009423c9b35c9d15201b812c0a5ddd53657de813484e998a7a37"
+content-hash = "fad78d2e2260c6c9c93aa1fe292dcdaee0a8c7070c199e33a2f9eb46f80f5245"
 
 [metadata.files]
 bleach = [
@@ -999,7 +999,7 @@ grpcio = [
     {file = "grpcio-1.45.0.tar.gz", hash = "sha256:ff2c8b965b0fc25cf281961aa46619c10900543effe3f806ef818231c40aaff3"},
 ]
 hdn-research-environment = [
-    {file = "hdn-research-environment-0.0.1.tar.gz", hash = "sha256:106d8e1b0bbbf6692768d7529ff9baf9a4b573552638f81ff2827a4045e0739a"},
+    {file = "hdn-research-environment-1.0.0.tar.gz", hash = "sha256:fe2292cc9d1651d2133b6740f28763a134068805786e2c4b1cf70751e1eaabfa"},
 ]
 html2text = [
     {file = "html2text-2018.1.9-py3-none-any.whl", hash = "sha256:490db40fe5b2cd79c461cf56be4d39eb8ca68191ae41ba3ba79f6cb05b7dd662"},
