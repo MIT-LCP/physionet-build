@@ -15,6 +15,9 @@ class StorageRequest(BaseInvitation):
         on_delete=models.SET_NULL)
     response_message = models.CharField(max_length=10000, default='', blank=True)
 
+    class Meta:
+        default_permissions = ('change',)
+
     def __str__(self):
         return '{0}GB for project: {1}'.format(self.request_allowance,
                                                self.project.__str__())
@@ -35,3 +38,6 @@ class GCP(models.Model):
         on_delete=models.CASCADE)
     creation_datetime = models.DateTimeField(auto_now_add=True)
     finished_datetime = models.DateTimeField(null=True)
+
+    class Meta:
+        default_permissions = ()

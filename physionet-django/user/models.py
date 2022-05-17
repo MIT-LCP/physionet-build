@@ -6,8 +6,8 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib import messages
 # from django.contrib.auth. import user_logged_in
-from django.contrib.auth import get_user_model, signals
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth import signals
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
@@ -20,7 +20,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.crypto import constant_time_compare
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from project.validators import validate_version
 from project.modelcomponents.access import AccessPolicy
@@ -304,8 +304,7 @@ class UserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
 
-        profile = Profile.objects.create(user=user, first_names=first_names,
-                                         last_name=last_name)
+        Profile.objects.create(user=user, first_names=first_names, last_name=last_name)
         return user
 
     def create_superuser(self, email, password, username):
@@ -327,7 +326,7 @@ def validate_unique_email(email):
             code='email_not_unique',)
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     """
     The user authentication model
     """
@@ -341,6 +340,10 @@ class User(AbstractBaseUser):
     sso_id = models.CharField(max_length=256, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
+
+    # IP address used when account was registered
+    registration_ip = models.CharField(max_length=40, db_index=True,
+                                       blank=True, null=True)
 
     # Mandatory fields for the default authentication backend
     is_active = models.BooleanField(default=False)
@@ -357,8 +360,10 @@ class User(AbstractBaseUser):
     RELATIVE_FILE_ROOT = 'users'
     FILE_ROOT = os.path.join(UserFiles().file_root, RELATIVE_FILE_ROOT)
 
-    def is_superuser(self):
-        return (self.is_admin,)
+    objects = UserManager()
+
+    class Meta:
+        default_permissions = ('view',)
 
     # Mandatory methods for default authentication backend
     def get_full_name(self):
@@ -370,21 +375,11 @@ class User(AbstractBaseUser):
     def __str__(self):
         return self.username
 
-    objects = UserManager()
-
-    # Mandatory attributes for using the admin panel
-    def has_perm(self, perm, obj=None):
-        "Does the user have a specific permission?"
-        return True
-
-    def has_module_perms(self, app_label):
-        "Does the user have permissions to view the app `app_label`?"
-        return True
 
     @property
     def is_staff(self):
         "Is the user a member of staff?"
-        return self.is_admin
+        return self.is_superuser
 
     # Custom fields and methods
     def get_emails(self, is_verified=True, include_primary=True):
@@ -417,9 +412,10 @@ class User(AbstractBaseUser):
 
     def file_root(self, relative=False):
         "Where the user's files are stored"
+        # GCSUserFiles expects trailing slash for directories
         if relative:
-            return os.path.join(User.RELATIVE_FILE_ROOT, self.username)
-        return os.path.join(User.FILE_ROOT, self.username)
+            return os.path.join(User.RELATIVE_FILE_ROOT, self.username, '')
+        return os.path.join(User.FILE_ROOT, self.username, '')
 
 
 class UserLogin(models.Model):
@@ -428,6 +424,10 @@ class UserLogin(models.Model):
         on_delete=models.CASCADE)
     login_date = models.DateTimeField(auto_now_add=True, null=True)
     ip = models.CharField(max_length=50,  blank=True, default='', null=True)
+
+    class Meta:
+        default_permissions = ()
+
 
 def update_user_login(sender, **kwargs):
     user = kwargs.pop('user', None)
@@ -466,6 +466,9 @@ class AssociatedEmail(models.Model):
     # Time limit for verification: maximum number of days after
     # 'added_date' during which 'verification_token' may be used.
     VERIFICATION_TIMEOUT_DAYS = 7
+
+    class Meta:
+        default_permissions = ()
 
     def __str__(self):
         return self.email
@@ -523,15 +526,12 @@ def photo_path(instance, filename):
     """
     return 'users/{0}/{1}'.format(instance.user.username, '.'.join(['profile-photo', filename.split('.')[-1]]))
 
-def training_report_path(instance, filename):
-    """
-    Storage path of CITI training report
-    """
-    return 'credential-applications/{}/{}'.format(instance.slug, 'training-report.pdf')
-
 
 def get_training_path(instance, filename):
-    return f'trainings/{instance.slug}/training-report.pdf'
+    """
+    Storage path for training reports relative to media root.
+    """
+    return f'training/{instance.slug}/training-report.pdf'
 
 
 class LegacyCredential(models.Model):
@@ -559,6 +559,9 @@ class LegacyCredential(models.Model):
     reference_email = models.CharField(max_length=255, blank=True, default='')
 
     revoked_datetime = models.DateTimeField(null=True)
+
+    class Meta:
+        default_permissions = ()
 
     def __str__(self):
         return self.email
@@ -610,6 +613,9 @@ class Profile(models.Model):
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
+    class Meta:
+        default_permissions = ()
+
     def __str__(self):
         return self.get_full_name()
 
@@ -652,34 +658,13 @@ class Orcid(models.Model):
     token_scope = models.CharField(max_length=50, default='', blank=True)
     token_expiration = models.DecimalField(max_digits=50, decimal_places=40, default=0)
 
+    class Meta:
+        default_permissions = ()
+
     @staticmethod
     def get_orcid_url():
         return settings.ORCID_DOMAIN
 
-
-class DualAuthModelBackend():
-    """
-    This is a ModelBacked that allows authentication with either a username or an email address.
-
-    """
-    def authenticate(self, request, username=None, password=None):
-        if '@' in username:
-            kwargs = {'email': username.lower()}
-        else:
-            kwargs = {'username': username.lower()}
-        try:
-            user = get_user_model().objects.get(**kwargs)
-            if user.check_password(password):
-                return user
-        except User.DoesNotExist:
-            logger.error('Unsuccessful authentication {0}'.format(username.lower()))
-            return None
-
-    def get_user(self, user_id):
-        try:
-            return get_user_model().objects.get(pk=user_id)
-        except get_user_model().DoesNotExist:
-            return None
 
 class CredentialApplication(models.Model):
     """
@@ -786,6 +771,9 @@ class CredentialApplication(models.Model):
     responder_comments = models.CharField(max_length=500, default='',
         blank=True)
     revoked_datetime = models.DateTimeField(null=True)
+
+    class Meta:
+        default_permissions = ('change',)
 
     def file_root(self):
         """Location for storing files associated with the application"""
@@ -948,11 +936,11 @@ class CredentialApplication(models.Model):
         """
         if not hasattr(self, 'credential_review'):
             status = 'Awaiting review'
-        elif self.credential_review.status <= 40:
+        elif self.credential_review.status <= 20:
             status = 'Awaiting review'
-        elif self.credential_review.status == 50:
+        elif self.credential_review.status == 30:
             status = 'Awaiting a response from your reference'
-        elif self.credential_review.status >= 60:
+        elif self.credential_review.status >= 40:
             status = 'Awaiting final approval'
 
         return status
@@ -966,17 +954,16 @@ class CredentialReview(models.Model):
     -----
     This relational model will be deleted in the case that a credential
     reviewer decides to "reset" the application, meaning reset it back to the
-    "initial review" stage.
+    "Not in review" stage.
 
     """
     REVIEW_STATUS_LABELS = (
         ('', '-----------'),
         (0,  'Not in review'),
-        (10, 'Initial review'),
-        (20, 'ID check'),
-        (30, 'Reference'),
-        (40, 'Reference response'),
-        (50, 'Final review'),
+        (10, 'ID check'),
+        (20, 'Reference'),
+        (30, 'Reference response'),
+        (40, 'Final review'),
     )
 
     application = models.OneToOneField('user.CredentialApplication',
@@ -987,11 +974,13 @@ class CredentialReview(models.Model):
         choices=REVIEW_STATUS_LABELS)
 
     # Initial review questions
+    # No longer checked. Consider removing these.
     fields_complete = models.NullBooleanField(null=True)
     appears_correct = models.NullBooleanField(null=True)
     lang_understandable = models.NullBooleanField(null=True)
 
     # ID check questions
+    # No longer checked. Consider removing these.
     user_searchable = models.NullBooleanField(null=True)
     user_has_papers = models.NullBooleanField(null=True)
     research_summary_clear = models.NullBooleanField(null=True)
@@ -1001,24 +990,35 @@ class CredentialReview(models.Model):
     user_details_consistent = models.NullBooleanField(null=True)
 
     # Reference check questions
+    # No longer checked. Consider removing these.
     ref_appropriate = models.NullBooleanField(null=True)
     ref_searchable = models.NullBooleanField(null=True)
     ref_has_papers = models.NullBooleanField(null=True)
     ref_is_supervisor = models.NullBooleanField(null=True)
     ref_course_list = models.NullBooleanField(null=True)
+
+    # Log skipped reference
     ref_skipped = models.NullBooleanField(null=True)
 
     # Reference response check questions
+    # No longer checked. Consider removing these.
     ref_knows_applicant = models.NullBooleanField(null=True)
     ref_approves = models.NullBooleanField(null=True)
     ref_understands_privacy = models.NullBooleanField(null=True)
 
+    # Reference response check questions
     responder_comments = models.CharField(max_length=500, default='',
                                           blank=True)
+
+    class Meta:
+        default_permissions = ()
 
 
 class Question(models.Model):
     content = models.CharField(max_length=256)
+
+    class Meta:
+        default_permissions = ()
 
     def __str__(self):
         return self.content
@@ -1032,6 +1032,9 @@ class TrainingType(models.Model):
     required_field = models.PositiveSmallIntegerField(choices=RequiredField.choices(), default=RequiredField.DOCUMENT)
     home_page = models.URLField(blank=True)
 
+    class Meta:
+        default_permissions = ()
+
     def __str__(self):
         return self.name
 
@@ -1043,6 +1046,7 @@ class TrainingRegex(models.Model):
     training_type = models.ForeignKey(TrainingType, related_name='certificate_regexes', on_delete=models.CASCADE)
 
     class Meta:
+        default_permissions = ()
         unique_together = ('display_order', 'training_type')
 
     def __str__(self):
@@ -1064,6 +1068,9 @@ class Training(models.Model):
     reviewer_comments = models.CharField(max_length=512)
 
     objects = TrainingQuerySet.as_manager()
+
+    class Meta:
+        default_permissions = ()
 
     def delete(self, *args, **kwargs):
         if self.completion_report is not None:
@@ -1117,6 +1124,9 @@ class TrainingQuestion(models.Model):
     training = models.ForeignKey(Training, related_name='training_questions', on_delete=models.CASCADE)
     answer = models.NullBooleanField()
 
+    class Meta:
+        default_permissions = ()
+
 
 class CloudInformation(models.Model):
     """
@@ -1128,6 +1138,8 @@ class CloudInformation(models.Model):
         on_delete=models.SET_NULL, null=True)
     aws_id = models.CharField(max_length=60, null=True,  blank=True, default=None)
 
+    class Meta:
+        default_permissions = ()
 
 class CodeOfConduct(models.Model):
     name = models.CharField(max_length=100)
@@ -1137,6 +1149,7 @@ class CodeOfConduct(models.Model):
     html_content = SafeHTMLField(default='')
 
     class Meta:
+        default_permissions = ('add',)
         unique_together = (('name', 'version'),)
 
     def __str__(self):
@@ -1147,3 +1160,6 @@ class CodeOfConductSignature(models.Model):
     code_of_conduct = models.ForeignKey(CodeOfConduct, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     sign_datetime = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        default_permissions = ()

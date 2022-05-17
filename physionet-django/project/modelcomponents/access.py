@@ -40,6 +40,9 @@ class DUASignature(models.Model):
                              related_name='dua_signatures')
     sign_datetime = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        default_permissions = ()
+
 
 class DataAccessRequest(models.Model):
     PENDING_VALUE = 0
@@ -88,6 +91,9 @@ class DataAccessRequest(models.Model):
 
     objects = DataAccessRequestManager.from_queryset(DataAccessRequestQuerySet)()
 
+    class Meta:
+        default_permissions = ()
+
     def is_accepted(self):
         return self.status == self.ACCEPT_REQUEST_VALUE and (
             self.duration is None or self.decision_datetime + self.duration > timezone.now()
@@ -114,11 +120,6 @@ class DataAccessRequestReviewer(models.Model):
     A user who is invited to review data access requests of self managed
     credentialing projects.
     """
-
-    class Meta:
-        constraints = [models.UniqueConstraint(fields=['project', 'reviewer'],
-                                              name='unique project reviewer')]
-
     project = models.ForeignKey('project.PublishedProject',
                                 related_name='data_access_request_reviewers',
                                 on_delete=models.CASCADE)
@@ -131,6 +132,12 @@ class DataAccessRequestReviewer(models.Model):
     is_revoked = models.BooleanField(default=False)
 
     revocation_date = models.DateTimeField(null=True)
+
+    class Meta:
+        default_permissions = ()
+        constraints = [
+            models.UniqueConstraint(fields=['project', 'reviewer'], name='unique project reviewer')
+        ]
 
     def revoke(self):
         self.revocation_date = timezone.now()
@@ -169,6 +176,9 @@ class DataAccess(models.Model):
     platform = models.PositiveSmallIntegerField(choices=PLATFORM_ACCESS)
     location = models.CharField(max_length=100, null=True)
 
+    class Meta:
+        default_permissions = ()
+
     @classmethod
     def platform_access_choices(cls):
         if settings.ENABLE_RESEARCH_ENVIRONMENTS:
@@ -200,6 +210,7 @@ class AnonymousAccess(models.Model):
         on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
+        default_permissions = ()
         unique_together = (("content_type", "object_id"),)
 
     def generate_access(self):
@@ -260,6 +271,7 @@ class License(models.Model):
     # A protected license has associated DUA content
 
     class Meta:
+        default_permissions = ('add',)
         unique_together = (('name', 'version'),)
 
     def __str__(self):
@@ -277,6 +289,7 @@ class DUA(models.Model):
     project_types = models.ManyToManyField('project.ProjectType', related_name='duas')
 
     class Meta:
+        default_permissions = ('add',)
         unique_together = (('name', 'version'),)
 
     def __str__(self):

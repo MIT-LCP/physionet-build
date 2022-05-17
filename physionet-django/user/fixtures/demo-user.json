@@ -10,6 +10,7 @@
     "last_login": "2020-04-10T15:51:15.446Z",
     "is_active": true,
     "is_admin": true,
+    "is_superuser": true,
     "is_credentialed": false,
     "credential_datetime": null
   }
@@ -14111,6 +14112,91 @@
     ],
     "gcp_email": 7,
     "aws_id": "0123456789"
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 1,
+  "fields": {
+      "name": "Admin",
+      "permissions": [
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 2,
+  "fields": {
+      "name": "Managing Editor",
+      "permissions": [
+        36,
+        37,
+        38,
+        40,
+        42,
+        44,
+        45
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 3,
+  "fields": {
+      "name": "Handling Editor",
+      "permissions": [
+        36,
+        42
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 4,
+  "fields": {
+      "name": "Reviewer",
+      "permissions": [
+        36
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 5,
+  "fields": {
+      "name": "Writer",
+      "permissions": [
+        41,
+        47,
+        48
+      ]
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 6,
+  "fields": {
+      "name": "Credentialer",
+      "permissions": [
+          33,
+          34
+      ]
   }
 },
 {

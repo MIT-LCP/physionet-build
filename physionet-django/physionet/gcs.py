@@ -95,7 +95,8 @@ class GCSObject:
     def size(self):
         """Size of the object/all objects in the dictionary, in bytes."""
         if self.is_dir():
-            return sum(obj.size for obj in self.bucket.list_blobs(prefix=self.name))
+            prefix = '' if self.name == '/' else self.name
+            return sum(obj.size for obj in self.bucket.list_blobs(prefix=prefix))
 
         file = self.bucket.get_blob(self.blob.name)
         if not file:

@@ -57,11 +57,12 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
         file_root = published_project.project_file_root()
         for root, dirs, files in os.walk(file_root):
             for f in files:
-                fline = open(os.path.join(root, f), 'rb').read(2)
-                if fline[:2] == b'#!':
-                    os.chmod(os.path.join(root, f), 0o555)
-                else:
-                    os.chmod(os.path.join(root, f), 0o444)
+                with open(os.path.join(root, f), 'rb') as file:
+                    fline = file.read(2)
+                    if fline == b'#!':
+                        os.chmod(file.fileno(), 0o555)
+                    else:
+                        os.chmod(file.fileno(), 0o444)
 
             for d in dirs:
                 os.chmod(os.path.join(root, d), 0o555)
@@ -142,6 +143,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         50: 'Awaiting authors to approve publication.',
         60: 'Awaiting editor to publish.',
     }
+
+    class Meta:
+        default_permissions = ('change',)
+        permissions = [('can_assign_editor', 'Can assign editor')]
 
     def storage_used(self):
         """

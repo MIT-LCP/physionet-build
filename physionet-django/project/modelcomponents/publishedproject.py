@@ -66,6 +66,13 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     class Meta:
         unique_together = (('core_project', 'version'),('featured',),)
+        default_permissions = ('change',)
+        permissions = [
+            ('can_edit_featured_content', 'Can edit featured content'),
+            ('can_view_access_logs', 'Can view access logs'),
+            ('can_view_project_guidelines', 'Can view project guidelines'),
+            ('can_view_stats', 'Can view stats')
+        ]
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))

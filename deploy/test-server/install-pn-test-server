@@ -135,6 +135,8 @@ su pn -c '
    grep -v ^SECRET_KEY= < .env.example > .env
    printf SECRET_KEY=%s\\n "$SECRET_KEY" >> .env
    printf DATABASES_PASSWORD=%s\\n "$DBPASSWORD" >> .env
+   chgrp www-data .env
+   chmod 640 .env
 
    mkdir -p /data/pn-static/published-projects
    mkdir -p /data/pn-media

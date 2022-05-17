@@ -1,5 +1,6 @@
 from django.contrib import admin
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Permission, Group
+from django.contrib.auth.admin import GroupAdmin as DefaultGroupAdmin
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
 
 from user import models
@@ -30,7 +31,18 @@ class UserAdmin(DefaultUserAdmin):
     # List of tuple pairs. Element 1 is name, 2 is dict of field options.
     # For editing users
     fieldsets = (
-        (None, {'fields': ('email', 'password', 'is_admin', 'is_active', 'last_login', 'join_date')}),
+        (None, {
+            'fields': (
+                'password',
+                'groups',
+                'user_permissions',
+                'is_admin',
+                'is_active',
+                'is_superuser',
+                'last_login',
+                'join_date'
+            )
+        }),
     )
 
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
@@ -44,12 +56,26 @@ class UserAdmin(DefaultUserAdmin):
 
     search_fields = ('email',)
     ordering = ('email',)
-    filter_horizontal = ()
+    filter_horizontal = ('groups', 'user_permissions',)
     readonly_fields = ('join_date',)
 
+    def render_change_form(self, request, context, *args, **kwargs):
+        context['adminform'].form.fields['user_permissions'].queryset = Permission.objects.exclude(
+            content_type__app_label__in=('auth', 'admin', 'background_task', 'contenttypes', 'sessions', 'sites')
+        )
+        return super().render_change_form(request, context, *args, **kwargs)
 
-# Not using Django's built-in permissions. Unregister the model from admin.
+
+class GroupAdmin(DefaultGroupAdmin):
+    def render_change_form(self, request, context, *args, **kwargs):
+        context['adminform'].form.fields['permissions'].queryset = Permission.objects.exclude(
+            content_type__app_label__in=('auth', 'admin', 'background_task', 'contenttypes', 'sessions', 'sites')
+        )
+        return super().render_change_form(request, context, *args, **kwargs)
+
+# Unregister and register Group with new GroupAdmin
 admin.site.unregister(Group)
+admin.site.register(Group, GroupAdmin)
 
 # Register the custom User model with the custom UserAdmin model
 admin.site.register(models.User, UserAdmin)

@@ -22,7 +22,7 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.decorators import method_decorator
-from django.utils.encoding import force_bytes, force_text
+from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.views.decorators.debug import sensitive_post_parameters
 from notification.utility import (
@@ -30,6 +30,7 @@ from notification.utility import (
     get_url_prefix,
     notify_account_registration,
     process_credential_complete,
+    training_application_request,
 )
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 from physionet import utility
@@ -149,7 +150,7 @@ def activate_user(request, uidb64, token):
     context = {'title': 'Invalid Activation Link', 'isvalid': False}
 
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
@@ -280,7 +281,7 @@ def add_email(request, add_email_form):
             verification_token=token)
 
         # Send an email to the newly added email with a verification link
-        uidb64 = force_text(urlsafe_base64_encode(force_bytes(associated_email.pk)))
+        uidb64 = force_str(urlsafe_base64_encode(force_bytes(associated_email.pk)))
         subject = f"{settings.SITE_NAME} Email Verification"
         context = {
             'name': user.get_full_name(),
@@ -504,7 +505,7 @@ def register(request):
         return redirect('home')
 
     if request.method == 'POST':
-        form = forms.RegistrationForm(request.POST)
+        form = forms.RegistrationForm(request=request, data=request.POST)
         if form.is_valid():
             # Create the new user
             try:
@@ -515,7 +516,7 @@ def register(request):
                     raise
                 user = User.objects.get(username=form.data['username'])
             else:
-                uidb64 = force_text(urlsafe_base64_encode(force_bytes(
+                uidb64 = force_str(urlsafe_base64_encode(force_bytes(
                     user.pk)))
                 token = default_token_generator.make_token(user)
                 notify_account_registration(request, user, uidb64, token)
@@ -523,9 +524,11 @@ def register(request):
             return render(request, 'user/register_done.html', {
                 'email': user.email})
     else:
-        form = forms.RegistrationForm()
+        form = forms.RegistrationForm(request=request)
 
-    return render(request, 'user/register.html', {'form': form})
+    response = render(request, 'user/register.html', {'form': form})
+    form.set_response_cookies(response)
+    return response
 
 
 @login_required
@@ -545,7 +548,7 @@ def verify_email(request, uidb64, token):
     """
     user = request.user
     try:
-        uid = force_text(urlsafe_base64_decode(uidb64))
+        uid = force_str(urlsafe_base64_decode(uidb64))
         associated_email = AssociatedEmail.objects.get(pk=uid)
     except (TypeError, ValueError, OverflowError, AssociatedEmail.DoesNotExist):
         associated_email = None
@@ -673,8 +676,8 @@ def credential_application(request):
         reference_form = forms.ReferenceCAF(prefix="application", user=user)
         research_form = forms.ResearchCAF(prefix="application")
         form = None
-        code_of_conduct = CodeOfConduct.objects.filter(is_active=True).first()
 
+    code_of_conduct = CodeOfConduct.objects.filter(is_active=True).first()
 
     return render(
         request,
@@ -698,6 +701,7 @@ def edit_training(request):
         if training_form.is_valid():
             training_form.save()
             messages.success(request, 'The training has been submitted successfully.')
+            training_application_request(request, training_form)
             training_form = forms.TrainingForm(user=request.user)
         else:
             messages.error(request, 'Invalid submission. Check the errors below.')
@@ -767,9 +771,6 @@ def credential_reference(request, application_slug):
     """
     Page for a reference to verify or reject a credential application
     """
-    # application = CredentialApplication.objects.filter(
-    #     slug=application_slug, reference_contact_datetime__isnull=False,
-    #     reference_response_datetime=None)
     application = CredentialApplication.objects.filter(
         slug=application_slug, reference_response_datetime=None)
 

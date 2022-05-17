@@ -18,6 +18,7 @@ def platform_config(request):
         'FOOTER_SUPPORTED_BY': settings.FOOTER_SUPPORTED_BY,
         'FOOTER_ACCESSIBILITY_PAGE': settings.FOOTER_ACCESSIBILITY_PAGE,
         'STRAPLINE': settings.STRAPLINE,
+        'SOURCE_CODE_REPOSITORY_LINK': settings.SOURCE_CODE_REPOSITORY_LINK
     }
 
 

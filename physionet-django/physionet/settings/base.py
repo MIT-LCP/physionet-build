@@ -116,7 +116,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['user.models.DualAuthModelBackend']
+AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend']
 
 if ENABLE_SSO:
     AUTHENTICATION_BACKENDS += ['sso.auth.RemoteUserBackend']
@@ -538,3 +538,6 @@ PLATFORM_WIDE_CITATION = {
     'HARVARD': config('PLATFORM_WIDE_CITATION_HARVARD', default=None),
     'VANCOUVER': config('PLATFORM_WIDE_CITATION_VANCOUVER', default=None),
 }
+
+SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
+                                     default='https://github.com/MIT-LCP/physionet-build')

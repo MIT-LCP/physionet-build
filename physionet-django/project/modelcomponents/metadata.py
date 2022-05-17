@@ -541,6 +541,7 @@ class Topic(models.Model):
     description = models.CharField(max_length=50, validators=[validate_topic])
 
     class Meta:
+        default_permissions = ()
         unique_together = (('description', 'content_type', 'object_id'),)
 
     def __str__(self):
@@ -564,6 +565,9 @@ class PublishedTopic(models.Model):
     description = models.CharField(max_length=50, validators=[validate_topic])
     project_count = models.PositiveIntegerField(default=0)
 
+    class Meta:
+        default_permissions = ()
+
     def __str__(self):
         return self.description
 
@@ -579,6 +583,7 @@ class Reference(models.Model):
     description = models.CharField(max_length=1000)
 
     class Meta:
+        default_permissions = ()
         unique_together = (('description', 'content_type', 'object_id'),)
 
     def __str__(self):
@@ -601,6 +606,7 @@ class PublishedReference(models.Model):
         related_name='references', on_delete=models.CASCADE)
 
     class Meta:
+        default_permissions = ()
         unique_together = (('description', 'project'))
 
 
@@ -613,6 +619,9 @@ class Contact(models.Model):
     email = models.EmailField(max_length=255)
     project = models.OneToOneField('project.PublishedProject',
         related_name='contact', on_delete=models.CASCADE)
+
+    class Meta:
+        default_permissions = ()
 
 
 class BasePublication(models.Model):
@@ -635,6 +644,9 @@ class Publication(BasePublication):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
+    class Meta:
+        default_permissions = ()
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.project.content_modified()
@@ -651,9 +663,15 @@ class PublishedPublication(BasePublication):
     project = models.ForeignKey('project.PublishedProject',
         db_index=True, related_name='publications', on_delete=models.CASCADE)
 
+    class Meta:
+        default_permissions = ()
+
 
 class DocumentType(models.Model):
     name = models.CharField(max_length=128)
+
+    class Meta:
+        default_permissions = ()
 
     def __str__(self):
         return self.name
@@ -665,6 +683,10 @@ class UploadedDocument(models.Model):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
     document = models.FileField(upload_to=get_document_path)
+
+    class Meta:
+        default_permissions = ()
+
 
     def delete(self, *args, **kwargs):
         self.document.delete()

@@ -15,7 +15,7 @@ from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, DurationField, F, Q
@@ -27,6 +27,7 @@ from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.core.exceptions import PermissionDenied
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -124,20 +125,19 @@ def handling_editor(base_view):
 # ------------------------- Views begin ------------------------- #
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
 def console_home(request):
-    return redirect('submitted_projects')
+    if not request.user.is_authenticated or not request.user.is_admin:
+        raise PermissionDenied
+    return render(request, 'console/console_home.html', {'console_home_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_activeproject', raise_exception=True)
 def submitted_projects(request):
     """
     List of active submissions. Editors are assigned here.
     """
     user = request.user
-    if request.method == 'POST':
+    if request.method == 'POST' and user.has_perm('project.can_assign_editor'):
         assign_editor_form = forms.AssignEditorForm(request.POST)
         if assign_editor_form.is_valid():
             # Move this into project method
@@ -175,7 +175,7 @@ def submitted_projects(request):
                 pid = request.POST.get('send_approval_reminder', '')
                 project = ActiveProject.objects.get(id=pid)
                 notification.copyedit_complete_notify(request, project,
-                    project.copyedit_logs.last(), reminder=True)
+                                                      project.copyedit_logs.last(), reminder=True)
                 project.latest_reminder = timezone.now()
                 project.save()
                 messages.success(request, 'The reminder email has been sent.')
@@ -183,26 +183,25 @@ def submitted_projects(request):
                 pid = request.POST.get('send_revision_reminder', '')
                 project = ActiveProject.objects.get(id=pid)
                 notification.edit_decision_notify(request, project,
-                    project.edit_logs.last(), reminder=True)
+                                                  project.edit_logs.last(), reminder=True)
                 project.latest_reminder = timezone.now()
                 project.save()
                 messages.success(request, 'The reminder email has been sent.')
         except (ValueError, ActiveProject.DoesNotExist):
             pass
     return render(request, 'console/submitted_projects.html',
-        {'assign_editor_form': assign_editor_form,
-         'assignment_projects': assignment_projects,
-         'decision_projects': decision_projects,
-         'revision_projects': revision_projects,
-         'copyedit_projects': copyedit_projects,
-         'approval_projects': approval_projects,
-         'publish_projects': publish_projects,
-         'submitted_projects_nav': True,
-         'yesterday': yesterday})
+                  {'assign_editor_form': assign_editor_form,
+                   'assignment_projects': assignment_projects,
+                   'decision_projects': decision_projects,
+                   'revision_projects': revision_projects,
+                   'copyedit_projects': copyedit_projects,
+                   'approval_projects': approval_projects,
+                   'publish_projects': publish_projects,
+                   'submitted_projects_nav': True,
+                   'yesterday': yesterday})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_activeproject', raise_exception=True)
 def editor_home(request):
     """
     List of submissions the editor is responsible for
@@ -229,27 +228,26 @@ def editor_home(request):
             pid = request.POST.get('send_reminder', '')
             project = ActiveProject.objects.get(id=pid)
             notification.edit_decision_notify(request, project,
-                project.edit_logs.last(), reminder=True)
+                                              project.edit_logs.last(), reminder=True)
             project.latest_reminder = timezone.now()
             project.save()
             messages.success(request, 'The reminder email has been sent.')
         except (ValueError, ActiveProject.DoesNotExist):
             pass
     return render(request, 'console/editor_home.html',
-        {'decision_projects': decision_projects,
-         'revision_projects': revision_projects,
-         'copyedit_projects': copyedit_projects,
-         'approval_projects': approval_projects,
-         'publish_projects': publish_projects,
-         'yesterday': yesterday, 'editor_home': True})
+                  {'decision_projects': decision_projects,
+                   'revision_projects': revision_projects,
+                   'copyedit_projects': copyedit_projects,
+                   'approval_projects': approval_projects,
+                   'publish_projects': publish_projects,
+                   'yesterday': yesterday, 'editor_home': True})
 
 
 def submission_info_redirect(request, project_slug):
     return redirect('submission_info', project_slug=project_slug)
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_activeproject', raise_exception=True)
 def submission_info(request, project_slug):
     """
     View information about a project under submission
@@ -278,19 +276,19 @@ def submission_info(request, project_slug):
         messages.success(request, 'The editor has been reassigned')
         LOGGER.info("The editor for the project {0} has been reassigned from "
                     "{1} to {2}".format(project, user,
-                        reassign_editor_form.cleaned_data['editor']))
+                                        reassign_editor_form.cleaned_data['editor']))
 
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     return render(request, 'console/submission_info.html',
-        {'project': project, 'authors': authors,
-         'author_emails': author_emails, 'storage_info': storage_info,
-         'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
-         'latest_version': latest_version, 'passphrase': passphrase,
-         'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
-         'bulk_url_prefix': bulk_url_prefix,
-         'reassign_editor_form': reassign_editor_form,
-         'project_info_nav': True})
+                  {'project': project, 'authors': authors,
+                   'author_emails': author_emails, 'storage_info': storage_info,
+                   'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
+                   'latest_version': latest_version, 'passphrase': passphrase,
+                   'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
+                   'bulk_url_prefix': bulk_url_prefix,
+                   'reassign_editor_form': reassign_editor_form,
+                   'project_info_nav': True})
 
 
 @handling_editor
@@ -326,8 +324,8 @@ def edit_submission(request, project_slug, *args, **kwargs):
             # Notify the authors
             notification.edit_decision_notify(request, project, edit_log)
             return render(request, 'console/edit_complete.html',
-                {'decision': edit_log.decision, 'editor_home': True,
-                 'project': project, 'edit_log': edit_log})
+                          {'decision': edit_log.decision, 'editor_home': True,
+                           'project': project, 'edit_log': edit_log})
         messages.error(request, 'Invalid response. See form below.')
     else:
         edit_submission_form = forms.EditSubmissionForm(
@@ -338,12 +336,12 @@ def edit_submission(request, project_slug, *args, **kwargs):
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
 
     return render(request, 'console/edit_submission.html',
-        {'project': project, 'edit_submission_form': edit_submission_form,
-         'authors': authors, 'author_emails': author_emails,
-         'storage_info': storage_info, 'edit_logs': edit_logs,
-         'latest_version': latest_version, 'url_prefix': url_prefix,
-         'bulk_url_prefix': bulk_url_prefix,
-         'editor_home': True, 'reassign_editor_form': reassign_editor_form})
+                  {'project': project, 'edit_submission_form': edit_submission_form,
+                   'authors': authors, 'author_emails': author_emails,
+                   'storage_info': storage_info, 'edit_logs': edit_logs,
+                   'latest_version': latest_version, 'url_prefix': url_prefix,
+                   'bulk_url_prefix': bulk_url_prefix,
+                   'editor_home': True, 'reassign_editor_form': reassign_editor_form})
 
 
 @handling_editor
@@ -360,17 +358,20 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
-        fields=('description',), extra=0,
-        max_num=project_forms.ReferenceFormSet.max_forms, can_delete=False,
-        formset=project_forms.ReferenceFormSet, validate_max=True)
+                                                     fields=('description',), extra=0,
+                                                     max_num=project_forms.ReferenceFormSet.max_forms,
+                                                     can_delete=False,
+                                                     formset=project_forms.ReferenceFormSet, validate_max=True)
     TopicFormSet = generic_inlineformset_factory(Topic,
-        fields=('description',), extra=0,
-        max_num=project_forms.TopicFormSet.max_forms, can_delete=False,
-        formset=project_forms.TopicFormSet, validate_max=True)
+                                                 fields=('description',), extra=0,
+                                                 max_num=project_forms.TopicFormSet.max_forms,
+                                                 can_delete=False,
+                                                 formset=project_forms.TopicFormSet, validate_max=True)
     PublicationFormSet = generic_inlineformset_factory(Publication,
-        fields=('citation', 'url'), extra=0,
-        max_num=project_forms.PublicationFormSet.max_forms, can_delete=False,
-        formset=project_forms.PublicationFormSet, validate_max=True)
+                                                       fields=('citation', 'url'), extra=0,
+                                                       max_num=project_forms.PublicationFormSet.max_forms,
+                                                       can_delete=False,
+                                                       formset=project_forms.PublicationFormSet, validate_max=True)
 
     description_form = project_forms.ContentForm(
         resource_type=project.resource_type.id, instance=project)
@@ -383,7 +384,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         access_form = project_forms.AccessMetadataForm(instance=project)
 
     discovery_form = project_forms.DiscoveryForm(resource_type=project.resource_type.id,
-        instance=project)
+                                                 instance=project)
     description_form_saved = False
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
@@ -398,14 +399,14 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 instance=project)
             ethics_form = project_forms.EthicsForm(data=request.POST, instance=project)
             access_form = project_forms.AccessMetadataForm(data=request.POST,
-                instance=project)
+                                                           instance=project)
             discovery_form = project_forms.DiscoveryForm(
                 resource_type=project.resource_type, data=request.POST,
                 instance=project)
             reference_formset = ReferenceFormSet(data=request.POST,
-                instance=project)
-            publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
+            publication_formset = PublicationFormSet(request.POST,
+                                                     instance=project)
             topic_formset = TopicFormSet(request.POST, instance=project)
             if (
                 description_form.is_valid()
@@ -424,7 +425,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 publication_formset.save()
                 topic_formset.save()
                 messages.success(request,
-                    'The project metadata has been updated.')
+                                 'The project metadata has been updated.')
                 description_form_saved = True
                 # Reload formsets
                 reference_formset = ReferenceFormSet(instance=project)
@@ -432,17 +433,17 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 topic_formset = TopicFormSet(instance=project)
             else:
                 messages.error(request,
-                    'Invalid submission. See errors below.')
+                               'Invalid submission. See errors below.')
         elif 'complete_copyedit' in request.POST:
             copyedit_form = forms.CopyeditForm(request.POST,
-                instance=copyedit_log)
+                                               instance=copyedit_log)
             if copyedit_form.is_valid():
                 copyedit_log = copyedit_form.save()
                 notification.copyedit_complete_notify(request, project,
-                    copyedit_log)
+                                                      copyedit_log)
                 return render(request, 'console/copyedit_complete.html',
-                    {'project': project, 'copyedit_log': copyedit_log,
-                     'editor_home': True})
+                              {'project': project, 'copyedit_log': copyedit_log,
+                               'editor_home': True})
             else:
                 messages.error(request, 'Invalid submission. See errors below.')
         else:
@@ -546,10 +547,10 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
             project.reopen_copyedit()
             notification.reopen_copyedit_notify(request, project)
             return render(request, 'console/reopen_copyedit_complete.html',
-                {'project':project})
+                          {'project': project})
         elif 'send_reminder' in request.POST:
             notification.copyedit_complete_notify(request, project,
-                project.copyedit_logs.last(), reminder=True)
+                                                  project.copyedit_logs.last(), reminder=True)
             messages.success(request, 'The reminder email has been sent.')
             project.latest_reminder = timezone.now()
             project.save()
@@ -559,13 +560,13 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     yesterday = timezone.now() + timezone.timedelta(days=-1)
 
     return render(request, 'console/awaiting_authors.html',
-        {'project': project, 'authors': authors, 'author_emails': author_emails,
-         'storage_info': storage_info, 'edit_logs': edit_logs,
-         'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
-         'outstanding_emails': outstanding_emails, 'url_prefix': url_prefix,
-         'bulk_url_prefix': bulk_url_prefix,
-         'yesterday': yesterday, 'editor_home': True,
-         'reassign_editor_form': reassign_editor_form})
+                  {'project': project, 'authors': authors, 'author_emails': author_emails,
+                   'storage_info': storage_info, 'edit_logs': edit_logs,
+                   'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
+                   'outstanding_emails': outstanding_emails, 'url_prefix': url_prefix,
+                   'bulk_url_prefix': bulk_url_prefix,
+                   'yesterday': yesterday, 'editor_home': True,
+                   'reassign_editor_form': reassign_editor_form})
 
 
 @handling_editor
@@ -583,7 +584,7 @@ def publish_slug_available(request, project_slug, *args, **kwargs):
     else:
         result = not exists_project_slug(desired_slug)
 
-    return JsonResponse({'available':result})
+    return JsonResponse({'available': result})
 
 
 @handling_editor
@@ -645,15 +646,16 @@ def publish_submission(request, project_slug, *args, **kwargs):
     publish_form = forms.PublishForm(project=project)
 
     return render(request, 'console/publish_submission.html',
-        {'project': project, 'publishable': publishable, 'authors': authors,
-         'author_emails': author_emails, 'storage_info': storage_info,
-         'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
-         'latest_version': latest_version, 'publish_form': publish_form,
-         'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'url_prefix': url_prefix,
-         'bulk_url_prefix': bulk_url_prefix,
-         'reassign_editor_form': reassign_editor_form, 'editor_home': True})
+                  {'project': project, 'publishable': publishable, 'authors': authors,
+                   'author_emails': author_emails, 'storage_info': storage_info,
+                   'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
+                   'latest_version': latest_version, 'publish_form': publish_form,
+                   'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'url_prefix': url_prefix,
+                   'bulk_url_prefix': bulk_url_prefix,
+                   'reassign_editor_form': reassign_editor_form, 'editor_home': True})
 
 
+@permission_required('project.change_storagerequest', raise_exception=True)
 def process_storage_response(request, storage_response_formset):
     """
     Implement the response to a storage request.
@@ -678,34 +680,34 @@ def process_storage_response(request, storage_response_formset):
 
                 notification.storage_response_notify(storage_request)
                 messages.success(request,
-                    'The storage request has been {}'.format(notification.RESPONSE_ACTIONS[storage_request.response]))
+                                 (f"The storage request has been "
+                                  f"{notification.RESPONSE_ACTIONS[storage_request.response]}"))
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('project.change_storagerequest', raise_exception=True)
 def storage_requests(request):
     """
     Page for listing and responding to project storage requests
     """
     StorageResponseFormSet = modelformset_factory(StorageRequest,
-        fields=('response', 'response_message'),
-        widgets={'response':Select(choices=forms.RESPONSE_CHOICES),
-                 'response_message':Textarea()}, extra=0)
+                                                  fields=('response', 'response_message'),
+                                                  widgets={'response': Select(choices=forms.RESPONSE_CHOICES),
+                                                           'response_message': Textarea()}, extra=0)
 
     if request.method == 'POST':
         storage_response_formset = StorageResponseFormSet(request.POST,
-            queryset=StorageRequest.objects.filter(is_active=True))
+                                                          queryset=StorageRequest.objects.filter(is_active=True))
         process_storage_response(request, storage_response_formset)
 
     storage_response_formset = StorageResponseFormSet(
         queryset=StorageRequest.objects.filter(is_active=True))
 
     return render(request, 'console/storage_requests.html',
-        {'storage_response_formset': storage_response_formset,
-         'storage_requests_nav': True})
+                  {'storage_response_formset': storage_response_formset,
+                   'storage_requests_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_activeproject', raise_exception=True)
 def unsubmitted_projects(request):
     """
     List of unsubmitted projects
@@ -715,11 +717,10 @@ def unsubmitted_projects(request):
     projects = paginate(request, projects, 50)
 
     return render(request, 'console/unsubmitted_projects.html',
-        {'projects': projects, 'unsubmitted_projects_nav': True})
+                  {'projects': projects, 'unsubmitted_projects_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_publishedproject', raise_exception=True)
 def published_projects(request):
     """
     List of published projects
@@ -727,7 +728,7 @@ def published_projects(request):
     projects = PublishedProject.objects.all().order_by('-publish_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/published_projects.html',
-        {'projects': projects, 'published_projects_nav': True})
+                  {'projects': projects, 'published_projects_nav': True})
 
 
 @associated_task(PublishedProject, 'pid', read_only=True)
@@ -749,6 +750,7 @@ def send_files_to_gcp(pid):
         project.gcp.save()
 
 
+@permission_required('project.change_publishedproject', raise_exception=True)
 def manage_doi_request(request, project):
     """
     Manage a request to register or update a Digital Object Identifier (DOI).
@@ -793,8 +795,7 @@ def manage_doi_request(request, project):
     return message
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_publishedproject', raise_exception=True)
 def manage_published_project(request, project_slug, version):
     """
     Manage a published project
@@ -941,6 +942,7 @@ def manage_published_project(request, project_slug, version):
     )
 
 
+@permission_required('project.change_publishedproject', raise_exception=True)
 def gcp_bucket_management(request, project, user):
     """
     Create the database object and cloud bucket if they do not exist, and send
@@ -966,7 +968,7 @@ def gcp_bucket_management(request, project, user):
             messages.success(request, "The GCP bucket for project {0} was \
                 successfully created.".format(project))
         GCP.objects.create(project=project, bucket_name=bucket_name,
-            managed_by=user, is_private=is_private, access_group=group)
+                           managed_by=user, is_private=is_private, access_group=group)
         if is_private:
             granted = utility.add_email_bucket_access(project, group, True)
             DataAccess.objects.create(project=project, platform=3, location=group)
@@ -982,8 +984,7 @@ def gcp_bucket_management(request, project, user):
     send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.change_archivedproject', raise_exception=True)
 def rejected_submissions(request):
     """
     List of rejected submissions
@@ -991,11 +992,10 @@ def rejected_submissions(request):
     projects = ArchivedProject.objects.filter(archive_reason=3).order_by('archive_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/rejected_submissions.html',
-        {'projects': projects, 'rejected_projects_nav': True})
+                  {'projects': projects, 'rejected_projects_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.view_user', raise_exception=True)
 def users(request, group='all'):
     """
     List of users
@@ -1020,8 +1020,7 @@ def users(request, group='all'):
     return render(request, 'console/users.html', {'users': users, 'group': group, 'user_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.view_user', raise_exception=True)
 def user_management(request, username):
     """
     Admin page for managing an individual user account.
@@ -1036,7 +1035,6 @@ def user_management(request, username):
     training['Expired'] = _training.get_expired()
     training['Rejected'] = _training.get_rejected()
 
-
     emails = {}
     emails['primary'] = AssociatedEmail.objects.filter(user=user,
                                                        is_primary_email=True,
@@ -1049,9 +1047,9 @@ def user_management(request, username):
 
     projects = {}
     projects['Unsubmitted'] = ActiveProject.objects.filter(authors__user=user,
-                                submission_status=0).order_by('-creation_datetime')
+                                                           submission_status=0).order_by('-creation_datetime')
     projects['Submitted'] = ActiveProject.objects.filter(authors__user=user,
-                                submission_status__gt=0).order_by('-submission_datetime')
+                                                         submission_status__gt=0).order_by('-submission_datetime')
     projects['Archived'] = ArchivedProject.objects.filter(authors__user=user).order_by('-archive_datetime')
     projects['Published'] = PublishedProject.objects.filter(authors__user=user).order_by('-publish_datetime')
 
@@ -1064,8 +1062,7 @@ def user_management(request, username):
                                                             'credentialing_app': credentialing_app})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.view_user', raise_exception=True)
 def users_search(request, group):
     """
     Search user list.
@@ -1078,9 +1075,9 @@ def users_search(request, group):
     if request.method == 'POST':
         search_field = request.POST['search']
 
-        users = User.objects.filter(Q(username__icontains=search_field) |
-            Q(profile__first_names__icontains=search_field) |
-            Q(email__icontains=search_field))
+        users = User.objects.filter(Q(username__icontains=search_field)
+                                    | Q(profile__first_names__icontains=search_field)
+                                    | Q(email__icontains=search_field))
 
         if 'inactive' in group:
             users = users.filter(is_active=False)
@@ -1092,14 +1089,13 @@ def users_search(request, group):
         if len(search_field) == 0:
             users = paginate(request, users, 50)
 
-        return render(request, 'console/users_list.html', {'users':users,
-            'group': group})
+        return render(request, 'console/users_list.html', {'users': users,
+                                                           'group': group})
 
     raise Http404()
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def known_references_search(request):
     """
     Search credential applications and user list.
@@ -1109,10 +1105,10 @@ def known_references_search(request):
         search_field = request.POST['search']
 
         applications = CredentialApplication.objects.filter(
-            Q(reference_email__icontains=search_field) |
-            Q(reference_name__icontains=search_field) |
-            Q(user__profile__last_name__icontains=search_field) |
-            Q(user__profile__first_names__icontains=search_field))
+            Q(reference_email__icontains=search_field)
+            | Q(reference_name__icontains=search_field)
+            | Q(user__profile__last_name__icontains=search_field)
+            | Q(user__profile__first_names__icontains=search_field))
 
         all_known_ref = applications.exclude(
             reference_contact_datetime__isnull=True).order_by(
@@ -1127,24 +1123,23 @@ def known_references_search(request):
     raise Http404()
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def complete_credential_applications(request):
     """
     Legacy page for processing credentialing applications.
     """
     return redirect(credential_processing)
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def complete_list_credentialed_people(request):
     """
     Legacy page that displayed a list of all approved MIMIC users.
     """
     return redirect(credential_applications, "successful")
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def process_credential_application(request, application_slug):
     """
     Process a credential application. View details, advance to next stage,
@@ -1152,7 +1147,7 @@ def process_credential_application(request, application_slug):
     """
     try:
         application = CredentialApplication.objects.get(slug=application_slug,
-            status=0)
+                                                        status=0)
         # create the review object if it does not exist
         CredentialReview.objects.get_or_create(application=application)
     except CredentialApplication.DoesNotExist:
@@ -1161,156 +1156,89 @@ def process_credential_application(request, application_slug):
             handled by another administrator.""")
         return redirect('credential_applications', status='pending')
 
-    process_credential_form = forms.ProcessCredentialReviewForm(responder=request.user,
-        instance=application)
+    # get training list
+    _training = Training.objects.select_related('training_type').filter(user=application.user).order_by('-status')
+    training = {}
+    training['Active'] = _training.get_valid()
+    training['Under review'] = _training.get_review()
+    training['Expired'] = _training.get_expired()
+    training['Rejected'] = _training.get_rejected()
 
     ref_email = notification.contact_reference(request, application,
-                                               send=False,  wordwrap=False)
+                                               send=False, wordwrap=False)
     contact_cred_ref_form = forms.ContactCredentialRefForm(initial=ref_email)
 
     page_title = None
     title_dict = {a: k for a, k in CredentialReview.REVIEW_STATUS_LABELS}
     page_title = title_dict[application.credential_review.status]
+
+    credential_review_form = forms.CredentialReviewForm()
+
     if application.credential_review.status == 10:
-        intermediate_credential_form = forms.InitialCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 20:
         intermediate_credential_form = forms.PersonalCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 30:
+    if application.credential_review.status == 20:
         intermediate_credential_form = forms.ReferenceCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 40:
+    if application.credential_review.status == 30:
         intermediate_credential_form = forms.ResponseCredentialForm(responder=request.user, instance=application)
-    if application.credential_review.status == 50:
+    if application.credential_review.status == 40:
         intermediate_credential_form = forms.ProcessCredentialReviewForm(responder=request.user, instance=application)
 
     if request.method == 'POST':
-        if 'approve_initial' in request.POST:
-            intermediate_credential_form = forms.InitialCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
-            if intermediate_credential_form.is_valid():
-                intermediate_credential_form.save()
-                if intermediate_credential_form.cleaned_data['decision'] == '0':
-                    notification.process_credential_complete(request,
-                                                             application)
-                    return render(request, 'console/process_credential_complete.html',
-                        {'application':application})
+        if 'reject' in request.POST:
+            credential_review_form = forms.CredentialReviewForm(data=request.POST)
+            if credential_review_form.is_valid():
+                application.responder_comments = credential_review_form.cleaned_data['reviewer_comments']
+                application.save()
+                application.reject(request.user)
+                notification.process_credential_complete(request, application)
+                messages.success(request, 'The application was not approved.')
+                return redirect(credential_processing)
+        # PROCESS ID STAGE
+        elif 'accept_id' in request.POST:
+            credential_review_form = forms.CredentialReviewForm(data=request.POST)
+            if credential_review_form.is_valid():
+                application.responder_comments = credential_review_form.cleaned_data['reviewer_comments']
+                application.save()
+            application.update_review_status(20)
+            messages.success(request, 'The ID was approved.')
+            page_title = title_dict[application.credential_review.status]
+            # reset form
+            credential_review_form = forms.CredentialReviewForm()
+        elif 'full_approve' in request.POST:
+            credential_review_form = forms.CredentialReviewForm(data=request.POST)
+            if credential_review_form.is_valid():
+                application.responder_comments = credential_review_form.cleaned_data['reviewer_comments']
+                application.save()
+            application.accept(responder=request.user)
+            messages.success(request, 'The application has been accepted')
+            notification.process_credential_complete(request, application)
+            return redirect(credential_processing)
+        # PROCESS REFERENCE CHECK STAGE
+        elif 'accept_ref' in request.POST:
+            contact_cred_ref_form = forms.ContactCredentialRefForm(data=request.POST)
+            if contact_cred_ref_form.is_valid():
+                application.update_review_status(30)
+                application.reference_contact_datetime = timezone.now()
+                application.save()
+                subject = contact_cred_ref_form.cleaned_data['subject']
+                body = contact_cred_ref_form.cleaned_data['body']
+                notification.contact_reference(request, application,
+                                               subject=subject, body=body)
+                messages.success(request, 'The reference was contacted.')
                 page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.PersonalCredentialForm(
-                    responder=request.user, instance=application)
-            else:
-                messages.error(request, 'Invalid review. See form below.')
-        elif 'approve_initial_all' in request.POST:
-            if request.POST['decision'] == '0':
-                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
-            else:
-                data_copy = request.POST.copy()
-                valid_fields = set(request.POST.keys())
-                valid_fields.difference_update({'csrfmiddlewaretoken',
-                                                'responder_comments',
-                                                'approve_initial_all'})
-                for field in valid_fields:
-                    data_copy[field] = '1'
-                intermediate_credential_form = forms.InitialCredentialForm(
-                    responder=request.user, data=data_copy, instance=application)
-                intermediate_credential_form.save()
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.PersonalCredentialForm(
-                    responder=request.user, instance=application)
-        elif 'approve_personal' in request.POST:
-            intermediate_credential_form = forms.PersonalCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
-            if intermediate_credential_form.is_valid():
-                intermediate_credential_form.save()
-                if intermediate_credential_form.cleaned_data['decision'] == '0':
-                    notification.process_credential_complete(request,
-                                                             application)
-                    return render(request, 'console/process_credential_complete.html',
-                        {'application':application})
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.ReferenceCredentialForm(
-                    responder=request.user, instance=application)
-            else:
-                messages.error(request, 'Invalid review. See form below.')
-        elif 'approve_personal_all' in request.POST:
-            if request.POST['decision'] == '0':
-                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
-            else:
-                data_copy = request.POST.copy()
-                valid_fields = set(request.POST.keys())
-                valid_fields.difference_update({'csrfmiddlewaretoken',
-                                                'responder_comments',
-                                                'approve_personal_all'})
-                for field in valid_fields:
-                    data_copy[field] = '1'
-                intermediate_credential_form = forms.PersonalCredentialForm(
-                    responder=request.user, data=data_copy, instance=application)
-                intermediate_credential_form.save()
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.ReferenceCredentialForm(
-                    responder=request.user, instance=application)
-        elif 'approve_reference' in request.POST:
-            intermediate_credential_form = forms.ReferenceCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
-            if intermediate_credential_form.is_valid():
-                intermediate_credential_form.save()
-                if intermediate_credential_form.cleaned_data['decision'] == '0':
-                    notification.process_credential_complete(request,
-                                                             application)
-                    return render(request, 'console/process_credential_complete.html',
-                        {'application':application})
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.ResponseCredentialForm(
-                    responder=request.user, instance=application)
-            else:
-                messages.error(request, 'Invalid review. See form below.')
-        elif 'approve_reference_all' in request.POST:
-            if request.POST['decision'] == '0':
-                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
-            else:
-                data_copy = request.POST.copy()
-                valid_fields = set(request.POST.keys())
-                valid_fields.difference_update({'csrfmiddlewaretoken',
-                                                'responder_comments',
-                                                'approve_reference_all'})
-                for field in valid_fields:
-                    data_copy[field] = '1'
-                intermediate_credential_form = forms.ReferenceCredentialForm(
-                    responder=request.user, data=data_copy, instance=application)
-                intermediate_credential_form.save()
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.ResponseCredentialForm(
-                    responder=request.user, instance=application)
-        elif 'approve_response' in request.POST:
-            intermediate_credential_form = forms.ResponseCredentialForm(
-                responder=request.user, data=request.POST, instance=application)
-            if intermediate_credential_form.is_valid():
-                intermediate_credential_form.save()
-                if intermediate_credential_form.cleaned_data['decision'] == '0':
-                    notification.process_credential_complete(request,
-                                                             application)
-                    return render(request, 'console/process_credential_complete.html',
-                        {'application':application})
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.ProcessCredentialReviewForm(
-                    responder=request.user, instance=application)
-            else:
-                messages.error(request, 'Invalid review. See form below.')
-        elif 'approve_response_all' in request.POST:
-            if request.POST['decision'] == '0':
-                messages.error(request, 'You selected Reject. Did you mean to Approve All?')
-            else:
-                data_copy = request.POST.copy()
-                valid_fields = set(request.POST.keys())
-                valid_fields.difference_update({'csrfmiddlewaretoken',
-                                                'responder_comments',
-                                                'approve_response_all'})
-                for field in valid_fields:
-                    data_copy[field] = '1'
-                intermediate_credential_form = forms.ResponseCredentialForm(
-                    responder=request.user, data=data_copy, instance=application)
-                intermediate_credential_form.save()
-                page_title = title_dict[application.credential_review.status]
-                intermediate_credential_form = forms.ProcessCredentialReviewForm(
-                    responder=request.user, instance=application)
+                # reset form
+                contact_cred_ref_form = forms.ContactCredentialRefForm(initial=ref_email)
+        elif 'skip_ref' in request.POST:
+            credential_review_form = forms.CredentialReviewForm(data=request.POST)
+            if credential_review_form.is_valid():
+                application.responder_comments = credential_review_form.cleaned_data['reviewer_comments']
+                application.save()
+            application.update_review_status(40)
+            messages.success(request, 'The reference was skipped.')
+            page_title = title_dict[application.credential_review.status]
+            # reset form
+            credential_review_form = forms.CredentialReviewForm()
+        # CONTACT REFERENCE AGAIN
         elif 'contact_reference' in request.POST:
             contact_cred_ref_form = forms.ContactCredentialRefForm(
                 data=request.POST)
@@ -1321,34 +1249,43 @@ def process_credential_application(request, application_slug):
                 body = contact_cred_ref_form.cleaned_data['body']
                 notification.contact_reference(request, application,
                                                subject=subject, body=body)
-                messages.success(request, 'The reference has been contacted.')
-        elif 'skip_reference' in request.POST:
-            application.update_review_status(50)
-            application.save()
-        elif 'process_application' in request.POST:
-            process_credential_form = forms.ProcessCredentialReviewForm(
+                messages.success(request, 'The reference was contacted.')
+        # APPROVE THE RESPONSE FROM THE REFERENCE
+        elif 'approve_response' in request.POST:
+            intermediate_credential_form = forms.ResponseCredentialForm(
                 responder=request.user, data=request.POST, instance=application)
-            if process_credential_form.is_valid():
-                application = process_credential_form.save()
-                notification.process_credential_complete(request, application)
-                return render(request, 'console/process_credential_complete.html',
-                    {'application':application})
+            if intermediate_credential_form.is_valid():
+                intermediate_credential_form.save()
+                if intermediate_credential_form.cleaned_data['decision'] == '0':
+                    notification.process_credential_complete(request,
+                                                             application)
+                    return render(request, 'console/process_credential_complete.html',
+                                  {'application': application})
+                page_title = title_dict[application.credential_review.status]
+                intermediate_credential_form = forms.ProcessCredentialReviewForm(
+                    responder=request.user, instance=application)
             else:
-                messages.error(request, 'Invalid submission. See form below.')
-        elif 'immediate_accept' in request.POST:
+                messages.error(request, 'Invalid review. See form below.')
+        # FINAL APPROVAL
+        elif 'accept_final' in request.POST:
+            credential_review_form = forms.CredentialReviewForm(data=request.POST)
+            if credential_review_form.is_valid():
+                application.responder_comments = credential_review_form.cleaned_data['reviewer_comments']
+                application.save()
             application.accept(responder=request.user)
-            messages.success(request, 'The application has been accepted')
+            notification.process_credential_complete(request, application)
+            messages.success(request, 'The application was accepted')
             return redirect(credential_processing)
     return render(request, 'console/process_credential_application.html',
-        {'application': application, 'app_user': application.user,
-         'intermediate_credential_form': intermediate_credential_form,
-         'process_credential_form': process_credential_form,
-         'processing_credentials_nav': True, 'page_title': page_title,
-         'contact_cred_ref_form': contact_cred_ref_form})
+                  {'application': application, 'app_user': application.user,
+                   'intermediate_credential_form': intermediate_credential_form,
+                   'credential_review_form': credential_review_form,
+                   'processing_credentials_nav': True, 'page_title': page_title,
+                   'contact_cred_ref_form': contact_cred_ref_form,
+                   'training_list': training})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def credential_processing(request):
     """
     Process applications for credentialed access.
@@ -1358,19 +1295,17 @@ def credential_processing(request):
     # Awaiting initial review
     initial_1 = Q(credential_review__isnull=True)
     initial_2 = Q(credential_review__status=10)
-    initial_applications = applications.filter(
+    personal_applications = applications.filter(
         initial_1 | initial_2).order_by('application_datetime')
-    # Awaiting ID check
-    personal_applications = applications.filter(credential_review__status=20).order_by('application_datetime')
     # Awaiting reference check
-    reference_applications = applications.filter(credential_review__status=30).order_by('application_datetime')
+    reference_applications = applications.filter(credential_review__status=20).order_by('application_datetime')
     # Awaiting reference response
-    response_applications = applications.filter(credential_review__status=40).order_by(
+    response_applications = applications.filter(credential_review__status=30).order_by(
         '-reference_response', 'application_datetime'
     )
     # Awaiting final review
     final_applications = applications.filter(
-        credential_review__status=50).order_by('application_datetime')
+        credential_review__status=40).order_by('application_datetime')
 
     if request.method == 'POST':
         if 'reset_application' in request.POST:
@@ -1382,17 +1317,15 @@ def credential_processing(request):
             messages.success(request, 'The application has been reset')
 
     return render(request, 'console/credential_processing.html',
-        {'applications': applications,
-        'initial_applications': initial_applications,
-        'personal_applications': personal_applications,
-        'reference_applications': reference_applications,
-        'response_applications': response_applications,
-        'final_applications': final_applications,
-        'processing_credentials_nav': True})
+                  {'applications': applications,
+                   'personal_applications': personal_applications,
+                   'reference_applications': reference_applications,
+                   'response_applications': response_applications,
+                   'final_applications': final_applications,
+                   'processing_credentials_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def view_credential_application(request, application_slug):
     """
     View a credential application in any status.
@@ -1415,8 +1348,7 @@ def view_credential_application(request, application_slug):
                    'form': form, 'past_credentials_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def credential_applications(request, status):
     """
     Inactive credential applications. Split into successful and
@@ -1447,31 +1379,37 @@ def credential_applications(request, status):
                 pending_apps) = search_credential_applications(request)
             if status == 'successful':
                 return render(request, 'console/credential_successful_user_list.html',
-                    {'applications': all_successful_apps,
-                     'u_applications': unsuccessful_apps,
-                     'p_applications': pending_apps})
+                              {'applications': all_successful_apps,
+                               'u_applications': unsuccessful_apps,
+                               'p_applications': pending_apps})
             elif status == 'unsuccessful':
                 return render(request, 'console/credential_unsuccessful_user_list.html',
-                    {'applications': all_successful_apps,
-                     'u_applications': unsuccessful_apps,
-                     'p_applications': pending_apps})
+                              {'applications': all_successful_apps,
+                               'u_applications': unsuccessful_apps,
+                               'p_applications': pending_apps})
             elif status == 'pending':
                 return render(request, 'console/credential_pending_user_list.html',
-                    {'applications': all_successful_apps,
-                     'u_applications': unsuccessful_apps,
-                     'p_applications': pending_apps})
+                              {'applications': all_successful_apps,
+                               'u_applications': unsuccessful_apps,
+                               'p_applications': pending_apps})
 
-    legacy_apps = LegacyCredential.objects.filter(migrated=True,
-        migrated_user__is_credentialed=True).order_by('-migration_date').select_related('migrated_user__profile')
+    legacy_apps = (LegacyCredential.objects.filter(migrated=True,
+                                                   migrated_user__is_credentialed=True)
+                   .order_by('-migration_date')
+                   .select_related('migrated_user__profile'))
 
-    successful_apps = CredentialApplication.objects.filter(status=2
-        ).order_by('-decision_datetime').select_related('user__profile', 'responder__profile')
+    successful_apps = (CredentialApplication.objects.filter(status=2
+                                                            ).
+                       order_by('-decision_datetime')
+                       .select_related('user__profile', 'responder__profile'))
 
     unsuccessful_apps = CredentialApplication.objects.filter(
         status__in=[1, 3, 4]).order_by('-decision_datetime').select_related('user__profile', 'responder')
 
-    pending_apps = CredentialApplication.objects.filter(status=0
-        ).order_by('-application_datetime').select_related('user__profile', 'credential_review')
+    pending_apps = (CredentialApplication.objects.filter(status=0
+                                                         )
+                    .order_by('-application_datetime')
+                    .select_related('user__profile', 'credential_review'))
 
     # Merge legacy applications and new applications
     all_successful_apps = list(chain(successful_apps, legacy_apps))
@@ -1481,11 +1419,12 @@ def credential_applications(request, status):
     pending_apps = paginate(request, pending_apps, 50)
 
     return render(request, 'console/credential_applications.html',
-        {'applications': all_successful_apps, 'past_credentials_nav': True,
-         'u_applications': unsuccessful_apps,
-         'p_applications': pending_apps})
+                  {'applications': all_successful_apps, 'past_credentials_nav': True,
+                   'u_applications': unsuccessful_apps,
+                   'p_applications': pending_apps})
 
 
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def search_credential_applications(request):
     """
     Search past credentialing applications.
@@ -1496,30 +1435,31 @@ def search_credential_applications(request):
     if request.POST:
         search_field = request.POST['search']
 
-        legacy_apps = LegacyCredential.objects.filter(Q(migrated=True) &
-            Q(migrated_user__is_credentialed=True) &
-            (Q(migrated_user__username__icontains=search_field) |
-            Q(migrated_user__profile__first_names__icontains=search_field) |
-            Q(migrated_user__profile__last_name__icontains=search_field) |
-            Q(migrated_user__email__icontains=search_field))).order_by('-migration_date')
+        legacy_apps = (LegacyCredential.objects.filter(
+            Q(migrated=True)
+            & Q(migrated_user__is_credentialed=True)
+            & (Q(migrated_user__username__icontains=search_field)
+               | Q(migrated_user__profile__first_names__icontains=search_field)
+               | Q(migrated_user__profile__last_name__icontains=search_field)
+               | Q(migrated_user__email__icontains=search_field))).order_by('-migration_date'))
 
         successful_apps = CredentialApplication.objects.filter(
             Q(status=2) & (Q(user__username__icontains=search_field) |
-            Q(user__profile__first_names__icontains=search_field) |
-            Q(user__profile__last_name__icontains=search_field) |
-            Q(user__email__icontains=search_field))).order_by('-application_datetime')
+                           Q(user__profile__first_names__icontains=search_field)
+                           | Q(user__profile__last_name__icontains=search_field)
+                           | Q(user__email__icontains=search_field))).order_by('-application_datetime')
 
         unsuccessful_apps = CredentialApplication.objects.filter(
             Q(status__in=[1, 3]) & (Q(user__username__icontains=search_field) |
-            Q(user__profile__first_names__icontains=search_field) |
-            Q(user__profile__last_name__icontains=search_field) |
-            Q(user__email__icontains=search_field))).order_by('-application_datetime')
+                                    Q(user__profile__first_names__icontains=search_field)
+                                    | Q(user__profile__last_name__icontains=search_field)
+                                    | Q(user__email__icontains=search_field))).order_by('-application_datetime')
 
         pending_apps = CredentialApplication.objects.filter(
             Q(status=0) & (Q(user__username__icontains=search_field) |
-            Q(user__profile__first_names__icontains=search_field) |
-            Q(user__profile__last_name__icontains=search_field) |
-            Q(user__email__icontains=search_field))).order_by('-application_datetime')
+                           Q(user__profile__first_names__icontains=search_field)
+                           | Q(user__profile__last_name__icontains=search_field)
+                           | Q(user__email__icontains=search_field))).order_by('-application_datetime')
 
         # Merge legacy applications with new applications
         all_successful_apps = list(chain(successful_apps, legacy_apps))
@@ -1532,8 +1472,7 @@ def search_credential_applications(request):
         return all_successful_apps, unsuccessful_apps, pending_apps
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def credentialed_user_info(request, username):
     try:
         c_user = User.objects.get(username__iexact=username)
@@ -1613,7 +1552,7 @@ def search_training_applications(request, display_training):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
-def training_proccess(request, pk):
+def training_process(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
 
     TrainingQuestionFormSet = modelformset_factory(
@@ -1696,8 +1635,7 @@ def training_detail(request, pk):
     return render(request, 'console/training_detail.html', {'training': training})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('notification.change_news', raise_exception=True)
 def news_console(request):
     """
     List of news items
@@ -1705,11 +1643,10 @@ def news_console(request):
     news_items = News.objects.all().order_by('-publish_datetime')
     news_items = paginate(request, news_items, 50)
     return render(request, 'console/news_console.html',
-        {'news_items': news_items, 'news_nav': True})
+                  {'news_items': news_items, 'news_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('notification.change_news', raise_exception=True)
 def news_add(request):
     if request.method == 'POST':
         form = forms.NewsForm(data=request.POST)
@@ -1722,11 +1659,10 @@ def news_add(request):
         form = forms.NewsForm()
 
     return render(request, 'console/news_add.html', {'form': form,
-        'news_nav': True})
+                                                     'news_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('notification.change_news', raise_exception=True)
 def news_search(request):
     """
     Filtered list of news items
@@ -1736,13 +1672,12 @@ def news_search(request):
         search = request.POST['search']
         news_items = News.objects.filter(title__icontains=search).order_by('-publish_datetime')
 
-        return render(request, 'console/news_list.html', {'news_items':news_items})
+        return render(request, 'console/news_list.html', {'news_items': news_items})
 
     raise Http404()
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('notification.change_news', raise_exception=True)
 def news_edit(request, news_id):
     try:
         news = News.objects.get(id=news_id)
@@ -1764,14 +1699,13 @@ def news_edit(request, news_id):
         form = forms.NewsForm(instance=news)
 
     response = render(request, 'console/news_edit.html', {'news': news,
-        'form': form, 'news_nav': True})
+                                                          'form': form, 'news_nav': True})
     if saved:
         set_saved_fields_cookie(form, request.path, response)
     return response
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_edit_featured_content', raise_exception=True)
 def featured_content(request):
     """
     List of news items
@@ -1780,7 +1714,7 @@ def featured_content(request):
     if 'add' in request.POST:
         featured = PublishedProject.objects.filter(featured__isnull=False)
         mx = max(featured.values_list('featured', flat=True), default=1)
-        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=mx+1)
+        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=mx + 1)
     elif 'remove' in request.POST:
         project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=None)
     elif 'up' in request.POST:
@@ -1793,8 +1727,8 @@ def featured_content(request):
         move.save()
 
         # Swap positions
-        PublishedProject.objects.filter(featured=idx-1).update(featured=idx)
-        move.featured = idx-1
+        PublishedProject.objects.filter(featured=idx - 1).update(featured=idx)
+        move.featured = idx - 1
         move.save()
     elif 'down' in request.POST:
         # Get project to be moved
@@ -1806,7 +1740,7 @@ def featured_content(request):
         move.save()
 
         # Swap positions
-        PublishedProject.objects.filter(featured=idx+1).update(featured=idx)
+        PublishedProject.objects.filter(featured=idx + 1).update(featured=idx)
         move.featured = idx + 1
         move.save()
 
@@ -1815,11 +1749,10 @@ def featured_content(request):
     ).order_by('featured')
 
     return render(request, 'console/featured_content.html',
-        {'featured_content': featured_content, 'featured_content_nav': True})
+                  {'featured_content': featured_content, 'featured_content_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_edit_featured_content', raise_exception=True)
 def add_featured(request):
     """
     List of news items
@@ -1839,28 +1772,29 @@ def add_featured(request):
             wb = r'\y'
 
         projects = PublishedProject.objects.filter(
-            title__iregex=r'{0}{1}{0}'.format(wb,title),
+            title__iregex=r'{0}{1}{0}'.format(wb, title),
             featured__isnull=True
         )
     else:
         form = forms.FeaturedForm()
 
     return render(request, 'console/add_featured.html', {'title': title,
-        'projects': projects, 'form': form, 'valid_search': valid_search,
-        'featured_content_nav': True})
+                                                         'projects': projects,
+                                                         'form': form,
+                                                         'valid_search': valid_search,
+                                                         'featured_content_nav': True})
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('project.can_view_project_guidelines', raise_exception=True)
 def guidelines_review(request):
     """
     Guidelines for reviewers.
     """
     return render(request, 'console/guidelines_review.html',
-        {'guidelines_review_nav': True})
+                  {'guidelines_review_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_stats', raise_exception=True)
 def editorial_stats(request):
     """
     Editorial stats for reviewers.
@@ -1876,7 +1810,7 @@ def editorial_stats(request):
         stats[y] = [years.count(y)]
 
     # Submission to editor assigned
-    sub_ed = projects.annotate(tm=Cast(F('editor_assignment_datetime')-F('submission_datetime'),
+    sub_ed = projects.annotate(tm=Cast(F('editor_assignment_datetime') - F('submission_datetime'),
                                DurationField())).values_list('tm', flat=True)
 
     for y in stats:
@@ -1888,7 +1822,7 @@ def editorial_stats(request):
             stats[y].append(None)
 
     # Submission to publication
-    sub_pub = projects.annotate(tm=Cast(F('publish_datetime')-F('submission_datetime'),
+    sub_pub = projects.annotate(tm=Cast(F('publish_datetime') - F('submission_datetime'),
                                 DurationField())).values_list('tm', flat=True)
 
     for y in stats:
@@ -1903,8 +1837,7 @@ def editorial_stats(request):
                   'submenu': 'editorial', 'stats': stats})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_stats', raise_exception=True)
 def credentialing_stats(request):
     """
     Credentialing metrics.
@@ -1928,8 +1861,8 @@ def credentialing_stats(request):
         stats[y]['approved'] = round((100 * a) / (a + r))
 
     # Time taken to contact the reference
-    time_to_ref = apps.annotate(tm=Cast(F('reference_contact_datetime') -
-                                F('application_datetime'),
+    time_to_ref = apps.annotate(tm=Cast(F('reference_contact_datetime')
+                                - F('application_datetime'),
                                 DurationField())).values_list('tm', flat=True)
     for y in stats:
         durations = time_to_ref.filter(application_datetime__year=y)
@@ -1940,8 +1873,8 @@ def credentialing_stats(request):
             stats[y]['time_to_ref'] = None
 
     # Time taken for the reference to respond
-    time_to_reply = apps.annotate(tm=Cast(F('reference_response_datetime') -
-                                  F('reference_contact_datetime'),
+    time_to_reply = apps.annotate(tm=Cast(F('reference_response_datetime')
+                                  - F('reference_contact_datetime'),
                                   DurationField())).values_list('tm', flat=True)
     for y in stats:
         durations = time_to_reply.filter(application_datetime__year=y)
@@ -1952,8 +1885,8 @@ def credentialing_stats(request):
             stats[y]['time_to_reply'] = None
 
     # Time taken to process the application
-    time_to_decision = apps.annotate(tm=Cast(F('decision_datetime') -
-                                     F('application_datetime'),
+    time_to_decision = apps.annotate(tm=Cast(F('decision_datetime')
+                                     - F('application_datetime'),
                                      DurationField())).values_list('tm', flat=True)
     for y in stats:
         durations = time_to_decision.filter(application_datetime__year=y)
@@ -1968,9 +1901,7 @@ def credentialing_stats(request):
                    'stats': stats})
 
 
-
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_stats', raise_exception=True)
 def submission_stats(request):
     stats = OrderedDict()
     todays_date = datetime.today()
@@ -2024,8 +1955,7 @@ def submission_stats(request):
                   {'stats_nav': True, 'submenu': 'submission', 'stats': stats})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def download_credentialed_users(request):
     """
     CSV create and download for database access.
@@ -2059,25 +1989,24 @@ def download_credentialed_users(request):
         else:
             if application:
                 dua_info_csv.append([person.user.profile.first_names,
-                    person.user.profile.last_name, person.user.email,
-                    application.organization_name, application.country,
-                    mimic_signature_date, eicu_signature_date,
-                    application.research_summary])
+                                     person.user.profile.last_name, person.user.email,
+                                     application.organization_name, application.country,
+                                     mimic_signature_date, eicu_signature_date,
+                                     application.research_summary])
                 added.append(person.user.id)
             else:
                 legacy = LegacyCredential.objects.filter(migrated_user_id=person.user.id)
                 if legacy:
                     legacy = legacy.get()
                     dua_info_csv.append([person.user.profile.first_names,
-                        person.user.profile.last_name, person.user.email,
-                        'Legacy User', legacy.country,
-                        legacy.mimic_approval_date, legacy.eicu_approval_date,
-                        legacy.info])
+                                         person.user.profile.last_name, person.user.email,
+                                         'Legacy User', legacy.country,
+                                         legacy.mimic_approval_date, legacy.eicu_approval_date,
+                                         legacy.info])
                     added.append(person.user.id)
                 else:
                     LOGGER.info("Failed locating information of user {}".format(
                         person.user.id))
-
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="credentialed_users.csv"'
@@ -2088,22 +2017,7 @@ def download_credentialed_users(request):
     return response
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
-def project_access_logs(request):
-    """
-    List all the people that has access to credentialed databases
-    """
-    c_projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CREDENTIALED).annotate(
-        member_count=Count('duasignature'))
-
-    return render(request, 'console/project_access.html', {
-        'c_projects': c_projects, 'project_access_logs_nav': True
-    })
-
-
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def project_access_manage(request, pid):
     projects = PublishedProject.objects.prefetch_related('duasignature_set__user__profile')
     c_project = get_object_or_404(projects, id=pid, access_policy=AccessPolicy.CREDENTIALED)
@@ -2113,8 +2027,7 @@ def project_access_manage(request, pid):
         'project_access_logs_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def project_access_requests_list(request):
     projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW).annotate(
         access_requests_count=Count('data_access_requests')
@@ -2131,8 +2044,7 @@ def project_access_requests_list(request):
     })
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def project_access_requests_detail(request, pk):
     project = get_object_or_404(PublishedProject, access_policy=AccessPolicy.CONTRIBUTOR_REVIEW, pk=pk)
     access_requests = DataAccessRequest.objects.filter(project=project)
@@ -2149,16 +2061,14 @@ def project_access_requests_detail(request, pk):
     })
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def access_request(request, pk):
     access_request = get_object_or_404(DataAccessRequest, pk=pk)
 
     return render(request, 'console/access_request.html', {'access_request': access_request})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def project_access_logs(request):
     c_projects = PublishedProject.objects.annotate(
         log_count=Count('logs', filter=Q(logs__category=LogCategory.ACCESS)))
@@ -2178,8 +2088,7 @@ def project_access_logs(request):
     })
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def project_access_logs_detail(request, pid):
     c_project = get_object_or_404(PublishedProject, id=pid)
     logs = (
@@ -2208,8 +2117,7 @@ def project_access_logs_detail(request, pid):
     })
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def download_project_accesses(request, pk):
     headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Count']
 
@@ -2240,8 +2148,7 @@ def download_project_accesses(request, pk):
     return response
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def user_access_logs(request):
     users = (
         User.objects.filter(is_active=True)
@@ -2265,8 +2172,7 @@ def user_access_logs(request):
     })
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def user_access_logs_detail(request, pid):
     user = get_object_or_404(User, id=pid, is_active=True)
     logs = (
@@ -2295,8 +2201,7 @@ def user_access_logs_detail(request, pid):
     })
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def download_user_accesses(request, pk):
     headers = ['Project name', 'First access', 'Last access', 'Duration', 'Count']
 
@@ -2323,8 +2228,7 @@ def download_user_accesses(request, pk):
     return response
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def gcp_signed_urls_logs(request):
     projects = ActiveProject.objects.annotate(
         log_count=Count('logs', filter=Q(logs__category=LogCategory.GCP)))
@@ -2340,8 +2244,7 @@ def gcp_signed_urls_logs(request):
     })
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def gcp_signed_urls_logs_detail(request, pk):
     project = get_object_or_404(ActiveProject, pk=pk)
     logs = project.logs.order_by('-creation_datetime').prefetch_related('project').annotate(
@@ -2355,8 +2258,7 @@ def gcp_signed_urls_logs_detail(request, pk):
     })
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.can_view_access_logs', raise_exception=True)
 def download_signed_urls_logs(request, pk):
     headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Data', 'Count']
 
@@ -2420,8 +2322,7 @@ class ProjectAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('user.change_credentialapplication', raise_exception=True)
 def known_references(request):
     """
     List all known references witht he option of removing the contact date
@@ -2449,15 +2350,14 @@ def known_references(request):
     return render(request, 'console/known_references.html', {
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+
+@permission_required('physionet.change_staticpage', raise_exception=True)
 def static_pages(request):
     pages = StaticPage.objects.all()
     return render(request, 'console/static_pages.html', {'pages': pages, 'static_pages_nav': True})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('physionet.change_staticpage', raise_exception=True)
 def static_page_sections(request, page_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
@@ -2486,8 +2386,7 @@ def static_page_sections(request, page_pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('physionet.change_staticpage', raise_exception=True)
 def static_page_sections_delete(request, page_pk, section_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
@@ -2498,8 +2397,7 @@ def static_page_sections_delete(request, page_pk, section_pk):
     return redirect('static_page_sections', page_pk=static_page.pk)
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('physionet.change_staticpage', raise_exception=True)
 def static_page_sections_edit(request, page_pk, section_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     section = get_object_or_404(Section, static_page=static_page, pk=section_pk)
@@ -2518,8 +2416,7 @@ def static_page_sections_edit(request, page_pk, section_pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_license', raise_exception=True)
 def license_list(request):
     if request.method == 'POST':
         license_form = forms.LicenseForm(data=request.POST)
@@ -2542,8 +2439,7 @@ def license_list(request):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_license', raise_exception=True)
 def license_detail(request, pk):
     license = get_object_or_404(License, pk=pk)
 
@@ -2565,8 +2461,7 @@ def license_detail(request, pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_license', raise_exception=True)
 def license_delete(request, pk):
     if request.method == 'POST':
         license = get_object_or_404(License, pk=pk)
@@ -2575,8 +2470,7 @@ def license_delete(request, pk):
     return redirect('license_list')
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_license', raise_exception=True)
 def license_new_version(request, pk):
     license = get_object_or_404(License, pk=pk)
 
@@ -2601,8 +2495,7 @@ def license_new_version(request, pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_dua', raise_exception=True)
 def dua_list(request):
     if request.method == 'POST':
         dua_form = forms.DUAForm(data=request.POST)
@@ -2621,8 +2514,7 @@ def dua_list(request):
     return render(request, 'console/dua_list.html', {'dua_nav': True, 'duas': duas, 'dua_form': dua_form})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_dua', raise_exception=True)
 def dua_detail(request, pk):
     dua = get_object_or_404(DUA, pk=pk)
 
@@ -2640,8 +2532,7 @@ def dua_detail(request, pk):
     return render(request, 'console/dua_detail.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_dua', raise_exception=True)
 def dua_delete(request, pk):
     if request.method == 'POST':
         dua = get_object_or_404(DUA, pk=pk)
@@ -2650,8 +2541,7 @@ def dua_delete(request, pk):
     return redirect("dua_list")
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_dua', raise_exception=True)
 def dua_new_version(request, pk):
     dua = get_object_or_404(DUA, pk=pk)
 
@@ -2672,8 +2562,7 @@ def dua_new_version(request, pk):
     return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_list(request):
     if request.method == 'POST':
         code_of_conduct_form = forms.CodeOfConductForm(data=request.POST)
@@ -2700,8 +2589,7 @@ def code_of_conduct_list(request):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_detail(request, pk):
     code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
     if request.method == 'POST':
@@ -2726,8 +2614,7 @@ def code_of_conduct_detail(request, pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_delete(request, pk):
     if request.method == 'POST':
         code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
@@ -2736,8 +2623,7 @@ def code_of_conduct_delete(request, pk):
     return redirect("code_of_conduct_list")
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_new_version(request, pk):
     code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
     if request.method == 'POST':
@@ -2765,8 +2651,7 @@ def code_of_conduct_new_version(request, pk):
     )
 
 
-@login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@permission_required('project.add_codeofconduct', raise_exception=True)
 def code_of_conduct_activate(request, pk):
     CodeOfConduct.objects.filter(is_active=True).update(is_active=False)
 

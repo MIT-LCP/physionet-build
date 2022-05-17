@@ -1,9 +1,11 @@
+import contextlib
 import datetime
 import logging
 import os
 import pdb
 import re
 import shutil
+import time
 
 from django.conf import settings
 
@@ -43,6 +45,50 @@ def prevent_request_warnings(original_function):
         logger.setLevel(previous_logging_level)
 
     return new_function
+
+
+@contextlib.contextmanager
+def offset_system_clock(**kwargs):
+    """
+    Context manager to shift the apparent system clock time.
+
+    The keyword arguments are used to construct a time offset (see the
+    standard datetime.timedelta class).  During execution of the
+    context manager, the standard functions 'time.time',
+    'datetime.datetime.now', and 'datetime.datetime.utcnow' will
+    return an offset time value.
+    """
+    delta = datetime.timedelta(**kwargs)
+
+    # This is a bit of a kludge; it seems like it should be possible
+    # to do this more elegantly using unittest.mock (perhaps using
+    # unittest.mock.patch.)  However, the obvious approaches fail in
+    # strange ways (mostly because datetime.datetime is built-in and
+    # immutable.)
+
+    real_time = time.time
+
+    def fake_time():
+        return real_time() + delta.total_seconds()
+
+    real_datetime = datetime.datetime
+
+    class fake_datetime(datetime.datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls.fromtimestamp(fake_time(), tz)
+
+        @classmethod
+        def utcnow(cls):
+            return cls.utcfromtimestamp(fake_time())
+
+    try:
+        time.time = fake_time
+        datetime.datetime = fake_datetime
+        yield
+    finally:
+        time.time = real_time
+        datetime.datetime = real_datetime
 
 
 def _force_delete_tree(path):
@@ -327,17 +373,30 @@ class TestPublic(TestMixin):
         """
         Test user account registration and activation
         """
+        # Clear cookies
+        self.client.logout()
+        # Load registration page
+        self.client.get(reverse('register'))
+        # Try to register
+        response = self.client.post(reverse('register'), data={
+            'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
+            'first_names': 'Jack', 'last_name': 'Reacher'})
+        # User object should not have been created, since we submitted
+        # the form too quickly
+        self.assertFalse(User.objects.filter(username='awesomeness'))
+
+        # Load registration page 60 seconds ago
+        with offset_system_clock(seconds=-60):
+            self.client.get(reverse('register'))
+
         # Register the new user
-        self.make_get_request('register')
-        self.tst_get_request(register, status_code=200)
-        self.make_post_request('register',
-            data={'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
-            'first_names': 'Jack', 'last_name': 'Reacher',
-            'password1': 'Very5trongt0t@11y', 'password2': 'Very5trongt0t@11y'})
+        response = self.client.post(reverse('register'), data={
+            'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
+            'first_names': 'Jack', 'last_name': 'Reacher'})
         # Recall that register uses same view upon success, so not 302
-        self.tst_post_request(register, status_code=200)
+        self.assertEqual(response.status_code, 200)
         # Check user object was created
-        self.assertIsNotNone(User.objects.filter(email='jackreacher@mit.edu'))
+        self.assertTrue(User.objects.filter(email='jackreacher@mit.edu'))
         self.assertFalse(User.objects.get(email='jackreacher@mit.edu').is_active)
 
         # Get the activation info from the sent email
@@ -366,15 +425,19 @@ class TestPublic(TestMixin):
 
         # Register two new user accounts without activating
 
-        self.make_post_request('register', data={
+        with offset_system_clock(seconds=-60):
+            self.client.get(reverse('register'))
+        response = self.client.post(reverse('register'), data={
             'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
             'first_names': 'Jack', 'last_name': 'Reacher'})
-        self.tst_post_request(register, status_code=200)
+        self.assertEqual(response.status_code, 200)
 
-        self.make_post_request('register', data={
+        with offset_system_clock(seconds=-60):
+            self.client.get(reverse('register'))
+        response = self.client.post(reverse('register'), data={
             'email': 'admin@upr.edu', 'username': 'adminupr',
             'first_names': 'admin', 'last_name': 'upr'})
-        self.tst_post_request(register, status_code=200)
+        self.assertEqual(response.status_code, 200)
 
         user1 = User.objects.get(email='jackreacher@mit.edu')
         user2 = User.objects.get(email='admin@upr.edu')

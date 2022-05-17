@@ -8,9 +8,11 @@
 <div class="card">
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
-      <li class="nav-item">
-        <a class="nav-link active" id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="true">Awaiting Editor Assignment {{ assignment_projects|task_count_badge|safe }}</a>
-      </li>
+      {% if perms.project.can_assign_editor %}
+        <li class="nav-item">
+          <a class="nav-link active" id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="true">Awaiting Editor Assignment {{ assignment_projects|task_count_badge|safe }}</a>
+        </li>
+      {% endif %}
       <li class="nav-item">
         <a class="nav-link" id="decision-tab" data-toggle="tab" href="#decision" role="tab" aria-controls="decision" aria-selected="false">Awaiting Decision {{ decision_projects|task_count_badge|safe }}</a>
       </li>
@@ -31,65 +33,67 @@
   <div class="card-body">
     {# Awaiting editor assignment #}
     <div class="tab-content">
-      <div class="tab-pane fade show active" id="assignment" role="tabpanel" aria-labelledby="assignment-tab">
-        {% if assignment_projects %}
-          <div class="table-responsive">
-            <table class="table table-bordered">
-              <thead>
-                <tr>
-                  <th>Project</th>
-                  <th>Submitted By</th>
-                  <th>Submitted</th>
-                  <th>Manage</th>
-                </tr>
-              </thead>
-              <tbody>
-              {% for project in assignment_projects %}
-                <tr>
-                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
-                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
-                  <td>{{ project.submission_datetime|date }}</td>
-                  <td><a href='#' data-toggle="modal" data-target="#assignModal" onclick="set_project_id('{{ project.id }}','{{ project|escapejs }}')" class="btn btn-primary btn-sm" role="button">Assign Editor</a></td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-          </div>
-                <script> 
-                  function set_project_id(pid, pname){
-                    $("#project_name").html(pname);
-                    $("#id_project").val(pid);
-                  }
-                </script>
-          {# Assign editor modal #}
-          <div class="modal" tabindex="-1" role="dialog" id="assignModal">
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">Assign Editor</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div class="modal-body">
-                  <label for="project_name">Project</label> 
-                  <h6 id='project_name'></h6>
-                  <form action="" method="post" class="form-signin">
-                    {% csrf_token %}
-                    {% include "form_snippet.html" with form=assign_editor_form %}
-                </div>
-                <div class="modal-footer">
-                  <button class="btn btn-primary btn-fixed" name="assign_editor" type="submit">Assign Editor</button>
-                  </form>
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      {% if perms.project.can_assign_editor %}
+        <div class="tab-pane fade show active" id="assignment" role="tabpanel" aria-labelledby="assignment-tab">
+          {% if assignment_projects %}
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Submitted By</th>
+                    <th>Submitted</th>
+                    <th>Manage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                {% for project in assignment_projects %}
+                  <tr>
+                    <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
+                    <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+                    <td>{{ project.submission_datetime|date }}</td>
+                    <td><a href='#' data-toggle="modal" data-target="#assignModal" onclick="set_project_id('{{ project.id }}','{{ project|escapejs }}')" class="btn btn-primary btn-sm" role="button">Assign Editor</a></td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+                  <script> 
+                    function set_project_id(pid, pname){
+                      $("#project_name").html(pname);
+                      $("#id_project").val(pid);
+                    }
+                  </script>
+            {# Assign editor modal #}
+            <div class="modal" tabindex="-1" role="dialog" id="assignModal">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Assign Editor</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                  <div class="modal-body">
+                    <label for="project_name">Project</label> 
+                    <h6 id='project_name'></h6>
+                    <form action="" method="post" class="form-signin">
+                      {% csrf_token %}
+                      {% include "form_snippet.html" with form=assign_editor_form %}
+                  </div>
+                  <div class="modal-footer">
+                    <button class="btn btn-primary btn-fixed" name="assign_editor" type="submit">Assign Editor</button>
+                    </form>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        {% else %}
-          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
-        {% endif %}
-      </div>
+          {% else %}
+            <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+          {% endif %}
+        </div>
+      {% endif %}
       {# Awaiting decision #}
       <div class="tab-pane fade" id="decision" role="tabpanel" aria-labelledby="decision-tab">
         {% if decision_projects %}

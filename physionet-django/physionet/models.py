@@ -13,6 +13,9 @@ class StaticPage(models.Model):
     nav_bar = models.BooleanField(default=False)
     nav_order = models.PositiveSmallIntegerField(unique=True, null=True, blank=True)
 
+    class Meta:
+        default_permissions = ('change',)
+
     def __str__(self):
         return self.title
 
@@ -27,6 +30,7 @@ class Section(models.Model):
     order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
+        default_permissions = ()
         ordering = ('order',)
         unique_together = (('static_page', 'order'),)
 

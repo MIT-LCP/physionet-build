@@ -16,6 +16,9 @@ class AuthorInvitation(BaseInvitation):
     # User who made the invitation
     inviter = models.ForeignKey('user.User', on_delete=models.CASCADE)
 
+    class Meta:
+        default_permissions = ()
+
     def __str__(self):
         return 'ActiveProject: {0} To: {1} By: {2}'.format(self.project, self.email,
                                                      self.inviter)
@@ -52,6 +55,7 @@ class Affiliation(models.Model):
         on_delete=models.CASCADE)
 
     class Meta:
+        default_permissions = ()
         unique_together = (('name', 'author'),)
 
 
@@ -64,6 +68,7 @@ class PublishedAffiliation(models.Model):
         related_name='affiliations', on_delete=models.CASCADE)
 
     class Meta:
+        default_permissions = ()
         unique_together = (('name', 'author'),)
 
 
@@ -104,6 +109,7 @@ class Author(BaseAuthor):
     creation_date = models.DateTimeField(default=timezone.now)
 
     class Meta:
+        default_permissions = ()
         unique_together = (('user', 'content_type', 'object_id',),
                            ('display_order', 'content_type', 'object_id'))
 
@@ -179,6 +185,7 @@ class PublishedAuthor(BaseAuthor):
         related_name='authors', db_index=True, on_delete=models.CASCADE)
 
     class Meta:
+        default_permissions = ()
         unique_together = (('user', 'project'),
                            ('display_order', 'project'))
 
