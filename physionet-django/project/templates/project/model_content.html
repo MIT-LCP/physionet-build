@@ -22,15 +22,15 @@
 {{ project.usage_notes|safe }}
 <hr>
 
-{% if project.ethics_statement %}
-  <h2 id="ethics">Ethics</h2>
-    {{ project.ethics_statement|safe }}
-  <hr>
-{% endif %}
-
 {% if project.release_notes %}
   <h2 id="release-notes">Release Notes</h2>
     {{ project.release_notes|safe }}
+  <hr>
+{% endif %}
+
+{% if project.ethics_statement %}
+  <h2 id="ethics">Ethics</h2>
+    {{ project.ethics_statement|safe }}
   <hr>
 {% endif %}
 
