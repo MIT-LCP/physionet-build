@@ -112,52 +112,88 @@
           Contents
         </button>
         <div class="dropdown-menu">
-          {% if project.resource_type.id == 0 %}
+          {% if project.resource_type.id == 0 %}{# 0: Database #}
             <a class="dropdown-item" href="#abstract">Abstract</a>
             <a class="dropdown-item" href="#background">Background</a>
             <a class="dropdown-item" href="#methods">Methods</a>
             <a class="dropdown-item" href="#description">Data Description</a>
             <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
-            <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
+            {% if project.release_notes %}
+              <a class="dropdown-item" href="#release-notes">Release Notes</a>
+            {% endif %}
+            {% if project.ethics_statement %}
+              <a class="dropdown-item" href="#ethics">Ethics</a>
+            {% endif %}
+            {% if project.acknowledgements %}
+              <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
+            {% endif %}
             <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-            <a class="dropdown-item" href="#references">References</a>
-            <a class="dropdown-item" href="#files">Files</a>
-          {% elif project.resource_type.id == 1 %}
+            {% if references %}
+              <a class="dropdown-item" href="#references">References</a>
+            {% endif %}
+          {% elif project.resource_type.id == 1 %}{# 1: Software #}
             <a class="dropdown-item" href="#abstract">Abstract</a>
             <a class="dropdown-item" href="#background">Background</a>
             <a class="dropdown-item" href="#description">Software Description</a>
             {% if project.methods %}
               <a class="dropdown-item" href="#implementation">Technical Implementation</a>
             {% endif %}
-            {% if project.installation %}
-              <a class="dropdown-item" href="#installation">Installation and Requirements</a>
-            {% endif %}
+            <a class="dropdown-item" href="#installation">Installation and Requirements</a>
             <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
-            {% if project.ethics_statement %}
-              <a class="dropdown-item" href="#ethics">Ethics</a>
-            {% endif %}
             {% if project.release_notes %}
               <a class="dropdown-item" href="#release-notes">Release Notes</a>
+            {% endif %}
+            {% if project.ethics_statement %}
+              <a class="dropdown-item" href="#ethics">Ethics</a>
             {% endif %}
             {% if project.acknowledgements %}
               <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
             {% endif %}
             <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-            <a class="dropdown-item" href="#references">References</a>
-            <a class="dropdown-item" href="#files">Files</a>
-          {% elif project.resource_type.id == 2 %}
+            {% if references %}
+              <a class="dropdown-item" href="#references">References</a>
+            {% endif %}
+          {% elif project.resource_type.id == 2 %}{# 2: Challenge #}
             <a class="dropdown-item" href="#abstract">Abstract</a>
             <a class="dropdown-item" href="#objective">Objective</a>
             <a class="dropdown-item" href="#participation">Participation</a>
             <a class="dropdown-item" href="#description">Data Description</a>
             <a class="dropdown-item" href="#evaluation">Evaluation</a>
-            <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
+            {% if project.release_notes %}
+              <a class="dropdown-item" href="#release-notes">Release Notes</a>
+            {% endif %}
+            {% if project.ethics_statement %}
+              <a class="dropdown-item" href="#ethics">Ethics</a>
+            {% endif %}
+            {% if project.acknowledgements %}
+              <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
+            {% endif %}
             <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
-            <a class="dropdown-item" href="#references">References</a>
-            <a class="dropdown-item" href="#files">Files</a>
-          {% else %}
-            <a class="dropdown-item" href="#files">Files</a>
+            {% if references %}
+              <a class="dropdown-item" href="#references">References</a>
+            {% endif %}
+          {% elif project.resource_type.id == 3 %}{# 3: Model #}
+            <a class="dropdown-item" href="#abstract">Abstract</a>
+            <a class="dropdown-item" href="#background">Background</a>
+            <a class="dropdown-item" href="#description">Model Description</a>
+            <a class="dropdown-item" href="#implementation">Technical Implementation</a>
+            <a class="dropdown-item" href="#installation">Installation and Requirements</a>
+            <a class="dropdown-item" href="#usage-notes">Usage Notes</a>
+            {% if project.release_notes %}
+              <a class="dropdown-item" href="#release-notes">Release Notes</a>
+            {% endif %}
+            {% if project.ethics_statement %}
+              <a class="dropdown-item" href="#ethics">Ethics</a>
+            {% endif %}
+            {% if project.acknowledgements %}
+              <a class="dropdown-item" href="#acknowledgements">Acknowledgements</a>
+            {% endif %}
+            <a class="dropdown-item" href="#conflicts-of-interest">Conflicts of Interest</a>
+            {% if references %}
+              <a class="dropdown-item" href="#references">References</a>
+            {% endif %}
           {% endif %}
+          <a class="dropdown-item" href="#files">Files</a>
         </div>
       </div>
       {% endif %}

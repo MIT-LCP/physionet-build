@@ -46,6 +46,12 @@
 {% endif %}
 <hr>
 
+{% if project.release_notes %}
+  <h2 id="release-notes">Release Notes</h2>
+  {{ project.release_notes|safe }}
+  <hr>
+{% endif %}
+
 <h2 id="ethics">Ethics</h2>
 {% if project.ethics_statement %}
   {{ project.ethics_statement|safe }}
@@ -53,12 +59,6 @@
   <p style="color:red"><strong>* Required field missing</strong></p>
 {% endif %}
 <hr>
-
-{% if project.release_notes %}
-  <h2 id="release-notes">Release Notes</h2>
-  {{ project.release_notes|safe }}
-  <hr>
-{% endif %}
 
 {% if project.acknowledgements %}
   <h2 id="acknowledgements">Acknowledgements</h2>
