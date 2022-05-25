@@ -54,9 +54,7 @@ apt-get install -y \
         `# Development and administration tools` \
         git sudo psmisc \
         `# SMTP and IMAP servers, for testing email` \
-        postfix postfix-pcre dovecot-imapd \
-        `# Cryptography related packages` \
-        rustc libssl-dev
+        postfix postfix-pcre dovecot-imapd
 
 ################################################################
 
