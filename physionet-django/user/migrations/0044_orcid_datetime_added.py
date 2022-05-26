@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 def migrate_forward(apps, schema_editor):
     orcid_model = apps.get_model('user', 'Orcid')
     for row in orcid_model.objects.all():
-        row.datetime_added = datetime.fromtimestamp(row.token_expiration) - timedelta(days = 20 * 365.2422)
+        row.datetime_added = datetime.fromtimestamp(row.token_expiration) - timedelta(days=20 * 365.2422)
         row.save()
 
 
