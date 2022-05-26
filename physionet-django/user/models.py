@@ -2,6 +2,7 @@ import logging
 import os
 import uuid
 from datetime import timedelta
+from datetime import datetime
 
 from django.conf import settings
 from django.contrib import messages
@@ -657,6 +658,7 @@ class Orcid(models.Model):
     token_type = models.CharField(max_length=50, default='', blank=True)
     token_scope = models.CharField(max_length=50, default='', blank=True)
     token_expiration = models.DecimalField(max_digits=50, decimal_places=40, default=0)
+    datetime_added = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         default_permissions = ()
