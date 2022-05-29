@@ -2,7 +2,6 @@ import logging
 import os
 import uuid
 from datetime import timedelta
-from datetime import datetime
 
 from django.conf import settings
 from django.contrib import messages
