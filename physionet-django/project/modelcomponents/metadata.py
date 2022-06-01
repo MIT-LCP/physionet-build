@@ -581,12 +581,13 @@ class Reference(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
+    order = models.PositiveIntegerField(null=True)
 
     description = models.CharField(max_length=1000)
 
     class Meta:
         default_permissions = ()
-        unique_together = (('description', 'content_type', 'object_id'),)
+        unique_together = (('description', 'content_type', 'order'),)
 
     def __str__(self):
         return self.description
