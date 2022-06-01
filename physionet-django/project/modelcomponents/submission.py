@@ -114,14 +114,14 @@ class EditLog(models.Model):
     is_resubmission = models.BooleanField(default=False)
     author_comments = models.CharField(max_length=20000, default='')
     # Quality assurance fields
-    soundly_produced = models.NullBooleanField(null=True)
-    well_described = models.NullBooleanField(null=True)
-    open_format = models.NullBooleanField(null=True)
-    data_machine_readable = models.NullBooleanField(null=True)
-    reusable = models.NullBooleanField(null=True)
-    no_phi = models.NullBooleanField(null=True)
-    pn_suitable = models.NullBooleanField(null=True)
-    ethics_included = models.NullBooleanField(null=True)
+    soundly_produced = models.BooleanField(null=True, blank=True)
+    well_described = models.BooleanField(null=True, blank=True)
+    open_format = models.BooleanField(null=True, blank=True)
+    data_machine_readable = models.BooleanField(null=True, blank=True)
+    reusable = models.BooleanField(null=True, blank=True)
+    no_phi = models.BooleanField(null=True, blank=True)
+    pn_suitable = models.BooleanField(null=True, blank=True)
+    ethics_included = models.BooleanField(null=True, blank=True)
     # Editor decision. 0 1 2 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
@@ -171,7 +171,7 @@ class CopyeditLog(models.Model):
     start_datetime = models.DateTimeField(auto_now_add=True)
     # Whether the submission was reopened for copyediting
     is_reedit = models.BooleanField(default=False)
-    made_changes = models.NullBooleanField(null=True)
+    made_changes = models.BooleanField(null=True)
     changelog_summary = models.CharField(default='', max_length=10000, blank=True)
     complete_datetime = models.DateTimeField(null=True)
 
