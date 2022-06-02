@@ -603,14 +603,16 @@ class Reference(models.Model):
 
 class PublishedReference(models.Model):
     """
+    Reference field for PublishedProject
     """
     description = models.CharField(max_length=1000)
     project = models.ForeignKey('project.PublishedProject',
         related_name='references', on_delete=models.CASCADE)
+    order = models.PositiveIntegerField(null=True)
 
     class Meta:
         default_permissions = ()
-        unique_together = (('description', 'project'))
+        unique_together = (('description', 'project', 'order'))
 
 
 class Contact(models.Model):
