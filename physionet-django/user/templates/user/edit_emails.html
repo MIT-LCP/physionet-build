@@ -9,6 +9,7 @@
 <h1 class="form-signin-heading">Edit Emails</h1>
 
 <hr>
+
 <div class="card">
   <ul class="list-group list-group-flush">
     {% for email in associated_emails %}
@@ -101,4 +102,17 @@
   </div>
 </form>
 
+{% endblock %}
+
+{% block local_js_bottom %}
+<script>
+  $(function(){
+      var check_email = '[a-zA-Z0-9]{0,}([.]?[a-zA-Z0-9]{1,})[@](gmail.com|hotmail.com|yahoo.com|163.com|qq.com|126.com|outlook.com|foxmail.com|live.com|139.com)';
+      var patt = new RegExp(check_email);
+      var result = patt.test($('#id_associated_email').val());
+      if (result) {
+        alert('You should use an institutional email address if you are a Student, PostDoc, Professor, Researcher, Employee, or Physician. Applications using non-institutional addresses may not be approved.')
+      }
+    });
+</script>
 {% endblock %}
