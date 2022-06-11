@@ -613,7 +613,7 @@ def edit_content_item(request, project_slug):
                        'topic':forms.TopicFormSet}
 
     # The fields of each formset
-    content_item_fields = {'reference': ('description',),
+    content_item_fields = {'reference': ('description','order'),
                             'publication': ('citation', 'url'),
                             'topic': ('description',)}
 
@@ -666,7 +666,7 @@ def project_content(request, project_slug, **kwargs):
 
     # There are several forms for different types of content
     ReferenceFormSet = generic_inlineformset_factory(Reference,
-        fields=('description',), extra=0,
+        fields=('description','order',), extra=0,
         max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
         formset=forms.ReferenceFormSet, validate_max=True)
 
