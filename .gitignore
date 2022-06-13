@@ -142,3 +142,6 @@ physionet-django/*credentials*
 
 # Pycharm / JetBrains / IntelliJ project specific settings folder
 .idea/
+
+# Cache CSS Files
+physionet-django/compressedfiles/CACHE
