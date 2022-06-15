@@ -1239,8 +1239,6 @@ function show_plot() {
 
 	    s = trace.samp;
 	    tps = trace.tps;
-	    imin = (t0_ticks - trace.t0)/tps;
-	    imax = Math.min(s.length, dt_ticks/tps + imin);
 	    g = (-400*mag[sname]/(trace.scale*trace.gain));
 	    z = trace.zbase*g - y0;
 	    v = Math.round(g*s[imin] - z);
@@ -1249,10 +1247,8 @@ function show_plot() {
 	    if (sname === sigselected) { svs += lwb; }
 	    else { svs += lwn; }
 	    svs += '" d="';
-	    t = 0;
 	    tnext = t0_ticks;
 	    tf = Math.min(tf_ticks, rdt_ticks);
-	    x = 0;
 	    xstep = tscl/tickfreq;
 	    pv = false;
 	    while (tnext < tf) {
@@ -1274,10 +1270,12 @@ function show_plot() {
 			break;
 		    }
 		    s = trace.samp;
-		    imin = (tnext - trace.t0)/tps;
-		    imax = Math.min(s.length, (tf - tnext)/tps + imin);
 		}
+		imin = Math.max(Math.floor((tnext - trace.t0)/tps), 0);
+		imax = Math.min((tf - tnext)/tps + imin, s.length);
+		t = imin * tps + trace.t0 - t0_ticks;
 		for (i = imin; i < imax; i++) {
+		    x = t*xstep;
 		    if (s[i] !== -32768) {
 			v = Math.round(g*s[i] - z);
 			if (pv) { svs += ' '  + x + ',' + v; }
@@ -1286,7 +1284,6 @@ function show_plot() {
 		    }
 		    else { pv = false; }
 		    t += tps;
-		    x = t*xstep;
 		}
 		tnext = trace.tf;
 	    }
