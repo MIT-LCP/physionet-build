@@ -276,7 +276,7 @@ function set_trace(db, record, s) {
 function timstr(t) {
     var ss, mm, hh, tstring;
 
-    ss = Math.floor(t/tickfreq);
+    ss = Math.round(t/tickfreq);
     mm  = Math.floor(ss/60);    ss %= 60;
     hh  = Math.floor(mm/60);    mm %= 60;
     if (ss < 10) { ss = '0' + ss; }
@@ -288,15 +288,21 @@ function timstr(t) {
 
 // Convert argument (in samples) to a string in HH:MM:SS.mmm format
 function mstimstr(t) {
-    var mmm, tstring;
+    var mmm, ss, mm, hh, tstring;
 
-    mmm = Math.floor(1000*t/tickfreq) % 1000;
+    mmm = Math.round(1000*t/tickfreq);
+    ss  = Math.floor(mmm/1000); mmm %= 1000;
+    mm  = Math.floor(ss/60);    ss %= 60;
+    hh  = Math.floor(mm/60);    mm %= 60;
     if (mmm < 100) {
 	if (mmm < 10) { mmm = '.00' + mmm; }
 	else { mmm = '.0' + mmm; }
     }
     else { mmm = '.' + mmm; }
-    tstring = timstr(t) + mmm;
+    if (ss < 10) { ss = '0' + ss; }
+    if (mm < 10) { mm = '0' + mm; }
+    if (hh < 10) { hh = '0' + hh; }
+    tstring = hh + ':' +  mm + ':' + ss + mmm;
     return tstring;
 }
 
