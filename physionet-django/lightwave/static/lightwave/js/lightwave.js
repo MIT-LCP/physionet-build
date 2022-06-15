@@ -1,5 +1,5 @@
 // file: lightwave.js	G. Moody	18 November 2012
-//			Last revised:	  23 April 2019    version 0.68
+//			Last revised:	  15 June 2022     version 0.71
 // LightWAVE Javascript code
 //
 // Copyright (C) 2012-2013 George B. Moody
@@ -206,6 +206,21 @@ function find_trace(db, record, signame, t) {
 	}
     }
     return null;
+}
+
+// Find the earliest-starting trace that overlaps the given range
+function find_trace_in_range(db, record, signame, t0, tf) {
+    var i, trace = null;
+
+    for (i = 0; i < tpool.length; i++) {
+	if (tpool[i].name === signame &&
+	    tpool[i].t0 < tf && t0 < tpool[i].tf &&
+	    tpool[i].record === record && tpool[i].db === db) {
+	    trace = tpool[i];
+	    tf = trace.t0;
+	}
+    }
+    return trace;
 }
 
 // Replace the least-recently-used trace with the contents of s
@@ -1202,7 +1217,7 @@ function show_plot() {
 	y0 = y0s[is];
 	ytop = y0 - svgf;
 	sname = signals[is].name;
-	trace = find_trace(db, record, sname, t0_ticks);
+	trace = find_trace_in_range(db, record, sname, t0_ticks, tf_ticks);
 
 	svs += '<g id="sig;;' + html_escape(sname) + '">\n';
 	if (trace && s_visible[sname] === 1) {
@@ -1242,7 +1257,7 @@ function show_plot() {
 	    pv = false;
 	    while (tnext < tf) {
 		if (tnext > t0_ticks) {
-		    trace = find_trace(db, record, sname, tnext);
+		    trace = find_trace_in_range(db, record, sname, tnext, tf);
 		    if (trace === null) {
 			if (pending < 1) {
 			    read_signals(t0_ticks, true);
@@ -1256,7 +1271,7 @@ function show_plot() {
 			    autoplay_off();
 			    alert_server_error();
 			}
-			return;
+			break;
 		    }
 		    s = trace.samp;
 		    imin = (tnext - trace.t0)/tps;
