@@ -1852,7 +1852,7 @@ function gorev() {
 
     t0_string = $('.t0_str').val();
     t_ticks = strtim(t0_string) - dt_ticks;
-    go_here(t_ticks);
+    go_here(Math.round(t_ticks / tickfreq) * tickfreq);
     prefetch(t_ticks - dt_ticks);
 }
 
@@ -1886,7 +1886,7 @@ function gofwd() {
 
     t0_string = $('.t0_str').val();
     t_ticks = strtim(t0_string) + dt_ticks;
-    go_here(t_ticks);
+    go_here(Math.round(t_ticks / tickfreq) * tickfreq);
     prefetch(t_ticks + Number(dt_ticks));
 }
 
