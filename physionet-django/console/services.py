@@ -4,6 +4,7 @@ import re
 from typing import Optional
 
 from pdfminer.high_level import extract_text
+from pdfminer.pdfparser import PDFSyntaxError
 from django.conf import settings
 
 from user.models import Training
@@ -26,7 +27,11 @@ def _get_regex_value_from_text(text: str, regex: str) -> Optional[str]:
 
 
 def _parse_pdf_to_string(training_path: str) -> str:
-    text = extract_text(training_path)
+    try:
+        text = extract_text(training_path)
+    except PDFSyntaxError:
+        text = ''
+        logging.error(f'Failed to extract text from {training_path}')
     return ' '.join(text.split())
 
 
