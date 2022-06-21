@@ -22,6 +22,7 @@ jobs:
                   flake8 \
                   git \
                   libffi-dev \
+                  libflac-dev \
                   libpq-dev \
                   libseccomp-dev \
                   python3-dev \
@@ -37,7 +38,7 @@ jobs:
 
       - name: Install WFDB
         run: |
-          wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz \
+          wget https://github.com/bemoody/wfdb/archive/10.7.0.tar.gz \
                -O wfdb.tar.gz
           tar -xf wfdb.tar.gz
           (cd wfdb-* && ./configure --without-netfiles)
@@ -47,7 +48,7 @@ jobs:
 
       - name: Install lightwave
         run: |
-          wget https://github.com/bemoody/lightwave/archive/0.69.tar.gz \
+          wget https://github.com/bemoody/lightwave/archive/0.71.tar.gz \
                -O lightwave.tar.gz
           tar -xf lightwave.tar.gz
           (cd lightwave-* && make CGIDIR=/usr/local/bin sandboxed-server)

@@ -37,6 +37,7 @@ jobs:
                   flake8 \
                   git \
                   libffi-dev \
+                  libflac-dev \
                   libpq-dev \
                   libseccomp-dev \
                   postgresql \
@@ -79,7 +80,7 @@ jobs:
 
       - name: Install and setup wfdb
         run: |
-          wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz -O wfdb.tar.gz
+          wget https://github.com/bemoody/wfdb/archive/10.7.0.tar.gz -O wfdb.tar.gz
           tar -xf wfdb.tar.gz
           (cd wfdb-* && ./configure --without-netfiles && make -C lib install && make -C data install)
 
@@ -88,7 +89,7 @@ jobs:
 
       - name: Install and setup lightwave
         run: |
-          wget https://github.com/bemoody/lightwave/archive/bfe908a7f53434df61fd2444bf8c235e3e6226fc.tar.gz -O lightwave.tar.gz
+          wget https://github.com/bemoody/lightwave/archive/0.71.tar.gz -O lightwave.tar.gz
           tar -xf lightwave.tar.gz
           (cd lightwave-* && make CGIDIR=/usr/local/bin sandboxed-server)
 
