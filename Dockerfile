@@ -2,10 +2,10 @@ FROM python:3.7-slim-buster
 
 RUN apt-get update -y \
     && apt-get upgrade -y \
-    && apt-get install build-essential libseccomp-dev libpq-dev libpcre3-dev postgresql-client wget zip -y --no-install-recommends \
+    && apt-get install build-essential libflac-dev libseccomp-dev libpq-dev libpcre3-dev postgresql-client wget zip -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz -O wfdb.tar.gz \
+RUN wget https://github.com/bemoody/wfdb/archive/10.7.0.tar.gz -O wfdb.tar.gz \
     && tar -xf wfdb.tar.gz \
     && (cd wfdb-* && ./configure --without-netfiles && make -C lib install && make -C data install) \
     && ldconfig \

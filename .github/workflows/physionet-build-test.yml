@@ -37,6 +37,7 @@ jobs:
                   flake8 \
                   git \
                   libffi-dev \
+                  libflac-dev \
                   libpq-dev \
                   libseccomp-dev \
                   postgresql \
@@ -79,7 +80,7 @@ jobs:
 
       - name: Install and setup wfdb
         run: |
-          wget https://github.com/bemoody/wfdb/archive/10.6.2.tar.gz -O wfdb.tar.gz
+          wget https://github.com/bemoody/wfdb/archive/10.7.0.tar.gz -O wfdb.tar.gz
           tar -xf wfdb.tar.gz
           (cd wfdb-* && ./configure --without-netfiles && make -C lib install && make -C data install)
 
