@@ -1,5 +1,5 @@
 // file: lightwave.js	G. Moody	18 November 2012
-//			Last revised:	  23 April 2019    version 0.68
+//			Last revised:	  15 June 2022     version 0.71
 // LightWAVE Javascript code
 //
 // Copyright (C) 2012-2013 George B. Moody
@@ -208,6 +208,21 @@ function find_trace(db, record, signame, t) {
     return null;
 }
 
+// Find the earliest-starting trace that overlaps the given range
+function find_trace_in_range(db, record, signame, t0, tf) {
+    var i, trace = null;
+
+    for (i = 0; i < tpool.length; i++) {
+	if (tpool[i].name === signame &&
+	    tpool[i].t0 < tf && t0 < tpool[i].tf &&
+	    tpool[i].record === record && tpool[i].db === db) {
+	    trace = tpool[i];
+	    tf = trace.t0;
+	}
+    }
+    return trace;
+}
+
 // Replace the least-recently-used trace with the contents of s
 function set_trace(db, record, s) {
     var i, idmin, imin, j, len, ni, p, trace, v, vmean, vmid, vmax, vmin, w;
@@ -261,7 +276,7 @@ function set_trace(db, record, s) {
 function timstr(t) {
     var ss, mm, hh, tstring;
 
-    ss = Math.floor(t/tickfreq);
+    ss = Math.round(t/tickfreq);
     mm  = Math.floor(ss/60);    ss %= 60;
     hh  = Math.floor(mm/60);    mm %= 60;
     if (ss < 10) { ss = '0' + ss; }
@@ -273,15 +288,21 @@ function timstr(t) {
 
 // Convert argument (in samples) to a string in HH:MM:SS.mmm format
 function mstimstr(t) {
-    var mmm, tstring;
+    var mmm, ss, mm, hh, tstring;
 
-    mmm = Math.floor(1000*t/tickfreq) % 1000;
+    mmm = Math.round(1000*t/tickfreq);
+    ss  = Math.floor(mmm/1000); mmm %= 1000;
+    mm  = Math.floor(ss/60);    ss %= 60;
+    hh  = Math.floor(mm/60);    mm %= 60;
     if (mmm < 100) {
 	if (mmm < 10) { mmm = '.00' + mmm; }
 	else { mmm = '.0' + mmm; }
     }
     else { mmm = '.' + mmm; }
-    tstring = timstr(t) + mmm;
+    if (ss < 10) { ss = '0' + ss; }
+    if (mm < 10) { mm = '0' + mm; }
+    if (hh < 10) { hh = '0' + hh; }
+    tstring = hh + ':' +  mm + ':' + ss + mmm;
     return tstring;
 }
 
@@ -1068,7 +1089,7 @@ function show_plot() {
 	    + '" d="M' + x0r + ',0 ';
 	uparrow = ' l-' + adx1 + ',' + ady1 + 'l' + adx2 + ',0 l-' + adx1
 	    + ',-' + ady1 +  'm' + griddx + ',-';
-	for (x = 0; x + x0r <= svgw; x += griddx) {
+	for (x = 0; x + x0r <= svgw + 0.01 * griddx; x += griddx) {
 	    if (x%tscl === x0q) { grd += 'l0,' + svgh + uparrow + svgh; }
 	    else { grd += 'l0,' + svgh + ' m' + griddx + ',-' + svgh; }
 	}
@@ -1085,7 +1106,7 @@ function show_plot() {
     if (ttick < t0_ticks) { ttick += tickint; }
 
     tst = '<g id="times">\n';
-    while (ttick <= tf_ticks) {
+    while (ttick <= tf_ticks + 0.1) {
 	xtick = Math.round((ttick - t0_ticks)*tscl/tickfreq);
 	tst += '<text x="' + xtick + '" y="' + svgts + '" font-size="' + svgtf
 	    + '" fill="red" style="text-anchor: middle;">'
@@ -1202,7 +1223,7 @@ function show_plot() {
 	y0 = y0s[is];
 	ytop = y0 - svgf;
 	sname = signals[is].name;
-	trace = find_trace(db, record, sname, t0_ticks);
+	trace = find_trace_in_range(db, record, sname, t0_ticks, tf_ticks);
 
 	svs += '<g id="sig;;' + html_escape(sname) + '">\n';
 	if (trace && s_visible[sname] === 1) {
@@ -1224,8 +1245,6 @@ function show_plot() {
 
 	    s = trace.samp;
 	    tps = trace.tps;
-	    imin = (t0_ticks - trace.t0)/tps;
-	    imax = Math.min(s.length, dt_ticks/tps + imin);
 	    g = (-400*mag[sname]/(trace.scale*trace.gain));
 	    z = trace.zbase*g - y0;
 	    v = Math.round(g*s[imin] - z);
@@ -1234,15 +1253,13 @@ function show_plot() {
 	    if (sname === sigselected) { svs += lwb; }
 	    else { svs += lwn; }
 	    svs += '" d="';
-	    t = 0;
 	    tnext = t0_ticks;
 	    tf = Math.min(tf_ticks, rdt_ticks);
-	    x = 0;
 	    xstep = tscl/tickfreq;
 	    pv = false;
 	    while (tnext < tf) {
 		if (tnext > t0_ticks) {
-		    trace = find_trace(db, record, sname, tnext);
+		    trace = find_trace_in_range(db, record, sname, tnext, tf);
 		    if (trace === null) {
 			if (pending < 1) {
 			    read_signals(t0_ticks, true);
@@ -1256,13 +1273,15 @@ function show_plot() {
 			    autoplay_off();
 			    alert_server_error();
 			}
-			return;
+			break;
 		    }
 		    s = trace.samp;
-		    imin = (tnext - trace.t0)/tps;
-		    imax = Math.min(s.length, (tf - tnext)/tps + imin);
 		}
+		imin = Math.max(Math.floor((tnext - trace.t0)/tps), 0);
+		imax = Math.min((tf - tnext)/tps + imin, s.length);
+		t = imin * tps + trace.t0 - t0_ticks;
 		for (i = imin; i < imax; i++) {
+		    x = t*xstep;
 		    if (s[i] !== -32768) {
 			v = Math.round(g*s[i] - z);
 			if (pv) { svs += ' '  + x + ',' + v; }
@@ -1271,7 +1290,6 @@ function show_plot() {
 		    }
 		    else { pv = false; }
 		    t += tps;
-		    x = t*xstep;
 		}
 		tnext = trace.tf;
 	    }
@@ -1834,7 +1852,7 @@ function gorev() {
 
     t0_string = $('.t0_str').val();
     t_ticks = strtim(t0_string) - dt_ticks;
-    go_here(t_ticks);
+    go_here(Math.round(t_ticks / tickfreq) * tickfreq);
     prefetch(t_ticks - dt_ticks);
 }
 
@@ -1868,7 +1886,7 @@ function gofwd() {
 
     t0_string = $('.t0_str').val();
     t_ticks = strtim(t0_string) + dt_ticks;
-    go_here(t_ticks);
+    go_here(Math.round(t_ticks / tickfreq) * tickfreq);
     prefetch(t_ticks + Number(dt_ticks));
 }
 
