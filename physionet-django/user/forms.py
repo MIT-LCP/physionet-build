@@ -779,6 +779,17 @@ class TrainingForm(forms.ModelForm):
         if data['training_type'] not in available_training_types:
             raise forms.ValidationError('You have already submitted a training of this type.')
 
+        # Check for a recognized CITI verification link.
+        # TODO: This is a hack and it should be replaced with something generalisable.
+        if data['training_type'].name == 'CITI Data or Specimens Only Research':
+            try:
+                reportfile = data['completion_report']
+                self.report_url = find_training_report_url(reportfile)
+            except TrainingCertificateError:
+                raise forms.ValidationError(
+                    'Please upload the "Completion Report" file, '
+                    'not the "Completion Certificate".')
+
     def save(self):
         training = super().save(commit=False)
 
