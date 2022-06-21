@@ -11,7 +11,7 @@ RUN wget https://github.com/bemoody/wfdb/archive/10.7.0.tar.gz -O wfdb.tar.gz \
     && ldconfig \
     && rm -rf wfdb*
 
-RUN wget https://github.com/bemoody/lightwave/archive/bfe908a7f53434df61fd2444bf8c235e3e6226fc.tar.gz -O lightwave.tar.gz \
+RUN wget https://github.com/bemoody/lightwave/archive/0.71.tar.gz -O lightwave.tar.gz \
     && tar -xf lightwave.tar.gz \
     && (cd lightwave-* && make sandboxed-lightwave && mkdir -p /usr/local/bin && install -m 4755 sandboxed-lightwave /usr/local/bin) \
     && rm -rf lightwave*
