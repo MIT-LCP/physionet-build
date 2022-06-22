@@ -690,15 +690,6 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                     raise forms.ValidationError('References must be unique.')
                 descriptions.append(description)
 
-        # orders = []
-        # for form in self.forms:
-        #     # This is to allow empty unsaved form
-        #     if 'order' in form.cleaned_data:
-        #         order = form.cleaned_data['order']
-        #         if order in orders:
-        #             raise forms.ValidationError('Order must be unique.')
-        #         orders.append(orders)
-
 
 class PublicationFormSet(BaseGenericInlineFormSet):
     """
