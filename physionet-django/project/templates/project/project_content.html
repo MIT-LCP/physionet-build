@@ -17,7 +17,7 @@
 <p>Please adhere to the standards specified in the helpstrings. Required fields are indicated by a <a style="color:red">*</a>.</p>
 <hr>
 
-<form action="{% url 'project_content' project.slug %}" onsubmit="return validateItems('reference-list', 'description', 'References')" method="post" class="no-pd">
+<form action="{% url 'project_content' project.slug %}" onsubmit="return validateItems('reference-list', 'description', 'References') && validateItems('reference-list', 'order', 'References')" method="post" class="no-pd">
   {% if not project.author_editable %}
     <div class="alert alert-form alert-warning alert-dismissible">
       <strong>The project cannot be edited right now.</strong>
