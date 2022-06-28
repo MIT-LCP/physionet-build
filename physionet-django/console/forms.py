@@ -32,7 +32,7 @@ from project.models import (
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion, Instructor, Course
-sfrom console.utility import generate_doi_payload, register_doi
+from console.utility import generate_doi_payload, register_doi
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),

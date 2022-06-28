@@ -1115,9 +1115,7 @@ def known_references_search(request):
     raise Http404()
 
 
-<<<<<<< HEAD
 @permission_required('user.change_credentialapplication', raise_exception=True)
-=======
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
 def known_instructors_search(request):
@@ -1163,7 +1161,6 @@ def known_instructor_courses(request, username):
 
 @login_required
 @user_passes_test(is_admin, redirect_field_name='project_home')
->>>>>>> Allows users to create a course and add students
 def complete_credential_applications(request):
     """
     Legacy page for processing credentialing applications.
