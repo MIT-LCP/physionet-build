@@ -518,6 +518,9 @@ COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, defau
 
 LOG_TIMEDELTA = config('LOG_TIMEDELTA', cast=int, default='10')
 
+# Ticket system for user support
+TICKET_SYSTEM_URL = config('TICKET_SYSTEM_URL', default=None)
+
 #  Platform wide citation config
 PLATFORM_WIDE_CITATION = {
     'APA': config('PLATFORM_WIDE_CITATION_APA', default=None),
