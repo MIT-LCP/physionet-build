@@ -649,7 +649,7 @@ def user_credential_applications(request):
 @login_required
 def credential_application(request):
     """
-    Page to apply for credentially
+    Page to apply for credentialing
     """
     user = request.user
     if user.is_credentialed or CredentialApplication.objects.filter(
@@ -704,6 +704,14 @@ def credential_application(request):
 
 @login_required
 def edit_training(request):
+    """
+    Training settings page.
+    """
+    if settings.TICKET_SYSTEM_URL:
+        ticket_system_url = settings.TICKET_SYSTEM_URL
+    else:
+        ticket_system_url = None
+
     if request.method == 'POST':
         training_form = forms.TrainingForm(
             user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type')
@@ -734,7 +742,9 @@ def edit_training(request):
     return render(
         request,
         'user/edit_training.html',
-        {'training_form': training_form, 'training_by_status': training_by_status}
+        {'training_form': training_form,
+         'training_by_status': training_by_status,
+         'ticket_system_url': ticket_system_url},
     )
 
 
