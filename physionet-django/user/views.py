@@ -611,6 +611,11 @@ def edit_credentialing(request):
         pause_applications = False
         pause_message = None
 
+    if settings.TICKET_SYSTEM_URL:
+        ticket_system_url = settings.TICKET_SYSTEM_URL
+    else:
+        ticket_system_url = None
+
     applications = CredentialApplication.objects.filter(user=request.user)
     current_application = applications.filter(status=0).first()
 
@@ -625,7 +630,8 @@ def edit_credentialing(request):
         'applications': applications,
         'pause_applications': pause_applications,
         'pause_message': pause_message,
-        'current_application': current_application})
+        'current_application': current_application,
+        'ticket_system_url': ticket_system_url})
 
 
 @login_required
