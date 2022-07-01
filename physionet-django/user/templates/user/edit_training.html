@@ -6,7 +6,7 @@
 <h1>Training</h1>
   <hr>
     <p>To gain access to certain datasets on {{ SITE_NAME }}, you are required to demonstrate that you have completed relevant training. You can find specific training requirements in the "Files" section of the project description.</p>
-  
+
     {% for status, group in training_by_status.items %}
       {% if not status == 'under review' %}
         <div class="mb-3">
@@ -50,7 +50,11 @@
     {% endif %}
   {% endfor %}
 
-  <p>Please use the form below to submit a new completion report. For CITI training, please refer to our <a href="{% url "citi_course" %}" target="_blank">step-by-step instructions</a>. </p>
+  <p>Please use the form below to submit a new completion report. 
+    For CITI training, please refer to our <a href="{% url "citi_course" %}" target="_blank">step-by-step instructions</a>. 
+  {% if ticket_system_url %}To raise a support request, please <a href="{{ ticket_system_url }}">click here</a>.
+  {% endif %}</p>
+
   <form action="{% url "edit_training" %}" method="post" enctype="multipart/form-data" id="training">
       {% include "descriptive_inline_form_snippet.html" with form=training_form %}
       <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#submit-training">Submit Training</button>
