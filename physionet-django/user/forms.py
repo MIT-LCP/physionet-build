@@ -785,7 +785,7 @@ class TrainingForm(forms.ModelForm):
             try:
                 reportfile = data['completion_report']
                 self.report_url = find_training_report_url(reportfile)
-            except TrainingCertificateError:
+            except (TrainingCertificateError, KeyError):
                 raise forms.ValidationError(
                     'Please upload the "Completion Report" file, '
                     'not the "Completion Certificate".')
