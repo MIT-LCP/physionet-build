@@ -328,7 +328,7 @@
     </div>
   {% else %}
     {% if project.access_policy %}
-      {% if has_access %}
+      {% if is_user_authorized %}
         {% if project.allow_file_downloads %}
           <p>Total uncompressed size: {{ main_size }}.</p>
 

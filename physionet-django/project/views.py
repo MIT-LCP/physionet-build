@@ -1786,7 +1786,9 @@ def published_project(request, project_slug, version, subdir=''):
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    has_access = project.has_access(user) or has_passphrase
+    has_file_access = project.has_access(user) or has_passphrase
+    is_user_authorized = project.has_access(user, with_download_access=False) or has_passphrase
+
     has_signed_dua = False if not user.is_authenticated else DUASignature.objects.filter(
         project=project,
         user=user
@@ -1813,7 +1815,7 @@ def published_project(request, project_slug, version, subdir=''):
         'topics': topics,
         'languages': languages,
         'contact': contact,
-        'has_access': has_access,
+        'is_user_authorized': is_user_authorized,
         'has_signed_dua': has_signed_dua,
         'has_accepted_access_request': has_accepted_access_request,
         'has_required_trainings': has_required_trainings,
@@ -1832,7 +1834,7 @@ def published_project(request, project_slug, version, subdir=''):
         'main_platform_citation': main_platform_citation,
     }
     # The file and directory contents
-    if has_access:
+    if has_file_access:
         if user.is_authenticated:
             AccessLog.objects.update_or_create(project=project, user=request.user)
 
