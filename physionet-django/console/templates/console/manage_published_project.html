@@ -38,6 +38,9 @@
           Created: {{ project.creation_datetime|date }}. Submitted: {{ project.submission_datetime|date }}. Published: {{ project.publish_datetime|date }}<br>
           Storage: {{ storage_info.readable_main_used }} uncompressed, {{ storage_info.readable_compressed_used }} compressed, {{ storage_info.readable_used }} total, {{ storage_info.readable_allowance }} allowance.<br>
           Version: {{ project.version }}{% if project.is_latest_version %} (latest){% else %}<br>Latest Published Version: <a href="{% url 'published_project' latest_version.slug latest_version.version %}" target="_blank">{{ latest_version.version }}</a>{% endif %}
+          {% if environment_dataset_group %}
+            Environment GCP Group: {{ environment_dataset_group }}
+          {% endif %}
         </p>
         <p class="card-text">
           Description: {{ project.short_description }}
