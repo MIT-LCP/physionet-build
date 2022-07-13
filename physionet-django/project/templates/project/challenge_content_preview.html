@@ -30,15 +30,9 @@
 {% endif %}
 <hr>
 
+<h2 id="evaluation">Evaluation</h2>
 {% if project.usage_notes %}
-  <h2 id="evaluation">Evaluation</h2>
   {{ project.usage_notes|safe }}
-  <hr>
-{% endif %}
-
-<h2 id="ethics">Ethics</h2>
-{% if project.ethics_statement %}
-  {{ project.ethics_statement|safe }}
 {% else %}
   <p style="color:red"><strong>* Required field missing</strong></p>
 {% endif %}
@@ -49,6 +43,14 @@
   {{ project.release_notes|safe }}
   <hr>
 {% endif %}
+
+<h2 id="ethics">Ethics</h2>
+{% if project.ethics_statement %}
+  {{ project.ethics_statement|safe }}
+{% else %}
+  <p style="color:red"><strong>* Required field missing</strong></p>
+{% endif %}
+<hr>
 
 {% if project.acknowledgements %}
   <h2 id="acknowledgements">Acknowledgements</h2>

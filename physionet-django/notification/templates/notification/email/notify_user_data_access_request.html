@@ -1,10 +1,13 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 Dear {{ data_access_request.requester.get_full_name }},
 
 We are writing in response to your request for access to the project "{{ data_access_request.project }}". 
 
-{% if data_access_request.is_accepted %}We are pleased to say that the project owners have approved{%else%}We are sorry to say that the project owners did not approve{% endif %} the request.
+{% if data_access_request.is_accepted %}We are pleased to say that the project owners have approved the request.{%else%}We are sorry to say that the project owners did not approve the request. The following reason was given: 
+{{ data_access_request.responder_comments|striptags }}{% endif %}
 
 For more details, please follow the link below:
 {{ request_protocol}}://{{ request_host}}{% url 'data_access_request_status' data_access_request.project.slug data_access_request.project.version %}
 
 {{ signature }}
+{% endfilter %}{% endautoescape %}

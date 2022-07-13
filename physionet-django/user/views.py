@@ -226,12 +226,16 @@ def check_legacy_credentials(user, email):
 def remove_email(request, email_id):
     "Remove a non-primary email associated with a user"
     user = request.user
-    associated_email = AssociatedEmail.objects.get(id=email_id)
-    if associated_email.user == user and not associated_email.is_primary_email:
-        email = associated_email.email
-        associated_email.delete()
-        logger.info('Removed email {0} from user {1}'.format(email, user.id))
-        messages.success(request, 'Your email: {0} has been removed from your account.'.format(email))
+    try:
+        associated_email = AssociatedEmail.objects.get(id=email_id)
+        if associated_email.user == user and not associated_email.is_primary_email:
+            email = associated_email.email
+            associated_email.delete()
+            logger.info(f"Removed email {email} from user {user.id}")
+            messages.success(request, f"The email address ({email}) has been removed from your account.")
+    except AssociatedEmail.DoesNotExist:
+        messages.success(request, "The email address has been removed from your account.")
+
 
 def set_primary_email(request, primary_email_form):
     "Set the selected email as the primary email"

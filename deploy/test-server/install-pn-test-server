@@ -48,15 +48,13 @@ apt-get install -y \
         `# Python application server` \
         virtualenv python3-dev libpq-dev libffi-dev \
         `# Requirements for building LightWAVE` \
-        build-essential libseccomp-dev \
+        build-essential libflac-dev libseccomp-dev \
         `# Other tools required by PhysioNet` \
         zip unzip xfsprogs \
         `# Development and administration tools` \
         git sudo psmisc \
         `# SMTP and IMAP servers, for testing email` \
-        postfix postfix-pcre dovecot-imapd \
-        `# Cryptography related packages` \
-        rustc libssl-dev
+        postfix postfix-pcre dovecot-imapd
 
 ################################################################
 
