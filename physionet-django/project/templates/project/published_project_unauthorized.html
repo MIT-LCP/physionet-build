@@ -2,7 +2,7 @@
   This is a restricted-access resource. To access the files, you must fulfill all of the following requirements:
   <ul>
     {% if project.access_policy == AccessPolicy.RESTRICTED %}
-      {% if not has_required_trainings %}
+      {% if requires_training and not has_required_training %}
         <li>finish required <a href="{% url 'edit_training' %}">training</a></li>
       {% endif %}
       {% if not has_signed_dua %}
@@ -14,8 +14,14 @@
       {% if not user.is_credentialed %}
         <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
       {% endif %}
-      {% if not has_required_trainings %}
-        <li>finish required <a href="{% url 'edit_training' %}">training</a></li>
+      {% if requires_training and not has_required_training %}
+        <li>complete required training:</li>
+        <ul>
+          {% for required_training in project.required_trainings.all %}
+            <li><a href="{% url 'published_project_required_trainings' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
+          {% endfor %}
+          You may submit your training <a href="{% url 'edit_training' %}">here</a>.
+        </ul>
       {% endif %}
       {% if not has_signed_dua %}
         <li>
@@ -26,7 +32,7 @@
       {% if not user.is_credentialed %}
         <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
       {% endif %}
-      {% if not has_required_trainings %}
+      {% if requires_training and not has_required_training %}
         <li>complete required training:</li>
         <ul>
           {% for required_training in project.required_trainings.all %}
