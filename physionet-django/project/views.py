@@ -1796,7 +1796,13 @@ def published_project(request, project_slug, version, subdir=''):
         requester=user,
         status=DataAccessRequest.ACCEPT_REQUEST_VALUE
     ).exists()
-    has_required_trainings = (
+
+    if project.required_trainings.exists():
+        requires_training = True
+    else:
+        requires_training = False
+
+    has_required_training = (
         False
         if not user.is_authenticated
         else Training.objects.get_valid().filter(training_type__in=project.required_trainings.all(), user=user).count()
@@ -1816,7 +1822,8 @@ def published_project(request, project_slug, version, subdir=''):
         'has_access': has_access,
         'has_signed_dua': has_signed_dua,
         'has_accepted_access_request': has_accepted_access_request,
-        'has_required_trainings': has_required_trainings,
+        'requires_training': requires_training,
+        'has_required_training': has_required_training,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
         'citations': citations,
