@@ -18,7 +18,7 @@
     {# This {{ item }}-%d id is identifying the form number on the page #}
     <div class="form-group row {{ item }}-body" id="{{ item }}-{{ forloop.counter }}">
       <div class="col-md-1"></div>
-      <div class="col-md-1 {{ item }}-number">{{ forloop.counter }}.</div>
+      <div class="col-md-1 {{ item }}-number">-></div>
       <div class="col-md-9 {{ item }}-form">
         {# id value is blank for forms without saved instances #}
         {# We want to display labels only for multi-attribute fields #}
