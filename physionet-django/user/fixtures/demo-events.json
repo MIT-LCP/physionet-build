@@ -1,0 +1,26 @@
+[
+{
+  "model": "user.event",
+  "pk": 1,
+  "fields": {
+    "name": "HST 953",
+    "event_type": 0,
+    "host": 1,
+    "added_datetime": "2022-07-07T14:35:27.077Z",
+    "start_datetime": "2022-07-07T18:38:42Z",
+    "end_datetime": "2022-08-04T04:00:00Z"
+  }
+},
+{
+  "model": "user.event",
+  "pk": 2,
+  "fields": {
+    "name": "HST Datathon",
+    "event_type": 1,
+    "host": 206,
+    "added_datetime": "2022-07-15T14:53:10.658Z",
+    "start_datetime": "2022-07-01T14:53:06Z",
+    "end_datetime": "2022-07-22T04:00:00Z"
+  }
+}
+]

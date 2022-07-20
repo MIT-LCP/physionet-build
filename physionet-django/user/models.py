@@ -27,7 +27,7 @@ from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.fields import SafeHTMLField
 from user import validators
 from user.userfiles import UserFiles
-from user.enums import TrainingStatus, RequiredField
+from user.enums import TrainingStatus, RequiredField, EventType
 from user.managers import TrainingQuerySet
 
 logger = logging.getLogger(__name__)
@@ -1164,3 +1164,33 @@ class CodeOfConductSignature(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+class Event(models.Model):
+    """
+    Captures information on events such as datathons, workshops and classes.
+    Used to allow event hosts to assist with credentialing.
+    """
+    name = models.TextField()
+    event_type = models.PositiveSmallIntegerField(choices=EventType.choices(), default=EventType.COURSE)
+    host = models.ForeignKey(User, on_delete=models.CASCADE)
+    added_datetime = models.DateTimeField(auto_now_add=True)
+    start_datetime = models.DateTimeField()
+    end_datetime = models.DateTimeField()
+
+    class Meta:
+        unique_together = ('name', 'host')
+
+
+class Participants(models.Model):
+    """
+    Captures information about participants in an event.
+    """
+    participant = models.ForeignKey(User, on_delete=models.CASCADE)
+    course = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('participant', 'course')
+
+    def __str__(self):
+        return self.participant.get_full_name()

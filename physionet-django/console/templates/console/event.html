@@ -1,0 +1,49 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Events{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% load console_templatetags %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-header">
+        Events <span class="badge badge-pill badge-info">{{ events.paginator.count }}</span> 
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Event Type</th>
+                  <th>Host</th>
+                  <th>Created</th>
+                  <th>Started</th>
+                  <th>Ended</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for event in events %}
+                <tr>
+                    <td>{{ event.name }}</td>
+                    <td>{{ event.event_type }}</td>
+                    <td>{{ event.host }}</td>
+                    <td>{{ event.added_datetime|date }}</td>
+                    <td>{{ event.start_datetime|date }}</td>
+                    <td>{{ event.end_datetime|date }}</td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            {% include "console/pagination.html" with pagination=events %}
+          </div>           
+    </div>
+</div>
+{% endblock %}
+

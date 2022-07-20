@@ -19,3 +19,15 @@ class RequiredField(IntEnum):
     @classmethod
     def choices(cls):
         return tuple((option.value, option.name) for option in cls)
+
+
+class EventType(IntEnum):
+    COURSE = 0
+    DATATHON = 1
+    CONFERENCE = 2
+    WORKSHOP = 3
+    SYMPOSIUM = 4
+
+    @classmethod
+    def choices(cls):
+        return tuple((option.value, option.name) for option in cls)
