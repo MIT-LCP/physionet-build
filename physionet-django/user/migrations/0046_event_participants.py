@@ -18,7 +18,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.TextField()),
-                ('event_type', models.PositiveSmallIntegerField(choices=[(0, 'COURSE'), (1, 'DATATHON'), (2, 'CONFERENCE'), (3, 'WORKSHOP'), (4, 'SYMPOSIUM')], default=user.enums.EventType(0))),
+                ('event_type', models.PositiveSmallIntegerField(choices=[(0, 'COURSE'),
+                                                                         (1, 'DATATHON'),
+                                                                         (2, 'CONFERENCE'),
+                                                                         (3, 'WORKSHOP'),
+                                                                         (4, 'SYMPOSIUM')],
+                                                                default=user.enums.EventType(0))),
                 ('added_datetime', models.DateTimeField(auto_now_add=True)),
                 ('start_datetime', models.DateTimeField()),
                 ('end_datetime', models.DateTimeField()),
@@ -33,7 +38,8 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='user.Event')),
-                ('participant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                ('participant', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                                  to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'unique_together': {('participant', 'course')},
