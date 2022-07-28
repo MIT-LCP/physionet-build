@@ -25,6 +25,11 @@ from user.models import User, CredentialApplication
 
 class Command(BaseCommand):
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--load-demo', '--loaddemo', action='store_true',
+            help='Load demo project data after clearing the DB')
+
     def handle(self, *args, **options):
         # If not in development, prompt warning messages twice
         if 'development' not in settings.ENVIRONMENT:
@@ -72,6 +77,10 @@ class Command(BaseCommand):
 
         # Re-apply migrations
         call_command('migrate')
+
+        # Load demo database content and files
+        if options['load_demo']:
+            call_command('loaddemo')
 
 
 def clear_media_files():
