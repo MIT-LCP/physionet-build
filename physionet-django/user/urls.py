@@ -25,8 +25,7 @@ urlpatterns = [
     path('settings/training/', views.edit_training, name='edit_training'),
     path('settings/training/<int:training_id>/', views.edit_training_detail, name='edit_training_detail'),
     path('settings/agreements/', views.view_agreements, name='edit_agreements'),
-    path('settings/agreements/<id>/',
-        views.view_signed_agreement, name='view_signed_agreement'),
+    path('settings/agreements/<int:id>/', views.view_signed_agreement, name='view_signed_agreement'),
 
     # Current tokens are 20 characters long and consist of 0-9A-Za-z
     # Obsolete tokens are 34 characters long and also include a hyphen
