@@ -1,5 +1,9 @@
 from django.db.models.sql import compiler
-from django.db.models.expressions import OrderBy, Random
+from django.db.models.expressions import OrderBy
+try:
+    from django.db.models.expressions import Random
+except ImportError:
+    from django.db.models.functions import Random
 
 
 class SQLCompiler(compiler.SQLCompiler):
