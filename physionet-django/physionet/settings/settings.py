@@ -23,6 +23,14 @@ DATABASES = {
     }
 }
 
+# In Django 3.2, the default type for primary keys is set to a BigAutoField
+# instead of an AutoField. For backwards compatibility, we need to set the
+# default primary key type to an AutoField.
+# https://docs.djangoproject.com/en/3.2/ref/models/fields/#autofield
+# Consider switching this to a BigAutoField (will require migration).
+# DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 if DEBUG:
     INSTALLED_APPS += ['debug_toolbar']
     MIDDLEWARE += ['debug_toolbar.middleware.DebugToolbarMiddleware']
