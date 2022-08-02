@@ -130,7 +130,7 @@ class Command(BaseCommand):
 
         # Check if there are any migrations applied that we don't know
         # about.
-        ghosts = applied - set(desired)
+        ghosts = applied.keys() - set(desired)
         if ghosts:
             mlist = ', '.join('{}.{}'.format(app, name)
                               for app, name in sorted(ghosts))
