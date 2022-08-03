@@ -42,7 +42,7 @@ class TestViews(TestCase):
     def getActivationUrl(self):
         return re.findall(
             'http://localhost:8000/sso/activate/'
-            '(?P<uidb64>[0-9A-Za-z_-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+            '(?P<uidb64>[0-9A-Za-z_-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})/',
             mail.outbox[0].body,
         )[0]
 
