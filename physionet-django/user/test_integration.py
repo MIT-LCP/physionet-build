@@ -157,7 +157,7 @@ class TestPublic(TestCase):
         self.assertRedirects(response, reverse('reset_password_sent'))
 
         # Get the reset info from the email
-        uidb64, token = re.findall('reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+        uidb64, token = re.findall('reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})/',
             mail.outbox[0].body)[0]
 
         # Visit the reset url which redirects to the password set form
@@ -233,7 +233,7 @@ class TestCredentialing(TestMixin):
         response = self.client.post(reverse('register'),
             data={'email':'admin@upr.edu', 'username':'adminupr',
             'first_names': 'admin', 'last_name': 'upr'})
-        uidb64, token = re.findall('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+        uidb64, token = re.findall('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})/',
             mail.outbox[-1].body)[0]
 
         response = self.client.get(reverse('activate_user', args=(uidb64, token)))
@@ -271,7 +271,7 @@ class TestCredentialing(TestMixin):
             data={'email':'admin@upr.edu', 'username':'sneakyfriend',
             'first_names': 'admin', 'last_name': 'upr',
             'password1':'Very5trongt0t@11y', 'password2':'Very5trongt0t@11y'})
-        uidb64, token = re.findall('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+        uidb64, token = re.findall('activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})/',
             mail.outbox[-1].body)[0]
 
         response = self.client.get(reverse('activate_user', args=(uidb64, token)))

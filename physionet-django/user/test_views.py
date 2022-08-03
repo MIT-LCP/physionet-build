@@ -400,7 +400,7 @@ class TestPublic(TestMixin):
         self.assertFalse(User.objects.get(email='jackreacher@mit.edu').is_active)
 
         # Get the activation info from the sent email
-        uidb64, token = re.findall('http://localhost:8000/activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/',
+        uidb64, token = re.findall('http://localhost:8000/activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})/',
             mail.outbox[0].body)[0]
         # Visit the activation link
         response = self.client.get(reverse('activate_user', args=(uidb64, token)))
