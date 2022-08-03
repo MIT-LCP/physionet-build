@@ -146,7 +146,7 @@ six = "*"
 
 [[package]]
 name = "django-ckeditor"
-version = "5.9.0"
+version = "6.3.2"
 description = "Django admin CKEditor integration."
 category = "main"
 optional = false
@@ -705,7 +705,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "a7a93932b1a20322d2e39ed835ca6e19984dbbea2406c50b529de464a7f0b312"
+content-hash = "13c980e4becd23278c6178a18d12203c51994e2afeaf002c55ca2b4f695c560f"
 
 [metadata.files]
 asgiref = [
@@ -865,8 +865,8 @@ django-background-tasks = [
     {file = "django-background-tasks-1.2.5.tar.gz", hash = "sha256:e1b19e8d495a276c9d64c5a1ff8b41132f75d2f58e45be71b78650dad59af9de"},
 ]
 django-ckeditor = [
-    {file = "django-ckeditor-5.9.0.tar.gz", hash = "sha256:e4d112851a72c5bf8b586e1c674d34084cab16d28f2553ad15cc770d1e9639c7"},
-    {file = "django_ckeditor-5.9.0-py2.py3-none-any.whl", hash = "sha256:71c3c7bb46b0cbfb9712ef64af0d2a406eab233f44ecd7c42c24bdfa39ae3bde"},
+    {file = "django-ckeditor-6.3.2.tar.gz", hash = "sha256:ce0c806e40172dbea35330a207632701a6d418314ae8c8fa140fd277d9322c96"},
+    {file = "django_ckeditor-6.3.2-py2.py3-none-any.whl", hash = "sha256:e1580105c9ff6fcaca6345acda1dc01416733027c61c6387e02dd5960b8ade3c"},
 ]
 django-compat = [
     {file = "django-compat-1.0.15.tar.gz", hash = "sha256:3ac9a3bedc56b9365d9eb241bc5157d0c193769bf995f9a78dc1bc24e7c2331b"},
