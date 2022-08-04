@@ -31,6 +31,7 @@ django-storages = { version = "^1.11.1", extras = ["google"] }
 "pdfminer.six" = "^20211012"
 requests = "2.27.1"
 cffi = "^1.15.1"
+pytz = "^2022.1"
 django-sass = "1.1.0"
 
 [tool.poetry.dev-dependencies]

@@ -550,7 +550,7 @@ python-versions = ">=3.5"
 
 [[package]]
 name = "pytz"
-version = "2021.1"
+version = "2022.1"
 description = "World timezone definitions, modern and historical"
 category = "main"
 optional = false
@@ -728,7 +728,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "fee0cb69bd9c22409de4a37153a245ae4ad1fb040be4c753320d71bd87caf9ba"
+content-hash = "d15980e2f00d84fc7728b03fe7a53b87b0f49579521375e3df131f831ff442d3"
 
 [metadata.files]
 asgiref = [
@@ -1131,8 +1131,8 @@ python-json-logger = [
     {file = "python_json_logger-2.0.2-py3-none-any.whl", hash = "sha256:99310d148f054e858cd5f4258794ed6777e7ad2c3fd7e1c1b527f1cba4d08420"},
 ]
 pytz = [
-    {file = "pytz-2021.1-py2.py3-none-any.whl", hash = "sha256:eb10ce3e7736052ed3623d49975ce333bcd712c7bb19a58b9e2089d4057d0798"},
-    {file = "pytz-2021.1.tar.gz", hash = "sha256:83a4a90894bf38e243cf052c8b58f381bfe9a7a483f6a9cab140bc7f702ac4da"},
+    {file = "pytz-2022.1-py2.py3-none-any.whl", hash = "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c"},
+    {file = "pytz-2022.1.tar.gz", hash = "sha256:1e760e2fe6a8163bc0b3d9a19c4f84342afa0a2affebfaa84b01b978a02ecaa7"},
 ]
 requests = [
     {file = "requests-2.27.1-py2.py3-none-any.whl", hash = "sha256:f22fa1e554c9ddfd16e6e41ac79759e17be9e492b3587efa038054674760e72d"},
@@ -1189,5 +1189,6 @@ webencodings = [
 zxcvbn-python = [
     {file = "zxcvbn-python-4.4.24.tar.gz", hash = "sha256:900b28cc5e96be4091d8778f19f222832890264e338765a1c1c09fca2db64b2d"},
 ]
-django-sass = []
-libsass = []
+django-sass=[]
+libsass=[]
+

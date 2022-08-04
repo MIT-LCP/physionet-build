@@ -86,7 +86,10 @@ if [ -n "$no_static" ]; then
 else
     echo "* Installing new static files..."
     (
-        cd $working_dir/physionet-django
+        cd $working_dir
+        chmod +rwx write.sh
+        ./write.sh
+        cd physionet-django
         ./manage.py sass static/bootstrap/scss/ static/bootstrap/css/
         ./manage.py collectstatic --no-input >> $log_file
     )
