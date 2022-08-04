@@ -87,6 +87,7 @@ else
     echo "* Installing new static files..."
     (
         cd $working_dir/physionet-django
+        ./manage.py sass static/bootstrap/scss/ static/bootstrap/css/
         ./manage.py collectstatic --no-input >> $log_file
     )
 fi
