@@ -8,5 +8,5 @@ echo '$theme-colors: (' > physionet-django/static/bootstrap/scss/theme.scss
 echo '"dark": #'"${DARK}," >> physionet-django/static/bootstrap/scss/theme.scss
 echo '"primary": #'"${PRIMARY}," >> physionet-django/static/bootstrap/scss/theme.scss
 echo ');' >> physionet-django/static/bootstrap/scss/theme.scss
-echo "" >> theme.scss
+echo "" >> physionet-django/static/bootstrap/scss/theme.scss
 echo '@import "bootstrap";' >> physionet-django/static/bootstrap/scss/theme.scss
