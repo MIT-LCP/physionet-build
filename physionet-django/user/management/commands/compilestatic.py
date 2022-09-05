@@ -27,7 +27,7 @@ class Command(BaseCommand):
         # checking if DARK environemnt variable is set
         if os.environ.get('DARK'):
             # setting the the Dark Parameter to the environment variable
-            dark = '#' + str(os.environ.get('DARK'))
+            dark = str(os.environ.get('DARK'))
             # checking if the Dark Parameter is a valid hex color
             if len(dark) != 7:
                 raise CommandError('DARK environment variable is not a valid hex color')
@@ -39,7 +39,7 @@ class Command(BaseCommand):
         # checking if PRIMARY environemnt variable is set
         if os.environ.get('PRIMARY'):
             # setting the the Primary Parameter to the environment variable
-            primary = '#' + str(os.environ.get('PRIMARY'))
+            primary = str(os.environ.get('PRIMARY'))
             # checking if the Primary Parameter is a valid hex color
             if len(primary) != 7:
                 raise CommandError('PRIMARY environment variable is not a valid hex color')

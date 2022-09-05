@@ -102,6 +102,10 @@ jobs:
           coverage run --source='.' manage.py test --verbosity=3 --keepdb
           coverage report -m
 
+      - name: Run Theme File Generation & SCSS Compilation
+        run: |
+          python manage.py compilestatic
+
       - name: Run code style check on changed files relative to PR base branch
         if: github.event_name == 'pull_request'
         run: |
@@ -113,4 +117,4 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           git fetch origin dev
-          git diff -U0 origin/dev HEAD | flake8 --diff
+          git diff -U0 origin/dev HEAD | flake8 --diff 
