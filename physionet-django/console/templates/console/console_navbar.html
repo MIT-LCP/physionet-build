@@ -109,6 +109,32 @@
         </li>
       {% endif %}
 
+      <!-- events -->
+      {% if perms.user.view_event %}
+        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+          {% if events_nav %}
+            <a id="nav_events_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#events" data-parent="#sideAccordion" aria-expanded="true">
+          {% else %}
+            <a id="nav_events_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#events" data-parent="#sideAccordion" aria-expanded="false">
+          {% endif %}
+              <i class="fa fa-fw fa-clipboard-list"></i>
+              <span class="nav-link-text">Events</span>
+            </a>
+            <!-- submenu -->
+          {% if events_nav %}
+            <ul class="sidenav-second-level collapse show" id="events">
+          {% else  %}
+            <ul class="sidenav-second-level collapse" id="events">
+          {% endif %}
+              {% if perms.user.view_event %}
+                <li class="nav-item {% if events_nav %}active{% endif %}">
+                  <a id="nav_active_users" class="nav-link" href="{% url 'event' %}">Event List</a>
+                </li>
+              {% endif %}
+            </ul>
+        </li>
+      {% endif %}
+
       <!-- legal -->
       {% if perms.project.add_dua or perms.project.add_codeofconduct or perms.project.add_license %}
         <li class="nav-item" data-toggle="tooltip" data-placement="right">
@@ -233,7 +259,6 @@
           </a>
         </li>
       {% endif %}
-
       <!-- guidelines and documentation -->
       {% if perms.project.can_view_project_guidelines %}
         <li class="nav-item" data-toggle="tooltip" data-placement="right">

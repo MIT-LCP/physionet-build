@@ -63,6 +63,8 @@ from user.models import (
     Training,
     TrainingQuestion,
     CodeOfConduct,
+    Event,
+    Participants
 )
 from physionet.enums import LogCategory
 from console import forms, utility, services
@@ -704,7 +706,6 @@ def unsubmitted_projects(request):
     projects = ActiveProject.objects.filter(submission_status=0).order_by(
         'creation_datetime')
     projects = paginate(request, projects, 50)
-
     return render(request, 'console/unsubmitted_projects.html',
                   {'projects': projects, 'unsubmitted_projects_nav': True})
 
@@ -2651,3 +2652,17 @@ def code_of_conduct_activate(request, pk):
     messages.success(request, f"The {code_of_conduct.name} has been activated.")
 
     return redirect("code_of_conduct_list")
+
+
+@permission_required('user.view_event', raise_exception=True)
+def event(request):
+    """
+    List of events
+    """
+    events = Event.objects.all()
+    events = paginate(request, events, 50)
+    return render(request, 'console/event.html',
+                  {'events': events,
+                   'events_nav': True
+                   })
+

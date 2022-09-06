@@ -1,13 +1,17 @@
+# from django.db.models import permalink
+from django.db import IntegrityError
 import logging
 import os
 import uuid
+import datetime
 from datetime import timedelta
 
+from django.utils.crypto import get_random_string
 from django.conf import settings
 from django.contrib import messages
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import signals
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
@@ -27,7 +31,7 @@ from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.fields import SafeHTMLField
 from user import validators
 from user.userfiles import UserFiles
-from user.enums import TrainingStatus, RequiredField
+from user.enums import TrainingStatus, RequiredField, EventCategory
 from user.managers import TrainingQuerySet
 
 logger = logging.getLogger(__name__)
@@ -293,6 +297,7 @@ class UserManager(BaseUserManager):
     Manager object with methods to create
     User instances.
     """
+
     def create_user(self, email, password, username, is_active=False,
                     is_admin=False, first_names='', last_name=''):
         if is_admin:
@@ -320,10 +325,10 @@ def validate_unique_email(email):
     """
     if AssociatedEmail.objects.filter(email=email.lower(), is_primary_email=False):
         raise ValidationError(_("User with this email already exists."),
-            code='email_not_unique',)
+                              code='email_not_unique',)
     if User.objects.filter(email=email.lower()):
         raise ValidationError(_("User with this email already exists."),
-            code='email_not_unique',)
+                              code='email_not_unique',)
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -331,12 +336,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     The user authentication model
     """
     email = models.EmailField(max_length=255, unique=True,
-        validators=[validate_unique_email, EmailValidator()])
+                              validators=[validate_unique_email, EmailValidator()])
     username = models.CharField(max_length=50, unique=True,
-        help_text='Required. 4 to 50 characters. Letters, digits and - only. Must start with a letter.',
-        validators=[validators.UsernameValidator()],
-        error_messages={
-            'unique': "A user with that username already exists."})
+                                help_text='Required. 4 to 50 characters. Letters, digits and - only. Must start with a letter.',
+                                validators=[validators.UsernameValidator()],
+                                error_messages={
+                                    'unique': "A user with that username already exists."})
     sso_id = models.CharField(max_length=256, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
@@ -374,7 +379,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.username
-
 
     @property
     def is_staff(self):
@@ -421,9 +425,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 class UserLogin(models.Model):
     """Represent users' logins, one per record"""
     user = models.ForeignKey('user.User', related_name='login_time',
-        on_delete=models.CASCADE)
+                             on_delete=models.CASCADE)
     login_date = models.DateTimeField(auto_now_add=True, null=True)
-    ip = models.CharField(max_length=50,  blank=True, default='', null=True)
+    ip = models.CharField(max_length=50, blank=True, default='', null=True)
 
     class Meta:
         default_permissions = ()
@@ -441,6 +445,7 @@ def update_user_login(sender, **kwargs):
     UserLogin.objects.create(user=user, ip=ip)
     logger.info('User logged in {0}'.format(user.email))
 
+
 signals.user_logged_in.connect(update_user_login, sender=User)
 
 
@@ -449,9 +454,9 @@ class AssociatedEmail(models.Model):
     An email the user associates with their account
     """
     user = models.ForeignKey('user.User', related_name='associated_emails',
-        on_delete=models.CASCADE)
+                             on_delete=models.CASCADE)
     email = models.EmailField(max_length=255, unique=True,
-        validators=[validate_unique_email, EmailValidator()])
+                              validators=[validate_unique_email, EmailValidator()])
     is_primary_email = models.BooleanField(default=False)
     added_date = models.DateTimeField(auto_now_add=True, null=True)
     verification_date = models.DateTimeField(null=True)
@@ -487,6 +492,7 @@ class AssociatedEmail(models.Model):
         if age >= timedelta(days=AssociatedEmail.VERIFICATION_TIMEOUT_DAYS):
             return False
         return True
+
 
 @receiver(post_save, sender=User)
 def create_associated_email(sender, **kwargs):
@@ -547,7 +553,7 @@ class LegacyCredential(models.Model):
     # All are credentialed for mimic
     mimic_approval_date = models.CharField(max_length=100)
     eicu_approval_date = models.CharField(max_length=100, blank=True,
-        default='')
+                                          default='')
     # Their stated reason for using the data
     info = models.CharField(max_length=300, blank=True, default='')
     # Whether the credentialing has been migrated to an account on the
@@ -599,17 +605,17 @@ class Profile(models.Model):
     https://schema.datacite.org/meta/kernel-4.0/doc/DataCite-MetadataKernel_v4.0.pdf
     """
     user = models.OneToOneField('user.User', related_name='profile',
-        on_delete=models.CASCADE)
+                                on_delete=models.CASCADE)
     first_names = models.CharField(max_length=100, validators=[validators.validate_name])
     last_name = models.CharField(max_length=50, validators=[validators.validate_name])
     affiliation = models.CharField(max_length=250, blank=True, default='',
-        validators=[validators.validate_affiliation])
+                                   validators=[validators.validate_affiliation])
     location = models.CharField(max_length=100, blank=True, default='',
-        validators=[validators.validate_location])
+                                validators=[validators.validate_location])
     website = models.URLField(default='', blank=True, null=True)
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True,
-        validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'],
-        'Allowed filetypes are png and jpg only.')])
+                              validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'],
+                                                                 'Allowed filetypes are png and jpg only.')])
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 
@@ -648,7 +654,7 @@ class Orcid(models.Model):
     user = models.OneToOneField('user.User', related_name='orcid',
                                 on_delete=models.CASCADE)
     orcid_id = models.CharField(max_length=50, default='', blank=True,
-                          validators=[validators.validate_orcid_id])
+                                validators=[validators.validate_orcid_id])
     name = models.CharField(max_length=50, default='', blank=True)
     access_token = models.CharField(max_length=50, default='', blank=True,
                                     validators=[validators.validate_orcid_token])
@@ -717,41 +723,41 @@ class CredentialApplication(models.Model):
     slug = models.SlugField(max_length=20, unique=True, db_index=True)
     application_datetime = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey('user.User', related_name='credential_applications',
-        on_delete=models.CASCADE)
+                             on_delete=models.CASCADE)
     # Personal fields
     first_names = models.CharField(max_length=100, validators=[validators.validate_name])
     last_name = models.CharField(max_length=50, validators=[validators.validate_name])
     researcher_category = models.PositiveSmallIntegerField(choices=RESEARCHER_CATEGORIES)
     # Organization fields
     organization_name = models.CharField(max_length=200,
-        validators=[validators.validate_organization])
+                                         validators=[validators.validate_organization])
     job_title = models.CharField(max_length=60,
-        validators=[validators.validate_job_title])
+                                 validators=[validators.validate_job_title])
     city = models.CharField(max_length=100,
-        validators=[validators.validate_city])
+                            validators=[validators.validate_city])
     state_province = models.CharField(max_length=100,
-        validators=[validators.validate_state], default='', blank=True)
+                                      validators=[validators.validate_state], default='', blank=True)
     country = models.CharField(max_length=2, choices=COUNTRIES)
     webpage = models.URLField(default='', blank=True)
     zip_code = models.CharField(max_length=60,
-        validators=[validators.validate_zipcode])
+                                validators=[validators.validate_zipcode])
     suffix = models.CharField(max_length=60,
-        validators=[validators.validate_suffix], default='', blank=True)
+                              validators=[validators.validate_suffix], default='', blank=True)
     # Course info
     course_category = models.PositiveSmallIntegerField(choices=COURSE_CATEGORIES,
-        null=True, blank=True)
+                                                       null=True, blank=True)
     course_info = models.CharField(max_length=100, default='', blank=True,
-        validators=[validators.validate_course])
+                                   validators=[validators.validate_course])
     # Reference
     reference_category = models.PositiveSmallIntegerField(null=True,
-        blank=True, choices=REFERENCE_CATEGORIES)
+                                                          blank=True, choices=REFERENCE_CATEGORIES)
     reference_name = models.CharField(max_length=202, default='', blank=True,
                                       validators=[validators.validate_reference_name])
     reference_email = models.EmailField(default='', blank=True)
     reference_organization = models.CharField(max_length=200,
-        validators=[validators.validate_organization], blank=True)
+                                              validators=[validators.validate_organization], blank=True)
     reference_title = models.CharField(max_length=60, default='', blank=True,
-        validators=[validators.validate_reference_title])
+                                       validators=[validators.validate_reference_title])
     # 0 1 2 3 = pending, rejected, accepted, withdrawn
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT_WITHDRAW)
     reference_contact_datetime = models.DateTimeField(null=True)
@@ -768,9 +774,9 @@ class CredentialApplication(models.Model):
     )
     decision_datetime = models.DateTimeField(null=True)
     responder = models.ForeignKey('user.User', null=True,
-        related_name='responded_applications', on_delete=models.SET_NULL)
+                                  related_name='responded_applications', on_delete=models.SET_NULL)
     responder_comments = models.CharField(max_length=500, default='',
-        blank=True)
+                                          blank=True)
     revoked_datetime = models.DateTimeField(null=True)
 
     class Meta:
@@ -844,13 +850,13 @@ class CredentialApplication(models.Model):
         that the reference has been previously contacted.
         """
         if CredentialApplication.objects.filter(
-            reference_email__iexact=self.reference_email,
-            reference_contact_datetime__isnull=False).exclude(
-            reference_email=''):
+                reference_email__iexact=self.reference_email,
+                reference_contact_datetime__isnull=False).exclude(
+                reference_email=''):
             return True
         elif LegacyCredential.objects.filter(
-            reference_email__iexact=self.reference_email).exclude(
-            reference_email=''):
+                reference_email__iexact=self.reference_email).exclude(
+                reference_email=''):
             return True
         else:
             return False
@@ -861,8 +867,8 @@ class CredentialApplication(models.Model):
         """
         try:
             ref = User.objects.get(
-                    associated_emails__email__iexact=self.reference_email,
-                    associated_emails__is_verified=True)
+                associated_emails__email__iexact=self.reference_email,
+                associated_emails__is_verified=True)
             return True
         except ObjectDoesNotExist:
             return False
@@ -874,8 +880,8 @@ class CredentialApplication(models.Model):
         """
         try:
             ref = User.objects.get(
-                    associated_emails__email__iexact=self.reference_email,
-                    associated_emails__is_verified=True)
+                associated_emails__email__iexact=self.reference_email,
+                associated_emails__is_verified=True)
             return ref
         except ObjectDoesNotExist:
             return None
@@ -887,8 +893,8 @@ class CredentialApplication(models.Model):
         """
         try:
             ref = User.objects.get(
-                    associated_emails__email__iexact=self.reference_email,
-                    associated_emails__is_verified=True)
+                associated_emails__email__iexact=self.reference_email,
+                associated_emails__is_verified=True)
             return ref.is_credentialed
         except ObjectDoesNotExist:
             return False
@@ -960,7 +966,7 @@ class CredentialReview(models.Model):
     """
     REVIEW_STATUS_LABELS = (
         ('', '-----------'),
-        (0,  'Not in review'),
+        (0, 'Not in review'),
         (10, 'ID check'),
         (20, 'Reference'),
         (30, 'Reference response'),
@@ -972,7 +978,7 @@ class CredentialReview(models.Model):
                                        on_delete=models.CASCADE)
 
     status = models.PositiveSmallIntegerField(default=10,
-        choices=REVIEW_STATUS_LABELS)
+                                              choices=REVIEW_STATUS_LABELS)
 
     # Initial review questions
     # No longer checked. Consider removing these.
@@ -1134,13 +1140,14 @@ class CloudInformation(models.Model):
     Location where the cloud accounts for the user will be stored
     """
     user = models.OneToOneField('user.User', related_name='cloud_information',
-        on_delete=models.CASCADE)
+                                on_delete=models.CASCADE)
     gcp_email = models.OneToOneField('user.AssociatedEmail', related_name='gcp_email',
-        on_delete=models.SET_NULL, null=True)
-    aws_id = models.CharField(max_length=60, null=True,  blank=True, default=None)
+                                     on_delete=models.SET_NULL, null=True)
+    aws_id = models.CharField(max_length=60, null=True, blank=True, default=None)
 
     class Meta:
         default_permissions = ()
+
 
 class CodeOfConduct(models.Model):
     name = models.CharField(max_length=100)
@@ -1164,3 +1171,61 @@ class CodeOfConductSignature(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+class Event(models.Model):
+    """
+    Captures information on events such as datathons, workshops and classes.
+    Used to allow event hosts to assist with credentialing.
+    """
+    title = models.CharField(max_length=64, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
+    category = models.PositiveSmallIntegerField(choices=EventCategory.choices(), default=EventCategory.COURSE)
+    host = models.ForeignKey(User, on_delete=models.CASCADE)
+    added_datetime = models.DateTimeField(default=timezone.now)
+    start_date = models.DateField(default=timezone.now)
+    end_date = models.DateField(default=timezone.now)
+    slug = models.SlugField(unique=True, default=get_random_string(length=32))
+
+    class Meta:
+        unique_together = ('title', 'host')
+        permissions = [('create_events', 'Can create events'),
+                       ('view_event_menu', 'Can view event menu')]
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        return f"/event/{self.slug}/"
+
+    def save(self, *args, **kwargs):
+        """ Add Slug creating/checking to save method. """
+        self.slug_save()
+        super(Event, self).save(*args, **kwargs)
+
+    def slug_save(self):
+        self.slug = get_random_string(length=20)
+
+    def enroll_user(self, user):
+        """
+        Adds a participant to an event.
+        """
+        try:
+            Participants.objects.create(user=user, event=self)
+            group = Group.objects.get(name='Participant')
+            user.groups.add(group)
+        except IntegrityError:
+            pass
+
+class Participants(models.Model):
+    """
+    Captures information about participants in an event.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='participants')
+
+    class Meta:
+        unique_together = ('user', 'event')
+
+    def __str__(self):
+        return self.user.get_full_name()

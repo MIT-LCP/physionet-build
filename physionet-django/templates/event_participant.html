@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Events Home{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}">
+{% endblock %} 
+
+{% block content %}
+<div class="container">
+{% if event %}
+    <h2 class="form-signin-heading">Event Registration</h2>
+    You have been invited to join {{ event.host.get_full_name }}'s {{ event.title }} from {{ event.start_date }} to {{ event.end_date }}.
+    If you will participate in {{ event.title }} click confirm.
+    <form  method="post">
+        {% csrf_token %}
+        </p>
+        <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confimr" role="button">Confirm</button>
+       </p>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
