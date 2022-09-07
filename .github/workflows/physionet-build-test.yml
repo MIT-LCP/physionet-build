@@ -104,6 +104,7 @@ jobs:
 
       - name: Run Theme File Generation & SCSS Compilation
         run: |
+          cd physionet-django
           python manage.py compilestatic
 
       - name: Run code style check on changed files relative to PR base branch

@@ -87,10 +87,8 @@ else
     echo "* Installing new static files..."
     (
         cd $working_dir
-        chmod +rwx theme_generator.sh
-        ./theme_generator.sh
         cd physionet-django
-        ./manage.py sass static/bootstrap/scss/ static/bootstrap/css/
+        ./manage.py compilestatic
         ./manage.py collectstatic --no-input >> $log_file
     )
 fi
