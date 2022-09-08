@@ -277,11 +277,4 @@ def event_add_participant(request, event_slug):
             messages.success(request, "You have been enrolled")
             return redirect(event_home)
 
-    url_prefix = 'http://' + request.get_host()
-
-    return render(request, 'event_participant.html',
-                  {'event': event,
-                   'events_nav': True,
-                   'url_prefix': url_prefix,
-                   'user': user
-                   })
+    return render(request, 'event_participant.html', {'event': event})
