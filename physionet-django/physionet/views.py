@@ -1,10 +1,7 @@
 from collections import OrderedDict
-from logging import raiseExceptions
 from os import path
-from re import X, fullmatch
+from re import fullmatch
 from urllib.parse import urljoin
-
-from urllib3 import HTTPResponse
 
 import notification.utility as notification
 from django.contrib import messages
@@ -19,8 +16,8 @@ from project.projectfiles import ProjectFiles
 from physionet.models import Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
-from user.forms import AddEventForm, ContactForm
-from user.models import Event, EventParticipant
+from user.forms import AddEventForm
+from user.models import Event
 
 
 def home(request):
