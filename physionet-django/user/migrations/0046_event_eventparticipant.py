@@ -34,7 +34,8 @@ class Migration(migrations.Migration):
                                            to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'permissions': [('view_event_menu', 'Can view event menu')],
+                'permissions': [('view_all_events', 'Can view all events in the console'),
+                                ('view_event_menu', 'Can view event menu in the navbar')],
                 'unique_together': {('title', 'host')},
             },
         ),
