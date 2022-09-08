@@ -270,9 +270,10 @@ def event_add_participant(request, event_slug):
         return redirect(event_home)
 
     if request.method == 'POST':
-        event.enroll_user(user)
-        messages.success(request, "You have been enrolled")
-        return redirect(event_home)
+        if request.POST.get('confirm_event') == 'confirm':
+            event.enroll_user(user)
+            messages.success(request, "You have been enrolled")
+            return redirect(event_home)
 
     url_prefix = 'http://' + request.get_host()
 

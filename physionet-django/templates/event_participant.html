@@ -12,13 +12,11 @@
 <div class="container">
 {% if event %}
     <h2 class="form-signin-heading">Event Registration</h2>
-    You have been invited to join {{ event.host.get_full_name }}'s {{ event.title }} from {{ event.start_date }} to {{ event.end_date }}.
-    If you will participate in {{ event.title }} click confirm.
+    <p>You have been invited to join {{ event.host.get_full_name }}'s {{ event.title }} from {{ event.start_date }} to {{ event.end_date }}.</p>
+    <p>Click confirm if you are participating in this event.</p>
     <form  method="post">
         {% csrf_token %}
-        </p>
         <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Confirm</button>
-       </p>
     </form>
 </div>
 {% endif %}
