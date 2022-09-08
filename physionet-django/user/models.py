@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib import messages
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import signals
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
@@ -1197,8 +1197,8 @@ class Event(models.Model):
         """
         with transaction.atomic():
             EventParticipant.objects.create(user=user, event=self)
-            group = Group.objects.get(name='Participant')
-            user.groups.add(group)
+            permission = Permission.objects.get(codename="view_event_menu")
+            user.user_permissions.add(permission)
 
 
 class EventParticipant(models.Model):
