@@ -14337,19 +14337,6 @@
   }
 },
 {
-  "model": "auth.group",
-  "fields": {
-    "name": "Participant",
-    "permissions": [
-      [
-        "view_event_menu",
-        "user",
-        "event"
-      ]
-    ]
-  }
-},
-{
   "model": "user.training",
   "pk": 1,
   "fields": {
