@@ -110,7 +110,7 @@
       {% endif %}
 
       <!-- events -->
-      {% if perms.user.view_event %}
+      {% if perms.user.view_all_events %}
         <li class="nav-item" data-toggle="tooltip" data-placement="right">
           {% if events_nav %}
             <a id="nav_events_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#events" data-parent="#sideAccordion" aria-expanded="true">
@@ -126,11 +126,9 @@
           {% else  %}
             <ul class="sidenav-second-level collapse" id="events">
           {% endif %}
-              {% if perms.user.view_event %}
-                <li class="nav-item {% if events_nav %}active{% endif %}">
-                  <a id="nav_active_users" class="nav-link" href="{% url 'event' %}">Event List</a>
-                </li>
-              {% endif %}
+              <li class="nav-item {% if events_nav %}active{% endif %}">
+                <a id="nav_active_users" class="nav-link" href="{% url 'event' %}">Event List</a>
+              </li>
             </ul>
         </li>
       {% endif %}

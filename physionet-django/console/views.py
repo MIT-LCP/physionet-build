@@ -2654,7 +2654,7 @@ def code_of_conduct_activate(request, pk):
     return redirect("code_of_conduct_list")
 
 
-@permission_required('user.view_event', raise_exception=True)
+@permission_required('user.view_all_events', raise_exception=True)
 def event(request):
     """
     List of events
