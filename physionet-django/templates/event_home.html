@@ -13,12 +13,14 @@
   {% include "message_snippet.html" %}
   <div class="jumbotron">
     <h1>Events Home</h1>
-      <p class="lead">Here you can create new events, and access events you are hosting.</p>
       {% if is_instructor %}
+      <p class="lead">Create new events and access event details.</p>
       <p>
         <button class = "btn btn-success" data-toggle ="modal" data-target="#add-event-modal">
           <i class="fa fa-cloud-upload-alt"></i> Create New Event </button>
       </p>
+      {% else %}
+      <p class="lead">View events that you have registered to attend.</p>
       {% endif %} 
 </div>
 
