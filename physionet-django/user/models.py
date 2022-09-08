@@ -1,7 +1,5 @@
 import logging
 import os
-import uuid
-import datetime
 from datetime import timedelta
 
 from django.utils.crypto import get_random_string
@@ -13,7 +11,6 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction, IntegrityError
-from django.contrib.contenttypes.fields import GenericRelation
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.models import CharField

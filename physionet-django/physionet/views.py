@@ -1,4 +1,3 @@
-from django.contrib.auth.decorators import permission_required, login_required
 from collections import OrderedDict
 from logging import raiseExceptions
 from os import path
@@ -9,6 +8,7 @@ from urllib3 import HTTPResponse
 
 import notification.utility as notification
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -20,7 +20,7 @@ from physionet.models import Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
 from user.forms import AddEventForm, ContactForm
-from user.models import Event, Participants
+from user.models import Event, EventParticipant
 
 
 def home(request):
