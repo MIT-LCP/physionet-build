@@ -238,7 +238,10 @@ def event_home(request):
     """
     user = request.user
     is_instructor = user.has_perm('user.create_events')
-    events = Event.objects.filter(Q(host=user) | Q(participants__user=user)).distinct()
+
+    # sqlite doesn't support the distinct() method
+    events = set(Event.objects.filter(Q(host=user) | Q(participants__user=user)))
+
     event_form = AddEventForm(user=user)
 
     url_prefix = 'http://' + request.get_host()
