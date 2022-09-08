@@ -250,6 +250,7 @@ def event_home(request):
         event_form = AddEventForm(user=user, data=request.POST)
         if event_form.is_valid() and is_instructor:
             event_form.save()
+            return redirect(event_home)
 
     return render(request, 'event_home.html',
                   {'events': events,
