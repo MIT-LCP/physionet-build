@@ -1193,15 +1193,6 @@ class Event(models.Model):
     def get_absolute_url(self):
         return f"/event/{self.slug}/"
 
-    def save(self, *args, **kwargs):
-        """ Add Slug creating/checking to save method. """
-        if self.slug == None:
-            self.create_slug()
-        super(Event, self).save(*args, **kwargs)
-
-    def create_slug(self):
-        self.slug = get_random_string(length=12)
-
     def enroll_user(self, user):
         """
         Adds a participant to an event.
