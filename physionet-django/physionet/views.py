@@ -267,7 +267,8 @@ def event_add_participant(request, event_slug):
     Adds participants to an event.
     """
     user = request.user
-    event = Event.objects.get(slug=event_slug)
+
+    event = get_object_or_404(Event, slug=event_slug)
 
     if event.participants.filter(user=user).exists():
         messages.success(request, "You are already enrolled")
