@@ -1191,9 +1191,6 @@ class Event(models.Model):
     def __str__(self):
         return self.title
 
-    def get_absolute_url(self):
-        return f"/event/{self.slug}/"
-
     def enroll_user(self, user):
         """
         Adds a participant to an event.
