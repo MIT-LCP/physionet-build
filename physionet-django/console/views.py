@@ -2665,4 +2665,3 @@ def event(request):
                   {'events': events,
                    'events_nav': True
                    })
-

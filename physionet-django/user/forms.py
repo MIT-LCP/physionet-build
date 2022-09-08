@@ -828,8 +828,8 @@ class AddEventForm(forms.ModelForm):
         super(AddEventForm, self).__init__(*args, **kwargs)
 
     def save(self):
-        event = Event.objects.create(title=self.cleaned_data['title'], category=self.cleaned_data['category'],
-                                     host=self.host,
-                                     start_date=self.cleaned_data['start_date'],
-                                     end_date=self.cleaned_data['end_date']
-                                     )
+        Event.objects.create(title=self.cleaned_data['title'],
+                             category=self.cleaned_data['category'],
+                             host=self.host,
+                             start_date=self.cleaned_data['start_date'],
+                             end_date=self.cleaned_data['end_date'])

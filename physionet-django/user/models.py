@@ -333,10 +333,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(max_length=255, unique=True,
                               validators=[validate_unique_email, EmailValidator()])
     username = models.CharField(max_length=50, unique=True,
-                                help_text='Required. 4 to 50 characters. Letters, digits and - only. Must start with a letter.',
+                                help_text="Required. 4 to 50 characters. "
+                                + "Letters, digits and - only. "
+                                + "Must start with a letter.",
                                 validators=[validators.UsernameValidator()],
-                                error_messages={
-                                    'unique': "A user with that username already exists."})
+                                error_messages={'unique': "A user with that username already exists."})
     sso_id = models.CharField(max_length=256, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
