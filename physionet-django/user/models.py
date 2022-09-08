@@ -1175,7 +1175,7 @@ class Event(models.Model):
     """
     title = models.CharField(max_length=64)
     description = models.TextField(blank=True, null=True)
-    category = models.PositiveSmallIntegerField(choices=EventCategory.choices(), default=EventCategory.COURSE)
+    category = models.CharField(choices=EventCategory.choices, max_length=32)
     host = models.ForeignKey(User, on_delete=models.CASCADE)
     added_datetime = models.DateTimeField(auto_now_add=True)
     start_date = models.DateField(default=timezone.now)

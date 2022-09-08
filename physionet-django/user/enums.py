@@ -1,5 +1,7 @@
 from enum import IntEnum
 
+from django.db import models
+
 
 class TrainingStatus(IntEnum):
     REVIEW = 0
@@ -21,10 +23,6 @@ class RequiredField(IntEnum):
         return tuple((option.value, option.name) for option in cls)
 
 
-class EventCategory(IntEnum):
-    COURSE = 0
-    WORKSHOP = 1
-
-    @classmethod
-    def choices(cls):
-        return tuple((option.value, option.name) for option in cls)
+class EventCategory(models.TextChoices):
+    COURSE = "Course"
+    WORKSHOP = "Workshop"
