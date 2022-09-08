@@ -10,7 +10,7 @@ from django.contrib.auth import signals
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import EmailValidator, FileExtensionValidator
-from django.db import DatabaseError, models, transaction, IntegrityError
+from django.db import DatabaseError, models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.models import CharField
@@ -1197,12 +1197,10 @@ class Event(models.Model):
         """
         Adds a participant to an event.
         """
-        try:
+        with transaction.atomic():
             EventParticipant.objects.create(user=user, event=self)
             group = Group.objects.get(name='Participant')
             user.groups.add(group)
-        except IntegrityError:
-            pass
 
 
 class EventParticipant(models.Model):
