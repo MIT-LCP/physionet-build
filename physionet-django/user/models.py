@@ -1173,7 +1173,7 @@ class Event(models.Model):
     Captures information on events such as datathons, workshops and classes.
     Used to allow event hosts to assist with credentialing.
     """
-    title = models.CharField(max_length=64, blank=True, null=True)
+    title = models.CharField(max_length=64)
     description = models.TextField(blank=True, null=True)
     category = models.PositiveSmallIntegerField(choices=EventCategory.choices(), default=EventCategory.COURSE)
     host = models.ForeignKey(User, on_delete=models.CASCADE)
