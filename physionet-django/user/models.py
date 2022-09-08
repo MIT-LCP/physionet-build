@@ -1,5 +1,3 @@
-# from django.db.models import permalink
-from django.db import IntegrityError
 import logging
 import os
 import uuid
@@ -14,7 +12,7 @@ from django.contrib.auth import signals
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import EmailValidator, FileExtensionValidator
-from django.db import DatabaseError, models, transaction
+from django.db import DatabaseError, models, transaction, IntegrityError
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -1182,10 +1180,10 @@ class Event(models.Model):
     description = models.TextField(blank=True, null=True)
     category = models.PositiveSmallIntegerField(choices=EventCategory.choices(), default=EventCategory.COURSE)
     host = models.ForeignKey(User, on_delete=models.CASCADE)
-    added_datetime = models.DateTimeField(default=timezone.now)
+    added_datetime = models.DateTimeField(auto_now_add=True)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(default=timezone.now)
-    slug = models.SlugField(unique=True, default=get_random_string(length=32))
+    slug = models.SlugField(unique=True, default=get_random_string)
 
     class Meta:
         unique_together = ('title', 'host')
@@ -1200,29 +1198,32 @@ class Event(models.Model):
 
     def save(self, *args, **kwargs):
         """ Add Slug creating/checking to save method. """
-        self.slug_save()
+        if self.slug == None:
+            self.create_slug()
         super(Event, self).save(*args, **kwargs)
 
-    def slug_save(self):
-        self.slug = get_random_string(length=20)
+    def create_slug(self):
+        self.slug = get_random_string(length=12)
 
     def enroll_user(self, user):
         """
         Adds a participant to an event.
         """
         try:
-            Participants.objects.create(user=user, event=self)
+            EventParticipant.objects.create(user=user, event=self)
             group = Group.objects.get(name='Participant')
             user.groups.add(group)
         except IntegrityError:
             pass
 
-class Participants(models.Model):
+
+class EventParticipant(models.Model):
     """
     Captures information about participants in an event.
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='participants')
+    added_datetime = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('user', 'event')
