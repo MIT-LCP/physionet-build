@@ -237,7 +237,7 @@ def event_home(request):
     List of events
     """
     user = request.user
-    is_instructor = user.has_perm('user.create_events')
+    is_instructor = user.has_perm('user.add_event')
 
     # sqlite doesn't support the distinct() method
     events = set(Event.objects.filter(Q(host=user) | Q(participants__user=user)))

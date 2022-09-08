@@ -1184,8 +1184,7 @@ class Event(models.Model):
 
     class Meta:
         unique_together = ('title', 'host')
-        permissions = [('create_events', 'Can create events'),
-                       ('view_event_menu', 'Can view event menu')]
+        permissions = [('view_event_menu', 'Can view event menu')]
 
     def __str__(self):
         return self.title
