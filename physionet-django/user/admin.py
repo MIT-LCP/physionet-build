@@ -93,4 +93,4 @@ admin.site.register(models.TrainingRegex)
 
 # Register the Event and Participants on the site
 admin.site.register(models.Event)
-admin.site.register(models.Participants)
+admin.site.register(models.EventParticipant)

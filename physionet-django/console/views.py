@@ -64,7 +64,7 @@ from user.models import (
     TrainingQuestion,
     CodeOfConduct,
     Event,
-    Participants
+    EventParticipant
 )
 from physionet.enums import LogCategory
 from console import forms, utility, services
