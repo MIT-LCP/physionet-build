@@ -241,7 +241,7 @@ def event_home(request):
 
     event_form = AddEventForm(user=user)
 
-    url_prefix = 'http://' + request.get_host()
+    url_prefix = notification.get_url_prefix(request)
 
     if request.method == 'POST':
         event_form = AddEventForm(user=user, data=request.POST)
@@ -251,7 +251,6 @@ def event_home(request):
 
     return render(request, 'event_home.html',
                   {'events': events,
-                   'events_nav': True,
                    'event_form': event_form,
                    'url_prefix': url_prefix,
                    'is_instructor': is_instructor
