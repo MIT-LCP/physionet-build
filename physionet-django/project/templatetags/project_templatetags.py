@@ -87,7 +87,7 @@ def access_description(access_policy):
             'Anyone can access the files, as long as they conform to the terms of the specified license.'
         ),
         AccessPolicy.RESTRICTED: (
-            'Only logged in users who sign the specified data use agreement can access the files.'
+            'Only registered users who sign the specified data use agreement can access the files.'
         ),
         AccessPolicy.CREDENTIALED: ('Only credentialed users who sign the DUA can access the files.'),
         AccessPolicy.CONTRIBUTOR_REVIEW: (
