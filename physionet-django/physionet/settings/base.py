@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'ckeditor',
     # 'django_cron',
     'background_task',
+    'rest_framework',
 
     'user',
     'project',
