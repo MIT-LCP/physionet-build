@@ -3,6 +3,8 @@
 import os
 
 from django.core.management.base import BaseCommand, CommandError
+from decouple import config
+from django.core.management import call_command
 
 def theme_generator(dark, primary):
     # creating the theme file
@@ -21,43 +23,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        dark = '#343A40'
-        primary = '#002A5C'
+        # getting the environment variables
+        dark = config('DARK', default='#343A40')
+        if len(dark) != 7:
+            raise CommandError('DARK environment variable is not a valid hex color')
 
-        # checking if DARK environemnt variable is set
-        if os.environ.get('DARK'):
-            # setting the the Dark Parameter to the environment variable
-            dark = str(os.environ.get('DARK'))
-            # checking if the Dark Parameter is a valid hex color
-            if len(dark) != 7:
-                raise CommandError('DARK environment variable is not a valid hex color')
-            # announcing the change
-            self.stdout.write(self.style.SUCCESS('DARK environment variable set to %s' % dark))
+        primary = config('PRIMARY', default='#002A5C')
+        if len(primary) != 7:
+            raise CommandError('PRIMARY environment variable is not a valid hex color')
 
+        # calling the theme generator function
+        theme_generator(dark, primary)
+        # calling the compile static command
+        call_command('sass', 'static/bootstrap/scss/', 'static/bootstrap/css/')
 
-
-        # checking if PRIMARY environemnt variable is set
-        if os.environ.get('PRIMARY'):
-            # setting the the Primary Parameter to the environment variable
-            primary = str(os.environ.get('PRIMARY'))
-            # checking if the Primary Parameter is a valid hex color
-            if len(primary) != 7:
-                raise CommandError('PRIMARY environment variable is not a valid hex color')
-            # announcing the change
-            self.stdout.write(self.style.SUCCESS('PRIMARY environment variable set to %s' % primary))
-
-
-        try:
-            # calling the theme generator function
-            theme_generator(dark, primary)
-            try:
-                # compiling the static files
-                os.system('python manage.py sass static/bootstrap/scss/ static/bootstrap/css/')
-            except Exception as e:
-                # printing the error message
-                print(e)
-                exit(1)            
-            # writing the success message
-            self.stdout.write(self.style.SUCCESS('Successfully compiled static Sass files'))
-        except Exception as e:
-            raise CommandError('Error compiling static files: %s' % e)        
+        # writing the success message
+        self.stdout.write(self.style.SUCCESS('Successfully compiled static Sass files'))
