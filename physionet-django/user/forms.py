@@ -16,6 +16,7 @@ from user.models import (
     AssociatedEmail,
     CloudInformation,
     CredentialApplication,
+    Event,
     Profile,
     User,
     Training,
@@ -27,7 +28,7 @@ from user.models import (
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
 from user.validators import UsernameValidator, validate_name
-from user.widgets import ProfilePhotoInput
+from user.widgets import ProfilePhotoInput, DatePickerInput
 
 from django.db.models import OuterRef, Exists
 
@@ -808,3 +809,27 @@ class TrainingForm(forms.ModelForm):
         TrainingQuestion.objects.bulk_create(training_questions)
 
         return training
+
+
+class AddEventForm(forms.ModelForm):
+    """
+    A form for adding events.
+    """
+    class Meta:
+        model = Event
+        fields = ('title', 'start_date', 'end_date', 'category')
+        labels = {'title': 'Event Name', 'start_date': 'Start Date',
+                  'end_date': 'End Date', 'category': 'Category'}
+        widgets = {'start_date': DatePickerInput(),
+                   'end_date': DatePickerInput()}
+
+    def __init__(self, user, *args, **kwargs):
+        self.host = user
+        super(AddEventForm, self).__init__(*args, **kwargs)
+
+    def save(self):
+        Event.objects.create(title=self.cleaned_data['title'],
+                             category=self.cleaned_data['category'],
+                             host=self.host,
+                             start_date=self.cleaned_data['start_date'],
+                             end_date=self.cleaned_data['end_date'])

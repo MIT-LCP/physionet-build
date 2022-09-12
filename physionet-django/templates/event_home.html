@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Events Home{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}">
+{% endblock %} 
+
+{% block content %}
+<div class="container">
+  {% include "message_snippet.html" %}
+  <div class="jumbotron">
+    <h1>Events Home</h1>
+      {% if is_instructor %}
+      <p class="lead">Create new events and access event details.</p>
+      <p>
+        <button class = "btn btn-success" data-toggle ="modal" data-target="#add-event-modal">
+          <i class="fa fa-cloud-upload-alt"></i> Create New Event </button>
+      </p>
+      {% else %}
+      <p class="lead">View events that you have registered to attend.</p>
+      {% endif %} 
+</div>
+
+  <div class="modal fade" id="add-event-modal" tabindex="-1" role="dialog" aria-labelledby="add-event-modal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Event</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="container">
+          <form action="" method="post" class="form-signin">
+            {% csrf_token %}
+            {% include "form_snippet.html" with form=event_form %}
+            <button class="btn btn-primary btn-fixed" name="add-event" type="submit">Add Event</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Active events -->
+
+  <div class="card" >
+    <div class="card-header">
+      <h2>Active Events</h2>
+      <p class="card-text">Events to be hosted</p>
+    </div>
+    
+    <ul class="list-group list-group-flush">
+      {% if events %}
+        {% for event in events %}
+          <li class="list-group-item">
+            <h3>{{ event.title }}</h3>
+            <p class="list-group-item-text text-muted">
+            <strong>Host: {{ event.host.get_full_name }} </strong><br>
+            <small>Created: {{ event.added_datetime|date }}. Number of participants: {{ event.participants.all|length }} </small><br>
+            <small>Start Date: {{ event.start_date }}. End Date: {{ event.end_date }}.</small><br>
+            {% if event.host == user %}
+              <small>Share the class code: {{ url_prefix }}{% url 'event_add_participant' event.slug %} </small><br>
+              </p>
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
+            {% endif %}
+          </li>
+        {% endfor %}
+      {% else %}
+        <div class="card-body text-center">
+          <p class="card-text">No events to show</p>
+        </div>
+      {% endif %}
+    </ul>
+  </div>
+  <br>
+  {% if events %}
+    {% for event in events %}
+      <div class="modal fade" id="add-participant-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="add-participant-modal" aria-hidden="true">
+        <div class="modal-dialog modal-lg"  role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Participants</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+
+              <div class="table-responsive">
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Username</th>
+                      <th>Full name</th>
+                      <th>Email</th>
+                      <th>Credentialed</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for participant in event.participants.all %}
+                      <tr>
+                        <td>{{ participant.user.username }}</td>
+                        <td>{{ participant.user.get_full_name }}</td>
+                        <td>{{ participant.user.email }}</td>
+                        <td>{{ participant.user.is_credentialed }}</td>  
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>      
+            </div>
+          </div>
+        </div>
+    {% endfor %}
+  {% endif %}
+  </div>
+
+{% endblock %}
