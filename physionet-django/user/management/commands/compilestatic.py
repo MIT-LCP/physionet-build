@@ -1,10 +1,9 @@
 # Management Command to compile static Sass files
-
 import os
-
 from django.core.management.base import BaseCommand, CommandError
 from decouple import config
 from django.core.management import call_command
+
 
 def theme_generator(dark, primary):
     # creating the theme file
@@ -17,6 +16,7 @@ def theme_generator(dark, primary):
         f.write('"dark" : ' + dark + ',\n')
         f.write(');\n')
         f.write('@import "bootstrap"\n')
+
 
 class Command(BaseCommand):
     help = 'Compile static Sass files'
