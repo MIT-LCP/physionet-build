@@ -35,7 +35,7 @@ class Command(BaseCommand):
         # calling the theme generator function
         theme_generator(dark, primary)
         # calling the compile static command
-        call_command('sass', 'static/bootstrap/scss/', 'static/bootstrap/css/')
+        call_command('sass', 'static/bootstrap/scss/theme.scss', 'static/bootstrap/css/bootstrap.css')
 
         # writing the success message
         self.stdout.write(self.style.SUCCESS('Successfully compiled static Sass files'))
