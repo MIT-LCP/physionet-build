@@ -111,3 +111,12 @@ If the migration behavior interacts with other changes that have been applied to
  * Generate new migrations by running `./manage.py makemigrations`
  * `./manage.py migrate && ./manage.py test`
  * `git add */migrations/ && git commit`
+
+
+ #### Theming Instructions
+Working of the theming system:
+The only manual step required is adding the PRIMARY and DARK Environment variables to the system.
+* theme_generator.sh generated the theme.scss file.
+* Following that, during deployment, the compilation occurs before collectstatic command.
+* The compilation generates the bootstrap css files imported in base_css.html
+

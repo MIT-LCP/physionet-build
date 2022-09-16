@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'search',
     'lightwave',
     'physionet',
+    'django_sass',
 ]
 
 if ENABLE_SSO:
