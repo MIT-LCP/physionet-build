@@ -269,6 +269,10 @@ def event_add_participant(request, event_slug):
 
     event = get_object_or_404(Event, slug=event_slug)
 
+    if event.end_date < datetime.now().date():
+        messages.error(request, "This event has now finished")
+        return redirect(event_home)    
+
     if event.participants.filter(user=user).exists():
         messages.success(request, "You are already enrolled")
         return redirect(event_home)
