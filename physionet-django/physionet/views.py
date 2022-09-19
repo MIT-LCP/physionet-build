@@ -2,6 +2,7 @@ from collections import OrderedDict
 from os import path
 from re import fullmatch
 from urllib.parse import urljoin
+from datetime import datetime
 
 import notification.utility as notification
 from django.contrib import messages
@@ -237,8 +238,9 @@ def event_home(request):
     is_instructor = user.has_perm('user.add_event')
 
     # sqlite doesn't support the distinct() method
-    events = set(Event.objects.filter(Q(host=user) | Q(participants__user=user)))
-
+    events_previous = Event.objects.filter(Q(host=user) | Q(participants__user=user))
+    events = set(events_previous.filter(end_date__gte=datetime.now()))
+    past_events = set(events_previous.filter(end_date__lt=datetime.now()))
     event_form = AddEventForm(user=user)
 
     url_prefix = notification.get_url_prefix(request)
@@ -251,6 +253,7 @@ def event_home(request):
 
     return render(request, 'event_home.html',
                   {'events': events,
+                   'past_events': past_events,
                    'event_form': event_form,
                    'url_prefix': url_prefix,
                    'is_instructor': is_instructor
