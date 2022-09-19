@@ -134,7 +134,6 @@
             <small>Created: {{ event.added_datetime|date }}. Number of participants: {{ event.participants.all|length }} </small><br>
             <small>Start Date: {{ event.start_date }}. End Date: {{ event.end_date }}.</small><br>
             {% if event.host == user %}
-              <small>Share the class code: {{ url_prefix }}{% url 'event_add_participant' event.slug %} </small><br>
               </p>
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
             {% endif %}
