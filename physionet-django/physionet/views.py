@@ -2,6 +2,7 @@ from collections import OrderedDict
 from os import path
 from re import fullmatch
 from urllib.parse import urljoin
+from datetime import datetime
 
 import notification.utility as notification
 from django.contrib import messages
@@ -237,8 +238,9 @@ def event_home(request):
     is_instructor = user.has_perm('user.add_event')
 
     # sqlite doesn't support the distinct() method
-    events = set(Event.objects.filter(Q(host=user) | Q(participants__user=user)))
-
+    events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
+    events_active = set(events_all.filter(end_date__gte=datetime.now()))
+    events_past = set(events_all.filter(end_date__lt=datetime.now()))
     event_form = AddEventForm(user=user)
 
     url_prefix = notification.get_url_prefix(request)
@@ -250,7 +252,8 @@ def event_home(request):
             return redirect(event_home)
 
     return render(request, 'event_home.html',
-                  {'events': events,
+                  {'events_active': events_active,
+                   'events_past': events_past,
                    'event_form': event_form,
                    'url_prefix': url_prefix,
                    'is_instructor': is_instructor
@@ -265,6 +268,10 @@ def event_add_participant(request, event_slug):
     user = request.user
 
     event = get_object_or_404(Event, slug=event_slug)
+
+    if event.end_date < datetime.now().date():
+        messages.error(request, "This event has now finished")
+        return redirect(event_home)
 
     if event.participants.filter(user=user).exists():
         messages.success(request, "You are already enrolled")
