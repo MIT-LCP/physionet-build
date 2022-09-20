@@ -52,8 +52,7 @@
     </div>
     
     <ul class="list-group list-group-flush">
-      {% if events_active %}
-        {% for event in events_active %}
+      {% for event in events_active %}
           <li class="list-group-item">
             <h3>{{ event.title }}</h3>
             <p class="list-group-item-text text-muted">
@@ -66,12 +65,11 @@
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
             {% endif %}
           </li>
-        {% endfor %}
-      {% else %}
+      {% empty %}
         <div class="card-body text-center">
           <p class="card-text">No events to show</p>
         </div>
-      {% endif %}
+      {% endfor %}
     </ul>
   </div>
   <br>
@@ -123,8 +121,7 @@
     </div>
     
     <ul class="list-group list-group-flush">
-      {% if events_past %}
-        {% for event in events_past %}
+      {% for event in events_past %}
           <li class="list-group-item">
             <h3>{{ event.title }}</h3>
             <p class="list-group-item-text text-muted">
@@ -136,12 +133,11 @@
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
             {% endif %}
           </li>
-        {% endfor %}
-      {% else %}
+      {% empty %}
         <div class="card-body text-center">
           <p class="card-text">No events to show</p>
         </div>
-      {% endif %}
+      {% endfor %}
     </ul>
   </div>
   <br>
