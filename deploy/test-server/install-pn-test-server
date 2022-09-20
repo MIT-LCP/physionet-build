@@ -144,6 +144,7 @@ su pn -c '
 
    cd /physionet/physionet-build/physionet-django
    pip3 install -r ../requirements.txt
+   python3 manage.py compilestatic
    python3 manage.py collectstatic --no-input
 
    cd /physionet/physionet-build/physionet-django

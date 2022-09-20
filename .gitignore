@@ -142,3 +142,10 @@ physionet-django/*credentials*
 
 # Pycharm / JetBrains / IntelliJ project specific settings folder
 .idea/
+
+# Theme.scss & other css files
+physionet-django/static/bootstrap/scss/theme.scss
+physionet-django/static/bootstrap/css/bootstrap-grid.css
+physionet-django/static/bootstrap/css/bootstrap-reboot.css
+physionet-django/static/bootstrap/css/bootstrap.css
+physionet-django/static/bootstrap/css/theme.css

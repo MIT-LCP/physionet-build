@@ -14117,87 +14117,223 @@
 },
 {
   "model": "auth.group",
-  "pk": 1,
   "fields": {
-      "name": "Admin",
-      "permissions": [
-        33,
-        34,
-        35,
-        36,
-        37,
-        38,
-        39,
-        40,
-        41,
-        42,
-        43,
-        44,
-        45,
-        46,
-        47,
-        48
+    "name": "Admin",
+    "permissions": [
+      [
+        "change_news",
+        "notification",
+        "news"
+      ],
+      [
+        "change_staticpage",
+        "physionet",
+        "staticpage"
+      ],
+      [
+        "can_assign_editor",
+        "project",
+        "activeproject"
+      ],
+      [
+        "change_activeproject",
+        "project",
+        "activeproject"
+      ],
+      [
+        "change_archivedproject",
+        "project",
+        "archivedproject"
+      ],
+      [
+        "add_dua",
+        "project",
+        "dua"
+      ],
+      [
+        "add_license",
+        "project",
+        "license"
+      ],
+      [
+        "can_edit_featured_content",
+        "project",
+        "publishedproject"
+      ],
+      [
+        "can_view_access_logs",
+        "project",
+        "publishedproject"
+      ],
+      [
+        "can_view_project_guidelines",
+        "project",
+        "publishedproject"
+      ],
+      [
+        "can_view_stats",
+        "project",
+        "publishedproject"
+      ],
+      [
+        "change_publishedproject",
+        "project",
+        "publishedproject"
+      ],
+      [
+        "change_storagerequest",
+        "project",
+        "storagerequest"
+      ],
+      [
+        "add_codeofconduct",
+        "user",
+        "codeofconduct"
+      ],
+      [
+        "change_credentialapplication",
+        "user",
+        "credentialapplication"
+      ],
+      [
+        "view_user",
+        "user",
+        "user"
       ]
+    ]
   }
 },
 {
   "model": "auth.group",
-  "pk": 2,
   "fields": {
-      "name": "Managing Editor",
-      "permissions": [
-        36,
-        37,
-        38,
-        40,
-        42,
-        44,
-        45
+    "name": "Managing Editor",
+    "permissions": [
+      [
+        "can_assign_editor",
+        "project",
+        "activeproject"
+      ],
+      [
+        "change_activeproject",
+        "project",
+        "activeproject"
+      ],
+      [
+        "change_archivedproject",
+        "project",
+        "archivedproject"
+      ],
+      [
+        "can_view_access_logs",
+        "project",
+        "publishedproject"
+      ],
+      [
+        "can_view_stats",
+        "project",
+        "publishedproject"
+      ],
+      [
+        "change_publishedproject",
+        "project",
+        "publishedproject"
+      ],
+      [
+        "change_storagerequest",
+        "project",
+        "storagerequest"
       ]
+    ]
   }
 },
 {
   "model": "auth.group",
-  "pk": 3,
   "fields": {
-      "name": "Handling Editor",
-      "permissions": [
-        36,
-        42
+    "name": "Handling Editor",
+    "permissions": [
+      [
+        "change_activeproject",
+        "project",
+        "activeproject"
+      ],
+      [
+        "can_view_access_logs",
+        "project",
+        "publishedproject"
       ]
+    ]
   }
 },
 {
   "model": "auth.group",
-  "pk": 4,
   "fields": {
-      "name": "Reviewer",
-      "permissions": [
-        36
+    "name": "Reviewer",
+    "permissions": [
+      [
+        "change_activeproject",
+        "project",
+        "activeproject"
       ]
+    ]
   }
 },
 {
   "model": "auth.group",
-  "pk": 5,
   "fields": {
-      "name": "Writer",
-      "permissions": [
-        41,
-        47,
-        48
+    "name": "Writer",
+    "permissions": [
+      [
+        "change_news",
+        "notification",
+        "news"
+      ],
+      [
+        "change_staticpage",
+        "physionet",
+        "staticpage"
+      ],
+      [
+        "can_edit_featured_content",
+        "project",
+        "publishedproject"
       ]
+    ]
   }
 },
 {
   "model": "auth.group",
-  "pk": 6,
   "fields": {
-      "name": "Credentialer",
-      "permissions": [
-          33,
-          34
+    "name": "Credentialer",
+    "permissions": [
+      [
+        "change_credentialapplication",
+        "user",
+        "credentialapplication"
+      ],
+      [
+        "view_user",
+        "user",
+        "user"
       ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "Host",
+    "permissions": [
+      [
+        "add_event",
+        "user",
+        "event"
+      ],
+      [
+        "view_event_menu",
+        "user",
+        "event"
+      ]
+    ]
   }
 },
 {

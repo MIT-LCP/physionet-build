@@ -2,19 +2,23 @@ from collections import OrderedDict
 from os import path
 from re import fullmatch
 from urllib.parse import urljoin
+from datetime import datetime
 
 import notification.utility as notification
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.db.models import Q
 from django.db.models.functions import Lower
 from django.http import Http404, HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from notification.models import News
 from project.projectfiles import ProjectFiles
 from physionet.models import Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
-from user.forms import ContactForm
+from user.forms import AddEventForm
+from user.models import Event
 
 
 def home(request):
@@ -119,7 +123,7 @@ def database_overview(request):
         projects[i]['policy'] = policy
         projects[i]['projects'] = PublishedProject.objects.filter(
             access_policy=i, resource_type=0, is_latest_version=True
-            ).order_by(Lower('title'))
+        ).order_by(Lower('title'))
 
     return render(request, 'about/database_index.html',
                   {'projects': projects})
@@ -140,20 +144,20 @@ def challenge_overview(request):
     Temporary content overview
     """
     all_challenges = PublishedProject.objects.filter(resource_type=2,
-        is_latest_version=True).order_by('-publish_datetime')
+                                                     is_latest_version=True).order_by('-publish_datetime')
 
     for challenge in all_challenges:
         if fullmatch(r'challenge-[0-9]{4}$', challenge.slug):
             challenge.year = challenge.slug.split('-')[1]
-        if path.exists(path.join(challenge.file_root() , 'sources')):
+        if path.exists(path.join(challenge.file_root(), 'sources')):
             challenge.sources = True
-            if path.exists(path.join(challenge.file_root() , 'sources/index.html')):
+            if path.exists(path.join(challenge.file_root(), 'sources/index.html')):
                 challenge.sources_index = True
-        if path.exists(path.join(challenge.file_root() , 'papers/index.html')):
+        if path.exists(path.join(challenge.file_root(), 'papers/index.html')):
             challenge.papers = True
 
     return render(request, 'about/challenge_index.html',
-        {'all_challenges': all_challenges})
+                  {'all_challenges': all_challenges})
 
 
 def moody_challenge_overview(request):
@@ -217,8 +221,66 @@ def static_view(request, static_url=None):
 
     return render(request, 'about/static_template.html', params)
 
+
 def tutorial_overview(request):
     """
     Temporary content overview
     """
     return render(request, 'about/tutorial_index.html')
+
+
+@login_required
+def event_home(request):
+    """
+    List of events
+    """
+    user = request.user
+    is_instructor = user.has_perm('user.add_event')
+
+    # sqlite doesn't support the distinct() method
+    events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
+    events_active = set(events_all.filter(end_date__gte=datetime.now()))
+    events_past = set(events_all.filter(end_date__lt=datetime.now()))
+    event_form = AddEventForm(user=user)
+
+    url_prefix = notification.get_url_prefix(request)
+
+    if request.method == 'POST':
+        event_form = AddEventForm(user=user, data=request.POST)
+        if event_form.is_valid() and is_instructor:
+            event_form.save()
+            return redirect(event_home)
+
+    return render(request, 'event_home.html',
+                  {'events_active': events_active,
+                   'events_past': events_past,
+                   'event_form': event_form,
+                   'url_prefix': url_prefix,
+                   'is_instructor': is_instructor
+                   })
+
+
+@login_required
+def event_add_participant(request, event_slug):
+    """
+    Adds participants to an event.
+    """
+    user = request.user
+
+    event = get_object_or_404(Event, slug=event_slug)
+
+    if event.end_date < datetime.now().date():
+        messages.error(request, "This event has now finished")
+        return redirect(event_home)
+
+    if event.participants.filter(user=user).exists():
+        messages.success(request, "You are already enrolled")
+        return redirect(event_home)
+
+    if request.method == 'POST':
+        if request.POST.get('confirm_event') == 'confirm':
+            event.enroll_user(user)
+            messages.success(request, "You have been enrolled")
+            return redirect(event_home)
+
+    return render(request, 'event_participant.html', {'event': event})

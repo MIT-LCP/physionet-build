@@ -86,7 +86,9 @@ if [ -n "$no_static" ]; then
 else
     echo "* Installing new static files..."
     (
-        cd $working_dir/physionet-django
+        cd $working_dir
+        cd physionet-django
+        ./manage.py compilestatic
         ./manage.py collectstatic --no-input >> $log_file
     )
 fi
