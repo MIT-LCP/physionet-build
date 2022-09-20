@@ -84,29 +84,7 @@
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-
-              <div class="table-responsive">
-                <table class="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th>Username</th>
-                      <th>Full name</th>
-                      <th>Email</th>
-                      <th>Credentialed</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for participant in event.participants.all %}
-                      <tr>
-                        <td>{{ participant.user.username }}</td>
-                        <td>{{ participant.user.get_full_name }}</td>
-                        <td>{{ participant.user.email }}</td>
-                        <td>{{ participant.user.is_credentialed }}</td>  
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>      
+              {% include 'event_entries.html' %}
             </div>
           </div>
         </div>
@@ -152,29 +130,7 @@
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-
-              <div class="table-responsive">
-                <table class="table table-bordered">
-                  <thead>
-                    <tr>
-                      <th>Username</th>
-                      <th>Full name</th>
-                      <th>Email</th>
-                      <th>Credentialed</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {% for participant in event.participants.all %}
-                      <tr>
-                        <td>{{ participant.user.username }}</td>
-                        <td>{{ participant.user.get_full_name }}</td>
-                        <td>{{ participant.user.email }}</td>
-                        <td>{{ participant.user.is_credentialed }}</td>  
-                      </tr>
-                    {% endfor %}
-                  </tbody>
-                </table>
-              </div>      
+              {% include 'event_entries.html' %}
             </div>
           </div>
         </div>
