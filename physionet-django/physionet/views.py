@@ -271,7 +271,7 @@ def event_add_participant(request, event_slug):
 
     if event.end_date < datetime.now().date():
         messages.error(request, "This event has now finished")
-        return redirect(event_home)    
+        return redirect(event_home)
 
     if event.participants.filter(user=user).exists():
         messages.success(request, "You are already enrolled")
