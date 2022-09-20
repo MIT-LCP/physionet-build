@@ -238,9 +238,9 @@ def event_home(request):
     is_instructor = user.has_perm('user.add_event')
 
     # sqlite doesn't support the distinct() method
-    events_previous = Event.objects.filter(Q(host=user) | Q(participants__user=user))
-    events = set(events_previous.filter(end_date__gte=datetime.now()))
-    past_events = set(events_previous.filter(end_date__lt=datetime.now()))
+    events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
+    events_active = set(events_all.filter(end_date__gte=datetime.now()))
+    events_past = set(events_all.filter(end_date__lt=datetime.now()))
     event_form = AddEventForm(user=user)
 
     url_prefix = notification.get_url_prefix(request)
@@ -252,8 +252,8 @@ def event_home(request):
             return redirect(event_home)
 
     return render(request, 'event_home.html',
-                  {'events': events,
-                   'past_events': past_events,
+                  {'events_active': events_active,
+                   'events_past': events_past,
                    'event_form': event_form,
                    'url_prefix': url_prefix,
                    'is_instructor': is_instructor

@@ -52,8 +52,8 @@
     </div>
     
     <ul class="list-group list-group-flush">
-      {% if events %}
-        {% for event in events %}
+      {% if events_active %}
+        {% for event in events_active %}
           <li class="list-group-item">
             <h3>{{ event.title }}</h3>
             <p class="list-group-item-text text-muted">
@@ -75,8 +75,8 @@
     </ul>
   </div>
   <br>
-  {% if events %}
-    {% for event in events %}
+  {% if events_active %}
+    {% for event in events_active %}
       <div class="modal fade" id="add-participant-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="add-participant-modal" aria-hidden="true">
         <div class="modal-dialog modal-lg"  role="document">
           <div class="modal-content">
@@ -123,8 +123,8 @@
     </div>
     
     <ul class="list-group list-group-flush">
-      {% if events %}
-        {% for event in past_events %}
+      {% if events_past %}
+        {% for event in events_past %}
           <li class="list-group-item">
             <h3>{{ event.title }}</h3>
             <p class="list-group-item-text text-muted">
@@ -145,8 +145,8 @@
     </ul>
   </div>
   <br>
-  {% if events %}
-    {% for event in past_events %}
+  {% if events_past %}
+    {% for event in events_past %}
       <div class="modal fade" id="add-participant-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="add-participant-modal" aria-hidden="true">
         <div class="modal-dialog modal-lg"  role="document">
           <div class="modal-content">
