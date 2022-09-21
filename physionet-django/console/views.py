@@ -1281,7 +1281,11 @@ def credential_processing(request):
     Process applications for credentialed access.
     """
     applications = CredentialApplication.objects.filter(status=0).select_related('user__profile')
-
+    if 'event' in request.GET:
+        slug = request.GET['event']
+        event = Event.objects.get(slug=slug)
+        users = User.objects.filter(eventparticipant__event=event)
+        applications = applications.filter(user__in=users)
     # Awaiting initial review
     initial_1 = Q(credential_review__isnull=True)
     initial_2 = Q(credential_review__status=10)
@@ -2661,6 +2665,7 @@ def event(request):
     """
     events = Event.objects.all()
     events = paginate(request, events, 50)
+
     return render(request, 'console/event.html',
                   {'events': events,
                    'events_nav': True
