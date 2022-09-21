@@ -1,3 +1,4 @@
+from cProfile import Profile
 import logging
 import os
 import pdb
@@ -45,6 +46,7 @@ from project.models import Author, DUASignature, DUA, PublishedProject
 from requests_oauthlib import OAuth2Session
 from user import forms, validators
 from user.models import (
+    Profile,
     AssociatedEmail,
     CodeOfConduct,
     CodeOfConductSignature,
@@ -59,7 +61,7 @@ from user.models import (
 from user.userfiles import UserFiles
 from physionet.models import StaticPage
 from rest_framework import generics
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserDetailSerializer
 from rest_framework.views import APIView
 from rest_framework import mixins
 from rest_framework.response import Response
@@ -870,18 +872,23 @@ def view_signed_agreement(request, id):
     return render(request, 'user/view_signed_agreement.html',
                   {'user': user, 'signed': signed})
 
-class UserAPIView(APIView):
-    @staticmethod
-    def get(request):
-        user = request.user
-        serializer = UserSerializer(user, many=True)
-        return Response(serializer.data)
 
-class GenericUserAPIView(generics.GenericAPIView, mixins.ListModelMixin, mixins.RetrieveModelMixin):
+class UserList(mixins.ListModelMixin, generics.GenericAPIView):
+    """
+    List all users
+    """
+    queryset = User.objects.all().order_by('id')
+    serializer_class = UserSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+class UserDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    """
+    Retrieve a user
+    """
     queryset = User.objects.all()
-    serializer_class =UserSerializer
+    serializer_class = UserDetailSerializer
 
-    lookup_field = 'username'
-
-    def get(self, request, username=None):
-        return self.retrieve(request, username)
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)
