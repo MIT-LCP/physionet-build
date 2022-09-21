@@ -27,6 +27,7 @@
                   <th>Started</th>
                   <th>Ended</th>
                   <th>Credentialing</th>
+                  <th>Training</th>
                 </tr>
               </thead>
               <tbody>
@@ -39,6 +40,7 @@
                     <td>{{ event.start_date }}</td>
                     <td>{{ event.end_date }}</td>
                     <td><a href = "{% url 'credential_processing' %}?event={{ event.slug }}">View list</a></td>
+                    <td><a href = "{% url 'training_list' status='review' %}?event={{ event.slug }}">View list</a></td>
                 </tr>
               {% endfor %}
               </tbody>

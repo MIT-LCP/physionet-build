@@ -1483,6 +1483,14 @@ def training_list(request, status):
     List all training applications.
     """
     trainings = Training.objects.select_related('user__profile', 'training_type').order_by('application_datetime')
+
+    # Allow filtering by event.
+    if 'event' in request.GET:
+        slug = request.GET['event']
+        event = Event.objects.get(slug=slug)
+        users = User.objects.filter(eventparticipant__event=event)
+        trainings = trainings.filter(user__in=users)
+
     review_training = trainings.get_review()
     valid_training = trainings.get_valid()
     expired_training = trainings.get_expired()
