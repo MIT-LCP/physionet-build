@@ -1281,11 +1281,14 @@ def credential_processing(request):
     Process applications for credentialed access.
     """
     applications = CredentialApplication.objects.filter(status=0).select_related('user__profile')
+
+    # Allow filtering by event.
     if 'event' in request.GET:
         slug = request.GET['event']
         event = Event.objects.get(slug=slug)
         users = User.objects.filter(eventparticipant__event=event)
         applications = applications.filter(user__in=users)
+
     # Awaiting initial review
     initial_1 = Q(credential_review__isnull=True)
     initial_2 = Q(credential_review__status=10)
@@ -1483,6 +1486,14 @@ def training_list(request, status):
     List all training applications.
     """
     trainings = Training.objects.select_related('user__profile', 'training_type').order_by('application_datetime')
+
+    # Allow filtering by event.
+    if 'event' in request.GET:
+        slug = request.GET['event']
+        event = Event.objects.get(slug=slug)
+        users = User.objects.filter(eventparticipant__event=event)
+        trainings = trainings.filter(user__in=users)
+
     review_training = trainings.get_review()
     valid_training = trainings.get_valid()
     expired_training = trainings.get_expired()
