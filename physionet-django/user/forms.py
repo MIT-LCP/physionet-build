@@ -819,7 +819,7 @@ class AddEventForm(forms.ModelForm):
         model = Event
         fields = ('title', 'start_date', 'end_date', 'category', 'description')
         labels = {'title': 'Event Name', 'start_date': 'Start Date',
-                  'end_date': 'End Date', 'category': 'Category', 
+                  'end_date': 'End Date', 'category': 'Category',
                   'description': 'Description'}
         widgets = {'start_date': DatePickerInput(),
                    'end_date': DatePickerInput(),
