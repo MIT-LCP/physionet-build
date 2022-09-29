@@ -1109,9 +1109,12 @@ class Training(models.Model):
                 return self.process_datetime + self.training_type.valid_duration >= timezone.now()
 
     def is_expired(self):
+        """checks if it has exceeded the valid period (process_time + duration)
+        if no valid duration, its not expired.
+        """
         if self.status == TrainingStatus.ACCEPTED:
             if not self.training_type.valid_duration:
-                return True
+                return False
             else:
                 return self.process_datetime + self.training_type.valid_duration < timezone.now()
 
