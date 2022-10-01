@@ -32,6 +32,7 @@ requests = "2.27.1"
 cffi = "^1.15.1"
 pytz = "^2022.1"
 django-sass = "1.1.0"
+zxcvbn = "^4.4.28"
 
 [tool.poetry.dev-dependencies]
 coverage = "^4.4.2"
