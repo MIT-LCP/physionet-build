@@ -1185,6 +1185,8 @@ class Event(models.Model):
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(default=timezone.now)
     slug = models.SlugField(unique=True, default=get_random_string)
+    allowed_domains = models.CharField(blank=True, null=True, validators=[
+                                       validators.validate_domain_list], max_length=100)
 
     class Meta:
         unique_together = ('title', 'host')

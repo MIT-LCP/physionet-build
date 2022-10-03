@@ -817,10 +817,11 @@ class AddEventForm(forms.ModelForm):
     """
     class Meta:
         model = Event
-        fields = ('title', 'start_date', 'end_date', 'category', 'description')
-        labels = {'title': 'Event Name', 'start_date': 'Start Date',
-                  'end_date': 'End Date', 'category': 'Category',
-                  'description': 'Description'}
+        fields = ('title', 'description', 'start_date', 'end_date', 
+                  'category', 'allowed_domains')
+        labels = {'title': 'Event Name', 'description': 'Description',
+                  'start_date': 'Start Date', 'end_date': 'End Date',
+                  'category': 'Category', 'allowed_domains': 'Allowed domains'}
         widgets = {'start_date': DatePickerInput(),
                    'end_date': DatePickerInput(),
                    'description': forms.Textarea(attrs={'rows': 10, 'cols': 40})}
@@ -835,4 +836,7 @@ class AddEventForm(forms.ModelForm):
                              host=self.host,
                              description=self.cleaned_data['description'],
                              start_date=self.cleaned_data['start_date'],
-                             end_date=self.cleaned_data['end_date'])
+                             end_date=self.cleaned_data['end_date'],
+                             allowed_domains=self.cleaned_data['allowed_domains']
+                             )
+
