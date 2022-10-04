@@ -14,6 +14,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='event',
             name='allowed_domains',
-            field=models.CharField(blank=True, max_length=100, null=True, validators=[user.validators.validate_domain_list]),
+            field=models.CharField(blank=True, max_length=100, null=True,
+                                   validators=[user.validators.validate_domain_list]),
         ),
     ]

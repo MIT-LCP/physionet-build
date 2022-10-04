@@ -817,7 +817,7 @@ class AddEventForm(forms.ModelForm):
     """
     class Meta:
         model = Event
-        fields = ('title', 'description', 'start_date', 'end_date', 
+        fields = ('title', 'description', 'start_date', 'end_date',
                   'category', 'allowed_domains')
         labels = {'title': 'Event Name', 'description': 'Description',
                   'start_date': 'Start Date', 'end_date': 'End Date',
@@ -839,4 +839,3 @@ class AddEventForm(forms.ModelForm):
                              end_date=self.cleaned_data['end_date'],
                              allowed_domains=self.cleaned_data['allowed_domains']
                              )
-
