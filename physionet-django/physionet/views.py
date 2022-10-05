@@ -245,18 +245,22 @@ def event_home(request):
 
     url_prefix = notification.get_url_prefix(request)
 
+    form_error = False
     if request.method == 'POST':
         event_form = AddEventForm(user=user, data=request.POST)
         if event_form.is_valid() and is_instructor:
             event_form.save()
             return redirect(event_home)
+        else:
+            form_error = True
 
     return render(request, 'event_home.html',
                   {'events_active': events_active,
                    'events_past': events_past,
                    'event_form': event_form,
                    'url_prefix': url_prefix,
-                   'is_instructor': is_instructor
+                   'is_instructor': is_instructor,
+                   'form_error': form_error
                    })
 
 
