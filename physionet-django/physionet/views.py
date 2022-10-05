@@ -245,18 +245,22 @@ def event_home(request):
 
     url_prefix = notification.get_url_prefix(request)
 
+    form_error = False
     if request.method == 'POST':
         event_form = AddEventForm(user=user, data=request.POST)
         if event_form.is_valid() and is_instructor:
             event_form.save()
             return redirect(event_home)
+        else:
+            form_error = True
 
     return render(request, 'event_home.html',
                   {'events_active': events_active,
                    'events_past': events_past,
                    'event_form': event_form,
                    'url_prefix': url_prefix,
-                   'is_instructor': is_instructor
+                   'is_instructor': is_instructor,
+                   'form_error': form_error
                    })
 
 
@@ -276,6 +280,16 @@ def event_add_participant(request, event_slug):
     if event.participants.filter(user=user).exists():
         messages.success(request, "You are already enrolled")
         return redirect(event_home)
+
+    if event.allowed_domains:
+        domains = event.allowed_domains.split(',')
+        emails = user.get_emails()
+        domain_match = [domain for domain in domains if any(domain.strip() in email for email in emails)]
+        if not domain_match:
+            messages.error(request, f"To register for the event, your account must be linked with "
+                                    f"an email address from the following domains: {domains}. "
+                                    f"You can add email addresses to your account in the settings menu.")
+            return redirect(event_home)
 
     if request.method == 'POST':
         if request.POST.get('confirm_event') == 'confirm':
