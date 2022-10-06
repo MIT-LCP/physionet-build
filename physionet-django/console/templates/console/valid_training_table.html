@@ -7,6 +7,7 @@
                     <th>Full Name</th>
                     <th>Email</th>
                     <th>Training Type</th>
+                    <th>Credentialed</th>
                     <th>Valid until</th>
                     <th>View</th>
                 </tr>
@@ -18,6 +19,7 @@
                         <td>{{ training.user.get_full_name }}</td>
                         <td>{{ training.user.email }}</td>
                         <td>{{ training.training_type.name }}</td>
+                        <td>{{ training.user.is_credentialed|yesno:"Yes,No" }}</td>
                         <td>
                         {% if training.valid_datetime %}
                             {{ training.valid_datetime }}
