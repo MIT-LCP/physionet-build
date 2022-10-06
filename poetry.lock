@@ -730,8 +730,8 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "zxcvbn-python"
-version = "4.4.24"
+name = "zxcvbn"
+version = "4.4.28"
 description = ""
 category = "main"
 optional = false
@@ -740,7 +740,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "3d7cacbd8603a24dcc2610434d6d169becd5537224936fb0948f5c992165aebc"
+content-hash = "6a94d0c860786a5da63513f27a9f9a65d14110efc3b27ea616d3dbbd048bef1f"
 
 [metadata.files]
 asgiref = [
@@ -1212,6 +1212,6 @@ webencodings = [
     {file = "webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78"},
     {file = "webencodings-0.5.1.tar.gz", hash = "sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"},
 ]
-zxcvbn-python = [
-    {file = "zxcvbn-python-4.4.24.tar.gz", hash = "sha256:900b28cc5e96be4091d8778f19f222832890264e338765a1c1c09fca2db64b2d"},
+zxcvbn = [
+    {file = "zxcvbn-4.4.28.tar.gz", hash = "sha256:151bd816817e645e9064c354b13544f85137ea3320ca3be1fb6873ea75ef7dc1"},
 ]
