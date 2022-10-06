@@ -1485,7 +1485,7 @@ def training_list(request, status):
     """
     List all training applications.
     """
-    trainings = Training.objects.select_related('user__profile', 'training_type').order_by('application_datetime')
+    trainings = Training.objects.select_related('user__profile', 'training_type').order_by('application_datetime').order_by('-user__is_credentialed', 'application_datetime')
 
     # Allow filtering by event.
     if 'event' in request.GET:
