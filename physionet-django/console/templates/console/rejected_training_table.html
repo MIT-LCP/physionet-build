@@ -19,13 +19,7 @@
                     <td>{{ training.user.get_full_name }}</td>
                     <td>{{ training.user.email }}</td>
                     <td>{{ training.training_type.name }}</td>
-                    <td>
-                        {% if training.user.is_credentialed %}
-                            Yes
-                        {% else %}
-                            No
-                        {% endif %}
-                        </td>
+                    <td>{{ training.user.is_credentialed|yesno:"Yes,No" }}</td>
                     <td>{{ training.application_datetime }}</td>
                     <td>{{ training.process_datetime }}</td>
                     <td><a href="{% url 'training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
