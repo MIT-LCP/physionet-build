@@ -1138,15 +1138,6 @@ class Training(models.Model):
     def is_review(self):
         return self.status == TrainingStatus.REVIEW
 
-    def get_training_status_name(self):
-        if self.status == 0:
-            return 'REVIEW'
-        elif self.status == 1:
-            return 'WITHDRAWN'
-        elif self.status == 2:
-            return 'REJECTED'
-        elif self.status == 3:
-            return 'ACCEPTED'
 
 class TrainingQuestion(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
