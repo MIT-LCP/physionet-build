@@ -778,6 +778,21 @@ class CredentialApplication(models.Model):
     class Meta:
         default_permissions = ('change',)
 
+    def get_training_status(self):
+        training_status = self.user.trainings.all().filter(
+            user__username__icontains=self.user.username).values_list('status', flat=True).first()
+        return self.get_training_status_name(training_status)
+
+    def get_training_status_name(self, training_status):
+        if training_status == 0:
+            return 'Under Review'
+        elif training_status == 1:
+            return 'Withdrawn'
+        elif training_status == 2:
+            return 'Rejected'
+        elif training_status == 3:
+            return 'Active'
+
     def file_root(self):
         """Location for storing files associated with the application"""
         return os.path.join(CredentialApplication.FILE_ROOT, self.slug)
@@ -1074,7 +1089,6 @@ class Training(models.Model):
 
     class Meta:
         default_permissions = ()
-
     def delete(self, *args, **kwargs):
         if self.completion_report is not None:
             self.completion_report.delete()
@@ -1124,6 +1138,15 @@ class Training(models.Model):
     def is_review(self):
         return self.status == TrainingStatus.REVIEW
 
+    def get_training_status_name(self):
+        if self.status == 0:
+            return 'REVIEW'
+        elif self.status == 1:
+            return 'WITHDRAWN'
+        elif self.status == 2:
+            return 'REJECTED'
+        elif self.status == 3:
+            return 'ACCEPTED'
 
 class TrainingQuestion(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
