@@ -781,17 +781,7 @@ class CredentialApplication(models.Model):
     def get_training_status(self):
         training_status = self.user.trainings.all().filter(
             user__username__icontains=self.user.username).values_list('status', flat=True).first()
-        return self.get_training_status_name(training_status)
-
-    def get_training_status_name(self, training_status):
-        if training_status == 0:
-            return 'Under Review'
-        elif training_status == 1:
-            return 'Withdrawn'
-        elif training_status == 2:
-            return 'Rejected'
-        elif training_status == 3:
-            return 'Active'
+        return TrainingStatus(training_status).name
 
     def file_root(self):
         """Location for storing files associated with the application"""
