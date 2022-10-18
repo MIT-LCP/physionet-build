@@ -55,6 +55,12 @@ from project.validators import validate_filename
 from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
 
+from .serializers import ActiveProjectSerializer, ArchivedProjectSerializer
+from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework import mixins
+from rest_framework.response import Response
+
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
@@ -2321,3 +2327,33 @@ def generate_signed_url(request, project_slug):
     GCPLog.objects.update_or_create(project=project, user=request.user, data=data)
 
     return JsonResponse({'url': url})
+
+class ActiveProjectList(mixins.ListModelMixin, generics.GenericAPIView):
+    """
+    List all Active Projects
+    """
+    queryset = ActiveProject.objects.all().order_by('id')
+    serializer_class = ActiveProjectSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+class ArchivedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
+    """
+    List all Archived Projects
+    """
+    queryset = ArchivedProject.objects.all().order_by('id')
+    serializer_class = ArchivedProjectSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+class ActiveProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    """
+    Retrieve an Active Project
+    """
+    queryset = ActiveProject.objects.all()
+    serializer_class = ActiveProjectSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.retrieve(request, *args, **kwargs)

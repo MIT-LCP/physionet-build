@@ -46,8 +46,8 @@ urlpatterns = [
         views.training_report_view, name='training_report_view'),
  
     # User list
-    path('api', views.UserList.as_view()),
-    path('api/<int:pk>', views.UserDetail.as_view()),
+    path('api/user', views.UserList.as_view()),
+    path('api/user/<int:pk>', views.UserDetail.as_view()),
 ]
 
 if not settings.ENABLE_SSO:
