@@ -284,7 +284,7 @@ def event_add_participant(request, event_slug):
     if event.allowed_domains:
         domains = event.allowed_domains.split(',')
         emails = user.get_emails()
-        domain_match = [domain for domain in domains if any('@'+ domain.strip() in email for email in emails)]
+        domain_match = [domain for domain in domains if any('@' + domain.strip() in email for email in emails)]
         if not domain_match:
             messages.error(request, f"To register for the event, your account must be linked with "
                                     f"an email address from the following domains: {domains}. "
