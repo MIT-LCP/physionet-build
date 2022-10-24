@@ -1,3 +1,5 @@
+import shutil
+
 import lightwave.views as lightwave_views
 import project.views as project_views
 from django.conf import settings
@@ -76,7 +78,9 @@ urlpatterns = [
 if ProjectFiles().is_lightwave_supported:
     urlpatterns.append(path('lightwave/', include('lightwave.urls')))
     # backward compatibility for LightWAVE
-    urlpatterns.append(path('cgi-bin/lightwave', lightwave_views.lightwave_server))
+    urlpatterns.append(path('cgi-bin/lightwave',
+                            lightwave_views.lightwave_server,
+                            name='lightwave_server_compat'))
 
 if settings.ENABLE_SSO:
     urlpatterns.append(path('', include('sso.urls')))
@@ -86,6 +90,19 @@ if settings.DEBUG:
 
     # debug toolbar
     urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+
+# Parameters for testing URLs (see physionet/test_urls.py)
+TEST_DEFAULTS = {
+    'dua_slug': 'physionet-credentialed-health-data-dua',
+    'event_slug': 'iLII4L9jSDFh',
+    'license_slug': 'open-data-commons-attribution-license-v10',
+    'static_url': 'publish',
+}
+TEST_CASES = {
+    'lightwave_server_compat': {
+        '_skip_': lambda: (shutil.which('sandboxed-lightwave') is None),
+    },
+}
 
 # For STATIC PAGES: Since its a catch all url, if has to be reached after all
 urlpatterns.append(path('<path:static_url>/', views.static_view, name='static_view'))
