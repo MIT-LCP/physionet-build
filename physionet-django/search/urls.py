@@ -85,5 +85,37 @@ urlpatterns = [
     path('physiobank/database/wfdbcal', views.wfdbcal),
     re_path('^physiobank/database/(?P<project_slug>[\w\-]+)/$', views.redirect_project),
     re_path('^physiotools/(?P<project_slug>[\w\-]+)/$', views.redirect_project),
-    re_path('^challenge/(?P<year>\w+)/$', views.redirect_challenge_project),
+    re_path(r'^challenge/(?P<year>\w+)/$', views.redirect_challenge_project,
+            name='redirect_challenge_project'),
 ]
+
+# Parameters for testing URLs (see physionet/test_urls.py)
+_demo_open_access = {
+    'project_slug': 'demoecg',
+    'version': '10.5.24',
+}
+_demo_access_manager = {
+    'project_slug': 'demoselfmanaged',
+    'version': '1.0.0',
+    '_user_': 'george',
+}
+TEST_DEFAULTS = {
+    **_demo_open_access,
+}
+TEST_CASES = {
+    'anonymous_login': {'anonymous_url': ('pjSJgS45PvCw1y5z8pHOTEJYH4s6nj37'
+                                          'kMGQtJyOMC2RiuBdB0tIk9cx2NId8Thr')},
+    'published_files_panel': {'_query_': {'subdir': 'doc'}},
+    'published_project_subdir': {'subdir': 'doc'},
+    'serve_published_project_file': {'full_file_name': 'Makefile'},
+    'display_published_project_file': {'full_file_name': 'Makefile'},
+
+    'request_data_access': _demo_access_manager,
+    'data_access_request_status_detail': {**_demo_access_manager, 'pk': '1'},
+    'data_access_request_view': {**_demo_access_manager, 'pk': '1'},
+    'data_access_requests_overview': _demo_access_manager,
+    'manage_data_access_reviewers': _demo_access_manager,
+
+    # not implemented in demo
+    'redirect_challenge_project': {'year': '2001', '_skip_': True},
+}
