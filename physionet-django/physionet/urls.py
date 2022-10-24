@@ -69,6 +69,10 @@ urlpatterns = [
     path('about/challenge/community-challenge', views.community_challenge,
          name='community_challenge'),
 
+    # path for about static pages
+    path('about/', views.static_view, name='static_view'),
+    path('about/<path:static_url>/', views.static_view, name='static_view'),
+
     # robots.txt for crawlers
     path(
         'robots.txt', lambda x: HttpResponse("User-Agent: *\\Allow: /", content_type="text/plain"), name="robots_file"
@@ -103,6 +107,5 @@ TEST_CASES = {
         '_skip_': lambda: (shutil.which('sandboxed-lightwave') is None),
     },
 }
-
 # For STATIC PAGES: Since its a catch all url, if has to be reached after all
 urlpatterns.append(path('<path:static_url>/', views.static_view, name='static_view'))
