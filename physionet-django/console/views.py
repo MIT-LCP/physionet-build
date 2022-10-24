@@ -19,7 +19,7 @@ from django.db.models import Count, DurationField, F, Q
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
 from django.forms.models import model_to_dict
-from django.http import Http404, HttpResponse, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -2361,6 +2361,54 @@ def known_references(request):
 def static_pages(request):
     pages = StaticPage.objects.all()
     return render(request, 'console/static_pages.html', {'pages': pages, 'static_pages_nav': True})
+
+
+@permission_required('physionet.change_staticpage', raise_exception=True)
+def static_page_add(request):
+    if request.method == 'POST':
+        static_page_form = forms.StaticPageForm(data=request.POST)
+        if static_page_form.is_valid():
+            static_page_form.save()
+            messages.success(request, "The static page was successfully created.")
+            return HttpResponseRedirect(reverse('static_pages'))
+    else:
+        static_page_form = forms.StaticPageForm()
+
+    return render(
+        request,
+        'console/static_page_add.html',
+        {'static_page_form': static_page_form},
+    )
+
+
+@permission_required('physionet.change_staticpage', raise_exception=True)
+def static_page_edit(request, page_pk):
+
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
+    if request.method == 'POST':
+        static_page_form = forms.StaticPageForm(instance=static_page, data=request.POST)
+        if static_page_form.is_valid():
+            static_page_form.save()
+            messages.success(request, "The static page was successfully editted.")
+            return HttpResponseRedirect(reverse('static_pages'))
+    else:
+        static_page_form = forms.StaticPageForm(instance=static_page)
+
+    return render(
+        request,
+        'console/static_page_edit.html',
+        {'static_page_form': static_page_form, 'page': static_page},
+    )
+
+
+@permission_required('physionet.change_staticpage', raise_exception=True)
+def static_page_delete(request, page_pk):
+    static_page = get_object_or_404(StaticPage, pk=page_pk)
+    if request.method == 'POST':
+        static_page.delete()
+        messages.success(request, "The static page was successfully deleted.")
+
+    return HttpResponseRedirect(reverse('static_pages'))
 
 
 @permission_required('physionet.change_staticpage', raise_exception=True)

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls import handler404, handler500, include
 from django.contrib import admin
 from django.http import HttpResponse
-from django.urls import path
+from django.urls import path, re_path
 from physionet import views
 from physionet.settings.base import StorageTypes
 from project.projectfiles import ProjectFiles
@@ -67,10 +67,6 @@ urlpatterns = [
     path('about/challenge/community-challenge', views.community_challenge,
          name='community_challenge'),
 
-    # path for about static pages
-    path('about/', views.static_view, name='static_view'),
-    path('about/<path:static_url>/', views.static_view, name='static_view'),
-
     # robots.txt for crawlers
     path(
         'robots.txt', lambda x: HttpResponse("User-Agent: *\\Allow: /", content_type="text/plain"), name="robots_file"
@@ -90,3 +86,6 @@ if settings.DEBUG:
 
     # debug toolbar
     urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+
+# For STATIC PAGES: Since its a catch all url, if has to be reached after all
+urlpatterns.append(re_path(r'^(?P<url>.*/)$', views.static_view, name='static_view'))

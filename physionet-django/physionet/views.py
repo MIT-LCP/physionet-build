@@ -206,15 +206,14 @@ def community_challenge(request):
     return render(request, 'about/community_challenge_index.html', {'community_challenges': community_challenges})
 
 
-def static_view(request, static_url=None):
+def static_view(request, url=None):
     """
-    checks for a URL starting with /about/ in StaticPage and attempts to render the requested page
+    checks the URL exists in StaticPage and attempts to render the requested page
     """
-    if static_url:
-        about_url = urljoin('/about/', static_url + '/')
-        static_page = get_object_or_404(StaticPage, url=about_url)
-    else:
-        static_page = get_object_or_404(StaticPage, url='/about/')
+
+    if not url.startswith("/"):
+        url = "/" + url
+    static_page = get_object_or_404(StaticPage, url=url)
 
     sections = Section.objects.filter(static_page=static_page)
     params = {'static_page': static_page, 'sections': sections}

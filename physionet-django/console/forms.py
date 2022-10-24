@@ -14,7 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
-from physionet.models import Section
+from physionet.models import Section, StaticPage
 from project.models import (
     ActiveProject,
     AccessPolicy,
@@ -758,6 +758,54 @@ class SectionForm(forms.ModelForm):
             section.order = Section.objects.filter(static_page=self.static_page).count() + 1
         section.save()
         return section
+
+
+class StaticPageForm(forms.ModelForm):
+    """
+    Form for creating a dynamic static page."""
+
+    url = forms.RegexField(
+        label="URL",
+        max_length=100,
+        regex=r"^[-\w/\.~]+$",
+        help_text=(
+            "Example: “/about/share/”. Make sure to have leading and trailing "
+            "slashes."
+        ),
+        error_messages={
+            "invalid": (
+                "This value must contain only letters, numbers, dots, "
+                "underscores, dashes, slashes or tildes."
+            ),
+        },
+    )
+
+    class Meta:
+        model = StaticPage
+        fields = "__all__"
+
+    def clean_url(self):
+        """ Validate if it has a leading and trailing slashes """
+
+        url = self.cleaned_data.get("url")
+        if not url.startswith("/") or not url.endswith("/"):
+            raise forms.ValidationError(
+                "URL needs to have both leading and trailing slashes.")
+        return url
+
+    def clean(self):
+        """ Validate that the new url does not exists"""
+
+        url = self.cleaned_data.get("url")
+
+        same_url = StaticPage.objects.filter(url=url)
+        if self.instance.pk:
+            same_url = same_url.exclude(pk=self.instance.pk)
+
+        if same_url.exists():
+            raise forms.ValidationError(f"Static page with url {url} already exists")
+
+        return super().clean()
 
 
 class TrainingQuestionForm(forms.ModelForm):
