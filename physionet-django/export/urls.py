@@ -15,3 +15,6 @@ urlpatterns = [
     path('rest/published-stats-list/', views.published_stats_list,
         name='published_stats_list'),
 ]
+
+# Parameters for testing URLs (see physionet/test_urls.py)
+TEST_DEFAULTS = {}
