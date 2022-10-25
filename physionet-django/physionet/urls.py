@@ -99,7 +99,7 @@ TEST_DEFAULTS = {
     'dua_slug': 'physionet-credentialed-health-data-dua',
     'event_slug': 'iLII4L9jSDFh',
     'license_slug': 'open-data-commons-attribution-license-v10',
-    'static_url': 'about/publish',
+    'static_url': 'about/publish'
 }
 TEST_CASES = {
     'lightwave_server_compat': {
