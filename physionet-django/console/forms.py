@@ -769,8 +769,8 @@ class StaticPageForm(forms.ModelForm):
         max_length=100,
         regex=r"^[-\w/\.~]+$",
         help_text=(
-            "Example: “/about/share/”. Make sure to have leading and trailing "
-            "slashes."
+            "Url should be unique. If it clashes with a static url, "
+            "The static url will take precedence."
         ),
         error_messages={
             "invalid": (
