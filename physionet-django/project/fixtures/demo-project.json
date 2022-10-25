@@ -2232,5 +2232,20 @@
     "expiration_datetime": null,
     "creator": null
   }
+},
+{
+  "model": "project.dataaccessrequest",
+  "pk": 1,
+  "fields": {
+    "request_datetime": "2022-01-31T12:00:00.000Z",
+    "requester": ["tompollard"],
+    "project": 4,
+    "data_use_title": "Exploration of data access requests",
+    "data_use_purpose": "<p>We propose to develop a model to distinguish between real research projects and dummy data that somebody invented for a test case</p>",
+    "status": 0,
+    "decision_datetime": null,
+    "responder": null,
+    "responder_comments": ""
+  }
 }
 ]
