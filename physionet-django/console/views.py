@@ -910,10 +910,6 @@ def manage_published_project(request, project_slug, version):
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request)
 
-    environment_dataset_group = (project.group_granting_data_access
-                                 if settings.ENABLE_RESEARCH_ENVIRONMENTS
-                                 else None)
-
     return render(
         request,
         'console/manage_published_project.html',
@@ -942,7 +938,6 @@ def manage_published_project(request, project_slug, version):
             'legacy_author_form': legacy_author_form,
             'can_make_zip': ProjectFiles().can_make_zip(),
             'can_make_checksum': ProjectFiles().can_make_checksum(),
-            'environment_dataset_group': environment_dataset_group,
         },
     )
 
