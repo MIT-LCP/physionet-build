@@ -11,7 +11,7 @@
     </div>
     <div class="card-body">
         <form method="post" action="{% url 'static_page_edit' page.pk %}">
-            {% include "inline_form_snippet.html" with form=static_page_form %}
+            {% include "descriptive_inline_form_snippet.html" with form=static_page_form %}
             <button class="btn btn-primary btn-fixed" type="submit">Save</button>
         </form>
     </div>

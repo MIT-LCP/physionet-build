@@ -3,7 +3,7 @@
   access policies control access to the files:</p>
 <ol>
   <li><strong>Open</strong>: Anyone can access the files, as long as they conform to the terms of the specified
-    <a href="{% url 'static_view' static_url='/about/publish/' %}#licenses" target="_blank">license</a>.</li>
+    <a href="{% url 'static_view' static_url='publish' %}#licenses" target="_blank">license</a>.</li>
   <li><strong>Restricted</strong>: Only logged in users who sign a data use agreement (DUA) for the project can access the files.</li>
   <li><strong>Credentialed</strong>: Only {{ SITE_NAME }} credentialed users who sign a DUA for the project can access the files. This tier is only for sensitive databases. Please <a href="{% url 'static_view' static_url='about' %}#contact_us" target="_blank"> contact us</a> beforehand if you would like to contribute such a resource.</li>
 </ol>

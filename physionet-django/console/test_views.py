@@ -464,7 +464,7 @@ class TestStaticPage(TestMixin):
         super().setUp()
         self.client.login(username='admin', password='Tester11!')
         self.page = StaticPage.objects.create(
-            title="Testing Page", url="/page/testing/", nav_bar=True, nav_order=5)
+            title="Testing Page", url="/about/page/testing/", nav_bar=True, nav_order=5)
 
     def test_static_page_add_get(self):
         """test the get verb"""
@@ -478,7 +478,7 @@ class TestStaticPage(TestMixin):
 
         static_page_count = StaticPage.objects.count()
         response = self.client.post(reverse("static_page_add"),
-                                    {'title': "Testing Page", 'url': "/page/testing/6666/",
+                                    {'title': "Testing Page", 'url': "/about/testing/",
                                     'nav_bar': False, 'nav_order': 50})
         self.assertRedirects(response, reverse("static_pages"), status_code=302)
         self.assertEqual(StaticPage.objects.count(), static_page_count + 1)
@@ -487,7 +487,7 @@ class TestStaticPage(TestMixin):
         """test the invalid post verb"""
 
         response = self.client.post(reverse("static_page_add"),
-                                    {'title': "Testing", 'url': "testing/",
+                                    {'title': "Testing", 'url': "/testing/",
                                     'nav_bar': True, 'nav_order': 5})
         self.assertTemplateUsed(response, "console/static_page_add.html")
 
@@ -504,7 +504,7 @@ class TestStaticPage(TestMixin):
 
         response = self.client.post(
             reverse("static_page_edit", args=(self.page.pk,)),
-            {'title': "Testing", 'url': "/testing/", 'nav_bar': True, 'nav_order': 5}, follow=True)
+            {'title': "Testing", 'url': "/about/testing/page/", 'nav_bar': True, 'nav_order': 5}, follow=True)
         self.assertRedirects(response, reverse("static_pages"), status_code=302)
 
     def test_static_page_edit_post_invalid(self):

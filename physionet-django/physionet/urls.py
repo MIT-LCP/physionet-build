@@ -70,6 +70,7 @@ urlpatterns = [
          name='community_challenge'),
 
     # path for about static pages
+    path('about/', views.static_view, name='static_view'),
     path('about/<path:static_url>/', views.static_view, name='static_view'),
 
     # robots.txt for crawlers
@@ -99,7 +100,7 @@ TEST_DEFAULTS = {
     'dua_slug': 'physionet-credentialed-health-data-dua',
     'event_slug': 'iLII4L9jSDFh',
     'license_slug': 'open-data-commons-attribution-license-v10',
-    'static_url': 'about/publish'
+    'static_url': 'publish'
 }
 TEST_CASES = {
     'lightwave_server_compat': {

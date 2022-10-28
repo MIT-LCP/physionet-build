@@ -1140,7 +1140,7 @@ class UploadedDocumentFormSet(BaseGenericInlineFormSet):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        url = f"{reverse_lazy('static_view', kwargs={'static_url':'/about/publish/'} )}#author_guidelines"
+        url = f"{reverse_lazy('static_view', kwargs={'static_url':'publish'} )}#author_guidelines"
         self.help_text = (
             "Please provide an ethics statement following the "
             f"<a href='{url}' target='_blank'>author guidelines</a>. "

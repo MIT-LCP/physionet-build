@@ -2389,7 +2389,7 @@ def static_page_edit(request, page_pk):
         static_page_form = forms.StaticPageForm(instance=static_page, data=request.POST)
         if static_page_form.is_valid():
             static_page_form.save()
-            messages.success(request, "The static page was successfully editted.")
+            messages.success(request, "The static page was successfully edited.")
             return HttpResponseRedirect(reverse('static_pages'))
     else:
         static_page_form = forms.StaticPageForm(instance=static_page)

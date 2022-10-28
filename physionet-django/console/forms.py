@@ -761,21 +761,22 @@ class SectionForm(forms.ModelForm):
 
 
 class StaticPageForm(forms.ModelForm):
-    """
-    Form for creating a dynamic static page."""
+    """ Form for creating a dynamic static page."""
 
     url = forms.RegexField(
         label="URL",
         max_length=100,
-        regex=r"^[-\w/\.~]+$",
+        regex="^\/about\/([-\w\.~]+\/)+$",
         help_text=(
-            "Url should be unique. If it clashes with a static url, "
-            "The static url will take precedence."
+            "URL should be unique. If the new URL clashes with a static url, "
+            "the static url will take precedence. URL must start with /about/ "
+            "for example /about/publish/"
         ),
         error_messages={
             "invalid": (
-                "This value must contain only letters, numbers, dots, "
-                "underscores, dashes, slashes or tildes."
+                "Must be in format /about/value/value/value/ "
+                "and value must contain only letters, numbers, dots, "
+                "underscores, dashes or tildes."
             ),
         },
     )
@@ -785,12 +786,16 @@ class StaticPageForm(forms.ModelForm):
         fields = "__all__"
 
     def clean_url(self):
-        """ Validate if it has a leading and trailing slashes """
+        """ This is redundant, regex in regex field does the same.
+        Validate that URL starts with /about/, append trailing / if not exist
+        """
 
         url = self.cleaned_data.get("url")
-        if not url.startswith("/") or not url.endswith("/"):
+        if not url.startswith("/about/"):
             raise forms.ValidationError(
-                "URL needs to have both leading and trailing slashes.")
+                "URL must start with /about/, (eg) /about/publish/")
+        if not url.endswith("/"):
+            url = f"{url}/"
         return url
 
     def clean(self):
@@ -803,7 +808,7 @@ class StaticPageForm(forms.ModelForm):
             same_url = same_url.exclude(pk=self.instance.pk)
 
         if same_url.exists():
-            raise forms.ValidationError(f"Static page with url {url} already exists")
+            raise forms.ValidationError(f"Static page with URL: {url} already exists")
 
         return super().clean()
 
