@@ -766,7 +766,7 @@ class StaticPageForm(forms.ModelForm):
     url = forms.RegexField(
         label="URL",
         max_length=100,
-        regex="^\/about\/([-\w\.~]+\/)+$",
+        regex=r"^\/about\/([-\w\.~]+\/)+$",
         help_text=(
             "URL should be unique. If the new URL clashes with a static url, "
             "the static url will take precedence. URL must start with /about/ "
