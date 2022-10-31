@@ -1,0 +1,19 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}Add Static Page{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-header">
+        Add Static Page
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'static_page_add' %}">
+            {% include "descriptive_inline_form_snippet.html" with form=static_page_form %}
+            <button class="btn btn-primary btn-fixed" type="submit">Add</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

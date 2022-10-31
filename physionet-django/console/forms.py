@@ -14,7 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
-from physionet.models import Section
+from physionet.models import Section, StaticPage
 from project.models import (
     ActiveProject,
     AccessPolicy,
@@ -758,6 +758,59 @@ class SectionForm(forms.ModelForm):
             section.order = Section.objects.filter(static_page=self.static_page).count() + 1
         section.save()
         return section
+
+
+class StaticPageForm(forms.ModelForm):
+    """ Form for creating a dynamic static page."""
+
+    url = forms.RegexField(
+        label="URL",
+        max_length=100,
+        regex=r"^\/about\/([-\w\.~]+\/)+$",
+        help_text=(
+            "URL should be unique. If the new URL clashes with a static url, "
+            "the static url will take precedence. URL must start with /about/ "
+            "for example /about/publish/"
+        ),
+        error_messages={
+            "invalid": (
+                "Must be in format /about/value/value/value/ "
+                "and value must contain only letters, numbers, dots, "
+                "underscores, dashes or tildes."
+            ),
+        },
+    )
+
+    class Meta:
+        model = StaticPage
+        fields = "__all__"
+
+    def clean_url(self):
+        """ This is redundant, regex in regex field does the same.
+        Validate that URL starts with /about/, append trailing / if not exist
+        """
+
+        url = self.cleaned_data.get("url")
+        if not url.startswith("/about/"):
+            raise forms.ValidationError(
+                "URL must start with /about/, (eg) /about/publish/")
+        if not url.endswith("/"):
+            url = f"{url}/"
+        return url
+
+    def clean(self):
+        """ Validate that the new url does not exists"""
+
+        url = self.cleaned_data.get("url")
+
+        same_url = StaticPage.objects.filter(url=url)
+        if self.instance.pk:
+            same_url = same_url.exclude(pk=self.instance.pk)
+
+        if same_url.exists():
+            raise forms.ValidationError(f"Static page with URL: {url} already exists")
+
+        return super().clean()
 
 
 class TrainingQuestionForm(forms.ModelForm):

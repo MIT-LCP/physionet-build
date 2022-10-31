@@ -10,19 +10,35 @@
     Static Pages <span class="badge badge-pill badge-info">{{ pages|length }}</span>
   </div>
   <div class="card-body">
+
+    <div class="text-right">
+      <a href="{% url 'static_page_add' %}" class="btn btn-sm btn-primary">Add Static Page</a>
+    </div>
+
     <div class="table-responsive">
       <table class="table table-bordered">
         <thead>
           <tr>
             <th>Page</th>
-            <th>Manage</th>
+            <th class="text-center" colspan=3>Actions</th>
           </tr>
         </thead>
         <tbody>
         {% for page in pages %}
             <tr>
                 <td>{{ page|title }} page</td>
-                <td><a href="{% url 'static_page_sections' page.pk %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
+                <td>
+                  <a href="{% url 'static_page_sections' page.pk %}" class="btn btn-sm btn-primary" role="button">Manage</a>
+                </td>
+                <td>
+                  <a href="{% url 'static_page_edit' page.pk %}" class="btn btn-sm btn-warning" role="button">Edit</a>
+                </td>
+                <td>
+                  <form method="post" action="{% url 'static_page_delete' page.pk %}" onsubmit="return confirm ('Are you sure? ')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger" role="button">Remove</button>
+                  </form>
+                </td>
             </tr>
         {% endfor %}
         </tbody>

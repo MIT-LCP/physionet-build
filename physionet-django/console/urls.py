@@ -100,6 +100,9 @@ urlpatterns = [
     path('usage/credentialing/stats/', views.credentialing_stats, name='credentialing_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
     # static pages
+    path('static-page/add/', views.static_page_add, name='static_page_add'),
+    path('static-page/<int:page_pk>/edit/', views.static_page_edit, name='static_page_edit'),
+    path('static-page/<int:page_pk>/delete/', views.static_page_delete, name='static_page_delete'),
     path('static-pages/', views.static_pages, name='static_pages'),
     path('static-pages/<int:page_pk>/', views.static_page_sections, name='static_page_sections'),
     path(
