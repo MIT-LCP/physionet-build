@@ -57,9 +57,8 @@ from user.models import CloudInformation, CredentialApplication, LegacyCredentia
 
 from .serializers import PublishedProjectSerializer, PublishedProjectDetailSerializer
 from rest_framework import generics
-from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins
-from rest_framework.response import Response
 
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
@@ -2333,6 +2332,7 @@ class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     List all Active Projects
     """
     queryset = PublishedProject.objects.all().order_by('id')
+    permission_classes = [IsAuthenticated]
     serializer_class = PublishedProjectSerializer
 
     def get(self, request, *args, **kwargs):
@@ -2343,6 +2343,7 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
     Retrieve an Active Project
     """
     queryset = PublishedProject.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = PublishedProjectDetailSerializer
 
     def get(self, request, *args, **kwargs):
