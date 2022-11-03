@@ -56,7 +56,7 @@ from project.validators import validate_filename
 from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
 
-from .serializers import ActiveProjectSerializer, ArchivedProjectSerializer
+from .serializers import PublishedProjectSerializer, PublishedProjectDetailSerializer
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework import mixins
@@ -2313,33 +2313,23 @@ def generate_signed_url(request, project_slug):
     GCPLog.objects.update_or_create(project=project, user=request.user, data=data)
 
     return JsonResponse({'url': url})
-
-class ActiveProjectList(mixins.ListModelMixin, generics.GenericAPIView):
+    
+class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     """
     List all Active Projects
     """
-    queryset = ActiveProject.objects.all().order_by('id')
-    serializer_class = ActiveProjectSerializer
+    queryset = PublishedProject.objects.all().order_by('id')
+    serializer_class = PublishedProjectSerializer
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-
-class ArchivedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
-    """
-    List all Archived Projects
-    """
-    queryset = ArchivedProject.objects.all().order_by('id')
-    serializer_class = ArchivedProjectSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-class ActiveProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    
+class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     """
     Retrieve an Active Project
     """
-    queryset = ActiveProject.objects.all()
-    serializer_class = ActiveProjectSerializer
+    queryset = PublishedProject.objects.all()
+    serializer_class = PublishedProjectDetailSerializer
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)

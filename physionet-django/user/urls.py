@@ -44,10 +44,8 @@ urlpatterns = [
     path('trainings/<int:training_id>/report/', views.training_report, name='training_report'),
     path('credential-applications/<application_slug>/training-report/view/',
         views.training_report_view, name='training_report_view'),
- 
-    # User list
-    path('api/user', views.UserList.as_view()),
-    path('api/user/<int:pk>', views.UserDetail.as_view()),
+
+        
 ]
 
 if not settings.ENABLE_SSO:

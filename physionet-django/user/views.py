@@ -60,11 +60,6 @@ from user.models import (
 )
 from user.userfiles import UserFiles
 from physionet.models import StaticPage
-from rest_framework import generics
-from .serializers import UserSerializer, UserDetailSerializer
-from rest_framework.views import APIView
-from rest_framework import mixins
-from rest_framework.response import Response
 
 logger = logging.getLogger(__name__)
 
@@ -872,23 +867,3 @@ def view_signed_agreement(request, id):
     return render(request, 'user/view_signed_agreement.html',
                   {'user': user, 'signed': signed})
 
-
-class UserList(mixins.ListModelMixin, generics.GenericAPIView):
-    """
-    List all users
-    """
-    queryset = User.objects.all().order_by('id')
-    serializer_class = UserSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-class UserDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
-    """
-    Retrieve a user
-    """
-    queryset = User.objects.all()
-    serializer_class = UserDetailSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
