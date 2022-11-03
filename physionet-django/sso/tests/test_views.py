@@ -21,7 +21,9 @@ installed_apps = settings.INSTALLED_APPS + ['sso']
 )
 class TestViews(TestCase):
     def setUp(self):
-        urlpatterns.append(path('', include('sso.urls')))
+
+        # needs to insert it before the catchall url
+        urlpatterns.insert(-1, path('', include('sso.urls')))
         self.inactive_user = User.objects.create(
             username='ssoinactive', email='sso_inactive@mit.edu', sso_id='inactive_remote_id'
         )

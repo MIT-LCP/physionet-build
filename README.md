@@ -113,10 +113,9 @@ If the migration behavior interacts with other changes that have been applied to
  * `git add */migrations/ && git commit`
 
 
- #### Theming Instructions
-Working of the theming system:
-The only manual step required is adding the PRIMARY and DARK Environment variables to the system.
-* theme_generator.sh generated the theme.scss file.
-* Following that, during deployment, the compilation occurs before collectstatic command.
-* The compilation generates the bootstrap css files imported in base_css.html
+#### Theming instructions
+
+The PRIMARY and DARK environment variables can be configured in the .env file.
+ * The management command "compilestatic" generates a theme.scss file and compiles the CSS.
+
 
