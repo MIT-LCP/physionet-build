@@ -1,17 +1,15 @@
 # from user.models import User
 from rest_framework import serializers
 
-from .models import ActiveProject, ArchivedProject
+from .models import PublishedProject
 
-
-class ActiveProjectSerializer(serializers.ModelSerializer):
+class PublishedProjectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ActiveProject
-        fields = '__all__'
+        model = PublishedProject
+        fields = ('id', 'title', 'abstract')
 
-class ArchivedProjectSerializer(serializers.ModelSerializer):
+class PublishedProjectDetailSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ArchivedProject
+        model = PublishedProject
         fields = '__all__'
-
     
