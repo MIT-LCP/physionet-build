@@ -1085,6 +1085,39 @@ def users_search(request, group):
     raise Http404()
 
 
+@permission_required('user.view_user', raise_exception=True)
+def users_aws_access_list_json(request):
+    """
+    Generate JSON list of currently authorized AWS accounts.
+
+    This is a temporary kludge to support an upcoming event (November
+    2022).  Don't rely on this function; it will go away.
+    """
+    projects_datathon = [
+        "mimiciv-0.3",
+        "mimiciv-0.4",
+        "mimiciv-1.0",
+        "mimiciv-2.0"
+    ]
+    published_projects = PublishedProject.objects.all()
+    users_with_awsid = User.objects.filter(cloud_information__aws_id__isnull=False)
+    datasets = {}
+    datasets['datasets'] = []
+
+    for project in published_projects:
+        dataset = {}
+        project_name = project.slug + "-" + project.version
+        if project_name in projects_datathon:
+            dataset['name'] = project_name
+            dataset['accounts'] = []
+            for user in users_with_awsid:
+                if project.has_access(user):
+                    dataset['accounts'].append(user.cloud_information.aws_id)
+            datasets['datasets'].append(dataset)
+
+    return JsonResponse(datasets)
+
+
 @permission_required('user.change_credentialapplication', raise_exception=True)
 def known_references_search(request):
     """
