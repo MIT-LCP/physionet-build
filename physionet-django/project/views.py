@@ -2326,7 +2326,8 @@ def generate_signed_url(request, project_slug):
     GCPLog.objects.update_or_create(project=project, user=request.user, data=data)
 
     return JsonResponse({'url': url})
-    
+
+
 class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     """
     List all Active Projects
@@ -2337,7 +2338,8 @@ class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-    
+
+
 class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     """
     Retrieve an Active Project
