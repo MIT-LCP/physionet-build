@@ -1,4 +1,3 @@
-from cProfile import Profile
 import logging
 import os
 import pdb
@@ -866,4 +865,3 @@ def view_signed_agreement(request, id):
 
     return render(request, 'user/view_signed_agreement.html',
                   {'user': user, 'signed': signed})
-
