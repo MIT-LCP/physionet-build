@@ -77,6 +77,9 @@ urlpatterns = [
     path(
         'robots.txt', lambda x: HttpResponse("User-Agent: *\\Allow: /", content_type="text/plain"), name="robots_file"
     ),
+
+    # path for the Browsable API Authentication
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
 
 if ProjectFiles().is_lightwave_supported:
