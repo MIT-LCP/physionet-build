@@ -8,7 +8,7 @@
                     <th>Email</th>
                     <th>Training Type</th>
                     <th>Identity Verified</th>
-                    <th>Valid until</th>
+                    <th>Reviewed</th>
                     <th>View</th>
                 </tr>
             </thead>
@@ -20,13 +20,7 @@
                         <td>{{ training.user.email }}</td>
                         <td>{{ training.training_type.name }}</td>
                         <td>{{ training.user.is_credentialed|yesno:"Yes,No" }}</td>
-                        <td>
-                        {% if training.valid_datetime %}
-                            {{ training.valid_datetime }}
-                        {% else %}
-                            End of the world
-                        {% endif %}
-                        </td>
+                        <td>{{ training.process_datetime|date }}</td>
                         <td><a href="{% url 'training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
                     </tr>
                 {% endfor %}
