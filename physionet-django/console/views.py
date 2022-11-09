@@ -1535,9 +1535,9 @@ def training_list(request, status):
 
     training_by_status = {
         'review': review_training,
-        'valid': valid_training,
+        'valid': valid_training.order_by('-process_datetime'),
         'expired': expired_training,
-        'rejected': rejected_training,
+        'rejected': rejected_training.order_by('-process_datetime'),
     }
 
     display_training = training_by_status[status]
