@@ -255,3 +255,18 @@ class SubmissionInfo(models.Model):
             creation_time=self.creation_datetime)
         quota_manager.set_limits(bytes_hard=limit, bytes_soft=limit)
         return quota_manager
+
+
+class DataUseAgreement(models.Model):
+    """This model is used to store the responses from the data use agreement for the project."""
+    RESPONSE_CHOICES = (
+    (0, 'No'),
+    (1, 'Yes'),
+    (2, 'NA'),
+   )
+
+    project = models.OneToOneField('project.ActiveProject', on_delete=models.CASCADE)
+    has_copy_right_permission = models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES)
+    has_human_subject_data=models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES)
+    has_phi=models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES)    
+    
