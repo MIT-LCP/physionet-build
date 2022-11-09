@@ -16,7 +16,10 @@
     {% if training.completion_report_url %}
       URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
     {% endif %}
-    Submitted on: {{ training.application_datetime|date }}<br>
+      Submitted on: {{ training.application_datetime|date }}<br>
+    {% if training.reviewer %}
+      Reviewer: {{ training.reviewer.get_full_name }} ({{ training.reviewer.username }})<br>
+    {% endif %}
     {% if training.reviewer_comments %}
       Reviewer comments: {{ training.reviewer_comments }}
     {% endif %}
