@@ -15,8 +15,10 @@ class Migration(migrations.Migration):
             name='DataUseAgreement',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('has_copy_right_permission', models.PositiveSmallIntegerField(choices=[(0, 'No'), (1, 'Yes'), (2, 'NA')])),
-                ('has_human_subject_data', models.PositiveSmallIntegerField(choices=[(0, 'No'), (1, 'Yes'), (2, 'NA')])),
+                ('has_copy_right_permission', models.PositiveSmallIntegerField(
+                    choices=[(0, 'No'), (1, 'Yes'),(2, 'NA')])),
+                ('has_human_subject_data', models.PositiveSmallIntegerField(
+                    choices=[(0, 'No'), (1, 'Yes'), (2, 'NA')])),
                 ('has_phi', models.PositiveSmallIntegerField(choices=[(0, 'No'), (1, 'Yes'), (2, 'NA')])),
                 ('project', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='project.activeproject')),
             ],
