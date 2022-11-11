@@ -95,6 +95,7 @@ TEMPLATES = [
                 'physionet.context_processors.access_policy',
                 'physionet.context_processors.storage_type',
                 'physionet.context_processors.platform_config',
+                'physionet.context_processors.static_pages',
                 'sso.context_processors.sso_enabled',
             ],
         },
