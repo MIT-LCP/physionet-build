@@ -1,3 +1,5 @@
+TABLE OF CONTENT
+
 - [1. Setting up your system for the first time](#1-setting-up-your-system-for-the-first-time)
   - [1.1 MacOS](#11-macos)
     - [1.1.1 Install HomeBrew](#111-install-homebrew)
