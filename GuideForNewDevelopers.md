@@ -1,3 +1,57 @@
+- [1. Setting up your system for the first time](#1-setting-up-your-system-for-the-first-time)
+  - [1.1 MacOS](#11-macos)
+    - [1.1.1 Install HomeBrew](#111-install-homebrew)
+    - [1.1.2 Install Python](#112-install-python)
+    - [1.1.3 Install git](#113-install-git)
+    - [1.1.4 Install sqlite3](#114-install-sqlite3)
+    - [1.1.5 Install VSCode](#115-install-vscode)
+    - [1.1.6 Clone the Project Locally](#116-clone-the-project-locally)
+    - [1.1.7 Install and Create Virtual Environment](#117-install-and-create-virtual-environment)
+    - [1.1.8 Install requirements](#118-install-requirements)
+    - [1.1.9 Run the project](#119-run-the-project)
+    - [1.1.9.1 Open terminal and navigate inside the project directory](#1191-open-terminal-and-navigate-inside-the-project-directory)
+    - [1.1.9.2  Activate virtual python environment.](#1192--activate-virtual-python-environment)
+    - [1.1.9.3 Copy .env.example file to .env](#1193-copy-envexample-file-to-env)
+    - [1.1.9.4 Run the following commands to setup the database](#1194-run-the-following-commands-to-setup-the-database)
+    - [1.1.10 Start the server(Finally)](#1110-start-the-serverfinally)
+  - [1.2 Windows](#12-windows)
+    - [1.2.1 Install Python3](#121-install-python3)
+    - [1.2.2 Install git Bash](#122-install-git-bash)
+    - [1.2.3 Install VSCode](#123-install-vscode)
+    - [1.2.4 Clone the Project Locally](#124-clone-the-project-locally)
+    - [1.2.5 Install and Create Virtual Environment](#125-install-and-create-virtual-environment)
+    - [1.2.6 Install requirements](#126-install-requirements)
+    - [1.2.7 Run the project](#127-run-the-project)
+    - [1.2.7.1 Open CMD and navigate inside the project directory](#1271-open-cmd-and-navigate-inside-the-project-directory)
+    - [1.2.8.2  Activate virtual python environment.](#1282--activate-virtual-python-environment)
+    - [1.2.8.3 Copy .env.example file to .env](#1283-copy-envexample-file-to-env)
+    - [1.2.8.4 Run the following commands to setup the database](#1284-run-the-following-commands-to-setup-the-database)
+    - [1.2.10 Start the server(Finally)](#1210-start-the-serverfinally)
+  - [1.3 Linux](#13-linux)
+    - [1.3.1 Install Python3](#131-install-python3)
+    - [1.3.2 Install git](#132-install-git)
+    - [1.3.3 Install sqlite3](#133-install-sqlite3)
+    - [1.3.4 Install VSCode](#134-install-vscode)
+    - [1.3.5 Clone the Project Locally](#135-clone-the-project-locally)
+    - [1.3.6 Install and Create Virtual Environment](#136-install-and-create-virtual-environment)
+    - [1.3.7 Install requirements](#137-install-requirements)
+    - [1.3.8 Run the project](#138-run-the-project)
+    - [1.3.8.1 Open terminal and navigate inside the project directory](#1381-open-terminal-and-navigate-inside-the-project-directory)
+    - [1.3.8.2  Activate virtual python environment.](#1382--activate-virtual-python-environment)
+    - [1.3.8.3 Copy .env.example file to .env](#1383-copy-envexample-file-to-env)
+    - [1.3.8.4 Run the following commands to setup the database](#1384-run-the-following-commands-to-setup-the-database)
+    - [1.3.10 Start the server(Finally)](#1310-start-the-serverfinally)
+- [Working on a new features](#working-on-a-new-features)
+- [Troubleshooting[WIP]](#troubleshootingwip)
+  - [MAC](#mac)
+    - [Homebrew not found](#homebrew-not-found)
+  - [Windows](#windows)
+  - [Linux](#linux)
+
+
+
+
+
 # 1. Setting up your system for the first time
 
 
@@ -149,6 +203,8 @@ cp .env.example .env
   - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
   - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  
+  - Run: `python3 manage.py compilestatic` to compile the css files
 
 ### 1.1.10 Start the server(Finally)
 
@@ -201,9 +257,6 @@ Here are few resources to learn about git [git-scm.com](https://git-scm.com/book
 
 
 
-
-
-
 ### 1.2.3 Install VSCode
 
 To setup, VSCode, you can download the .exe package from [official link](https://code.visualstudio.com/) and install directly on your Windows. [Here](https://code.visualstudio.com/docs/setup/windows) are the official instructions 
@@ -249,7 +302,6 @@ In the same CMD from  step 1.2.5.1, enter the following command to activate the 
 env\Scripts\activate.bat
 ```
 
-
 ### 1.2.6 Install requirements
 
 Now that we have the Virtual Environment setup, lets install the python libraries needed for the project.
@@ -288,6 +340,9 @@ copy .env.example .env
   - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
   - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+
+  - Run: `python3 manage.py compilestatic` to compile the css files
+
 
 ### 1.2.10 Start the server(Finally)
 
@@ -446,6 +501,9 @@ cp .env.example .env
 
   - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
 
+  - Run: `python3 manage.py compilestatic` to compile the css files
+
+
 ### 1.3.10 Start the server(Finally)
 
 Enter the following command to start the server
@@ -458,9 +516,26 @@ The local development server will be available at [http://localhost:8000](http:/
 
 
 
-# Working on a new feature[WIP]
+# Working on a new features
 
- Activate your environment. Pull down the latest changes to dev. Create a new branch. Make your changes. Add and commit the changes. Push the changes to GitHub. Make a pull request. Tips for making a good pull request.
+Now that you have completed your setup and have familiarized yourself with the codebase, here is how you can contribute and submit your changes for review.
+
+1. Create a new Branch each feature you work on
+2. Work on your changes, add files and commit your changes
+3. On Commits, add clear explanation on the changes. Here is an interesting read from [freeCodeCamp](https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/)
+4. Once your changes are final and ready to be submitted, push the changes and open a Merge Request. Someone will review your changes ASAP.
+
+
+
+
+Here are some good resources to read about contributing to OpenSource projects
+1. [Making your first Open Source Pull Request | Github](https://www.geeksforgeeks.org/making-first-open-source-pull-request/)
+2. [A First Timers Guide to an Open Source Project](https://auth0.com/blog/a-first-timers-guide-to-an-open-source-project/)
+3. [Contributing to Open Source : Getting Started](https://www.geeksforgeeks.org/contributing-to-open-source-getting-started)
+4. [The (written) unwritten guide to pull requests
+](https://www.atlassian.com/blog/git/written-unwritten-guide-pull-requests)
+
+
 
 # Troubleshooting[WIP]
 
