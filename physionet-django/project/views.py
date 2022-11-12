@@ -2317,7 +2317,7 @@ def generate_signed_url(request, project_slug):
 
 class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     """
-    List all Active Projects
+    List all Published Projects
     """
     queryset = PublishedProject.objects.all().order_by('id')
     authentication_classes = [SessionAuthentication, BasicAuthentication]
@@ -2330,12 +2330,14 @@ class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
 
 class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     """
-    Retrieve an Active Project
+    Retrieve an Published Project
     """
-    queryset = PublishedProject.objects.all()
+    queryset = PublishedProject.objects.filter()
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
     serializer_class = PublishedProjectDetailSerializer
+
+    lookup_field = 'slug'
 
     def get(self, request, *args, **kwargs):
         return self.retrieve(request, *args, **kwargs)
