@@ -60,6 +60,7 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import mixins
+from rest_framework.response import Response
 
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
@@ -2346,12 +2347,14 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
     """
     Retrieve an Published Project
     """
-    queryset = PublishedProject.objects.filter()
+
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     permission_classes = [IsAuthenticated]
-    serializer_class = PublishedProjectDetailSerializer
 
-    lookup_field = 'slug'
+    def get_object(self, slug, version):
+        return get_object_or_404(PublishedProject, slug=slug, version=version)
 
-    def get(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+    def get(self, request, slug, version, *args, **kwargs):
+        project = self.get_object(slug, version)
+        serializer = PublishedProjectDetailSerializer(project)
+        return Response(serializer.data)
