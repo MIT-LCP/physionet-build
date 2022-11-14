@@ -16,3 +16,5 @@ class Migration(migrations.Migration):
             field=models.BooleanField(default=False),
         ),
     ]
+
+    MIGRATE_AFTER_INSTALL = True
