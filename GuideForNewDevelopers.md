@@ -1,89 +1,109 @@
-TABLE OF CONTENT
+- [Guide for New Developers](#guide-for-new-developers)
+  - [1. Summary of Development Setup](#1-summary-of-development-setup)
+  - [2. Setting up your system for the first time](#2-setting-up-your-system-for-the-first-time)
+    - [2.1 MacOS](#21-macos)
+      - [2.1.1 Install HomeBrew](#211-install-homebrew)
+      - [2.1.2 Install Python](#212-install-python)
+      - [2.1.3 Install git](#213-install-git)
+      - [2.1.4 Install sqlite3](#214-install-sqlite3)
+      - [2.1.5 Install VSCode](#215-install-vscode)
+      - [2.1.6 Clone the Project Locally](#216-clone-the-project-locally)
+      - [2.1.7 Install and Create Virtual Environment](#217-install-and-create-virtual-environment)
+        - [2.1.7.1 Create a Virtual Environment](#2171-create-a-virtual-environment)
+        - [2.1.7.2 Activate the Virtual Environment](#2172-activate-the-virtual-environment)
+      - [2.1.8 Install requirements](#218-install-requirements)
+      - [2.1.9 Run the project](#219-run-the-project)
+        - [2.1.9.1 Open a terminal and navigate inside the project directory](#2191-open-a-terminal-and-navigate-inside-the-project-directory)
+        - [2.1.9.2 Activate virtual python environment.](#2192-activate-virtual-python-environment)
+        - [2.1.9.3 Copy .env.example file to .env](#2193-copy-envexample-file-to-env)
+        - [2.1.9.4 Run the following commands to setup the database](#2194-run-the-following-commands-to-setup-the-database)
+      - [2.1.10 Start the server(Finally)](#2110-start-the-serverfinally)
+    - [2.2 Windows](#22-windows)
+      - [2.2.1 Install Python3](#221-install-python3)
+      - [2.2.2 Install git Bash](#222-install-git-bash)
+      - [2.2.3 Install VSCode](#223-install-vscode)
+      - [2.2.4 Clone the Project Locally](#224-clone-the-project-locally)
+      - [2.2.5 Install and Create Virtual Environment](#225-install-and-create-virtual-environment)
+        - [2.2.5.1 Create a Virtual Environment](#2251-create-a-virtual-environment)
+        - [2.2.5.2 Activate the Virtual Environment](#2252-activate-the-virtual-environment)
+      - [2.2.6 Install requirements](#226-install-requirements)
+      - [2.2.7 Run the project](#227-run-the-project)
+        - [2.2.7.1 Open CMD and navigate inside the project directory](#2271-open-cmd-and-navigate-inside-the-project-directory)
+        - [2.2.7.2  Activate virtual python environment.](#2272--activate-virtual-python-environment)
+        - [2.2.7.3 Copy .env.example file to .env](#2273-copy-envexample-file-to-env)
+        - [2.2.7.4 Run the following commands to setup the database](#2274-run-the-following-commands-to-setup-the-database)
+      - [2.2.8 Start the server(Finally)](#228-start-the-serverfinally)
+    - [2.3 Linux](#23-linux)
+      - [2.3.1 Install Python3](#231-install-python3)
+      - [2.3.2 Install git](#232-install-git)
+      - [2.3.3 Install sqlite3](#233-install-sqlite3)
+      - [2.3.4 Install VSCode](#234-install-vscode)
+      - [2.3.5 Clone the Project Locally](#235-clone-the-project-locally)
+      - [2.3.6 Install and Create Virtual Environment](#236-install-and-create-virtual-environment)
+        - [2.3.6.1 Create a Virtual Environment](#2361-create-a-virtual-environment)
+        - [2.3.6.2 Activate the Virtual Environment](#2362-activate-the-virtual-environment)
+      - [2.3.7 Install requirements](#237-install-requirements)
+      - [2.3.8 Run the project](#238-run-the-project)
+        - [2.3.8.1 Open a terminal and navigate inside the project directory](#2381-open-a-terminal-and-navigate-inside-the-project-directory)
+        - [2.3.8.2 Activate virtual python environment.](#2382-activate-virtual-python-environment)
+        - [2.3.8.3 Copy .env.example file to .env](#2383-copy-envexample-file-to-env)
+        - [2.3.8.4 Run the following commands to setup the database](#2384-run-the-following-commands-to-setup-the-database)
+      - [2.3.9 Start the server(Finally)](#239-start-the-serverfinally)
+  - [Working on new features](#working-on-new-features)
+  - [Troubleshooting[WIP]](#troubleshootingwip)
+    - [MAC](#mac)
+      - [Homebrew not found](#homebrew-not-found)
+    - [Windows](#windows)
+    - [Linux](#linux)
 
-- [1. Setting up your system for the first time](#1-setting-up-your-system-for-the-first-time)
-  - [1.1 MacOS](#11-macos)
-    - [1.1.1 Install HomeBrew](#111-install-homebrew)
-    - [1.1.2 Install Python](#112-install-python)
-    - [1.1.3 Install git](#113-install-git)
-    - [1.1.4 Install sqlite3](#114-install-sqlite3)
-    - [1.1.5 Install VSCode](#115-install-vscode)
-    - [1.1.6 Clone the Project Locally](#116-clone-the-project-locally)
-    - [1.1.7 Install and Create Virtual Environment](#117-install-and-create-virtual-environment)
-    - [1.1.8 Install requirements](#118-install-requirements)
-    - [1.1.9 Run the project](#119-run-the-project)
-    - [1.1.9.1 Open terminal and navigate inside the project directory](#1191-open-terminal-and-navigate-inside-the-project-directory)
-    - [1.1.9.2  Activate virtual python environment.](#1192--activate-virtual-python-environment)
-    - [1.1.9.3 Copy .env.example file to .env](#1193-copy-envexample-file-to-env)
-    - [1.1.9.4 Run the following commands to setup the database](#1194-run-the-following-commands-to-setup-the-database)
-    - [1.1.10 Start the server(Finally)](#1110-start-the-serverfinally)
-  - [1.2 Windows](#12-windows)
-    - [1.2.1 Install Python3](#121-install-python3)
-    - [1.2.2 Install git Bash](#122-install-git-bash)
-    - [1.2.3 Install VSCode](#123-install-vscode)
-    - [1.2.4 Clone the Project Locally](#124-clone-the-project-locally)
-    - [1.2.5 Install and Create Virtual Environment](#125-install-and-create-virtual-environment)
-    - [1.2.6 Install requirements](#126-install-requirements)
-    - [1.2.7 Run the project](#127-run-the-project)
-    - [1.2.7.1 Open CMD and navigate inside the project directory](#1271-open-cmd-and-navigate-inside-the-project-directory)
-    - [1.2.8.2  Activate virtual python environment.](#1282--activate-virtual-python-environment)
-    - [1.2.8.3 Copy .env.example file to .env](#1283-copy-envexample-file-to-env)
-    - [1.2.8.4 Run the following commands to setup the database](#1284-run-the-following-commands-to-setup-the-database)
-    - [1.2.10 Start the server(Finally)](#1210-start-the-serverfinally)
-  - [1.3 Linux](#13-linux)
-    - [1.3.1 Install Python3](#131-install-python3)
-    - [1.3.2 Install git](#132-install-git)
-    - [1.3.3 Install sqlite3](#133-install-sqlite3)
-    - [1.3.4 Install VSCode](#134-install-vscode)
-    - [1.3.5 Clone the Project Locally](#135-clone-the-project-locally)
-    - [1.3.6 Install and Create Virtual Environment](#136-install-and-create-virtual-environment)
-    - [1.3.7 Install requirements](#137-install-requirements)
-    - [1.3.8 Run the project](#138-run-the-project)
-    - [1.3.8.1 Open terminal and navigate inside the project directory](#1381-open-terminal-and-navigate-inside-the-project-directory)
-    - [1.3.8.2  Activate virtual python environment.](#1382--activate-virtual-python-environment)
-    - [1.3.8.3 Copy .env.example file to .env](#1383-copy-envexample-file-to-env)
-    - [1.3.8.4 Run the following commands to setup the database](#1384-run-the-following-commands-to-setup-the-database)
-    - [1.3.10 Start the server(Finally)](#1310-start-the-serverfinally)
-- [Working on a new features](#working-on-a-new-features)
-- [Troubleshooting[WIP]](#troubleshootingwip)
-  - [MAC](#mac)
-    - [Homebrew not found](#homebrew-not-found)
-  - [Windows](#windows)
-  - [Linux](#linux)
+
+# Guide for New Developers
+
+## 1. Summary of Development Setup
+
+The Development Environment setup requires the use of the following tools/software
+
+1. Package Management System
+   1. Mac : [Homebrew](https://brew.sh/)
+   2. Linux : Yum(Red Hat), [Pacman(Arch)](https://wiki.archlinux.org/title/pacman), [Aptitude(Debian)](https://wiki.debian.org/Aptitude)
+2. [Python](https://www.python.org/) - High-level programming language
+3. [Git](https://git-scm.com/) - Version control system
+4. [SQLITE3](https://www.sqlite.org/index.html) - Database Engine
+5. [PostgreSQL](https://www.postgresql.org/) - Relational DBMS
+6. [Docker](https://www.docker.com/)
+7. An Integrated Development Environment ([VSCode](https://code.visualstudio.com/), [Pycharm](https://www.jetbrains.com/pycharm/), [Spyder](https://www.spyder-ide.org/) etc) 
 
 
+## 2. Setting up your system for the first time
 
 
+### 2.1 MacOS
 
-# 1. Setting up your system for the first time
-
-
-## 1.1 MacOS
-
-### 1.1.1 Install HomeBrew
+#### 2.1.1 Install HomeBrew
 
 Homebrew is a free and open-source software package management system that simplifies the installation of software on Apple's operating system, macOS, as well as Linux [source](https://en.wikipedia.org/wiki/Homebrew_(package_manager)).
 
-We will use homebrew to install python on our MAC, to use homebrew for python installation, we need to first install a compiler which we can get by  installing Xcode's command-line tools.
+We will use homebrew to install python on our MAC, to use homebrew for python installation, we need to first install a compiler which we can get by installing Xcode's command-line tools.
 
-To install the xcode, open terminal on your system, and enter the following command
+To install the xcode, open a terminal on your system, and enter the following command
 
 ```sh
 xcode-select --install
 ```
 
-Now that you have the Xcode's command-line tools installed, lets go ahead and install homebrew
+Now that you have the Xcode's command-line tools installed, let's go ahead and install homebrew
 
 To install [homebrew](https://brew.sh/), paste the following command on your terminal. 
 
 ```sh
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
-*Note*: Homebrew might need you to use one more command to add homebrew to your `PATH`, please carefully check if the home brew has *NEXT STEPS* for you on terminal after the installation
+*Note*: Homebrew might need you to use one more command to add homebrew to your `PATH`, please carefully check if the homebrew has *NEXT STEPS* for you on the terminal after the installation
 
 
-### 1.1.2 Install Python
+#### 2.1.2 Install Python
 
-Now that we have home brew installed, Lets go ahea and install [python3](https://docs.python-guide.org/starting/install3/osx/)
+Now that we have homebrew installed, Let's go ahead and install [python3](https://docs.python-guide.org/starting/install3/osx/)
 
 
 ```sh
@@ -98,55 +118,55 @@ In summary, you should be able to access python3 with the command `python`, you 
 python3 --version
 ```
 
-### 1.1.3 Install git
+#### 2.1.3 Install git
 
-Git is free and open source software for distributed version control. We will use it later to clone the Physio-net project to our system, and you can also use it to submit your contribution to the project. 
-Here are few resources to learn about git [git-scm.com](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/)
+Git is free and open-source software for distributed version control. We will use it later to clone the PhysioNet project to our system, and you can also use it to submit your contribution to the project. 
+Here are a few resources to learn about git [git-scm.com](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/)
 
 ```sh
 brew install git
 ```
 
-To verify git is installed correctly, you can run the following in terminal
+To verify git is installed correctly, you can run the following in the terminal
 
 ```sh
 git --version
 ```
 
-### 1.1.4 Install sqlite3
+#### 2.1.4 Install sqlite3
 
-The physionet-build uses sqlite3 as a quick database for local setup. Lets install that
+The physionet-build uses sqlite3 as a quick database for local setup. Let's install that
 
 ```sh
 brew install sqlite3
 ```
-### 1.1.5 Install VSCode
+#### 2.1.5 Install VSCode
 
-To setup, VSCode, you can download it from [official link](https://code.visualstudio.com/) and install directly on your MAC
+To set up, VSCode, you can download it from [official link](https://code.visualstudio.com/) and install it directly on your MAC
 
 After installing VSCode, you can install this [Python extension on VSCode](https://marketplace.visualstudio.com/items?itemName=ms-python.python) to get the support for IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), Jupyter Notebooks, code formatting, refactoring, unit tests, and more. 
-Simply vist the link above and click on the install button on the website, it should redirect and open the installation option on VSCode.
+Simply visit the link above and click on the install button on the website, it should redirect and open the installation option on VSCode.
 
-### 1.1.6 Clone the Project Locally
+#### 2.1.6 Clone the Project Locally
 
-Now that we have Python setup, Lets go ahead and clone the project to your system. Open terminal and enter the following command.
+Now that we have Python setup, Let's go ahead and clone the project to your system. Open a terminal and enter the following command.
 
 
 ```sh
 git clone https://github.com/MIT-LCP/physionet-build
 ```
 
-### 1.1.7 Install and Create Virtual Environment
+#### 2.1.7 Install and Create Virtual Environment
 
-Now that we have cloned the project to your system, lets go ahead and create a Virtual Environment, you can learn more about Virtual Environments in python [Here](https://realpython.com/python-virtual-environments-a-primer/). 
+Now that we have cloned the project to your system, let's go ahead and create a Virtual Environment, you can learn more about Virtual Environments in python [Here](https://realpython.com/python-virtual-environments-a-primer/). 
 
-In Summary, Virtual Environment will let us install and keep different versions of python library specific to individual projects.
+In Summary, Virtual Environment will let us install and keep different versions of the python library specific to individual projects.
 
-Lets create a virtual environment for our project
+Let's create a virtual environment for our project
 
-1.1.7.1 Create a Virtual Environment
+##### 2.1.7.1 Create a Virtual Environment
 
-Open terminal and enter the following command to navigate inside the project directory
+Open a terminal and enter the following command to navigate inside the project directory
 
 ```sh
 cd physionet-build
@@ -156,29 +176,29 @@ Now create the virtual environment with the following command in the same termin
 python3 -m venv env
 ```
 
-1.1.7.2 Activate the Virtual Environment
+##### 2.1.7.2 Activate the Virtual Environment
 
-In the same terminal from  step 1.1.7.1, enter the following command to activate the virtual environment
+In the same terminal from  step [2.1.7.1](#2171-create-a-virtual-environment), enter the following command to activate the virtual environment
 
 ```sh
 source env/bin/activate
 ```
 
 
-### 1.1.8 Install requirements
+#### 2.1.8 Install requirements
 
-Now that we have the Virtual Environment setup, lets install the python libraries needed for the project.
+Now that we have the Virtual Environment setup, let's install the python libraries needed for the project.
 
-In the same terminal from step 1.1.7.2, enter the following command to install the requirements
+In the same terminal from step [2.1.7.2](#2172-activate-the-virtual-environment), enter the following command to install the requirements
 
 ```sh
 pip install -r requirements.txt
 ```
 
-### 1.1.9 Run the project
-We now have everything setup to run the project locally. Lets go ahead and setup the project
+#### 2.1.9 Run the project
+We now have everything set up to run the project locally. Let's go ahead and set up the project
 
-### 1.1.9.1 Open terminal and navigate inside the project directory
+##### 2.1.9.1 Open a terminal and navigate inside the project directory
 
 ```sh
 cd physionet-build
@@ -186,13 +206,13 @@ cd physionet-build
 
 
 
-### 1.1.9.2  Activate virtual python environment.
+##### 2.1.9.2 Activate virtual python environment.
 
 ```sh
 source env/bin/activate
 ```
 
-### 1.1.9.3 Copy .env.example file to .env
+##### 2.1.9.3 Copy .env.example file to .env
 
 ```sh
 cp .env.example .env
@@ -200,7 +220,7 @@ cp .env.example .env
 
 
 
-### 1.1.9.4 Run the following commands to setup the database
+##### 2.1.9.4 Run the following commands to setup the database
 
   - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
@@ -208,7 +228,7 @@ cp .env.example .env
   
   - Run: `python3 manage.py compilestatic` to compile the css files
 
-### 1.1.10 Start the server(Finally)
+#### 2.1.10 Start the server(Finally)
 
 Enter the following command to start the server
 
@@ -221,123 +241,123 @@ The local development server will be available at [http://localhost:8000](http:/
 
 
 
-## 1.2 Windows
+### 2.2 Windows
 
 
-### 1.2.1 Install Python3
+#### 2.2.1 Install Python3
 
-*Note: Check if you alredy have a python3 installed on your system(if you already have a latest version of python3, you wont to do do the step 1.2.1), to check enter the following on CMD*
+*Note: Check if you already have a python3 installed on your system(if you already have a latest version of python3, you wont to do do the step 1.2.1), to check enter the following on CMD*
 
-```sh
+```cmd
 python --version
 ```
 
-If you dont have a latest version of python, Please download and install latest python from the [Official Python Website](https://www.python.org/downloads/). 
+If you don't have the latest version of python, Please download and install the latest python from the [Official Python Website](https://www.python.org/downloads/). 
 
 1. Navigate to the Downloads tab for Windows.
 2. Choose the latest Python 3 release
 3. Choose the Windows x86 executable installer if you are using a 32-bit installer or if you have a 64-bit system, then download Windows x86-64 executable installer. 
 4. Run the executable and install python with the default options
-   1. Dont forget to select the `Add Python x.x to PATH` option
+   1. Don't forget to select the `Add Python x.x to PATH` option
    
    Here is a detailed [guide](https://realpython.com/installing-python/#how-to-install-python-on-windows) if you need further help
 
 Open cmd and enter the following commands to verify you have installed python3
 
 
-```sh
+```cmd
 python --version
 ```
 
-### 1.2.2 Install git Bash
+#### 2.2.2 Install git Bash
 Download git bash from the official website and install it with the default settings
 
 https://git-scm.com/download/win
 
-Git is free and open source software for distributed version control. We will use it later to clone the Physio-net project to our system, and you can also use it to submit your contribution to the project. 
-Here are few resources to learn about git [git-scm.com](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/)
+Git is free and open-source software for distributed version control. We will use it later to clone the PhysioNet project to our system, and you can also use it to submit your contribution to the project. 
+Here are a few resources to learn about git [git-scm.com](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/)
 
 
 
-### 1.2.3 Install VSCode
+#### 2.2.3 Install VSCode
 
-To setup, VSCode, you can download the .exe package from [official link](https://code.visualstudio.com/) and install directly on your Windows. [Here](https://code.visualstudio.com/docs/setup/windows) are the official instructions 
+To set up, VSCode, you can download the .exe package from [official link](https://code.visualstudio.com/) and install it directly on your Windows. [Here](https://code.visualstudio.com/docs/setup/windows) are the official instructions 
 
 
 After installing VSCode, you can install this [Python extension on VSCode](https://marketplace.visualstudio.com/items?itemName=ms-python.python) to get the support for IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), Jupyter Notebooks, code formatting, refactoring, unit tests, and more. 
-Simply vist the link above and click on the install button on the website, it should redirect and open the installation option on VSCode.
+Simply visit the link above and click on the install button on the website, it should redirect and open the installation option on VSCode.
 
-### 1.2.4 Clone the Project Locally
+#### 2.2.4 Clone the Project Locally
 
-Now that we have Python setup, Lets go ahead and clone the project to your system. Open git bash and enter the following command.
+Now that we have Python setup, Let's go ahead and clone the project to your system. Open git bash and enter the following command.
 
 
-```sh
+```cmd
 git clone https://github.com/MIT-LCP/physionet-build
 ```
 
-### 1.2.5 Install and Create Virtual Environment
+#### 2.2.5 Install and Create Virtual Environment
 
-Now that we have cloned the project to your system, lets go ahead and create a Virtual Environment, you can learn more about Virtual Environments in python [Here](https://realpython.com/python-virtual-environments-a-primer/). 
+Now that we have cloned the project to your system, let's go ahead and create a Virtual Environment, you can learn more about Virtual Environments in python [Here](https://realpython.com/python-virtual-environments-a-primer/). 
 
-In Summary, Virtual Environment will let us install and keep different versions of python library specific to individual projects.
+In Summary, Virtual Environment will let us install and keep different versions of the python library specific to individual projects.
 
-Lets create a virtual environment for our project
+Let's create a virtual environment for our project
 
-1.2.5.1 Create a Virtual Environment
+##### 2.2.5.1 Create a Virtual Environment
 
 Open CMD and  navigate inside the project directory
 
-```sh
+```cmd
 cd <path to physionet-build>
 ```
 Now create the virtual environment with the following command in the same terminal
-```sh
+```cmd
 python3 -m venv env
 ```
 
-1.2.5.2 Activate the Virtual Environment
+##### 2.2.5.2 Activate the Virtual Environment
 
-In the same CMD from  step 1.2.5.1, enter the following command to activate the virtual environment
+In the same CMD from  step [2.2.5.1](#2251-create-a-virtual-environment), enter the following command to activate the virtual environment
 
-```sh
+```cmd
 env\Scripts\activate.bat
 ```
 
-### 1.2.6 Install requirements
+#### 2.2.6 Install requirements
 
-Now that we have the Virtual Environment setup, lets install the python libraries needed for the project.
+Now that we have the Virtual Environment setup, let's install the python libraries needed for the project.
 
-In the same terminal from step 1.2.5.2, enter the following command to install the requirements
+In the same terminal from step [2.2.5.2](#2252-activate-the-virtual-environment), enter the following command to install the requirements
 
-```sh
+```cmd
 pip install -r requirements.txt
 ```
 
-### 1.2.7 Run the project
+#### 2.2.7 Run the project
 
-We now have everything setup to run the project locally. Lets go ahead and setup the project
+We now have everything set up to run the project locally. Let's go ahead and set up the project
 
-### 1.2.7.1 Open CMD and navigate inside the project directory
+##### 2.2.7.1 Open CMD and navigate inside the project directory
 
-```sh
+```cmd
 cd <path to physionet-build>
 ```
 
-### 1.2.8.2  Activate virtual python environment.
+##### 2.2.7.2  Activate virtual python environment.
 
-```sh
+```cmd
 env\Scripts\activate.bat
 ```
 
-### 1.2.8.3 Copy .env.example file to .env
+##### 2.2.7.3 Copy .env.example file to .env
 
-```sh
+```cmd
 copy .env.example .env
 ```
 
 
-### 1.2.8.4 Run the following commands to setup the database
+##### 2.2.7.4 Run the following commands to setup the database
 
   - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
@@ -346,11 +366,11 @@ copy .env.example .env
   - Run: `python3 manage.py compilestatic` to compile the css files
 
 
-### 1.2.10 Start the server(Finally)
+#### 2.2.8 Start the server(Finally)
 
 Enter the following command to start the server
 
-```sh
+```cmd
 python3 manage.py runserver
 ```
 
@@ -358,16 +378,16 @@ The local development server will be available at [http://localhost:8000](http:/
 
 
 
-## 1.3 Linux
+### 2.3 Linux
 
 
-### 1.3.1 Install Python3
+#### 2.3.1 Install Python3
 
-Because has many linux distros, please follow the guide from [realpython](https://realpython.com/installing-python/#how-to-install-python-on-linux) to setup python3 based on your linux system
+Because Linux has many distros, please follow the guide from [Real Python](https://realpython.com/installing-python/#how-to-install-python-on-linux) to setup python3 based on your Linux system
 
-Here we have added instruction on installing python3 on Ubuntu(Debian based Linux Distro).
+Here we have added instructions on installing python3 on Ubuntu(Debian-based Linux Distro).
 
-Open terminal and enter the following commands
+Open a terminal and enter the following commands
 
 ```sh
 sudo apt update
@@ -389,32 +409,32 @@ In summary, you should be able to access python3 with the command `python3`, you
 python3 --version
 ```
 
-### 1.3.2 Install git
+#### 2.3.2 Install git
 
-Git is free and open source software for distributed version control. We will use it later to clone the Physio-net project to our system, and you can also use it to submit your contribution to the project. 
-Here are few resources to learn about git [git-scm.com](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/)
+Git is free and open-source software for distributed version control. We will use it later to clone the PhysioNet project to our system, and you can also use it to submit your contribution to the project. 
+Here are a few resources to learn about git [git-scm.com](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/)
 
 ```sh
 sudo apt install git
 ```
 
-To verify git is installed correctly, you can run the following in terminal
+To verify git is installed correctly, you can run the following in the terminal
 
 ```sh
 git --version
 ```
 
-### 1.3.3 Install sqlite3
+#### 2.3.3 Install sqlite3
 
-The physionet-build uses sqlite3 as a quick database for local setup. Lets install that
+The physionet-build uses sqlite3 as a quick database for local setup. Let's install that
 
 ```sh
 sudo apt install sqlite3
 ```
 
-### 1.3.4 Install VSCode
+#### 2.3.4 Install VSCode
 
-To setup, VSCode, you can download the .deb package from [official link](https://code.visualstudio.com/) and install directly on your Linux with the following the instructions [here](https://code.visualstudio.com/docs/setup/linux)
+To set up, VSCode, you can download the .deb package from [official link](https://code.visualstudio.com/) and install it directly on your Linux by the following instructions [here](https://code.visualstudio.com/docs/setup/linux)
 
 
 ```sh
@@ -422,28 +442,28 @@ sudo apt install ./<path to your downloaded vscode file>.deb
 ```
 
 After installing VSCode, you can install this [Python extension on VSCode](https://marketplace.visualstudio.com/items?itemName=ms-python.python) to get the support for IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), Jupyter Notebooks, code formatting, refactoring, unit tests, and more. 
-Simply vist the link above and click on the install button on the website, it should redirect and open the installation option on VSCode.
+Simply visit the link above and click on the install button on the website, it should redirect and open the installation option on VSCode.
 
-### 1.3.5 Clone the Project Locally
+#### 2.3.5 Clone the Project Locally
 
-Now that we have Python setup, Lets go ahead and clone the project to your system. Open terminal and enter the following command.
+Now that we have Python setup, Let's go ahead and clone the project to your system. Open a terminal and enter the following command.
 
 
 ```sh
 git clone https://github.com/MIT-LCP/physionet-build
 ```
 
-### 1.3.6 Install and Create Virtual Environment
+#### 2.3.6 Install and Create Virtual Environment
 
-Now that we have cloned the project to your system, lets go ahead and create a Virtual Environment, you can learn more about Virtual Environments in python [Here](https://realpython.com/python-virtual-environments-a-primer/). 
+Now that we have cloned the project to your system, let's go ahead and create a Virtual Environment, you can learn more about Virtual Environments in python [Here](https://realpython.com/python-virtual-environments-a-primer/). 
 
-In Summary, Virtual Environment will let us install and keep different versions of python library specific to individual projects.
+In Summary, Virtual Environment will let us install and keep different versions of the python library specific to individual projects.
 
-Lets create a virtual environment for our project
+Let's create a virtual environment for our project
 
-1.3.6.1 Create a Virtual Environment
+##### 2.3.6.1 Create a Virtual Environment
 
-Open terminal and enter the following command to navigate inside the project directory
+Open a terminal and enter the following command to navigate inside the project directory
 
 ```sh
 cd physionet-build
@@ -453,30 +473,30 @@ Now create the virtual environment with the following command in the same termin
 python3 -m venv env
 ```
 
-1.3.6.2 Activate the Virtual Environment
+##### 2.3.6.2 Activate the Virtual Environment
 
-In the same terminal from  step 1.3.6.1, enter the following command to activate the virtual environment
+In the same terminal from  step [2.3.6.1](#2361-create-a-virtual-environment), enter the following command to activate the virtual environment
 
 ```sh
 source env/bin/activate
 ```
 
 
-### 1.3.7 Install requirements
+#### 2.3.7 Install requirements
 
-Now that we have the Virtual Environment setup, lets install the python libraries needed for the project.
+Now that we have the Virtual Environment setup, let's install the python libraries needed for the project.
 
-In the same terminal from step 1.3.6.2, enter the following command to install the requirements
+In the same terminal from step [2.3.6.2](#2362-activate-the-virtual-environment), enter the following command to install the requirements
 
 ```sh
 pip install -r requirements.txt
 ```
 
-### 1.3.8 Run the project
+#### 2.3.8 Run the project
 
-We now have everything setup to run the project locally. Lets go ahead and setup the project
+We now have everything set up to run the project locally. Let's go ahead and set up the project
 
-### 1.3.8.1 Open terminal and navigate inside the project directory
+##### 2.3.8.1 Open a terminal and navigate inside the project directory
 
 ```sh
 cd physionet-build
@@ -484,20 +504,20 @@ cd physionet-build
 
 
 
-### 1.3.8.2  Activate virtual python environment.
+##### 2.3.8.2 Activate virtual python environment.
 
 ```sh
 source env/bin/activate
 ```
 
-### 1.3.8.3 Copy .env.example file to .env
+##### 2.3.8.3 Copy .env.example file to .env
 
 ```sh
 cp .env.example .env
 ```
 
 
-### 1.3.8.4 Run the following commands to setup the database
+##### 2.3.8.4 Run the following commands to setup the database
 
   - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
@@ -506,7 +526,7 @@ cp .env.example .env
   - Run: `python3 manage.py compilestatic` to compile the css files
 
 
-### 1.3.10 Start the server(Finally)
+#### 2.3.9 Start the server(Finally)
 
 Enter the following command to start the server
 
@@ -518,13 +538,13 @@ The local development server will be available at [http://localhost:8000](http:/
 
 
 
-# Working on a new features
+## Working on new features
 
 Now that you have completed your setup and have familiarized yourself with the codebase, here is how you can contribute and submit your changes for review.
 
-1. Create a new Branch each feature you work on
+1. Create a new Branch for each feature you work on
 2. Work on your changes, add files and commit your changes
-3. On Commits, add clear explanation on the changes. Here is an interesting read from [freeCodeCamp](https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/)
+3. On Commits, add a clear explanation of the changes. Here is an interesting read from [freeCodeCamp](https://www.freecodecamp.org/news/how-to-write-better-git-commit-messages/)
 4. Once your changes are final and ready to be submitted, push the changes and open a Merge Request. Someone will review your changes ASAP.
 
 
@@ -539,12 +559,12 @@ Here are some good resources to read about contributing to OpenSource projects
 
 
 
-# Troubleshooting[WIP]
+## Troubleshooting[WIP]
 
 
-## MAC
+### MAC
 
-### Homebrew not found
+#### Homebrew not found
 
 If you get the error `zsh: command not found: brew`, probably homebrew was saved in /opt/homebrew/ instead of /user/local/…
 
@@ -553,7 +573,7 @@ If that’s the case, you have to modify your PATH with the command below (more 
 `export PATH=/opt/homebrew/bin:$PATH`
 
 
-## Windows
+### Windows
 
 
-## Linux
+### Linux
