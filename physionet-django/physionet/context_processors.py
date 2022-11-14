@@ -22,6 +22,7 @@ def platform_config(request):
         'SOURCE_CODE_REPOSITORY_LINK': settings.SOURCE_CODE_REPOSITORY_LINK
     }
 
+
 def static_pages(_):
     """ Retrieves static page for the templates """
 
