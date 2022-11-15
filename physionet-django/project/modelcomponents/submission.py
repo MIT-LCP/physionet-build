@@ -259,13 +259,18 @@ class SubmissionInfo(models.Model):
 
 class DataUseAgreement(models.Model):
     """This model is used to store the responses from the data use agreement for the project."""
-    RESPONSE_CHOICES = (
-        (0, 'No'),
-        (1, 'Yes'),
+    RESPONSE_CHOICES_1_and_2= (
+        (0, 'Yes'),
+        (1, 'No'),
+    )
+    RESPONSE_CHOICES_3 = (
+        (0, 'Yes'),
+        (1, 'No'),
         (2, 'NA'),
     )
+   
 
     project = models.OneToOneField('project.ActiveProject', on_delete=models.CASCADE)
-    has_copy_right_permission = models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES)
-    has_human_subject_data = models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES)
-    has_phi = models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES)
+    has_copy_right_permission = models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES_1_and_2)
+    has_human_subject_data = models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES_1_and_2)
+    has_phi = models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES_3)

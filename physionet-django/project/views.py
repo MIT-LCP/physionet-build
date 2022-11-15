@@ -1036,6 +1036,15 @@ def project_files(request, project_slug, subdir='', **kwargs):
             if storage_request:
                 storage_request.get().delete()
                 messages.success(request, 'Your storage request has been cancelled.')
+        elif 'submit_upload_agreement' in request.POST:
+            upload_agreement_form = forms.UploadedAgreementDataForm(project=project,
+                                                              data=request.POST)
+            if upload_agreement_form.is_valid():
+                upload_agreement_form.instance.project = project
+                upload_agreement_form.save()
+                messages.success(request, 'Your upload agreement has been received.')
+            else:
+                messages.error(request, utility.get_form_errors(upload_agreement_form))
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
@@ -1060,6 +1069,9 @@ def project_files(request, project_slug, subdir='', **kwargs):
     # Forms
     storage_request_form = (
         forms.StorageRequestForm(project=project) if (not storage_request and is_submitting) else None
+    )
+    upload_agreement_form = (
+        forms.UploadedAgreementDataForm(project=project) 
     )
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
@@ -1096,6 +1108,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'maintenance_message': maintenance_message,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
             'storage_type': settings.STORAGE_TYPE,
+            'upload_agreement_form': upload_agreement_form,
         },
     )
 
