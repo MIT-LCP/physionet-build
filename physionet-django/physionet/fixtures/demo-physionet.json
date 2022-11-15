@@ -6,7 +6,8 @@
     "title": "About",
     "url": "/about/",
     "nav_bar": "True",
-    "nav_order": 2
+    "nav_order": 2,
+    "front_page": "False"
   }
 },
 {
@@ -16,7 +17,8 @@
     "title": "Share",
     "url": "/about/publish/",
     "nav_bar": "True",
-    "nav_order": 1
+    "nav_order": 1,
+    "front_page": "False"
   }
 },
 {
