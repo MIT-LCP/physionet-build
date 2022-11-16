@@ -2284,7 +2284,7 @@ def generate_signed_url(request, project_slug):
 
     queryset = ActiveProject.objects.all()
     if not request.user.is_admin:
-        queryset.filter(Q(authors__user=request.user) | Q(editor=request.user))
+        queryset = queryset.filter(Q(authors__user=request.user) | Q(editor=request.user))
 
     project = get_object_or_404(queryset, slug=project_slug)
 
