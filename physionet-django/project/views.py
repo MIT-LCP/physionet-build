@@ -141,41 +141,67 @@ def process_invitation_response(request, invitation_response_formset):
     """
     Process an invitation response.
     Helper function to view: project_home
+
+    If an invitation was accepted, return the ActiveProject.
+    Otherwise return None.
     """
     user = request.user
     invitation_id = int(request.POST['invitation_response'])
     for invitation_response_form in invitation_response_formset:
         # Only process the response that was submitted
         if invitation_response_form.instance.id == invitation_id:
-            invitation_response_form.user = user
+            break
+    else:
+        return None
 
-            if invitation_response_form.is_valid():
-                # Update this invitation, and any other one made to the
-                # same user, project, and invitation type
-                invitation = invitation_response_form.instance
-                project = invitation.project
-                invitations = AuthorInvitation.objects.filter(is_active=True,
-                    email__in=user.get_emails(), project=project)
-                affected_emails = [i.email for i in invitations]
-                invitations.update(response=invitation.response,
-                    response_datetime=timezone.now(), is_active=False)
-                # Create a new Author object
-                author_imported = False
-                if invitation.response:
-                    author = Author.objects.create(project=project, user=user,
-                        display_order=project.authors.count() + 1,
-                        corresponding_email=user.get_primary_email())
-                    author_imported = author.import_profile_info()
+    invitation_response_form.user = user
 
-                notification.invitation_response_notify(invitation,
-                                                        affected_emails)
-                messages.success(request,'The invitation has been {0}.'.format(
-                    notification.RESPONSE_ACTIONS[invitation.response]))
-                if not author_imported and invitation.response:
-                    return True, project
-                elif invitation.response:
-                    return False, project
-                return False, False
+    if invitation_response_form.is_valid():
+        with transaction.atomic():
+            # Update this invitation, and any other one made to the
+            # same user, project, and invitation type
+            invitation = invitation_response_form.instance
+            project = invitation.project
+            invitations = AuthorInvitation.objects.filter(
+                is_active=True,
+                email__in=user.get_emails(),
+                project=project,
+            )
+            affected_emails = [i.email for i in invitations]
+            invitations.update(
+                response=invitation.response,
+                response_datetime=timezone.now(),
+                is_active=False,
+            )
+            # Create a new Author object
+            if invitation.response:
+                author = Author.objects.create(
+                    project=project,
+                    user=user,
+                    display_order=project.authors.count() + 1,
+                    corresponding_email=user.get_primary_email(),
+                )
+                Affiliation.objects.create(
+                    author=author,
+                    name=invitation_response_form.cleaned_data['affiliation'],
+                )
+
+            notification.invitation_response_notify(invitation,
+                                                    affected_emails)
+            messages.success(
+                request,
+                'The invitation has been {0}.'.format(
+                    notification.RESPONSE_ACTIONS[invitation.response])
+            )
+            if invitation.response:
+                return project
+            else:
+                return None
+    else:
+        # form is not valid
+        messages.error(request,
+                       utility.get_form_errors(invitation_response_form))
+        return None
 
 
 @login_required
@@ -213,12 +239,9 @@ def project_home(request):
         author_qs = AuthorInvitation.get_user_invitations(user)
         invitation_response_formset = InvitationResponseFormSet(request.POST,
                                                                 queryset=author_qs)
-        imported, project = process_invitation_response(request,
-                                                        invitation_response_formset)
+        project = process_invitation_response(request,
+                                              invitation_response_formset)
         if project:
-            if imported:
-                messages.info(request,
-                              'Please fill in the affiliation at the end of the page.')
             return redirect('project_authors', project_slug=project.slug)
 
     pending_author_approvals = []
@@ -240,6 +263,9 @@ def project_home(request):
 
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
+    invitation_response_formset.form_kwargs['initial'] = {
+        'affiliation': user.profile.affiliation
+    }
 
     data_access_requests = DataAccessRequest.objects.filter(
         project__in=[p for p in published_projects if p.can_approve_requests(user)],

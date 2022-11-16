@@ -931,6 +931,7 @@ class TestInteraction(TestMixin):
             data = {
                 'form-TOTAL_FORMS': ['1'], 'form-MAX_NUM_FORMS': ['1000'],
                 'form-0-response': [str(inv_response)], 'form-MIN_NUM_FORMS': ['0'],
+                'form-0-affiliation': ['MIT' if inv_response else ''],
                 'form-INITIAL_FORMS': ['1'],
                 'form-0-id': [str(iid)], 'invitation_response': [str(iid)]
             }

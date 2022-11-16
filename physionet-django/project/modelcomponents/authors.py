@@ -50,7 +50,9 @@ class Affiliation(models.Model):
     """
     Affiliations belonging to an author
     """
-    name = models.CharField(max_length=202, validators=[validate_affiliation])
+    MAX_LENGTH = 202
+    name = models.CharField(max_length=MAX_LENGTH,
+                            validators=[validate_affiliation])
     author = models.ForeignKey('project.Author', related_name='affiliations',
         on_delete=models.CASCADE)
 
