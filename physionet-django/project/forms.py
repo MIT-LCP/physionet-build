@@ -42,6 +42,7 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from user.models import User, TrainingType
+from user.validators import validate_affiliation
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -931,6 +932,12 @@ class InvitationResponseForm(forms.ModelForm):
         fields = ('response',)
         widgets = {'response': forms.Select(choices=INVITATION_CHOICES)}
 
+    affiliation = forms.CharField(max_length=Affiliation.MAX_LENGTH,
+                                  validators=[validate_affiliation],
+                                  label=('Your affiliation (displayed '
+                                         'when the project is published)'),
+                                  required=False)
+
     def clean(self):
         """
         Invitation must be active, user must be invited
@@ -942,6 +949,9 @@ class InvitationResponseForm(forms.ModelForm):
         if self.instance.email not in self.user.get_emails():
             raise forms.ValidationError(
                   'You are not invited.')
+
+        if cleaned_data['response'] and not cleaned_data.get('affiliation'):
+            raise forms.ValidationError('You must specify your affiliation.')
 
         return cleaned_data
 
