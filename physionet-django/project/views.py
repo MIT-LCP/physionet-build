@@ -197,6 +197,11 @@ def process_invitation_response(request, invitation_response_formset):
                 return project
             else:
                 return None
+    else:
+        # form is not valid
+        messages.error(request,
+                       utility.get_form_errors(invitation_response_form))
+        return None
 
 
 @login_required
