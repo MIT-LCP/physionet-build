@@ -141,6 +141,9 @@ def process_invitation_response(request, invitation_response_formset):
     """
     Process an invitation response.
     Helper function to view: project_home
+
+    If an invitation was accepted, return the ActiveProject.
+    Otherwise return None.
     """
     user = request.user
     invitation_id = int(request.POST['invitation_response'])
@@ -149,7 +152,7 @@ def process_invitation_response(request, invitation_response_formset):
         if invitation_response_form.instance.id == invitation_id:
             break
     else:
-        return False, False
+        return None
 
     invitation_response_form.user = user
 
@@ -171,7 +174,6 @@ def process_invitation_response(request, invitation_response_formset):
                 is_active=False,
             )
             # Create a new Author object
-            author_imported = False
             if invitation.response:
                 author = Author.objects.create(
                     project=project,
@@ -179,7 +181,10 @@ def process_invitation_response(request, invitation_response_formset):
                     display_order=project.authors.count() + 1,
                     corresponding_email=user.get_primary_email(),
                 )
-                author_imported = author.import_profile_info()
+                Affiliation.objects.create(
+                    author=author,
+                    name=invitation_response_form.cleaned_data['affiliation'],
+                )
 
             notification.invitation_response_notify(invitation,
                                                     affected_emails)
@@ -188,11 +193,10 @@ def process_invitation_response(request, invitation_response_formset):
                 'The invitation has been {0}.'.format(
                     notification.RESPONSE_ACTIONS[invitation.response])
             )
-            if not author_imported and invitation.response:
-                return True, project
-            elif invitation.response:
-                return False, project
-            return False, False
+            if invitation.response:
+                return project
+            else:
+                return None
 
 
 @login_required
@@ -230,12 +234,9 @@ def project_home(request):
         author_qs = AuthorInvitation.get_user_invitations(user)
         invitation_response_formset = InvitationResponseFormSet(request.POST,
                                                                 queryset=author_qs)
-        imported, project = process_invitation_response(request,
-                                                        invitation_response_formset)
+        project = process_invitation_response(request,
+                                              invitation_response_formset)
         if project:
-            if imported:
-                messages.info(request,
-                              'Please fill in the affiliation at the end of the page.')
             return redirect('project_authors', project_slug=project.slug)
 
     pending_author_approvals = []
