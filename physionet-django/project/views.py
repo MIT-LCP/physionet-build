@@ -159,23 +159,35 @@ def process_invitation_response(request, invitation_response_formset):
             # same user, project, and invitation type
             invitation = invitation_response_form.instance
             project = invitation.project
-            invitations = AuthorInvitation.objects.filter(is_active=True,
-                email__in=user.get_emails(), project=project)
+            invitations = AuthorInvitation.objects.filter(
+                is_active=True,
+                email__in=user.get_emails(),
+                project=project,
+            )
             affected_emails = [i.email for i in invitations]
-            invitations.update(response=invitation.response,
-                response_datetime=timezone.now(), is_active=False)
+            invitations.update(
+                response=invitation.response,
+                response_datetime=timezone.now(),
+                is_active=False,
+            )
             # Create a new Author object
             author_imported = False
             if invitation.response:
-                author = Author.objects.create(project=project, user=user,
+                author = Author.objects.create(
+                    project=project,
+                    user=user,
                     display_order=project.authors.count() + 1,
-                    corresponding_email=user.get_primary_email())
+                    corresponding_email=user.get_primary_email(),
+                )
                 author_imported = author.import_profile_info()
 
             notification.invitation_response_notify(invitation,
                                                     affected_emails)
-            messages.success(request,'The invitation has been {0}.'.format(
-                notification.RESPONSE_ACTIONS[invitation.response]))
+            messages.success(
+                request,
+                'The invitation has been {0}.'.format(
+                    notification.RESPONSE_ACTIONS[invitation.response])
+            )
             if not author_imported and invitation.response:
                 return True, project
             elif invitation.response:
