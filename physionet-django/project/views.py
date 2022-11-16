@@ -263,6 +263,9 @@ def project_home(request):
 
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
+    invitation_response_formset.form_kwargs['initial'] = {
+        'affiliation': user.profile.affiliation
+    }
 
     data_access_requests = DataAccessRequest.objects.filter(
         project__in=[p for p in published_projects if p.can_approve_requests(user)],
