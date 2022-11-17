@@ -11,7 +11,7 @@ class StaticPage(models.Model):
     title = models.CharField(max_length=64)
     url = models.CharField(max_length=64, unique=True)
     nav_bar = models.BooleanField(default=False)
-    front_page = models.BooleanField(default=False)
+    front_page = models.BooleanField(default=False, null=True, blank=True)
     nav_order = models.PositiveSmallIntegerField(unique=True, null=True, blank=True)
 
     class Meta:
