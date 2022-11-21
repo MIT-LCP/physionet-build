@@ -80,7 +80,7 @@
           <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="false">
         {% endif %}
             <i class="fa fa-fw fa-hand-paper"></i>
-            <span class="nav-link-text">Credentialing</span>
+            <span class="nav-link-text">Identity check</span>
           </a>
           <!-- submenu -->
         {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
@@ -104,7 +104,7 @@
         <li class="nav-item {% if training_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
           <a id="nav_storage_requests" class="nav-link" href="{% url 'training_list' 'review' %}">
             <i class="fa fa-fw fa-school"></i>
-            <span class="nav-link-text">Training</span>
+            <span class="nav-link-text">Training check</span>
           </a>
         </li>
       {% endif %}
