@@ -2,63 +2,62 @@
 
 
 
-
-  - [1. Summary of Development Setup](#1-summary-of-development-setup)
-  - [2. Setting up your system for the first time](#2-setting-up-your-system-for-the-first-time)
-    - [2.1 MacOS](#21-macos)
-      - [2.1.1 Install Homebrew](#211-install-homebrew)
-      - [2.1.2 Install Python3](#212-install-python3)
-      - [2.1.3 Install Git](#213-install-git)
-      - [2.1.4 Install sqlite3](#214-install-sqlite3)
-      - [2.1.5 Install VS Code](#215-install-vs-code)
-      - [2.1.6 Clone the project locally](#216-clone-the-project-locally)
-      - [2.1.7 Install and create virtual environment](#217-install-and-create-virtual-environment)
-        - [2.1.7.1 Create a virtual environment](#2171-create-a-virtual-environment)
-        - [2.1.7.2 Activate the virtual environment](#2172-activate-the-virtual-environment)
-      - [2.1.8 Install requirements](#218-install-requirements)
-      - [2.1.9 Run the project](#219-run-the-project)
-        - [2.1.9.1 Open a terminal and navigate inside the project directory](#2191-open-a-terminal-and-navigate-inside-the-project-directory)
-        - [2.1.9.2 Activate virtual python environment](#2192-activate-virtual-python-environment)
-        - [2.1.9.3 Copy .env.example file to .env](#2193-copy-envexample-file-to-env)
-        - [2.1.9.4 Run the following commands to set up the database](#2194-run-the-following-commands-to-set-up-the-database)
-      - [2.1.10 Start the server (Finally)](#2110-start-the-server-finally)
-    - [2.2 Windows](#22-windows)
-      - [2.2.1 Install Python3](#221-install-python3)
-      - [2.2.2 Install Git Bash](#222-install-git-bash)
-      - [2.2.3 Install VS Code](#223-install-vs-code)
-      - [2.2.4 Clone the project locally](#224-clone-the-project-locally)
-      - [2.2.5 Install and create virtual environment](#225-install-and-create-virtual-environment)
-        - [2.2.5.1 Create a Virtual Environment](#2251-create-a-virtual-environment)
-        - [2.2.5.2 Activate the Virtual Environment](#2252-activate-the-virtual-environment)
-      - [2.2.6 Install requirements](#226-install-requirements)
-      - [2.2.7 Run the project](#227-run-the-project)
-        - [2.2.7.1 Open CMD and navigate inside the project directory](#2271-open-cmd-and-navigate-inside-the-project-directory)
-        - [2.2.7.2  Activate virtual python environment.](#2272--activate-virtual-python-environment)
-        - [2.2.7.3 Copy .env.example file to .env](#2273-copy-envexample-file-to-env)
-        - [2.2.7.4 Run the following commands to set up the database](#2274-run-the-following-commands-to-set-up-the-database)
-      - [2.2.8 Start the server (Finally)](#228-start-the-server-finally)
-    - [2.3 Linux](#23-linux)
-      - [2.3.1 Install Python3](#231-install-python3)
-      - [2.3.2 Install Git](#232-install-git)
-      - [2.3.3 Install sqlite3](#233-install-sqlite3)
-      - [2.3.4 Install VS Code](#234-install-vs-code)
-      - [2.3.5 Clone the project locally](#235-clone-the-project-locally)
-      - [2.3.6 Install and create virtual environment](#236-install-and-create-virtual-environment)
-        - [2.3.6.1 Create a virtual environment](#2361-create-a-virtual-environment)
-        - [2.3.6.2 Activate the Virtual Environment](#2362-activate-the-virtual-environment)
-      - [2.3.7 Install requirements](#237-install-requirements)
-      - [2.3.8 Run the project](#238-run-the-project)
-        - [2.3.8.1 Open a terminal and navigate inside the project directory](#2381-open-a-terminal-and-navigate-inside-the-project-directory)
-        - [2.3.8.2 Activate virtual python environment.](#2382-activate-virtual-python-environment)
-        - [2.3.8.3 Copy .env.example file to .env](#2383-copy-envexample-file-to-env)
-        - [2.3.8.4 Run the following commands to set up the database](#2384-run-the-following-commands-to-set-up-the-database)
-      - [2.3.9 Start the server(Finally)](#239-start-the-serverfinally)
-  - [Working on new features](#working-on-new-features)
-  - [Troubleshooting\[WIP\]](#troubleshootingwip)
-    - [Mac](#mac)
-      - [Homebrew not found](#homebrew-not-found)
-    - [Windows](#windows)
-    - [Linux](#linux)
+- [1. Summary of Development Setup](#1-summary-of-development-setup)
+- [2. Setting up your system for the first time](#2-setting-up-your-system-for-the-first-time)
+  - [2.1 MacOS](#21-macos)
+    - [2.1.1 Install Homebrew](#211-install-homebrew)
+    - [2.1.2 Install Python3](#212-install-python3)
+    - [2.1.3 Install Git](#213-install-git)
+    - [2.1.4 Install sqlite3](#214-install-sqlite3)
+    - [2.1.5 Install VS Code](#215-install-vs-code)
+    - [2.1.6 Clone the project locally](#216-clone-the-project-locally)
+    - [2.1.7 Install and create virtual environment](#217-install-and-create-virtual-environment)
+      - [2.1.7.1 Create a virtual environment](#2171-create-a-virtual-environment)
+      - [2.1.7.2 Activate the virtual environment](#2172-activate-the-virtual-environment)
+    - [2.1.8 Install requirements](#218-install-requirements)
+    - [2.1.9 Run the project](#219-run-the-project)
+      - [2.1.9.1 Open a terminal and navigate inside the project directory](#2191-open-a-terminal-and-navigate-inside-the-project-directory)
+      - [2.1.9.2 Activate virtual python environment](#2192-activate-virtual-python-environment)
+      - [2.1.9.3 Copy .env.example file to .env](#2193-copy-envexample-file-to-env)
+      - [2.1.9.4 Run the following commands to set up the database](#2194-run-the-following-commands-to-set-up-the-database)
+    - [2.1.10 Start the server (Finally)](#2110-start-the-server-finally)
+  - [2.2 Windows](#22-windows)
+    - [2.2.1 Install Python3](#221-install-python3)
+    - [2.2.2 Install Git Bash](#222-install-git-bash)
+    - [2.2.3 Install VS Code](#223-install-vs-code)
+    - [2.2.4 Clone the project locally](#224-clone-the-project-locally)
+    - [2.2.5 Install and create virtual environment](#225-install-and-create-virtual-environment)
+      - [2.2.5.1 Create a Virtual Environment](#2251-create-a-virtual-environment)
+      - [2.2.5.2 Activate the Virtual Environment](#2252-activate-the-virtual-environment)
+    - [2.2.6 Install requirements](#226-install-requirements)
+    - [2.2.7 Run the project](#227-run-the-project)
+      - [2.2.7.1 Open CMD and navigate inside the project directory](#2271-open-cmd-and-navigate-inside-the-project-directory)
+      - [2.2.7.2  Activate virtual python environment.](#2272--activate-virtual-python-environment)
+      - [2.2.7.3 Copy .env.example file to .env](#2273-copy-envexample-file-to-env)
+      - [2.2.7.4 Run the following commands to set up the database](#2274-run-the-following-commands-to-set-up-the-database)
+    - [2.2.8 Start the server (Finally)](#228-start-the-server-finally)
+  - [2.3 Linux](#23-linux)
+    - [2.3.1 Install Python3](#231-install-python3)
+    - [2.3.2 Install Git](#232-install-git)
+    - [2.3.3 Install sqlite3](#233-install-sqlite3)
+    - [2.3.4 Install VS Code](#234-install-vs-code)
+    - [2.3.5 Clone the project locally](#235-clone-the-project-locally)
+    - [2.3.6 Install and create virtual environment](#236-install-and-create-virtual-environment)
+      - [2.3.6.1 Create a virtual environment](#2361-create-a-virtual-environment)
+      - [2.3.6.2 Activate the Virtual Environment](#2362-activate-the-virtual-environment)
+    - [2.3.7 Install requirements](#237-install-requirements)
+    - [2.3.8 Run the project](#238-run-the-project)
+      - [2.3.8.1 Open a terminal and navigate inside the project directory](#2381-open-a-terminal-and-navigate-inside-the-project-directory)
+      - [2.3.8.2 Activate virtual python environment.](#2382-activate-virtual-python-environment)
+      - [2.3.8.3 Copy .env.example file to .env](#2383-copy-envexample-file-to-env)
+      - [2.3.8.4 Run the following commands to set up the database](#2384-run-the-following-commands-to-set-up-the-database)
+    - [2.3.9 Start the server(Finally)](#239-start-the-serverfinally)
+- [Working on new features](#working-on-new-features)
+- [Troubleshooting\[WIP\]](#troubleshootingwip)
+  - [Mac](#mac)
+    - [Homebrew not found](#homebrew-not-found)
+  - [Windows](#windows)
+  - [Linux](#linux)
 
 
 
@@ -243,6 +242,7 @@ python3 manage.py runserver
 The local development server will be available at [http://localhost:8000](http://localhost:8000).
 
 
+[Back to top](#guide-for-new-developers)
 
 
 ### 2.2 Windows
@@ -381,6 +381,8 @@ python3 manage.py runserver
 ```
 
 The local development server will be available at [http://localhost:8000](http://localhost:8000).
+
+[Back to top](#guide-for-new-developers)
 
 
 
@@ -542,6 +544,7 @@ python3 manage.py runserver
 
 The local development server will be available at [http://localhost:8000](http://localhost:8000).
 
+[Back to top](#guide-for-new-developers)
 
 
 ## Working on new features
