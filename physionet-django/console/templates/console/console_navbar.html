@@ -322,6 +322,16 @@
         </li>
       {% endif %}
 
+      <!-- front pages -->
+      {% if perms.physionet.change_frontpagebutton %}
+        <li class="nav-item {% if frontpage_buttons_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+          <a id="nav_console_news" class="nav-link" href="{% url 'frontpage_buttons' %}">
+            <i class="fa fa-fw fa-far fa-dot-circle"></i>
+            <span class="nav-link-text">Frontpage Buttons</span>
+          </a>
+        </li>
+      {% endif %}
+
     <!-- end of menu items -->
     </ul>
 

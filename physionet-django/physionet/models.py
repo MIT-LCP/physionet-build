@@ -11,7 +11,6 @@ class StaticPage(models.Model):
     title = models.CharField(max_length=64)
     url = models.CharField(max_length=64, unique=True)
     nav_bar = models.BooleanField(default=False)
-    front_page = models.BooleanField(default=False, null=True, blank=True)
     nav_order = models.PositiveSmallIntegerField(unique=True, null=True, blank=True)
 
     class Meta:
@@ -62,6 +61,50 @@ class Section(models.Model):
         self.save()
 
         Section.objects.filter(static_page=self.static_page, order=order + 1).update(order=order)
+
+        self.order = order + 1
+        self.save()
+
+
+class FrontPageButton(models.Model):
+    """
+    Holds front page button detail.
+    """
+    label = models.CharField(max_length=20, unique=True)
+    url = models.CharField(max_length=200, blank=False)
+    order = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        default_permissions = ('change',)
+        ordering = ('order',)
+
+    def __str__(self):
+        return self.label
+
+    def move_up(self):
+        order = self.order
+        if order == 1:
+            return
+
+        count = FrontPageButton.objects.count()
+        self.order = count + 1
+        self.save()
+
+        FrontPageButton.objects.filter(order=order - 1).update(order=order)
+
+        self.order = order - 1
+        self.save()
+
+    def move_down(self):
+        count = FrontPageButton.objects.count()
+        order = self.order
+        if order == count:
+            return
+
+        self.order = count + 1
+        self.save()
+
+        FrontPageButton.objects.filter(order=order + 1).update(order=order)
 
         self.order = order + 1
         self.save()

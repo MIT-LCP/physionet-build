@@ -6,8 +6,7 @@
     "title": "About",
     "url": "/about/",
     "nav_bar": "True",
-    "nav_order": 2,
-    "front_page": "False"
+    "nav_order": 2
   }
 },
 {
@@ -17,8 +16,7 @@
     "title": "Share",
     "url": "/about/publish/",
     "nav_bar": "True",
-    "nav_order": 1,
-    "front_page": "False"
+    "nav_order": 1
   }
 },
 {
@@ -139,6 +137,15 @@
     "title": "Contact us",
     "content": "<p>PhysioNet is maintained by researchers and engineers at the MIT Laboratory for Computational Physiology. \n     To reach us, email <a href=\"mailto:contact@physionet.org\">contact@physionet.org</a>.</p>",
     "order": 6
+  }
+},
+{
+  "model": "physionet.frontpagebutton",
+  "pk": 1,
+  "fields": {
+    "label": "About",
+    "url": "/about/",
+    "order": 1
   }
 }
 ]
