@@ -250,8 +250,9 @@ The local development server will be available at [http://localhost:8000](http:/
 
 #### 2.2.1 Install Python3
 
-*Note: Check if you already have a Python3 installed on your system(if you already have the latest version of Python3, you won't have to do the step 1.2.1), to check enter the following on CMD.*
+*Note: Check if you already have a Python3 installed on your system(if you already have the latest version of Python3, you won't have to do the step 2.2.1), to check enter the following on CMD.*
 
+TIP : If you are not sure what is a CMD, [here](https://www.makeuseof.com/tag/a-beginners-guide-to-the-windows-command-line/) is a read about CMD and how to open it.
 ```cmd
 python3 --version
 ```
@@ -259,14 +260,15 @@ python3 --version
 If you don't have the latest version of Python, please download and install the latest Python from the [official website](https://www.python.org/downloads/). 
 
 1. Navigate to the Downloads tab for Windows.
-2. Choose the latest Python3 release
+2. Choose the latest Python3 release.
 3. Choose the Windows x86 executable installer if you are using a 32-bit installer or if you have a 64-bit system, then download Windows x86-64 executable installer. 
-4. Run the executable and install python with the default options
-   1. Don't forget to select the `Add Python x.x to PATH` option
+4. Run the executable and install python with the default options.
+   1. Don't forget to select the `Add Python x.x to PATH` option.
    
-   Here is a detailed [guide](https://realpython.com/installing-python/#how-to-install-python-on-windows) if you need further help
+   
+   Here is a detailed [guide](https://realpython.com/installing-python/#how-to-install-python-on-windows) if you need further help.
 
-Open cmd and enter the following commands to verify you have installed Python3
+Open cmd and enter the following commands to verify you have installed Python3.
 
 
 ```cmd
@@ -274,9 +276,9 @@ python3 --version
 ```
 
 #### 2.2.2 Install Git Bash
-Download Git bash from the official website and install it with the default settings
+Download Git bash from the [official website](https://git-scm.com/download/win) and install it with the default settings.
 
-https://git-scm.com/download/win
+
 
 Git is free and open-source software for distributed version control. We will use it later to clone the PhysioNet project to our system, and you can also use it to submit your contribution to the project. 
 Here are a few resources to learn about Git [Git official website](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/).
