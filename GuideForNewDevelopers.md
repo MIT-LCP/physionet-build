@@ -3,7 +3,8 @@
 
 
 - [1. Summary of Development Setup](#1-summary-of-development-setup)
-- [2. Setting up your system for the first time](#2-setting-up-your-system-for-the-first-time)
+  - [Save yourself sometime (Please read this note)](#save-yourself-sometime-please-read-this-note)
+- [2. Setting up your system for the first time(The tedious way)](#2-setting-up-your-system-for-the-first-timethe-tedious-way)
   - [2.1 MacOS](#21-macos)
     - [2.1.1 Install Homebrew](#211-install-homebrew)
     - [2.1.2 Install Python3](#212-install-python3)
@@ -51,13 +52,40 @@
       - [2.3.8.2 Activate virtual python environment.](#2382-activate-virtual-python-environment)
       - [2.3.8.3 Copy .env.example file to .env](#2383-copy-envexample-file-to-env)
       - [2.3.8.4 Run the following commands to set up the database](#2384-run-the-following-commands-to-set-up-the-database)
-    - [2.3.9 Start the server(Finally)](#239-start-the-serverfinally)
+    - [2.3.9 Start the server (Finally)](#239-start-the-server-finally)
+- [3. Setting up your system for the first time (The Docker Way)](#3-setting-up-your-system-for-the-first-time-the-docker-way)
+  - [3.1 MacOS](#31-macos)
+    - [3.1.1 Install Homebrew](#311-install-homebrew)
+    - [3.1.2 Install Git](#312-install-git)
+    - [3.1.3 Install VS Code](#313-install-vs-code)
+    - [3.1.4 Clone the project locally](#314-clone-the-project-locally)
+    - [3.1.5 Install Docker](#315-install-docker)
+    - [3.1.6 Build and run the project](#316-build-and-run-the-project)
+      - [3.1.6.1 Open a terminal and navigate inside the project directory](#3161-open-a-terminal-and-navigate-inside-the-project-directory)
+      - [3.1.6.2 Copy .env.example file to .env](#3162-copy-envexample-file-to-env)
+      - [3.1.6.3 Build the physionet image](#3163-build-the-physionet-image)
+      - [3.1.6.4 Start the server and load the demo data](#3164-start-the-server-and-load-the-demo-data)
+  - [3.2 Windows](#32-windows)
+    - [3.2.1 Install Git Bash](#321-install-git-bash)
+    - [3.2.2 Install VS Code](#322-install-vs-code)
+    - [3.2.3 Clone the project locally](#323-clone-the-project-locally)
+    - [3.2.4 Install Docker](#324-install-docker)
+    - [3.2.5 Build and run the project](#325-build-and-run-the-project)
+      - [3.2.5.1 Open a CMD and navigate inside the project directory](#3251-open-a-cmd-and-navigate-inside-the-project-directory)
+      - [3.2.5.2 Copy .env.example file to .env](#3252-copy-envexample-file-to-env)
+      - [3.2.5.3 Build the physionet image](#3253-build-the-physionet-image)
+      - [3.2.5.4 Start the server and load the demo data](#3254-start-the-server-and-load-the-demo-data)
+  - [3.3 Linux](#33-linux)
+    - [3.3.1 Install Git](#331-install-git)
+    - [3.3.2 Install VS Code](#332-install-vs-code)
+    - [3.3.3 Clone the project locally](#333-clone-the-project-locally)
+    - [3.3.4 Install Docker](#334-install-docker)
+    - [3.3.5 Build and run the project](#335-build-and-run-the-project)
+      - [3.3.5.1 Open a terminal and navigate inside the project directory](#3351-open-a-terminal-and-navigate-inside-the-project-directory)
+      - [3.3.5.2 Copy .env.example file to .env](#3352-copy-envexample-file-to-env)
+      - [3.3.5.3 Build the physionet image](#3353-build-the-physionet-image)
+      - [3.3.5.4 Start the server and load the demo data](#3354-start-the-server-and-load-the-demo-data)
 - [Working on new features](#working-on-new-features)
-- [Troubleshooting\[WIP\]](#troubleshootingwip)
-  - [Mac](#mac)
-    - [Homebrew not found](#homebrew-not-found)
-  - [Windows](#windows)
-  - [Linux](#linux)
 
 
 
@@ -77,7 +105,15 @@ The Development Environment setup requires the use of the following tools/softwa
 7. [VS Code](https://code.visualstudio.com/), [Pycharm](https://www.jetbrains.com/pycharm/), [Spyder](https://www.spyder-ide.org/) - Integrated Development Environment - IDE 
 
 
-## 2. Setting up your system for the first time
+### Save yourself sometime (Please read this note)
+
+Before you go ahead and start setting up the development environment, we wanted to let you know that there are two ways you can do the development environment setup.
+
+1. [The docker way](#3-setting-up-your-system-for-the-first-time-the-docker-way) (recommended - This is the easiest way to set up the development environment as it automatically sets up the entire environment for you and takes care of all the installation, also you are less likely to encounter errors)
+2. [The tedious way](#2-setting-up-your-system-for-the-first-time) (this can sometimes take long time and be a frustrating experience as you might encounter OS specific challenges during installation of various tools/software)
+
+
+## 2. Setting up your system for the first time(The tedious way)
 
 
 ### 2.1 MacOS
@@ -86,7 +122,7 @@ The Development Environment setup requires the use of the following tools/softwa
 
 Homebrew is a free and open-source software package management system that simplifies the installation of software on Apple's operating system, MacOS, as well as Linux [source](https://en.wikipedia.org/wiki/homebrew_(package_manager)).
 
-We will use Homebrew to install Python on our Mac, to use Homebrew for Python installation, we need to first install a compiler which we can get by installing Xcode's command-line tools.
+We will use Homebrew to install Python on our Mac. To use Homebrew for Python installation, we need to first install a compiler which we can get by installing Xcode's command-line tools.
 
 To install the xcode, open a terminal on your system, and enter the following command.
 
@@ -144,6 +180,9 @@ The physionet-build uses sqlite3 as a quick database for local setup. Let's inst
 brew install sqlite3
 ```
 #### 2.1.5 Install VS Code
+
+Visual Studio Code is a source-code editor that can be used with a variety of programming languages.
+
 
 To set VS Code up, you can download it from [official website](https://code.visualstudio.com/) and install it directly on your Mac.
 
@@ -286,6 +325,8 @@ Here are a few resources to learn about Git [Git official website](https://git-s
 
 
 #### 2.2.3 Install VS Code
+
+Visual Studio Code is a source-code editor that can be used with a variety of programming languages.
 
 To set VS Code up, you can download the .exe package from [official website](https://code.visualstudio.com/) and install it directly on your Windows by following the [official instructions](https://code.visualstudio.com/docs/setup/windows). 
 
@@ -442,6 +483,9 @@ sudo apt install sqlite3
 
 #### 2.3.4 Install VS Code
 
+Visual Studio Code is a source-code editor that can be used with a variety of programming languages.
+
+
 To set VS Code up, you can download the .deb package from [official website](https://code.visualstudio.com/) and install it directly on your Linux by the following the [official instruction](https://code.visualstudio.com/docs/setup/linux).
 
 
@@ -534,7 +578,7 @@ cp .env.example .env
   - Run: `python3 manage.py compilestatic` to compile the css files.
 
 
-#### 2.3.9 Start the server(Finally)
+#### 2.3.9 Start the server (Finally)
 
 Enter the following command to start the server.
 
@@ -545,6 +589,436 @@ python3 manage.py runserver
 The local development server will be available at [http://localhost:8000](http://localhost:8000).
 
 [Back to top](#guide-for-new-developers)
+
+
+
+
+
+
+
+## 3. Setting up your system for the first time (The Docker Way)
+
+
+### 3.1 MacOS
+
+#### 3.1.1 Install Homebrew
+
+Homebrew is a free and open-source software package management system that simplifies the installation of software on Apple's operating system, MacOS, as well as Linux [source](https://en.wikipedia.org/wiki/homebrew_(package_manager)).
+
+We will use Homebrew to install Git on our Mac. To use Homebrew for Git installation, we need to first install a compiler which we can get by installing Xcode's command-line tools.
+
+To install the xcode, open a terminal on your system, and enter the following command.
+
+```sh
+xcode-select --install
+```
+
+Now that you have the Xcode's command-line tools installed, let's go ahead and install Homebrew.
+
+To install [Homebrew](https://brew.sh/), paste the following command on your terminal. 
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/homebrew/install/HEAD/install.sh)"
+```
+*Note*: Homebrew might need you to use one more command to add Homebrew to your `PATH`, please carefully check if the Homebrew has *NEXT STEPS* for you on the terminal after the installation.
+
+
+
+#### 3.1.2 Install Git
+
+Git is free and open-source software for distributed version control. We will use it later to clone the PhysioNet project to our system, and you can also use it to submit your contribution to the project. 
+Here are a few resources to learn about Git [Git official website](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/).
+
+```sh
+brew install git
+```
+
+To verify Git is installed correctly, you can run the following in the terminal.
+
+```sh
+git --version
+```
+
+
+#### 3.1.3 Install VS Code
+
+Visual Studio Code is a source-code editor that can be used with a variety of programming languages.
+
+To set VS Code up, you can download it from [official website](https://code.visualstudio.com/) and install it directly on your Mac.
+
+After installing VS Code, you can install this [Python extension on VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python) to get the support for IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), Jupyter Notebooks, code formatting, refactoring, unit tests, and more. 
+Simply visit the link above and click on the install button on the website, it should redirect and open the installation option on VS Code.
+
+#### 3.1.4 Clone the project locally
+
+Now that we have Git and VS Code set up, let's go ahead and clone the project to your system. Open a terminal and enter the following command.
+
+
+```sh
+git clone https://github.com/MIT-LCP/physionet-build
+```
+
+#### 3.1.5 Install Docker
+
+Let's go ahead and install Docker on our system, as promised this will take care of all the setup for us. We are nearly there.
+
+Please follow the [official installation guide](https://docs.docker.com/desktop/install/mac-install/) to install Docker on your Mac.
+
+Here is a recommended read on [Docker](https://www.freecodecamp.org/news/a-beginners-guide-to-docker-how-to-create-your-first-docker-application-cc03de9b639f/).
+
+
+#### 3.1.6 Build and run the project
+
+Now that we have Docker installed, let's go ahead and build the project. It's as simple as running the following commands in the terminal.
+
+
+##### 3.1.6.1 Open a terminal and navigate inside the project directory
+
+```sh
+cd physionet-build
+```
+
+##### 3.1.6.2 Copy .env.example file to .env
+
+```sh
+cp .env.example .env
+```
+
+##### 3.1.6.3 Build the physionet image
+    
+```sh
+docker-compose build .
+```
+
+That should take care of all the setup for you, now let's go ahead start our server and load the demo data on our database.
+
+##### 3.1.6.4 Start the server and load the demo data
+
+To start our server, we can do it with a single command.
+
+```sh
+docker-compose up
+```
+
+This will start our development server on [http://localhost:8000](http://localhost:8000), run the postgres database, development and test containers. Before you go ahead and play around with the project, we need to load the demo data on our test and development database (Note: we only need to load the demo data when doing the setup for the first time). 
+
+Note: We are using two databases, one for development and the other for testing. The reason for this is to make sure that the test database is always clean and we can run the tests without worrying about the data changes on the  development database.
+To do that, we need to open a new terminal and run the following commands.  
+
+Navigate inside the project directory.
+
+```sh
+cd physionet-build
+```
+
+Enter the development container shell and navigate inside `physionet-django` directory.
+
+```sh
+docker-compose exec dev /bin/bash
+```
+```sh
+cd physionet-django
+```
+
+Run the following commands to set up the database
+
+  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+
+  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  
+  - Run: `python3 manage.py compilestatic` to compile the css files.
+
+
+In a new Terminal, enter the test container shell and navigate inside `physionet-django` directory.
+
+```sh
+docker-compose exec test /bin/bash
+```
+```sh
+cd physionet-django
+```
+
+Run the following commands to set up the database
+
+  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+
+  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+
+
+That's it, you are all setup and ready to go. You can now start playing around with the project on [http://localhost:8000](http://localhost:8000).
+
+TIP: If you are trying to login as admin, you can use the forgot password option to reset your password. The email will be printed on the terminal where you started the server.
+Simply copy the link from the terminal and paste it in your browser to reset your password and login as admin.
+
+
+
+[Back to top](#guide-for-new-developers)
+
+
+### 3.2 Windows
+
+#### 3.2.1 Install Git Bash
+Download Git bash from the [official website](https://git-scm.com/download/win) and install it with the default settings.
+
+Git is free and open-source software for distributed version control. We will use it later to clone the PhysioNet project to our system, and you can also use it to submit your contribution to the project. 
+Here are a few resources to learn about Git: [Git official website](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/).
+
+
+#### 3.2.2 Install VS Code
+
+Visual Studio Code is a source-code editor that can be used with a variety of programming languages.
+
+To set VS Code up, you can download the .exe package from [official website](https://code.visualstudio.com/) and install it directly on your Windows by following the [official instructions](https://code.visualstudio.com/docs/setup/windows). 
+
+
+After installing VS Code, you can install this [Python extension on VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python) to get the support for IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), Jupyter Notebooks, code formatting, refactoring, unit tests, and more. 
+Simply visit the link above and click on the install button on the website, it should redirect and open the installation option on VS Code.
+
+#### 3.2.3 Clone the project locally
+
+Now that we have Git Bash and VS Code set up, let's go ahead and clone the project to your system. Open Git bash and enter the following command.
+
+
+```cmd
+git clone https://github.com/MIT-LCP/physionet-build
+```
+
+
+#### 3.2.4 Install Docker
+
+Let's go ahead and install Docker on our system, as promised this will take care of all the setup for us. We are nearly there.
+
+Please follow the [official installation guide](https://docs.docker.com/desktop/install/windows-install/) to install Docker on your Windows.
+
+Here is a recommended read on [Docker](https://www.freecodecamp.org/news/a-beginners-guide-to-docker-how-to-create-your-first-docker-application-cc03de9b639f/).
+
+
+#### 3.2.5 Build and run the project
+
+Now that we have Docker installed, let's go ahead and build the project. It's as simple as running the following commands in the terminal.
+
+
+##### 3.2.5.1 Open a CMD and navigate inside the project directory
+
+TIP : If you are not sure what is a CMD, [here](https://www.makeuseof.com/tag/a-beginners-guide-to-the-windows-command-line/) is a read about CMD and how to open it.
+
+
+```cmd
+cd physionet-build
+```
+
+##### 3.2.5.2 Copy .env.example file to .env
+
+```cmd
+copy .env.example .env
+```
+
+##### 3.2.5.3 Build the physionet image
+    
+```cmd
+docker-compose build .
+```
+
+That should take care of all the setup for you, now let's go ahead start our server and load the demo data on our database.
+
+##### 3.2.5.4 Start the server and load the demo data
+
+To start our server, we can do it with a single command.
+
+```cmd
+docker-compose up
+```
+
+This will start our development server on [http://localhost:8000](http://localhost:8000), run the postgres database, development and test containers. Before you go ahead and play around with the project, we need to load the demo data on our test and development database (Note: we only need to load the demo data when doing the setup for the first time). 
+
+Note: We are using two databases, one for development and the other for testing. The reason for this is to make sure that the test database is always clean and we can run the tests without worrying about the data changes on the  development database.
+To do that, we need to open a new CMD and run the following commands.  
+
+Navigate inside the project directory.
+
+```cmd
+cd physionet-build
+```
+
+Enter the development container shell and navigate inside `physionet-django` directory.
+
+```cmd
+docker-compose exec dev /bin/bash
+```
+
+```sh
+cd physionet-django
+```
+
+Run the following commands to set up the database
+
+  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+
+  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  
+  - Run: `python3 manage.py compilestatic` to compile the css files.
+
+
+In a new CMD, enter the test container shell and navigate inside `physionet-django` directory.
+
+```cmd
+docker-compose exec test /bin/bash
+```
+```sh
+cd physionet-django
+```
+
+Run the following commands to set up the database
+
+  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+
+  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+
+
+That's it, you are all setup and ready to go. You can now start playing around with the project on [http://localhost:8000](http://localhost:8000).
+
+TIP: If you are trying to login as admin, you can use the forgot password option to reset your password. The email will be printed on the terminal where you started the server.
+Simply copy the link from the terminal and paste it in your browser to reset your password and login as admin.
+
+
+
+
+[Back to top](#guide-for-new-developers)
+
+
+
+### 3.3 Linux
+
+
+#### 3.3.1 Install Git
+
+Git is free and open-source software for distributed version control. We will use it later to clone the PhysioNet project to our system, and you can also use it to submit your contribution to the project. 
+Here are a few resources to learn about Git [Git official website](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F), [w3schools](https://www.w3schools.com/git/).
+
+```sh
+sudo apt install git
+```
+
+To verify Git is installed correctly, you can run the following in the terminal.
+
+```sh
+git --version
+```
+
+
+#### 3.3.2 Install VS Code
+
+Visual Studio Code is a source-code editor that can be used with a variety of programming languages.
+
+
+To set VS Code up, you can download the .deb package from [official website](https://code.visualstudio.com/) and install it directly on your Linux by the following the [official instruction](https://code.visualstudio.com/docs/setup/linux).
+
+
+After installing VS Code, you can install this [Python extension on VS Code](https://marketplace.visualstudio.com/items?itemName=ms-python.python) to get the support for IntelliSense (Pylance), Linting, Debugging (multi-threaded, remote), Jupyter Notebooks, code formatting, refactoring, unit tests, and more. 
+Simply visit the link above and click on the install button on the website, it should redirect and open the installation option on VS Code.
+
+
+#### 3.3.3 Clone the project locally
+
+Now that we have Git and VS Code set up, let's go ahead and clone the project to your system. Open a terminal and enter the following command.
+
+
+```sh
+git clone https://github.com/MIT-LCP/physionet-build
+```
+
+
+#### 3.3.4 Install Docker
+
+Let's go ahead and install Docker on our system, as promised this will take care of all the setup for us. We are nearly there.
+
+Please follow the [official installation guide](https://docs.docker.com/desktop/install/linux-install/) to install Docker on your Linux.
+
+Here is a recommended read on [Docker](https://www.freecodecamp.org/news/a-beginners-guide-to-docker-how-to-create-your-first-docker-application-cc03de9b639f/).
+
+
+#### 3.3.5 Build and run the project
+
+Now that we have Docker installed, let's go ahead and build the project. It's as simple as running the following commands in the terminal.
+
+
+##### 3.3.5.1 Open a terminal and navigate inside the project directory
+
+```sh
+cd physionet-build
+```
+
+##### 3.3.5.2 Copy .env.example file to .env
+
+```sh
+cp .env.example .env
+```
+
+##### 3.3.5.3 Build the physionet image
+    
+```sh
+docker-compose build .
+```
+
+That should take care of all the setup for you, now let's go ahead start our server and load the demo data on our database.
+
+##### 3.3.5.4 Start the server and load the demo data
+
+To start our server, we can do it with a single command.
+
+```sh
+docker-compose up
+```
+
+This will start our development server on [http://localhost:8000](http://localhost:8000), run the postgres database, development and test containers. Before you go ahead and play around with the project, we need to load the demo data on our test and development database (Note: we only need to load the demo data when doing the setup for the first time). 
+
+Note: We are using two databases, one for development and the other for testing. The reason for this is to make sure that the test database is always clean and we can run the tests without worrying about the data changes on the  development database.
+To do that, we need to open a new terminal and run the following commands.  
+
+Navigate inside the project directory.
+
+```sh
+cd physionet-build
+```
+
+Enter the development container shell and navigate inside `physionet-django` directory.
+
+```sh
+docker-compose exec dev /bin/bash
+```
+```sh
+cd physionet-django
+```
+
+Run the following commands to set up the database
+
+  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+
+  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  
+  - Run: `python3 manage.py compilestatic` to compile the css files.
+
+
+In a new terminal, enter the test container shell and navigate inside `physionet-django` directory.
+
+```sh
+docker-compose exec test /bin/bash
+```
+```sh
+cd physionet-django
+```
+
+Run the following commands to set up the database
+
+  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+
+  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+
+
+That's it, you are all setup and ready to go. You can now start playing around with the project on [http://localhost:8000](http://localhost:8000).
+
+TIP: If you are trying to login as admin, you can use the forgot password option to reset your password. The email will be printed on the terminal where you started the server.
+Simply copy the link from the terminal and paste it in your browser to reset your password and login as admin.
 
 
 ## Working on new features
@@ -559,30 +1033,13 @@ Now that you have completed your setup and have familiarized yourself with the c
 
 
 
-Here are some good resources to read about contributing to OpenSource projects and Python
+Here are some good resources to read about contributing to OpenSource projects, Python and Django.
 1. [Making your first Open Source Pull Request | Github](https://www.geeksforgeeks.org/making-first-open-source-pull-request/)
 2. [A First Timers Guide to an Open Source Project](https://auth0.com/blog/a-first-timers-guide-to-an-open-source-project/)
 3. [Contributing to Open Source : Getting Started](https://www.geeksforgeeks.org/contributing-to-open-source-getting-started)
 4. [The (written) unwritten guide to pull requests
 ](https://www.atlassian.com/blog/git/written-unwritten-guide-pull-requests)
 5. [PEP 8 – Style Guide for Python Code](https://peps.python.org/pep-0008/)
+6. [Django Documentation](https://docs.djangoproject.com/)
+7. [Testing in Django](https://realpython.com/testing-in-django-part-1-best-practices-and-examples/)
 
-
-## Troubleshooting[WIP]
-
-
-### Mac
-
-#### Homebrew not found
-
-If you get the error `zsh: command not found: brew`, probably Homebrew was saved in /opt/homebrew/ instead of /user/local/…
-
-If that’s the case, you have to modify your PATH with the command below (more details on [StackOverflow](https://stackoverflow.com/questions/36657321/after-installing-homebrew-i-get-zsh-command-not-found-brew)).
-
-`export PATH=/opt/homebrew/bin:$PATH`
-
-
-### Windows
-
-
-### Linux
