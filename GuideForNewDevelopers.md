@@ -766,7 +766,7 @@ cp .env.example .env
 ##### 3.1.6.3 Build the physionet image
     
 ```sh
-docker-compose build .
+docker-compose build 
 ```
 
 That should take care of all the setup for you, now let's go ahead start our server and load the demo data on our database.
@@ -895,7 +895,7 @@ copy .env.example .env
 ##### 3.2.5.3 Build the physionet image
     
 ```cmd
-docker-compose build .
+docker-compose build
 ```
 
 That should take care of all the setup for you, now let's go ahead start our server and load the demo data on our database.
@@ -1036,7 +1036,7 @@ cp .env.example .env
 ##### 3.3.5.3 Build the physionet image
     
 ```sh
-docker-compose build .
+docker-compose build 
 ```
 
 That should take care of all the setup for you, now let's go ahead start our server and load the demo data on our database.
