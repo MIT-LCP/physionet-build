@@ -533,8 +533,10 @@ class TestFrontPageButton(TestMixin):
 
         super().setUp()
         self.client.login(username='admin', password='Tester11!')
-        self.button = FrontPageButton.objects.create(
-            label="Testing Page", url="www.facebook.com", order=100)
+        self.button_1 = FrontPageButton.objects.create(
+            label="Testing Button", url="https://www.test.com", order=1)
+        self.button_2 = FrontPageButton.objects.create(
+            label="Testing Button 2", url="/about/test", order=2)
 
     def test_frontpage_button_add_get(self):
         """test the get verb"""
@@ -561,11 +563,20 @@ class TestFrontPageButton(TestMixin):
                                     'order': 5})
         self.assertTemplateUsed(response, "console/frontpage_button/add.html")
 
+    def test_frontpage_button_ordering(self):
+        """test the ordering post verb"""
+ 
+        response = self.client.post(reverse("frontpage_buttons"),
+                                    {'up': self.button_2.pk,})
+        self.assertRedirects(response, reverse("frontpage_buttons"), status_code=302)
+        current_order = FrontPageButton.objects.get(id=self.button_2.id).order
+        self.assertEqual(current_order, self.button_2.order - 1)
+
     def test_frontpage_button_edit_get(self):
         """test the get verb"""
 
         response = self.client.get(
-            reverse("frontpage_button_edit", args=(self.button.pk,)))
+            reverse("frontpage_button_edit", args=(self.button_1.pk,)))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "console/frontpage_button/edit.html")
 
@@ -573,7 +584,7 @@ class TestFrontPageButton(TestMixin):
         """test the valid post verb"""
 
         response = self.client.post(
-            reverse("frontpage_button_edit", args=(self.button.pk,)),
+            reverse("frontpage_button_edit", args=(self.button_1.pk,)),
             {'label': "Testing", 'url': "/about/testing/page/", 'order': 500}, follow=True)
         self.assertRedirects(response, reverse("frontpage_buttons"), status_code=302)
 
@@ -581,7 +592,7 @@ class TestFrontPageButton(TestMixin):
         """test the invalid post verb"""
 
         response = self.client.post(
-            reverse("frontpage_button_edit", args=(self.button.pk,)),
+            reverse("frontpage_button_edit", args=(self.button_1.pk,)),
             {'label': "Testing", 'url': "testing/", 'order': 5})
         self.assertTemplateUsed(response, "console/frontpage_button/edit.html")
 
@@ -590,6 +601,6 @@ class TestFrontPageButton(TestMixin):
 
         frontpage_button_count = FrontPageButton.objects.count()
         response = self.client.post(
-            reverse("frontpage_button_delete", args=(self.button.pk,)), follow=True)
+            reverse("frontpage_button_delete", args=(self.button_1.pk,)), follow=True)
         self.assertRedirects(response, reverse("frontpage_buttons"), status_code=302)
         self.assertEqual(FrontPageButton.objects.count(), frontpage_button_count - 1)

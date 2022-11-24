@@ -20,6 +20,7 @@
         <thead>
           <tr>
             <th>Button</th>
+            <th>Order</th>
             <th class="text-center" colspan=3>Actions</th>
           </tr>
         </thead>
@@ -28,9 +29,20 @@
             <tr>
                 <td>{{ button.label|title }} Button</td>
                 <td>
+                  <form method="POST">
+                    {% csrf_token %}
+                    {% if not forloop.first %}
+                        <button class="btn btn-sm" name="up" value="{{ button.id }}" title="Move button up" style="background:none"><i class="fas fa-arrow-up"></i></button>
+                    {% endif %}
+                    {% if not forloop.last %}
+                        <button class="btn btn-sm" name="down" value="{{ button.id }}" title="Move button down" style="background:none"><i class="fas fa-arrow-down"></i></button>
+                    {% endif %}
+                  </form>
+                </td>
+                <td class="text-center">
                   <a href="{% url 'frontpage_button_edit' button.pk %}" class="btn btn-sm btn-warning" role="button">Edit</a>
                 </td>
-                <td>
+                <td class="text-center">
                   <form method="post" action="{% url 'frontpage_button_delete' button.pk %}" onsubmit="return confirm ('Are you sure? ')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-danger" role="button">Remove</button>
