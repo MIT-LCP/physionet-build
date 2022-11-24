@@ -268,13 +268,15 @@ cp .env.example .env
 
 
 
-##### 2.1.9.4 Run the following commands to set up the database
+##### 2.1.9.4 Run the following commands(on the same terminal from [2.1.9.3](#2193-copy-envexample-file-to-env) ) to set up the database and compile the static files.
 
-  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+  - Run : `cd physionet-django` to navigate inside the django project
 
-  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run : `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+
+  - Run : `python3 manage.py loaddemo` to load the demo fixtures set up example files.
   
-  - Run: `python3 manage.py compilestatic` to compile the css files.
+  - Run : `python3 manage.py compilestatic` to compile the css files.
 
 #### 2.1.10 Start the server (Finally)
 
@@ -468,13 +470,15 @@ cp .env.example .env
 ```
 
 
-##### 2.2.10.4 Run the following commands to set up the database
+##### 2.2.10.4 Run the following commands(on the same terminal from [2.2.10.3](#22103-copy-envexample-file-to-env)) to set up the database and compile the static files.
 
-  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+  - Run : `cd physionet-django` to navigate inside the django project
 
-  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run : `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
-  - Run: `python3 manage.py compilestatic` to compile the css files.
+  - Run : `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+
+  - Run : `python3 manage.py compilestatic` to compile the css files.
 
 
 #### 2.2.11 Start the server (Finally)
@@ -642,13 +646,15 @@ cp .env.example .env
 ```
 
 
-##### 2.3.8.4 Run the following commands to set up the database
+##### 2.3.8.4 Run the following commands(on the same terminal from [2.3.8.3](#2383-copy-envexample-file-to-env) ) to set up the database and compile the static files.
 
-  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+  - Run : `cd physionet-django` to navigate inside the django project
 
-  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run : `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
-  - Run: `python3 manage.py compilestatic` to compile the css files.
+  - Run : `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+
+  - Run : `python3 manage.py compilestatic` to compile the css files.
 
 
 #### 2.3.9 Start the server (Finally)
@@ -795,11 +801,11 @@ cd physionet-django
 
 Run the following commands to set up the database
 
-  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+  - Run : `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
-  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run : `python3 manage.py loaddemo` to load the demo fixtures set up example files.
   
-  - Run: `python3 manage.py compilestatic` to compile the css files.
+  - Run : `python3 manage.py compilestatic` to compile the css files.
 
 
 In a new Terminal, enter the test container shell and navigate inside `physionet-django` directory.
@@ -813,9 +819,9 @@ cd physionet-django
 
 Run the following commands to set up the database
 
-  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+  - Run : `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
-  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run : `python3 manage.py loaddemo` to load the demo fixtures set up example files.
 
 
 That's it, you are all setup and ready to go. You can now start playing around with the project on [http://localhost:8000](http://localhost:8000).
@@ -925,11 +931,11 @@ cd physionet-django
 
 Run the following commands to set up the database
 
-  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+  - Run : `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
-  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run : `python3 manage.py loaddemo` to load the demo fixtures set up example files.
   
-  - Run: `python3 manage.py compilestatic` to compile the css files.
+  - Run : `python3 manage.py compilestatic` to compile the css files.
 
 
 In a new CMD, enter the test container shell and navigate inside `physionet-django` directory.
@@ -943,9 +949,9 @@ cd physionet-django
 
 Run the following commands to set up the database
 
-  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+  - Run : `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
-  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run : `python3 manage.py loaddemo` to load the demo fixtures set up example files.
 
 
 That's it, you are all setup and ready to go. You can now start playing around with the project on [http://localhost:8000](http://localhost:8000).
@@ -1065,11 +1071,11 @@ cd physionet-django
 
 Run the following commands to set up the database
 
-  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+  - Run : `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
-  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run : `python3 manage.py loaddemo` to load the demo fixtures set up example files.
   
-  - Run: `python3 manage.py compilestatic` to compile the css files.
+  - Run : `python3 manage.py compilestatic` to compile the css files.
 
 
 In a new terminal, enter the test container shell and navigate inside `physionet-django` directory.
@@ -1083,9 +1089,9 @@ cd physionet-django
 
 Run the following commands to set up the database
 
-  - Run: `python3 manage.py resetdb` to reset the database with the latest applied migrations.
+  - Run : `python3 manage.py resetdb` to reset the database with the latest applied migrations.
 
-  - Run: `python3 manage.py loaddemo` to load the demo fixtures set up example files.
+  - Run : `python3 manage.py loaddemo` to load the demo fixtures set up example files.
 
 
 That's it, you are all setup and ready to go. You can now start playing around with the project on [http://localhost:8000](http://localhost:8000).
