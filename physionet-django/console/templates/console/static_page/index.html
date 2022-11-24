@@ -20,20 +20,36 @@
         <thead>
           <tr>
             <th>Page</th>
+            <th>Order</th>
             <th class="text-center" colspan=3>Actions</th>
           </tr>
         </thead>
         <tbody>
         {% for page in pages %}
             <tr>
-                <td>{{ page|title }} page</td>
+                <td>{{ page.title|title }} page</td>
                 <td>
+                  <form method="post">
+                    {% csrf_token %}
+                    {% if not forloop.first %}
+                        <button class="btn btn-sm" name="up" value="{{ page.id }}" title="Move section up" style="background:none">
+                          <i class="fas fa-arrow-up fa-ups"></i>
+                        </button>
+                    {% endif %}
+                    {% if not forloop.last %}
+                        <button class="btn btn-sm" name="down" value="{{ page.id }}" title="Move section down" style="background:none">
+                          <i class="fas fa-arrow-down"></i>
+                        </button>
+                    {% endif %}
+                  </form>
+                </td>
+                <td class="text-center">
                   <a href="{% url 'static_page_sections' page.pk %}" class="btn btn-sm btn-primary" role="button">Manage</a>
                 </td>
-                <td>
+                <td class="text-center">
                   <a href="{% url 'static_page_edit' page.pk %}" class="btn btn-sm btn-warning" role="button">Edit</a>
                 </td>
-                <td>
+                <td class="text-center">
                   <form method="post" action="{% url 'static_page_delete' page.pk %}" onsubmit="return confirm ('Are you sure? ')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-danger" role="button">Remove</button>

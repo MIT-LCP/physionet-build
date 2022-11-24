@@ -19,6 +19,34 @@ class StaticPage(models.Model):
     def __str__(self):
         return self.title
 
+    def move_up(self):
+        nav_order = self.nav_order
+        if nav_order == 1:
+            return
+
+        count = StaticPage.objects.count()
+        self.nav_order = count + 1
+        self.save()
+
+        StaticPage.objects.filter(nav_order=nav_order - 1).update(nav_order=nav_order)
+
+        self.nav_order = nav_order - 1
+        self.save()
+
+    def move_down(self):
+        count = StaticPage.objects.count()
+        nav_order = self.nav_order
+        if nav_order == count:
+            return
+
+        self.nav_order = count + 1
+        self.save()
+
+        StaticPage.objects.filter(nav_order=nav_order + 1).update(nav_order=nav_order)
+
+        self.nav_order = nav_order + 1
+        self.save()
+
 
 class Section(models.Model):
     """
