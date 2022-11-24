@@ -565,9 +565,9 @@ class TestFrontPageButton(TestMixin):
 
     def test_frontpage_button_ordering(self):
         """test the ordering post verb"""
- 
+
         response = self.client.post(reverse("frontpage_buttons"),
-                                    {'up': self.button_2.pk,})
+                                    {'up': self.button_2.pk, })
         self.assertRedirects(response, reverse("frontpage_buttons"), status_code=302)
         current_order = FrontPageButton.objects.get(id=self.button_2.id).order
         self.assertEqual(current_order, self.button_2.order - 1)
