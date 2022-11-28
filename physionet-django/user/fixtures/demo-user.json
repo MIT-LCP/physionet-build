@@ -20987,13 +20987,13 @@
     "allowed_domains": null
   }
 },
-   {
-     "model": "auth.permission",
-     "pk": 34,
-     "fields": {
-       "name": "Can view the Admin Console",
-       "content_type": 9,
-       "codename": "can_view_admin_console"
-     }
+ {
+   "model": "auth.permission",
+   "pk": 34,
+   "fields": {
+     "name": "Can view the Admin Console",
+     "content_type": 9,
+     "codename": "can_view_admin_console"
    }
+ }
 ]
