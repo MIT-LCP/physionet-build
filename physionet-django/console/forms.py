@@ -88,7 +88,7 @@ class AssignEditorForm(forms.Form):
     project = forms.IntegerField(widget=forms.HiddenInput())
     try:
         can_view_admin_console_perm = Permission.objects.get(codename='can_view_admin_console')
-    except Permission.DoesNotExist or ProgrammingError or UndefinedTable:
+    except Exception:
         can_view_admin_console_perm = None
     if can_view_admin_console_perm:
         users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
@@ -110,7 +110,7 @@ class ReassignEditorForm(forms.Form):
     """
     try:
         can_view_admin_console_perm = Permission.objects.get(codename='can_view_admin_console')
-    except Permission.DoesNotExist or ProgrammingError or UndefinedTable:
+    except Exception:
         can_view_admin_console_perm = None
     if can_view_admin_console_perm:
         users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
