@@ -766,7 +766,7 @@ def training_report(request, training_id):
     Serve a training report file
     """
     trainings = Training.objects.all()
-    if not request.user.is_admin:
+    if not request.user.has_perm('user.change_credentialapplication'):
         trainings = trainings.filter(user=request.user)
 
     training = get_object_or_404(trainings, id=training_id)

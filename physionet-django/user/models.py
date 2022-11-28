@@ -365,6 +365,10 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     class Meta:
         default_permissions = ('view',)
+        permissions = [
+            ("can_view_admin_console", "Can view the Admin Console"),
+        ]
+
 
     # Mandatory methods for default authentication backend
     def get_full_name(self):
@@ -416,6 +420,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         if relative:
             return os.path.join(User.RELATIVE_FILE_ROOT, self.username, '')
         return os.path.join(User.FILE_ROOT, self.username, '')
+
+    def has_access_to_admin_console(self):
+        return self.is_superuser or self.has_perm('user.can_view_admin_console')
 
 
 class UserLogin(models.Model):
