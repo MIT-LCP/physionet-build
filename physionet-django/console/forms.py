@@ -824,7 +824,7 @@ class FrontPageButtonForm(forms.ModelForm):
 
     class Meta:
         model = FrontPageButton
-        fields = "__all__"
+        fields = ["label", "url"]
 
     def clean_url(self):
         """
@@ -843,6 +843,12 @@ class FrontPageButtonForm(forms.ModelForm):
             url = f"{url}/"
 
         return url
+
+    def save(self):
+        fp_button = super().save(commit=False)
+        fp_button.order = FrontPageButton.objects.count() + 1
+        fp_button.save()
+        return fp_button
 
 
 class TrainingQuestionForm(forms.ModelForm):
