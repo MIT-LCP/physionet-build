@@ -84,8 +84,14 @@ class AssignEditorForm(forms.Form):
     Assign an editor to a project under submission
     """
     project = forms.IntegerField(widget=forms.HiddenInput())
-    can_view_admin_console_perm = Permission.objects.get(codename='can_view_admin_console')
-    users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
+    try:
+        can_view_admin_console_perm = Permission.objects.get(codename='can_view_admin_console')
+    except Permission.DoesNotExist:
+        can_view_admin_console_perm = None
+    if can_view_admin_console_perm:
+        users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
+    else:
+        users = User.objects.none()
     editor = forms.ModelChoiceField(queryset=users)
 
     def clean_project(self):
@@ -100,9 +106,14 @@ class ReassignEditorForm(forms.Form):
     """
     Assign an editor to a project under submission
     """
-    can_view_admin_console_perm = Permission.objects.get(codename='can_view_admin_console')
-    users = User.objects.filter(
-        Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
+    try:
+        can_view_admin_console_perm = Permission.objects.get(codename='can_view_admin_console')
+    except Permission.DoesNotExist:
+        can_view_admin_console_perm = None
+    if can_view_admin_console_perm:
+        users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
+    else:
+        users = User.objects.none()
     editor = forms.ModelChoiceField(queryset=users,
                                     widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
 
