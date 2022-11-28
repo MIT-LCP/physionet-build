@@ -14,6 +14,7 @@ from django.core.validators import URLValidator, validate_email, validate_intege
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
+from django.db.utils import ProgrammingError
 from google.cloud import storage
 from notification.models import News
 from physionet.models import Section, StaticPage
@@ -86,7 +87,7 @@ class AssignEditorForm(forms.Form):
     project = forms.IntegerField(widget=forms.HiddenInput())
     try:
         can_view_admin_console_perm = Permission.objects.get(codename='can_view_admin_console')
-    except Permission.DoesNotExist:
+    except Permission.DoesNotExist or ProgrammingError:
         can_view_admin_console_perm = None
     if can_view_admin_console_perm:
         users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
@@ -108,7 +109,7 @@ class ReassignEditorForm(forms.Form):
     """
     try:
         can_view_admin_console_perm = Permission.objects.get(codename='can_view_admin_console')
-    except Permission.DoesNotExist:
+    except Permission.DoesNotExist or ProgrammingError:
         can_view_admin_console_perm = None
     if can_view_admin_console_perm:
         users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
