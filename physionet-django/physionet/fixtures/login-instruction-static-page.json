@@ -4,7 +4,7 @@
     "pk": 3,
     "fields": {
       "title": "Login Instructions",
-      "url": "/login/"
+      "url": "/about/login/"
     }
   }
 ]

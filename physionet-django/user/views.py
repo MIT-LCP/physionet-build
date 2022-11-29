@@ -79,7 +79,7 @@ class SSOLoginView(auth_views.LoginView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         try:
-            login_static_page = StaticPage.objects.get(url='/login/')
+            login_static_page = StaticPage.objects.get(url='/about/login/')
             instruction_sections = Section.objects.filter(static_page=login_static_page)
         except StaticPage.DoesNotExist:
             instruction_sections = []
