@@ -34,7 +34,7 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
-from psycopg2.errors import  UndefinedTable
+from psycopg2.errors import UndefinedTable
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
 RESPONSE_CHOICES = (
@@ -91,7 +91,8 @@ class AssignEditorForm(forms.Form):
     except Exception:
         can_view_admin_console_perm = None
     if can_view_admin_console_perm:
-        users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
+        users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm)
+                                    | Q(user_permissions=can_view_admin_console_perm)).distinct()
     else:
         users = User.objects.none()
     editor = forms.ModelChoiceField(queryset=users)
@@ -113,7 +114,8 @@ class ReassignEditorForm(forms.Form):
     except Exception:
         can_view_admin_console_perm = None
     if can_view_admin_console_perm:
-        users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm) | Q(user_permissions=can_view_admin_console_perm)).distinct()
+        users = User.objects.filter(Q(groups__permissions=can_view_admin_console_perm)
+                                    | Q(user_permissions=can_view_admin_console_perm)).distinct()
     else:
         users = User.objects.none()
     editor = forms.ModelChoiceField(queryset=users,

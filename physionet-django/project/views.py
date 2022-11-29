@@ -1537,7 +1537,8 @@ def published_submission_history(request, project_slug, version):
                                                version=version,
                                                authors__user=user)
     except PublishedProject.DoesNotExist:
-        if user.has_perm('project.change_publishedproject') or user.has_perm('publishedproject.change_publishedproject'):
+        if user.has_perm('project.change_publishedproject') or \
+                user.has_perm('publishedproject.change_publishedproject'):
             project = get_object_or_404(PublishedProject, slug=project_slug,
                                         version=version)
         else:
@@ -1608,8 +1609,8 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
 
     user = request.user
 
-    if user.is_authenticated and (project.authors.filter(user=user) or
-        user == project.editor or user.groups.filter(name='Admin').exists()):
+    if user.is_authenticated and (project.authors.filter(user=user)
+                                  or user == project.editor or user.groups.filter(name='Admin').exists()):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)

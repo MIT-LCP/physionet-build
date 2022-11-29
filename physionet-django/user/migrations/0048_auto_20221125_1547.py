@@ -12,6 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='user',
-            options={'default_permissions': ('view',), 'permissions': [('can_view_admin_console', 'Can view the Admin Console')]},
+            options={'default_permissions': ('view',), 'permissions': [(
+                'can_view_admin_console', 'Can view the Admin Console')]},
         ),
     ]
