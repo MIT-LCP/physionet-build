@@ -104,7 +104,6 @@ def serve_lightwave(query_string, root, dbpath='/', dblist=None, dbcal=None,
         resp['Access-Control-Allow-Headers'] = 'x-requested-with'
     else:
         env['LIGHTWAVE_DISABLE_JSONP'] = '1'
-
     with subprocess.Popen(_lightwave_command, close_fds=True, env=env,
                           stdin=subprocess.DEVNULL,
                           stdout=subprocess.PIPE) as proc:

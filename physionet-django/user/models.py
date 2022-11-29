@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib import messages
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import signals
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission, Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
@@ -310,6 +310,13 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password, username):
         user = self.create_user(email=email, password=password,
                                 username=username, is_admin=True)
+        return user
+
+    def create_admin(self, email, password, username):
+        user = self.create_user(email=email, password=password,
+                                username=username, is_active=True)
+        admin_group = Group.objects.get(name='Admin')
+        user.groups.add(admin_group)
         return user
 
 
