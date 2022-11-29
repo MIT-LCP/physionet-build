@@ -39,7 +39,7 @@ from project.models import (
     Topic,
     exists_project_slug,
     UploadedDocument,
-    DataUseAgreement
+    DataUploadAgreement
 )
 from project.projectfiles import ProjectFiles
 from user.models import User, TrainingType
@@ -1178,7 +1178,7 @@ class UploadedDocumentFormSet(BaseGenericInlineFormSet):
         )
 class UploadedAgreementDataForm(forms.ModelForm):
     class Meta:
-        model = DataUseAgreement
+        model = DataUploadAgreement
         fields = (
             'has_copy_right_permission',
             'has_human_subject_data',

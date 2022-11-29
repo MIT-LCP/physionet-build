@@ -257,7 +257,7 @@ class SubmissionInfo(models.Model):
         return quota_manager
 
 
-class DataUseAgreement(models.Model):
+class DataUploadAgreement(models.Model):
     """This model is used to store the responses from the data use agreement for the project."""
     RESPONSE_CHOICES_1_and_2= (
         (0, 'Yes'),
@@ -268,7 +268,6 @@ class DataUseAgreement(models.Model):
         (1, 'No'),
         (2, 'NA'),
     )
-   
 
     project = models.OneToOneField('project.ActiveProject', on_delete=models.CASCADE)
     has_copy_right_permission = models.PositiveSmallIntegerField(choices = RESPONSE_CHOICES_1_and_2)

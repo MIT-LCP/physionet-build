@@ -48,7 +48,7 @@ from project.models import (
     Reference,
     StorageRequest,
     Topic,
-    UploadedDocument,
+    UploadedDocument,DataUploadAgreement
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
@@ -1036,9 +1036,13 @@ def project_files(request, project_slug, subdir='', **kwargs):
             if storage_request:
                 storage_request.get().delete()
                 messages.success(request, 'Your storage request has been cancelled.')
-        elif 'submit_upload_agreement' in request.POST:
+        elif 'submit_upload_agreement' in request.POST:  
+            try:
+                agreement= DataUploadAgreement.objects.get(project=project)
+            except DataUploadAgreement.DoesNotExist:
+                agreement = None   
             upload_agreement_form = forms.UploadedAgreementDataForm(project=project,
-                                                              data=request.POST)
+                                                              data=request.POST, instance=agreement)     
             if upload_agreement_form.is_valid():
                 upload_agreement_form.instance.project = project
                 upload_agreement_form.save()

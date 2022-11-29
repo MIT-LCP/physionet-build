@@ -26,7 +26,7 @@ from project.modelcomponents.metadata import (
     UploadedDocument,
 )
 from project.modelcomponents.publishedproject import PublishedProject
-from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
+from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo, DataUploadAgreement
 from project.modelcomponents.unpublishedproject import UnpublishedProject
 from project.projectfiles import ProjectFiles
 from project.validators import validate_subdir
@@ -328,6 +328,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     self.integrity_errors.append(
                         f'Corresponding author {author.user.username} '
                         'has not set a corresponding email')
+
+        #Data Upload Agreement
+        try:
+            DataUploadAgreement.objects.get(project_id=self.id)
+        except: #DataUseAgreement.ObjectDdoestNotExist:
+            self.integrity_errors.append('Missing required field: Data Upload Agreement')
+            
 
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type.id]:
