@@ -118,6 +118,7 @@ class ReassignEditorForm(forms.Form):
                                     | Q(user_permissions=can_view_admin_console_perm)).distinct()
     else:
         users = User.objects.none()
+
     editor = forms.ModelChoiceField(queryset=users,
                                     widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
 
