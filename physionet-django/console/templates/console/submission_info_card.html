@@ -49,7 +49,7 @@
           View Project Preview</a>
           <button class="btn btn-lg btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Author Emails</button>
         </p>
-        {% if user == project.editor or user.is_admin %}
+        {% if user == project.editor or user.has_access_to_admin_console %}
         <p>To Download all the files use this command:<br>wget -r -N -c -np --user {{ user }} --ask-password {{ bulk_url_prefix }}{% url 'serve_active_project_file_editor' project.slug '' %}</p>
         {% endif %}
       </div>
