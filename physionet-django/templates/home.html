@@ -42,6 +42,9 @@
         <a href="{% url 'software_overview' %}">Software</a>
         <a href="{% url 'challenge_overview' %}">Challenges</a>
         <a href="{% url 'tutorial_overview' %}">Tutorials</a>
+        {% for button in front_page_buttons %}
+            <a href="{{ button.url }}">{{ button.label|title }}</a>
+        {% endfor %}
         <!-- <a href="">News</a> -->
       </div>
     </div>

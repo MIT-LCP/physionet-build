@@ -28,7 +28,7 @@ from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
-from physionet.models import Section, StaticPage
+from physionet.models import FrontPageButton, Section, StaticPage
 from project import forms as project_forms
 from project.models import (
     GCP,
@@ -2388,6 +2388,79 @@ def known_references(request):
 
     return render(request, 'console/known_references.html', {
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
+
+
+@permission_required('physionet.change_frontpagebutton', raise_exception=True)
+def frontpage_buttons(request):
+
+    if request.method == 'POST':
+        up = request.POST.get('up')
+        if up:
+            front_page_button = get_object_or_404(FrontPageButton, pk=up)
+            front_page_button.move_up()
+
+        down = request.POST.get('down')
+        if down:
+            front_page_button = get_object_or_404(FrontPageButton, pk=down)
+            front_page_button.move_down()
+        return HttpResponseRedirect(reverse('frontpage_buttons'))
+
+    frontpage_buttons = FrontPageButton.objects.all()
+    return render(
+        request,
+        'console/frontpage_button/index.html',
+        {'frontpage_buttons': frontpage_buttons, 'frontpage_buttons_nav': True})
+
+
+@permission_required('physionet.change_frontpagebutton', raise_exception=True)
+def frontpage_button_add(request):
+    if request.method == 'POST':
+        frontpage_button_form = forms.FrontPageButtonForm(data=request.POST)
+        if frontpage_button_form.is_valid():
+            frontpage_button_form.save()
+            messages.success(request, "The frontpage button was successfully created.")
+            return HttpResponseRedirect(reverse('frontpage_buttons'))
+    else:
+        frontpage_button_form = forms.FrontPageButtonForm()
+
+    return render(
+        request,
+        'console/frontpage_button/add.html',
+        {'frontpage_button_form': frontpage_button_form},
+    )
+
+
+@permission_required('physionet.change_frontpagebutton', raise_exception=True)
+def frontpage_button_edit(request, button_pk):
+
+    frontpage_button = get_object_or_404(FrontPageButton, pk=button_pk)
+    if request.method == 'POST':
+        frontpage_button_form = forms.FrontPageButtonForm(instance=frontpage_button, data=request.POST)
+        if frontpage_button_form.is_valid():
+            frontpage_button_form.save()
+            messages.success(request, "The front page was successfully edited.")
+            return HttpResponseRedirect(reverse('frontpage_buttons'))
+    else:
+        frontpage_button_form = forms.FrontPageButtonForm(instance=frontpage_button)
+
+    return render(
+        request,
+        'console/frontpage_button/edit.html',
+        {
+            'frontpage_button_form': frontpage_button_form,
+            'button': frontpage_button
+        }
+    )
+
+
+@permission_required('physionet.change_frontpagebutton', raise_exception=True)
+def frontpage_button_delete(request, button_pk):
+    frontpage_button = get_object_or_404(FrontPageButton, pk=button_pk)
+    if request.method == 'POST':
+        frontpage_button.delete()
+        messages.success(request, "The front page button was successfully deleted.")
+
+    return HttpResponseRedirect(reverse('frontpage_buttons'))
 
 
 @permission_required('physionet.change_staticpage', raise_exception=True)

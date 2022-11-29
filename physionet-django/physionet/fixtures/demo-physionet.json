@@ -138,5 +138,14 @@
     "content": "<p>PhysioNet is maintained by researchers and engineers at the MIT Laboratory for Computational Physiology. \n     To reach us, email <a href=\"mailto:contact@physionet.org\">contact@physionet.org</a>.</p>",
     "order": 6
   }
+},
+{
+  "model": "physionet.frontpagebutton",
+  "pk": 1,
+  "fields": {
+    "label": "About",
+    "url": "/about/",
+    "order": 1
+  }
 }
 ]

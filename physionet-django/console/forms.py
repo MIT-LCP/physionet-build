@@ -14,7 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
-from physionet.models import Section, StaticPage
+from physionet.models import FrontPageButton, Section, StaticPage
 from project.models import (
     ActiveProject,
     AccessPolicy,
@@ -811,6 +811,44 @@ class StaticPageForm(forms.ModelForm):
             raise forms.ValidationError(f"Static page with URL: {url} already exists")
 
         return super().clean()
+
+
+class FrontPageButtonForm(forms.ModelForm):
+    """ Form for creating a front page button."""
+
+    url = forms.CharField(
+        help_text="If you are pointing to a page within the website, "
+        'you can start the urls with "/" eg "/about/us/" ; and for an'
+        'external website, it must start with "http:// or "https://'
+    )
+
+    class Meta:
+        model = FrontPageButton
+        fields = ["label", "url"]
+
+    def clean_url(self):
+        """
+        Validate that URL is in the appropriate format.
+        """
+
+        url = self.cleaned_data.get("url")
+        if url.startswith("/"):
+            if not re.compile(r"^[-\w/\.~]+$").search(url):
+                raise forms.ValidationError(
+                    "Can only contain letters, numbers, dots, underscores, dashes or tildes.")
+        else:
+            validate = URLValidator()
+            validate(url)
+        if not url.endswith("/"):
+            url = f"{url}/"
+
+        return url
+
+    def save(self):
+        front_page_button = super().save(commit=False)
+        front_page_button.order = FrontPageButton.objects.count() + 1
+        front_page_button.save()
+        return front_page_button
 
 
 class TrainingQuestionForm(forms.ModelForm):

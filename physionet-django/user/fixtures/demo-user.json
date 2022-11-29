@@ -14131,6 +14131,11 @@
         "staticpage"
       ],
       [
+        "change_frontpagebutton",
+        "physionet",
+        "frontpagebutton"
+      ],
+      [
         "can_assign_editor",
         "project",
         "activeproject"
@@ -14291,6 +14296,11 @@
         "change_staticpage",
         "physionet",
         "staticpage"
+      ],
+      [
+        "change_frontpagebutton",
+        "physionet",
+        "frontpagebutton"
       ],
       [
         "can_edit_featured_content",
