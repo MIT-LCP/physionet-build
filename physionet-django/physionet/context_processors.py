@@ -1,6 +1,5 @@
 from django.conf import settings
 
-from physionet.models import StaticPage
 from project.models import AccessPolicy
 
 
@@ -21,10 +20,3 @@ def platform_config(request):
         'STRAPLINE': settings.STRAPLINE,
         'SOURCE_CODE_REPOSITORY_LINK': settings.SOURCE_CODE_REPOSITORY_LINK
     }
-
-
-def static_pages(_):
-    """ Retrieves static page for the templates """
-
-    static_page_obj = StaticPage.objects.all().order_by('nav_order')
-    return {'static_pg': static_page_obj}
