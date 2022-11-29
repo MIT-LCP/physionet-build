@@ -2363,13 +2363,13 @@ def frontpage_buttons(request):
     if request.method == 'POST':
         up = request.POST.get('up')
         if up:
-            fp_button = get_object_or_404(FrontPageButton, pk=up)
-            fp_button.move_up()
+            front_page_button = get_object_or_404(FrontPageButton, pk=up)
+            front_page_button.move_up()
 
         down = request.POST.get('down')
         if down:
-            fp_button = get_object_or_404(FrontPageButton, pk=down)
-            fp_button.move_down()
+            front_page_button = get_object_or_404(FrontPageButton, pk=down)
+            front_page_button.move_down()
         return HttpResponseRedirect(reverse('frontpage_buttons'))
 
     frontpage_buttons = FrontPageButton.objects.all()

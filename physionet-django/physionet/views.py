@@ -28,7 +28,7 @@ def home(request):
     featured = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')[:6]
     latest = PublishedProject.objects.filter(is_latest_version=True).order_by('-publish_datetime')[:6]
     news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
-    fp_buttons = FrontPageButton.objects.all()
+    front_page_buttons = FrontPageButton.objects.all()
     front_page_banner = News.objects.filter(front_page_banner=True)
 
     return render(
@@ -38,7 +38,7 @@ def home(request):
             'featured': featured,
             'latest': latest,
             'news_pieces': news_pieces,
-            'fp_buttons': fp_buttons,
+            'front_page_buttons': front_page_buttons,
             'front_page_banner': front_page_banner,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
         },

@@ -845,10 +845,10 @@ class FrontPageButtonForm(forms.ModelForm):
         return url
 
     def save(self):
-        fp_button = super().save(commit=False)
-        fp_button.order = FrontPageButton.objects.count() + 1
-        fp_button.save()
-        return fp_button
+        front_page_button = super().save(commit=False)
+        front_page_button.order = FrontPageButton.objects.count() + 1
+        front_page_button.save()
+        return front_page_button
 
 
 class TrainingQuestionForm(forms.ModelForm):
