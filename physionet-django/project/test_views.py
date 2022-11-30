@@ -1216,4 +1216,3 @@ class TestGenerateSignedUrl(TestMixin):
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
 
-
