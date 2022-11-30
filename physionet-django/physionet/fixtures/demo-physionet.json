@@ -143,9 +143,36 @@
   "model": "physionet.frontpagebutton",
   "pk": 1,
   "fields": {
-    "label": "About",
-    "url": "/about/",
+    "label": "Data",
+    "url": "/about/database/",
     "order": 1
+  }
+},
+{
+  "model": "physionet.frontpagebutton",
+  "pk": 2,
+  "fields": {
+    "label": "Software",
+    "url": "/about/software/",
+    "order": 2
+  }
+},
+{
+  "model": "physionet.frontpagebutton",
+  "pk": 3,
+  "fields": {
+    "label": "Challenges",
+    "url": "/about/challenge/",
+    "order": 3
+  }
+},
+{
+  "model": "physionet.frontpagebutton",
+  "pk": 4,
+  "fields": {
+    "label": "Tutorials",
+    "url": "/about/tutorial/",
+    "order": 4
   }
 }
 ]
