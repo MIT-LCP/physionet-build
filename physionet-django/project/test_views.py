@@ -1214,5 +1214,3 @@ class TestGenerateSignedUrl(TestMixin):
         media_mock.assert_not_called()
         signed_url_mock.assert_not_called()
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-
-
