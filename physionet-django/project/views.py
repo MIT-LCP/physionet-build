@@ -2309,7 +2309,7 @@ def generate_signed_url(request, project_slug):
         return JsonResponse({'detail': 'The filename contains whitespaces.'}, status=400)
 
     queryset = ActiveProject.objects.all()
-    if not request.user.is_admin:
+    if not request.user.groups.filter(name='Admin').exists():
         queryset = queryset.filter(Q(authors__user=request.user) | Q(editor=request.user))
 
     project = get_object_or_404(queryset, slug=project_slug)
