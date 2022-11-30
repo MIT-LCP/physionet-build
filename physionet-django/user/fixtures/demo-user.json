@@ -12,7 +12,10 @@
     "is_admin": true,
     "is_superuser": true,
     "is_credentialed": false,
-    "credential_datetime": null
+    "credential_datetime": null,
+    "groups": [
+      1
+    ]
   }
 },
 {
@@ -14204,6 +14207,11 @@
         "view_user",
         "user",
         "user"
+      ],
+      [
+        "can_view_admin_console",
+        "user",
+        "user"
       ]
     ]
   }
@@ -14247,6 +14255,11 @@
         "change_storagerequest",
         "project",
         "storagerequest"
+      ],
+      [
+        "can_view_admin_console",
+        "user",
+        "user"
       ]
     ]
   }
@@ -14265,6 +14278,11 @@
         "can_view_access_logs",
         "project",
         "publishedproject"
+      ],
+      [
+        "can_view_admin_console",
+        "user",
+        "user"
       ]
     ]
   }
@@ -14278,6 +14296,11 @@
         "change_activeproject",
         "project",
         "activeproject"
+      ],
+      [
+        "can_view_admin_console",
+        "user",
+        "user"
       ]
     ]
   }
@@ -14306,6 +14329,11 @@
         "can_edit_featured_content",
         "project",
         "publishedproject"
+      ],
+      [
+        "can_view_admin_console",
+        "user",
+        "user"
       ]
     ]
   }
@@ -14322,6 +14350,11 @@
       ],
       [
         "view_user",
+        "user",
+        "user"
+      ],
+      [
+        "can_view_admin_console",
         "user",
         "user"
       ]
