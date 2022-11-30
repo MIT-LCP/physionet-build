@@ -763,27 +763,17 @@ class SectionForm(forms.ModelForm):
 class StaticPageForm(forms.ModelForm):
     """ Form for creating a dynamic static page."""
 
-    url = forms.RegexField(
-        label="URL",
-        max_length=100,
-        regex=r"^\/about\/([-\w\.~]+\/)+$",
+    url = forms.CharField(
         help_text=(
             "URL should be unique. If the new URL clashes with a static url, "
             "the static url will take precedence. URL must start with /about/ "
             "for example /about/publish/"
-        ),
-        error_messages={
-            "invalid": (
-                "Must be in format /about/value/value/value/ "
-                "and value must contain only letters, numbers, dots, "
-                "underscores, dashes or tildes."
-            ),
-        },
+        )
     )
 
     class Meta:
         model = StaticPage
-        fields = "__all__"
+        fields = ["title", "url", "nav_bar"]
 
     def clean_url(self):
         """ This is redundant, regex in regex field does the same.
@@ -794,6 +784,9 @@ class StaticPageForm(forms.ModelForm):
         if not url.startswith("/about/"):
             raise forms.ValidationError(
                 "URL must start with /about/, (eg) /about/publish/")
+        if not re.compile(r"^[-\w/\.~]+$").search(url):
+            raise forms.ValidationError(
+                "Can only contain letters, numbers, dots, underscores, dashes or tildes.")
         if not url.endswith("/"):
             url = f"{url}/"
         return url
@@ -811,6 +804,12 @@ class StaticPageForm(forms.ModelForm):
             raise forms.ValidationError(f"Static page with URL: {url} already exists")
 
         return super().clean()
+
+    def save(self):
+        static_page = super().save(commit=False)
+        static_page.nav_order = StaticPage.objects.count() + 1
+        static_page.save()
+        return static_page
 
 
 class FrontPageButtonForm(forms.ModelForm):

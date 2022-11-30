@@ -463,15 +463,17 @@ class TestStaticPage(TestMixin):
 
         super().setUp()
         self.client.login(username='admin', password='Tester11!')
-        self.page = StaticPage.objects.create(
-            title="Testing Page", url="/about/page/testing/", nav_bar=True, nav_order=5)
+        self.page_1 = StaticPage.objects.create(
+            title="Testing Page 1", url="/about/page/testing/", nav_bar=True, nav_order=3)
+        self.page_2 = StaticPage.objects.create(
+            title="Testing Page 2", url="/about/page/testing/2/", nav_bar=True, nav_order=4)
 
     def test_static_page_add_get(self):
         """test the get verb"""
 
         response = self.client.get(reverse("static_page_add"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "console/static_page_add.html")
+        self.assertTemplateUsed(response, "console/static_page/add.html")
 
     def test_static_page_add_post_valid(self):
         """test the valid post verb"""
@@ -489,21 +491,29 @@ class TestStaticPage(TestMixin):
         response = self.client.post(reverse("static_page_add"),
                                     {'title': "Testing", 'url': "/testing/",
                                     'nav_bar': True, 'nav_order': 5})
-        self.assertTemplateUsed(response, "console/static_page_add.html")
+        self.assertTemplateUsed(response, "console/static_page/add.html")
+
+    def test_staticpage_button_ordering(self):
+        """test the ordering post verb"""
+
+        response = self.client.post(reverse("static_pages"), {'up': self.page_1.id, })
+        self.assertRedirects(response, reverse("static_pages"), status_code=302)
+        current_order = StaticPage.objects.get(id=self.page_1.id).nav_order
+        self.assertEqual(current_order, self.page_1.nav_order - 1)
 
     def test_static_page_edit_get(self):
         """test the get verb"""
 
         response = self.client.get(reverse("static_page_edit",
-                                           kwargs={'page_pk': self.page.pk}))
+                                           kwargs={'page_pk': self.page_1.pk}))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "console/static_page_edit.html")
+        self.assertTemplateUsed(response, "console/static_page/edit.html")
 
     def test_static_page_edit_post_valid(self):
         """test the valid post verb"""
 
         response = self.client.post(
-            reverse("static_page_edit", args=(self.page.pk,)),
+            reverse("static_page_edit", args=(self.page_1.pk,)),
             {'title': "Testing", 'url': "/about/testing/page/", 'nav_bar': True, 'nav_order': 5}, follow=True)
         self.assertRedirects(response, reverse("static_pages"), status_code=302)
 
@@ -511,16 +521,16 @@ class TestStaticPage(TestMixin):
         """test the invalid post verb"""
 
         response = self.client.post(
-            reverse("static_page_edit", args=(self.page.pk,)),
+            reverse("static_page_edit", args=(self.page_1.pk,)),
             {'title': "Testing", 'URL': "testing/", 'nav_bar': True, 'nav_order': 5})
-        self.assertTemplateUsed(response, "console/static_page_edit.html")
+        self.assertTemplateUsed(response, "console/static_page/edit.html")
 
     def test_static_page_delete(self):
         """test the delete view"""
 
         static_page_count = StaticPage.objects.count()
         response = self.client.post(
-            reverse("static_page_delete", args=(self.page.pk,)), follow=True)
+            reverse("static_page_delete", args=(self.page_1.pk,)), follow=True)
         self.assertRedirects(response, reverse("static_pages"), status_code=302)
         self.assertEqual(StaticPage.objects.count(), static_page_count - 1)
 

@@ -2465,8 +2465,23 @@ def frontpage_button_delete(request, button_pk):
 
 @permission_required('physionet.change_staticpage', raise_exception=True)
 def static_pages(request):
-    pages = StaticPage.objects.all()
-    return render(request, 'console/static_pages.html', {'pages': pages, 'static_pages_nav': True})
+    if request.method == 'POST':
+        up = request.POST.get('up')
+        if up:
+            page = get_object_or_404(StaticPage, pk=up)
+            page.move_up()
+
+        down = request.POST.get('down')
+        if down:
+            page = get_object_or_404(StaticPage, pk=down)
+            page.move_down()
+        return HttpResponseRedirect(reverse('static_pages'))
+
+    pages = StaticPage.objects.all().order_by("nav_order")
+    return render(
+        request,
+        'console/static_page/index.html',
+        {'pages': pages, 'static_pages_nav': True})
 
 
 @permission_required('physionet.change_staticpage', raise_exception=True)
@@ -2482,7 +2497,7 @@ def static_page_add(request):
 
     return render(
         request,
-        'console/static_page_add.html',
+        'console/static_page/add.html',
         {'static_page_form': static_page_form},
     )
 
@@ -2502,7 +2517,7 @@ def static_page_edit(request, page_pk):
 
     return render(
         request,
-        'console/static_page_edit.html',
+        'console/static_page/edit.html',
         {'static_page_form': static_page_form, 'page': static_page},
     )
 
