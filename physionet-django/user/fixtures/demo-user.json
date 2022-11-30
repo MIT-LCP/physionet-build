@@ -14368,11 +14368,6 @@
         "view_event_menu",
         "user",
         "event"
-      ],
-      [
-        "can_view_admin_console",
-        "user",
-        "user"
       ]
     ]
   }
