@@ -2310,7 +2310,8 @@ def generate_signed_url(request, project_slug):
 
     queryset = ActiveProject.objects.all()
     if not request.user.groups.filter(name='Admin').exists():
-        queryset = queryset.filter(Q(authors__user=request.user) | Q(editor=request.user)).distinct()
+        queryset = queryset.filter(Q(authors__user=request.user) |
+                                   Q(editor=request.user)).distinct('slug').order_by('slug')
 
     project = get_object_or_404(queryset, slug=project_slug)
 
