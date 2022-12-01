@@ -225,13 +225,6 @@ def static_view(request, static_url=None):
     return render(request, 'about/static_template.html', params)
 
 
-def tutorial_overview(request):
-    """
-    Temporary content overview
-    """
-    return render(request, 'about/tutorial_index.html')
-
-
 @login_required
 def event_home(request):
     """
