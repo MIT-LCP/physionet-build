@@ -98,8 +98,8 @@ def make_checksum_background(pid):
     project.set_storage_info()
 
 
-def is_admin(user, *args, **kwargs):
-    return user.is_admin
+def has_change_credentialapplication_permission(user, *args, **kwargs):
+    return user.has_perm('user.change_credentialapplication')
 
 
 def handling_editor(base_view):
@@ -111,7 +111,7 @@ def handling_editor(base_view):
         user = request.user
         try:
             project = ActiveProject.objects.get(slug=kwargs['project_slug'])
-            if user.is_admin and user == project.editor:
+            if user.has_access_to_admin_console() and user == project.editor:
                 kwargs['project'] = project
                 return base_view(request, *args, **kwargs)
         except ActiveProject.DoesNotExist:
@@ -123,7 +123,7 @@ def handling_editor(base_view):
 
 
 def console_home(request):
-    if not request.user.is_authenticated or not request.user.is_admin:
+    if not request.user.is_authenticated or not request.user.has_access_to_admin_console():
         raise PermissionDenied
     return render(request, 'console/console_home.html', {'console_home_nav': True})
 
@@ -994,7 +994,7 @@ def users(request, group='all'):
         login_time_count=Count('login_time')
     ).order_by('username')
     if group == 'admin':
-        admin_users = user_list.filter(is_admin=True)
+        admin_users = user_list.filter(groups__name='Admin')
         return render(request, 'console/users_admin.html', {
             'admin_users': admin_users,
             'group': group,
@@ -1513,7 +1513,7 @@ def credentialed_user_info(request, username):
 
 
 @login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@user_passes_test(has_change_credentialapplication_permission, redirect_field_name='project_home')
 def training_list(request, status):
     """
     List all training applications.
@@ -1590,7 +1590,7 @@ def search_training_applications(request, display_training):
 
 
 @login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@user_passes_test(has_change_credentialapplication_permission, redirect_field_name='project_home')
 def training_process(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
 
@@ -1667,7 +1667,7 @@ def training_process(request, pk):
 
 
 @login_required
-@user_passes_test(is_admin, redirect_field_name='project_home')
+@user_passes_test(has_change_credentialapplication_permission, redirect_field_name='project_home')
 def training_detail(request, pk):
     training = get_object_or_404(Training.objects.prefetch_related('training_type'), pk=pk)
 

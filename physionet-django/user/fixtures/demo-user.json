@@ -3090,7 +3090,10 @@
     "is_active": true,
     "is_admin": true,
     "is_credentialed": true,
-    "credential_datetime": "2010-02-28T05:00:00Z"
+    "credential_datetime": "2010-02-28T05:00:00Z",
+    "groups": [
+      1
+    ]
   }
 },
 {
