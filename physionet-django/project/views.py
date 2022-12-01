@@ -2313,8 +2313,7 @@ def generate_signed_url(request, project_slug):
 
     if not request.user.groups.filter(name='Admin').exists():
         # submitting authors can only upload files when the project is in the 0:'Not submitted'
-        # or 30:'Revisions requested'
-        # status
+        # or 30:'Revisions requested' status
         author_acceptable_statuses = (0, 30,)
 
         # editors can only upload files when the project is in the 40:'Submission accepted; awaiting editor copyedits'
