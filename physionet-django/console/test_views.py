@@ -464,9 +464,9 @@ class TestStaticPage(TestMixin):
         super().setUp()
         self.client.login(username='admin', password='Tester11!')
         self.page_1 = StaticPage.objects.create(
-            title="Testing Page 1", url="/about/page/testing/", nav_bar=True, nav_order=3)
+            title="Testing Page 1", url="/about/page/testing/", nav_bar=True, nav_order=10)
         self.page_2 = StaticPage.objects.create(
-            title="Testing Page 2", url="/about/page/testing/2/", nav_bar=True, nav_order=4)
+            title="Testing Page 2", url="/about/page/testing/2/", nav_bar=True, nav_order=11)
 
     def test_static_page_add_get(self):
         """test the get verb"""
