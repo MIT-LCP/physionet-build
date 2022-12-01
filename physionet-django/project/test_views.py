@@ -1214,3 +1214,34 @@ class TestGenerateSignedUrl(TestMixin):
         media_mock.assert_not_called()
         signed_url_mock.assert_not_called()
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+
+    def test_invalid_access(self):
+        self.client.login(**self.user_credentials)
+
+        # Non-submitting author
+        self.client.login(username='aewj@mit.edu', password='Tester11!')
+        with self.subTest('Non Submitting author can not upload files.'):
+            response = self.client.post(
+                reverse('generate_signed_url',
+                        kwargs={
+                            "project_slug": ActiveProject.objects.get(title='MIMIC-III Clinical Database').slug
+                        }
+                        ),
+                self.valid_data,
+                format='json'
+                )
+            self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+        # awaiting editor decision
+        self.client.login(username='tpollard@mit.edu', password='Tester11!')
+        with self.subTest('Editor cannot upload files unless the project has been accepted.'):
+            response = self.client.post(
+                reverse('generate_signed_url',
+                        kwargs={
+                            "project_slug": ActiveProject.objects.get(title='Demo software project').slug
+                        }
+                        ),
+                self.valid_data,
+                format='json'
+            )
+            self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
