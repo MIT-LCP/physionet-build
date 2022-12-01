@@ -1228,8 +1228,8 @@ class TestGenerateSignedUrl(TestMixin):
                         }
                         ),
                 self.valid_data,
-                format='json'
-                )
+                format='json')
+
             self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
         # awaiting editor decision
