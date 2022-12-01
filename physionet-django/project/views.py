@@ -2309,26 +2309,25 @@ def generate_signed_url(request, project_slug):
         return JsonResponse({'detail': 'The filename contains whitespaces.'}, status=400)
 
     queryset = ActiveProject.objects.all()
-    if not request.user.groups.filter(name='Admin').exists():
-        queryset = queryset.filter(
-            Q(authors__user=request.user) | Q(editor=request.user)
-        ).distinct('slug').order_by('slug')
-
     project = get_object_or_404(queryset, slug=project_slug)
 
-    # submitting authors can only upload files when the project is in the 0:'Not submitted' or 30:'Revisions requested'
-    # status
-    author_acceptable_statuses = [0, 30]
-    project_authors = [author.user for author in project.authors.all()]
-    if project_authors and (request.user != project.authors.filter(is_submitting=True).first().user
-                            or project.submission_status not in author_acceptable_statuses):
-        return JsonResponse({'detail': 'Author cannot edit the project right now.'}, status=403)
+    if not request.user.groups.filter(name='Admin').exists():
+        # submitting authors can only upload files when the project is in the 0:'Not submitted'
+        # or 30:'Revisions requested'
+        # status
+        author_acceptable_statuses = (0, 30,)
 
-    # editors can only upload files when the project is in the 40:'Submission accepted; awaiting editor copyedits'
-    # status
-    editor_acceptable_statuses = [40]
-    if request.user == project.editor and project.submission_status not in editor_acceptable_statuses:
-        return JsonResponse({'detail': 'Editor cannot edit the project right now.'}, status=403)
+        # editors can only upload files when the project is in the 40:'Submission accepted; awaiting editor copyedits'
+        # status
+        editor_acceptable_statuses = (40,)
+        project_authors = [author.user for author in project.authors.all()]
+        if request.user in project_authors and (request.user != project.authors.filter(is_submitting=True).first().user
+                                                or project.submission_status not in author_acceptable_statuses):
+            return JsonResponse({'detail': 'Author cannot edit the project right now.'}, status=403)
+        elif request.user == project.editor and project.submission_status not in editor_acceptable_statuses:
+            return JsonResponse({'detail': 'Editor cannot edit the project right now.'}, status=403)
+        elif request.user not in project_authors and request.user != project.editor:
+            return JsonResponse({'detail': 'User is not authorized to edit the project.'}, status=403)
 
     if size > project.get_storage_info().remaining:
         return JsonResponse({'detail': 'The file size cannot be greater than the remaining space.'}, status=400)
