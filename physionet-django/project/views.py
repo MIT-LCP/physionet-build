@@ -2311,21 +2311,14 @@ def generate_signed_url(request, project_slug):
     queryset = ActiveProject.objects.all()
     project = get_object_or_404(queryset, slug=project_slug)
 
-    if not request.user.groups.filter(name='Admin').exists():
-        # submitting authors can only upload files when the project is in the 0:'Not submitted'
-        # or 30:'Revisions requested' status
-        author_acceptable_statuses = (0, 30,)
-
-        # editors can only upload files when the project is in the 40:'Submission accepted; awaiting editor copyedits'
-        # status
-        editor_acceptable_statuses = (40,)
-        project_authors = [author.user for author in project.authors.all()]
-        if request.user in project_authors and (request.user != project.authors.filter(is_submitting=True).first().user
-                                                or project.submission_status not in author_acceptable_statuses):
+    if not request.user.has_perm('project.change_activeproject'):
+        project_authors = [author.user for author in project.author_list()]
+        if request.user in project_authors and (request.user != project.submitting_author()
+                                                or not project.author_editable()):
             return JsonResponse({'detail': 'Author cannot edit the project right now.'}, status=403)
-        elif request.user == project.editor and project.submission_status not in editor_acceptable_statuses:
+        elif request.user == project.editor and not project.copyeditable():
             return JsonResponse({'detail': 'Editor cannot edit the project right now.'}, status=403)
-        elif request.user not in project_authors and request.user != project.editor:
+        else:
             return JsonResponse({'detail': 'User is not authorized to edit the project.'}, status=403)
 
     if size > project.get_storage_info().remaining:

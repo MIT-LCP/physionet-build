@@ -1219,12 +1219,12 @@ class TestGenerateSignedUrl(TestMixin):
         self.client.login(**self.user_credentials)
 
         # Non-submitting author
-        self.client.login(username='aewj@mit.edu', password='Tester11!')
+        self.client.login(username='george@mit.edu', password='Tester11!')
         with self.subTest('Non Submitting author can not upload files.'):
             response = self.client.post(
                 reverse('generate_signed_url',
                         kwargs={
-                            "project_slug": ActiveProject.objects.get(title='MIMIC-III Clinical Database').slug
+                            "project_slug": ActiveProject.objects.get(title='Demo software project').slug
                         }
                         ),
                 self.valid_data,
