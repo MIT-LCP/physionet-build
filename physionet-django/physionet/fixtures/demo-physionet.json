@@ -30,6 +30,16 @@
   }
 },
 {
+  "model": "physionet.staticpage",
+  "pk": 4,
+  "fields": {
+    "title": "Challenges",
+    "url": "/about/challenge/",
+    "nav_bar": false,
+    "nav_order": 4
+  }
+},
+{
   "model": "physionet.section",
   "pk": 1,
   "fields": {
@@ -156,6 +166,16 @@
     "static_page": 3,
     "title": "Tutorials",
     "content": "<p>Our tutorials are intended to provide hands-on introductions to the data and software hosted here.</p>",
+    "order": 1
+  }
+},
+{
+  "model": "physionet.section",
+  "pk": 14,
+  "fields": {
+    "static_page": 4,
+    "title": "Challenges",
+    "content": "<p>Our challenges are intended to focus research on important, unsolved tasks.</p>",
     "order": 1
   }
 },
