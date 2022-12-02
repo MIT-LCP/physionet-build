@@ -20,6 +20,16 @@
   }
 },
 {
+  "model": "physionet.staticpage",
+  "pk": 3,
+  "fields": {
+    "title": "Tutorials",
+    "url": "/about/tutorial/",
+    "nav_bar": false,
+    "nav_order": 3
+  }
+},
+{
   "model": "physionet.section",
   "pk": 1,
   "fields": {
@@ -137,6 +147,16 @@
     "title": "Contact us",
     "content": "<p>PhysioNet is maintained by researchers and engineers at the MIT Laboratory for Computational Physiology. \n     To reach us, email <a href=\"mailto:contact@physionet.org\">contact@physionet.org</a>.</p>",
     "order": 6
+  }
+},
+{
+  "model": "physionet.section",
+  "pk": 13,
+  "fields": {
+    "static_page": 3,
+    "title": "Tutorials",
+    "content": "<p>Our tutorials are intended to provide hands-on introductions to the data and software hosted here.</p>",
+    "order": 1
   }
 },
 {
