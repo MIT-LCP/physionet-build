@@ -2313,11 +2313,12 @@ def generate_signed_url(request, project_slug):
 
     if not request.user.has_perm('project.change_activeproject'):
         project_authors = [author.user for author in project.author_list()]
-        if request.user in project_authors and (request.user != project.submitting_author()
-                                                or not project.author_editable()):
-            return JsonResponse({'detail': 'Author cannot edit the project right now.'}, status=403)
-        elif request.user == project.editor and not project.copyeditable():
-            return JsonResponse({'detail': 'Editor cannot edit the project right now.'}, status=403)
+        if request.user in project_authors:
+            if request.user != project.submitting_author().user or not project.author_editable():
+                return JsonResponse({'detail': 'Author cannot edit the project right now.'}, status=403)
+        elif request.user == project.editor:
+            if not project.copyeditable():
+                return JsonResponse({'detail': 'Editor cannot edit the project right now.'}, status=403)
         else:
             return JsonResponse({'detail': 'User is not authorized to edit the project.'}, status=403)
 
