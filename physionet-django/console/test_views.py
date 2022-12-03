@@ -48,7 +48,7 @@ class TestState(TestMixin):
         project.submit(author_comments='')
         # Assign editor
         self.client.login(username='admin', password='Tester11!')
-        editor = User.objects.get(username='admin')
+        editor = User.objects.get(username='amitupreti')
         response = self.client.post(reverse(
             'submitted_projects'), data={'project':project.id,
             'editor':editor.id})
@@ -73,7 +73,7 @@ class TestState(TestMixin):
         self.assertEqual(project.submission_status, 20)
 
         # Reassign editor
-        editor = User.objects.get(username='admin')
+        editor = User.objects.get(username='amitupreti')
         response = self.client.post(reverse('submission_info',
             args=(project.slug,)), data={'editor': editor.id})
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')

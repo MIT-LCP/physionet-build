@@ -3092,7 +3092,26 @@
     "is_credentialed": true,
     "credential_datetime": "2010-02-28T05:00:00Z",
     "groups": [
-      1
+      1,
+      3
+    ]
+  }
+},
+  {
+  "model": "user.user",
+  "pk": 207,
+  "fields": {
+    "password": "pbkdf2_sha256$216000$vqZK5QT2t1fb$WbRmDkbxeAyRW5hRDcp2NZv3DhsVbDMN6zIyA21bqms=",
+    "email": "amitupreti@fake_gmail.com",
+    "username": "amitupreti",
+    "join_date": "2022-11-30",
+    "last_login": "2022-12-02T23:16:38.469Z",
+    "is_active": true,
+    "is_admin": false,
+    "is_credentialed": false,
+    "credential_datetime": null,
+    "groups": [
+      3
     ]
   }
 },
@@ -9766,6 +9785,21 @@
   }
 },
 {
+  "model": "user.profile",
+  "pk": 207,
+  "fields": {
+    "user": [
+      "amitupreti"
+    ],
+    "first_names": "Amit",
+    "last_name": "Upreti",
+    "affiliation": "",
+    "location": "",
+    "website": "",
+    "photo": ""
+}
+},
+{
   "model": "user.orcid",
   "pk": 1,
   "fields": {
@@ -14263,6 +14297,11 @@
         "can_view_admin_console",
         "user",
         "user"
+      ],
+      [
+        "can_edit_activeprojects",
+        "project",
+        "activeproject"
       ]
     ]
   }
@@ -14286,6 +14325,11 @@
         "can_view_admin_console",
         "user",
         "user"
+      ],
+      [
+        "can_edit_activeprojects",
+        "project",
+        "activeproject"
       ]
     ]
   }

@@ -9,9 +9,11 @@ from console.utility import generate_doi_payload, register_doi
 from dal import autocomplete
 from django import forms
 from django.conf import settings
+from django.contrib.auth.models import Permission
 from django.core.validators import URLValidator, validate_email, validate_integer
 from django.db import transaction
 from django.utils import timezone
+from django.db.models import Q
 from google.cloud import storage
 from notification.models import News
 from physionet.models import FrontPageButton, Section, StaticPage
@@ -82,8 +84,17 @@ class AssignEditorForm(forms.Form):
     Assign an editor to a project under submission
     """
     project = forms.IntegerField(widget=forms.HiddenInput())
-    editor = forms.ModelChoiceField(queryset=User.objects.filter(
-        is_admin=True))
+    try:
+        can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
+    except Permission.DoesNotExist:
+        can_edit_activeprojects_perm = None
+
+    if can_edit_activeprojects_perm:
+        users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
+                                    | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
+    else:
+        users = User.objects.none()
+    editor = forms.ModelChoiceField(queryset=users)
 
     def clean_project(self):
         pid = self.cleaned_data['project']
@@ -97,8 +108,17 @@ class ReassignEditorForm(forms.Form):
     """
     Assign an editor to a project under submission
     """
-    editor = forms.ModelChoiceField(queryset=User.objects.filter(
-        is_admin=True), widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
+    try:
+        can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
+    except Permission.DoesNotExist:
+        can_edit_activeprojects_perm = None
+
+    if can_edit_activeprojects_perm:
+        users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
+                                    | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
+    else:
+        users = User.objects.none()
+    editor = forms.ModelChoiceField(queryset=users, widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
 
     def __init__(self, user, *args, **kwargs):
         """
