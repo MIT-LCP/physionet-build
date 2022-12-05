@@ -87,15 +87,11 @@ class AssignEditorForm(forms.Form):
     project = forms.IntegerField(widget=forms.HiddenInput())
     try:
         can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
-<<<<<<< Updated upstream
     except ProgrammingError:  # database not yet initialized(needed for management commands that run before migrations)
         can_edit_activeprojects_perm = None
     except OperationalError:  # database not yet initialized(needed for management commands that run before migrations)
         can_edit_activeprojects_perm = None
     except Permission.DoesNotExist:  # handling this so that form works in website in case of permission not available
-=======
-    except Permission.DoesNotExist:
->>>>>>> Stashed changes
         can_edit_activeprojects_perm = None
 
     if can_edit_activeprojects_perm:
@@ -119,15 +115,11 @@ class ReassignEditorForm(forms.Form):
     """
     try:
         can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
-<<<<<<< Updated upstream
     except ProgrammingError:  # database not yet initialized(needed for management commands that run before migrations)
         can_edit_activeprojects_perm = None
     except OperationalError:  # database not yet initialized(needed for management commands that run before migrations)
         can_edit_activeprojects_perm = None
     except Permission.DoesNotExist:  # handling this so that form works in website in case of permission not available
-=======
-    except Permission.DoesNotExist:
->>>>>>> Stashed changes
         can_edit_activeprojects_perm = None
 
     if can_edit_activeprojects_perm:
