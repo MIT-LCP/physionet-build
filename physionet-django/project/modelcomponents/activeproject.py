@@ -606,7 +606,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         return published_project
 
-
     def is_editable_by(self, user):
         """
         Whether the user can edit the project
