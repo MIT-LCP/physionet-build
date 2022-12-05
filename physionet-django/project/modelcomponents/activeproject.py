@@ -605,3 +605,20 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         ProjectFiles().publish_complete(self, published_project)
 
         return published_project
+
+
+    def is_editable_by(self, user):
+        """
+        Whether the user can edit the project
+        """
+        if not user.has_perm('project.change_activeproject'):
+            project_authors = [author.user for author in self.author_list()]
+            if user in project_authors:
+                if user != self.submitting_author().user or not self.author_editable():
+                    return False
+            elif user == self.editor:
+                if not self.copyeditable():
+                    return False
+            else:
+                return False
+        return True

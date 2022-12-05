@@ -2311,16 +2311,8 @@ def generate_signed_url(request, project_slug):
     queryset = ActiveProject.objects.all()
     project = get_object_or_404(queryset, slug=project_slug)
 
-    if not request.user.has_perm('project.change_activeproject'):
-        project_authors = [author.user for author in project.author_list()]
-        if request.user in project_authors:
-            if request.user != project.submitting_author().user or not project.author_editable():
-                return JsonResponse({'detail': 'Author cannot edit the project right now.'}, status=403)
-        elif request.user == project.editor:
-            if not project.copyeditable():
-                return JsonResponse({'detail': 'Editor cannot edit the project right now.'}, status=403)
-        else:
-            return JsonResponse({'detail': 'User is not authorized to edit the project.'}, status=403)
+    if not project.is_editable_by(request.user):
+        return JsonResponse({'detail': 'User is not authorized to edit the project at this moment.'}, status=403)
 
     if size > project.get_storage_info().remaining:
         return JsonResponse({'detail': 'The file size cannot be greater than the remaining space.'}, status=400)
