@@ -11,7 +11,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core.validators import URLValidator, validate_email, validate_integer
-from django.db.utils import ProgrammingError,OperationalError
+from django.db.utils import ProgrammingError, OperationalError
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import Q
