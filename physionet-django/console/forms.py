@@ -11,7 +11,6 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core.validators import URLValidator, validate_email, validate_integer
-from django.db.utils import ProgrammingError, OperationalError
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import Q
@@ -85,17 +84,25 @@ class AssignEditorForm(forms.Form):
     Assign an editor to a project under submission
     """
     project = forms.IntegerField(widget=forms.HiddenInput())
-    try:
-        can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
-    except Exception:
-        can_edit_activeprojects_perm = None
+    editor = forms.ModelChoiceField(queryset=None)
 
-    if can_edit_activeprojects_perm:
-        users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
-                                    | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
-    else:
-        users = User.objects.none()
-    editor = forms.ModelChoiceField(queryset=users)
+    def __init__(self, *args, **kwargs):
+        """
+        Set the appropriate queryset
+        """
+        super().__init__(*args, **kwargs)
+        try:
+            can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
+        except Permission.DoesNotExist:
+            can_edit_activeprojects_perm = None
+
+        if can_edit_activeprojects_perm:
+            users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
+                                        | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
+        else:
+            users = User.objects.none()
+
+        self.fields['editor'].queryset = users
 
     def clean_project(self):
         pid = self.cleaned_data['project']
@@ -109,25 +116,26 @@ class ReassignEditorForm(forms.Form):
     """
     Assign an editor to a project under submission
     """
-    try:
-        can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
-    except Exception:
-        can_edit_activeprojects_perm = None
-
-    if can_edit_activeprojects_perm:
-        users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
-                                    | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
-    else:
-        users = User.objects.none()
-    editor = forms.ModelChoiceField(queryset=users, widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
+    editor = forms.ModelChoiceField(queryset=None, widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
 
     def __init__(self, user, *args, **kwargs):
         """
         Set the appropriate queryset
         """
         super().__init__(*args, **kwargs)
-        self.fields['editor'].queryset = self.fields['editor'].queryset.exclude(
-            username=user.username)
+        try:
+            can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
+        except Permission.DoesNotExist:
+            can_edit_activeprojects_perm = None
+
+        if can_edit_activeprojects_perm:
+            users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
+                                        | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
+        else:
+            users = User.objects.none()
+
+        users = users.exclude(username=user.username)
+        self.fields['editor'].queryset = users
 
 
 class EditSubmissionForm(forms.ModelForm):
