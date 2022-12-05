@@ -11,7 +11,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.core.validators import URLValidator, validate_email, validate_integer
-from django.db.utils import ProgrammingError
+from django.db.utils import ProgrammingError,OperationalError
 from django.db import transaction
 from django.utils import timezone
 from django.db.models import Q
@@ -89,6 +89,8 @@ class AssignEditorForm(forms.Form):
         can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
     except ProgrammingError:  # database not yet initialized(needed for management commands that run before migrations)
         can_edit_activeprojects_perm = None
+    except OperationalError:  # database not yet initialized(needed for management commands that run before migrations)
+        can_edit_activeprojects_perm = None
     except Permission.DoesNotExist:  # handling this so that form works in website in case of permission not available
         can_edit_activeprojects_perm = None
 
@@ -114,6 +116,8 @@ class ReassignEditorForm(forms.Form):
     try:
         can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
     except ProgrammingError:  # database not yet initialized(needed for management commands that run before migrations)
+        can_edit_activeprojects_perm = None
+    except OperationalError:  # database not yet initialized(needed for management commands that run before migrations)
         can_edit_activeprojects_perm = None
     except Permission.DoesNotExist:  # handling this so that form works in website in case of permission not available
         can_edit_activeprojects_perm = None
