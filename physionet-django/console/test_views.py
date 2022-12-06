@@ -385,7 +385,13 @@ class TestState(TestMixin):
             response = self.client.post(
                 reverse('new_project_version', args=(self.PROJECT_SLUG,)),
                 data={'version': version})
+            project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+            self.client.post(reverse('project_files',args=(project.slug,)), #gives the url #tuple need ,
+            data=
+            {'has_copy_right_permission': '0', #put in teh request post 
+            'has_human_subject_data':'0', 'has_phi':'0' , 'submit_upload_agreement': 'submitbutton'})  #html submission #form fields were submitting too
             self.test_publish()
+            
 
         # Sort the list of version numbers
         sorted_versions = []
