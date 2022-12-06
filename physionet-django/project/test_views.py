@@ -1233,12 +1233,12 @@ class TestGenerateSignedUrl(TestMixin):
             self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
         # awaiting editor decision
-        self.client.login(username='tpollard@mit.edu', password='Tester11!')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
         with self.subTest('Editor cannot upload files unless the project has been accepted.'):
             response = self.client.post(
                 reverse('generate_signed_url',
                         kwargs={
-                            "project_slug": ActiveProject.objects.get(title='Demo software project').slug
+                            "project_slug": ActiveProject.objects.get(title='Demo database project').slug
                         }
                         ),
                 self.valid_data,
