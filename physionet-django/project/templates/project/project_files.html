@@ -19,6 +19,7 @@
 {% block main_content %}
 <h2 class="form-signin-heading">6. Project Files</h2>
 <hr>
+{% include "project/upload_data_agreement.html" %}
 {% include "about/files.html" %}
 <br>
 
@@ -35,7 +36,6 @@
     {{ maintenance_message }}
   </div>
 {% endif %}
-{% include "project/upload_data_agreement.html" %}
 <div class="card">
   <div class="card-body">
     {% include "project/project_storage_allowance.html" %}
