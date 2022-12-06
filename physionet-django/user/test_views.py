@@ -485,7 +485,7 @@ class TrainingTestCase(TestCase):
         cls.login_url = reverse('login')
         cls.console_training_url = reverse('training_list', kwargs={'status': 'review'})
         cls.user = User.objects.create(username='user', email='user@example.com')
-        cls.admin = User.objects.create(username='admin_user', email='admin@example.com', is_admin=True)
+        cls.admin = User.objects.create_admin(username='admin_user', email='admin@example.com', password='Tester11!')
         cls.profile = Profile.objects.create(user=cls.user, first_names="Rafał", last_name="F")
 
         cls.question = Question.objects.create(content='Is it okay?')

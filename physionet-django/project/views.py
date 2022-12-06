@@ -68,8 +68,8 @@ def project_auth(auth_mode=0, post_auth_mode=0):
     auth_mode is one of the following:
     - 0 : the user must be an author.
     - 1 : the user must be the submitting author.
-    - 2 : the user must be an author or an admin
-    - 3 : the user must be an author or an admin
+    - 2 : the user must be an author or have permission to edit all ActiveProjects.
+    - 3 : the user must be an author or have permission to edit all ActiveProjects.
           or be authenticated with a passphrase
 
     post_auth_mode is one of the following and applies only to post:
@@ -110,9 +110,9 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             elif auth_mode == 1:
                 allow = is_submitting
             elif auth_mode == 2:
-                allow = is_author or user.is_admin
+                allow = is_author or user.has_perm('project.change_activeproject')
             elif auth_mode == 3:
-                allow = has_passphrase or is_author or user.is_admin
+                allow = has_passphrase or is_author or user.has_perm('project.change_activeproject')
             else:
                 allow = False
 
@@ -1489,7 +1489,7 @@ def rejected_submission_history(request, project_slug):
                                               archive_reason=3,
                                               authors__user=user)
     except ArchivedProject.DoesNotExist:
-        if user.is_admin:
+        if user.has_perm('project.change_archivedproject'):
             project = get_object_or_404(ArchivedProject, slug=project_slug,
                                         archive_reason=3)
         else:
@@ -1512,7 +1512,7 @@ def published_versions(request, project_slug):
     """
     user = request.user
     # Account for different authors between versions
-    if user.is_admin:
+    if user.has_perm('project.change_publishedproject'):
         projects = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
     else:
         authors = PublishedAuthor.objects.filter(user=user, project__slug=project_slug).order_by('project__version_order')
@@ -1537,7 +1537,7 @@ def published_submission_history(request, project_slug, version):
                                                version=version,
                                                authors__user=user)
     except PublishedProject.DoesNotExist:
-        if user.is_admin:
+        if user.has_perm('project.change_publishedproject'):
             project = get_object_or_404(PublishedProject, slug=project_slug,
                                         version=version)
         else:
@@ -1609,7 +1609,7 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
     user = request.user
 
     if user.is_authenticated and (project.authors.filter(user=user) or
-        user == project.editor or user.is_admin):
+                                  user == project.editor or user.has_perm('project.change_activeproject')):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)

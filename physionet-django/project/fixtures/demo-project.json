@@ -1166,7 +1166,9 @@
     "dua": null,
     "project_home_page": "",
     "core_project": "773ac916-9733-4717-88e4-bd34dba604c4",
-    "editor": null,
+    "editor": [
+      "rgmark"
+    ],
     "submission_datetime": null,
     "author_comments": "",
     "editor_assignment_datetime": null,
