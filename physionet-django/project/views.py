@@ -2309,10 +2309,10 @@ def generate_signed_url(request, project_slug):
         return JsonResponse({'detail': 'The filename contains whitespaces.'}, status=400)
 
     queryset = ActiveProject.objects.all()
-    if not request.user.has_perm('project.change_activeproject'):
-        queryset = queryset.filter(Q(authors__user=request.user) | Q(editor=request.user))
-
     project = get_object_or_404(queryset, slug=project_slug)
+
+    if not project.is_editable_by(request.user):
+        return JsonResponse({'detail': 'User is not authorized to edit the project at this moment.'}, status=403)
 
     if size > project.get_storage_info().remaining:
         return JsonResponse({'detail': 'The file size cannot be greater than the remaining space.'}, status=400)
