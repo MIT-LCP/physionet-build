@@ -321,6 +321,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.integrity_errors.append('Author {0} has not fill in name'.format(author.user.username))
             if not author.affiliations.all():
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
+            if author.is_corresponding:
+                if not author.user.associated_emails.filter(
+                        is_verified=True,
+                        email=author.corresponding_email).exists():
+                    self.integrity_errors.append(
+                        f'Corresponding author {author.user.username} '
+                        'has not set a corresponding email')
 
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type.id]:
