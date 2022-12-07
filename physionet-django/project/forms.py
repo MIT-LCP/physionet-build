@@ -418,11 +418,21 @@ class NewProjectVersionForm(forms.ModelForm):
 
         # Copy over the author/affiliation objects
         for p_author in self.latest_project.authors.all():
+            if p_author.is_corresponding:
+                old_address = p_author.corresponding_email
+            else:
+                old_address = None
+            emails = p_author.user.associated_emails.filter(is_verified=True)
+            corresponding_email = (
+                emails.filter(email__iexact=old_address).first()
+                or emails.filter(is_public=True).first()
+                or p_author.user.get_primary_email()
+            )
             author = Author.objects.create(project=project, user=p_author.user,
                 display_order=p_author.display_order,
                 is_submitting=p_author.is_submitting,
                 is_corresponding=p_author.is_corresponding,
-                corresponding_email=self.user.get_primary_email(),)
+                corresponding_email=corresponding_email)
 
             for p_affiliation in p_author.affiliations.all():
                 Affiliation.objects.create(name=p_affiliation.name,
