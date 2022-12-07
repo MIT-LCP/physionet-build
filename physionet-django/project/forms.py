@@ -428,7 +428,9 @@ class NewProjectVersionForm(forms.ModelForm):
                 or emails.filter(is_public=True).first()
                 or p_author.user.get_primary_email()
             )
-            author = Author.objects.create(project=project, user=p_author.user,
+            author = Author.objects.create(
+                project=project,
+                user=p_author.user,
                 display_order=p_author.display_order,
                 is_submitting=p_author.is_submitting,
                 is_corresponding=p_author.is_corresponding,
