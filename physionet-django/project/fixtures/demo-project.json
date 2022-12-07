@@ -723,9 +723,9 @@
   "model": "project.contact",
   "pk": 5,
   "fields": {
-    "name": "Tom Pollard",
+    "name": "Alistair Johnson",
     "affiliations": "MIT",
-    "email": "tpollard@mit.edu",
+    "email": "aewj@mit.edu",
     "project": 5
   }
 },
