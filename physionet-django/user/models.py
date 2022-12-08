@@ -432,6 +432,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         Returns True if the user has access to the admin console.
         """
         return self.is_superuser or self.has_perm('user.can_view_admin_console')
+
     @staticmethod
     def get_users_with_permission(permission_codename):
         """
