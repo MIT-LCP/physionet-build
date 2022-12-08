@@ -9,11 +9,9 @@ from console.utility import generate_doi_payload, register_doi
 from dal import autocomplete
 from django import forms
 from django.conf import settings
-from django.contrib.auth.models import Permission
 from django.core.validators import URLValidator, validate_email, validate_integer
 from django.db import transaction
 from django.utils import timezone
-from django.db.models import Q
 from google.cloud import storage
 from notification.models import News
 from physionet.models import FrontPageButton, Section, StaticPage
@@ -91,17 +89,8 @@ class AssignEditorForm(forms.Form):
         Set the appropriate queryset
         """
         super().__init__(*args, **kwargs)
-        try:
-            can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
-        except Permission.DoesNotExist:
-            can_edit_activeprojects_perm = None
 
-        if can_edit_activeprojects_perm:
-            users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
-                                        | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
-        else:
-            users = User.objects.none()
-
+        users = User.get_users_with_permission('can_edit_activeprojects')
         self.fields['editor'].queryset = users
 
     def clean_project(self):
@@ -123,17 +112,8 @@ class ReassignEditorForm(forms.Form):
         Set the appropriate queryset
         """
         super().__init__(*args, **kwargs)
-        try:
-            can_edit_activeprojects_perm = Permission.objects.get(codename='can_edit_activeprojects')
-        except Permission.DoesNotExist:
-            can_edit_activeprojects_perm = None
 
-        if can_edit_activeprojects_perm:
-            users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
-                                        | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
-        else:
-            users = User.objects.none()
-
+        users = User.get_users_with_permission('can_edit_activeprojects')
         users = users.exclude(username=user.username)
         self.fields['editor'].queryset = users
 

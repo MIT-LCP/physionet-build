@@ -13,7 +13,7 @@ from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.db.models import CharField
+from django.db.models import CharField, Q
 from django.db.models.functions import Lower
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -432,7 +432,24 @@ class User(AbstractBaseUser, PermissionsMixin):
         Returns True if the user has access to the admin console.
         """
         return self.is_superuser or self.has_perm('user.can_view_admin_console')
+    @staticmethod
+    def get_users_with_permission(permission_codename):
+        """
+        Returns a queryset of users who have the specified permission.
+        If the Permission object does not exist, an empty queryset is returned.
+        """
+        try:
+            can_edit_activeprojects_perm = Permission.objects.get(codename=permission_codename)
+        except Permission.DoesNotExist:
+            can_edit_activeprojects_perm = None
 
+        if can_edit_activeprojects_perm:
+            users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
+                                        | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
+        else:
+            users = User.objects.none()
+
+        return users
 
 class UserLogin(models.Model):
     """Represent users' logins, one per record"""
