@@ -610,7 +610,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Whether the user can edit the project
         """
-        if user == self.submitting_author().user:
+        if self.authors.filter(is_submitting=True, user=user).exists():
             if self.author_editable():
                 return True
         elif user == self.editor:
