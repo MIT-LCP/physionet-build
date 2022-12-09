@@ -3,10 +3,10 @@ import shutil
 import datetime
 from distutils.version import StrictVersion
 
-import pytz
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.text import slugify
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
@@ -398,7 +398,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Determine if the embargo should still be in effect based on the embargo_end_date and the current .now date
         """
-        if self.embargo_files_days and (self.embargo_end_date() > pytz.UTC.localize(datetime.datetime.utcnow())):
+        if self.embargo_files_days and (self.embargo_end_date() > timezone.now()):
             return True
         else:
             return False
