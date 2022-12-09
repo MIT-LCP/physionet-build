@@ -13,7 +13,7 @@ from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.db.models import CharField
+from django.db.models import CharField, Q
 from django.db.models.functions import Lower
 from django.db.models.signals import post_save
 from django.dispatch import receiver

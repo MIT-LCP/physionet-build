@@ -82,8 +82,11 @@ class AssignEditorForm(forms.Form):
     Assign an editor to a project under submission
     """
     project = forms.IntegerField(widget=forms.HiddenInput())
-    editor = forms.ModelChoiceField(queryset=User.objects.filter(
-        is_admin=True))
+    editor = forms.ModelChoiceField(queryset=None)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['editor'].queryset = User.get_users_with_permission('can_edit_activeprojects')
 
     def clean_project(self):
         pid = self.cleaned_data['project']
@@ -97,16 +100,16 @@ class ReassignEditorForm(forms.Form):
     """
     Assign an editor to a project under submission
     """
-    editor = forms.ModelChoiceField(queryset=User.objects.filter(
-        is_admin=True), widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
+    editor = forms.ModelChoiceField(queryset=None, widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
 
     def __init__(self, user, *args, **kwargs):
         """
         Set the appropriate queryset
         """
         super().__init__(*args, **kwargs)
-        self.fields['editor'].queryset = self.fields['editor'].queryset.exclude(
-            username=user.username)
+        users = User.get_users_with_permission('can_edit_activeprojects')
+        users = users.exclude(username=user.username)
+        self.fields['editor'].queryset = users
 
 
 class EmbargoFilesDaysForm(forms.Form):
