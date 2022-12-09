@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.AlterModelOptions(
             name='activeproject',
             options={
-                'default_permissions': ('change',), 
+                'default_permissions': ('change',),
                 'permissions': [
                     ('can_assign_editor', 'Can assign editor'), ('can_edit_activeprojects', 'Can edit ActiveProjects')
                 ]
