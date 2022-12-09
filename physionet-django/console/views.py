@@ -259,6 +259,7 @@ def submission_info(request, project_slug):
 
     data = request.POST or None
     reassign_editor_form = forms.ReassignEditorForm(user, data=data)
+    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
 
@@ -274,6 +275,13 @@ def submission_info(request, project_slug):
         LOGGER.info("The editor for the project {0} has been reassigned from "
                     "{1} to {2}".format(project, user,
                                         reassign_editor_form.cleaned_data['editor']))
+    elif 'embargo_files' in request.POST:
+        embargo_files_days_form = forms.EmbargoFilesDaysForm(data=request.POST)
+        if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+            raise ServiceUnavailable()
+        elif embargo_files_days_form.is_valid():
+            project.embargo_files_days = embargo_files_days_form.cleaned_data['embargo_files_days']
+            project.save()
 
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
@@ -285,6 +293,7 @@ def submission_info(request, project_slug):
                    'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
                    'reassign_editor_form': reassign_editor_form,
+                   'embargo_files_days_form': embargo_files_days_form,
                    'project_info_nav': True})
 
 
@@ -301,6 +310,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     reassign_editor_form = forms.ReassignEditorForm(request.user)
+    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
 
     # The user must be the editor
     if project.submission_status not in [20, 30]:
@@ -338,7 +348,8 @@ def edit_submission(request, project_slug, *args, **kwargs):
                    'storage_info': storage_info, 'edit_logs': edit_logs,
                    'latest_version': latest_version, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
-                   'editor_home': True, 'reassign_editor_form': reassign_editor_form})
+                   'editor_home': True, 'reassign_editor_form': reassign_editor_form,
+                   'embargo_files_days_form': embargo_files_days_form})
 
 
 @handling_editor
@@ -352,6 +363,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
     reassign_editor_form = forms.ReassignEditorForm(request.user)
+    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -514,6 +526,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             'url_prefix': url_prefix,
             'bulk_url_prefix': bulk_url_prefix,
             'reassign_editor_form': reassign_editor_form,
+            'embargo_files_days_form': embargo_files_days_form,
         },
     )
     if description_form_saved:
@@ -538,6 +551,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
     reassign_editor_form = forms.ReassignEditorForm(request.user)
+    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
 
     if request.method == 'POST':
         if 'reopen_copyedit' in request.POST:
@@ -563,7 +577,8 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
                    'outstanding_emails': outstanding_emails, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
                    'yesterday': yesterday, 'editor_home': True,
-                   'reassign_editor_form': reassign_editor_form})
+                   'reassign_editor_form': reassign_editor_form,
+                   'embargo_files_days_form': embargo_files_days_form})
 
 
 @handling_editor
@@ -597,6 +612,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
         raise ServiceUnavailable()
 
     reassign_editor_form = forms.ReassignEditorForm(request.user)
+    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
@@ -643,7 +659,8 @@ def publish_submission(request, project_slug, *args, **kwargs):
                    'latest_version': latest_version, 'publish_form': publish_form,
                    'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
-                   'reassign_editor_form': reassign_editor_form, 'editor_home': True})
+                   'reassign_editor_form': reassign_editor_form, 'editor_home': True,
+                   'embargo_files_days_form': embargo_files_days_form})
 
 
 @permission_required('project.change_storagerequest', raise_exception=True)
@@ -855,6 +872,13 @@ def manage_published_project(request, project_slug, version):
                 project.deprecate_files(
                     delete_files=int(deprecate_form.cleaned_data['delete_files']))
                 messages.success(request, 'The project files have been deprecated.')
+        elif 'remove_embargo' in request.POST:
+            if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+                raise ServiceUnavailable()
+            else:
+                project.embargo_files_days = None
+                project.save()
+                messages.success(request, 'The project files are no longer under embargo.')
         elif 'bucket' in request.POST and has_credentials:
             if any(get_associated_tasks(project, read_only=False)):
                 messages.error(request, 'Project has tasks pending.')

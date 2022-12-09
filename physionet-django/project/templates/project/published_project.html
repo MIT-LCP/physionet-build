@@ -327,6 +327,10 @@
     <div class="alert alert-danger col-md-8" role="alert">
       The files for this project are no longer available.
     </div>
+  {% elif project.embargo_active %}
+    <div class="alert alert-danger col-md-8" role="alert">
+      The files in this project version are under embargo until: {{ project.embargo_end_date|date }}
+    </div>
   {% else %}
     {% if project.access_policy %}
       {% if has_access %}

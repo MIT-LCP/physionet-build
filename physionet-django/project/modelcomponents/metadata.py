@@ -80,6 +80,8 @@ class Metadata(models.Model):
                                      related_name='%(class)ss',
                                      on_delete=models.CASCADE)
     allow_file_downloads = models.BooleanField(default=True)
+    # Store the number of days a project's files should be under embargo
+    embargo_files_days = models.SmallIntegerField(default=None, null=True, blank=True)
 
     ethics_statement = SafeHTMLField(blank=True)
     required_trainings = models.ManyToManyField('user.TrainingType', related_name='%(class)s')

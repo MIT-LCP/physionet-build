@@ -1,7 +1,9 @@
 import os
 import shutil
+import datetime
 from distutils.version import StrictVersion
 
+import pytz
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
@@ -28,6 +30,7 @@ class PublishedProject(Metadata, SubmissionInfo):
     publish_datetime = models.DateTimeField(auto_now_add=True)
     has_other_versions = models.BooleanField(default=False)
     deprecated_files = models.BooleanField(default=False)
+    # embargo_removed = models.BooleanField(default=False)
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
     doi = models.CharField(max_length=50, blank=True, null=True)
@@ -382,3 +385,21 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         program_count = len(os.listdir(os.path.join(self.file_root(), 'sources/'))) - 1
         return(program_count)
+
+    def embargo_end_date(self):
+        """
+        Get the end date for the files under embargo by adding the number of days for embargo to the published date.
+        """
+        if self.embargo_files_days:
+            return self.publish_datetime + datetime.timedelta(days=self.embargo_files_days)
+        else:
+            return datetime.datetime(1, 1, 1, 0, 0)
+
+    def embargo_active(self):
+        """
+        Determine if the embargo should still be in effect based on the embargo_end_date and the current .now date
+        """
+        if self.embargo_files_days and (self.embargo_end_date() > pytz.UTC.localize(datetime.datetime.utcnow())):
+            return True
+        else:
+            return False

@@ -274,6 +274,47 @@
         </div>
       {% endif %}
       </li>
+      <li class="list-group-item">
+      <h5 class="card-title mb-1">Embargo files</h5>
+      {% if project.embargo_active %}
+        <div class="alert alert-danger col-md-8" role="alert">
+          The files for this project version are under embargo until: {{ project.embargo_end_date|date }}
+        </div>
+        <form action="" method="post">
+          {% csrf_token %}
+          <button id="embargo-items-button" type="button"
+                  class="btn btn-primary btn-fixed" data-toggle="modal"
+                  {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                  data-target="#embargo-files-modal">Remove embargo</button>
+        </form>
+        {# Modal for embargoing files #}
+        <div class="modal fade" id="embargo-files-modal" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Remove embargo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <form action="" method="post">
+                <div class="modal-body">
+                  {% csrf_token %}
+                  <p>Please confirm that you want to remove the embargo on the files for: {{ project }} </p>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                  <button class="btn btn-danger" name="remove_embargo" type="submit">Remove embargo</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        The files in this project version are not under embargo. An embargo can only be set when publishing a submitted
+        project.
+      {% endif %}
+      </li>
     </ul>
     </div>
 </div>
