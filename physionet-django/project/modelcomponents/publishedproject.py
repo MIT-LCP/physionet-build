@@ -30,7 +30,6 @@ class PublishedProject(Metadata, SubmissionInfo):
     publish_datetime = models.DateTimeField(auto_now_add=True)
     has_other_versions = models.BooleanField(default=False)
     deprecated_files = models.BooleanField(default=False)
-    # embargo_removed = models.BooleanField(default=False)
     # doi = models.CharField(max_length=50, unique=True, validators=[validate_doi])
     # Temporary workaround
     doi = models.CharField(max_length=50, blank=True, null=True)
