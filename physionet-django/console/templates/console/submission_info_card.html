@@ -146,37 +146,43 @@
       {# Embargo #}
       {% if project.editor == user %}
       <div class="tab-pane fade" id="embargo" role="tabpanel" aria-labelledby="embargo-tab">
-        {% if not project.embargo_files_days %}
-          <p>Embargo the files in this project version. <br><br>
-            Enter the number of days to embargo the files from the publication date:</p>
-          <form action="{% url 'submission_info' project.slug %}" method="POST" id="embargo_files_days_form">
-            {% csrf_token %}
-            {% include "form_snippet_no_labels.html" with form=embargo_files_days_form %}
-            <button class="btn btn-primary btn-rsp" type="button" data-toggle="modal" data-target="#embargo_modal">Embargo files</button>
+        {% if not project.license.access_policy == AccessPolicy.OPEN %}
+          {% if not project.embargo_files_days %}
+            <p>Embargo the files in this project version. <br><br>
+              Enter the number of days to embargo the files from the publication date:</p>
+            <form action="{% url 'submission_info' project.slug %}" method="POST" id="embargo_files_days_form">
+              {% csrf_token %}
+              {% include "form_snippet_no_labels.html" with form=embargo_files_days_form %}
+              <button class="btn btn-primary btn-rsp" type="button" data-toggle="modal" data-target="#embargo_modal">Embargo files</button>
 
-            <!-- Start Modal -->
-            <div class="modal fade" id="embargo_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
-              <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                  <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">Embargo files</h5>
-                  </div>
-                  <div class="modal-body">
-                    <p>Please confirm that you want to embargo the files in: {{ project }} </p>
-                  </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary" name="embargo_files">Embargo files</button>
+              <!-- Start Modal -->
+              <div class="modal fade" id="embargo_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="exampleModalLongTitle">Embargo files</h5>
+                    </div>
+                    <div class="modal-body">
+                      <p>Please confirm that you want to embargo the files in: {{ project }} </p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-primary" name="embargo_files">Embargo files</button>
+                    </div>
                   </div>
                 </div>
               </div>
+            <!-- End Modal -->
+            </form>
+          {% else %}
+            <div class="alert alert-danger col-md-8" role="alert">
+              The files for this project version are already under embargo.
             </div>
-          <!-- End Modal -->
-          </form>
+          {% endif %}
         {% else %}
-          <div class="alert alert-danger col-md-8" role="alert">
-            The files for this project version are already under embargo.
-          </div>
+            <div class="alert alert-danger col-md-8" role="alert">
+              The files for an open access project cannot be placed under embargo.
+            </div>
         {% endif %}
       </div>
       {% endif %}
