@@ -9,13 +9,13 @@ from project.models import PublishedProject, License, DUA
 class LicenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = License
-        fields = ('name', 'is_active')
+        fields = ('name',)
 
 
 class DUASerializer(serializers.ModelSerializer):
     class Meta:
         model = DUA
-        fields = ('name', 'is_active')
+        fields = ('name',)
 
 
 class PublishedProjectSerializer(serializers.ModelSerializer):
@@ -30,6 +30,5 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
 class PublishedProjectDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PublishedProject
-        fields = ("title", "abstract", "background", "methods", "content_description", "usage_notes", "installation",
-                  "acknowledgements", "conflicts_of_interest", "release_notes", "ethics_statement", "version",
-                  "short_description", "project_home_page", "publish_datetime", "doi", "slug")
+        fields = ("title", "abstract", "version", "short_description",
+                  "project_home_page", "publish_datetime", "doi", "slug")
