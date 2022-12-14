@@ -1063,7 +1063,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         maintenance_message = settings.SYSTEM_MAINTENANCE_MESSAGE or (
             "The site is currently undergoing maintenance, and project "
                         "files cannot be edited.  Please try again later."
-        )
+)
         files_editable = False
     else:
         maintenance_message = None

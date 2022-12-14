@@ -212,8 +212,8 @@ class TestState(TestMixin):
         # Recomplete copyedit
         response = self.client.post(reverse(
             'copyedit_submission', args=(project.slug,)),
-            data={'complete_copyedit': '', 'made_changes':1,
-            'changelog_summary': 'Removed your things'})
+            data={'complete_copyedit': '', 'made_changes': 1,
+                  'changelog_summary': 'Removed your things'})
         project = ActiveProject.objects.get(id=project.id)
         self.assertFalse(project.copyeditable())
 
@@ -319,8 +319,7 @@ class TestState(TestMixin):
         project = PublishedProject.objects.get(slug=custom_slug,
                                                version=project.version)
         # Access the published project's page and its (open) files
-        response = self.client.get(reverse('published_project',
-                        args=(project.slug, project.version)))
+        response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('serve_published_project_file', args=(
             project.slug, project.version, 'subject-100/100.atr')))
@@ -330,8 +329,7 @@ class TestState(TestMixin):
         self.assertEqual(response.status_code, 200)
         # Access the submission log as the author
         self.client.login(username='rgmark', password='Tester11!')
-        response = self.client.get(reverse('published_submission_history',
-                                args=(project.slug, project.version,)))
+        response = self.client.get(reverse('published_submission_history', args=(project.slug, project.version,)))
         self.assertEqual(response.status_code, 200)
 
         # The internal links should now point to published files

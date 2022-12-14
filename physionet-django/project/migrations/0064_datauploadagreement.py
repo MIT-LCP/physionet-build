@@ -18,7 +18,8 @@ class Migration(migrations.Migration):
                 ('has_copy_right_permission', models.PositiveSmallIntegerField(choices=[(0, 'Yes'), (1, 'No')])),
                 ('has_human_subject_data', models.PositiveSmallIntegerField(choices=[(0, 'Yes'), (1, 'No')])),
                 ('has_phi', models.PositiveSmallIntegerField(choices=[(0, 'Yes'), (1, 'No'), (2, 'NA')])),
-                ('project', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to='project.activeproject')),
+                ('project', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE,
+                                                 to='project.activeproject')),
             ],
         ),
     ]
