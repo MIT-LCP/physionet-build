@@ -1176,17 +1176,22 @@ class UploadedDocumentFormSet(BaseGenericInlineFormSet):
             "Statements on ethics approval should appear here. "
             "Your statement will be included in the public project description."
         )
+
+
 class UploadedAgreementDataForm(forms.ModelForm):
     class Meta:
         model = DataUploadAgreement
         fields = (
             'has_copy_right_permission',
             'has_human_subject_data',
-            'has_phi'
-        )
-        labels = {'has_copy_right_permission': 'Are you the original creator, or copyright holder, or have permission from the creators and copyright holders to share these files?',
-        'has_human_subject_data':'Does this project contain data collected from human subjects?',
-        'has_phi':'Do these files contain any personally identifiable information (information that could identify individual human subjects)?'}
+            'has_phi')
+        labels = {
+            'has_copy_right_permission': 'Are you the original creator, or copyright holder, or have\
+            permission from the creators and copyright holders to share these files?',
+            'has_human_subject_data': 'Does this project contain data collected from human subjects?',
+            'has_phi': 'Do these files contain any personally identifiable information (information\
+            that could identify individual human subjects)?'}
+
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project

@@ -48,7 +48,8 @@ from project.models import (
     Reference,
     StorageRequest,
     Topic,
-    UploadedDocument,DataUploadAgreement
+    UploadedDocument,
+    DataUploadAgreement
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
@@ -1061,7 +1062,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         maintenance_message = settings.SYSTEM_MAINTENANCE_MESSAGE or (
             "The site is currently undergoing maintenance, and project "
-            "files cannot be edited.  Please try again later."
+                        "files cannot be edited.  Please try again later."
         )
         files_editable = False
     else:

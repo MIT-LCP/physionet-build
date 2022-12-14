@@ -329,12 +329,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         f'Corresponding author {author.user.username} '
                         'has not set a corresponding email')
 
-        #Data Upload Agreement
+        # Data Upload Agreement
         try:
             DataUploadAgreement.objects.get(project_id=self.id)
-        except: #DataUseAgreement.ObjectDdoestNotExist:
+        except DataUploadAgreement.ObjectDdoestNotExist:
             self.integrity_errors.append('Missing required field: Data Upload Agreement')
-            
 
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type.id]:

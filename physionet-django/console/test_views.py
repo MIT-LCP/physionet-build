@@ -64,7 +64,7 @@ class TestState(TestMixin):
         # Submit project
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
         project.submit(author_comments='')
-        # Assign editor
+        # Assign editorgi
         self.client.login(username='admin', password='Tester11!')
         editor = User.objects.get(username='cindyehlert')
         response = self.client.post(reverse('submitted_projects'), data={
@@ -212,8 +212,8 @@ class TestState(TestMixin):
         # Recomplete copyedit
         response = self.client.post(reverse(
             'copyedit_submission', args=(project.slug,)),
-            data={'complete_copyedit':'', 'made_changes':1,
-            'changelog_summary':'Removed your things'})
+            data={'complete_copyedit': '', 'made_changes':1,
+            'changelog_summary': 'Removed your things'})
         project = ActiveProject.objects.get(id=project.id)
         self.assertFalse(project.copyeditable())
 
@@ -261,7 +261,7 @@ class TestState(TestMixin):
         # Complete copyedit
         response = self.client.post(reverse(
             'copyedit_submission', args=(project.slug,)),
-            data={'complete_copyedit':'', 'made_changes':0})
+            data={'complete_copyedit': '', 'made_changes': 0})
         self.assertEqual(get_project().modified_datetime, timestamp)
 
         # Approve publication
@@ -269,7 +269,7 @@ class TestState(TestMixin):
         self.client.login(username='rgmark', password='Tester11!')
         response = self.client.post(reverse(
             'project_submission', args=(project.slug,)),
-            data={'approve_publication':''})
+            data={'approve_publication': ''})
         self.assertEqual(get_project().modified_datetime, timestamp)
 
         self.assertTrue(ActiveProject.objects.get(id=project.id).is_publishable())
@@ -300,16 +300,14 @@ class TestState(TestMixin):
         # publish_submission ignores the slug parameter)
         if not project.is_new_version:
             taken_slug = PublishedProject.objects.all().first().slug
-            response = self.client.post(reverse(
-                'publish_submission', args=(project.slug,)),
-                data={'slug':taken_slug, 'doi': False, 'make_zip':1})
-            self.assertTrue(bool(ActiveProject.objects.filter(
-                slug=project_slug)))
+            response = self.client.post(reverse('publish_submission', args=(project.slug,)),
+                                        data={'slug': taken_slug, 'doi': False, 'make_zip': 1})
+            self.assertTrue(bool(ActiveProject.objects.filter(slug=project_slug)))
 
         # Publish with a valid custom slug
-        response = self.client.post(reverse(
-            'publish_submission', args=(project.slug,)),
-            data={'slug':custom_slug, 'doi': False, 'make_zip':1})
+        response = self.client.post(reverse('publish_submission',
+                                    args=(project.slug,)), data={
+                                        'slug': custom_slug, 'doi': False, 'make_zip': 1})
 
         # Run background tasks
         self.assertTrue(bool(tasks.run_next_task()))
@@ -322,7 +320,7 @@ class TestState(TestMixin):
                                                version=project.version)
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
-            args=(project.slug, project.version)))
+                        args=(project.slug, project.version)))
         self.assertEqual(response.status_code, 200)
         response = self.client.get(reverse('serve_published_project_file', args=(
             project.slug, project.version, 'subject-100/100.atr')))
@@ -333,7 +331,7 @@ class TestState(TestMixin):
         # Access the submission log as the author
         self.client.login(username='rgmark', password='Tester11!')
         response = self.client.get(reverse('published_submission_history',
-            args=(project.slug, project.version,)))
+                                args=(project.slug, project.version,)))
         self.assertEqual(response.status_code, 200)
 
         # The internal links should now point to published files
@@ -382,16 +380,13 @@ class TestState(TestMixin):
         for version in versions[1:]:
             self.client.login(username=self.AUTHOR,
                               password=self.AUTHOR_PASSWORD)
-            response = self.client.post(
-                reverse('new_project_version', args=(self.PROJECT_SLUG,)),
-                data={'version': version})
+            response = self.client.post(reverse('new_project_version', args=(self.PROJECT_SLUG,)),
+                                        data={'version': version})
             project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
-            self.client.post(reverse('project_files',args=(project.slug,)), #gives the url #tuple need ,
-            data=
-            {'has_copy_right_permission': '0', #put in teh request post 
-            'has_human_subject_data':'0', 'has_phi':'0' , 'submit_upload_agreement': 'submitbutton'})  #html submission #form fields were submitting too
+            self.client.post(reverse('project_files', args=(project.slug,)), data={
+                'has_copy_right_permission': '0', 'has_human_subject_data': '0',
+                'has_phi': '0', 'submit_upload_agreement': 'submitbutton'})
             self.test_publish()
-            
 
         # Sort the list of version numbers
         sorted_versions = []
