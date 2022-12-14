@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from user import views
 from django.conf import settings
 
+
 login_view = views.sso_login if settings.ENABLE_SSO else views.login
 
 

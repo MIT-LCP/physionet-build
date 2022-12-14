@@ -1,9 +1,7 @@
-# from user.models import User
+
 from rest_framework import serializers
 
 from project.models import PublishedProject, License, DUA
-
-# adding License & Dua for details
 
 
 class LicenseSerializer(serializers.ModelSerializer):
