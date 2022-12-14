@@ -1037,13 +1037,13 @@ def project_files(request, project_slug, subdir='', **kwargs):
             if storage_request:
                 storage_request.get().delete()
                 messages.success(request, 'Your storage request has been cancelled.')
-        elif 'submit_upload_agreement' in request.POST:  
+        elif 'submit_upload_agreement' in request.POST:
             try:
                 agreement= DataUploadAgreement.objects.get(project=project)
             except DataUploadAgreement.DoesNotExist:
-                agreement = None   
+                agreement = None
             upload_agreement_form = forms.UploadedAgreementDataForm(project=project,
-                                                              data=request.POST, instance=agreement)     
+                                                              data=request.POST, instance=agreement)
             if upload_agreement_form.is_valid():
                 upload_agreement_form.instance.project = project
                 upload_agreement_form.save()
@@ -1062,8 +1062,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         maintenance_message = settings.SYSTEM_MAINTENANCE_MESSAGE or (
             "The site is currently undergoing maintenance, and project "
-                        "files cannot be edited.  Please try again later."
-)
+                        "files cannot be edited.  Please try again later.")
         files_editable = False
     else:
         maintenance_message = None
@@ -1076,7 +1075,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         forms.StorageRequestForm(project=project) if (not storage_request and is_submitting) else None
     )
     upload_agreement_form = (
-        forms.UploadedAgreementDataForm(project=project) 
+        forms.UploadedAgreementDataForm(project=project)
     )
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
