@@ -58,7 +58,6 @@ from user.models import CloudInformation, CredentialApplication, LegacyCredentia
 
 from .serializers import PublishedProjectSerializer, PublishedProjectDetailSerializer
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import mixins
 from rest_framework.response import Response
@@ -2322,7 +2321,6 @@ class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     """
     queryset = PublishedProject.objects.all().order_by('id')
     authentication_classes = [SessionAuthentication, BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
     serializer_class = PublishedProjectSerializer
 
     def get(self, request, *args, **kwargs):
@@ -2335,7 +2333,6 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
     """
 
     authentication_classes = [SessionAuthentication, BasicAuthentication]
-    # permission_classes = [IsAuthenticated]
 
     def get_object(self, slug, version):
         return get_object_or_404(PublishedProject, slug=slug, version=version)

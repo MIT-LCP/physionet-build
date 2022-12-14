@@ -45,7 +45,6 @@ from project.models import Author, DUASignature, DUA, PublishedProject
 from requests_oauthlib import OAuth2Session
 from user import forms, validators
 from user.models import (
-    Profile,
     AssociatedEmail,
     CodeOfConduct,
     CodeOfConductSignature,
@@ -59,6 +58,7 @@ from user.models import (
 )
 from user.userfiles import UserFiles
 from physionet.models import StaticPage
+
 
 logger = logging.getLogger(__name__)
 
