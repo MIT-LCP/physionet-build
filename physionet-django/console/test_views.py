@@ -385,6 +385,7 @@ class TestState(TestMixin):
                               password=self.AUTHOR_PASSWORD)
             response = self.client.post(reverse('new_project_version', args=(self.PROJECT_SLUG,)),
                                         data={'version': version})
+            self.assertEqual(response.status_code, 200)
             project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
             self.client.post(reverse('project_files', args=(project.slug,)), data={
                 'has_copy_right_permission': '0', 'has_human_subject_data': '0',
