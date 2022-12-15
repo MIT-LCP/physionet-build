@@ -24,8 +24,7 @@ class SQLCompiler(compiler.SQLCompiler):
     """
     def get_order_by(self):
         result = super().get_order_by()
-        if len(result) == 0:
-            result.append((OrderBy(Random()), ('RANDOM()', [], False)))
+        result.append((OrderBy(Random()), ('RANDOM()', [], False)))
         return result
 
 
