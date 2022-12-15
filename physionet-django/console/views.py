@@ -259,7 +259,7 @@ def submission_info(request, project_slug):
 
     data = request.POST or None
     reassign_editor_form = forms.ReassignEditorForm(user, data=data)
-    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
+    embargo_files_days_form = forms.EmbargoFilesDaysForm()
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
 
@@ -280,7 +280,11 @@ def submission_info(request, project_slug):
         if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
             raise ServiceUnavailable()
         elif embargo_files_days_form.is_valid():
-            project.embargo_files_days = embargo_files_days_form.cleaned_data['embargo_files_days']
+            embargo_days_from_form = embargo_files_days_form.cleaned_data['embargo_files_days']
+            if embargo_days_from_form == 0:
+                project.embargo_files_days = None
+            else:
+                project.embargo_files_days = embargo_days_from_form
             project.save()
 
     url_prefix = notification.get_url_prefix(request)
@@ -310,7 +314,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     reassign_editor_form = forms.ReassignEditorForm(request.user)
-    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
+    embargo_files_days_form = forms.EmbargoFilesDaysForm()
 
     # The user must be the editor
     if project.submission_status not in [20, 30]:
@@ -363,7 +367,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
     reassign_editor_form = forms.ReassignEditorForm(request.user)
-    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
+    embargo_files_days_form = forms.EmbargoFilesDaysForm()
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -551,7 +555,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
     reassign_editor_form = forms.ReassignEditorForm(request.user)
-    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
+    embargo_files_days_form = forms.EmbargoFilesDaysForm()
 
     if request.method == 'POST':
         if 'reopen_copyedit' in request.POST:
@@ -612,7 +616,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
         raise ServiceUnavailable()
 
     reassign_editor_form = forms.ReassignEditorForm(request.user)
-    embargo_files_days_form = None if project.embargo_files_days else forms.EmbargoFilesDaysForm()
+    embargo_files_days_form = forms.EmbargoFilesDaysForm()
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)

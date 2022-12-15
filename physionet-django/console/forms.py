@@ -113,7 +113,7 @@ class EmbargoFilesDaysForm(forms.Form):
     """
     For an editor to set the number of days a project's files should be under embargo.
     """
-    embargo_files_days = forms.IntegerField(max_value=365)
+    embargo_files_days = forms.IntegerField(min_value=0, max_value=365)
 
 
 class EditSubmissionForm(forms.ModelForm):
