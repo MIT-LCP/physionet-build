@@ -338,14 +338,12 @@ class TestAuth(TestMixin):
         # Test 1: add emails until limit is reached
         for i in range(total_associated_emails, settings.ASSOCIATED_EMAILS_ALLOWED):
             email_to_add = f'tester{i}@mit.edu'
-            response = self.client.post(reverse('edit_emails'), data={
-                'add_email': [''], 'email': email_to_add})
+            self.client.post(reverse('edit_emails'), data={'add_email': [''], 'email': email_to_add})
             self.assertIsNotNone(AssociatedEmail.objects.filter(email=email_to_add))
 
         # Test 2: add one more email
         email_to_add = f'tester{settings.ASSOCIATED_EMAILS_ALLOWED}@mit.edu'
-        response = self.client.post(reverse('edit_emails'), data={
-            'add_email': [''], 'email': email_to_add})
+        self.client.post(reverse('edit_emails'), data={'add_email': [''], 'email': email_to_add})
         self.assertFalse(AssociatedEmail.objects.filter(email=email_to_add))
 
     def test_purgeaccounts(self):
