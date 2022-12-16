@@ -360,8 +360,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_credentialed = models.BooleanField(default=False)
     credential_datetime = models.DateTimeField(blank=True, null=True)
 
-    associated_emails_allowed = models.IntegerField(default=settings.ASSOCIATED_EMAILS_ALLOWED, null=True)
-
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
 
