@@ -348,7 +348,6 @@ class TestAuth(TestMixin):
             'add_email': [''], 'email': email_to_add})
         self.assertFalse(AssociatedEmail.objects.filter(email=email_to_add))
 
-
     def test_purgeaccounts(self):
         # Test 0: login
         self.client.login(username='admin@mit.edu', password='Tester11!')

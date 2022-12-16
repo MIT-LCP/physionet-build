@@ -333,7 +333,7 @@ def edit_emails(request):
             if associated_emails.count() >= user.associated_emails_allowed:
                 messages.error(
                     request,
-                    f'You cannot add more than {user.associated_emails_allowed} email addresses.' +
+                    f'You cannot add more than {user.associated_emails_allowed} email addresses.'
                     f' If you need to more emails, please contact {settings.CONTACT_EMAIL}.'
                 )
             else:
