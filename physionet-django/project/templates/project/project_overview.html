@@ -37,14 +37,6 @@
    <a href="{% url 'static_view' static_url='publish' %}#author_guidelines"> author
 guidelines</a>.</p>
 <hr>
-<h3>Quality Guidelines</h3>
-<p>Your contribution must satisfy the following guidelines:</p>
-{% if project.resource_type.id == 0 %}
-  {% include "about/data_quality_guidelines.html" %}
-{% else %}
-  {% include "about/software_quality_guidelines.html" %}
-{% endif %}
-<hr>
 {% if is_submitting %}
   <div class="btn-container-rsp btn-left">
     <button type="button" class="btn btn-danger btn-rsp" data-toggle="modal" data-target="#delete-project-modal" {% if under_submission %}disabled title="Cannot delete while under submission"{% endif %}>Delete Project</button>

@@ -6,24 +6,7 @@
 <h2 class="form-signin-heading">7. Project Proofread</h2>
 <hr>
 {% include "about/proofread.html" %}
-<p>In addition, ensure that the following quality assurance guidelines are met:</p>
 
-{# data guidelines #}
-{% if project.resource_type.id == 0 %}
-  {% include "about/data_quality_guidelines.html" %}
-{# software guidelines #}
-{% elif project.resource_type.id == 1 %}
-  {% include "about/software_quality_guidelines.html" %}
-{# challenge guidelines #}
-{% elif project.resource_type.id == 2 %}
-  {% include "about/challenge_quality_guidelines.html" %}
-{# model guidelines #}
-{% elif project.resource_type.id == 3 %}
-  {% include "about/model_quality_guidelines.html" %}
-{# other guidelines #}
-{% else %}
-  {% include "about/software_quality_guidelines.html" %}
-{% endif %}
 <hr>
 <div class="btn-container-rsp">
 	<a id="view_preview" class="btn btn-primary btn-rsp" href="{% url 'project_preview' project.slug %}" role="button">View Project Preview</a>
