@@ -536,4 +536,4 @@ SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
 
 
 # User model configurable settings
-ASSOCIATED_EMAILS_ALLOWED = config('ASSOCIATED_EMAILS_ALLOWED', cast=int, default=10)
+MAX_ASSOCIATED_EMAILS = config('MAX_ASSOCIATED_EMAILS', cast=int, default=10)

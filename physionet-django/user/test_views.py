@@ -327,7 +327,7 @@ class TestAuth(TestMixin):
 
     def test_email_limit(self):
         """
-        Test that the user cannot add more than allowed settings.ASSOCIATED_EMAILS_ALLOWED emails
+        Test that the user cannot add more than allowed settings.MAX_ASSOCIATED_EMAILS emails
         """
         # Test 0: login
         self.client.login(username='admin@mit.edu', password='Tester11!')
@@ -336,13 +336,13 @@ class TestAuth(TestMixin):
         total_associated_emails = AssociatedEmail.objects.filter(user=self.user).count()
 
         # Test 1: add emails until limit is reached
-        for i in range(total_associated_emails, settings.ASSOCIATED_EMAILS_ALLOWED):
+        for i in range(total_associated_emails, settings.MAX_ASSOCIATED_EMAILS):
             email_to_add = f'tester{i}@mit.edu'
             self.client.post(reverse('edit_emails'), data={'add_email': [''], 'email': email_to_add})
             self.assertIsNotNone(AssociatedEmail.objects.filter(email=email_to_add))
 
         # Test 2: add one more email
-        email_to_add = f'tester{settings.ASSOCIATED_EMAILS_ALLOWED}@mit.edu'
+        email_to_add = f'tester{settings.MAX_ASSOCIATED_EMAILS}@mit.edu'
         self.client.post(reverse('edit_emails'), data={'add_email': [''], 'email': email_to_add})
         self.assertFalse(AssociatedEmail.objects.filter(email=email_to_add))
 

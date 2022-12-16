@@ -330,11 +330,11 @@ def edit_emails(request):
             set_public_email(request, public_email_form)
 
         elif 'add_email' in request.POST:
-            if associated_emails.count() >= settings.ASSOCIATED_EMAILS_ALLOWED:
+            if associated_emails.count() >= settings.MAX_ASSOCIATED_EMAILS:
                 messages.error(
                     request,
-                    f'You cannot add more than {settings.ASSOCIATED_EMAILS_ALLOWED} email addresses.'
-                    f' If you need to more emails, please contact {settings.CONTACT_EMAIL}.'
+                    f'You cannot add more than {settings.MAX_ASSOCIATED_EMAILS} email addresses.'
+                    f' If you need to link more emails to your account, please contact {settings.CONTACT_EMAIL}.'
                 )
             else:
                 add_email_form = forms.AddEmailForm(request.POST)
