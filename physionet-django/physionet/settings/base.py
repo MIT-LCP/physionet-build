@@ -533,3 +533,7 @@ PLATFORM_WIDE_CITATION = {
 
 SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
                                      default='https://github.com/MIT-LCP/physionet-build')
+
+
+# User model configurable settings
+ASSOCIATED_EMAILS_ALLOWED = config('ASSOCIATED_EMAILS_ALLOWED', cast=int, default=10)
