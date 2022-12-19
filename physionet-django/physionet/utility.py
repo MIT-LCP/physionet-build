@@ -12,6 +12,9 @@ from django.http import HttpResponse, Http404, BadHeaderError
 from django.utils.html import format_html
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
+from pdfminer.pdfparser import PDFSyntaxError, PDFParser
+from pdfminer.pdfdocument import PDFDocument
+
 LOGGER = logging.getLogger(__name__)
 
 CONTENT_TYPE = {
@@ -329,3 +332,20 @@ def paginate(request, to_paginate, maximum):
     paginator = Paginator(to_paginate, maximum)
     paginated = paginator.get_page(page)
     return paginated
+
+def validate_pdf_file_type(pdf_file) -> bool:
+    """
+    Function to validate a pdf file.
+
+    Parameters
+    ----------
+    pdf_file : File to validate.(Io.BytesIO)
+
+    Returns True if the file is a pdf file.
+    """
+    parser = PDFParser(pdf_file)
+    try:
+        document = PDFDocument(parser)
+    except PDFSyntaxError:
+        return False
+    return document.is_extractable
