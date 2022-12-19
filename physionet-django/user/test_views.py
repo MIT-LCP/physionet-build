@@ -15,7 +15,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.core.management import call_command
-from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.files.uploadedfile import SimpleUploadedFile, UploadedFile
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -515,7 +515,9 @@ class TrainingTestCase(TestCase):
         }
 
     def setUp(self):
-        self.training_report = SimpleUploadedFile('training-report.pdf', b'training_report')
+        self.training_report_path = os.path.join(settings.BASE_DIR, 'user', 'fixtures', 'demo-pdf.pdf')
+        pdf = open(self.training_report_path, 'rb')
+        self.training_report = UploadedFile(pdf)
         self.training_payload_valid = {
             'training_type': self.training_type_1.pk,
             'completion_report': self.training_report,
