@@ -12,6 +12,7 @@ from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy
+from physionet.utility import validate_pdf_file_type
 from user.models import (
     AssociatedEmail,
     CloudInformation,
@@ -27,8 +28,8 @@ from user.models import (
 )
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
-from user.validators import UsernameValidator, validate_name
-from user.widgets import ProfilePhotoInput
+from user.validators import UsernameValidator, validate_name, validate_file_size
+from user.widgets import ProfilePhotoInput, DatePickerInput
 
 from django.db.models import OuterRef, Exists
 
@@ -477,9 +478,9 @@ class ResearchCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('research_summary',)
         help_texts = {
-            'research_summary': """Please provide a detailed description of how you plan to use the data,
-            including the name of any specific dataset(s) you intend to use. If you will be using the
-            data for a class, please also include the name and number of the course.""",
+            'research_summary': """Brief description of your research. If you
+                will be using the data for a class, please include course name
+                and number in your description.""",
         }
         widgets = {
            'research_summary': forms.Textarea(attrs={'rows': 2}),
@@ -732,7 +733,8 @@ class ActivationForm(forms.Form):
 
 
 class TrainingForm(forms.ModelForm):
-    completion_report = forms.FileField(widget=forms.HiddenInput(), disabled=True, required=False, label="Document")
+    completion_report = forms.FileField(widget=forms.HiddenInput(), disabled=True, required=False, label="Document",
+                                        validators=[validate_file_size])
     completion_report_url = forms.URLField(widget=forms.HiddenInput(), disabled=True, required=False, label="URL")
 
     class Meta:
@@ -779,6 +781,11 @@ class TrainingForm(forms.ModelForm):
 
         if data['training_type'] not in available_training_types:
             raise forms.ValidationError('You have already submitted a training of this type.')
+
+        # Check if the uploaded file is a PDF
+        if data['completion_report'] is not None:
+            if not validate_pdf_file_type(data['completion_report']):
+                raise forms.ValidationError('Invalid PDF file.')
 
         # Check for a recognized CITI verification link.
         # TODO: This is a hack and it should be replaced with something generalisable.

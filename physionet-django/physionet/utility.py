@@ -329,3 +329,19 @@ def paginate(request, to_paginate, maximum):
     paginator = Paginator(to_paginate, maximum)
     paginated = paginator.get_page(page)
     return paginated
+
+
+def validate_pdf_file_type(pdf_file) -> bool:
+    """
+    Function to validate a pdf file.
+
+    Parameters
+    ----------
+    pdf_file : File to validate. Django InMemoryUploadedFile.
+
+    Returns True if the file is a pdf file.
+    """
+    chunk = next(pdf_file.chunks())
+    if chunk.startswith(b'%PDF-'):
+        return True
+    return False
