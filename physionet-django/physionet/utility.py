@@ -333,6 +333,7 @@ def paginate(request, to_paginate, maximum):
     paginated = paginator.get_page(page)
     return paginated
 
+
 def validate_pdf_file_type(pdf_file) -> bool:
     """
     Function to validate a pdf file.
