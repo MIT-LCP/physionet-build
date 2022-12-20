@@ -535,4 +535,4 @@ SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
                                      default='https://github.com/MIT-LCP/physionet-build')
 
 # User model configurable settings
-MAX_ASSOCIATED_EMAILS = config('MAX_ASSOCIATED_EMAILS', cast=int, default=10)
+MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)
