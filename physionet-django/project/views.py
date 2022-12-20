@@ -21,10 +21,9 @@ from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
-from google.cloud.storage._signing import generate_signed_url_v4
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
-from physionet.storage import MediaStorage
+from physionet.storage import generate_signed_url_v4
 from physionet.utility import serve_file
 from project import forms, utility
 from project.fileviews import display_project_file
@@ -2317,16 +2316,12 @@ def generate_signed_url(request, project_slug):
     if size > project.get_storage_info().remaining:
         return JsonResponse({'detail': 'The file size cannot be greater than the remaining space.'}, status=400)
 
-    storage = MediaStorage()
-    canonical_resource = f'/{storage.bucket.name}/active-projects/{project_slug}/{filename.strip("/")}'
+    canonical_resource = f'active-projects/{project_slug}/{filename.strip("/")}'
 
     url = generate_signed_url_v4(
-        storage.client._credentials,
-        resource=canonical_resource,
-        api_access_endpoint='https://storage.googleapis.com',
+        blob_name=canonical_resource,
         expiration=dt.timedelta(days=1),
-        method='PUT',
-        headers={'X-Upload-Content-Length': str(size)},
+        size=size
     )
 
     data = f'filename: {filename};size: {size // (1024)}kB'
