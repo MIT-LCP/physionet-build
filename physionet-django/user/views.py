@@ -334,7 +334,6 @@ def edit_emails(request):
                 messages.error(
                     request,
                     f'You cannot add more than {settings.MAX_EMAILS_PER_USER} email addresses.'
-                    f' If you need to link more emails to your account, please contact {settings.CONTACT_EMAIL}.'
                 )
             else:
                 add_email_form = forms.AddEmailForm(request.POST)
