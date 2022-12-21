@@ -14,9 +14,9 @@ class StaticStorage(GoogleCloudStorage):
     location = ''
 
 
-def generate_signed_url_v4(blob_name, size, expiration=dt.timedelta(days=1)) -> str:
+def generate_signed_url(blob_name, size, expiration=dt.timedelta(days=1), version='v4') -> str:
     """
-    Generate a v4 signed URL to access project files on GCS
+    Generate a signed URL to access project files on GCS
 
     Parameters:
         blob_name (str): The name/path of the blob to be uploaded.
@@ -34,6 +34,7 @@ def generate_signed_url_v4(blob_name, size, expiration=dt.timedelta(days=1)) -> 
         api_access_endpoint='https://storage.googleapis.com',
         expiration=expiration,
         method='PUT',
-        headers={'X-Upload-Content-Length': str(size)}
+        headers={'X-Upload-Content-Length': str(size)},
+        version=version
     )
     return url
