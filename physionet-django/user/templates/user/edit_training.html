@@ -55,7 +55,7 @@
     be sure to <strong>upload the training report</strong>, not the certificate. Please ensure that you complete the "Data or
     Specimens Only Research" course (<strong>with HIPAA module</strong>).
   {% if ticket_system_url %}To raise a support request, please <a href="{{ ticket_system_url }}">click here</a>.
-  {% endif %}</p
+  {% endif %}</p>
 
   <form action="{% url "edit_training" %}" method="post" enctype="multipart/form-data" id="training">
       {% include "descriptive_inline_form_snippet.html" with form=training_form %}
