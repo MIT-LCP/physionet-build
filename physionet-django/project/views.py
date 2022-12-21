@@ -56,7 +56,7 @@ from project.validators import validate_filename
 from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
 
-from .serializers import PublishedProjectSerializer, PublishedProjectDetailSerializer
+from project.serializers import PublishedProjectSerializer, PublishedProjectDetailSerializer
 from rest_framework import generics
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import mixins
@@ -2334,10 +2334,7 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
 
     authentication_classes = [SessionAuthentication, BasicAuthentication]
 
-    def get_object(self, slug, version):
-        return get_object_or_404(PublishedProject, slug=slug, version=version)
-
     def get(self, request, slug, version, *args, **kwargs):
-        project = self.get_object(slug, version)
+        project = self.get_object_or_404(PublishedProject, slug=slug, version=version)
         serializer = PublishedProjectDetailSerializer(project)
         return Response(serializer.data)
