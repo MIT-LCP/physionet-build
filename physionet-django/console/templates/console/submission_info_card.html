@@ -44,6 +44,13 @@
           {% if project.latest_reminder %}
             <br>Latest reminder email sent on: {{ project.latest_reminder }}
           {% endif %}
+          {% if project.license.access_policy == AccessPolicy.OPEN %}
+            <br> Embargo: cannot be set on an open access project
+          {% elif project.embargo_files_days%}
+            <br> Embargo: set for {{ project.embargo_files_days }} day{{ project.embargo_files_days|pluralize }} after publication
+          {% else %}
+            <br>Embargo: none
+          {% endif %}
         </p>
         <p class="card-text">
           Description: {{ project.short_description }}
@@ -148,7 +155,7 @@
       <div class="tab-pane fade" id="embargo" role="tabpanel" aria-labelledby="embargo-tab">
         {% if not project.license.access_policy == AccessPolicy.OPEN %}
           {% if project.embargo_files_days %}
-            <p>The embargo, as set currently, will hide the files in this project version for <b>{{ project.embargo_files_days }} days</b> after publication.</p>
+            <p>The embargo, as set currently, will hide the files in this project version for <b>{{ project.embargo_files_days }} day{{ project.embargo_files_days|pluralize }}</b> after publication.</p>
             <button class="btn btn-primary btn-rsp" type="button" data-toggle="modal" data-target="#embargo_modal">Update embargo</button>
           {% else %}
             <p>Embargo the files in this project version. </p>
@@ -163,11 +170,11 @@
                   <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLongTitle">Embargo files</h5>
                   </div>
-                  <form action="{% url 'submission_info' project.slug %}" method="POST" id="embargo_files_days_form">
+                  <form action="{% url 'submission_info' project.slug %}" method="POST" id="embargo_form">
                     <div class="modal-body">
                       <p>Enter the number of days to embargo the files from the publication date in "{{ project }}". Click to confirm that you want to embargo the files.</p>
                         {% csrf_token %}
-                        {% include "form_snippet_no_labels.html" with form=embargo_files_days_form %}
+                        {% include "form_snippet_no_labels.html" with form=embargo_form %}
                     </div>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -178,9 +185,7 @@
               </div>
             </div>
         {% else %}
-            <div class="alert alert-danger col-md-8" role="alert">
               The files for an open access project cannot be placed under embargo.
-            </div>
         {% endif %}
       </div>
       {% endif %}

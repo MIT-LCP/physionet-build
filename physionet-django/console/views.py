@@ -259,7 +259,7 @@ def submission_info(request, project_slug):
 
     data = request.POST or None
     reassign_editor_form = forms.ReassignEditorForm(user, data=data)
-    embargo_files_days_form = forms.EmbargoFilesDaysForm()
+    embargo_form = forms.EmbargoFilesDaysForm()
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
 
@@ -276,16 +276,17 @@ def submission_info(request, project_slug):
                     "{1} to {2}".format(project, user,
                                         reassign_editor_form.cleaned_data['editor']))
     elif 'embargo_files' in request.POST:
-        embargo_files_days_form = forms.EmbargoFilesDaysForm(data=request.POST)
+        embargo_form = forms.EmbargoFilesDaysForm(data=request.POST)
         if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
             raise ServiceUnavailable()
-        elif embargo_files_days_form.is_valid():
-            embargo_days_from_form = embargo_files_days_form.cleaned_data['embargo_files_days']
-            if embargo_days_from_form == 0:
+        elif embargo_form.is_valid():
+            days = embargo_form.cleaned_data['embargo_files_days']
+            if days == 0:
                 project.embargo_files_days = None
             else:
-                project.embargo_files_days = embargo_days_from_form
+                project.embargo_files_days = days
             project.save()
+            messages.success(request, f"An embargo was set for {project.embargo_files_days} day(s)")
 
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
@@ -297,7 +298,7 @@ def submission_info(request, project_slug):
                    'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
                    'reassign_editor_form': reassign_editor_form,
-                   'embargo_files_days_form': embargo_files_days_form,
+                   'embargo_form': embargo_form,
                    'project_info_nav': True})
 
 
@@ -314,7 +315,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     reassign_editor_form = forms.ReassignEditorForm(request.user)
-    embargo_files_days_form = forms.EmbargoFilesDaysForm()
+    embargo_form = forms.EmbargoFilesDaysForm()
 
     # The user must be the editor
     if project.submission_status not in [20, 30]:
@@ -353,7 +354,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
                    'latest_version': latest_version, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
                    'editor_home': True, 'reassign_editor_form': reassign_editor_form,
-                   'embargo_files_days_form': embargo_files_days_form})
+                   'embargo_form': embargo_form})
 
 
 @handling_editor
@@ -367,7 +368,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
     reassign_editor_form = forms.ReassignEditorForm(request.user)
-    embargo_files_days_form = forms.EmbargoFilesDaysForm()
+    embargo_form = forms.EmbargoFilesDaysForm()
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -530,7 +531,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             'url_prefix': url_prefix,
             'bulk_url_prefix': bulk_url_prefix,
             'reassign_editor_form': reassign_editor_form,
-            'embargo_files_days_form': embargo_files_days_form,
+            'embargo_form': embargo_form,
         },
     )
     if description_form_saved:
@@ -555,7 +556,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
     reassign_editor_form = forms.ReassignEditorForm(request.user)
-    embargo_files_days_form = forms.EmbargoFilesDaysForm()
+    embargo_form = forms.EmbargoFilesDaysForm()
 
     if request.method == 'POST':
         if 'reopen_copyedit' in request.POST:
@@ -582,7 +583,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
                    'bulk_url_prefix': bulk_url_prefix,
                    'yesterday': yesterday, 'editor_home': True,
                    'reassign_editor_form': reassign_editor_form,
-                   'embargo_files_days_form': embargo_files_days_form})
+                   'embargo_form': embargo_form})
 
 
 @handling_editor
@@ -616,7 +617,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
         raise ServiceUnavailable()
 
     reassign_editor_form = forms.ReassignEditorForm(request.user)
-    embargo_files_days_form = forms.EmbargoFilesDaysForm()
+    embargo_form = forms.EmbargoFilesDaysForm()
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
@@ -664,7 +665,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
                    'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
                    'reassign_editor_form': reassign_editor_form, 'editor_home': True,
-                   'embargo_files_days_form': embargo_files_days_form})
+                   'embargo_form': embargo_form})
 
 
 @permission_required('project.change_storagerequest', raise_exception=True)
