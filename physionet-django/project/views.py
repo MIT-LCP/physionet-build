@@ -1926,6 +1926,7 @@ def sign_dua(request, project_slug, version):
 
     if (
         project.deprecated_files
+        or project.embargo_active()
         or project.access_policy not in {AccessPolicy.RESTRICTED, AccessPolicy.CREDENTIALED}
         or project.has_access(user)
     ):
