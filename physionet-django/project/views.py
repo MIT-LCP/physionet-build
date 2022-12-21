@@ -2349,6 +2349,6 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
     authentication_classes = [SessionAuthentication, BasicAuthentication]
 
     def get(self, request, slug, version, *args, **kwargs):
-        project = self.get_object_or_404(PublishedProject, slug=slug, version=version)
+        project = get_object_or_404(PublishedProject, slug=slug, version=version)
         serializer = PublishedProjectDetailSerializer(project)
         return Response(serializer.data)
