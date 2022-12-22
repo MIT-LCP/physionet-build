@@ -91,15 +91,20 @@
 
 <hr>
 <h4>Add Email</h4>
-<p>Add a new email address.</p>
-<form action="{% url 'edit_emails' %}" method="post" class="form-signin row no-pd" name="add_email">
-  {% csrf_token %}
-  <div class='col-md-9'>
-    {% include "form_snippet_no_labels.html" with form=add_email_form %}
-  </div>
-  <div class="btn-container-rsp mg-left">
-    <button class="btn btn-primary btn-rsp" name="add_email" type="submit">Add Email</button>
-  </div>
+    {% if total_associated_emails < max_associated_emails_allowed %}
+        <p>Add a new email address. <br> <small>Maximum Emails  allowed: {{total_associated_emails}}/{{max_associated_emails_allowed}}</small></p>
+        <form action="{% url 'edit_emails' %}" method="post" class="form-signin row no-pd" name="add_email">
+          {% csrf_token %}
+
+          <div class='col-md-9'>
+            {% include "form_snippet_no_labels.html" with form=add_email_form %}
+          </div>
+          <div class="btn-container-rsp mg-left">
+            <button class="btn btn-primary btn-rsp" name="add_email" type="submit">Add Email</button>
+          </div>
+    {% else %}
+        <p class="text-warning"> You have reached the maximum number of emails allowed. Please remove one or more of existing emails to continue.</p>
+    {% endif %}
 </form>
 
 {% endblock %}
