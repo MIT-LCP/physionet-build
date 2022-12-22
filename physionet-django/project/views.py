@@ -2303,11 +2303,10 @@ def generate_signed_url(request, project_slug):
     if size <= 0:
         return JsonResponse({'detail': 'The file size cannot be a negative value.'}, status=400)
 
-    if not filename.isascii():
-        return JsonResponse({'detail': 'The filename contains non-ascii characters.'}, status=400)
-
-    if ' ' in filename:
-        return JsonResponse({'detail': 'The filename contains whitespaces.'}, status=400)
+    try:
+        validate_filename(filename)
+    except ValidationError as e:
+        return JsonResponse({'detail': e.messages}, status=400)
 
     queryset = ActiveProject.objects.all()
     project = get_object_or_404(queryset, slug=project_slug)
