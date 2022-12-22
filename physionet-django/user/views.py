@@ -338,7 +338,7 @@ def edit_emails(request):
             if associated_emails.count() >= settings.MAX_EMAILS_PER_USER:
                 messages.error(
                     request,
-                    f'You have reached the maximum number of email addresses allowed.'
+                    'You have reached the maximum number of email addresses allowed.'
                 )
             else:
                 add_email_form = forms.AddEmailForm(request.POST)
@@ -347,12 +347,12 @@ def edit_emails(request):
                 # Update the associated_emails count after adding a new email
                 total_associated_emails = AssociatedEmail.objects.filter(user=user).count()
 
-    context = {'associated_emails':associated_emails,
-        'primary_email_form':primary_email_form,
-        'add_email_form':add_email_form,
-        'public_email_form':public_email_form,
-        'total_associated_emails':total_associated_emails,
-        'max_associated_emails_allowed':max_associated_emails_allowed}
+    context = {'associated_emails': associated_emails,
+               'primary_email_form': primary_email_form,
+               'add_email_form': add_email_form,
+               'public_email_form': public_email_form,
+               'total_associated_emails': total_associated_emails,
+               'max_associated_emails_allowed': max_associated_emails_allowed}
 
     context['messages'] = messages.get_messages(request)
 
