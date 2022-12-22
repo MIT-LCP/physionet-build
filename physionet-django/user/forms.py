@@ -734,7 +734,7 @@ class ActivationForm(forms.Form):
 
 class TrainingForm(forms.ModelForm):
     completion_report = forms.FileField(widget=forms.HiddenInput(), disabled=True, required=False, label="Document",
-                                        validators = [validate_file_size])
+                                        validators=[validate_file_size])
     completion_report_url = forms.URLField(widget=forms.HiddenInput(), disabled=True, required=False, label="URL")
 
     class Meta:
