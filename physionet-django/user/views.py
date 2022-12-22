@@ -717,16 +717,10 @@ def edit_training(request):
             user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type')
         )
         if training_form.is_valid():
-            if not utility.validate_pdf_file_type(request.FILES.get('completion_report').file):
-                messages.error(request, 'Invalid PDF file. Please make sure the file is valid and is readable.')
-            else:
-                training_form.save()
-                messages.success(request, 'The training has been submitted successfully.')
-                training_application_request(request, training_form)
-                training_form = forms.TrainingForm(user=request.user)
-        else:
-            messages.error(request, 'Invalid submission. Check the errors below.')
-
+            training_form.save()
+            messages.success(request, 'The training has been submitted successfully.')
+            training_application_request(request, training_form)
+            training_form = forms.TrainingForm(user=request.user)
     else:
         training_type = request.GET.get('trainingType')
         if training_type:

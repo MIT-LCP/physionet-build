@@ -533,3 +533,4 @@ PLATFORM_WIDE_CITATION = {
 
 SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
                                      default='https://github.com/MIT-LCP/physionet-build')
+MAX_TRAINING_REPORT_UPLOAD_SIZE_MB = config('MAX_TRAINING_REPORT_UPLOAD_SIZE_MB', cast=int, default=1)

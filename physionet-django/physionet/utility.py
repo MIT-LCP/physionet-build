@@ -12,9 +12,6 @@ from django.http import HttpResponse, Http404, BadHeaderError
 from django.utils.html import format_html
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from pdfminer.pdfparser import PDFSyntaxError, PDFParser
-from pdfminer.pdfdocument import PDFDocument
-
 LOGGER = logging.getLogger(__name__)
 
 CONTENT_TYPE = {
@@ -340,13 +337,11 @@ def validate_pdf_file_type(pdf_file) -> bool:
 
     Parameters
     ----------
-    pdf_file : File to validate.(Io.BytesIO)
+    pdf_file : File to validate. Django InMemoryUploadedFile.
 
     Returns True if the file is a pdf file.
     """
-    parser = PDFParser(pdf_file)
-    try:
-        document = PDFDocument(parser)
-    except PDFSyntaxError:
-        return False
-    return document.is_extractable
+    chunk = next(pdf_file.chunks())
+    if chunk.startswith(b'%PDF-'):
+        return True
+    return False

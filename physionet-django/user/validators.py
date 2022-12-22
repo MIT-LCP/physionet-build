@@ -1,5 +1,6 @@
 import re
 
+from django.conf import settings
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
@@ -255,3 +256,11 @@ def validate_domain_list(value):
     """
     if not re.fullmatch(r'(\w+\.\w+,*\s*)*', value):
         raise ValidationError('Must be separated with commas.')
+
+
+def validate_file_size(value):
+    """
+    Validate the file size of a file.
+    """
+    if value.size > settings.MAX_TRAINING_REPORT_UPLOAD_SIZE_MB * 1024 * 1024:
+        raise ValidationError('The maximum file size that can be uploaded is 5MB.')
