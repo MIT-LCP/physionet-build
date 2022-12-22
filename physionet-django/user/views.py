@@ -333,7 +333,7 @@ def edit_emails(request):
             if associated_emails.count() >= settings.MAX_EMAILS_PER_USER:
                 messages.error(
                     request,
-                    f'You cannot add more than {settings.MAX_EMAILS_PER_USER} email addresses.'
+                    f'You have reached the maximum number of email addresses allowed.'
                 )
             else:
                 add_email_form = forms.AddEmailForm(request.POST)
