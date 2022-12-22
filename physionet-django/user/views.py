@@ -727,6 +727,8 @@ def edit_training(request):
             messages.success(request, 'The training has been submitted successfully.')
             training_application_request(request, training_form)
             training_form = forms.TrainingForm(user=request.user)
+        else:
+            messages.error(request, 'Invalid submission. Check the errors below.')
     else:
         training_type = request.GET.get('trainingType')
         if training_type:
