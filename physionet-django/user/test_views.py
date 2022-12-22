@@ -325,6 +325,27 @@ class TestAuth(TestMixin):
         request = self.client.get(reverse('verify_email', args=(uidb64, token)))
         self.assertTrue(AssociatedEmail.objects.get(email='tester0@mit.edu').is_verified)
 
+    def test_email_limit(self):
+        """
+        Test that the user cannot add more than allowed settings.MAX_EMAILS_PER_USER emails
+        """
+        # Test 0: login
+        self.client.login(username='admin@mit.edu', password='Tester11!')
+        self.assertEqual(int(self.client.session['_auth_user_id']), self.user.pk)
+
+        total_associated_emails = AssociatedEmail.objects.filter(user=self.user).count()
+
+        # Test 1: add emails until limit is reached
+        for i in range(total_associated_emails, settings.MAX_EMAILS_PER_USER):
+            email_to_add = f'tester{i}@mit.edu'
+            self.client.post(reverse('edit_emails'), data={'add_email': [''], 'email': email_to_add})
+            self.assertIsNotNone(AssociatedEmail.objects.filter(email=email_to_add))
+
+        # Test 2: add one more email
+        email_to_add = f'tester{settings.MAX_EMAILS_PER_USER}@mit.edu'
+        self.client.post(reverse('edit_emails'), data={'add_email': [''], 'email': email_to_add})
+        self.assertFalse(AssociatedEmail.objects.filter(email=email_to_add))
+
     def test_purgeaccounts(self):
         # Test 0: login
         self.client.login(username='admin@mit.edu', password='Tester11!')

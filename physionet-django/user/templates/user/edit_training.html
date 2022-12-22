@@ -50,8 +50,10 @@
     {% endif %}
   {% endfor %}
 
-  <p>Please use the form below to submit a new completion report. 
-    For CITI training, please refer to our <a href="{% url "citi_course" %}" target="_blank">step-by-step instructions</a>. 
+  <p>Please use the form below to submit a new completion report.</p>
+  <p>For CITI training, please refer to our <a href="{% url "citi_course" %}" target="_blank">step-by-step instructions</a> and
+    be sure to <strong>upload the training report</strong>, not the certificate. Please ensure that you complete the "Data or
+    Specimens Only Research" course (<strong>with HIPAA module</strong>).
   {% if ticket_system_url %}To raise a support request, please <a href="{{ ticket_system_url }}">click here</a>.
   {% endif %}</p>
 

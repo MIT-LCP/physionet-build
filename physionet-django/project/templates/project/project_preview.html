@@ -221,6 +221,11 @@
     <!-- /.sidebar -->
   </div>
   <h2>Files</h2>
+  {% if project.embargo_files_days %}
+    <div class="alert alert-warning col-md-8" role="alert">
+      The files in this project version are under embargo until {{ project.embargo_files_days }} day{{ project.embargo_files_days|pluralize }} after publication. The files shown below will be hidden in the published project as part of this embargo.
+    </div>
+  {% endif %}
   {% if is_lightwave_supported %}
     {% if project.has_wfdb %}
       <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
