@@ -325,7 +325,11 @@
   {% if project.allow_file_downloads %}
   {% if project.deprecated_files %}
     <div class="alert alert-danger col-md-8" role="alert">
-      The files for this project are no longer available.
+      {% if project.is_latest_version %}
+          The files for this project are no longer available.
+      {% else %}
+          The files for this version of the project ({{ project.version }}) are no longer available. The latest version of this project is <a href="{% url 'published_project' latest_version.slug latest_version.version %}" target="_blank">{{ latest_version.version }}</a>
+      {% endif %}
     </div>
   {% elif project.embargo_active %}
     <div class="alert alert-danger col-md-8" role="alert">
