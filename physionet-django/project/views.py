@@ -1803,6 +1803,7 @@ def published_project(request, project_slug, version, subdir=''):
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
     user = request.user
+    _, _, _, _, _, latest_version = project.info_card()
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
@@ -1852,6 +1853,7 @@ def published_project(request, project_slug, version, subdir=''):
         'has_required_training': has_required_training,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
+        'latest_version': latest_version,
         'citations': citations,
         'news': news,
         'all_project_versions': all_project_versions,
