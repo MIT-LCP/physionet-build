@@ -309,6 +309,8 @@ def edit_emails(request):
 
     associated_emails = AssociatedEmail.objects.filter(
         user=user).order_by('-is_verified', '-is_primary_email')
+    total_associated_emails = associated_emails.count()
+    max_associated_emails_allowed = settings.MAX_EMAILS_PER_USER
     primary_email_form = forms.AssociatedEmailChoiceForm(user=user,
                                                    selection_type='primary')
     public_email_form = forms.AssociatedEmailChoiceForm(user=user,
@@ -320,6 +322,9 @@ def edit_emails(request):
             # No form. Just get button value.
             email_id = int(request.POST['remove_email'])
             remove_email(request, email_id)
+
+            # Update the associated_emails count after removing an email
+            total_associated_emails = AssociatedEmail.objects.filter(user=user).count()
         elif 'set_primary_email' in request.POST:
             primary_email_form = forms.AssociatedEmailChoiceForm(user=user,
                 selection_type='primary', data=request.POST)
@@ -333,16 +338,21 @@ def edit_emails(request):
             if associated_emails.count() >= settings.MAX_EMAILS_PER_USER:
                 messages.error(
                     request,
-                    f'You cannot add more than {settings.MAX_EMAILS_PER_USER} email addresses.'
+                    'You have reached the maximum number of email addresses allowed.'
                 )
             else:
                 add_email_form = forms.AddEmailForm(request.POST)
                 add_email(request, add_email_form)
 
-    context = {'associated_emails':associated_emails,
-        'primary_email_form':primary_email_form,
-        'add_email_form':add_email_form,
-        'public_email_form':public_email_form}
+                # Update the associated_emails count after adding a new email
+                total_associated_emails = AssociatedEmail.objects.filter(user=user).count()
+
+    context = {'associated_emails': associated_emails,
+               'primary_email_form': primary_email_form,
+               'add_email_form': add_email_form,
+               'public_email_form': public_email_form,
+               'total_associated_emails': total_associated_emails,
+               'max_associated_emails_allowed': max_associated_emails_allowed}
 
     context['messages'] = messages.get_messages(request)
 
