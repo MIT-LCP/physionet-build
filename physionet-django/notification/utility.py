@@ -291,8 +291,11 @@ def edit_decision_notify(request, project, edit_log, reminder=False):
     # Prepend reminder to the subject if needed
     if reminder:
         subject = "Reminder - {}".format(subject)
+        author_list = [project.author_contact_info(only_submitting=True)]
+    else:
+        author_list = project.author_contact_info()
 
-    for email, name in project.author_contact_info():
+    for email, name in author_list:
         body = loader.render_to_string(template, {
             'name': name,
             'project': project,
