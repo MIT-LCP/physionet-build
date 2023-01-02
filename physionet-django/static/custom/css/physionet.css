@@ -593,3 +593,5 @@ a, code{
   border-radius: 0.25rem;
   border: 1px solid rgba(0, 0, 0, 0.15);
 }
+
+.list-group-item, .list-group-item:hover{ z-index: auto; }
