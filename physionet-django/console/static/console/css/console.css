@@ -1,5 +1,9 @@
 /* Based on sb-admin.css from start-bootstrap */
 
+.application-ok {
+  background: orange;
+}
+
 h1 {
   margin-top: 10px;
   font-size: 36px;
