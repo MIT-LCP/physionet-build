@@ -1188,7 +1188,7 @@ class TestGenerateSignedUrl(TestMixin):
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
-    @mock.patch('project.views.generate_signed_url')
+    @mock.patch('project.views.generate_signed_url_helper')
     def test_valid_size_and_filename(self, signed_url_mock):
         signed_url_mock.return_value = 'https://example.com'
 
@@ -1199,7 +1199,7 @@ class TestGenerateSignedUrl(TestMixin):
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(json.loads(response.content).get('url'), 'https://example.com')
 
-    @mock.patch('project.views.generate_signed_url')
+    @mock.patch('project.views.generate_signed_url_helper')
     def test_unauthorized_access(self, signed_url_mock):
         signed_url_mock.return_value = 'https://example.com'
 
