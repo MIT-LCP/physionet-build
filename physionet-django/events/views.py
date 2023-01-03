@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 
 import notification.utility as notification
-from user.forms import AddEventForm
+from events.forms import AddEventForm
 from user.models import Event
 
 
