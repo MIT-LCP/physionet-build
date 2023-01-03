@@ -35,7 +35,7 @@ def event_home(request):
         else:
             form_error = True
 
-    return render(request, 'event_home.html',
+    return render(request, 'events/event_home.html',
                   {'events_active': events_active,
                    'events_past': events_past,
                    'event_form': event_form,
@@ -78,4 +78,4 @@ def event_add_participant(request, event_slug):
             messages.success(request, "You have been enrolled")
             return redirect(event_home)
 
-    return render(request, 'event_participant.html', {'event': event})
+    return render(request, 'events/event_participant.html', {'event': event})
