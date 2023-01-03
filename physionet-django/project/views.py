@@ -23,7 +23,7 @@ from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
-from physionet.storage import generate_signed_url
+from physionet.storage import generate_signed_url_helper
 from physionet.utility import serve_file
 from project import forms, utility
 from project.fileviews import display_project_file
@@ -2320,7 +2320,7 @@ def generate_signed_url(request, project_slug):
 
     canonical_resource = f'active-projects/{project_slug}/{filename.strip("/")}'
 
-    url = generate_signed_url(
+    url = generate_signed_url_helper(
         version='v4',
         blob_name=canonical_resource,
         expiration=dt.timedelta(days=1),
