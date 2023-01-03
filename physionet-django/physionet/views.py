@@ -17,8 +17,6 @@ from project.projectfiles import ProjectFiles
 from physionet.models import FrontPageButton, Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
-from user.forms import AddEventForm
-from user.models import Event
 
 
 def home(request):
