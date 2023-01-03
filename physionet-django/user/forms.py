@@ -787,7 +787,6 @@ class TrainingForm(forms.ModelForm):
             if not validate_pdf_file_type(data['completion_report']):
                 raise forms.ValidationError('Invalid PDF file.')
 
-
         # Check for a recognized CITI verification link.
         # TODO: This is a hack and it should be replaced with something generalisable.
         if data['training_type'].name == 'CITI Data or Specimens Only Research':
