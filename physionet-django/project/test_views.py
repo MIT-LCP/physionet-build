@@ -1188,30 +1188,24 @@ class TestGenerateSignedUrl(TestMixin):
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
-    @mock.patch('project.views.generate_signed_url_v4')
-    @mock.patch('project.views.MediaStorage')
-    def test_valid_size_and_filename(self, media_mock, signed_url_mock):
-        media_mock.return_value.bucket.name = "media-bucket"
+    @mock.patch('project.views.generate_signed_url')
+    def test_valid_size_and_filename(self, signed_url_mock):
         signed_url_mock.return_value = 'https://example.com'
 
         self.client.login(**self.user_credentials)
         response = self.client.post(self.url, self.valid_data, format='json')
 
-        media_mock.assert_called_once()
         signed_url_mock.assert_called_once()
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(json.loads(response.content).get('url'), 'https://example.com')
 
-    @mock.patch('project.views.generate_signed_url_v4')
-    @mock.patch('project.views.MediaStorage')
-    def test_unauthorized_access(self, media_mock, signed_url_mock):
-        media_mock.return_value.bucket.name = "media-bucket"
+    @mock.patch('project.views.generate_signed_url')
+    def test_unauthorized_access(self, signed_url_mock):
         signed_url_mock.return_value = 'https://example.com'
 
         self.client.login(**self.unauthorized_user_credentials)
         response = self.client.post(self.url, self.valid_data, format='json')
 
-        media_mock.assert_not_called()
         signed_url_mock.assert_not_called()
         self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
