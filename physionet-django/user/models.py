@@ -793,7 +793,7 @@ class CredentialApplication(models.Model):
 
     class Meta:
         default_permissions = ('change',)
-    
+
     def get_traffic_status(self):
         return 'orange'
 
