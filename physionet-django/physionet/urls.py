@@ -26,8 +26,7 @@ urlpatterns = [
     # project app
     path('projects/', include('project.urls')),
     # events
-    path('events/', views.event_home, name='event_home'),
-    path('events/<slug:event_slug>/', views.event_add_participant, name='event_add_participant'),
+    path('events/', include('events.urls')),
     # notification app
     path('', include('notification.urls')),
     # search app

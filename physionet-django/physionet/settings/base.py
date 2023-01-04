@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'lightwave',
     'physionet',
     'django_sass',
+    'events',
 ]
 
 if ENABLE_SSO:
