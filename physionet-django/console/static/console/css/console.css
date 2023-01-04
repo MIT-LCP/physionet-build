@@ -1,7 +1,25 @@
 /* Based on sb-admin.css from start-bootstrap */
 
-.application-ok {
-  background: orange;
+.traffic-circle {
+  border: rgb(99, 99, 99) solid 1px;
+  width: 19px;
+  height: 19px;
+  border-radius: 10px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto
+}
+
+.traffic-red {
+  background: rgb(204, 50, 50);
+}
+
+.traffic-orange {
+  background: rgb(231,180,22);
+}
+
+.traffic-green {
+  background: rgb(45, 201, 55);
 }
 
 h1 {
