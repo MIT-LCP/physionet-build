@@ -793,6 +793,7 @@ class CredentialApplication(models.Model):
 
     class Meta:
         default_permissions = ('change',)
+    
     def get_trafficlight_status(self):
         return 'application-ok'
 
