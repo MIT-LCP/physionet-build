@@ -794,8 +794,8 @@ class CredentialApplication(models.Model):
     class Meta:
         default_permissions = ('change',)
     
-    def get_trafficlight_status(self):
-        return 'application-ok'
+    def get_traffic_status(self):
+        return 'orange'
 
     def file_root(self):
         """Location for storing files associated with the application"""
