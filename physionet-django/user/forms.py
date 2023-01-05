@@ -28,8 +28,6 @@ from user.models import (
 )
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
-from user.validators import UsernameValidator, validate_name
-from user.widgets import ProfilePhotoInput
 from user.validators import UsernameValidator, validate_name, validate_file_size
 from user.widgets import ProfilePhotoInput
 
