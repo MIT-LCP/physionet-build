@@ -534,7 +534,7 @@ PLATFORM_WIDE_CITATION = {
 
 SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
                                      default='https://github.com/MIT-LCP/physionet-build')
-MAX_TRAINING_REPORT_UPLOAD_SIZE = config('MAX_TRAINING_REPORT_UPLOAD_SIZE', cast=int, default=1)
+MAX_TRAINING_REPORT_UPLOAD_SIZE = config('MAX_TRAINING_REPORT_UPLOAD_SIZE', cast=int, default=1048576)
 
 # User model configurable settings
 MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)
