@@ -15,7 +15,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
 from django.core.management import call_command
-from django.core.files.uploadedfile import SimpleUploadedFile, UploadedFile
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
