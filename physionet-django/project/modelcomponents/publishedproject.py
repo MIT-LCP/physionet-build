@@ -203,6 +203,22 @@ class PublishedProject(Metadata, SubmissionInfo):
         return reverse('display_published_project_file',
             args=(self.slug, self.version, os.path.join(subdir, file)))
 
+    def _has_valid_training(self, user):
+        """
+        If short term training is activated on it, then completion of
+        the short term OR other trainings grants access.
+        """
+        others = Training.objects.get_valid().filter(
+            user=user, training_type__in=self.required_trainings.filter(
+                short_term_training=False)).count() == self.required_trainings.filter(
+            short_term_training=False).count()
+        if self.allow_short_term_training:
+            return Training.objects.get_valid().filter(
+                user=user, training_type__in=self.required_trainings.filter(
+                    short_term_training=True)).count() == self.required_trainings.filter(
+                        short_term_training=True).count() or others
+        return others
+
     def has_access(self, user):
         """
         Whether the user has access to this project's files
@@ -222,10 +238,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                 user.is_authenticated
                 and user.is_credentialed
                 and DUASignature.objects.filter(project=self, user=user).exists()
-                and Training.objects.get_valid()
-                .filter(training_type__in=self.required_trainings.all(), user=user)
-                .count()
-                == self.required_trainings.count()
+                and self._has_valid_training(user)
             )
         elif self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
             return (
@@ -236,10 +249,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                     requester=user,
                     status=DataAccessRequest.ACCEPT_REQUEST_VALUE
                 ).exists()
-                and Training.objects.get_valid()
-                .filter(training_type__in=self.required_trainings.all(), user=user)
-                .count()
-                == self.required_trainings.count()
+                and self._has_valid_training(user)
             )
 
         return False

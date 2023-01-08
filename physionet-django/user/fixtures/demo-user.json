@@ -45,7 +45,10 @@
     "is_active": true,
     "is_admin": false,
     "is_credentialed": false,
-    "credential_datetime": null
+    "credential_datetime": null,
+    "groups": [
+      5
+    ]
   }
 },
 {
@@ -14215,6 +14218,11 @@
         "can_view_admin_console",
         "user",
         "user"
+      ],
+      [
+        "can_review_training",
+        "user",
+        "trainingtype"
       ]
     ]
   }
@@ -14299,6 +14307,24 @@
         "change_activeproject",
         "project",
         "activeproject"
+      ],
+      [
+        "can_view_admin_console",
+        "user",
+        "user"
+      ]
+    ]
+  }
+},
+{
+  "model": "auth.group",
+  "fields": {
+    "name": "Training Reviewer",
+    "permissions": [
+      [
+        "can_review_training",
+        "user",
+        "trainingtype"
       ],
       [
         "can_view_admin_console",

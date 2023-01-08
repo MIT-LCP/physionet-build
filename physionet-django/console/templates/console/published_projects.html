@@ -25,6 +25,7 @@
             <th>Editor</th>
             <th>Created</th>
             <th>Published</th>
+            <th>Short Term Training</th>
             <th>Manage</th>
           </tr>
         </thead>
@@ -38,7 +39,20 @@
             <td>{{ project.editor }}</td>
             <td>{{ project.creation_datetime|date }}</td>
             <td>{{ project.publish_datetime|date }}</td>
-            <td><a href="{% url 'manage_published_project' project.slug project.version %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
+            <td>
+              <form method="post" action="{% url 'published_projects' %}" onsubmit="return confirm ('Are you sure? ')">
+                {% csrf_token %}
+                <input type="hidden" name="project_id" value={{project.id}}>
+                {% if project.allow_short_term_training %}
+                  <button type="submit" class="btn btn-sm btn-warning" role="button">Disallow</button>
+                {% else %}
+                  <button type="submit" class="btn btn-sm btn-danger" role="button">Allow</button>
+                {% endif %}
+              </form>
+            </td>
+            <td>
+              <a href="{% url 'manage_published_project' project.slug project.version %}" class="btn btn-sm btn-primary" role="button">Manage</a>
+            </td>
           </tr>
         {% endfor %}
         </tbody>

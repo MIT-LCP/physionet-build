@@ -40,6 +40,11 @@
               Rejected <span class="badge badge-pill badge-info">{{ rejected_count }}</span>
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link {% if status == 'short-term-training' %}active{% endif %}" id="short-term-training-tab" href="{% url 'training_list' 'short-term-training' %}" role="tab">
+              Short Term Training <span class="badge badge-pill badge-info">{{ short_term_training_count }}</span>
+            </a>
+          </li>
         </ul>
       </div>
     <div class="card-body">
@@ -54,6 +59,8 @@
             {% include 'console/expired_training_table.html' %}
           {% elif status == 'rejected' %}
             {% include 'console/rejected_training_table.html' %}
+          {% elif status == 'short-term-training' %}
+            {% include 'console/review_training_table.html' %}
           {% endif %}
         {% else %}
           <p><i class="fas fa-check" style="color:green"></i> No training to show.</p>

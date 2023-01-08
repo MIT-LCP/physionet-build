@@ -957,7 +957,8 @@
     "parent_projects": [],
     "programming_languages": [],
     "allow_file_downloads": true,
-    "ethics_statement": "The authors declare no ethics concerns."
+    "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false
   }
 },
 {
@@ -1003,6 +1004,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1049,6 +1051,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1095,6 +1098,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1141,6 +1145,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1189,6 +1194,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1237,6 +1243,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1293,6 +1300,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1352,6 +1360,7 @@
     ],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1408,6 +1417,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1464,6 +1474,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1519,6 +1530,7 @@
     "parent_projects": [],
     "programming_languages": [],
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
@@ -1575,6 +1587,7 @@
     "programming_languages": [],
     "allow_file_downloads": true,
     "ethics_statement": "The authors declare no ethics concerns.",
+    "allow_short_term_training": false,
     "required_trainings": [1]
   }
 },
