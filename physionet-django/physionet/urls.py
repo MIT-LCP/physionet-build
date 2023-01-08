@@ -33,7 +33,7 @@ urlpatterns = [
     # search app
     path('', include('search.urls')),
     # export app
-    path('', include('export.urls')),
+    path('api/', include('export.urls')),
 
     path('', views.home, name='home'),
     path('ping/', views.ping),

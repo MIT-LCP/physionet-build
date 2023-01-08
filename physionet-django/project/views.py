@@ -56,12 +56,6 @@ from project.validators import validate_filename
 from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
 
-from project.serializers import PublishedProjectSerializer, PublishedProjectDetailSerializer
-from rest_framework import generics
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework import mixins
-from rest_framework.response import Response
-
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
@@ -2313,28 +2307,3 @@ def generate_signed_url(request, project_slug):
     GCPLog.objects.update_or_create(project=project, user=request.user, data=data)
 
     return JsonResponse({'url': url})
-
-
-class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
-    """
-    List all Published Projects
-    """
-    queryset = PublishedProject.objects.all().order_by('id')
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-    serializer_class = PublishedProjectSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-
-
-class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
-    """
-    Retrieve an Published Project
-    """
-
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
-
-    def get(self, request, slug, version, *args, **kwargs):
-        project = get_object_or_404(PublishedProject, slug=slug, version=version)
-        serializer = PublishedProjectDetailSerializer(project)
-        return Response(serializer.data)

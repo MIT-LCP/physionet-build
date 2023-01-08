@@ -1,71 +1,34 @@
-from django.http import JsonResponse
-from django.shortcuts import render
-from django.utils import timezone
+from django.shortcuts import get_object_or_404
 
-from export.serializers import PublishedProjectSerializer
 from project.models import PublishedProject
 
+from export.serializers import PublishedProjectSerializer, PublishedProjectDetailSerializer
+from rest_framework import generics
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework import mixins
+from rest_framework.response import Response
 
-def database_list(request):
+
+class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     """
-    List all published databases
+    List all Published Projects
     """
-    projects = PublishedProject.objects.filter(resource_type=0).order_by(
-        'publish_datetime')
-    serializer = PublishedProjectSerializer(projects, many=True)
-    return JsonResponse(serializer.data, safe=False)
+    queryset = PublishedProject.objects.all().order_by('id')
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    serializer_class = PublishedProjectSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
 
-def software_list(request):
+class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     """
-    List all published software projects
+    Retrieve an Published Project
     """
-    projects = PublishedProject.objects.filter(resource_type=1).order_by(
-        'publish_datetime')
-    serializer = PublishedProjectSerializer(projects, many=True)
-    return JsonResponse(serializer.data, safe=False)
 
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
 
-def challenge_list(request):
-    """
-    List all published software projects
-    """
-    projects = PublishedProject.objects.filter(resource_type=2).order_by(
-        'publish_datetime')
-    serializer = PublishedProjectSerializer(projects, many=True)
-    return JsonResponse(serializer.data, safe=False)
-
-
-def model_list(request):
-    """
-    List all published model projects
-    """
-    projects = PublishedProject.objects.filter(resource_type=2).order_by(
-        'publish_datetime')
-    serializer = PublishedProjectSerializer(projects, many=True)
-    return JsonResponse(serializer.data, safe=False)
-
-
-def published_stats_list(request):
-    """
-    List cumulative stats about projects published.
-    The request may specify the desired resource type
-    """
-    resource_type = None
-    # Get the desired resource type if specified
-    if 'resource_type' in request.GET and request.GET['resource_type'] in ['0', '1']:
-        resource_type = int(request.GET['resource_type'])
-
-    if resource_type is None:
-        projects = PublishedProject.objects.all().order_by('publish_datetime')
-    else:
-        projects = PublishedProject.objects.filter(
-            resource_type=resource_type).order_by('publish_datetime')
-
-    data = []
-    for year in range(projects[0].publish_datetime.year, timezone.now().year+1):
-        y_projects = projects.filter(publish_datetime__year=year)
-        data.append({"year":year, "num_projects":y_projects.count(),
-            "storage_size":sum(p.main_storage_size for p in y_projects)})
-
-    return JsonResponse(data, safe=False)
+    def get(self, request, slug, version, *args, **kwargs):
+        project = get_object_or_404(PublishedProject, slug=slug, version=version)
+        serializer = PublishedProjectDetailSerializer(project)
+        return Response(serializer.data)

@@ -93,8 +93,4 @@ urlpatterns = [
         views.generate_signed_url,
         name='generate_signed_url',
     ),
-    # API V1 Routes
-    path('api/v1/published', views.PublishedProjectList.as_view(), name='Published_project_list'),
-    path('api/v1/published/<str:slug>/<str:version>', views.PublishedProjectDetail.as_view(),
-         name='Published_project_detail'),
 ]
