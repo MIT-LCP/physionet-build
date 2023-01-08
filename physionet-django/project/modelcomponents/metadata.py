@@ -85,6 +85,7 @@ class Metadata(models.Model):
 
     ethics_statement = SafeHTMLField(blank=True)
     required_trainings = models.ManyToManyField('user.TrainingType', related_name='%(class)s')
+    allow_short_term_training = models.BooleanField(default=False, null=True)
 
     class Meta:
         abstract = True

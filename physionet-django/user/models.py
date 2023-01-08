@@ -1053,9 +1053,13 @@ class TrainingType(models.Model):
     questions = models.ManyToManyField(Question, related_name='training_types')
     required_field = models.PositiveSmallIntegerField(choices=RequiredField.choices(), default=RequiredField.DOCUMENT)
     home_page = models.URLField(blank=True)
+    short_term_training = models.BooleanField(default=False, null=True)
 
     class Meta:
         default_permissions = ()
+        permissions = [
+            ("can_review_training", "Can Review Training"),
+        ]
 
     def __str__(self):
         return self.name
