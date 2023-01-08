@@ -11,6 +11,7 @@ if [ -n "$GCS_HOST" ]; then
 fi
 
 python physionet-django/manage.py migrate
+python physionet-django/manage.py loadtypes
 
 if [ "$1" = "sleep" ]; then
     echo "Infinite sleep"
