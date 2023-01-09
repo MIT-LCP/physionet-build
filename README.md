@@ -26,6 +26,7 @@ The local development server will be available at [http://localhost:8000](http:/
   - Run: `docker-compose exec dev /bin/bash` to enter the development container shell.
   - Within the `physionet-django` directory:
     - Run: `python manage.py resetdb` to reset the database.
+    - Run: `python manage.py loadtypes` to pre-generate some important database data.
     - Run: `python manage.py loaddemo` to load the demo fixtures set up example files.
   - Run: `docker-compose exec test /bin/bash` to enter the test container shell.
   - Within the `physionet-django` directory:
