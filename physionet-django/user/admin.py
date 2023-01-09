@@ -73,6 +73,11 @@ class GroupAdmin(DefaultGroupAdmin):
         )
         return super().render_change_form(request, context, *args, **kwargs)
 
+
+class TrainingTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'valid_duration', 'short_term_training')
+
+
 # Unregister and register Group with new GroupAdmin
 admin.site.unregister(Group)
 admin.site.register(Group, GroupAdmin)
@@ -85,7 +90,7 @@ admin.site.register(models.AssociatedEmail)
 admin.site.register(models.LegacyCredential)
 admin.site.register(models.CredentialApplication)
 
-admin.site.register(models.TrainingType)
+admin.site.register(models.TrainingType, TrainingTypeAdmin)
 admin.site.register(models.Training)
 admin.site.register(models.Question)
 admin.site.register(models.TrainingQuestion)
