@@ -98,10 +98,6 @@ def make_checksum_background(pid):
     project.set_storage_info()
 
 
-def has_change_credentialapplication_permission(user, *args, **kwargs):
-    return user.has_perm('user.change_credentialapplication')
-
-
 def handling_editor(base_view):
     """
     Access decorator. The user must be the editor of the project.
@@ -735,8 +731,18 @@ def unsubmitted_projects(request):
 @permission_required('project.change_publishedproject', raise_exception=True)
 def published_projects(request):
     """
-    List of published projects
+    List of published projects as well as activating short term training
     """
+
+    if request.method == "POST":
+        pk = request.POST.get('project_id')
+        if pk:
+            project = get_object_or_404(PublishedProject, pk=pk)
+            project.allow_short_term_training = not project.allow_short_term_training
+            project.save()
+            messages.success(request, "Project's short term training flag successfully toggled.")
+        return HttpResponseRedirect(reverse('published_projects'))
+
     projects = PublishedProject.objects.all().order_by('-publish_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/published_projects.html',
@@ -1541,8 +1547,7 @@ def credentialed_user_info(request, username):
     return render(request, 'console/credentialed_user_info.html', {'c_user': c_user, 'application': application})
 
 
-@login_required
-@user_passes_test(has_change_credentialapplication_permission, redirect_field_name='project_home')
+@permission_required('user.can_review_training', raise_exception=True)
 def training_list(request, status):
     """
     List all training applications.
@@ -1561,12 +1566,14 @@ def training_list(request, status):
     valid_training = trainings.get_valid()
     expired_training = trainings.get_expired()
     rejected_training = trainings.get_rejected()
+    short_term_training = trainings.get_short_term_training()
 
     training_by_status = {
         'review': review_training,
         'valid': valid_training.order_by('-process_datetime'),
         'expired': expired_training,
         'rejected': rejected_training.order_by('-process_datetime'),
+        'short-term-training': short_term_training.order_by('-process_datetime')
     }
 
     display_training = training_by_status[status]
@@ -1578,7 +1585,8 @@ def training_list(request, status):
                 'review': 'console/review_training_table.html',
                 'valid': 'console/valid_training_table.html',
                 'expired': 'console/expired_training_table.html',
-                'rejected': 'console/rejected_training_table.html', }
+                'rejected': 'console/rejected_training_table.html',
+                'short-term-training': 'console/review_training_table.html'}
             return render(request, template_by_status[status], {'trainings': display_training, 'status': status})
 
     return render(
@@ -1591,6 +1599,7 @@ def training_list(request, status):
             'valid_count': valid_training.count(),
             'expired_count': expired_training.count(),
             'rejected_count': rejected_training.count(),
+            'short_term_training_count': short_term_training.count(),
             'training_nav': True,
         },
     )
@@ -1619,7 +1628,7 @@ def search_training_applications(request, display_training):
 
 
 @login_required
-@user_passes_test(has_change_credentialapplication_permission, redirect_field_name='project_home')
+@permission_required('user.can_review_training', raise_exception=True)
 def training_process(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
 
@@ -1681,7 +1690,9 @@ def training_process(request, pk):
         questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
         training_review_form = forms.TrainingReviewForm()
 
-    training_info_from_pdf = services.get_info_from_certificate_pdf(training)
+    training_info_from_pdf = None
+    if not training.completion_report_url:
+        training_info_from_pdf = services.get_info_from_certificate_pdf(training)
 
     return render(
         request,
@@ -1696,7 +1707,7 @@ def training_process(request, pk):
 
 
 @login_required
-@user_passes_test(has_change_credentialapplication_permission, redirect_field_name='project_home')
+@permission_required('user.can_review_training', raise_exception=True)
 def training_detail(request, pk):
     training = get_object_or_404(Training.objects.prefetch_related('training_type'), pk=pk)
 

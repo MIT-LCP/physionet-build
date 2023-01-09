@@ -61,6 +61,7 @@
           </ul>
         </li>
       {% endif %}
+
       <!-- storage requests -->
       {% if perms.project.change_storagerequest %}
         <li class="nav-item {% if storage_requests_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
@@ -99,7 +100,9 @@
             </li>
           </ul>
         </li>
+      {% endif %}
 
+      {% if perms.user.can_review_training %}
         <!-- training -->
         <li class="nav-item {% if training_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
           <a id="nav_storage_requests" class="nav-link" href="{% url 'training_list' 'review' %}">

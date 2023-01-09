@@ -30,3 +30,8 @@ class TrainingQuerySet(QuerySet):
 
     def get_rejected(self):
         return self.filter(status=TrainingStatus.REJECTED)
+
+    def get_short_term_training(self):
+        """Returns list of short term trainings awaiting review"""
+
+        return self.filter(status=TrainingStatus.REVIEW, training_type__short_term_training=True)
