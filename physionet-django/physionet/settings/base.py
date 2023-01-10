@@ -153,9 +153,12 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
 # Google Storge service account credentials
 if config('GOOGLE_APPLICATION_CREDENTIALS', default=None):
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = os.path.join(
+    GOOGLE_APPLICATION_CREDENTIALS = os.path.join(
         BASE_DIR,
         config('GOOGLE_APPLICATION_CREDENTIALS'))
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
+else:
+    GOOGLE_APPLICATION_CREDENTIALS = None
 
 # Maintenance mode
 
