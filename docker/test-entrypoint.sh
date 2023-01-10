@@ -11,6 +11,7 @@ mkdir -p $MEDIA_ROOT/{active-projects,archived-projects,credential-applications,
 cd physionet-django
 python manage.py makemigrations --dry-run --no-input --check
 python manage.py resetdb
+python manage.py loadtypes
 python manage.py loaddemo
 coverage run --source='.' manage.py test --verbosity=3 --keepdb
 coverage report -m
