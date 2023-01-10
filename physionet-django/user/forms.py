@@ -17,7 +17,6 @@ from user.models import (
     AssociatedEmail,
     CloudInformation,
     CredentialApplication,
-    Event,
     Profile,
     User,
     Training,
