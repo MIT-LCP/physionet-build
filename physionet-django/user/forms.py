@@ -783,7 +783,7 @@ class TrainingForm(forms.ModelForm):
             raise forms.ValidationError('You have already submitted a training of this type.')
 
         # Check if the uploaded file is a PDF
-        if data['completion_report'] is not None:
+        if data.get('completion_report') is not None:
             if not validate_pdf_file_type(data['completion_report']):
                 raise forms.ValidationError('Invalid PDF file.')
 
