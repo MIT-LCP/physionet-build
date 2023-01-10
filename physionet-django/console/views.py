@@ -826,7 +826,7 @@ def manage_published_project(request, project_slug, version):
     topic_form = forms.TopicForm(project=project)
     topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
-    has_credentials = os.path.exists(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
+    has_credentials = bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
     data_access_form = forms.DataAccessForm(project=project)
     contact_form = forms.PublishedProjectContactForm(project=project,
                                                      instance=project.contact)
