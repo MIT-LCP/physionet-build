@@ -1075,6 +1075,9 @@ class TrainingType(models.Model):
 
     class Meta:
         default_permissions = ()
+        permissions = [
+            ("can_review_training", "Can Review Training"),
+        ]
 
     def __str__(self):
         return self.name
