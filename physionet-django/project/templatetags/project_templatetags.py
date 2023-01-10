@@ -189,3 +189,20 @@ def mailto_link(*recipients, **params):
 @register.filter
 def filename(value):
     return os.path.basename(value.name)
+
+
+@register.simple_tag
+def call_method(obj, method_name, *args):
+    """
+    This provides a means to pass an argument to a method when calling it
+
+    Parameters:
+        obj: an object created from a model class
+        method_name: method available to the object
+        args: arguments to be passed to the method
+
+    Example:
+        {% call_method published_project 'has_access' request.user as user_has_access %}
+    """
+    method = getattr(obj, method_name)
+    return method(*args)

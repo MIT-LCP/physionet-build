@@ -1,0 +1,19 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}{{ button.label|title  }} - edit {% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+    <div class="card-header">
+        {{ button.label|title }} button - Edit
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'frontpage_button_edit' button.pk %}">
+            {% include "descriptive_inline_form_snippet.html" with form=frontpage_button_form %}
+            <button class="btn btn-primary btn-fixed" type="submit">Save Button</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -79,7 +79,7 @@ class SSOLoginView(auth_views.LoginView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         try:
-            login_static_page = StaticPage.objects.get(url='/login/')
+            login_static_page = StaticPage.objects.get(url='/about/login/')
             instruction_sections = Section.objects.filter(static_page=login_static_page)
         except StaticPage.DoesNotExist:
             instruction_sections = []
@@ -309,6 +309,8 @@ def edit_emails(request):
 
     associated_emails = AssociatedEmail.objects.filter(
         user=user).order_by('-is_verified', '-is_primary_email')
+    total_associated_emails = associated_emails.count()
+    max_associated_emails_allowed = settings.MAX_EMAILS_PER_USER
     primary_email_form = forms.AssociatedEmailChoiceForm(user=user,
                                                    selection_type='primary')
     public_email_form = forms.AssociatedEmailChoiceForm(user=user,
@@ -320,6 +322,9 @@ def edit_emails(request):
             # No form. Just get button value.
             email_id = int(request.POST['remove_email'])
             remove_email(request, email_id)
+
+            # Update the associated_emails count after removing an email
+            total_associated_emails = AssociatedEmail.objects.filter(user=user).count()
         elif 'set_primary_email' in request.POST:
             primary_email_form = forms.AssociatedEmailChoiceForm(user=user,
                 selection_type='primary', data=request.POST)
@@ -330,13 +335,24 @@ def edit_emails(request):
             set_public_email(request, public_email_form)
 
         elif 'add_email' in request.POST:
-            add_email_form = forms.AddEmailForm(request.POST)
-            add_email(request, add_email_form)
+            if associated_emails.count() >= settings.MAX_EMAILS_PER_USER:
+                messages.error(
+                    request,
+                    'You have reached the maximum number of email addresses allowed.'
+                )
+            else:
+                add_email_form = forms.AddEmailForm(request.POST)
+                add_email(request, add_email_form)
 
-    context = {'associated_emails':associated_emails,
-        'primary_email_form':primary_email_form,
-        'add_email_form':add_email_form,
-        'public_email_form':public_email_form}
+                # Update the associated_emails count after adding a new email
+                total_associated_emails = AssociatedEmail.objects.filter(user=user).count()
+
+    context = {'associated_emails': associated_emails,
+               'primary_email_form': primary_email_form,
+               'add_email_form': add_email_form,
+               'public_email_form': public_email_form,
+               'total_associated_emails': total_associated_emails,
+               'max_associated_emails_allowed': max_associated_emails_allowed}
 
     context['messages'] = messages.get_messages(request)
 
@@ -766,7 +782,7 @@ def training_report(request, training_id):
     Serve a training report file
     """
     trainings = Training.objects.all()
-    if not request.user.is_admin:
+    if not request.user.has_perm('user.change_credentialapplication'):
         trainings = trainings.filter(user=request.user)
 
     training = get_object_or_404(trainings, id=training_id)

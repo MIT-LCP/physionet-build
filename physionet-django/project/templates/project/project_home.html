@@ -10,6 +10,10 @@
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}">
 {% endblock %}
 
+{% block local_js_bottom %}
+  <script src="{% static 'project/js/project_home.js' %}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="container">
   {% include "message_snippet.html" %}
@@ -65,14 +69,11 @@
                   </button>
                 </div>
 
-                <div class="modal-body">
+                <div class="modal-body author_invitation_response_form">
                   <p>You have been invited to co-author "{{ invitation_response_form.instance.project }}" by {{ invitation_response_form.instance.inviter.get_full_name }}.</p>
-                  {{ invitation_response_form }}<br>
-                  {% if user.profile.affiliation %}
-                    <p>Your current affiliation "{{user.profile.affiliation}}" will be added to the project. To edit your affiliation, or to add an additional affiliation, please visit the project author page.</p>
-                  {% else %}
-                    <p><font color='red'>After accepting, please add your affiliation to the project author page.</font></p>
-                  {% endif %}
+                  {{ invitation_response_form }}
+                  {# Note: the affiliation input field will be shown or #}
+                  {# hidden by update_response() in project_home.js #}
                 </div>
 
                 <div class="modal-footer">

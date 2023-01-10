@@ -10,16 +10,24 @@
     {{ training.training_type.name }} Training - {{ training.user.get_full_name }} {% include "user/training_badge.html" %}
   </div>
   <div class="card-body">
-    {% if training.completion_report %}
-      Document: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
-    {% endif %}
-    {% if training.completion_report_url %}
-      URL: <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a><br>
-    {% endif %}
-    Submitted on: {{ training.application_datetime|date }}<br>
-    {% if training.reviewer_comments %}
-      Reviewer comments: {{ training.reviewer_comments }}
-    {% endif %}
+    <h5 class="card-title">Document details</h5>
+    Report: <a href="{% url 'training_report' training.pk %}" target="_blank">Training report</a><br>
+    Link: {% if training.completion_report_url %}
+           <a href="{{ training.completion_report_url }}" target="_blank">{{ training.completion_report_url }}</a>
+         {% else %} No URL available.
+         {% endif %}<br>
+    <br>
+    <h5 class="card-title">Dates</h5>
+    Submitted: {{ training.application_datetime|date }}<br>
+    Expires: {{ training.valid_datetime|default:"End of the world." }}<br>
+    <br>
+    <h5 class="card-title">Reviewer</h5>
+    Reviewed: {{ training.process_datetime|date }}<br>
+    Reviewer: {% if training.reviewer %}
+                {{ training.reviewer.get_full_name }} ({{ training.reviewer.username|default:"" }})
+              {% else %} Reviewer not recorded.
+              {% endif %}<br>
+    Comments: {{ training.reviewer_comments|default:"No comments." }}
   </div>
 </div>
 <br>

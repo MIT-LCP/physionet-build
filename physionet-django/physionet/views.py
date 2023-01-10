@@ -14,11 +14,9 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from notification.models import News
 from project.projectfiles import ProjectFiles
-from physionet.models import Section, StaticPage
+from physionet.models import FrontPageButton, Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
-from user.forms import AddEventForm
-from user.models import Event
 
 
 def home(request):
@@ -28,6 +26,7 @@ def home(request):
     featured = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')[:6]
     latest = PublishedProject.objects.filter(is_latest_version=True).order_by('-publish_datetime')[:6]
     news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
+    front_page_buttons = FrontPageButton.objects.all()
     front_page_banner = News.objects.filter(front_page_banner=True)
 
     return render(
@@ -37,6 +36,7 @@ def home(request):
             'featured': featured,
             'latest': latest,
             'news_pieces': news_pieces,
+            'front_page_buttons': front_page_buttons,
             'front_page_banner': front_page_banner,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
         },
@@ -139,27 +139,6 @@ def software_overview(request):
                   {'all_projects': all_projects})
 
 
-def challenge_overview(request):
-    """
-    Temporary content overview
-    """
-    all_challenges = PublishedProject.objects.filter(resource_type=2,
-                                                     is_latest_version=True).order_by('-publish_datetime')
-
-    for challenge in all_challenges:
-        if fullmatch(r'challenge-[0-9]{4}$', challenge.slug):
-            challenge.year = challenge.slug.split('-')[1]
-        if path.exists(path.join(challenge.file_root(), 'sources')):
-            challenge.sources = True
-            if path.exists(path.join(challenge.file_root(), 'sources/index.html')):
-                challenge.sources_index = True
-        if path.exists(path.join(challenge.file_root(), 'papers/index.html')):
-            challenge.papers = True
-
-    return render(request, 'about/challenge_index.html',
-                  {'all_challenges': all_challenges})
-
-
 def moody_challenge_overview(request):
     """
     View for detailed information about the George B. Moody PhysioNet Challenge
@@ -221,81 +200,3 @@ def static_view(request, static_url=None):
     params = {'static_page': static_page, 'sections': sections}
 
     return render(request, 'about/static_template.html', params)
-
-
-def tutorial_overview(request):
-    """
-    Temporary content overview
-    """
-    return render(request, 'about/tutorial_index.html')
-
-
-@login_required
-def event_home(request):
-    """
-    List of events
-    """
-    user = request.user
-    is_instructor = user.has_perm('user.add_event')
-
-    # sqlite doesn't support the distinct() method
-    events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
-    events_active = set(events_all.filter(end_date__gte=datetime.now()))
-    events_past = set(events_all.filter(end_date__lt=datetime.now()))
-    event_form = AddEventForm(user=user)
-
-    url_prefix = notification.get_url_prefix(request)
-
-    form_error = False
-    if request.method == 'POST':
-        event_form = AddEventForm(user=user, data=request.POST)
-        if event_form.is_valid() and is_instructor:
-            event_form.save()
-            return redirect(event_home)
-        else:
-            form_error = True
-
-    return render(request, 'event_home.html',
-                  {'events_active': events_active,
-                   'events_past': events_past,
-                   'event_form': event_form,
-                   'url_prefix': url_prefix,
-                   'is_instructor': is_instructor,
-                   'form_error': form_error
-                   })
-
-
-@login_required
-def event_add_participant(request, event_slug):
-    """
-    Adds participants to an event.
-    """
-    user = request.user
-
-    event = get_object_or_404(Event, slug=event_slug)
-
-    if event.end_date < datetime.now().date():
-        messages.error(request, "This event has now finished")
-        return redirect(event_home)
-
-    if event.participants.filter(user=user).exists():
-        messages.success(request, "You are already enrolled")
-        return redirect(event_home)
-
-    if event.allowed_domains:
-        domains = event.allowed_domains.split(',')
-        emails = user.get_emails()
-        domain_match = [domain for domain in domains if any('@' + domain.strip() in email for email in emails)]
-        if not domain_match:
-            messages.error(request, f"To register for the event, your account must be linked with "
-                                    f"an email address from the following domains: {domains}. "
-                                    f"You can add email addresses to your account in the settings menu.")
-            return redirect(event_home)
-
-    if request.method == 'POST':
-        if request.POST.get('confirm_event') == 'confirm':
-            event.enroll_user(user)
-            messages.success(request, "You have been enrolled")
-            return redirect(event_home)
-
-    return render(request, 'event_participant.html', {'event': event})

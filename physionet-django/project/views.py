@@ -21,10 +21,9 @@ from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
-from google.cloud.storage._signing import generate_signed_url_v4
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
-from physionet.storage import MediaStorage
+from physionet.storage import generate_signed_url_helper
 from physionet.utility import serve_file
 from project import forms, utility
 from project.fileviews import display_project_file
@@ -68,8 +67,8 @@ def project_auth(auth_mode=0, post_auth_mode=0):
     auth_mode is one of the following:
     - 0 : the user must be an author.
     - 1 : the user must be the submitting author.
-    - 2 : the user must be an author or an admin
-    - 3 : the user must be an author or an admin
+    - 2 : the user must be an author or have permission to edit all ActiveProjects.
+    - 3 : the user must be an author or have permission to edit all ActiveProjects.
           or be authenticated with a passphrase
 
     post_auth_mode is one of the following and applies only to post:
@@ -110,9 +109,9 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             elif auth_mode == 1:
                 allow = is_submitting
             elif auth_mode == 2:
-                allow = is_author or user.is_admin
+                allow = is_author or user.has_perm('project.change_activeproject')
             elif auth_mode == 3:
-                allow = has_passphrase or is_author or user.is_admin
+                allow = has_passphrase or is_author or user.has_perm('project.change_activeproject')
             else:
                 allow = False
 
@@ -141,41 +140,67 @@ def process_invitation_response(request, invitation_response_formset):
     """
     Process an invitation response.
     Helper function to view: project_home
+
+    If an invitation was accepted, return the ActiveProject.
+    Otherwise return None.
     """
     user = request.user
     invitation_id = int(request.POST['invitation_response'])
     for invitation_response_form in invitation_response_formset:
         # Only process the response that was submitted
         if invitation_response_form.instance.id == invitation_id:
-            invitation_response_form.user = user
+            break
+    else:
+        return None
 
-            if invitation_response_form.is_valid():
-                # Update this invitation, and any other one made to the
-                # same user, project, and invitation type
-                invitation = invitation_response_form.instance
-                project = invitation.project
-                invitations = AuthorInvitation.objects.filter(is_active=True,
-                    email__in=user.get_emails(), project=project)
-                affected_emails = [i.email for i in invitations]
-                invitations.update(response=invitation.response,
-                    response_datetime=timezone.now(), is_active=False)
-                # Create a new Author object
-                author_imported = False
-                if invitation.response:
-                    author = Author.objects.create(project=project, user=user,
-                        display_order=project.authors.count() + 1,
-                        corresponding_email=user.get_primary_email())
-                    author_imported = author.import_profile_info()
+    invitation_response_form.user = user
 
-                notification.invitation_response_notify(invitation,
-                                                        affected_emails)
-                messages.success(request,'The invitation has been {0}.'.format(
-                    notification.RESPONSE_ACTIONS[invitation.response]))
-                if not author_imported and invitation.response:
-                    return True, project
-                elif invitation.response:
-                    return False, project
-                return False, False
+    if invitation_response_form.is_valid():
+        with transaction.atomic():
+            # Update this invitation, and any other one made to the
+            # same user, project, and invitation type
+            invitation = invitation_response_form.instance
+            project = invitation.project
+            invitations = AuthorInvitation.objects.filter(
+                is_active=True,
+                email__in=user.get_emails(),
+                project=project,
+            )
+            affected_emails = [i.email for i in invitations]
+            invitations.update(
+                response=invitation.response,
+                response_datetime=timezone.now(),
+                is_active=False,
+            )
+            # Create a new Author object
+            if invitation.response:
+                author = Author.objects.create(
+                    project=project,
+                    user=user,
+                    display_order=project.authors.count() + 1,
+                    corresponding_email=user.get_primary_email(),
+                )
+                Affiliation.objects.create(
+                    author=author,
+                    name=invitation_response_form.cleaned_data['affiliation'],
+                )
+
+            notification.invitation_response_notify(invitation,
+                                                    affected_emails)
+            messages.success(
+                request,
+                'The invitation has been {0}.'.format(
+                    notification.RESPONSE_ACTIONS[invitation.response])
+            )
+            if invitation.response:
+                return project
+            else:
+                return None
+    else:
+        # form is not valid
+        messages.error(request,
+                       utility.get_form_errors(invitation_response_form))
+        return None
 
 
 @login_required
@@ -213,12 +238,9 @@ def project_home(request):
         author_qs = AuthorInvitation.get_user_invitations(user)
         invitation_response_formset = InvitationResponseFormSet(request.POST,
                                                                 queryset=author_qs)
-        imported, project = process_invitation_response(request,
-                                                        invitation_response_formset)
+        project = process_invitation_response(request,
+                                              invitation_response_formset)
         if project:
-            if imported:
-                messages.info(request,
-                              'Please fill in the affiliation at the end of the page.')
             return redirect('project_authors', project_slug=project.slug)
 
     pending_author_approvals = []
@@ -240,6 +262,9 @@ def project_home(request):
 
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
+    invitation_response_formset.form_kwargs['initial'] = {
+        'affiliation': user.profile.affiliation
+    }
 
     data_access_requests = DataAccessRequest.objects.filter(
         project__in=[p for p in published_projects if p.can_approve_requests(user)],
@@ -1463,7 +1488,7 @@ def rejected_submission_history(request, project_slug):
                                               archive_reason=3,
                                               authors__user=user)
     except ArchivedProject.DoesNotExist:
-        if user.is_admin:
+        if user.has_perm('project.change_archivedproject'):
             project = get_object_or_404(ArchivedProject, slug=project_slug,
                                         archive_reason=3)
         else:
@@ -1486,7 +1511,7 @@ def published_versions(request, project_slug):
     """
     user = request.user
     # Account for different authors between versions
-    if user.is_admin:
+    if user.has_perm('project.change_publishedproject'):
         projects = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
     else:
         authors = PublishedAuthor.objects.filter(user=user, project__slug=project_slug).order_by('project__version_order')
@@ -1511,7 +1536,7 @@ def published_submission_history(request, project_slug, version):
                                                version=version,
                                                authors__user=user)
     except PublishedProject.DoesNotExist:
-        if user.is_admin:
+        if user.has_perm('project.change_publishedproject'):
             project = get_object_or_404(PublishedProject, slug=project_slug,
                                         version=version)
         else:
@@ -1583,7 +1608,7 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
     user = request.user
 
     if user.is_authenticated and (project.authors.filter(user=user) or
-        user == project.editor or user.is_admin):
+                                  user == project.editor or user.has_perm('project.change_activeproject')):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)
@@ -1777,6 +1802,7 @@ def published_project(request, project_slug, version, subdir=''):
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
     user = request.user
+    _, _, _, _, _, latest_version = project.info_card()
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
@@ -1826,6 +1852,7 @@ def published_project(request, project_slug, version, subdir=''):
         'has_required_training': has_required_training,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
+        'latest_version': latest_version,
         'citations': citations,
         'news': news,
         'all_project_versions': all_project_versions,
@@ -1900,6 +1927,7 @@ def sign_dua(request, project_slug, version):
 
     if (
         project.deprecated_files
+        or project.embargo_active()
         or project.access_policy not in {AccessPolicy.RESTRICTED, AccessPolicy.CREDENTIALED}
         or project.has_access(user)
     ):
@@ -2276,31 +2304,27 @@ def generate_signed_url(request, project_slug):
     if size <= 0:
         return JsonResponse({'detail': 'The file size cannot be a negative value.'}, status=400)
 
-    if not filename.isascii():
-        return JsonResponse({'detail': 'The filename contains non-ascii characters.'}, status=400)
-
-    if ' ' in filename:
-        return JsonResponse({'detail': 'The filename contains whitespaces.'}, status=400)
+    try:
+        validate_filename(filename)
+    except ValidationError as e:
+        return JsonResponse({'detail': e.messages}, status=400)
 
     queryset = ActiveProject.objects.all()
-    if not request.user.is_admin:
-        queryset.filter(Q(authors__user=request.user) | Q(editor=request.user))
-
     project = get_object_or_404(queryset, slug=project_slug)
+
+    if not project.is_editable_by(request.user):
+        return JsonResponse({'detail': 'User is not authorized to edit the project at this moment.'}, status=403)
 
     if size > project.get_storage_info().remaining:
         return JsonResponse({'detail': 'The file size cannot be greater than the remaining space.'}, status=400)
 
-    storage = MediaStorage()
-    canonical_resource = f'/{storage.bucket.name}/active-projects/{project_slug}/{filename.strip("/")}'
+    canonical_resource = f'active-projects/{project_slug}/{filename.strip("/")}'
 
-    url = generate_signed_url_v4(
-        storage.client._credentials,
-        resource=canonical_resource,
-        api_access_endpoint='https://storage.googleapis.com',
+    url = generate_signed_url_helper(
+        version='v4',
+        blob_name=canonical_resource,
         expiration=dt.timedelta(days=1),
-        method='PUT',
-        headers={'X-Upload-Content-Length': str(size)},
+        size=size
     )
 
     data = f'filename: {filename};size: {size // (1024)}kB'

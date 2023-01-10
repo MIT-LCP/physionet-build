@@ -14,7 +14,7 @@ from django.db import transaction
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
-from physionet.models import Section, StaticPage
+from physionet.models import FrontPageButton, Section, StaticPage
 from project.models import (
     ActiveProject,
     AccessPolicy,
@@ -82,8 +82,11 @@ class AssignEditorForm(forms.Form):
     Assign an editor to a project under submission
     """
     project = forms.IntegerField(widget=forms.HiddenInput())
-    editor = forms.ModelChoiceField(queryset=User.objects.filter(
-        is_admin=True))
+    editor = forms.ModelChoiceField(queryset=None)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['editor'].queryset = User.get_users_with_permission('can_edit_activeprojects').order_by('username')
 
     def clean_project(self):
         pid = self.cleaned_data['project']
@@ -97,16 +100,23 @@ class ReassignEditorForm(forms.Form):
     """
     Assign an editor to a project under submission
     """
-    editor = forms.ModelChoiceField(queryset=User.objects.filter(
-        is_admin=True), widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
+    editor = forms.ModelChoiceField(queryset=None, widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
 
     def __init__(self, user, *args, **kwargs):
         """
         Set the appropriate queryset
         """
         super().__init__(*args, **kwargs)
-        self.fields['editor'].queryset = self.fields['editor'].queryset.exclude(
-            username=user.username)
+        users = User.get_users_with_permission('can_edit_activeprojects').order_by('username')
+        users = users.exclude(username=user.username)
+        self.fields['editor'].queryset = users
+
+
+class EmbargoFilesDaysForm(forms.Form):
+    """
+    For an editor to set the number of days a project's files should be under embargo.
+    """
+    embargo_files_days = forms.IntegerField(min_value=0, max_value=365)
 
 
 class EditSubmissionForm(forms.ModelForm):
@@ -763,27 +773,17 @@ class SectionForm(forms.ModelForm):
 class StaticPageForm(forms.ModelForm):
     """ Form for creating a dynamic static page."""
 
-    url = forms.RegexField(
-        label="URL",
-        max_length=100,
-        regex=r"^\/about\/([-\w\.~]+\/)+$",
+    url = forms.CharField(
         help_text=(
             "URL should be unique. If the new URL clashes with a static url, "
             "the static url will take precedence. URL must start with /about/ "
             "for example /about/publish/"
-        ),
-        error_messages={
-            "invalid": (
-                "Must be in format /about/value/value/value/ "
-                "and value must contain only letters, numbers, dots, "
-                "underscores, dashes or tildes."
-            ),
-        },
+        )
     )
 
     class Meta:
         model = StaticPage
-        fields = "__all__"
+        fields = ["title", "url", "nav_bar"]
 
     def clean_url(self):
         """ This is redundant, regex in regex field does the same.
@@ -794,6 +794,9 @@ class StaticPageForm(forms.ModelForm):
         if not url.startswith("/about/"):
             raise forms.ValidationError(
                 "URL must start with /about/, (eg) /about/publish/")
+        if not re.compile(r"^[-\w/\.~]+$").search(url):
+            raise forms.ValidationError(
+                "Can only contain letters, numbers, dots, underscores, dashes or tildes.")
         if not url.endswith("/"):
             url = f"{url}/"
         return url
@@ -811,6 +814,50 @@ class StaticPageForm(forms.ModelForm):
             raise forms.ValidationError(f"Static page with URL: {url} already exists")
 
         return super().clean()
+
+    def save(self):
+        static_page = super().save(commit=False)
+        static_page.nav_order = StaticPage.objects.count() + 1
+        static_page.save()
+        return static_page
+
+
+class FrontPageButtonForm(forms.ModelForm):
+    """ Form for creating a front page button."""
+
+    url = forms.CharField(
+        help_text="If you are pointing to a page within the website, "
+        'you can start the urls with "/" eg "/about/us/" ; and for an'
+        'external website, it must start with "http:// or "https://'
+    )
+
+    class Meta:
+        model = FrontPageButton
+        fields = ["label", "url"]
+
+    def clean_url(self):
+        """
+        Validate that URL is in the appropriate format.
+        """
+
+        url = self.cleaned_data.get("url")
+        if url.startswith("/"):
+            if not re.compile(r"^[-\w/\.~]+$").search(url):
+                raise forms.ValidationError(
+                    "Can only contain letters, numbers, dots, underscores, dashes or tildes.")
+        else:
+            validate = URLValidator()
+            validate(url)
+        if not url.endswith("/"):
+            url = f"{url}/"
+
+        return url
+
+    def save(self):
+        front_page_button = super().save(commit=False)
+        front_page_button.order = FrontPageButton.objects.count() + 1
+        front_page_button.save()
+        return front_page_button
 
 
 class TrainingQuestionForm(forms.ModelForm):

@@ -593,3 +593,10 @@ a, code{
   border-radius: 0.25rem;
   border: 1px solid rgba(0, 0, 0, 0.15);
 }
+
+/* fix layering of modal inside list-group-item
+   (https://github.com/twbs/bootstrap/issues/25206)
+   (https://github.com/MIT-LCP/physionet-build/issues/1764) */
+body .list-group-item:hover {
+  z-index: auto;
+}

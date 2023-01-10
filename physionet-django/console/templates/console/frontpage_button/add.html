@@ -1,0 +1,19 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}Add Frontpage Button{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-header">
+        Add Frontpage Button
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'frontpage_button_add' %}">
+            {% include "descriptive_inline_form_snippet.html" with form=frontpage_button_form %}
+            <button class="btn btn-primary btn-fixed" type="submit">Add Button</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

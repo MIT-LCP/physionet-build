@@ -1,5 +1,4 @@
 from django.forms.widgets import ClearableFileInput
-from django import forms
 
 class ProfilePhotoInput(ClearableFileInput):
     """
@@ -9,7 +8,3 @@ class ProfilePhotoInput(ClearableFileInput):
     input_text = 'Update'
     clear_checkbox_label = 'Clear'
     template_name = 'user/profile_photo_input.html'
-
-
-class DatePickerInput(forms.DateInput):
-    input_type = 'date'

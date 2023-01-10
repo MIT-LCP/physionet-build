@@ -12,7 +12,7 @@
                 <thead>
                 <tr>
                     <th>Data Use Title</th>
-                    <th>Submitted on</th>
+                    <th>Submitted</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -21,7 +21,7 @@
                 {% for access_request in access_requests %}
                     <tr>
                         <td>{{ access_request.data_use_title }}</td>
-                        <td>{{ access_request.request_datetime }}</td>
+                        <td>{{ access_request.request_datetime|date }}</td>
                         <td>
                             {{ access_request.status_text }}{% if access_request.is_accepted %}, valid {% if access_request.valid_until %}until {{ access_request.valid_until }}{% else %}forever {% endif %}{% endif %}
                         </td>

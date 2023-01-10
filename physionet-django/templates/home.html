@@ -38,11 +38,9 @@
       </p>
       <br>
       <div>
-        <a href="{% url 'database_overview' %}">Data</a>
-        <a href="{% url 'software_overview' %}">Software</a>
-        <a href="{% url 'challenge_overview' %}">Challenges</a>
-        <a href="{% url 'tutorial_overview' %}">Tutorials</a>
-        <!-- <a href="">News</a> -->
+        {% for button in front_page_buttons %}
+            <a href="{{ button.url }}">{{ button.label|title }}</a>
+        {% endfor %}
       </div>
     </div>
     <a href="#latest">

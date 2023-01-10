@@ -146,7 +146,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     class Meta:
         default_permissions = ('change',)
-        permissions = [('can_assign_editor', 'Can assign editor')]
+        permissions = [
+            ('can_assign_editor', 'Can assign editor'),
+            ('can_edit_activeprojects', 'Can edit ActiveProjects')
+        ]
 
     def storage_used(self):
         """
@@ -318,6 +321,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.integrity_errors.append('Author {0} has not fill in name'.format(author.user.username))
             if not author.affiliations.all():
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
+            if author.is_corresponding:
+                if not author.user.associated_emails.filter(
+                        is_verified=True,
+                        email=author.corresponding_email).exists():
+                    self.integrity_errors.append(
+                        f'Corresponding author {author.user.username} '
+                        'has not set a corresponding email')
 
         # Metadata
         for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type.id]:
@@ -605,3 +615,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         ProjectFiles().publish_complete(self, published_project)
 
         return published_project
+
+    def is_editable_by(self, user):
+        """
+        Whether the user can edit the project
+        """
+        if self.authors.filter(is_submitting=True, user=user).exists():
+            if self.author_editable():
+                return True
+        elif user == self.editor:
+            if self.copyeditable():
+                return True
+        return False

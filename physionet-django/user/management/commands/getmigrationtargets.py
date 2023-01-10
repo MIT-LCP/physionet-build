@@ -128,6 +128,13 @@ class Command(BaseCommand):
                 # migrations.
                 desired.append((app, name))
 
+        # Check if there are conflicts (multiple leaf nodes in same app.)
+        conflicts = executor.loader.detect_conflicts()
+        if conflicts:
+            raise CommandError("Conflicting migrations detected; "
+                               "multiple leaf nodes in the migration "
+                               "graph ({})".format(conflicts))
+
         # Check if there are any migrations applied that we don't know
         # about.
         ghosts = applied.keys() - set(desired)

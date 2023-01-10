@@ -78,6 +78,8 @@ urlpatterns = [
     path('training/process/<int:pk>/', views.training_process, name='training_process'),
     path('users/search/<group>/', views.users_search, name='users_list_search'),
     path('users/<group>/', views.users, name='users'),
+    path('users/aws-access-list.json', views.users_aws_access_list_json,
+         name='users_aws_access_list_json'),
     path('user/manage/<username>/', views.user_management,
         name='user_management'),
 
@@ -99,6 +101,13 @@ urlpatterns = [
     path('usage/editorial/stats/', views.editorial_stats, name='editorial_stats'),
     path('usage/credentialing/stats/', views.credentialing_stats, name='credentialing_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
+
+    # front pages
+    path('front-page-button/add/', views.frontpage_button_add, name='frontpage_button_add'),
+    path('front-page-button/<int:button_pk>/edit/', views.frontpage_button_edit, name='frontpage_button_edit'),
+    path('front-page-button/<int:button_pk>/delete/', views.frontpage_button_delete, name='frontpage_button_delete'),
+    path('front-page-button/', views.frontpage_buttons, name='frontpage_buttons'),
+
     # static pages
     path('static-page/add/', views.static_page_add, name='static_page_add'),
     path('static-page/<int:page_pk>/edit/', views.static_page_edit, name='static_page_edit'),

@@ -931,6 +931,7 @@ class TestInteraction(TestMixin):
             data = {
                 'form-TOTAL_FORMS': ['1'], 'form-MAX_NUM_FORMS': ['1000'],
                 'form-0-response': [str(inv_response)], 'form-MIN_NUM_FORMS': ['0'],
+                'form-0-affiliation': ['MIT' if inv_response else ''],
                 'form-INITIAL_FORMS': ['1'],
                 'form-0-id': [str(iid)], 'invitation_response': [str(iid)]
             }
@@ -1143,6 +1144,7 @@ class TestGenerateSignedUrl(TestMixin):
             kwargs={"project_slug": ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database').slug},
         )
         cls.user_credentials = {'username': 'rgmark@mit.edu', 'password': 'Tester11!'}
+        cls.unauthorized_user_credentials = {'username': 'aewj@mit.edu', 'password': 'Tester11!'}
         cls.invalid_size_data_1 = {'size': -10, 'filename': 'random.txt'}
         cls.invalid_size_data_2 = {'size': 'file_size', 'filename': 'random.txt'}
         cls.invalid_size_data_3 = {'filename': 'random.txt'}
@@ -1186,16 +1188,54 @@ class TestGenerateSignedUrl(TestMixin):
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
-    @mock.patch('project.views.generate_signed_url_v4')
-    @mock.patch('project.views.MediaStorage')
-    def test_valid_size_and_filename(self, media_mock, signed_url_mock):
-        media_mock.return_value.bucket.name = "media-bucket"
+    @mock.patch('project.views.generate_signed_url_helper')
+    def test_valid_size_and_filename(self, signed_url_mock):
         signed_url_mock.return_value = 'https://example.com'
 
         self.client.login(**self.user_credentials)
         response = self.client.post(self.url, self.valid_data, format='json')
 
-        media_mock.assert_called_once()
         signed_url_mock.assert_called_once()
         self.assertEqual(response.status_code, HTTPStatus.OK)
         self.assertEqual(json.loads(response.content).get('url'), 'https://example.com')
+
+    @mock.patch('project.views.generate_signed_url_helper')
+    def test_unauthorized_access(self, signed_url_mock):
+        signed_url_mock.return_value = 'https://example.com'
+
+        self.client.login(**self.unauthorized_user_credentials)
+        response = self.client.post(self.url, self.valid_data, format='json')
+
+        signed_url_mock.assert_not_called()
+        self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+    def test_invalid_access(self):
+        self.client.login(**self.user_credentials)
+
+        # Non-submitting author
+        self.client.login(username='george@mit.edu', password='Tester11!')
+        with self.subTest('Non Submitting author can not upload files.'):
+            project = ActiveProject.objects.get(
+                title='Demo software for parsing clinical notes')
+            response = self.client.post(
+                reverse('generate_signed_url', kwargs={
+                    "project_slug": project.slug
+                }),
+                self.valid_data,
+                format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+        # awaiting editor decision
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        with self.subTest('Editor cannot upload files unless the project has been accepted.'):
+            response = self.client.post(
+                reverse('generate_signed_url',
+                        kwargs={
+                            "project_slug": ActiveProject.objects.get(title='Demo database project').slug
+                        }
+                        ),
+                self.valid_data,
+                format='json'
+            )
+            self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)

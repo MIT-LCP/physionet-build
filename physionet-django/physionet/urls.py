@@ -26,8 +26,7 @@ urlpatterns = [
     # project app
     path('projects/', include('project.urls')),
     # events
-    path('events/', views.event_home, name='event_home'),
-    path('events/<slug:event_slug>/', views.event_add_participant, name='event_add_participant'),
+    path('events/', include('events.urls')),
     # notification app
     path('', include('notification.urls')),
     # search app
@@ -56,10 +55,6 @@ urlpatterns = [
         name='database_overview'),
     path('about/software/', views.software_overview,
         name='software_overview'),
-    path('about/challenge/', views.challenge_overview,
-        name='challenge_overview'),
-    path('about/tutorial/', views.tutorial_overview,
-        name='tutorial_overview'),
 
     # detailed pages related to the challenges overview
     path('about/challenge/moody-challenge-overview', views.moody_challenge_overview,

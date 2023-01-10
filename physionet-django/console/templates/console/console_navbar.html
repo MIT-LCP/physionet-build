@@ -80,7 +80,7 @@
           <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#credentialComponents" data-parent="#sideAccordion" aria-expanded="false">
         {% endif %}
             <i class="fa fa-fw fa-hand-paper"></i>
-            <span class="nav-link-text">Credentialing</span>
+            <span class="nav-link-text">Identity check</span>
           </a>
           <!-- submenu -->
         {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
@@ -104,7 +104,7 @@
         <li class="nav-item {% if training_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
           <a id="nav_storage_requests" class="nav-link" href="{% url 'training_list' 'review' %}">
             <i class="fa fa-fw fa-school"></i>
-            <span class="nav-link-text">Training</span>
+            <span class="nav-link-text">Training check</span>
           </a>
         </li>
       {% endif %}
@@ -248,15 +248,6 @@
         </li>
       {% endif %}
 
-      <!-- news -->
-      {% if perms.notification.change_news %}
-        <li class="nav-item {% if news_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
-          <a id="nav_console_news" class="nav-link" href="{% url 'news_console' %}">
-            <i class="fa fa-fw fa-newspaper"></i>
-            <span class="nav-link-text">News</span>
-          </a>
-        </li>
-      {% endif %}
       <!-- guidelines and documentation -->
       {% if perms.project.can_view_project_guidelines %}
         <li class="nav-item" data-toggle="tooltip" data-placement="right">
@@ -312,12 +303,37 @@
         </li>
       {% endif %}
 
-      <!-- static pages -->
-      {% if perms.physionet.change_staticpage %}
-        <li class="nav-item {% if static_pages_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
-          <a id="nav_console_news" class="nav-link" href="{% url 'static_pages' %}">
+      <!-- Pages -->
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        {% if frontpage_buttons_nav or static_pages_nav %}
+          <a id="nav_pages_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#pagesComponent" data-parent="#sideAccordion" aria-expanded="true">
+        {% else %}
+          <a id="nav_pages_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#pagesComponent" data-parent="#sideAccordion" aria-expanded="false">
+        {% endif %}
             <i class="fa fa-fw fa-window-maximize"></i>
-            <span class="nav-link-text">Static Pages</span>
+            <span class="nav-link-text">Pages</span>
+          </a>
+          <!-- submenu -->
+        {% if frontpage_buttons_nav or static_pages_nav %}
+          <ul class="sidenav-second-level collapse show" id="pagesComponent" style="">
+        {% else %}
+          <ul class="sidenav-second-level collapse" id="pagesComponent">
+        {% endif %}
+            <li class="nav-item {% if static_pages_nav %}active{% endif %}">
+              <a id="nav_console_news" class="nav-link" href="{% url 'static_pages' %}">Static Pages</a>
+            </li>
+            <li class="nav-item {% if frontpage_buttons_nav %}active{% endif %}">
+              <a id="nav_console_news" class="nav-link" href="{% url 'frontpage_buttons' %}">Frontpage Buttons</a>
+            </li>
+          </ul>
+      </li>
+
+      <!-- news -->
+      {% if perms.notification.change_news %}
+        <li class="nav-item {% if news_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+          <a id="nav_console_news" class="nav-link" href="{% url 'news_console' %}">
+            <i class="fa fa-fw fa-newspaper"></i>
+            <span class="nav-link-text">News</span>
           </a>
         </li>
       {% endif %}

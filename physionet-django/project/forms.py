@@ -42,6 +42,7 @@ from project.models import (
 )
 from project.projectfiles import ProjectFiles
 from user.models import User, TrainingType
+from user.validators import validate_affiliation
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -417,11 +418,23 @@ class NewProjectVersionForm(forms.ModelForm):
 
         # Copy over the author/affiliation objects
         for p_author in self.latest_project.authors.all():
-            author = Author.objects.create(project=project, user=p_author.user,
+            if p_author.is_corresponding:
+                old_address = p_author.corresponding_email
+            else:
+                old_address = None
+            emails = p_author.user.associated_emails.filter(is_verified=True)
+            corresponding_email = (
+                emails.filter(email__iexact=old_address).first()
+                or emails.filter(is_public=True).first()
+                or p_author.user.get_primary_email()
+            )
+            author = Author.objects.create(
+                project=project,
+                user=p_author.user,
                 display_order=p_author.display_order,
                 is_submitting=p_author.is_submitting,
                 is_corresponding=p_author.is_corresponding,
-                corresponding_email=self.user.get_primary_email(),)
+                corresponding_email=corresponding_email)
 
             for p_affiliation in p_author.affiliations.all():
                 Affiliation.objects.create(name=p_affiliation.name,
@@ -931,6 +944,12 @@ class InvitationResponseForm(forms.ModelForm):
         fields = ('response',)
         widgets = {'response': forms.Select(choices=INVITATION_CHOICES)}
 
+    affiliation = forms.CharField(max_length=Affiliation.MAX_LENGTH,
+                                  validators=[validate_affiliation],
+                                  label=('Your affiliation (displayed '
+                                         'when the project is published)'),
+                                  required=False)
+
     def clean(self):
         """
         Invitation must be active, user must be invited
@@ -942,6 +961,9 @@ class InvitationResponseForm(forms.ModelForm):
         if self.instance.email not in self.user.get_emails():
             raise forms.ValidationError(
                   'You are not invited.')
+
+        if cleaned_data['response'] and not cleaned_data.get('affiliation'):
+            raise forms.ValidationError('You must specify your affiliation.')
 
         return cleaned_data
 

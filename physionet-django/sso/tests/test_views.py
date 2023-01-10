@@ -6,7 +6,7 @@ from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import path, reverse
 from physionet.urls import urlpatterns
-from user.models import User
+from user.models import Profile, User
 
 authentication_backends = settings.AUTHENTICATION_BACKENDS + ['sso.auth.RemoteUserBackend']
 
@@ -27,8 +27,14 @@ class TestViews(TestCase):
         self.inactive_user = User.objects.create(
             username='ssoinactive', email='sso_inactive@mit.edu', sso_id='inactive_remote_id'
         )
+        Profile.objects.create(
+            user=self.inactive_user, first_names='sso', last_name='inactive'
+        )
         self.active_user = User.objects.create(
             username='ssoactive', email='sso_active@mit.edu', sso_id='active_remote_id', is_active=True
+        )
+        Profile.objects.create(
+            user=self.active_user, first_names='sso', last_name='active'
         )
 
     def tearDown(self):

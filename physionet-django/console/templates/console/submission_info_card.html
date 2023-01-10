@@ -18,6 +18,9 @@
       <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="reassign-tab" data-toggle="tab" href="#reassign" role="tab" aria-controls="reassign" aria-selected="false">Assign new editor</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link {% if passphrase %} active {% endif %}" id="embargo-tab" data-toggle="tab" href="#embargo" role="tab" aria-controls="reassign" aria-selected="false">Embargo</a>
+      </li>
       {% endif %}
       {% if project.submission_status >= 40 %}
       <li class="nav-item">
@@ -41,6 +44,13 @@
           {% if project.latest_reminder %}
             <br>Latest reminder email sent on: {{ project.latest_reminder }}
           {% endif %}
+          {% if project.license.access_policy == AccessPolicy.OPEN %}
+            <br> Embargo: cannot be set on an open access project
+          {% elif project.embargo_files_days%}
+            <br> Embargo: set for {{ project.embargo_files_days }} day{{ project.embargo_files_days|pluralize }} after publication
+          {% else %}
+            <br>Embargo: none
+          {% endif %}
         </p>
         <p class="card-text">
           Description: {{ project.short_description }}
@@ -49,7 +59,7 @@
           View Project Preview</a>
           <button class="btn btn-lg btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Author Emails</button>
         </p>
-        {% if user == project.editor or user.is_admin %}
+        {% if user == project.editor or user.has_access_to_admin_console %}
         <p>To Download all the files use this command:<br>wget -r -N -c -np --user {{ user }} --ask-password {{ bulk_url_prefix }}{% url 'serve_active_project_file_editor' project.slug '' %}</p>
         {% endif %}
       </div>
@@ -137,6 +147,46 @@
           </div>
         <!-- End Modal -->
         </form>
+      </div>
+      {% endif %}
+
+      {# Embargo #}
+      {% if project.editor == user %}
+      <div class="tab-pane fade" id="embargo" role="tabpanel" aria-labelledby="embargo-tab">
+        {% if not project.license.access_policy == AccessPolicy.OPEN %}
+          {% if project.embargo_files_days %}
+            <p>The embargo, as set currently, will hide the files in this project version for <b>{{ project.embargo_files_days }} day{{ project.embargo_files_days|pluralize }}</b> after publication.</p>
+            <button class="btn btn-primary btn-rsp" type="button" data-toggle="modal" data-target="#embargo_modal">Update embargo</button>
+          {% else %}
+            <p>Embargo the files in this project version. </p>
+            <button class="btn btn-primary btn-rsp" type="button" data-toggle="modal" data-target="#embargo_modal">Embargo files</button>
+          {% endif %}
+
+
+            <!-- Start Modal -->
+            <div class="modal fade" id="embargo_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+              <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Embargo files</h5>
+                  </div>
+                  <form action="{% url 'submission_info' project.slug %}" method="POST" id="embargo_form">
+                    <div class="modal-body">
+                      <p>Enter the number of days to embargo the files from the publication date in "{{ project }}". Click to confirm that you want to embargo the files.</p>
+                        {% csrf_token %}
+                        {% include "form_snippet_no_labels.html" with form=embargo_form %}
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      <button type="submit" class="btn btn-primary" name="embargo_files">Embargo files</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+        {% else %}
+              The files for an open access project cannot be placed under embargo.
+        {% endif %}
       </div>
       {% endif %}
 
