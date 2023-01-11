@@ -15,13 +15,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='event',
             name='host',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, 
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
                                     related_name='old_events', to=settings.AUTH_USER_MODEL),
         ),
         migrations.AlterField(
             model_name='eventparticipant',
             name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, 
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
                                     related_name='old_event_participants', to=settings.AUTH_USER_MODEL),
         ),
     ]
