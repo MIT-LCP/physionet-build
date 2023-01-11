@@ -26,7 +26,7 @@ from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.fields import SafeHTMLField
 from user import validators
 from user.userfiles import UserFiles
-from user.enums import TrainingStatus, RequiredField, EventCategory
+from user.enums import TrainingStatus, RequiredField
 from user.managers import TrainingQuerySet
 
 logger = logging.getLogger(__name__)
