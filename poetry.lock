@@ -99,20 +99,20 @@ ssh = ["bcrypt (>=3.1.5)"]
 test = ["hypothesis (>=1.11.4,!=3.79.2)", "iso8601", "pretend", "pytest (>=6.2.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pytz"]
 
 [[package]]
-name = "django"
-version = "3.1.14"
+name = "Django"
+version = "3.2.16"
 description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-asgiref = ">=3.2.10,<4"
+asgiref = ">=3.3.2,<4"
 pytz = "*"
 sqlparse = ">=0.2.2"
 
 [package.extras]
-argon2 = ["argon2-cffi (>=16.1.0)"]
+argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
@@ -133,15 +133,15 @@ nested = ["django-nested-admin (>=3.0.21)"]
 tags = ["django-taggit"]
 
 [[package]]
-name = "django-background-tasks"
-version = "1.2.5"
+name = "django-background-tasks-updated"
+version = "1.2.7"
 description = "Database backed asynchronous task queue"
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-django-compat = ">=1.0.13"
+Django = ">=3.2.12"
 six = "*"
 
 [[package]]
@@ -154,17 +154,6 @@ python-versions = "*"
 
 [package.dependencies]
 django-js-asset = ">=1.2.2"
-
-[[package]]
-name = "django-compat"
-version = "1.0.15"
-description = "For- and backwards compatibility layer for Django 1.4, 1.7, 1.8, 1.9, 1.10, and 1.11"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-six = ">=1.10.0"
 
 [[package]]
 name = "django-debug-toolbar"
@@ -744,7 +733,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "246b6efd1e41213dac61d45ad3b0e8d70c41828da1389bbd1a57069d508bdb3a"
+content-hash = "fa74ce11ce3bf820938137daf150dffd627ee8ce91371c38364949681a2ebb7c"
 
 [metadata.files]
 asgiref = [
@@ -893,22 +882,20 @@ cryptography = [
     {file = "cryptography-36.0.1-pp38-pypy38_pp73-win_amd64.whl", hash = "sha256:39bdf8e70eee6b1c7b289ec6e5d84d49a6bfa11f8b8646b5b3dfe41219153316"},
     {file = "cryptography-36.0.1.tar.gz", hash = "sha256:53e5c1dc3d7a953de055d77bef2ff607ceef7a2aac0353b5d630ab67f7423638"},
 ]
-django = [
-    {file = "Django-3.1.14-py3-none-any.whl", hash = "sha256:0fabc786489af16ad87a8c170ba9d42bfd23f7b699bd5ef05675864e8d012859"},
-    {file = "Django-3.1.14.tar.gz", hash = "sha256:72a4a5a136a214c39cf016ccdd6b69e2aa08c7479c66d93f3a9b5e4bb9d8a347"},
+Django = [
+    {file = "Django-3.2.16-py3-none-any.whl", hash = "sha256:18ba8efa36b69cfcd4b670d0fa187c6fe7506596f0ababe580e16909bcdec121"},
+    {file = "Django-3.2.16.tar.gz", hash = "sha256:3adc285124244724a394fa9b9839cc8cd116faf7d159554c43ecdaa8cdf0b94d"},
 ]
 django-autocomplete-light = [
     {file = "django-autocomplete-light-3.9.4.tar.gz", hash = "sha256:0f6da75c1c7186698b867a467a8cdb359f0513fdd8e09288a0c2fb018ae3d94e"},
 ]
-django-background-tasks = [
-    {file = "django-background-tasks-1.2.5.tar.gz", hash = "sha256:e1b19e8d495a276c9d64c5a1ff8b41132f75d2f58e45be71b78650dad59af9de"},
+django-background-tasks-updated = [
+    {file = "django-background-tasks-updated-1.2.7.tar.gz", hash = "sha256:b8cdb115350e7c4706dd1ae8061df7d9d7827906c8563c6228abbf0867236954"},
+    {file = "django_background_tasks_updated-1.2.7-py3-none-any.whl", hash = "sha256:d137c095e174c28e85aceb9c5071af22572d41f134a85ead22eb102b33027625"},
 ]
 django-ckeditor = [
     {file = "django-ckeditor-6.3.2.tar.gz", hash = "sha256:ce0c806e40172dbea35330a207632701a6d418314ae8c8fa140fd277d9322c96"},
     {file = "django_ckeditor-6.3.2-py2.py3-none-any.whl", hash = "sha256:e1580105c9ff6fcaca6345acda1dc01416733027c61c6387e02dd5960b8ade3c"},
-]
-django-compat = [
-    {file = "django-compat-1.0.15.tar.gz", hash = "sha256:3ac9a3bedc56b9365d9eb241bc5157d0c193769bf995f9a78dc1bc24e7c2331b"},
 ]
 django-debug-toolbar = [
     {file = "django-debug-toolbar-3.2.4.tar.gz", hash = "sha256:644bbd5c428d3283aa9115722471769cac1bec189edf3a0c855fd8ff870375a9"},

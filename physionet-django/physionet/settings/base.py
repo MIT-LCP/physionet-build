@@ -541,3 +541,8 @@ MAX_TRAINING_REPORT_UPLOAD_SIZE = config('MAX_TRAINING_REPORT_UPLOAD_SIZE', cast
 
 # User model configurable settings
 MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)
+
+# Updating to Django to 3.2 requires DEFAULT_AUTO_FIELD to be specified
+# Starting at 3.2, new projects are generated with DEFAULT_AUTO_FIELD set to BigAutoField
+# https://docs.djangoproject.com/en/3.2/releases/3.2/#customizing-type-of-auto-created-primary-keys
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

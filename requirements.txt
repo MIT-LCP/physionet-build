@@ -4,13 +4,13 @@ bleach==3.3.0 \
 chardet==3.0.4 \
     --hash=sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae \
     --hash=sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691
-Django==3.1.14 \
-    --hash=sha256:0fabc786489af16ad87a8c170ba9d42bfd23f7b699bd5ef05675864e8d012859 \
-    --hash=sha256:72a4a5a136a214c39cf016ccdd6b69e2aa08c7479c66d93f3a9b5e4bb9d8a347
+Django==3.2.16 \
+    --hash=sha256:18ba8efa36b69cfcd4b670d0fa187c6fe7506596f0ababe580e16909bcdec121 \
+    --hash=sha256:3adc285124244724a394fa9b9839cc8cd116faf7d159554c43ecdaa8cdf0b94d
 django-autocomplete-light==3.9.4 \
     --hash=sha256:0f6da75c1c7186698b867a467a8cdb359f0513fdd8e09288a0c2fb018ae3d94e
-django-background-tasks==1.2.5 \
-    --hash=sha256:e1b19e8d495a276c9d64c5a1ff8b41132f75d2f58e45be71b78650dad59af9de
+django-background-tasks-updated==1.2.7 \
+    --hash=sha256:b8cdb115350e7c4706dd1ae8061df7d9d7827906c8563c6228abbf0867236954
 django-ckeditor==6.3.0 \
     --hash=sha256:b5c03d77b9fe848bf12520512a82d07533afa8678040731b1d4d86c1dcea8344 \
     --hash=sha256:d04f350f4a200c2a0f96307fc8827bd4e87af5694fb12d53189ba92025b2da37
