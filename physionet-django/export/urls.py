@@ -9,5 +9,3 @@ urlpatterns = [
     path('v1/published/<str:slug>/<str:version>', views.PublishedProjectDetail.as_view(),
          name='Published_project_detail'),
 ]
-# Parameters for testing URLs (see physionet/test_urls.py)
-TEST_DEFAULTS = {}
