@@ -1,7 +1,7 @@
 from django import forms
 
 from events.widgets import DatePickerInput
-from user.models import Event
+from events.models import Event
 
 
 class AddEventForm(forms.ModelForm):
