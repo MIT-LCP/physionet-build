@@ -21,6 +21,8 @@ from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext as _
 
+from events.enums import EventCategory
+from events import validators
 from project.validators import validate_version
 from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.fields import SafeHTMLField
