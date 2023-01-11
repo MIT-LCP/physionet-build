@@ -3,8 +3,8 @@ from django.utils.crypto import get_random_string
 from django.utils import timezone
 
 from django.contrib.auth.models import Permission
-from user.enums import EventCategory
-from user import validators
+from events.enums import EventCategory
+from events import validators
 
 
 # Create your models here.
