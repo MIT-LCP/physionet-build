@@ -7,7 +7,7 @@ from physionet.settings.base import *
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
 INTERNAL_IPS = config('INTERNAL_IPS', default='').split(',')
-SITE_ID = config('SITE_ID')
+SITE_ID = config('SITE_ID', cast=int)
 
 DATABASES = {
     'default': {
