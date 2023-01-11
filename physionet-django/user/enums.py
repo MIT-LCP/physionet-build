@@ -21,8 +21,3 @@ class RequiredField(IntEnum):
     @classmethod
     def choices(cls):
         return tuple((option.value, option.name) for option in cls)
-
-
-class EventCategory(models.TextChoices):
-    COURSE = "Course"
-    WORKSHOP = "Workshop"
