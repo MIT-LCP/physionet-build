@@ -1218,7 +1218,7 @@ class Event(models.Model):
     title = models.CharField(max_length=64)
     description = models.TextField(blank=True, null=True)
     category = models.CharField(choices=EventCategory.choices, max_length=32)
-    host = models.ForeignKey(User, on_delete=models.CASCADE)
+    host = models.ForeignKey(User, related_name='old_events', on_delete=models.CASCADE)
     added_datetime = models.DateTimeField(auto_now_add=True)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(default=timezone.now)
@@ -1248,7 +1248,7 @@ class EventParticipant(models.Model):
     """
     Captures information about participants in an event.
     """
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='old_event_participants', on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='participants')
     added_datetime = models.DateTimeField(auto_now_add=True)
 
