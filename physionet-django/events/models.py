@@ -3,7 +3,7 @@ from django.utils.crypto import get_random_string
 from django.utils import timezone
 
 from django.contrib.auth.models import Permission
-from user.enums import TrainingStatus, RequiredField, EventCategory
+from user.enums import EventCategory
 from user import validators
 
 
