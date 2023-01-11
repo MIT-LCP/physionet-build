@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 
 import notification.utility as notification
 from events.forms import AddEventForm
-from user.models import Event
+from events.models import Event
 
 
 @login_required
