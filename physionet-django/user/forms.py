@@ -29,7 +29,7 @@ from user.models import (
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
 from user.validators import UsernameValidator, validate_name, validate_training_file_size
-from user.validators import UsernameValidator, validate_institutional_email
+from user.validators import validate_institutional_email
 from user.widgets import ProfilePhotoInput
 
 from django.db.models import OuterRef, Exists
