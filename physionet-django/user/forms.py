@@ -507,8 +507,7 @@ class ReferenceCAF(forms.ModelForm):
                 respond promptly, as long response times will prevent approval
                 of your application.""",
             'reference_name': 'The full name of your reference.',
-            'reference_email': """The email address of your reference. It is
-                strongly recommended that this be an institutional email address.""",
+            'reference_email': """The academic or institutional email address of your reference.""",
             'reference_organization': """Your reference's employer or primary
                 affiliation.""",
             'reference_title': "Your reference's professional title or position."
@@ -535,6 +534,8 @@ class ReferenceCAF(forms.ModelForm):
             if reference_email in self.user.get_emails():
                 raise forms.ValidationError("""You can not put yourself
                     as a reference.""")
+            if reference_email.split('@')[-1] in ["yahoo.com", "163.com", "126.com", "outlook.com", "gmail.com", "qq.com", "foxmail.com"]:
+                raise forms.ValidationError('Email address is not allowed. Please provide an academic or institutional email address for your reference.')
             else:
                 return reference_email.strip()
 
