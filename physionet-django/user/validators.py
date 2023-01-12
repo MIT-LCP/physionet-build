@@ -265,3 +265,12 @@ def validate_training_file_size(value):
     if value.size > settings.MAX_TRAINING_REPORT_UPLOAD_SIZE:
         upload_file_size_limit = settings.MAX_TRAINING_REPORT_UPLOAD_SIZE // 1024
         raise ValidationError(f'The maximum file size that can be uploaded is {upload_file_size_limit} KB.')
+
+
+def validate_institutional_email(value):
+    """
+    Validate that the email address is from an institutional domain.
+    """
+    domains=["yahoo.com", "163.com", "126.com", "outlook.com", "gmail.com", "qq.com", "foxmail.com"]
+    if value.split('@')[-1] in domains:
+        raise ValidationError("Email address is not allowed. Please provide an academic or institutional email address.")

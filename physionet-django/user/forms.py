@@ -28,7 +28,7 @@ from user.models import (
 )
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
-from user.validators import UsernameValidator, validate_name, validate_training_file_size
+from user.validators import UsernameValidator, validate_name, validate_training_file_size , validate_institutional_email
 from user.widgets import ProfilePhotoInput
 
 from django.db.models import OuterRef, Exists
@@ -534,9 +534,8 @@ class ReferenceCAF(forms.ModelForm):
             if reference_email in self.user.get_emails():
                 raise forms.ValidationError("""You can not put yourself
                     as a reference.""")
-            if reference_email.split('@')[-1] in ["yahoo.com", "163.com", "126.com", "outlook.com", "gmail.com", "qq.com", "foxmail.com"]:
-                raise forms.ValidationError('Email address is not allowed. Please provide an academic or institutional email address for your reference.')
             else:
+                validate_institutional_email(reference_email)
                 return reference_email.strip()
 
     def clean_reference_title(self):
@@ -586,7 +585,7 @@ class CredentialApplicationForm(forms.ModelForm):
                        data['reference_organization'],
                        data['reference_title']]
 
-        ref_required = data['researcher_category'] in range(8)
+        ref_required = data['researcher_category'] in [0, 1, 6, 7]
         supervisor_required = data['researcher_category'] in [0, 1, 7]
         state_required = data['country'] in ['US', 'CA']
 
