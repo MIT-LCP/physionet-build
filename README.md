@@ -5,7 +5,7 @@ The new PhysioNet platform built using Django. The new site is currently hosted 
 ## Running Local Instance Using Django Server
 
 - Install sqlite3: `sudo apt-get install sqlite3`.
-- Create python environment with python 3.7.
+- Create python environment with >=python 3.8.
 - Activate virtual python environment.
 - Install python packages in `requirements.txt`.
 - Copy `.env.example` file to `.env`.
