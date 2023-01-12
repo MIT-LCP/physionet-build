@@ -8,6 +8,19 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework import mixins
 from rest_framework.response import Response
 
+# Temporary imports for Database List Function.
+from django.http import JsonResponse
+
+
+def database_list(request):
+    """
+    List all published databases
+    """
+    projects = PublishedProject.objects.filter(resource_type=0).order_by(
+        'publish_datetime')
+    serializer = PublishedProjectSerializer(projects, many=True)
+    return JsonResponse(serializer.data, safe=False)
+
 
 class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     """
@@ -28,7 +41,7 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
 
     authentication_classes = [SessionAuthentication, BasicAuthentication]
 
-    def get(self, request, slug, version, *args, **kwargs):
-        project = get_object_or_404(PublishedProject, slug=slug, version=version)
+    def get(self, request, project_slug, version, *args, **kwargs):
+        project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
         serializer = PublishedProjectDetailSerializer(project)
         return Response(serializer.data)
