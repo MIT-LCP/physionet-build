@@ -7,6 +7,9 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext as _
 from zxcvbn import zxcvbn
 
+# Required by old migrations
+from events.validators import validate_domain_list
+
 
 _subword = re.compile(r'\d+|[^\W\d_]+')
 
