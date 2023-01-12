@@ -922,9 +922,6 @@ def project_files_panel(request, project_slug, **kwargs):
     else:
         files_editable = False
 
-    if not request.is_ajax():
-        return redirect('project_files', project_slug=project_slug)
-
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
     file_warning = get_project_file_warning(display_files, display_dirs,
@@ -1145,9 +1142,6 @@ def preview_files_panel(request, project_slug, **kwargs):
     """
     project = kwargs['project']
     subdir = request.GET['subdir']
-
-    if not request.is_ajax():
-        return redirect('project_preview', project_slug=project_slug)
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
@@ -1567,10 +1561,6 @@ def published_files_panel(request, project_slug, version):
     subdir = request.GET.get('subdir')
     if subdir is None:
         raise Http404()
-
-    if not request.is_ajax():
-        return redirect('published_project', project_slug=project_slug,
-            version=version)
 
     user = request.user
 
