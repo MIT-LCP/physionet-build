@@ -14441,24 +14441,6 @@
   }
 },
 {
-  "model": "auth.group",
-  "fields": {
-    "name": "Host",
-    "permissions": [
-      [
-        "add_event",
-        "user",
-        "event"
-      ],
-      [
-        "view_event_menu",
-        "user",
-        "event"
-      ]
-    ]
-  }
-},
-{
   "model": "user.training",
   "pk": 1,
   "fields": {
@@ -21056,22 +21038,5 @@
         "is_active": true,
         "html_content": "<p>This is a sample CoC.</p>"
     }
-},
-{
-  "model": "user.event",
-  "pk": 1,
-  "fields": {
-    "title": "Introduction to Health Widgets",
-    "description": "What is a Health Widget? This course will teach you everything you need to know.",
-    "category": "Course",
-    "host": [
-      "rgmark"
-    ],
-    "added_datetime": "2022-10-24T19:38:27.795Z",
-    "start_date": "2022-10-24",
-    "end_date": "2022-12-20",
-    "slug": "iLII4L9jSDFh",
-    "allowed_domains": null
-  }
 }
 ]
