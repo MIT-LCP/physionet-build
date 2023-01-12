@@ -5,7 +5,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.crypto
 import django.utils.timezone
-import user.validators
+import events.validators
 
 
 class Migration(migrations.Migration):
@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 ('end_date', models.DateField(default=django.utils.timezone.now)),
                 ('slug', models.SlugField(default=django.utils.crypto.get_random_string, unique=True)),
                 ('allowed_domains', models.CharField(blank=True, max_length=100, null=True,
-                                                     validators=[user.validators.validate_domain_list])),
+                                                     validators=[events.validators.validate_domain_list])),
                 ('host', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
