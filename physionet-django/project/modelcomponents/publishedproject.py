@@ -19,6 +19,12 @@ from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_
 from user.models import Training
 
 
+class PublishedProjectTraining(models.Model):
+    publishedproject = models.ForeignKey('project.PublishedProject', on_delete=models.CASCADE)
+    trainingtype = models.ForeignKey('user.TrainingType', on_delete=models.CASCADE)
+    temporary = models.BooleanField(default=False, null=True)
+
+
 class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
@@ -44,6 +50,10 @@ class PublishedProject(Metadata, SubmissionInfo):
     featured = models.PositiveSmallIntegerField(null=True)
     has_wfdb = models.BooleanField(default=False)
     display_publications = models.BooleanField(default=True)
+    required_trainings = models.ManyToManyField('user.TrainingType',
+                through='project.PublishedProjectTraining', related_name='%(class)s')
+
+
     # Where all the published project files are kept, depending on access.
     PROTECTED_FILE_ROOT = os.path.join(settings.MEDIA_ROOT, 'published-projects')
     # Workaround for development
@@ -203,6 +213,24 @@ class PublishedProject(Metadata, SubmissionInfo):
         return reverse('display_published_project_file',
             args=(self.slug, self.version, os.path.join(subdir, file)))
 
+    def _has_valid_training(self, user):
+        """
+        Filter all training inside self.required_training and check if they are all valid
+        """
+        all = Training.objects.get_valid().filter(
+            user=user,
+            training_type__in=self.required_trainings.all()
+        ).count() == self.required_trainings.count()
+        temp = Training.objects.get_valid().filter(
+            user=user,
+            training_type__in=self.required_trainings.filter(
+                publishedprojecttraining__temporary=True)
+        ).distinct().count() == self.required_trainings.filter(
+            publishedprojecttraining__temporary=True
+        ).distinct().count()
+
+        return temp or all
+
     def has_access(self, user):
         """
         Whether the user has access to this project's files
@@ -222,10 +250,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                 user.is_authenticated
                 and user.is_credentialed
                 and DUASignature.objects.filter(project=self, user=user).exists()
-                and Training.objects.get_valid()
-                .filter(training_type__in=self.required_trainings.all(), user=user)
-                .count()
-                == self.required_trainings.count()
+                and self._has_valid_training(user)
             )
         elif self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
             return (
@@ -236,10 +261,7 @@ class PublishedProject(Metadata, SubmissionInfo):
                     requester=user,
                     status=DataAccessRequest.ACCEPT_REQUEST_VALUE
                 ).exists()
-                and Training.objects.get_valid()
-                .filter(training_type__in=self.required_trainings.all(), user=user)
-                .count()
-                == self.required_trainings.count()
+                and self._has_valid_training(user)
             )
 
         return False

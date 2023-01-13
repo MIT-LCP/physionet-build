@@ -853,6 +853,17 @@ class TestState(TestMixin):
         self.assertTrue(project.under_submission())
         self.assertFalse(project.author_editable())
 
+    def test_temporary_training_post_valid(self):
+        """test temporary training works as it should"""
+
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = PublishedProject.objects.get(title='Demo for visualizing waveforms')
+        temporary_count = project.required_trainings.filter(publishedprojecttraining__temporary=True).distinct().count()
+        self.client.post(reverse('manage_published_project', args=(project.slug, project.version)),
+                         {'trainings': ['1'], 'temporary_training': ['']})
+        self.assertEqual(PublishedProject.objects.filter(id=project.id,
+            publishedprojecttraining__temporary=False).distinct().count(), temporary_count + 1)
+
 
 class TestInteraction(TestMixin):
     """

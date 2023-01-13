@@ -11,6 +11,7 @@ from django import forms
 from django.conf import settings
 from django.core.validators import URLValidator, validate_email, validate_integer
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
@@ -27,6 +28,7 @@ from project.models import (
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
+    PublishedProjectTraining,
     exists_project_slug,
 )
 from project.projectfiles import ProjectFiles
@@ -326,6 +328,41 @@ class PublishForm(forms.Form):
             if exists_project_slug(data):
                 raise forms.ValidationError('The slug is already taken by another project.')
         return data
+
+
+class TemporaryTrainingForm(forms.Form):
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.project = project
+        self.trainings_id = []
+
+        trainings = project.required_trainings.values_list(
+            "id", "name", "publishedprojecttraining__temporary")
+        choice, initial = [], []
+
+        for training in trainings:
+            choice.append(training[0:2])
+            self.trainings_id.append(training[0])
+            if training[-1]:
+                initial.append(training[0])
+
+        self.fields['trainings'] = forms.MultipleChoiceField(
+            widget=forms.SelectMultiple, choices=choice)
+        self.fields['trainings'].initial = initial
+
+    def save(self):
+        """ Updates all the TrainingTypes assigned to a Project,
+                setting the selected as True and other as False"""
+
+        data = self.cleaned_data['trainings']   # trainingtype ids
+        PublishedProjectTraining.objects.filter(
+            publishedproject=self.project,
+            trainingtype_id__in=self.trainings_id).update(
+                temporary=Q(trainingtype_id__in=data))
+
+        return
 
 
 class TopicForm(forms.Form):

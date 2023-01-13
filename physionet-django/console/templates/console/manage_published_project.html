@@ -390,6 +390,19 @@
   </div>
 </div>
 
+<div class="card mb-3">
+  <div class="card-header">
+    Manage Temporary Trainings
+  </div>
+  <div class="card-body">
+  <form action="" method="post">
+    {% csrf_token %}
+    {% include "project/content_inline_form_snippet.html" with form=trainings_form %}
+    <button class="btn btn-primary btn-fixed" name="temporary_training" type="submit">Adjust Trainings</button>
+  </form>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block local_js_bottom %}

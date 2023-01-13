@@ -71,6 +71,11 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
         published_project.make_zip()
 
 
+class ActiveProjectTraining(models.Model):
+    activeproject = models.ForeignKey('project.ActiveProject', on_delete=models.CASCADE)
+    trainingtype = models.ForeignKey('user.TrainingType', on_delete=models.CASCADE)
+    temporary = models.BooleanField(default=False, null=True)
+
 
 class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
@@ -88,6 +93,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
+    required_trainings = models.ManyToManyField('user.TrainingType',
+                                                through='project.ActiveProjectTraining', related_name='%(class)s')
 
     # Max number of active submitting projects a user is allowed to have
     MAX_SUBMITTING_PROJECTS = 10

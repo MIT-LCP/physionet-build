@@ -18,6 +18,24 @@
         }
     },
     {
+        "model": "user.trainingtype",
+        "pk": 2,
+        "fields": {
+            "name": "Hackatron Training (Temporary Training)",
+            "description": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer vitae ex magna. Pellentesque egestas dictum urna sed interdum.</p> <p>Donec semper ex eget felis fringilla fringilla.</p> <p> Ut fermentum purus sed pretium auctor. Nunc rhoncus dolor at lacus ultricies, vel sodales dolor molestie.</p> <p> Aenean dignissim, enim non suscipit mollis, sapien dui finibus leo, a convallis nunc ex quis turpis. Mauris et metus felis.</p> <p> Pellentesque mattis pulvinar tincidunt. Quisque nec aliquet nulla. Sed et nunc tempor, pellentesque purus eget, gravida sem. Nunc eu lacinia ante. Quisque fringilla cursus feugiat. Curabitur nec velit ut nulla egestas auctor. Cras condimentum viverra nibh, vel dignissim neque porttitor sed.</p>",
+            "home_page": "/about/citi-course/",
+            "valid_duration": "1095 00:00:00",
+            "required_field": 1,
+            "questions": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ]
+        }
+    },
+    {
         "model": "user.question",
         "pk": 1,
         "fields": {

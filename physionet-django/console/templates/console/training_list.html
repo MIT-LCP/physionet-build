@@ -40,13 +40,18 @@
               Rejected <span class="badge badge-pill badge-info">{{ rejected_count }}</span>
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link {% if status == 'short-term-training' %}active{% endif %}" id="short-term-training-tab" href="{% url 'training_list' 'short-term-training' %}" role="tab">
+              Short Term Training <span class="badge badge-pill badge-info">{{ short_term_training_count }}</span>
+            </a>
+          </li>
         </ul>
       </div>
     <div class="card-body">
       <div class="tab-content">
         {% if trainings %}
           <input type="search" oninput="search('{% url "training_list" status=status %}', value);" placeholder="Search..." >
-          {% if status == 'review' %}
+          {% if status == 'review' or status == 'short-term-training' %}
             {% include 'console/review_training_table.html' %}
           {% elif status == 'valid' %}
             {% include 'console/valid_training_table.html' %}

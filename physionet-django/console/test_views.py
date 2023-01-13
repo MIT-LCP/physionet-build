@@ -17,7 +17,7 @@ from project.models import (
     PublishedProject,
     StorageRequest,
 )
-from user.models import User
+from user.models import User, Training
 from physionet.models import FrontPageButton, StaticPage
 from user.test_views import TestMixin, prevent_request_warnings
 
@@ -614,3 +614,11 @@ class TestFrontPageButton(TestMixin):
             reverse("frontpage_button_delete", args=(self.button_1.pk,)), follow=True)
         self.assertRedirects(response, reverse("frontpage_buttons"), status_code=302)
         self.assertEqual(FrontPageButton.objects.count(), frontpage_button_count - 1)
+
+    def test_short_term_training(self):
+        """test short-term training works as it should"""
+
+        trainings = Training.objects.select_related(
+        'user__profile', 'training_type').order_by('-user__is_credentialed', 'application_datetime')
+        response = self.client.get(reverse('training_list', args=("review",)))
+        self.assertEqual(response.context['short_term_training_count'], trainings.get_short_term_training().count())

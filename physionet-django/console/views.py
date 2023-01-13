@@ -817,7 +817,8 @@ def manage_published_project(request, project_slug, version):
     - Create GCP bucket and send files
     """
     try:
-        project = PublishedProject.objects.get(slug=project_slug, version=version)
+        project = PublishedProject.objects.prefetch_related(
+            "required_trainings").get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
         raise Http404()
     user = request.user
@@ -825,6 +826,7 @@ def manage_published_project(request, project_slug, version):
     anonymous_url = project.get_anonymous_url()
     topic_form = forms.TopicForm(project=project)
     topic_form.set_initial()
+    trainings_form = forms.TemporaryTrainingForm(project=project)
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
     data_access_form = forms.DataAccessForm(project=project)
@@ -845,6 +847,13 @@ def manage_published_project(request, project_slug, version):
                 project.set_topics(topic_form.topic_descriptions)
                 # Set the topics
                 messages.success(request, 'The topics have been set')
+            else:
+                messages.error(request, 'Invalid submission. See form below.')
+        elif 'temporary_training' in request.POST:
+            trainings_form = forms.TemporaryTrainingForm(project=project, data=request.POST)
+            if trainings_form.is_valid():
+                trainings_form.save()
+                messages.success(request, 'The temporary trainings have been adjusted')
             else:
                 messages.error(request, 'Invalid submission. See form below.')
         elif 'make_checksum_file' in request.POST:
@@ -942,6 +951,7 @@ def manage_published_project(request, project_slug, version):
             'latest_version': latest_version,
             'published': True,
             'topic_form': topic_form,
+            'trainings_form': trainings_form,
             'deprecate_form': deprecate_form,
             'has_credentials': has_credentials,
             'data_access_form': data_access_form,
@@ -1561,12 +1571,14 @@ def training_list(request, status):
     valid_training = trainings.get_valid()
     expired_training = trainings.get_expired()
     rejected_training = trainings.get_rejected()
+    short_term_training = trainings.get_short_term_training()
 
     training_by_status = {
         'review': review_training,
         'valid': valid_training.order_by('-process_datetime'),
         'expired': expired_training,
         'rejected': rejected_training.order_by('-process_datetime'),
+        'short-term-training': short_term_training.order_by('-process_datetime')
     }
 
     display_training = training_by_status[status]
@@ -1578,7 +1590,8 @@ def training_list(request, status):
                 'review': 'console/review_training_table.html',
                 'valid': 'console/valid_training_table.html',
                 'expired': 'console/expired_training_table.html',
-                'rejected': 'console/rejected_training_table.html', }
+                'rejected': 'console/rejected_training_table.html',
+                'short-term-training': 'console/review_training_table.html'}
             return render(request, template_by_status[status], {'trainings': display_training, 'status': status})
 
     return render(
@@ -1591,6 +1604,7 @@ def training_list(request, status):
             'valid_count': valid_training.count(),
             'expired_count': expired_training.count(),
             'rejected_count': rejected_training.count(),
+            'short_term_training_count': short_term_training.count(),
             'training_nav': True,
         },
     )
