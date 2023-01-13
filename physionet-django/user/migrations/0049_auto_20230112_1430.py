@@ -4,6 +4,7 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
+    MIGRATE_AFTER_INSTALL = True
 
     dependencies = [
         ('user', '0048_auto_20221129_1512'),
