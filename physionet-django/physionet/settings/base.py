@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'ckeditor',
     # 'django_cron',
     'background_task',
+    'rest_framework',
 
     'user',
     'project',
@@ -74,6 +75,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ]
+}
 
 CRON_CLASSES = [
     "physionet.cron.RemoveUnverifiedEmails",

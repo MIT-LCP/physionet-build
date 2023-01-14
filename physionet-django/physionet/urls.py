@@ -11,6 +11,8 @@ from physionet import views
 from physionet.settings.base import StorageTypes
 from project.projectfiles import ProjectFiles
 
+from export.views import database_list
+
 handler403 = 'physionet.views.error_403'
 handler404 = 'physionet.views.error_404'
 handler500 = 'physionet.views.error_500'
@@ -32,7 +34,7 @@ urlpatterns = [
     # search app
     path('', include('search.urls')),
     # export app
-    path('', include('export.urls')),
+    path('api/', include('export.urls')),
 
     path('', views.home, name='home'),
     path('ping/', views.ping),
@@ -72,6 +74,13 @@ urlpatterns = [
     path(
         'robots.txt', lambda x: HttpResponse("User-Agent: *\\Allow: /", content_type="text/plain"), name="robots_file"
     ),
+
+    # path for the Browsable API Authentication
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+
+    # path for Database List - to be deprecated soon
+    path('rest/database-list/', database_list,
+         name='database_list')
 ]
 
 if ProjectFiles().is_lightwave_supported:
