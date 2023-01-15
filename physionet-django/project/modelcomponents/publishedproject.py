@@ -50,8 +50,10 @@ class PublishedProject(Metadata, SubmissionInfo):
     featured = models.PositiveSmallIntegerField(null=True)
     has_wfdb = models.BooleanField(default=False)
     display_publications = models.BooleanField(default=True)
-    required_trainings = models.ManyToManyField('user.TrainingType',
-                through='project.PublishedProjectTraining', related_name='%(class)s')
+    required_trainings = models.ManyToManyField(
+        'user.TrainingType',
+        through='project.PublishedProjectTraining',
+        related_name='%(class)s')
 
 
     # Where all the published project files are kept, depending on access.

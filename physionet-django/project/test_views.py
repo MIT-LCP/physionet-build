@@ -858,10 +858,12 @@ class TestState(TestMixin):
 
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         project = PublishedProject.objects.get(title='Demo for visualizing waveforms')
-        temporary_count = project.required_trainings.filter(publishedprojecttraining__temporary=True).distinct().count()
+        temporary_count = project.required_trainings.filter(
+            publishedprojecttraining__temporary=True).distinct().count()
         self.client.post(reverse('manage_published_project', args=(project.slug, project.version)),
                          {'trainings': ['1'], 'temporary_training': ['']})
-        self.assertEqual(PublishedProject.objects.filter(id=project.id,
+        self.assertEqual(PublishedProject.objects.filter(
+            id=project.id,
             publishedprojecttraining__temporary=False).distinct().count(), temporary_count + 1)
 
 

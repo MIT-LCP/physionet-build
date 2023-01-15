@@ -34,4 +34,6 @@ class TrainingQuerySet(QuerySet):
     def get_short_term_training(self):
         """Returns list of short term trainings awaiting review"""
 
-        return self.filter(status=TrainingStatus.REVIEW, training_type__publishedprojecttraining__temporary=True).distinct()
+        return self.filter(
+            status=TrainingStatus.REVIEW,
+            training_type__publishedprojecttraining__temporary=True).distinct()

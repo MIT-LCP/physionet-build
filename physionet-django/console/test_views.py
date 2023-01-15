@@ -619,6 +619,6 @@ class TestFrontPageButton(TestMixin):
         """test short-term training works as it should"""
 
         trainings = Training.objects.select_related(
-        'user__profile', 'training_type').order_by('-user__is_credentialed', 'application_datetime')
+            'user__profile', 'training_type').order_by('-user__is_credentialed', 'application_datetime')
         response = self.client.get(reverse('training_list', args=("review",)))
         self.assertEqual(response.context['short_term_training_count'], trainings.get_short_term_training().count())
