@@ -250,14 +250,6 @@ def validate_alphaplusplus(value):
         raise ValidationError('Letters, numbers, spaces, underscores, hyphens, apostrophes, periods, and commas only. Must begin with a letter or number.')
 
 
-def validate_domain_list(value):
-    """
-    Validate a list of comma separated email domains ('mit.edu, buffalo.edu, gmail.com').
-    """
-    if not re.fullmatch(r'(\w+\.\w+,*\s*)*', value):
-        raise ValidationError('Must be separated with commas.')
-
-
 def validate_training_file_size(value):
     """
     Validate the file size of a file.

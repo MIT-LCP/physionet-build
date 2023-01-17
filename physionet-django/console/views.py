@@ -24,6 +24,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
+from events.models import Event
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -62,9 +63,7 @@ from user.models import (
     User,
     Training,
     TrainingQuestion,
-    CodeOfConduct,
-    Event,
-    EventParticipant
+    CodeOfConduct
 )
 from physionet.enums import LogCategory
 from console import forms, utility, services
