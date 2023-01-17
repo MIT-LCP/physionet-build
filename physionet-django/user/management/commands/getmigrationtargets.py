@@ -102,6 +102,7 @@ class Command(BaseCommand):
 
         applied = executor.loader.applied_migrations
         desired = []
+        all_migration_apps = set()
 
         if options['verbosity'] >= 2:
             sys.stderr.write('Default migration plan:\n')
@@ -111,6 +112,7 @@ class Command(BaseCommand):
         for migration, _ in default_plan:
             app = migration.app_label
             name = migration.name
+            all_migration_apps.add(app)
             if options['current']:
                 # If --current is set, only list migrations that have
                 # already been applied.
@@ -150,7 +152,11 @@ class Command(BaseCommand):
         # default.  (This should ensure that the migrations *can* be
         # applied by calling 'manage.py migrate APP NAME' separately
         # for each app, in the given order, without going backwards.)
+        # For installed apps that contain migrations, but no
+        # migrations are currently selected, set the target to None.
         targets = collections.OrderedDict()
+        for app in sorted(all_migration_apps):
+            targets[app] = None
         for (app, name) in desired:
             targets[app] = name
             targets.move_to_end(app)
@@ -210,6 +216,10 @@ class Command(BaseCommand):
         # Print target migrations in the order that they should be
         # applied.
         for (app, name) in targets.items():
+            # The name "zero" is recognized by the migrate command as
+            # signifying the state where no migrations are applied.
+            if name is None:
+                name = 'zero'
             sys.stdout.write('{} {}\n'.format(app, name))
 
     def _print_migration_plan(self, plan, applied_migrations):
