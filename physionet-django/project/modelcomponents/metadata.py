@@ -587,7 +587,7 @@ class Reference(models.Model):
 
     class Meta:
         default_permissions = ()
-        unique_together = (('description', 'content_type', 'order'),)
+        unique_together = (('description', 'object_id', 'order'),)
 
     def __str__(self):
         return self.description

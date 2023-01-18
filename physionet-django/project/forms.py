@@ -703,6 +703,11 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                     raise forms.ValidationError('References must be unique.')
                 descriptions.append(description)
 
+    def save(self, *args, **kwargs):
+        # change the value of order. set it as index of forms, this should preserve the order
+        for form in self.forms:
+            form.instance.order = self.forms.index(form) + 1
+        super().save(*args, **kwargs)
 
 class PublicationFormSet(BaseGenericInlineFormSet):
     """
