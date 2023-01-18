@@ -3,7 +3,7 @@ import re
 from django.conf import settings
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
+from django.core.validators import RegexValidator, validate_email
 from django.utils.translation import gettext as _
 from zxcvbn import zxcvbn
 
@@ -271,6 +271,7 @@ def validate_institutional_email(value):
     """
     Validate that the email address is from an institutional domain.
     """
+    validate_email(value)
     domains = ["yahoo.com", "163.com", "126.com", "outlook.com", "gmail.com", "qq.com", "foxmail.com"]
     if value.split('@')[-1].lower() in domains:
         raise ValidationError('Please provide an academic or institutional email address.')
