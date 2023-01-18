@@ -28,6 +28,7 @@ from user.models import (
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
 from user.validators import UsernameValidator, validate_name, validate_training_file_size
+from user.validators import validate_institutional_email
 from user.widgets import ProfilePhotoInput
 
 from django.db.models import OuterRef, Exists
@@ -506,8 +507,7 @@ class ReferenceCAF(forms.ModelForm):
                 respond promptly, as long response times will prevent approval
                 of your application.""",
             'reference_name': 'The full name of your reference.',
-            'reference_email': """The email address of your reference. It is
-                strongly recommended that this be an institutional email address.""",
+            'reference_email': """The academic or institutional email address of your reference.""",
             'reference_organization': """Your reference's employer or primary
                 affiliation.""",
             'reference_title': "Your reference's professional title or position."
@@ -535,6 +535,7 @@ class ReferenceCAF(forms.ModelForm):
                 raise forms.ValidationError("""You can not put yourself
                     as a reference.""")
             else:
+                validate_institutional_email(reference_email)
                 return reference_email.strip()
 
     def clean_reference_title(self):
