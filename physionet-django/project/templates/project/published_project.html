@@ -349,22 +349,7 @@
           {% if project.compressed_storage_size %}
             <li><a href="{% url 'serve_published_project_zip' project.slug project.version %}">Download the ZIP file</a> ({{ compressed_size }})</li>
           {% endif %}
-          {% if data_access %}
-            {% for item in data_access %}
-              {% if item.platform == 1 %} {# ID for AWS open data #}
-                <li>Access using AWS <a href="{{item.location}}">Open Data repository</a></li>
-              {% elif item.platform == 2 %} {# ID for AWS cloud bucket #}
-                <li><a href="{% url 'published_project_request_access' project.slug project.version 2 %}">Request access</a> to the data using AWS command line tools: <pre class="shell-command">aws s3 sync {{item.location}} DESTINATION</pre></li>
-              {% elif item.platform == 3 %} {# ID for Google cloud bucket email #}
-                {% if project.gcp and project.gcp.sent_files %}
-                    <li><a href="{% url 'published_project_request_access' project.slug project.version 3 %}">Request access</a> to the files using the <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">Google Cloud Storage Browser</a>. Login with a Google account is required.</li>
-                {% endif %}
-
-              {% elif item.platform == 4 %} {# ID for google BigQuery email #}
-                <li><a href="{% url 'published_project_request_access' project.slug project.version 4 %}">Request access</a> using Google BigQuery.</li>
-              {% endif %}
-            {% endfor %}
-          {% endif %}
+          {% include "project/published_project_data_access.html" %}
           {% if is_wget_supported %}
             <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
           {% endif %}
@@ -399,17 +384,7 @@
           {% elif project.compressed_storage_size %}
             <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})</li>
           {% endif %}
-        {% if data_access %}
-          {% for item in data_access %}
-            {% if item.platform == 1 %} {# ID for AWS open data #}
-              <li>Access using AWS <a href="{{item.location}}">Open Data repository</a></li>
-            {% elif item.platform == 2 %} {# ID for AWS cloud bucket #}
-              <li>Access the data using AWS command line tools: <pre class="shell-command">aws s3 sync {{item.location}} DESTINATION</pre></li>
-            {% elif item.platform == 4 %} {# ID for google BigQuery #}
-              <li><a href="{% url 'published_project_request_access' project.slug project.version 4 %}">Request access</a> using Google BigQuery.</li>
-            {% endif %}
-          {% endfor %}
-        {% endif %}
+          {% include "project/published_project_data_access.html" %}
           {% if is_wget_supported %}
             <li>Download the files using your terminal: <pre class="shell-command">wget -r -N -c -np {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre></li>
           {% endif %}
