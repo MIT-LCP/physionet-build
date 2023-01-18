@@ -2,18 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-from django.conf import settings
-from django.core.management import call_command
-from project.models import ProjectType
-import os
 
-def load_fixture(apps, schema_editor):
-    project_types_fixtures = os.path.join(settings.BASE_DIR, 'project',
-                                          'fixtures', 'project-types.json')
-    call_command('loaddata', project_types_fixtures) 
-
-def unload_fixture(apps, schema_editor):
-    ProjectType.objects.all().delete()
 
 class Migration(migrations.Migration):
 
@@ -30,7 +19,6 @@ class Migration(migrations.Migration):
                 ('description', models.TextField()),
             ],
         ),
-        migrations.RunPython(load_fixture, reverse_code=unload_fixture),
         migrations.AlterField(
             model_name='activeproject',
             name='resource_type',

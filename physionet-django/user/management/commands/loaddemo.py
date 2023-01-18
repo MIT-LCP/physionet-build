@@ -17,6 +17,9 @@ from django.core.management.base import BaseCommand
 from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
 from physionet.utility import get_project_apps
 
+from user.models import Training, TrainingType, TrainingQuestion, CredentialApplication
+from user.enums import TrainingStatus
+
 
 class Command(BaseCommand):
 
@@ -31,6 +34,9 @@ class Command(BaseCommand):
                 if choice != 'y':
                     sys.exit('Exiting from load. No actions applied.')
             print('Continuing loading demo data')
+
+        # Pre-populate the database
+        pre_load_data()
 
         # Load licences and software languages
         site_data_fixtures = os.path.join(settings.BASE_DIR, 'project',
@@ -139,3 +145,47 @@ def copy_demo_static():
                 os.chmod(os.path.join(dirpath, f), 0o444)
             for d in subdirs:
                 os.chmod(os.path.join(dirpath, d), 0o555)
+
+
+def pre_load_data():
+    """Pre populate the data base before loading other data."""
+
+    call_command('loaddata', os.path.join(settings.BASE_DIR, 'project',
+                                          'fixtures', 'project-types.json'))
+
+    call_command('loaddata', os.path.join(settings.BASE_DIR, 'user',
+                                          'fixtures', 'demo-training-type.json'))
+
+    training_type = TrainingType.objects.first()
+
+    status_mapping = {
+        0: TrainingStatus.REVIEW,
+        1: TrainingStatus.REJECTED,
+        2: TrainingStatus.ACCEPTED,
+        3: TrainingStatus.WITHDRAWN,
+        4: TrainingStatus.REJECTED
+    }
+
+    for credential_application in CredentialApplication.objects.all():
+        report_url = (
+            ""
+            if credential_application.training_completion_report_url is None
+            else credential_application.training_completion_report_url
+        )
+
+        training = Training.objects.create(
+            slug=credential_application.slug,
+            training_type=training_type,
+            user=credential_application.user,
+            completion_report=credential_application.training_completion_report,
+            completion_report_url=report_url,
+            application_datetime=credential_application.training_completion_date,
+            process_datetime=credential_application.decision_datetime,
+            status=status_mapping[credential_application.status],
+        )
+
+        training_questions = []
+        for question in training.training_type.questions.all():
+            training_questions.append(TrainingQuestion(training=training, question=question))
+
+        TrainingQuestion.objects.bulk_create(training_questions)
