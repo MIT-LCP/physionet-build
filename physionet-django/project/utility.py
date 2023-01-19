@@ -285,24 +285,28 @@ def grant_aws_open_data_access(user, project):
     # Do a request to AWS and try to add the user ID to the bucket
     response = requests.post(url, data=json.dumps(payload), headers=headers)
 
+    # Indicate whether we successfully granted access to the user
+    granted_access = False
     if response.status_code < 200 or response.status_code >= 300:
         LOGGER.info("Error sending adding the AWS ID to the Bucket Policy."
                     "The request payload is {0}\nThe errror is the following: "
                     "{1}\n".format(payload, response.content))
-        return "Access could not be granted."
+        return "Access could not be granted.", granted_access
 
     message = response.json()['message']
     if message == "No new accounts to add":
         LOGGER.info("AWS response adding {0} to project {1}\n{2}".format(
             user.cloud_information.aws_id, project, message))
-        return message
+        granted_access = True
+        return message, granted_access
     elif "Accounts ['{}'] have been added".format(user.cloud_information.aws_id) in message:
         LOGGER.info("AWS response adding {0} to project {1}\n{2}".format(
             user.cloud_information.aws_id, project, message))
-        return message.split(',')[0]
+        granted_access = True
+        return message.split(',')[0], granted_access
     LOGGER.info('Unknown response from AWS - {0}\nThe payload is {1}'.format(
         payload, response.content))
-    return "There was an error granting access."
+    return "There was an error granting access.", granted_access
 
 
 def grant_gcp_group_access(user, project, data_access):
@@ -314,13 +318,15 @@ def grant_gcp_group_access(user, project, data_access):
     """
     email = user.cloud_information.gcp_email.email
     service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
-    access = ""
+
+    # Indicate whether we successfully granted access to the user
+    granted_access = False
     if data_access.platform == 3:
         access = "Access to the GCP bucket"
     elif data_access.platform == 4:
         access = "Access to the GCP BigQuery"
     else:
-        return False
+        return "Invalid data access platform for GCP", granted_access
 
     try:
         group_members = service.members()
@@ -329,14 +335,16 @@ def grant_gcp_group_access(user, project, data_access):
         if outcome['role'] == "MEMBER":
             message = '{0} has been granted to {1} for project: {2}'.format(
                 access, email, project)
+            granted_access = True
             LOGGER.info("{0} email {1}".format(message, data_access.location))
-            return message
+            return message, granted_access
         raise Exception('Wrong access granted to {0} in GCP email {1}'.format(
             email, data_access.location))
     except HttpError as error:
         if json.loads(error.content)['error']['message'] == 'Member already exists.':
+            granted_access = True
             return '{0} was previously awarded to {1} for project: {2}'.format(
-                access, email, project)
+                access, email, project), granted_access
         raise error
 
 
