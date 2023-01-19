@@ -707,7 +707,6 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
         # change the value of order. set it as index of form
         for form in self.forms:
             form.instance.order = self.forms.index(form) + 1
-            print(form.instance.__dict__, 'Changed: ', form.has_changed())
         super().save(*args, **kwargs)
 
 
