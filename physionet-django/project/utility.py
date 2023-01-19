@@ -341,6 +341,14 @@ def grant_gcp_group_access(user, project, data_access):
         raise Exception('Wrong access granted to {0} in GCP email {1}'.format(
             email, data_access.location))
     except HttpError as error:
+        if error.resp.status == 412:
+            # Google has a somewhat cryptic 412 error: "Condition not met"
+            # In our experience, this occurred when the user specified a non-Google
+            # e-mail in their cloud profile which could not be added to the group.
+            return (
+                'Unable to provision access, please verify '
+                '{0} is a valid Google account'.format(email)
+            ), granted_access
         if json.loads(error.content)['error']['message'] == 'Member already exists.':
             granted_access = True
             return '{0} was previously awarded to {1} for project: {2}'.format(
