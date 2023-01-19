@@ -99,7 +99,9 @@
             </li>
           </ul>
         </li>
+      {% endif %}
 
+      {% if perms.user.can_review_training %}
         <!-- training -->
         <li class="nav-item {% if training_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
           <a id="nav_storage_requests" class="nav-link" href="{% url 'training_list' 'review' %}">
