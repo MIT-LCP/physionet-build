@@ -22,12 +22,6 @@ def migrate_forward(apps, schema_editor):
             ref.order = n + 1
             ref.save()
 
-    for project in LegacyProject.objects.all():
-        refs = project.references.all().order_by('id')
-        for n, ref in enumerate(refs):
-            ref.order = n + 1
-            ref.save()
-
 
 def migrate_backward(apps, schema_editor):
     pass
@@ -57,7 +51,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='reference',
-            unique_together={('description', 'content_type', 'order')},
+            unique_together={('description', 'object_id', 'order')},
         ),
         migrations.RunPython(migrate_forward, migrate_backward),
     ]
