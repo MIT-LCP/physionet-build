@@ -345,7 +345,9 @@ def grant_gcp_group_access(user, project, data_access):
             granted_access = True
             return '{0} was previously awarded to {1} for project: {2}'.format(
                 access, email, project), granted_access
-        raise error
+        else:
+            return 'Unable to grant {0} access to {1} for {2}'.format(
+                access, email, project), granted_access
 
 
 # The following regular expression defines user agents that are

@@ -2227,9 +2227,11 @@ def published_project_request_access(request, project_slug, version, access_type
                 messages.error(request, message)
         elif access_type in [3, 4] and access.platform == access_type:
             message, granted_access = utility.grant_gcp_group_access(user, project, access)
+            notification.notify_gcp_access_request(access, user, project, granted_access)
             if granted_access:
-                notification.notify_gcp_access_request(access, user, project)
                 messages.success(request, message)
+            else:
+                messages.error(request, message)
 
     return redirect('published_project', project_slug=project_slug, version=version)
 

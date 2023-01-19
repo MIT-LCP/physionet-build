@@ -1,5 +1,6 @@
 Dear {{ user.get_full_name }},
 
+{% if successful %}
 {% if data_access.platform == 3 %}
 You have requested access to use {{ project }} in GCP Storage.
 
@@ -22,6 +23,18 @@ For information on how to access this resource please follow these steps
 3. You should now see the {{ SITE_NAME }} datasets in the left sidebar.
    - If you don't have access to a particular dataset, no information will be displayed when you click on the dataset name (and you may see a spinning circle icon).
    - If you cannot add the project "physionet-data", please access it through this link: https://console.cloud.google.com/bigquery?project=physionet-data&page=dataset
+{% endif %}
+{% else %}
+We are sorry to say that we were unable to grant access to {{ project }} in GCP.
+
+Reasons might include:
+ - An invalid cloud e-mail was specified. Please ensure the e-mail in your cloud profile is a valid
+ Google e-mail. Only Google e-mails may be used for GCP access.
+ - The service is no longer available.
+
+Please reapply for access if you are able to address the issue.
+
+If you think this was an error on our part, please contact {{ contact_email }}.
 {% endif %}
 
 {{ signature }}
