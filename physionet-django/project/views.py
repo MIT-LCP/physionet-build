@@ -1732,7 +1732,7 @@ def published_project_license(request, project_slug, version):
         'license_content':license_content})
 
 
-def published_project_required_trainings(request, project_slug, version):
+def published_project_required_training(request, project_slug, version):
     """Displays a published project's required training"""
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
 
@@ -1740,7 +1740,7 @@ def published_project_required_trainings(request, project_slug, version):
 
     return render(
         request,
-        'project/published_project_required_trainings.html',
+        'project/published_project_required_training.html',
         {'project': project, 'required_trainings': required_trainings},
     )
 

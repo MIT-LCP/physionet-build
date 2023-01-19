@@ -18,7 +18,7 @@
         <li>complete required training:</li>
         <ul>
           {% for required_training in project.required_trainings.all %}
-            <li><a href="{% url 'published_project_required_trainings' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
+            <li><a href="{% url 'published_project_required_training' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
           {% endfor %}
           You may submit your training <a href="{% url 'edit_training' %}">here</a>.
         </ul>
@@ -36,7 +36,7 @@
         <li>complete required training:</li>
         <ul>
           {% for required_training in project.required_trainings.all %}
-            <li><a href="{% url 'published_project_required_trainings' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
+            <li><a href="{% url 'published_project_required_training' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
           {% endfor %}
           You may submit your training <a href="{% url 'edit_training' %}">here</a>.
         </ul>
