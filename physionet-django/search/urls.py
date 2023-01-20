@@ -45,9 +45,9 @@ urlpatterns = [
         name='published_project_dua',
     ),
     path(
-        'content/<project_slug>/view-required-trainings/<version>/',
-        project_views.published_project_required_trainings,
-        name='published_project_required_trainings',
+        'content/<project_slug>/view-required-training/<version>/',
+        project_views.published_project_required_training,
+        name='published_project_required_training',
     ),
     path(
         'content/<project_slug>/view-dua/<version>/',
