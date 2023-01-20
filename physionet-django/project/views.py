@@ -1741,7 +1741,7 @@ def published_project_required_training(request, project_slug, version):
     return render(
         request,
         'project/published_project_required_training.html',
-        {'project': project, 'required_trainings': required_trainings},
+        {'project': project, 'required_training': required_trainings},
     )
 
 
