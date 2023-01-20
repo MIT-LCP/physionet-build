@@ -24,11 +24,15 @@ class AddEventForm(forms.ModelForm):
         super(AddEventForm, self).__init__(*args, **kwargs)
 
     def save(self):
-        Event.objects.create(title=self.cleaned_data['title'],
-                             category=self.cleaned_data['category'],
-                             host=self.host,
-                             description=self.cleaned_data['description'],
-                             start_date=self.cleaned_data['start_date'],
-                             end_date=self.cleaned_data['end_date'],
-                             allowed_domains=self.cleaned_data['allowed_domains']
-                             )
+        # Handle updating the event
+        if self.initial:
+            self.instance.save()
+        else:
+            Event.objects.create(title=self.cleaned_data['title'],
+                                 category=self.cleaned_data['category'],
+                                 host=self.host,
+                                 description=self.cleaned_data['description'],
+                                 start_date=self.cleaned_data['start_date'],
+                                 end_date=self.cleaned_data['end_date'],
+                                 allowed_domains=self.cleaned_data['allowed_domains']
+                                 )
