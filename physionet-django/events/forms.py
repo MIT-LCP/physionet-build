@@ -26,7 +26,13 @@ class AddEventForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(AddEventForm, self).clean()
         if Event.objects.filter(title=cleaned_data['title'], host=self.host).exists():
-            raise forms.ValidationError({"title": ["Event with this title already exists"]})
+            # in case of update, we don't want to raise an error if the title is the same
+            if self.initial.get('title'):  # in case of update we have an initial value
+                # if the instance title is different from the new title, then we have a duplicate with another event
+                if self.instance.title != cleaned_data['title']:
+                    raise forms.ValidationError({"title": ["Event with this title already exists"]})
+            else:
+                raise forms.ValidationError({"title": ["Event with this title already exists"]})
 
     def save(self):
         # Handle updating the event
