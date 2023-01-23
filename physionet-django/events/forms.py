@@ -23,6 +23,11 @@ class AddEventForm(forms.ModelForm):
         self.host = user
         super(AddEventForm, self).__init__(*args, **kwargs)
 
+    def clean(self):
+        cleaned_data = super(AddEventForm, self).clean()
+        if Event.objects.filter(title=cleaned_data['title'], host=self.host).exists():
+            raise forms.ValidationError({"title": ["Event with this title already exists"]})
+
     def save(self):
         # Handle updating the event
         if self.initial:

@@ -22,7 +22,7 @@ def update_event(request, event_slug, **kwargs):
             event_form.save()
             messages.success(request, "Updated Event Successfully")
         else:
-            messages.error(request, "Error Updating Event")
+            messages.error(request, event_form.errors)
     else:
         messages.error(request, "Invalid request")
     return redirect(event_home)
