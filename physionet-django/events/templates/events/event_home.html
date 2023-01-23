@@ -27,7 +27,7 @@
       {% if is_instructor %}
       <p class="lead">Create new events and access event details.</p>
       <p>
-        <button class = "btn btn-success" data-toggle ="modal" data-target="#add-event-modal">
+        <button class = "btn btn-success" data-toggle="modal" data-target="#add-event-modal">
           <i class="fa fa-cloud-upload-alt"></i> Create New Event </button>
       </p>
       {% else %}
@@ -68,7 +68,7 @@
               <form action="" method="post" class="form-signin edit-event" >
                 {% csrf_token %}
                 {% include "form_snippet.html" with form=event_form %}
-                <button class="btn btn-primary btn-fixed" name="edit-event" type="submit">Edit event</button>
+                <button class="btn btn-primary btn-fixed" name="edit-event" type="submit">Save</button>
               </form>
             </div>
           </div>
@@ -182,7 +182,6 @@
            url: url,
            type: 'GET',
            success: function(data) {
-                console.log(data);
                 let event = data[0];
                 $('#edit-event-modal').find('#id_title').val(event.title);
                 $('#edit-event-modal').find('#id_description').val(event.description);

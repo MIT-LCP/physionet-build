@@ -20,7 +20,7 @@ def update_event(request, event_slug, **kwargs):
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
         if event_form.is_valid() and is_instructor:
             event_form.save()
-            messages.success(request, "Updated Event  Successfully")
+            messages.success(request, "Updated Event Successfully")
         else:
             messages.error(request, "Error Updating Event")
     else:
