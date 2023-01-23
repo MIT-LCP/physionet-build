@@ -38,7 +38,8 @@ class Event(models.Model):
         """
         with transaction.atomic():
             EventParticipant.objects.create(user=user, event=self)
-            permission = Permission.objects.get(codename="view_event_menu")
+            permission = Permission.objects.get(codename="view_event_menu",
+                                                content_type__app_label="events")
             user.user_permissions.add(permission)
 
 
