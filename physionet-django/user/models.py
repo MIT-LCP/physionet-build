@@ -440,13 +440,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         If the Permission object does not exist, an empty queryset is returned.
         """
         try:
-            can_edit_activeprojects_perm = Permission.objects.get(codename=permission_codename)
+            perm = Permission.objects.get(codename=permission_codename)
         except Permission.DoesNotExist:
-            can_edit_activeprojects_perm = None
+            perm = None
 
-        if can_edit_activeprojects_perm:
-            users = User.objects.filter(Q(groups__permissions=can_edit_activeprojects_perm)
-                                        | Q(user_permissions=can_edit_activeprojects_perm)).distinct()
+        if perm:
+            users = User.objects.filter(Q(groups__permissions=perm)
+                                        | Q(user_permissions=perm)).distinct()
         else:
             users = User.objects.none()
 
