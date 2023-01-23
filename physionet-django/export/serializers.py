@@ -22,7 +22,7 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PublishedProject
-        fields = ('id', 'title', 'abstract', 'license', 'dua', 'main_storage_size',
+        fields = ('slug', 'title', 'abstract', 'license', 'dua', 'main_storage_size',
                   'compressed_storage_size')
 
 
