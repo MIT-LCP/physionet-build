@@ -45,22 +45,8 @@ class TestEvents(TestMixin):
     def test_add_event_invalid(self):
         """tests the view that adds an invalid event(event with duplicate title for same host)"""
 
-        self.client.login(username='admin', password='Tester11!')
         # Create an event
-
-        response = self.client.post(
-            reverse('event_home'),
-            data={
-                'title': self.new_event_name,
-                'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-                'start_date': self.new_event_start_date_str,
-                'end_date': self.new_event_end_date_str,
-                'category': 'Course',
-                'allowed_domains': ''
-            })
-        self.assertEqual(response.status_code, 302)
-        event = Event.objects.get(title=self.new_event_name)
-        self.assertEqual(event.title, self.new_event_name)
+        self.test_add_event_valid()
 
         # Create another event with same title
         response = self.client.post(
