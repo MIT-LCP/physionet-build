@@ -434,13 +434,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.is_superuser or self.has_perm('user.can_view_admin_console')
 
     @staticmethod
-    def get_users_with_permission(permission_codename):
+    def get_users_with_permission(app_label, permission_codename):
         """
         Returns a queryset of users who have the specified permission.
         If the Permission object does not exist, an empty queryset is returned.
         """
         try:
-            perm = Permission.objects.get(codename=permission_codename)
+            perm = Permission.objects.get(codename=permission_codename,
+                                          content_type__app_label=app_label)
         except Permission.DoesNotExist:
             perm = None
 
