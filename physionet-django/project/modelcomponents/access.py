@@ -227,7 +227,7 @@ class AnonymousAccess(models.Model):
         Return a boolean of whether the raw_password was correct. Handles
         hashing formats behind the scenes.
         """
-        expire_datetime = self.creation_datetime + timedelta(days=60)
+        expire_datetime = self.creation_datetime + timedelta(days=180)
         isnot_expired = timezone.now() < expire_datetime
 
         return isnot_expired and check_password(raw_passphrase, self.passphrase)
