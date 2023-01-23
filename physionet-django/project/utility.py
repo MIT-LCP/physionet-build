@@ -266,7 +266,10 @@ def grant_aws_open_data_access(user, project):
     Function to grant a AWS ID access to the bukets in the Open Data
     AWS platform.
 
-    Possible responses are:
+    This function returns a tuple containing a message and a boolean indicating
+    whether access was successfully granted.
+
+    Possible responses from the AWS API are:
 
     b'{"error": "Unexpected error: An error occurred (MalformedPolicy) when
         calling the PutBucketPolicy operation: Invalid principal in policy",
@@ -285,28 +288,34 @@ def grant_aws_open_data_access(user, project):
     # Do a request to AWS and try to add the user ID to the bucket
     response = requests.post(url, data=json.dumps(payload), headers=headers)
 
-    # Indicate whether we successfully granted access to the user
-    granted_access = False
+    # Exit early if we received a response from AWS indicating an error.
     if response.status_code < 200 or response.status_code >= 300:
         LOGGER.info("Error sending adding the AWS ID to the Bucket Policy."
                     "The request payload is {0}\nThe errror is the following: "
                     "{1}\n".format(payload, response.content))
-        return "Access could not be granted.", granted_access
+        return "Access could not be granted.", False
 
-    message = response.json()['message']
-    if message == "No new accounts to add":
+    # The following if block will:
+    #   (1) create a notification to send the user
+    #   (2) set a boolean to True/False, indicating if access was granted (True)
+    aws_response = response.json()['message']
+    if aws_response == "No new accounts to add":
         LOGGER.info("AWS response adding {0} to project {1}\n{2}".format(
-            user.cloud_information.aws_id, project, message))
+            user.cloud_information.aws_id, project, aws_response))
         granted_access = True
-        return message, granted_access
-    elif "Accounts ['{}'] have been added".format(user.cloud_information.aws_id) in message:
+        access_message = aws_response
+    elif "Accounts ['{}'] have been added".format(user.cloud_information.aws_id) in aws_response:
         LOGGER.info("AWS response adding {0} to project {1}\n{2}".format(
-            user.cloud_information.aws_id, project, message))
+            user.cloud_information.aws_id, project, aws_response))
         granted_access = True
-        return message.split(',')[0], granted_access
-    LOGGER.info('Unknown response from AWS - {0}\nThe payload is {1}'.format(
-        payload, response.content))
-    return "There was an error granting access.", granted_access
+        access_message = aws_response.split(',')[0]
+    else:
+        LOGGER.info('Unknown response from AWS - {0}\nThe payload is {1}'.format(
+            payload, response.content))
+        granted_access = False
+        access_message = "Access could not be granted."
+
+    return access_message, granted_access
 
 
 def grant_gcp_group_access(user, project, data_access):
@@ -315,47 +324,56 @@ def grant_gcp_group_access(user, project, data_access):
     Possible access types would be:
     - 3 is for the GCP Bucket
     - 4 is for the GCP Big Query
-    """
-    email = user.cloud_information.gcp_email.email
-    service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
 
+    This function returns a tuple containing a message and a boolean indicating
+    whether access was successfully granted.
+    """
+    gcp_access_messages = {
+        3: "Access to the GCP bucket",
+        4: "Access to the GCP BigQuery"
+    }
+    # Return early if we are passed a non-GCP data access platform
+    if data_access.platform not in gcp_access_messages:
+        return "Invalid data access platform for GCP", False
+
+    access_message = gcp_access_messages[data_access.platform]
     # Indicate whether we successfully granted access to the user
     granted_access = False
-    if data_access.platform == 3:
-        access = "Access to the GCP bucket"
-    elif data_access.platform == 4:
-        access = "Access to the GCP BigQuery"
-    else:
-        return "Invalid data access platform for GCP", granted_access
+
+    # Initialize a service for interacting with Google Admin
+    email = user.cloud_information.gcp_email.email
+    service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
 
     try:
         group_members = service.members()
         outcome = group_members.insert(groupKey=data_access.location, body={
             "email": email, "delivery_settings": "NONE"}).execute()
         if outcome['role'] == "MEMBER":
-            message = '{0} has been granted to {1} for project: {2}'.format(
-                access, email, project)
+            access_message = '{0} has been granted to {1} for project: {2}'.format(
+                access_message, email, project)
             granted_access = True
-            LOGGER.info("{0} email {1}".format(message, data_access.location))
-            return message, granted_access
-        raise Exception('Wrong access granted to {0} in GCP email {1}'.format(
-            email, data_access.location))
+            LOGGER.info("{0} email {1}".format(access_message, data_access.location))
+        else:
+            raise Exception('Wrong access granted to {0} in GCP email {1}'.format(
+                email, data_access.location))
     except HttpError as error:
-        if error.resp.status == 412:
+        if json.loads(error.content)['error']['message'] == 'Member already exists.':
+            granted_access = True
+            access_message = '{0} was previously awarded to {1} for project: {2}'.format(
+                access_message, email, project)
+        elif error.resp.status == 412:
             # Google has a somewhat cryptic 412 error: "Condition not met"
             # In our experience, this occurred when the user specified a non-Google
             # e-mail in their cloud profile which could not be added to the group.
-            return (
+            access_message = (
                 'Unable to provision access, please verify '
                 '{0} is a valid Google account'.format(email)
-            ), granted_access
-        if json.loads(error.content)['error']['message'] == 'Member already exists.':
-            granted_access = True
-            return '{0} was previously awarded to {1} for project: {2}'.format(
-                access, email, project), granted_access
+            )
         else:
-            return 'Unable to grant {0} access to {1} for {2}'.format(
-                access, email, project), granted_access
+            access_message = 'Unable to grant {0} access to {1} for {2}'.format(
+                access_message, email, project)
+
+    return access_message, granted_access
 
 
 # The following regular expression defines user agents that are
