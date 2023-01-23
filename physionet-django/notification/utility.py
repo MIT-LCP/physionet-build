@@ -733,7 +733,7 @@ def credential_application_request(request, application):
               [application.user.email], fail_silently=False)
 
 
-def notify_gcp_access_request(data_access, user, project):
+def notify_gcp_access_request(data_access, user, project, successful):
     """
     Notify user of GCP access
     """
@@ -747,6 +747,7 @@ def notify_gcp_access_request(data_access, user, project):
             'data_access': data_access,
             'user': user,
             'project': project,
+            'successful': successful,
             'footer': email_footer(),
             'SITE_NAME': settings.SITE_NAME,
         })
