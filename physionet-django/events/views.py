@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.db.models import Q
@@ -8,6 +9,32 @@ from django.contrib.auth.decorators import login_required
 import notification.utility as notification
 from events.forms import AddEventForm
 from events.models import Event
+
+
+@login_required
+def update_event(request, event_slug, **kwargs):
+    user = request.user
+    is_instructor = user.has_perm('user.add_event')
+    if request.method == 'POST':
+        event = Event.objects.get(slug=event_slug)
+        event_form = AddEventForm(user=user, data=request.POST, instance=event)
+        if event_form.is_valid() and is_instructor:
+            event_form.save()
+            messages.success(request, "Updated Event Successfully")
+        else:
+            messages.error(request, event_form.errors)
+    else:
+        messages.error(request, "Invalid request")
+    return redirect(event_home)
+
+
+@login_required
+def get_event_details(request, event_slug):
+    is_instructor = request.user.has_perm('user.add_event')
+    if not is_instructor:
+        return JsonResponse([{'error': 'You don\'t have permission to access event'}], safe=False)
+    event = Event.objects.filter(slug=event_slug).values()
+    return JsonResponse(list(event), safe=False)
 
 
 @login_required
