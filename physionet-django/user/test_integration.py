@@ -211,7 +211,7 @@ class TestCredentialing(TestMixin):
             'application-reference_email': 'root@example.com',
             'application-reference_organization': 'MIT',
             'application-reference_title': 'Administrator',
-            'application-research_summary': 'Effects of asdfghjk on zxcvbnm',
+            'application-research_summary': 'I am a researcher '*5,
         }
 
         self.client.post(reverse('credential_application'), data=data)
