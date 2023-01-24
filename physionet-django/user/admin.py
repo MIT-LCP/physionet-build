@@ -1,12 +1,17 @@
+from logging import getLogger
 from django.contrib import admin
+from django.contrib.admin.models import LogEntry
 from django.contrib.auth.models import Permission, Group
 from django.contrib.auth.admin import GroupAdmin as DefaultGroupAdmin
 from django.contrib.auth.admin import UserAdmin as DefaultUserAdmin
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from user import models
 
 from user import forms
 
+logger = getLogger('admin')
 
 class UserAdmin(DefaultUserAdmin):
     """
@@ -72,6 +77,16 @@ class GroupAdmin(DefaultGroupAdmin):
             content_type__app_label__in=('auth', 'admin', 'background_task', 'contenttypes', 'sessions', 'sites')
         )
         return super().render_change_form(request, context, *args, **kwargs)
+
+
+@receiver(post_save, sender=LogEntry)
+def log_admin_panel_activity(sender, **kwargs):
+    """
+    Logs Django Admin Panel activity via the configured logger
+    """
+    log_entry_instance = kwargs['instance']
+    logger.info(log_entry_instance, extra={'user': log_entry_instance.user.username})
+
 
 # Unregister and register Group with new GroupAdmin
 admin.site.unregister(Group)
