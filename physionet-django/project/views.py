@@ -51,13 +51,14 @@ from project.models import (
     UploadedDocument,
 )
 from project.projectfiles import ProjectFiles
-from project.validators import validate_filename
+from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
 
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
+MAX_GCS_OBJECT_NAME_LENGTH = 256
 
 def project_auth(auth_mode=0, post_auth_mode=0):
     """
@@ -2285,21 +2286,12 @@ def generate_signed_url(request, project_slug):
     filename = request.POST.get('filename')
     size = request.POST.get('size')
 
-    if not filename or not size:
-        return JsonResponse({'detail': 'You must provide the filename and the size.'}, status=400)
-
-    if not size.isnumeric():
-        return JsonResponse({'detail': 'The file size must be a numeric value.'}, status=400)
-
-    size = int(size)
-    if size <= 0:
-        return JsonResponse({'detail': 'The file size cannot be a negative value.'}, status=400)
-
     try:
-        validate_filename(filename)
+        validate_gcs_bucket_object(filename, size)
     except ValidationError as e:
         return JsonResponse({'detail': e.messages}, status=400)
 
+    size = int(size)
     queryset = ActiveProject.objects.all()
     project = get_object_or_404(queryset, slug=project_slug)
 
