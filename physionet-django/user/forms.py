@@ -585,7 +585,7 @@ class CredentialApplicationForm(forms.ModelForm):
                        data['reference_organization'],
                        data['reference_title']]
 
-        ref_required = data['researcher_category'] in [0, 1, 6, 7]
+        ref_required = True
         supervisor_required = data['researcher_category'] in [0, 1, 7]
         state_required = data['country'] in ['US', 'CA']
 
