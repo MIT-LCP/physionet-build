@@ -491,7 +491,7 @@ class ResearchCAF(forms.ModelForm):
         }
 
     def clean_research_summary(self):
-        research_summary= self.cleaned_data['research_summary']
+        research_summary = self.cleaned_data['research_summary']
         if len(research_summary.split()) < 20:
             raise forms.ValidationError("Please provide more information about your research topic.")
         return research_summary

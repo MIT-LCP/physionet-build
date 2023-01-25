@@ -211,7 +211,9 @@ class TestCredentialing(TestMixin):
             'application-reference_email': 'root@example.com',
             'application-reference_organization': 'MIT',
             'application-reference_title': 'Administrator',
-            'application-research_summary': 'I am a researcher '*5,
+            'application-research_summary': 'I plan to access the MIMIC IV dataset and the \
+            Pediatric Intensive Care database.The datasets will be used to predict the \
+            outcome of pediatric anesthesia using machine learning.',
         }
 
         self.client.post(reverse('credential_application'), data=data)
