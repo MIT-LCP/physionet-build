@@ -45,7 +45,21 @@
     <div class="card-body">
       <div class="tab-content">
         {% if trainings %}
-          <input type="search" oninput="search('{% url "training_list" status=status %}', value);" placeholder="Search..." >
+
+          <div class="form-row">
+            <div class="col">
+              <input type="search" oninput="search('{% url "training_list" status=status %}', value);" placeholder="Search..." >
+            </div>
+            <div class="col">
+              <select class="form-control" onchange="search('{% url "training_list" status=status %}', value);" placeholder="Search...">
+                <option value="">Training Types...</option>
+                {% for type in training_types %}
+                <option value='{{ type }}'>{{ type|title }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          
           {% if status == 'review' %}
             {% include 'console/review_training_table.html' %}
           {% elif status == 'valid' %}

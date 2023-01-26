@@ -62,6 +62,7 @@ from user.models import (
     LegacyCredential,
     User,
     Training,
+    TrainingType,
     TrainingQuestion,
     CodeOfConduct
 )
@@ -1544,6 +1545,8 @@ def training_list(request, status):
     trainings = Training.objects.select_related(
         'user__profile', 'training_type').order_by('-user__is_credentialed', 'application_datetime')
 
+    training_types = TrainingType.objects.values_list("name", flat=True)
+
     # Allow filtering by event.
     if 'event' in request.GET:
         slug = request.GET['event']
@@ -1580,6 +1583,7 @@ def training_list(request, status):
         'console/training_list.html',
         {
             'trainings': paginate(request, display_training, 50),
+            'training_types': training_types,
             'status': status,
             'review_count': review_training.count(),
             'valid_count': valid_training.count(),
@@ -1603,7 +1607,8 @@ def search_training_applications(request, display_training):
         display_training = display_training.filter(Q(user__username__icontains=search_field)
                                                    | Q(user__profile__first_names__icontains=search_field)
                                                    | Q(user__profile__last_name__icontains=search_field)
-                                                   | Q(user__email__icontains=search_field))
+                                                   | Q(user__email__icontains=search_field)
+                                                   | Q(training_type__name__iexact=search_field))
 
     # prevent formatting issue if search field is empty
     if len(search_field) == 0:
