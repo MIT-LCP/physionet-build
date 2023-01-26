@@ -20,7 +20,7 @@ class Event(models.Model):
     added_datetime = models.DateTimeField(auto_now_add=True)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(default=timezone.now)
-    slug = models.SlugField(unique=True, default=get_random_string)
+    slug = models.SlugField(unique=True)
     allowed_domains = models.CharField(blank=True, null=True, validators=[
                                        validators.validate_domain_list], max_length=100)
 
@@ -28,6 +28,11 @@ class Event(models.Model):
         unique_together = ('title', 'host')
         permissions = [('view_all_events', 'Can view all events in the console'),
                        ('view_event_menu', 'Can view event menu in the navbar')]
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = get_random_string(length=12)
+        super(Event, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.title
