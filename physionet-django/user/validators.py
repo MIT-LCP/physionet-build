@@ -267,3 +267,13 @@ def validate_institutional_email(value):
     domains = ["yahoo.com", "163.com", "126.com", "outlook.com", "gmail.com", "qq.com", "foxmail.com"]
     if value.split('@')[-1].lower() in domains:
         raise ValidationError('Please provide an academic or institutional email address.')
+
+def is_institutional_email(value):
+    """
+    Returns True if the email address is from an institutional domain.
+    """
+    try:
+       validate_institutional_email(value)
+       return True
+    except ValidationError:
+        return False
