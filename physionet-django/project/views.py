@@ -2029,7 +2029,9 @@ def data_access_request_status(request, project_slug, version):
 @login_required
 def data_access_request_status_detail(request, project_slug, version, pk):
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
-    access_request = get_object_or_404(DataAccessRequest, project=project, pk=pk)
+    access_request = get_object_or_404(
+        DataAccessRequest, requester=request.user, project=project, pk=pk
+    )
 
     return render(request, 'project/data_access_request_status_detail.html', {
         'access_request': access_request,
