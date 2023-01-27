@@ -99,6 +99,11 @@ _demo_access_manager = {
     'version': '1.0.0',
     '_user_': 'george',
 }
+_demo_access_requester = {
+    'project_slug': 'demoselfmanaged',
+    'version': '1.0.0',
+    '_user_': 'tompollard',
+}
 TEST_DEFAULTS = {
     **_demo_open_access,
 }
@@ -111,7 +116,7 @@ TEST_CASES = {
     'display_published_project_file': {'full_file_name': 'Makefile'},
 
     'request_data_access': _demo_access_manager,
-    'data_access_request_status_detail': {**_demo_access_manager, 'pk': '1'},
+    'data_access_request_status_detail': {**_demo_access_requester, 'pk': '1'},
     'data_access_request_view': {**_demo_access_manager, 'pk': '1'},
     'data_access_requests_overview': _demo_access_manager,
     'manage_data_access_reviewers': _demo_access_manager,
