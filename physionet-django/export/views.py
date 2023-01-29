@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 
 from project.models import PublishedProject
 
-from export.serializers import PublishedProjectSerializer, PublishedProjectDetailSerializer
+from export.serializers import PublishedProjectSerializer, PublishedProjectDetailSerializer, ProjectVersionsSerializer
 from rest_framework import generics
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import mixins
@@ -29,6 +29,22 @@ class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     queryset = PublishedProject.objects.all().order_by('id')
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     serializer_class = PublishedProjectSerializer
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+
+
+class ProjectVersionList(mixins.ListModelMixin, generics.GenericAPIView):
+    """
+    List all versions of a specific project
+    """
+
+    serializer_class = ProjectVersionsSerializer
+
+    def get_queryset(self):
+        project_slug = self.kwargs.get('project_slug')
+        queryset = PublishedProject.objects.filter(slug=project_slug).order_by('id')
+        return queryset
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
