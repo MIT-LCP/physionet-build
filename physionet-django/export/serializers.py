@@ -26,6 +26,12 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
                   'compressed_storage_size')
 
 
+class ProjectVersionsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PublishedProject
+        fields = ('slug', 'title', 'version', 'abstract')
+
+
 class PublishedProjectDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PublishedProject
