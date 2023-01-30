@@ -58,7 +58,6 @@ from user.models import CloudInformation, CredentialApplication, LegacyCredentia
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
-MAX_GCS_OBJECT_NAME_LENGTH = 256
 
 def project_auth(auth_mode=0, post_auth_mode=0):
     """
