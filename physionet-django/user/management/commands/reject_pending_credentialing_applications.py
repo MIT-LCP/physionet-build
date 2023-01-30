@@ -10,7 +10,8 @@ from user.models import CredentialApplication, User
 
 LOGGER = logging.getLogger(__name__)
 REJECTION_MESSAGE = 'Your Reference {reference_name} did not respond to the reference check request within '\
-                            f'{settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION} days.'
+                    f'{settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION} days.'
+
 
 class Command(BaseCommand):
 
@@ -19,6 +20,13 @@ class Command(BaseCommand):
         Delete all Credentialing applications whose reference checks have Awaiting Reference Response pending after
         waiting for settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION days.
         """
+
+        # only perform auto rejection if the setting.ENABLE_CREDENTIALING_AUTO_REJECTION is True
+        if not settings.ENABLE_CREDENTIALING_AUTO_REJECTION:
+            LOGGER.info('Auto rejection of credentialing applications is disabled. Exiting.')
+            LOGGER.warning('If this was unintentional, please set '
+                           'MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION to True in .env file.')
+            return
 
         today = timezone.now()
         limit = today - timezone.timedelta(days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION)
