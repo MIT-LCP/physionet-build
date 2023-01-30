@@ -53,6 +53,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Mark git repository as trusted
+        run: |
+          git config --global --add safe.directory $(pwd)
+
       - name: Create .env file
         run: |
           ln -sT .env.example .env
