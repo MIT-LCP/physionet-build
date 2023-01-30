@@ -36,6 +36,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Mark git repository as trusted
+        run: |
+          git config --global --add safe.directory $(pwd)
+
       - name: Install WFDB
         run: |
           wget https://github.com/bemoody/wfdb/archive/10.7.0.tar.gz \
