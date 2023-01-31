@@ -122,7 +122,8 @@ TEST_CASES = {
 
     'sign_dua': _demo_credentialed_access,
 
-    'request_data_access': _demo_access_manager,
+    'request_data_access': _demo_access_requester,
+    'data_access_request_status': _demo_access_requester,
     'data_access_request_status_detail': {**_demo_access_requester, 'pk': '1'},
     'data_access_request_view': {**_demo_access_manager, 'pk': '1'},
     'data_access_requests_overview': _demo_access_manager,
