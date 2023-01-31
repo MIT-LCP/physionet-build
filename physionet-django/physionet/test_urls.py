@@ -3,7 +3,6 @@ import textwrap
 import urllib.parse
 
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.urls import URLPattern, URLResolver, get_resolver
 from django.utils.regex_helper import normalize
 
