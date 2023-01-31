@@ -363,6 +363,13 @@
                     <p>Total uncompressed size: {{ main_size }}.</p>
                     {# ZIP START #}
                     <h5>Access the files</h5>
+                    {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
+                            <p>You have been granted access for a <a
+                                    href="{% url 'data_access_request_status' project.slug project.version %}">specific
+                                project</a>. If you require access for an additional project, please submit a <a
+                                    href="{% url 'request_data_access' project.slug project.version %}">new request.</a>
+                            </p>
+                    {% endif %}
                     {# ZIP END #}
 
                     {% if is_lightwave_supported and project.access_policy == AccessPolicy.OPEN %}
@@ -385,13 +392,6 @@
 
                         {# ZIP START #}
 
-                        {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
-                            <p>You have been granted access for a <a
-                                    href="{% url 'data_access_request_status' project.slug project.version %}">specific
-                                project</a>. If you require access for an additional project, please submit a <a
-                                    href="{% url 'request_data_access' project.slug project.version %}">new request.</a>
-                            </p>
-                        {% endif %}
                         <ul>
                             {% if project.compressed_storage_size %}
                                 <li><a href="{% url 'serve_published_project_zip' project.slug project.version %}">Download
