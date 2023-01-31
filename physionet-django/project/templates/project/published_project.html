@@ -370,6 +370,12 @@
                                     href="{% url 'request_data_access' project.slug project.version %}">new request.</a>
                             </p>
                     {% endif %}
+
+                    <ul>
+
+                    {% include "project/published_project_data_access.html" %}
+
+                    </ul>
                     {# ZIP END #}
 
                     {% if is_lightwave_supported and project.access_policy == AccessPolicy.OPEN %}
@@ -398,7 +404,6 @@
                                     the ZIP file</a> ({{ compressed_size }})
                                 </li>
                             {% endif %}
-                            {% include "project/published_project_data_access.html" %}
                             {% if is_wget_supported %}
                                 <li>Download the files using your terminal:
                                     <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password
@@ -444,7 +449,6 @@
                             <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})
                             </li>
                         {% endif %}
-                        {% include "project/published_project_data_access.html" %}
                         {% if is_wget_supported %}
                             <li>Download the files using your terminal:
                                 <pre class="shell-command">wget -r -N -c -np
