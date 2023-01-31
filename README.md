@@ -118,4 +118,21 @@ If the migration behavior interacts with other changes that have been applied to
 The PRIMARY and DARK environment variables can be configured in the .env file.
  * The management command "compilestatic" generates a theme.scss file and compiles the CSS.
 
+#### Setting Up Cronjobs
 
+If you want to setup cronjobs, you can do that by adding a new file or update the existing cronjobs file based on your requirements.
+
+Here are the loations where you might want to add your cronjobs.
+
+1. `deploy/common/etc/cron.d/`
+
+2. `deploy/staging/etc/cron.d/` (For cronjobs that should run on staging environment)
+
+3. `deploy/production/etc/cron.d/` (For cronjobs that should run on production environment)
+
+
+Here is an example of existing cronjob from `deploy/production/etc/cron.d/physionet`:
+
+```sh
+31 23 * * *  www-data  env DJANGO_SETTINGS_MODULE=physionet.settings.production /physionet/python-env/physionet/bin/python3 /physionet/physionet-build/physionet-django/manage.py clearsessions
+```
