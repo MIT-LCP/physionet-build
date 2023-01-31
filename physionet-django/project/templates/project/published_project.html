@@ -358,6 +358,12 @@
                     The files in this project version are under embargo until: {{ project.embargo_end_date|date }}
                 </div>
             {% else %}
+                {% if has_access %}
+                        {#  refactored code goes here            #}
+                {% else %}
+                    {% include "project/published_project_unauthorized.html" %}
+                {% endif %}
+
                 {% if project.access_policy %}
                     {% if has_access %}
                         <p>Total uncompressed size: {{ main_size }}.</p>
