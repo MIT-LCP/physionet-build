@@ -434,17 +434,6 @@
                     {% include "project/published_project_unauthorized.html" %}
                 {% endif %}
 
-                {% if project.access_policy %}
-                    {% if has_access %}
-
-
-                    {% else %}
-                        {% include "project/published_project_unauthorized.html" %}
-                    {% endif %}
-                {% else %}
-
-                    </p>
-                {% endif %}
             {% endif %}
         {% else %}
             {% include "project/published_project_denied_downloads.html" %}
