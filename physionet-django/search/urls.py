@@ -94,6 +94,11 @@ _demo_open_access = {
     'project_slug': 'demoecg',
     'version': '10.5.24',
 }
+_demo_credentialed_access = {
+    'project_slug': 'demoeicu',
+    'version': '2.0.0',
+    '_user_': 'rgmark',
+}
 _demo_access_manager = {
     'project_slug': 'demoselfmanaged',
     'version': '1.0.0',
@@ -114,6 +119,8 @@ TEST_CASES = {
     'published_project_subdir': {'subdir': 'doc'},
     'serve_published_project_file': {'full_file_name': 'Makefile'},
     'display_published_project_file': {'full_file_name': 'Makefile'},
+
+    'sign_dua': _demo_credentialed_access,
 
     'request_data_access': _demo_access_manager,
     'data_access_request_status_detail': {**_demo_access_requester, 'pk': '1'},
