@@ -360,16 +360,23 @@
             {% else %}
                 {% if has_access %}
                         {#  refactored code goes here            #}
+                    <p>Total uncompressed size: {{ main_size }}.</p>
+                    {# ZIP START #}
+                    <h5>Access the files</h5>
+                    {# ZIP END #}
+                    <div id="files-panel" class="card">
+                            {% include "project/files_panel.html" %}
+                    </div>
                 {% else %}
                     {% include "project/published_project_unauthorized.html" %}
                 {% endif %}
 
                 {% if project.access_policy %}
                     {% if has_access %}
-                        <p>Total uncompressed size: {{ main_size }}.</p>
+
 
                         {# ZIP START #}
-                        <h5>Access the files</h5>
+
                         {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
                             <p>You have been granted access for a <a
                                     href="{% url 'data_access_request_status' project.slug project.version %}">specific
@@ -392,16 +399,13 @@
                             {% endif %}
                         </ul>
                         {# ZIP END #}
-                        <div id="files-panel" class="card">
-                            {% include "project/files_panel.html" %}
-                        </div>
                     {% else %}
                         {% include "project/published_project_unauthorized.html" %}
                     {% endif %}
                 {% else %}
-                    <p>Total uncompressed size: {{ main_size }}.
+
                         {# ZIP START #}
-                    <h5>Access the files</h5>
+
                     <ul>
                         {% if project.gcp %}
                             {% if project.gcp.sent_zip %}
@@ -448,9 +452,6 @@
                                     class="fas fa-chart-line"></i> Visualize waveforms</a></p>
                         {% endif %}
                     {% endif %}
-                    <div id="files-panel" class="card">
-                        {% include "project/files_panel.html" %}
-                    </div>
                 {% endif %}
             {% endif %}
         {% else %}
