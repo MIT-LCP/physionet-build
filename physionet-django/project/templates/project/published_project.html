@@ -364,6 +364,14 @@
                     {# ZIP START #}
                     <h5>Access the files</h5>
                     {# ZIP END #}
+
+                    {% if is_lightwave_supported and project.access_policy == AccessPolicy.OPEN %}
+                        {% if project.has_wfdb %}
+                            <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i
+                                    class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+                        {% endif %}
+                    {% endif %}
+
                     <div id="files-panel" class="card">
                             {% include "project/files_panel.html" %}
                     </div>
@@ -446,12 +454,6 @@
                     </ul>
                     {# ZIP END #}
                     </p>
-                    {% if is_lightwave_supported %}
-                        {% if project.has_wfdb %}
-                            <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i
-                                    class="fas fa-chart-line"></i> Visualize waveforms</a></p>
-                        {% endif %}
-                    {% endif %}
                 {% endif %}
             {% endif %}
         {% else %}
