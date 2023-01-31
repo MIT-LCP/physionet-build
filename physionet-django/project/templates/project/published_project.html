@@ -374,6 +374,12 @@
                     <ul>
 
                     {% include "project/published_project_data_access.html" %}
+                    {% if is_wget_supported %}
+                            <li>Download the files using your terminal:
+                                <pre class="shell-command">wget -r -N -c -np {% if project.access_policy %} --user {{ user }} --ask-password {% endif %}
+                                    {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre>
+                            </li>
+                    {% endif %}
 
                     </ul>
                     {# ZIP END #}
@@ -402,12 +408,6 @@
                             {% if project.compressed_storage_size %}
                                 <li><a href="{% url 'serve_published_project_zip' project.slug project.version %}">Download
                                     the ZIP file</a> ({{ compressed_size }})
-                                </li>
-                            {% endif %}
-                            {% if is_wget_supported %}
-                                <li>Download the files using your terminal:
-                                    <pre class="shell-command">wget -r -N -c -np --user {{ user }} --ask-password
-                                        {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre>
                                 </li>
                             {% endif %}
                         </ul>
@@ -447,12 +447,6 @@
                             {% endif %}
                         {% elif project.compressed_storage_size %}
                             <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})
-                            </li>
-                        {% endif %}
-                        {% if is_wget_supported %}
-                            <li>Download the files using your terminal:
-                                <pre class="shell-command">wget -r -N -c -np
-                                    {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre>
                             </li>
                         {% endif %}
                     </ul>
