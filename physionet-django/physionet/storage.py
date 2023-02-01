@@ -27,8 +27,7 @@ def generate_signed_url_helper(blob_name, size, expiration=dt.timedelta(days=1),
         str: The signed URL.
     """
     storage = MediaStorage()
-    bucket = storage.bucket()
-    blob = bucket.blob(blob_name)
+    blob = storage.bucket.blob(blob_name)
 
     url = blob.generate_signed_url(
         api_access_endpoint='https://storage.googleapis.com',
