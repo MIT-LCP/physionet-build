@@ -793,15 +793,6 @@ def training_report(request, training_id):
     return utility.serve_file(training.completion_report.path, attach=False)
 
 
-@login_required
-def training_report_view(request, application_slug):
-    """
-    Wrapper for training_report. Serves the training report in the browser
-    for KP's custom pages.
-    """
-    return training_report(request, application_slug, attach=False)
-
-
 # @login_required
 def credential_reference(request, application_slug):
     """
