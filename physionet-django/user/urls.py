@@ -66,3 +66,26 @@ if not settings.ENABLE_SSO:
         path('reset/complete/', views.reset_password_complete,
              name='reset_password_complete'),
     ])
+
+# Parameters for testing URLs (see physionet/test_urls.py)
+TEST_DEFAULTS = {
+    '_user_': 'aewj',
+    'training_id': 106,
+    'dua_signature_id': 1,
+    'application_slug': 'Osm0FMaavviixpsL26v2',
+    'username': 'rgmark',
+}
+TEST_CASES = {
+    'verify_email': {
+        'uidb64': 'MjEx',
+        'token': 'oax3ZcG47GYUhAobbJyp',
+    },
+
+    # Testing activate_user and reset_password_confirm requires a
+    # dynamically-generated token.  Skip these URLs for now.
+    'activate_user': {'uidb64': 'x', 'token': 'x', '_skip_': True},
+    'reset_password_confirm': {'uidb64': 'x', 'token': 'x', '_skip_': True},
+
+    # Testing auth_orcid requires a mock oauth server.  Skip this URL.
+    'auth_orcid': {'_skip_': True},
+}
