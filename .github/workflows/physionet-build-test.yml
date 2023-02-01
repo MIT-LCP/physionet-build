@@ -18,6 +18,7 @@ jobs:
     env:
       DJANGO_SETTINGS_MODULE: physionet.settings.settings
       TEST_GCS_INTEGRATION: false
+      PHYSIONET_TEST_HTML_DIR: /tmp/pn-test-html-output
     defaults:
       run:
         shell: bash
