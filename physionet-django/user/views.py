@@ -863,12 +863,12 @@ def view_agreements(request):
     )
 
 @login_required
-def view_signed_agreement(request, id):
+def view_signed_agreement(request, dua_signature_id):
     """
     View a printable agreement in the user profile.
     """
     user = request.user
-    signed = get_object_or_404(DUASignature, user=user, id=id)
+    signed = get_object_or_404(DUASignature, user=user, id=dua_signature_id)
 
     return render(request, 'user/view_signed_agreement.html',
                   {'user': user, 'signed': signed})
