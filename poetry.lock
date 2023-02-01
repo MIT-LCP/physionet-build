@@ -204,6 +204,21 @@ django = "*"
 libsass = "*"
 
 [[package]]
+name = "django-session-security"
+version = "2.6.7"
+description = "Client and server side session timeout with warnings"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-session-security-2.6.7.tar.gz", hash = "sha256:752b70865706afca39a62650eacd5d1e03a2baba31d46b2e1b96ad60c30553f3"},
+    {file = "django_session_security-2.6.7-py3-none-any.whl", hash = "sha256:0457259b0e8bfd9575b2d767b8de794170386c87bc99ee2758fd605bfc800937"},
+]
+
+[package.dependencies]
+django = "*"
+
+[[package]]
 name = "django-storages"
 version = "1.12.3"
 description = "Support for many storage backends in Django"

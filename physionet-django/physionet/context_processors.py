@@ -20,3 +20,7 @@ def platform_config(request):
         'STRAPLINE': settings.STRAPLINE,
         'SOURCE_CODE_REPOSITORY_LINK': settings.SOURCE_CODE_REPOSITORY_LINK
     }
+
+
+def session_security_config(request):
+    return {'SESSION_SECURITY_ENABLED': settings.ENABLE_SESSION_SECURITY}

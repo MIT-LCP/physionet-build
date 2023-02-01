@@ -36,6 +36,7 @@ zxcvbn = "^4.4.28"
 certifi = "^2022.12.7"
 setuptools = "65.5.1"
 django-js-asset = "2.0.0"
+django-session-security = "^2.6.7"
 
 [tool.poetry.dev-dependencies]
 coverage = "^4.4.2"

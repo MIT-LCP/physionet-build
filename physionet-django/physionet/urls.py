@@ -99,6 +99,9 @@ if settings.DEBUG:
     # debug toolbar
     urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
 
+if settings.ENABLE_SESSION_SECURITY:
+    urlpatterns.append(path('session_security/', include('session_security.urls')))
+
 # Parameters for testing URLs (see physionet/test_urls.py)
 TEST_DEFAULTS = {
     'dua_slug': 'physionet-credentialed-health-data-dua',

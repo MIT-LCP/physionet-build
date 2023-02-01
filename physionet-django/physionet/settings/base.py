@@ -30,6 +30,7 @@ SECRET_KEY = config('SECRET_KEY')
 ENABLE_SSO = config('ENABLE_SSO', default=False, cast=bool)
 SSO_REMOTE_USER_HEADER = config('SSO_REMOTE_USER_HEADER', default='HTTP_REMOTE_USER')
 SSO_LOGIN_BUTTON_TEXT = config('SSO_LOGIN_BUTTON_TEXT', default='Login')
+ENABLE_SESSION_SECURITY = config('ENABLE_SESSION_SECURITY', default=False, cast=bool)
 
 
 # Application definition
@@ -76,6 +77,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
+if ENABLE_SESSION_SECURITY:
+    INSTALLED_APPS += ['session_security']
+    MIDDLEWARE += ['session_security.middleware.SessionSecurityMiddleware']
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+    # Idle timeout settings
+    SESSION_SECURITY_WARN_AFTER = config('SESSION_SECURITY_WARN_AFTER', cast=int, default=540)
+    SESSION_SECURITY_EXPIRE_AFTER = config('SESSION_SECURITY_EXPIRE_AFTER', cast=int, default=600)
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
@@ -104,6 +113,7 @@ TEMPLATES = [
                 'physionet.context_processors.access_policy',
                 'physionet.context_processors.storage_type',
                 'physionet.context_processors.platform_config',
+                'physionet.context_processors.session_security_config',
                 'sso.context_processors.sso_enabled',
             ],
         },
