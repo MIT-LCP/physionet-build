@@ -2877,3 +2877,17 @@ def event(request):
                   {'events': events,
                    'events_nav': True
                    })
+
+
+@permission_required('user.view_all_events', raise_exception=True)
+def event_management(request, event_slug):
+    """
+    Admin page for managing an individual Event.
+    """
+    selected_event = get_object_or_404(Event, slug=event_slug)
+    return render(
+        request,
+        'console/event_management.html',
+        {
+            'event': selected_event
+        })

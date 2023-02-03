@@ -143,5 +143,6 @@ urlpatterns = [
     path('code-of-conducts/<int:pk>/activate/', views.code_of_conduct_activate, name='code_of_conduct_activate'),
     # Lists of event components
     path('event/', views.event,
-         name='event')
+         name='event'),
+    path('event/manage/<event_slug>', views.event_management, name='event_management')
 ]
