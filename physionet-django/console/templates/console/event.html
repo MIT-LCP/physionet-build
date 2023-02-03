@@ -33,7 +33,7 @@
               <tbody>
               {% for event in events %}
                 <tr>
-                    <td>{{ event.title }}</td>
+                    <td><a href="{% url 'event_management' event.slug %}">{{ event.title }}</a></td>
                     <td>{{ event.get_category_display|title }}</td>
                     <td>{{ event.host }}</td>
                     <td>{{ event.added_datetime|date }}</td>
