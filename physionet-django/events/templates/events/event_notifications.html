@@ -1,0 +1,77 @@
+<!-- Outstanding tasks -->
+{% if participation_response_formset|length %}
+    <div class="card">
+        <div class="card-header">
+            <h2>Outstanding Tasks</h2>
+        </div>
+        {# Here is listed all outstanding event participation request #}
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-md-3"><strong>Event</strong></div>
+                    <div class="col-md-2"><strong>Pending Task</strong></div>
+                    <div class="col-md-3"><strong>Name</strong></div>
+                    <div class="col-md-2"><strong>Date</strong></div>
+                    <div class="col-md-2"></div>
+                </div>
+            </li>
+            {% if participation_response_formset|length %}
+                <form action="" method="post">
+                    {{ participation_response_formset.management_form }}
+                    {% csrf_token %}
+                    {% for participation_response_form in participation_response_formset %}
+                        <li class="list-group-item">
+                            <div class="row">
+                                <div class="col-md-3">{{ participation_response_form.instance.event.title }}</div>
+                                <div class="col-md-2">Participation Request</div>
+                                <div class="col-md-3">{{ participation_response_form.instance.user.get_full_name }}</div>
+                                <div class="col-md-2">{{ participation_response_form.instance.requested_datetime|date }} </div>
+                                <div class="col-md-2">
+                                    <button id="respond_button_{{ participation_response_form.instance.id }}"
+                                            type="button" class="btn btn-sm btn-primary" data-toggle="modal"
+                                            data-target="#participation-response-modal-{{ participation_response_form.instance.id }}">
+                                        <i class="fa fa-reply"></i> Respond
+                                    </button>
+                                </div>
+                            </div>
+                        </li>
+                        {# The modal for the response #}
+                        <div class="modal fade"
+                             id="participation-response-modal-{{ participation_response_form.instance.id }}"
+                             tabindex="-1" role="dialog"
+                             aria-labelledby="participation-response-modal-{{ participation_response_form.instance.id }}"
+                             aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Respond to participation request</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="modal-body author_participation-response_form">
+                                        <p>{{ participation_response_form.instance.user.get_full_name }} is requesting
+                                            to join Event {{ participation_response_form.instance.event.title }}.</p>
+                                        {{ participation_response_form }}
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button class="btn btn-primary" name="participation_response"
+                                                value="{{ participation_response_form.instance.id }}" type="submit"><i
+                                                class="fa fa-reply"></i> Submit Response
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </form>
+            {% endif %}
+
+        </ul>
+    </div>
+    <br>
+{% endif %}

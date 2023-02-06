@@ -1,7 +1,7 @@
 from django import forms
 
 from events.widgets import DatePickerInput
-from events.models import Event
+from events.models import Event, EventApplication
 
 
 class AddEventForm(forms.ModelForm):
@@ -47,3 +47,16 @@ class AddEventForm(forms.ModelForm):
                                  end_date=self.cleaned_data['end_date'],
                                  allowed_domains=self.cleaned_data['allowed_domains']
                                  )
+
+
+class EventApplicationResponseForm(forms.ModelForm):
+    """
+    For responding to a request to join an Event.
+    """
+
+    status = forms.ChoiceField(choices=EventApplication.EventApplicationStatus.choices_approval(),
+                               widget=forms.Select)
+
+    class Meta:
+        model = EventApplication
+        fields = ('status', 'comment_to_applicant')
