@@ -35,9 +35,9 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
-                'allowed_domains': ''
+                'allowed_domains': '',
+                'add-event': ''
             })
-
         self.assertEqual(response.status_code, 302)
         event = Event.objects.get(title=self.new_event_name)
         self.assertEqual(event.title, self.new_event_name)
@@ -57,7 +57,8 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
-                'allowed_domains': ''
+                'allowed_domains': '',
+                'add-event': ''
             })
 
         self.assertEqual(response.status_code, 200)
@@ -104,7 +105,8 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
-                'allowed_domains': ''
+                'allowed_domains': '',
+                'add-event': ''
             })
 
         self.assertEqual(response.status_code, 302)
