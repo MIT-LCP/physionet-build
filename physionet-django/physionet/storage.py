@@ -14,7 +14,7 @@ class StaticStorage(GoogleCloudStorage):
     location = ''
 
 
-def generate_signed_url_helper(blob_name, size, expiration=dt.timedelta(days=1), version='v4') -> str:
+def generate_signed_url_helper(blob_name, size, expiration, version='v4') -> str:
     """
     Generate a signed URL to access project files on GCS
 

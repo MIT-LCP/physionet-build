@@ -2305,7 +2305,7 @@ def generate_signed_url(request, project_slug):
     url = generate_signed_url_helper(
         version='v4',
         blob_name=canonical_resource,
-        expiration=dt.timedelta(days=1),
+        expiration=dt.timedelta(minutes=settings.GCS_SIGNED_URL_LIFETIME_IN_MINUTES),
         size=size
     )
 
