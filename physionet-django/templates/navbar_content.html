@@ -29,7 +29,7 @@
 </ul>
 
 <ul class="navbar-nav ml-auto">
-  {% if user.is_authenticated and perms.user.view_event_menu %} 
+  {% if user.is_authenticated and perms.events.view_event_menu %}
     <li class="nav-item">
       <a id="nav_projects" class="nav-link" href="{% url 'event_home' %}">
         Events
