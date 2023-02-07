@@ -428,6 +428,9 @@ LOGGING = {
             'format': '%(created)s %(name)s %(levelname)s %(message)s %(sinfo)s',
             '()': 'physionet.log.UwsgiJsonFormatter',
         },
+        'admin': {
+            'format': '%(levelname)s %(asctime)-15s %(user)s %(message)s'
+        }
     },
     'handlers': {
         'console': {
@@ -451,6 +454,12 @@ LOGGING = {
             'filters': ['require_debug_false'],
             'class': 'physionet.log.SaferAdminEmailHandler',
         },
+        'admin_logging': {
+            'level': 'INFO',
+            'class': _class,
+            'formatter': 'admin',
+            'stream': _logfile,
+        },
     },
     'loggers': {
         '': {
@@ -460,6 +469,11 @@ LOGGING = {
         'user': {
             'level': 'INFO',
             'handlers': ['custom_logging'],
+            'propagate': False,
+        },
+        'admin': {
+            'level': 'INFO',
+            'handlers': ['admin_logging'],
             'propagate': False,
         },
         'django.security.DisallowedHost': {
