@@ -28,6 +28,7 @@ ENVIRONMENT = config('ENVIRONMENT', default='production')
 DEBUG = config('DEBUG', default=False, cast=bool)
 SECRET_KEY = config('SECRET_KEY')
 ENABLE_SSO = config('ENABLE_SSO', default=False, cast=bool)
+ENABLE_LIGHTWAVE = config('ENABLE_LIGHTWAVE', default=True, cast=bool)
 SSO_REMOTE_USER_HEADER = config('SSO_REMOTE_USER_HEADER', default='HTTP_REMOTE_USER')
 SSO_LOGIN_BUTTON_TEXT = config('SSO_LOGIN_BUTTON_TEXT', default='Login')
 GCS_SIGNED_URL_LIFETIME_IN_MINUTES = config('GCS_SIGNED_URL_LIFETIME_IN_MINUTES', default=1440, cast=int)
@@ -57,7 +58,6 @@ INSTALLED_APPS = [
     'export',
     'notification',
     'search',
-    'lightwave',
     'physionet',
     'django_sass',
     'events',
@@ -65,6 +65,9 @@ INSTALLED_APPS = [
 
 if ENABLE_SSO:
     INSTALLED_APPS += ['sso']
+
+if ENABLE_LIGHTWAVE:
+    INSTALLED_APPS += ['lightwave']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
