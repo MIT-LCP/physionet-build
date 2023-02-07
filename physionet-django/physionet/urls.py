@@ -83,7 +83,7 @@ urlpatterns = [
          name='database_list')
 ]
 
-if ProjectFiles().is_lightwave_supported and settings.ENABLE_LIGHTWAVE:
+if settings.ENABLE_LIGHTWAVE and ProjectFiles().is_lightwave_supported:
     urlpatterns.append(path('lightwave/', include('lightwave.urls')))
     # backward compatibility for LightWAVE
     urlpatterns.append(path('cgi-bin/lightwave',
