@@ -10,8 +10,12 @@ from user.models import CredentialApplication, User
 
 LOGGER = logging.getLogger(__name__)
 
+DFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT = 5
+
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument("-n", "--number", type=int, help="Number of applications to be rejected")
 
     def handle(self, *args, **options):
         """
@@ -26,6 +30,11 @@ class Command(BaseCommand):
                            'MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION to True in .env file.')
             return
 
+        # total number of applications to be rejected
+        total_applications_to_reject = options['number'] or DFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT
+
+        LOGGER.info(f'Total number of applications to be rejected: {total_applications_to_reject}')
+
         today = timezone.now()
         limit = today - timezone.timedelta(days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION)
 
@@ -38,6 +47,8 @@ class Command(BaseCommand):
         response_applications = applications.filter(credential_review__status=30)
         # finally get applications that have been pending for more than the limit
         filtered_applications = response_applications.filter(reference_contact_datetime__lt=limit)
+        # limit the number of applications to be rejected
+        filtered_applications = filtered_applications[:total_applications_to_reject]
 
         LOGGER.info(f'Found {len(filtered_applications)} applications to be rejected.')
         for application in filtered_applications:
