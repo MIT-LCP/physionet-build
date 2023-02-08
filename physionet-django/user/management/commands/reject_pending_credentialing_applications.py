@@ -31,9 +31,6 @@ class Command(BaseCommand):
         today = timezone.now()
         limit = today - timezone.timedelta(days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION)
 
-        # user who is responsible for rejecting the application
-        responder = User.objects.get(username='admin')
-
         # creating an instance of HttpRequest to be used in the notification utility
         request = HttpRequest()
 
@@ -46,7 +43,7 @@ class Command(BaseCommand):
 
         LOGGER.info(f'Found {len(filtered_applications)} applications to be rejected.')
         for application in filtered_applications:
-            application.reject(responder=responder)
+            application.reject(responder=None)
             rejection_reason = REJECTION_MESSAGE.format(reference_name=application.reference_name)
             application.responder_comments = rejection_reason
             application.save()
