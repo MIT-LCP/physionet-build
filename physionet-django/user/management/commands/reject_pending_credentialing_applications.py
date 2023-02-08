@@ -2,6 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.db import transaction
 from django.http import HttpRequest
 from django.utils import timezone
 
@@ -52,9 +53,10 @@ class Command(BaseCommand):
 
         LOGGER.info(f'Found {len(filtered_applications)} applications to be rejected.')
         for application in filtered_applications:
-            application.auto_reject(reason=CredentialApplication.AutoRejectionReason.NO_RESPONSE_FROM_REFERENCE)
-            LOGGER.info(f'Application {application.id} rejected')
+            with transaction.atomic():
+                application.auto_reject(reason=CredentialApplication.AutoRejectionReason.NO_RESPONSE_FROM_REFERENCE)
+                LOGGER.info(f'Application {application.id} rejected')
 
-            # send notification to applicant
-            notification.process_credential_complete(request, application)
-            LOGGER.info(f'Notification sent to applicant {application.get_full_name()}')
+                # send notification to applicant
+                notification.process_credential_complete(request, application)
+                LOGGER.info(f'Notification sent to applicant {application.get_full_name()}')
