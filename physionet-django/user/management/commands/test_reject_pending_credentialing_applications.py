@@ -4,7 +4,8 @@ from io import StringIO
 from django.conf import settings
 from django.core.management import call_command
 
-from user.management.commands.reject_pending_credentialing_applications import get_application_to_be_rejected
+from user.management.commands.reject_pending_credentialing_applications import get_application_to_be_rejected, \
+    DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT
 from user.test_views import TestMixin
 
 LOGGER = logging.getLogger(__name__)
@@ -20,7 +21,8 @@ class TestRejectPendingCredentialingApplications(TestMixin):
 
         # call the management command to auto reject applications
         out = StringIO()
-        call_command('reject_pending_credentialing_applications', number=5, stdout=out)
+        call_command('reject_pending_credentialing_applications', number=DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT,
+                     stdout=out)
 
         # check if the applications are rejected
         if settings.ENABLE_CREDENTIALING_AUTO_REJECTION:
