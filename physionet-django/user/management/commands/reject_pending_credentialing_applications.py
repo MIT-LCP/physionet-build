@@ -9,8 +9,6 @@ import notification.utility as notification
 from user.models import CredentialApplication, User
 
 LOGGER = logging.getLogger(__name__)
-REJECTION_MESSAGE = 'Your Reference {reference_name} did not respond to the reference check request within '\
-                    f'{settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION} days.'
 
 
 class Command(BaseCommand):
@@ -43,10 +41,7 @@ class Command(BaseCommand):
 
         LOGGER.info(f'Found {len(filtered_applications)} applications to be rejected.')
         for application in filtered_applications:
-            application.reject(responder=None)
-            rejection_reason = REJECTION_MESSAGE.format(reference_name=application.reference_name)
-            application.responder_comments = rejection_reason
-            application.save()
+            application.auto_reject(reason=CredentialApplication.AutoRejectionReason.NO_RESPONSE_FROM_REFERENCE)
             LOGGER.info(f'Application {application.id} rejected')
 
             # send notification to applicant
