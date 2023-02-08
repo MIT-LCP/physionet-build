@@ -11,7 +11,7 @@ from user.models import CredentialApplication, User
 
 LOGGER = logging.getLogger(__name__)
 
-DFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT = 5
+DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT = 5
 
 
 class Command(BaseCommand):
@@ -32,7 +32,7 @@ class Command(BaseCommand):
             return
 
         # total number of applications to be rejected
-        total_applications_to_reject = options['number'] or DFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT
+        total_applications_to_reject = options['number'] or DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT
 
         LOGGER.info(f'Total number of applications to be rejected: {total_applications_to_reject}')
 

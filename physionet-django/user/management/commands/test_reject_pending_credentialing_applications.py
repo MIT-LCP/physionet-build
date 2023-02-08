@@ -1,7 +1,9 @@
 import logging
+from io import StringIO
 
 from django.conf import settings
 from django.utils import timezone
+from django.core.management import call_command
 
 from user.management.commands import reject_pending_credentialing_applications
 from user.models import CredentialApplication
@@ -36,7 +38,8 @@ class TestRejectPendingCredentialingApplications(TestMixin):
         LOGGER.info(f'Found {len(applications)} applications to be rejected.')
 
         # call the management command to auto reject applications
-        reject_pending_credentialing_applications.Command().handle()
+        out = StringIO()
+        call_command('reject_pending_credentialing_applications', number=10, stdout=out)
 
         # check if the applications are rejected
         for application in applications:

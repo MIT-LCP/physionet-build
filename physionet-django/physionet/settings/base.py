@@ -198,7 +198,7 @@ PAUSE_CREDENTIALING_MESSAGE = config('PAUSE_CREDENTIALING_MESSAGE',
 # Auto reject credentialing applications whose references are not verified after selected number of days
 MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION = config('MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION',
                                                                cast=int, default=30)
-ENABLE_CREDENTIALING_AUTO_REJECTION = config('ENABLE_CREDENTIALING_AUTO_REJECTION', False)
+ENABLE_CREDENTIALING_AUTO_REJECTION = config('ENABLE_CREDENTIALING_AUTO_REJECTION', default=False, cast=bool)
 
 GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
 
