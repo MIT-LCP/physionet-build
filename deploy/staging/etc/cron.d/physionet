@@ -15,4 +15,4 @@
 35 23 * * *  www-data  env DJANGO_SETTINGS_MODULE=physionet.settings.staging /physionet/python-env/physionet/bin/python3 /physionet/physionet-build/physionet-django/manage.py purgeaccounts
 
 # auto reject pending credentialing applications in case the references don't respond
-45 23 * * *  www-data  env DJANGO_SETTINGS_MODULE=physionet.settings.staging /physionet/python-env/physionet/bin/python3 /physionet/physionet-build/physionet-django/manage.py reject_pending_credentialing_applications
+0 */1 * * *  www-data  env DJANGO_SETTINGS_MODULE=physionet.settings.staging /physionet/python-env/physionet/bin/python3 /physionet/physionet-build/physionet-django/manage.py reject_pending_credentialing_applications
