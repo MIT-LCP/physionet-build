@@ -12,12 +12,84 @@
 <div class="container">
 {% if event %}
     <h2 class="form-signin-heading">Event Registration</h2>
-    <p>You have been invited to join {{ event.host.get_full_name }}'s {{ event.title }} from {{ event.start_date }} to {{ event.end_date }}.</p>
-    <p>Click confirm to join the waiting list for this event.</p>
+    <div class="col-md-9 no-pd">
+        <br/>
+        <hr>
+        <div class="row mb-1">
+                <div class="col-md-3">
+                    Event name:
+                </div>
+                <div class="col-md-9">
+                     {{ event.title }}
+                </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-md-3">
+                Hosted by:
+            </div>
+            <div class="col-md-9">
+                {{ event.host.get_full_name }}
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-md-3">
+                Category:
+            </div>
+            <div class="col-md-9">
+                {{ event.category }}
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-md-3">
+                Created on:
+            </div>
+            <div class="col-md-9">
+                {{ event.added_datetime | date:"M. d, Y" }}
+            </div>
+        </div>
+
+        <div class="row mb-1">
+            <div class="col-md-3">
+                Start Date:
+            </div>
+            <div class="col-md-9">
+                {{ event.start_date | date:"M. d, Y"}}
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-md-3">
+                End Date:
+            </div>
+            <div class="col-md-9">
+                {{ event.end_date | date:"M. d, Y" }}
+            </div>
+        </div>
+
+        <div class="row mb-1">
+            <div class="row col-md-3">
+                Description:
+            </div>
+            <div class="row col-md-12">
+                {{ event.description }}
+            </div>
+        </div>
+
+
+
+    </div>
+        <hr>
+
+
+    <br>
+    <p>You may request to join this event below.</p>
+
+    <strong><p>Requesting participation adds your details to a waiting list. You will receive a notification when your request has been processed.</p></strong>
+
     <form  method="post">
         {% csrf_token %}
-        <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Confirm</button>
+        <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Request Participation</button>
     </form>
+
 </div>
 {% endif %}
 {% endblock %}
