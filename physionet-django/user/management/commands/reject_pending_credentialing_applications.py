@@ -14,6 +14,23 @@ LOGGER = logging.getLogger(__name__)
 DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT = 5
 
 
+def get_application_to_be_rejected(number_of_applications=DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT):
+    """
+    Get all CredentialApplication that has been pending for more than
+    settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION days.
+    """
+    today = timezone.now()
+    limit = today - timezone.timedelta(days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION)
+
+    # get all applications that have decision pending
+    applications = CredentialApplication.objects.filter(status=0)
+    # get applications with Reference Response pending
+    response_applications = applications.filter(credential_review__status=30)
+    # finally get applications that have been pending for more than the limit
+    filtered_applications = response_applications.filter(reference_contact_datetime__lt=limit)[:number_of_applications]
+    return filtered_applications
+
+
 class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("-n", "--number", type=int, help="Number of applications to be rejected")
@@ -36,20 +53,11 @@ class Command(BaseCommand):
 
         LOGGER.info(f'Total number of applications to be rejected: {total_applications_to_reject}')
 
-        today = timezone.now()
-        limit = today - timezone.timedelta(days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION)
-
         # creating an instance of HttpRequest to be used in the notification utility
         request = HttpRequest()
 
-        # get all applications that have decision pending
-        applications = CredentialApplication.objects.filter(status=0)
-        # get applications with Reference Response pending
-        response_applications = applications.filter(credential_review__status=30)
-        # finally get applications that have been pending for more than the limit
-        filtered_applications = response_applications.filter(reference_contact_datetime__lt=limit)
-        # limit the number of applications to be rejected
-        filtered_applications = filtered_applications[:total_applications_to_reject]
+        # get applications to be rejected
+        filtered_applications = get_application_to_be_rejected(total_applications_to_reject)
 
         LOGGER.info(f'Found {len(filtered_applications)} applications to be rejected.')
         for application in filtered_applications:
