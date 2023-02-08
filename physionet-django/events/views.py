@@ -104,9 +104,9 @@ def event_home(request):
 
 
 @login_required
-def event_add_participant(request, event_slug):
+def event_detail(request, event_slug):
     """
-    Adds participants to an event.
+    Detail page of an event
     """
     user = request.user
 
@@ -148,4 +148,4 @@ def event_add_participant(request, event_slug):
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
 
-    return render(request, 'events/event_participant.html', {'event': event})
+    return render(request, 'events/event_detail.html', {'event': event})

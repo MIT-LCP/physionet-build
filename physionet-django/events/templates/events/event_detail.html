@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}Events Home{% endblock %}
+{% block title %}Event - {{ event.title }}{% endblock %}
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}">
@@ -11,18 +11,11 @@
 {% block content %}
 <div class="container">
 {% if event %}
-    <h2 class="form-signin-heading">Event Registration</h2>
+    <h2 class="form-signin-heading">{{ event.title }}</h2>
     <div class="col-md-9 no-pd">
         <br/>
+        <h4>Event Details</h4>
         <hr>
-        <div class="row mb-1">
-                <div class="col-md-3">
-                    Event name:
-                </div>
-                <div class="col-md-9">
-                     {{ event.title }}
-                </div>
-        </div>
 {#        <div class="row mb-1">#}
 {#            <div class="col-md-3">#}
 {#                Hosted by:#}
