@@ -48,23 +48,19 @@ class Command(BaseCommand):
                            'MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION to True in .env file.')
             return
 
-        # total number of applications to be rejected
         total_applications_to_reject = options['number'] or DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT
-
-        LOGGER.info(f'Total number of applications to be rejected: {total_applications_to_reject}')
 
         # creating an instance of HttpRequest to be used in the notification utility
         request = HttpRequest()
 
-        # get applications to be rejected
         filtered_applications = get_application_to_be_rejected(total_applications_to_reject)
 
-        LOGGER.info(f'Found {len(filtered_applications)} applications to be rejected.')
+        LOGGER.info(f'{len(filtered_applications)} credentialing applications selected for rejection.'
+                    f' No ref response.')
         for application in filtered_applications:
             with transaction.atomic():
                 application.auto_reject(reason=CredentialApplication.AutoRejectionReason.NO_RESPONSE_FROM_REFERENCE)
-                LOGGER.info(f'Application {application.id} rejected')
 
-                # send notification to applicant
                 notification.process_credential_complete(request, application)
-                LOGGER.info(f'Notification sent to applicant {application.get_full_name()}')
+                LOGGER.info(f'Rejected ApplicationID: {application.id}. Notification sent to applicant: '
+                            f'{application.get_full_name()}')
