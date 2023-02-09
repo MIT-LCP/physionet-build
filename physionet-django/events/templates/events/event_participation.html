@@ -1,9 +1,13 @@
 <div class="container">
-  <strong><p>Click the button below to join the waiting list. You will receive a notification when your registration is confirmed.</p></strong>
+  <h5>Event Registration</h5>
+  {% if registration_allowed %}
+    <strong><p>Click the button below to join the waiting list. You will receive a notification when your registration is confirmed.</p></strong>
 
-  <form  method="post">
-    {% csrf_token %}    
-    <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Join waitlist</button>
-  </form>
-
+    <form  method="post">
+      {% csrf_token %}    
+      <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Join waitlist</button>
+    </form>
+  {% else %}
+    <p>{{registration_error_message}}</p>
+  {% endif %}
 </div>

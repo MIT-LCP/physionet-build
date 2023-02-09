@@ -112,30 +112,39 @@ def event_detail(request, event_slug):
 
     event = get_object_or_404(Event, slug=event_slug)
 
+    # Handle Event Registration  Start #
+
+    registration_allowed = True
+    registration_error_message = ''
+
+    # if the event has ended, registration is not allowed, so we can skip the rest of the checks
     if event.end_date < datetime.now().date():
-        messages.error(request, "This event has now finished")
-        return redirect(event_home)
+        registration_allowed = False
+        registration_error_message = 'Registration is closed. Event has ended.'
+    elif event.host == user:
+        registration_allowed = False
+        registration_error_message = 'You are the host of this event'
+    elif event.participants.filter(user=user).exists():
+        registration_allowed = False
+        registration_error_message = 'You are already registered for this event'
+    else:  # we don't need to check for waitlisted / other stuff if the user is already registered
+        event_participation_request = EventApplication.objects.filter(event=event, user=user)
+        if event_participation_request.exists():
+            event_participation_request = event_participation_request.first()
+            # currently we are not blocking rejected, revoked access users from registering again
+            if event_participation_request.status == EventApplication.EventApplicationStatus.WAITLISTED:
+                registration_allowed = False
+                registration_error_message = 'Your request to join this event is already pending'
 
-    if event.participants.filter(user=user).exists():
-        messages.error(request, "Your request to join this event is already accepted")
-        return redirect(event_home)
-
-    event_participation_request = EventApplication.objects.filter(event=event, user=user)
-    if event_participation_request.exists():
-        event_participation_request = event_participation_request.first()
-        if event_participation_request.status == EventApplication.EventApplicationStatus.WAITLISTED:
-            messages.error(request, "Your request to join this event is already pending")
-            return redirect(event_home)
-
-    if event.allowed_domains:
-        domains = event.allowed_domains.split(',')
-        emails = user.get_emails()
-        domain_match = [domain for domain in domains if any('@' + domain.strip() in email for email in emails)]
-        if not domain_match:
-            messages.error(request, f"To register for the event, your account must be linked with "
-                                    f"an email address from the following domains: {domains}. "
-                                    f"You can add email addresses to your account in the settings menu.")
-            return redirect(event_home)
+        if event.allowed_domains:
+            domains = event.allowed_domains.split(',')
+            emails = user.get_emails()
+            domain_match = [domain for domain in domains if any('@' + domain.strip() in email for email in emails)]
+            if not domain_match:
+                registration_allowed = False
+                registration_error_message = f"To register for the event, your account must be linked with " \
+                                             f"an email address from the following domains: {domains}. " \
+                                             f"You can add email addresses to your account in the settings menu."
 
     if request.method == 'POST':
         if request.POST.get('confirm_event') == 'confirm':
@@ -143,4 +152,12 @@ def event_detail(request, event_slug):
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
 
-    return render(request, 'events/event_detail.html', {'event': event})
+    # Handle Event Registration  End #
+
+    return render(
+        request,
+        'events/event_detail.html',
+        {'event': event,
+         'registration_allowed': registration_allowed,
+         'registration_error_message': registration_error_message,
+         })
