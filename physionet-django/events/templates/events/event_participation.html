@@ -1,0 +1,9 @@
+<div class="container">
+  <strong><p>Click the button below to join the waiting list. You will receive a notification when your registration is confirmed.</p></strong>
+
+  <form  method="post">
+    {% csrf_token %}    
+    <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Join waitlist</button>
+  </form>
+
+</div>
