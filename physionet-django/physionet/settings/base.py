@@ -200,6 +200,8 @@ MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION = config('MAX_REFERENCE_VE
                                                                cast=int, default=30)
 ENABLE_CREDENTIALING_AUTO_REJECTION = config('ENABLE_CREDENTIALING_AUTO_REJECTION', default=False, cast=bool)
 
+DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT = config('DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT', default=5, cast=int)
+
 GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
 
 GCP_BUCKET_PREFIX = 'testing-delete.'

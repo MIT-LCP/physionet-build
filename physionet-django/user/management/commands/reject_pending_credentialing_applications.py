@@ -11,10 +11,8 @@ from user.models import CredentialApplication, User
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT = 5
 
-
-def get_application_to_be_rejected(number_of_applications=DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT):
+def get_application_to_be_rejected(number_of_applications=settings.DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT):
     """
     Get all CredentialApplication that has been pending for more than
     settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION days.
@@ -48,7 +46,7 @@ class Command(BaseCommand):
                            'MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION to True in .env file.')
             return
 
-        total_applications_to_reject = options['number'] or DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT
+        total_applications_to_reject = options['number'] or settings.DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT
 
         # creating an instance of HttpRequest to be used in the notification utility
         request = HttpRequest()
