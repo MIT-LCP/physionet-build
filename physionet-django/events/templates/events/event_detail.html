@@ -34,15 +34,6 @@
         </div>
         <div class="row mb-1">
             <div class="col-md-3">
-                Created on:
-            </div>
-            <div class="col-md-9">
-                {{ event.added_datetime | date:"M. d, Y" }}
-            </div>
-        </div>
-
-        <div class="row mb-1">
-            <div class="col-md-3">
                 Start Date:
             </div>
             <div class="col-md-9">
@@ -74,13 +65,11 @@
 
 
     <br>
-    <p>You may request to join this event below.</p>
-
-    <strong><p>Requesting participation adds your details to a waiting list. You will receive a notification when your request has been processed.</p></strong>
+    <strong><p>Click the button below to join the waiting list. You will receive a notification when your registration is confirmed.</p></strong>
 
     <form  method="post">
         {% csrf_token %}
-        <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Request Participation</button>
+        <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Join waitlist</button>
     </form>
 
 </div>
