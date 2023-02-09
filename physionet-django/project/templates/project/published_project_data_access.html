@@ -1,0 +1,16 @@
+ {% if data_access %}
+    {% for item in data_access %}
+      {% if item.platform == 1 %} {# ID for AWS open data #}
+        <li>Access using AWS <a href="{{item.location}}">Open Data repository</a></li>
+      {% elif item.platform == 2 %} {# ID for AWS cloud bucket #}
+        <li><a href="{% url 'published_project_request_access' project.slug project.version 2 %}">Request access</a> to the data using AWS command line tools: <pre class="shell-command">aws s3 sync {{item.location}} DESTINATION</pre></li>
+      {% elif item.platform == 3 %} {# ID for Google cloud bucket email #}
+        {% if project.gcp and project.gcp.sent_files %}
+            <li><a href="{% url 'published_project_request_access' project.slug project.version 3 %}">Request access</a> to the files using the <a href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">Google Cloud Storage Browser</a>. Login with a Google account is required.</li>
+        {% endif %}
+
+      {% elif item.platform == 4 %} {# ID for google BigQuery email #}
+        <li><a href="{% url 'published_project_request_access' project.slug project.version 4 %}">Request access</a> using Google BigQuery.</li>
+      {% endif %}
+    {% endfor %}
+{% endif %}
