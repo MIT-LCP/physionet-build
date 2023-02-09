@@ -116,11 +116,6 @@ def event_detail(request, event_slug):
         messages.error(request, "This event has now finished")
         return redirect(event_home)
 
-    # host should not be able to add themselves as a participant
-    if event.host == user:
-        messages.error(request, "You are the host of this event. You cannot add yourself as a participant")
-        return redirect(event_home)
-
     if event.participants.filter(user=user).exists():
         messages.error(request, "Your request to join this event is already accepted")
         return redirect(event_home)
