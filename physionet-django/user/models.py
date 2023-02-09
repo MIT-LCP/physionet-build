@@ -757,6 +757,12 @@ class CredentialApplication(models.Model):
         (4, 'Revoked')
     )
 
+    class AutoRejectionReason(models.TextChoices):
+        NO_RESPONSE_FROM_REFERENCE = 'NRFR', _('No response from reference')
+
+    auto_rejection_reason = models.CharField(
+        blank=True, null=True, choices=AutoRejectionReason.choices, max_length=4
+    )
     # Maximum size for training_completion_report
     MAX_REPORT_SIZE = 2 * 1024 * 1024
 
@@ -1006,6 +1012,14 @@ class CredentialApplication(models.Model):
             status = 'Awaiting final approval'
 
         return status
+
+    def auto_reject(self, reason):
+        """
+        Automatically reject this application.
+        A reason for rejection (AutoRejectionReason) must be provided.
+        """
+        self.auto_rejection_reason = reason
+        self.reject(responder=None)
 
 
 class CredentialReview(models.Model):

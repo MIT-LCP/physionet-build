@@ -14180,6 +14180,76 @@
   }
 },
 {
+  "model": "user.credentialapplication",
+  "pk": 109,
+  "fields": {
+    "slug": "cP2d7BDCpt33oiAlqoas",
+    "application_datetime": "2022-01-08T18:49:03.693Z",
+    "user": [
+      "amitupreti"
+    ],
+    "first_names": "Amit",
+    "last_name": "Upreti",
+    "researcher_category": 1,
+    "organization_name": "Lorem Ipsum",
+    "job_title": "Lorem Ipsum",
+    "city": "Lorem Ipsum",
+    "state_province": "MA",
+    "country": "US",
+    "webpage": "",
+    "zip_code": "02139",
+    "suffix": "",
+    "course_category": null,
+    "course_info": "",
+    "reference_category": 0,
+    "reference_name": "Lorem Ipsum",
+    "reference_email": "loremipsum@fakeemail.com",
+    "reference_organization": "Lorem Ipsum",
+    "reference_title": "Lorem Ipsum",
+    "status": 0,
+    "reference_contact_datetime": "2022-01-08T18:49:03.693Z",
+    "reference_response_datetime": null,
+    "reference_response": 0,
+    "reference_response_text": "",
+    "research_summary": "Lorem Ipsum",
+    "project_of_interest": null,
+    "decision_datetime": null,
+    "responder": [
+      "admin"
+    ],
+    "responder_comments": "",
+    "revoked_datetime": null
+  }
+},
+{
+  "model": "user.credentialreview",
+  "pk": 3,
+  "fields": {
+    "application": 109,
+    "status": 30,
+    "fields_complete": null,
+    "appears_correct": null,
+    "lang_understandable": null,
+    "user_searchable": null,
+    "user_has_papers": null,
+    "research_summary_clear": null,
+    "course_name_provided": null,
+    "user_understands_privacy": null,
+    "user_org_known": null,
+    "user_details_consistent": null,
+    "ref_appropriate": null,
+    "ref_searchable": null,
+    "ref_has_papers": null,
+    "ref_is_supervisor": null,
+    "ref_course_list": null,
+    "ref_skipped": null,
+    "ref_knows_applicant": null,
+    "ref_approves": null,
+    "ref_understands_privacy": null,
+    "responder_comments": ""
+  }
+},
+{
   "model": "user.cloudinformation",
   "pk": 1,
   "fields": {
