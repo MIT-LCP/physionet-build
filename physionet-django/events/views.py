@@ -104,9 +104,9 @@ def event_home(request):
 
 
 @login_required
-def event_add_participant(request, event_slug):
+def event_detail(request, event_slug):
     """
-    Adds participants to an event.
+    Detail page of an event
     """
     user = request.user
 
@@ -114,11 +114,6 @@ def event_add_participant(request, event_slug):
 
     if event.end_date < datetime.now().date():
         messages.error(request, "This event has now finished")
-        return redirect(event_home)
-
-    # host should not be able to add themselves as a participant
-    if event.host == user:
-        messages.error(request, "You are the host of this event. You cannot add yourself as a participant")
         return redirect(event_home)
 
     if event.participants.filter(user=user).exists():
@@ -148,4 +143,4 @@ def event_add_participant(request, event_slug):
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
 
-    return render(request, 'events/event_participant.html', {'event': event})
+    return render(request, 'events/event_detail.html', {'event': event})

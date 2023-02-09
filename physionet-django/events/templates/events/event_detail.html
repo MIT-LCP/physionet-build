@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Event - {{ event.title }}{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}">
+{% endblock %} 
+
+{% block content %}
+<div class="container">
+{% if event %}
+    <h2 class="form-signin-heading">{{ event.title }}</h2>
+    <div class="col-md-9 no-pd">
+        <br/>
+        <h4>Event Details</h4>
+        <hr>
+{#        <div class="row mb-1">#}
+{#            <div class="col-md-3">#}
+{#                Hosted by:#}
+{#            </div>#}
+{#            <div class="col-md-9">#}
+{#                {{ event.host.get_full_name }}#}
+{#            </div>#}
+{#        </div>#}
+        <div class="row mb-1">
+            <div class="col-md-3">
+                Category:
+            </div>
+            <div class="col-md-9">
+                {{ event.category }}
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-md-3">
+                Start Date:
+            </div>
+            <div class="col-md-9">
+                {{ event.start_date | date:"M. d, Y"}}
+            </div>
+        </div>
+        <div class="row mb-1">
+            <div class="col-md-3">
+                End Date:
+            </div>
+            <div class="col-md-9">
+                {{ event.end_date | date:"M. d, Y" }}
+            </div>
+        </div>
+
+        <div class="row mb-1">
+            <div class="row col-md-3">
+                Description:
+            </div>
+            <div class="row col-md-12">
+                {{ event.description }}
+            </div>
+        </div>
+
+
+
+    </div>
+        <hr>
+
+
+    <br>
+    <strong><p>Click the button below to join the waiting list. You will receive a notification when your registration is confirmed.</p></strong>
+
+    <form  method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Join waitlist</button>
+    </form>
+
+</div>
+{% endif %}
+{% endblock %}
