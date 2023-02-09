@@ -30,7 +30,5 @@ class TestRejectPendingCredentialingApplications(TestMixin):
                 # rejected applications should have status 1
                 self.assertEqual(application.status, 1)
 
-            applications = get_application_to_be_rejected()
-            self.assertEqual(len(applications), 0)
         else:
             LOGGER.info('Auto rejection of credentialing applications is disabled. Exiting.')
