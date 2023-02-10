@@ -52,6 +52,10 @@ def event_home(request):
 
     # sqlite doesn't support the distinct() method
     events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
+    # concatenate the events where the user is the host,participant and the events where the user is on the waitlist
+    events_all = events_all | Event.objects.filter(
+        applications__user=user, applications__status=EventApplication.EventApplicationStatus.WAITLISTED)
+
     events_active = set(events_all.filter(end_date__gte=datetime.now()))
     events_past = set(events_all.filter(end_date__lt=datetime.now()))
     event_form = AddEventForm(user=user)
@@ -161,8 +165,6 @@ def event_detail(request, event_slug):
                 messages.success(request, "You have successfully withdrawn your request to join this event. "
                                           "Please submit a new request if you wish to join again.")
                 return redirect(event_home)
-
-          
 
     # Handle Event Registration  End #
 
