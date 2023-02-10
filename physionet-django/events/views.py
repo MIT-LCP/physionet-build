@@ -115,6 +115,7 @@ def event_detail(request, event_slug):
     # Handle Event Registration  Start #
 
     registration_allowed = True
+    is_waitlisted = False
     registration_error_message = ''
 
     # if the event has ended, registration is not allowed, so we can skip the rest of the checks
@@ -151,6 +152,17 @@ def event_detail(request, event_slug):
             event.join_waitlist(user=user, comment_to_applicant='')
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
+        elif 'confirm_withdraw' in request.POST.keys():
+            event_participation_request = EventApplication.objects. \
+                filter(event=event, user=user, status=EventApplication.EventApplicationStatus.WAITLISTED)
+            if event_participation_request.exists():
+                event_participation_request = event_participation_request.first()
+                event_participation_request.withdraw(comment_to_applicant='Withdrawn by user')
+                messages.success(request, "You have successfully withdrawn your request to join this event. "
+                                          "Please submit a new request if you wish to join again.")
+                return redirect(event_home)
+
+          
 
     # Handle Event Registration  End #
 
@@ -160,4 +172,5 @@ def event_detail(request, event_slug):
         {'event': event,
          'registration_allowed': registration_allowed,
          'registration_error_message': registration_error_message,
+         'is_waitlisted': is_waitlisted,
          })
