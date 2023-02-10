@@ -24,6 +24,8 @@ urlpatterns = [
         name='published_project_latest'),
     path('content/<project_slug>/<version>/', project_views.published_project,
         name='published_project'),
+    re_path('^content/(?P<project_slug>[\w\-]+)/latest/(?P<subdir>.+)/$',
+        project_views.published_project_latest, name='published_project_latest_subdir'),
     re_path('^content/(?P<project_slug>[\w\-]+)/(?P<version>[\d\.]+)/(?P<subdir>.+)/$',
         project_views.published_project, name='published_project_subdir'),
     path('content/<project_slug>/files-panel/<version>/',
