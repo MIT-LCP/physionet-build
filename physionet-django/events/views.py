@@ -129,13 +129,13 @@ def event_detail(request, event_slug):
         registration_allowed = False
         registration_error_message = 'You are already registered for this event'
     else:  # we don't need to check for waitlisted / other stuff if the user is already registered
-        event_participation_request = EventApplication.objects.filter(event=event, user=user)
+        event_participation_request = EventApplication.objects. \
+            filter(event=event, user=user, status=EventApplication.EventApplicationStatus.WAITLISTED)
+        # currently we are not blocking rejected, revoked access users from registering again
         if event_participation_request.exists():
-            event_participation_request = event_participation_request.first()
-            # currently we are not blocking rejected, revoked access users from registering again
-            if event_participation_request.status == EventApplication.EventApplicationStatus.WAITLISTED:
-                registration_allowed = False
-                registration_error_message = 'Your request to join this event is already pending'
+            registration_allowed = False
+            is_waitlisted = True
+            registration_error_message = 'Your request to join this event is already pending'
 
         if event.allowed_domains:
             domains = event.allowed_domains.split(',')
