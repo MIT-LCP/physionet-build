@@ -98,6 +98,7 @@
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
               <button class="btn btn-sm btn-secondary edit-btn" data-toggle ="modal" data-target="#edit-event-modal"  data-event-url="{% url 'get_event_details' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</button>
             {% endif %}
+            <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-info">View Event</a>
           </li>
       {% empty %}
         <div class="card-body text-center">
