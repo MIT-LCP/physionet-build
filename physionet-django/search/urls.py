@@ -19,6 +19,8 @@ urlpatterns = [
     re_path('^(?P<anonymous_url>[\w\d]{64})/$', project_views.anonymous_login,
         name='anonymous_login'),
     path('content/<project_slug>/', project_views.published_project_latest,
+        name='published_project_base'),
+    path('content/<project_slug>/latest/', project_views.published_project_latest,
         name='published_project_latest'),
     path('content/<project_slug>/<version>/', project_views.published_project,
         name='published_project'),

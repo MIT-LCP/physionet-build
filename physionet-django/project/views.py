@@ -1756,7 +1756,7 @@ def published_project_dua(request, project_slug, version):
 
 
 
-def published_project_latest(request, project_slug):
+def published_project_latest(request, project_slug, subdir=''):
     """
     Redirect to latest project version
     """
@@ -1765,8 +1765,131 @@ def published_project_latest(request, project_slug):
             is_latest_version=True).version
     except ObjectDoesNotExist:
         raise Http404()
-    return redirect('published_project', project_slug=project_slug,
-        version=version)
+
+    project = PublishedProject.objects.get(slug=project_slug,
+                                               version=version)    
+
+    authors = project.authors.all().order_by('display_order')
+    for a in authors:
+        a.set_display_info()
+    references = project.references.all().order_by('order')
+    publication = project.publications.all().first()
+    topics = project.topics.all()
+    languages = project.programming_languages.all()
+    contact = project.contact
+    news = project.news.all().order_by('-publish_datetime')
+    parent_projects = project.parent_projects.all()
+    # derived_projects = project.derived_publishedprojects.all()
+    data_access = DataAccess.objects.filter(project=project)
+    user = request.user
+    _, _, _, _, _, latest_version = project.info_card()
+    citations = project.citation_text_all()
+    platform_citations = project.get_platform_citation()
+    show_platform_wide_citation = any(platform_citations.values())
+    main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
+
+    # Anonymous access authentication
+    an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
+    has_passphrase = project.get_anonymous_url() == an_url
+
+    has_access = project.has_access(user) or has_passphrase
+    has_signed_dua = False if not user.is_authenticated else DUASignature.objects.filter(
+        project=project,
+        user=user
+    ).exists()
+    has_accepted_access_request = False if not user.is_authenticated else DataAccessRequest.objects.get_active(
+        project=project,
+        requester=user,
+        status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+    ).exists()
+
+    if project.required_trainings.exists():
+        requires_training = True
+    else:
+        requires_training = False
+
+    has_required_training = (
+        False
+        if not user.is_authenticated
+        else Training.objects.get_valid().filter(training_type__in=project.required_trainings.all(), user=user).count()
+        == project.required_trainings.count()
+    )
+    current_site = get_current_site(request)
+    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
+    all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
+    context = {
+        'project': project,
+        'authors': authors,
+        'references': references,
+        'publication': publication,
+        'topics': topics,
+        'languages': languages,
+        'contact': contact,
+        'has_access': has_access,
+        'has_signed_dua': has_signed_dua,
+        'has_accepted_access_request': has_accepted_access_request,
+        'requires_training': requires_training,
+        'has_required_training': has_required_training,
+        'current_site': current_site,
+        'bulk_url_prefix': bulk_url_prefix,
+        'latest_version': latest_version,
+        'citations': citations,
+        'news': news,
+        'all_project_versions': all_project_versions,
+        'parent_projects': parent_projects,
+        'data_access': data_access,
+        'messages': messages.get_messages(request),
+        'platform_citations': platform_citations,
+        'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+        'is_wget_supported': ProjectFiles().is_wget_supported(),
+        'show_platform_wide_citation': show_platform_wide_citation,
+        'main_platform_citation': main_platform_citation,
+    }
+    # The file and directory contents
+    if has_access:
+        if user.is_authenticated:
+            AccessLog.objects.update_or_create(project=project, user=request.user)
+
+        (display_files, display_dirs, dir_breadcrumbs, parent_dir,
+         file_error) = get_project_file_info(project=project, subdir=subdir)
+        if file_error:
+            status = 404
+        else:
+            status = 200
+
+        main_size, compressed_size = [
+            utility.readable_size(s) for s in (project.main_storage_size, project.compressed_storage_size)
+        ]
+        files_panel_url = reverse('published_files_panel', args=(project.slug, project.version))
+        accepted_access_request = [] if not user.is_authenticated else (
+            DataAccessRequest.objects.get_active(
+                project=project, requester=user, status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+            )
+        )
+        context = {
+            **context,
+            **{
+                'dir_breadcrumbs': dir_breadcrumbs,
+                'main_size': main_size,
+                'compressed_size': compressed_size,
+                'display_files': display_files,
+                'display_dirs': display_dirs,
+                'files_panel_url': files_panel_url,
+                'subdir': subdir,
+                'parent_dir': parent_dir,
+                'file_error': file_error,
+                'current_site': get_current_site(request),
+                'data_access': data_access,
+                'accepted_access_requests': accepted_access_request,
+            },
+        }
+    elif subdir:
+        status = 403
+    else:
+        status = 200
+
+    return render(request, 'project/published_project.html', context,
+                  status=status)
 
 
 def published_project(request, project_slug, version, subdir=''):
