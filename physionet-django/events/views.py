@@ -148,7 +148,7 @@ def event_detail(request, event_slug):
                                              f"You can add email addresses to your account in the settings menu."
 
     if request.method == 'POST':
-        if request.POST.get('confirm_event') == 'confirm':
+        if 'confirm_registration' in request.POST.keys():
             event.join_waitlist(user=user, comment_to_applicant='')
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)

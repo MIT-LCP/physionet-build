@@ -5,7 +5,7 @@
 
     <form  method="post">
       {% csrf_token %}    
-      <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Join waitlist</button>
+      <button type="submit" class="btn btn-sm btn-primary" name="confirm_registration" value="confirm" role="button">Join waitlist</button>
     </form>
   {% else %}
     <p>{{registration_error_message}}</p>
