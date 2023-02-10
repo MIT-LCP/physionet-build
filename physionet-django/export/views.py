@@ -50,6 +50,21 @@ class ProjectVersionList(mixins.ListModelMixin, generics.GenericAPIView):
         return self.list(request, *args, **kwargs)
 
 
+class PublishedProjectLatestDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
+    """
+    Retrieve an Published Project
+    """
+
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+
+    def get(self, request, project_slug, *args, **kwargs):
+        version = PublishedProject.objects.get(slug=project_slug,
+                  is_latest_version=True).version
+        project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+        serializer = PublishedProjectDetailSerializer(project)
+        return Response(serializer.data)
+
+
 class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
     """
     Retrieve an Published Project
