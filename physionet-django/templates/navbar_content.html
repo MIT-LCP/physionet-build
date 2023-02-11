@@ -39,6 +39,14 @@
 
 <ul class="navbar-nav ml-auto">
   {% if user.is_authenticated %}
+    {% if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS %}
+      <li class="nav-item">
+        <a id="nav_environments" class="nav-link" href="{% url 'research_environments' %}">
+          Research Environments
+        </a>
+      </li>
+    {% endif %}
+
     <li class="nav-item">
       <a id="nav_projects" class="nav-link" href="{% url 'project_home' %}">
         Projects

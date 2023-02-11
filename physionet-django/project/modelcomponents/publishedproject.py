@@ -8,6 +8,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+from project.managers.publishedproject import PublishedProjectManager
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.metadata import Metadata, PublishedTopic
@@ -23,6 +24,8 @@ class PublishedProject(Metadata, SubmissionInfo):
     """
     A published project. Immutable snapshot.
     """
+    objects = PublishedProjectManager()
+
     # File storage sizes in bytes
     main_storage_size = models.BigIntegerField(default=0)
     compressed_storage_size = models.BigIntegerField(default=0)
@@ -205,7 +208,9 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def has_access(self, user):
         """
-        Whether the user has access to this project's files
+        Whether the user has access to this project
+        The logic should mirror PublishedProjectManager#accessible_by,
+        but for a specific project.
         """
         if self.deprecated_files:
             return False
