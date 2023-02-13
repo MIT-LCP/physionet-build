@@ -922,3 +922,24 @@ def notify_account_registration(request, user, uidb64, token, sso=False):
     body = loader.render_to_string('user/email/register_email.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+
+def notify_participant_event_waitlist(request, user, event_title, event_url):
+    """
+    Send the event registration email to participant.
+    """
+    # Send email to the participant to confirm their that their registration request was received
+
+    subject = f"{settings.SITE_NAME} Event Registration"
+    context = {
+        'name': user.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'event_title': event_title,
+        'event_url': event_url,
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    body = loader.render_to_string('events/email/event_participation_waitlist.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+

@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+Thanks for requesting to join the Event <strong>{{ event_title }}</strong>. You have been added to the waiting list.
+
+We will notify you once a decision has been made.
+
+Please check the event details by clicking the following link or by copying and pasting the link into your web browser:
+
+{{ url_prefix }}{{ event_url }}
+
+
+Regards
+The {{ SITE_NAME }} Team
+{% endfilter %}{% endautoescape %}

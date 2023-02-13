@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
+from django.urls import reverse
 
 
 import notification.utility as notification
@@ -154,6 +155,8 @@ def event_detail(request, event_slug):
     if request.method == 'POST':
         if 'confirm_registration' in request.POST.keys():
             event.join_waitlist(user=user, comment_to_applicant='')
+            notification.notify_participant_event_waitlist(request=request, user=user, event_title=event.title,
+                                                           event_url=reverse('event_detail', args=[event.slug]))
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
         elif 'confirm_withdraw' in request.POST.keys():
