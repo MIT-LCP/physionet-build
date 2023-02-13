@@ -1,0 +1,20 @@
+<div class="card mb-3">
+  <div class="card-header">Project Dataset</div>
+  <div class="card-body">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        <h5>Add Dataset</h5>
+        <form action="" method="post" class="form-event-dataset">
+          {% csrf_token %}
+          {% include "form_snippet.html" with form=event_dataset_form %}
+          <button class="btn btn-primary btn-fixed"
+                  name="add-event-dataset"
+                  type="submit">Add Event</button>
+        </form>
+      </li>
+      <li class="list-group-item">
+        <h5>Manage Dataset</h5>
+
+    </ul>
+  </div>
+</div>

@@ -25,6 +25,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from events.models import Event
+from events.forms import EventDatasetForm
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -2885,9 +2886,26 @@ def event_management(request, event_slug):
     Admin page for managing an individual Event.
     """
     selected_event = get_object_or_404(Event, slug=event_slug)
+
+    event_dataset_form = EventDatasetForm()
+
+    # handle the add dataset form(s)
+    if request.method == "POST":
+        if 'add-event-dataset' in request.POST.keys():
+            event_dataset_form = EventDatasetForm(request.POST)
+            if event_dataset_form.is_valid():
+                event_dataset_form.instance.event = selected_event
+                event_dataset_form.save()
+                messages.success(request, "The dataset has been added to the event.")
+            else:
+                messages.error(request, event_dataset_form.errors)
+
+            return redirect('event_management', event_slug=event_slug)
+
     return render(
         request,
         'console/event_management.html',
         {
-            'event': selected_event
+            'event': selected_event,
+            'event_dataset_form': event_dataset_form,
         })
