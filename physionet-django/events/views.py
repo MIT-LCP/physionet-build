@@ -85,7 +85,7 @@ def event_home(request):
                         event_application.accept(comment_to_applicant=form.cleaned_data.get('comment_to_applicant'))
                         notification.notify_participant_event_decision(
                             request=request,
-                            user=user,
+                            user=event_application.user,
                             event=event_application.event,
                             decision=EventApplication.EventApplicationStatus.APPROVED.label,
                             comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
@@ -94,7 +94,7 @@ def event_home(request):
                         event_application.reject(comment_to_applicant=form.cleaned_data.get('comment_to_applicant'))
                         notification.notify_participant_event_decision(
                             request=request,
-                            user=user,
+                            user=event_application.user,
                             event=event_application.event,
                             decision=EventApplication.EventApplicationStatus.NOT_APPROVED.label,
                             comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
