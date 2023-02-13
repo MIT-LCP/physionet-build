@@ -14,6 +14,37 @@
       </li>
       <li class="list-group-item">
         <h5>Manage Dataset</h5>
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Dataset</th>
+              <th scope="col">Version</th>
+              <th scope="col">Access Type</th>
+              <th scope="col">Date</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dataset in event_datasets %}
+              <tr>
+                <td><a href="{% url 'published_project' dataset.dataset.slug dataset.dataset.version %}">{{ dataset.dataset.title }}</a></td>
+                <td>{{ dataset.dataset.version }}</td>
+                <td>{{ dataset.access_type }}</td>
+                <td>{{ dataset.updated_datetime | date:"M. d, Y" }}</td>
+                <td>
+                    <form action="">
+                        <button class="btn  btn-sm btn-danger"
+                                event-dataset-id="{{ dataset.id }}"
+                                name="remove-event-dataset"
+                                type="submit">Remove</button>
+                    </form>
+
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        </li>
 
     </ul>
   </div>
