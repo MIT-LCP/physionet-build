@@ -86,8 +86,7 @@ def event_home(request):
                         notification.notify_participant_event_decision(
                             request=request,
                             user=user,
-                            event_title=event_application.event.title,
-                            event_url=reverse('event_detail', args=[event_application.event.slug]),
+                            event=event_application.event,
                             decision=EventApplication.EventApplicationStatus.APPROVED.label,
                             comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
                         )
@@ -96,8 +95,7 @@ def event_home(request):
                         notification.notify_participant_event_decision(
                             request=request,
                             user=user,
-                            event_title=event_application.event.title,
-                            event_url=reverse('event_detail', args=[event_application.event.slug]),
+                            event=event_application.event,
                             decision=EventApplication.EventApplicationStatus.NOT_APPROVED.label,
                             comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
                         )
@@ -171,8 +169,7 @@ def event_detail(request, event_slug):
     if request.method == 'POST':
         if 'confirm_registration' in request.POST.keys():
             event.join_waitlist(user=user, comment_to_applicant='')
-            notification.notify_participant_event_waitlist(request=request, user=user, event_title=event.title,
-                                                           event_url=reverse('event_detail', args=[event.slug]))
+            notification.notify_participant_event_waitlist(request=request, user=user, event=event)
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
         elif 'confirm_withdraw' in request.POST.keys():
@@ -181,8 +178,7 @@ def event_detail(request, event_slug):
             if event_participation_request.exists():
                 event_participation_request = event_participation_request.first()
                 event_participation_request.withdraw(comment_to_applicant='Withdrawn by user')
-                notification.notify_participant_event_withdraw(request=request, user=user, event_title=event.title,
-                                                               event_url=reverse('event_detail', args=[event.slug]))
+                notification.notify_participant_event_withdraw(request=request, user=user, event=event)
                 messages.success(request, "You have successfully withdrawn your request to join this event. "
                                           "Please submit a new request if you wish to join again.")
                 return redirect(event_home)

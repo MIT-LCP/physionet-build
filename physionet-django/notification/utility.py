@@ -10,6 +10,7 @@ from django.core.mail import EmailMessage, mail_admins, send_mail
 from django.template import defaultfilters, loader
 from django.utils import timezone
 from project.models import DataAccessRequest, License
+from django.urls import reverse
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
@@ -924,7 +925,7 @@ def notify_account_registration(request, user, uidb64, token, sso=False):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
 
 
-def notify_participant_event_waitlist(request, user, event_title, event_url):
+def notify_participant_event_waitlist(request, user, event):
     """
     Send the event registration email to participant.
     """
@@ -935,8 +936,8 @@ def notify_participant_event_waitlist(request, user, event_title, event_url):
         'name': user.get_full_name(),
         'domain': get_current_site(request),
         'url_prefix': get_url_prefix(request),
-        'event_title': event_title,
-        'event_url': event_url,
+        'event_title': event.title,
+        'event_url': reverse('event_detail', args=[event.slug]),
         'SITE_NAME': settings.SITE_NAME,
     }
     body = loader.render_to_string('events/email/event_participation_waitlist.html', context)
@@ -944,7 +945,7 @@ def notify_participant_event_waitlist(request, user, event_title, event_url):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
 
 
-def notify_participant_event_withdraw(request, user, event_title, event_url):
+def notify_participant_event_withdraw(request, user, event):
     """
     Send the withdraw email to participant(when participant withdraw their request).
     """
@@ -954,8 +955,8 @@ def notify_participant_event_withdraw(request, user, event_title, event_url):
         'name': user.get_full_name(),
         'domain': get_current_site(request),
         'url_prefix': get_url_prefix(request),
-        'event_title': event_title,
-        'event_url': event_url,
+        'event_title': event.title,
+        'event_url': reverse('event_detail', args=[event.slug]),
         'SITE_NAME': settings.SITE_NAME,
     }
     body = loader.render_to_string('events/email/event_participation_withdraw.html', context)
@@ -963,7 +964,7 @@ def notify_participant_event_withdraw(request, user, event_title, event_url):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
 
 
-def notify_participant_event_decision(request, user, event_title, event_url, decision, comment_to_applicant):
+def notify_participant_event_decision(request, user, event, decision, comment_to_applicant):
     """
     Send email to participant about update on their application status.
     """
@@ -973,8 +974,8 @@ def notify_participant_event_decision(request, user, event_title, event_url, dec
         'name': user.get_full_name(),
         'domain': get_current_site(request),
         'url_prefix': get_url_prefix(request),
-        'event_title': event_title,
-        'event_url': event_url,
+        'event_title': event.title,
+        'event_url': reverse('event_detail', args=[event.slug]),
         'decision': decision,
         'comment_to_applicant': comment_to_applicant,
         'SITE_NAME': settings.SITE_NAME,
