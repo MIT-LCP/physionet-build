@@ -92,43 +92,6 @@
             </div>
         </div>
 
-        {% if profile.location %}
-            <div class="row mb-1">
-                <div class="col-md-3">
-                    Location:
-                </div>
-                <div class="col-md-9">
-                    {{ profile.location }}
-                </div>
-            </div>
-        {% endif %}
-
-        {% for status, group in emails.items %}
-            <div class="row mb-1">
-                <div class="col-md-3">
-                    Email ({{ status }}):
-                </div>
-                <div class="col-md-9">
-                    {% for email in group %}
-                        {{ email|join:", " }}
-                    {% empty %}
-                        N/A
-                    {% endfor %}
-                </div>
-            </div>
-        {% endfor %}
-
-        {% if profile.website %}
-            <div class="row mb-1">
-                <div class="col-md-3">
-                    Website:
-                </div>
-                <div class="col-md-9">
-                    <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a>
-                </div>
-            </div>
-        {% endif %}
-
     </div>
 
 
