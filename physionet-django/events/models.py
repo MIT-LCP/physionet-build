@@ -153,3 +153,49 @@ class EventApplication(models.Model):
             comment_to_applicant (str): The comment to add to the participant about the status.
         """
         self._apply_decision(self.EventApplicationStatus.WITHDRAWN, comment_to_applicant)
+
+
+class EventDataset(models.Model):
+    """
+    Captures information about datasets for events.
+    """
+    class EventDatasetStatus(models.TextChoices):
+        Active = 'AC', _('Active')
+        Inactive = 'IN', _('Inactive')
+
+    class EventDatasetAccessType(models.TextChoices):
+        GOOGLE_BIG_QUERY = 'GBQ', _('Google BigQuery')
+        RESEARCH_ENVIRONMENT = 'RE', _('Research Environment')
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='datasets')
+    dataset = models.ForeignKey("project.PublishedProject", on_delete=models.CASCADE)
+    access_type = models.CharField(default=EventDatasetAccessType.GOOGLE_BIG_QUERY, max_length=3,
+                                   choices=EventDatasetAccessType.choices)
+    status = models.CharField(default=EventDatasetStatus.Active, max_length=2,
+                              choices=EventDatasetStatus.choices)
+    added_datetime = models.DateTimeField(auto_now_add=True)
+    updated_datetime = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.event.title + ' -- ' + self.dataset.title
+
+    def is_accessible(self):
+        """
+        checks if the dataset is accessible to the user
+        Dataset is accessible if:
+        1. The dataset is active
+        2. The event has not ended
+        """
+        if self.status == self.EventDatasetStatus.Inactive:
+            return False
+
+        if self.event.end_date < timezone.now().date():
+            return False
+        return True
+
+    def revoke_dataset_access(self):
+        """
+        Revokes access to the dataset for the event.
+        """
+        self.status = self.EventDatasetStatus.Inactive
+        self.save()
