@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+Your request to withdraw registration from the event <strong>{{ event_title }}</strong> has been confirmed.
+
+If you change your decision later, You can register again on the event detail page.
+
+To access, the event click the following link or by copying and pasting the link into your web browser:
+
+{{ url_prefix }}{{ event_url }}
+
+
+Regards
+The {{ SITE_NAME }} Team
+{% endfilter %}{% endautoescape %}

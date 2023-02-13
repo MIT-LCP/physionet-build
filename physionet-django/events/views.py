@@ -165,6 +165,8 @@ def event_detail(request, event_slug):
             if event_participation_request.exists():
                 event_participation_request = event_participation_request.first()
                 event_participation_request.withdraw(comment_to_applicant='Withdrawn by user')
+                notification.notify_participant_event_withdraw(request=request, user=user, event_title=event.title,
+                                                               event_url=reverse('event_detail', args=[event.slug]))
                 messages.success(request, "You have successfully withdrawn your request to join this event. "
                                           "Please submit a new request if you wish to join again.")
                 return redirect(event_home)

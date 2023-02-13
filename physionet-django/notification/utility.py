@@ -943,3 +943,21 @@ def notify_participant_event_waitlist(request, user, event_title, event_url):
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
 
+
+def notify_participant_event_withdraw(request, user, event_title, event_url):
+    """
+    Send the withdraw email to participant(when participant withdraw their request).
+    """
+
+    subject = f"{settings.SITE_NAME} Event Registration Withdrawn"
+    context = {
+        'name': user.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'event_title': event_title,
+        'event_url': event_url,
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    body = loader.render_to_string('events/email/event_participation_withdraw.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
