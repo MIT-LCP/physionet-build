@@ -1,7 +1,7 @@
 {% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 Dear {{ name }},
 
-Thanks for requesting to join the Event <strong>{{ event_title }}</strong>.
+Thanks for requesting to join the Event {{ event_title }}.
 {% if decision == 'Approved' %}
 Congratulations! Your request to join the event has been approved.
 
