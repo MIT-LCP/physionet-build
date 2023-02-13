@@ -32,9 +32,10 @@
                 <td>{{ dataset.access_type }}</td>
                 <td>{{ dataset.updated_datetime | date:"M. d, Y" }}</td>
                 <td>
-                    <form action="">
+                    <form action="" method="post">
+                        {% csrf_token %}
                         <button class="btn  btn-sm btn-danger"
-                                event-dataset-id="{{ dataset.id }}"
+                                value="{{ dataset.id }}"
                                 name="remove-event-dataset"
                                 type="submit">Remove</button>
                     </form>

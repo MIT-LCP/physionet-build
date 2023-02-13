@@ -2901,7 +2901,13 @@ def event_management(request, event_slug):
                 messages.error(request, event_dataset_form.errors)
 
             return redirect('event_management', event_slug=event_slug)
+        elif 'remove-event-dataset' in request.POST.keys():
+            event_dataset_id = request.POST['remove-event-dataset']
+            event_dataset = get_object_or_404(EventDataset, pk=event_dataset_id)
+            event_dataset.revoke_dataset_access()
+            messages.success(request, "The dataset has been removed from the event.")
 
+            return redirect('event_management', event_slug=event_slug)
     event_datasets = selected_event.datasets.filter(status=EventDataset.EventDatasetStatus.Active)
 
     return render(
