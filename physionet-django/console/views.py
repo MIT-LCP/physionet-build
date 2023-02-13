@@ -2894,9 +2894,14 @@ def event_management(request, event_slug):
         if 'add-event-dataset' in request.POST.keys():
             event_dataset_form = EventDatasetForm(request.POST)
             if event_dataset_form.is_valid():
-                event_dataset_form.instance.event = selected_event
-                event_dataset_form.save()
-                messages.success(request, "The dataset has been added to the event.")
+                if selected_event.datasets.filter(
+                        dataset=event_dataset_form.cleaned_data['dataset'],
+                        status=EventDataset.EventDatasetStatus.Active).count() == 0:
+                    event_dataset_form.instance.event = selected_event
+                    event_dataset_form.save()
+                    messages.success(request, "The dataset has been added to the event.")
+                else:
+                    messages.error(request, "The dataset is already added to the event.")
             else:
                 messages.error(request, event_dataset_form.errors)
 
