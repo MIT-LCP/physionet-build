@@ -961,3 +961,24 @@ def notify_participant_event_withdraw(request, user, event_title, event_url):
     body = loader.render_to_string('events/email/event_participation_withdraw.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+
+def notify_participant_event_decision(request, user, event_title, event_url, decision, comment_to_applicant):
+    """
+    Send email to participant about update on their application status.
+    """
+
+    subject = f"{settings.SITE_NAME} Event Registration Decision"
+    context = {
+        'name': user.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'event_title': event_title,
+        'event_url': event_url,
+        'decision': decision,
+        'comment_to_applicant': comment_to_applicant,
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    body = loader.render_to_string('events/email/event_participation_decision.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)

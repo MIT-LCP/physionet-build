@@ -1,0 +1,29 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+Thanks for requesting to join the Event <strong>{{ event_title }}</strong>.
+{% if decision == 'Approved' %}
+Congratulations! Your request to join the event has been approved.
+
+Comments from the event organizer:
+- {{ comment_to_applicant }}
+
+You can now access the event by clicking the following link or by copying and pasting the link into your web browser:
+
+{{ url_prefix }}{{ event_url }}
+{% elif decision == 'Not Approved' %}
+Unfortunately, your request to join the event has not been approved.
+
+Comments from the event organizer:
+- {{ comment_to_applicant }}
+
+You can also register again on the event detail page after addressing the comments from the event organizer.
+
+To access the event, click the following link or by copy and paste the link into your web browser:
+
+{{ url_prefix }}{{ event_url }}
+{% endif %}
+
+Regards
+The {{ SITE_NAME }} Team
+{% endfilter %}{% endautoescape %}

@@ -83,8 +83,24 @@ def event_home(request):
                     event_application = form.save(commit=False)
                     if event_application.status == EventApplication.EventApplicationStatus.APPROVED:
                         event_application.accept(comment_to_applicant=form.cleaned_data.get('comment_to_applicant'))
+                        notification.notify_participant_event_decision(
+                            request=request,
+                            user=user,
+                            event_title=event_application.event.title,
+                            event_url=reverse('event_detail', args=[event_application.event.slug]),
+                            decision=EventApplication.EventApplicationStatus.APPROVED.label,
+                            comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                        )
                     elif event_application.status == EventApplication.EventApplicationStatus.NOT_APPROVED:
                         event_application.reject(comment_to_applicant=form.cleaned_data.get('comment_to_applicant'))
+                        notification.notify_participant_event_decision(
+                            request=request,
+                            user=user,
+                            event_title=event_application.event.title,
+                            event_url=reverse('event_detail', args=[event_application.event.slug]),
+                            decision=EventApplication.EventApplicationStatus.NOT_APPROVED.label,
+                            comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                        )
                 else:
                     messages.error(request, form.errors)
                 return redirect(event_home)
