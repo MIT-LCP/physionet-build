@@ -14539,7 +14539,7 @@
 {
   "model": "auth.group",
   "fields": {
-    "name": "Host",
+    "name": "Event Host",
     "permissions": [
       [
         "add_event",
