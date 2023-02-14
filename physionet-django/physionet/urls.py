@@ -93,6 +93,9 @@ if settings.ENABLE_LIGHTWAVE and ProjectFiles().is_lightwave_supported:
 if settings.ENABLE_SSO:
     urlpatterns.append(path('', include('sso.urls')))
 
+if settings.ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
+    urlpatterns.append(path('environments/', include('environment.urls')))
+
 if settings.DEBUG:
     import debug_toolbar
 

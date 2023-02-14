@@ -109,6 +109,7 @@ TEMPLATES = [
                 'physionet.context_processors.storage_type',
                 'physionet.context_processors.platform_config',
                 'sso.context_processors.sso_enabled',
+                'physionet.context_processors.cloud_research_environments_config',
             ],
         },
     },
@@ -549,6 +550,21 @@ if STORAGE_TYPE == StorageTypes.GCP:
     STATICFILES_STORAGE = 'physionet.storage.StaticStorage'
     GCP_BUCKET_LOCATION = config('GCP_BUCKET_LOCATION')
     GS_PROJECT_ID = config('GCP_PROJECT_ID')
+
+
+# Cloud research environment integration
+# See: https://pypi.org/project/hdn-research-environment/
+ENABLE_CLOUD_RESEARCH_ENVIRONMENTS = config('ENABLE_CLOUD_RESEARCH_ENVIRONMENTS', default=False, cast=bool)
+
+if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
+    CLOUD_RESEARCH_ENVIRONMENTS_API_JWT_SERVICE_ACCOUNT_PATH = os.path.join(
+        BASE_DIR,
+        config('CLOUD_RESEARCH_ENVIRONMENTS_API_JWT_SERVICE_ACCOUNT_PATH')
+    )
+    CLOUD_RESEARCH_ENVIRONMENTS_API_URL = config('CLOUD_RESEARCH_ENVIRONMENTS_API_URL')
+    CLOUD_RESEARCH_ENVIRONMENTS_API_JWT_AUDIENCE = config('CLOUD_RESEARCH_ENVIRONMENTS_API_JWT_AUDIENCE')
+    INSTALLED_APPS.append('environment.apps.EnvironmentConfig')
+
 
 SITE_NAME = config('SITE_NAME')
 STRAPLINE = config('STRAPLINE')
