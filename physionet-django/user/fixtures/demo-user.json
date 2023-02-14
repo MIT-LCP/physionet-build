@@ -30,7 +30,10 @@
     "is_active": true,
     "is_admin": false,
     "is_credentialed": true,
-    "credential_datetime": "2018-11-14T20:45:53.071Z"
+    "credential_datetime": "2018-11-14T20:45:53.071Z",
+    "groups": [
+      8
+    ]
   }
 },
 {
