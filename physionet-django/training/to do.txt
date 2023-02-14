@@ -1,0 +1,9 @@
+Console
+- Add a create training type button *
+- View all Training with button beside asking to make it OP *
+- Button on-top asking to create a training type
+  - Add a button to download sample json/ paste the sample json on the page *
+- Modify the settings training page to display the latest versions
+- Write test cases for them all
+- Write a function that puts all validity at 30 days and sends a mail asking them to retake the training for major version change   *
+- Change the trainingType required_field to Platform from serializer

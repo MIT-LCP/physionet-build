@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load physionet_templatetags %}
+
+{% block title %}
+  {{ training.name }}
+{% endblock %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/quiz.css' %}">
+{% endblock %}
+
+
+
+
+{% block content %}
+
+<div class="container my-3">
+
+    <div id="alert" class="alert" role="alert"> </div>
+
+    <div class="quizContainer">
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% for item in quiz_content %}
+
+                
+                {% if item.body %}
+                <div class="eachQuiz">
+                    <div> {{ item.body | safe }} </div>
+                    <a class="btn btn-success next">Next</a>
+                </div>
+                {% else %}
+
+
+                <div class="list-group eachQuiz">
+                    <div class="list-group-item py-4">
+                        {{ item.question | safe }} 
+                    </div>
+
+                    {% for choice in item.choices.all %}
+
+                    <label class="list-group-item list-group-item-action q_{{item.id}} {{item.id}}_{{choice.id}} mb-0" for="{{item.id}}_{{choice.id}}">
+                        <input type="radio" id="{{item.id}}_{{choice.id}}" name="{{item.id}}" value="{{choice.id}}"> {{ choice.body | safe }}
+                    </label>
+
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block local_js_bottom %}
+
+    {% for quiz, answer in quiz_answer %}
+        <script>sessionStorage.setItem({{quiz}}, {{answer}})</script>
+    {% endfor %}
+
+    <script src="{% static 'custom/js/quiz.js' %}"></script>
+
+{% endblock %}

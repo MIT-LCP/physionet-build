@@ -750,8 +750,18 @@ class TrainingForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         self.user = user
         training_type_id = kwargs.pop('training_type', None)
+        platform_training = kwargs.pop('platform_training', None)
 
         super().__init__(*args, **kwargs)
+
+        if platform_training:
+            self.fields['training_type'].queryset = \
+                self.fields['training_type'].queryset.filter(
+                    required_field=RequiredField.PLATFORM)
+        else:
+            self.fields['training_type'].queryset = \
+                self.fields['training_type'].queryset.exclude(
+                    required_field=RequiredField.PLATFORM)
 
         self.training_type = TrainingType.objects.filter(id=training_type_id).first()
 

@@ -922,3 +922,18 @@ def notify_account_registration(request, user, uidb64, token, sso=False):
     body = loader.render_to_string('user/email/register_email.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+
+def notify_users_of_training_expiry(user, training, expiry):
+    """
+    Send the training expiry email.
+    """
+    subject = f"{settings.SITE_NAME} Training Validation Notification"
+    context = {
+        'name': user.get_full_name(),
+        'SITE_NAME': settings.SITE_NAME,
+        'training': training,
+        'expiry': expiry
+    }
+    body = loader.render_to_string('training/email/training_notification.html', context)
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user, ], fail_silently=False)

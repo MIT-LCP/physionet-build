@@ -1,0 +1,73 @@
+[
+  {
+    "model": "training.onplatformtraining",
+    "pk": 1,
+    "fields": {
+      "training": 2,
+      "version": 1.0
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 1,
+    "fields": {
+      "training": 1,
+      "body": "Content Body 1",
+      "order": 1
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 2,
+    "fields": {
+      "training": 1,
+      "body": "Content Body 2",
+      "order": 3
+    }
+  },
+  {
+    "model": "training.quiz",
+    "pk": 1,
+    "fields": {
+      "training": 1,
+      "question": "Which of this is not a country in America?",
+      "order": 2
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 1,
+    "fields": {
+      "quiz": 1,
+      "body": "Canada",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 2,
+    "fields": {
+      "quiz": 1,
+      "body": "Spain",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 3,
+    "fields": {
+      "quiz": 1,
+      "body": "Cuba",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 4,
+    "fields": {
+      "quiz": 1,
+      "body": "Mexico",
+      "is_correct": false
+    }
+  }
+]

@@ -25,6 +25,8 @@ urlpatterns = [
     path('console/', include('console.urls')),
     # user app
     path('', include('user.urls')),
+    # training app
+    path('', include('training.urls')),
     # project app
     path('projects/', include('project.urls')),
     # events
@@ -80,7 +82,10 @@ urlpatterns = [
 
     # path for Database List - to be deprecated soon
     path('rest/database-list/', database_list,
-         name='database_list')
+         name='database_list'),
+
+    # for ckeditor
+    path('ckeditor/', include('ckeditor_uploader.urls')),
 ]
 
 if settings.ENABLE_LIGHTWAVE and ProjectFiles().is_lightwave_supported:

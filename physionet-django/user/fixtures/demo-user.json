@@ -14359,6 +14359,11 @@
         "can_review_training",
         "user",
         "trainingtype"
+      ],
+      [
+        "change_onplatformtraining",
+        "training",
+        "onplatformtraining"
       ]
     ]
   }

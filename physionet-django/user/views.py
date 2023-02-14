@@ -1,6 +1,4 @@
 import logging
-import os
-import pdb
 from datetime import datetime
 
 import django.contrib.auth.views as auth_views
@@ -13,7 +11,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.db import IntegrityError, transaction
+from django.db import IntegrityError, transaction, models
 from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
@@ -53,8 +51,7 @@ from user.models import (
     LegacyCredential,
     Orcid,
     User,
-    Training,
-    TrainingType,
+    Training
 )
 from user.userfiles import UserFiles
 from physionet.models import StaticPage
@@ -732,6 +729,8 @@ def edit_training(request):
         training_form = forms.TrainingForm(
             user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type')
         )
+        platform_training_form = forms.TrainingForm(user=request.user, platform_training=True, auto_id="op_%s")
+
         if training_form.is_valid():
             training_form.save()
             messages.success(request, 'The training has been submitted successfully.')
@@ -744,8 +743,11 @@ def edit_training(request):
         training_type = request.GET.get('trainingType')
         if training_type:
             training_form = forms.TrainingForm(user=request.user, training_type=training_type)
+            platform_training_form = forms.TrainingForm(
+                user=request.user, training_type=training_type, platform_training=True, auto_id="op_%s")
         else:
             training_form = forms.TrainingForm(user=request.user)
+            platform_training_form = forms.TrainingForm(user=request.user, platform_training=True, auto_id="op_%s")
 
     training = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
     training_by_status = {
@@ -758,9 +760,12 @@ def edit_training(request):
     return render(
         request,
         'user/edit_training.html',
-        {'training_form': training_form,
-         'training_by_status': training_by_status,
-         'ticket_system_url': ticket_system_url},
+        {
+            'training_form': training_form,
+            'platform_training_form': platform_training_form,
+            'training_by_status': training_by_status,
+            'ticket_system_url': ticket_system_url
+        },
     )
 
 

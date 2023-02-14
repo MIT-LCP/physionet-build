@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'background_task',
     'rest_framework',
 
+    'training',
     'user',
     'project',
     'console',
@@ -370,6 +371,7 @@ CKEDITOR_CONFIGS = {
             ['InlineEquation', 'BlockEquation', 'CodeSnippet', 'Table'],
             ['Link', 'Unlink'],
             ['RemoveFormat', 'Source'],
+            ['Image']
         ],
         'removeDialogTabs': 'link:advanced',
         'disableNativeSpellChecker': False,
@@ -585,3 +587,5 @@ MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)
 # Starting at 3.2, new projects are generated with DEFAULT_AUTO_FIELD set to BigAutoField
 # https://docs.djangoproject.com/en/3.2/releases/3.2/#customizing-type-of-auto-created-primary-keys
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+CKEDITOR_UPLOAD_PATH = 'ckeditor/'

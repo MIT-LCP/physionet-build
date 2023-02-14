@@ -1,0 +1,23 @@
+{
+  "op_trainings": {
+    "version": "float",
+    "contents": [
+      {
+        "body": "string",
+        "order": "integer"
+      }
+    ],
+    "quizzes": [
+      {
+        "question": "string",
+        "order": "string",
+        "choices": [
+          {
+            "body": "string",
+            "is_correct": "boolean"
+          }
+        ]
+      }
+    ]
+  }
+}
