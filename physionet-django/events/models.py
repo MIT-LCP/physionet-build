@@ -59,12 +59,21 @@ class EventParticipant(models.Model):
     user = models.ForeignKey("user.User", on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='participants')
     added_datetime = models.DateTimeField(auto_now_add=True)
+    is_cohost = models.BooleanField(default=False, null=True)
 
     class Meta:
         unique_together = ('user', 'event')
 
     def __str__(self):
         return self.user.get_full_name()
+
+    def make_cohost(self):
+        self.is_cohost = True
+        self.save()
+
+    def remove_cohost(self):
+        self.is_cohost = False
+        self.save()
 
 
 class EventApplication(models.Model):
