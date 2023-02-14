@@ -16,7 +16,7 @@ from events.models import Event, EventApplication
 @login_required
 def update_event(request, event_slug, **kwargs):
     user = request.user
-    is_instructor = user.has_perm('user.add_event')
+    is_instructor = user.has_perm('events.add_event')
     if request.method == 'POST':
         event = Event.objects.get(slug=event_slug)
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
@@ -32,7 +32,7 @@ def update_event(request, event_slug, **kwargs):
 
 @login_required
 def get_event_details(request, event_slug):
-    is_instructor = request.user.has_perm('user.add_event')
+    is_instructor = request.user.has_perm('events.add_event')
     if not is_instructor:
         return JsonResponse([{'error': 'You don\'t have permission to access event'}], safe=False)
     event = Event.objects.filter(slug=event_slug).values()
@@ -45,7 +45,7 @@ def event_home(request):
     List of events
     """
     user = request.user
-    is_instructor = user.has_perm('user.add_event')
+    is_instructor = user.has_perm('events.add_event')
 
     EventApplicationResponseFormSet = modelformset_factory(EventApplication,
                                                            form=EventApplicationResponseForm, extra=0)
