@@ -15,23 +15,5 @@
       "slug": "iLII4L9jSDFh",
       "allowed_domains": null
     }
-  },
-  {
-    "model": "auth.group",
-    "fields": {
-      "name": "Host",
-      "permissions": [
-        [
-          "add_event",
-          "events",
-          "event"
-        ],
-        [
-          "view_event_menu",
-          "events",
-          "event"
-        ]
-      ]
-    }
   }
 ]
