@@ -17,21 +17,20 @@
     }
   },
   {
-    "model": "auth.group",
+    "model": "events.event",
+    "pk": 2,
     "fields": {
-      "name": "Host",
-      "permissions": [
-        [
-          "add_event",
-          "events",
-          "event"
+        "title": "Test Event physionet",
+        "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Tincidunt lobortis feugiat vivamus at augue eget. Ligula ullamcorper malesuada proin libero nunc consequat interdum varius. Rhoncus mattis rhoncus urna neque viverra justo nec ultrices. Porttitor rhoncus dolor purus non enim praesent. Vitae et leo duis ut diam quam nulla. Pretium viverra suspendisse potenti nullam ac tortor. Libero enim sed faucibus turpis in eu mi. Iaculis nunc sed augue lacus viverra. Non diam phasellus vestibulum lorem. Nulla at volutpat diam ut venenatis tellus in metus. Habitant morbi tristique senectus et netus. Lacus vel facilisis volutpat est velit egestas dui id ornare. Nisi quis eleifend quam adipiscing vitae proin sagittis nisl rhoncus. Semper risus in hendrerit gravida rutrum quisque non tellus. Condimentum lacinia quis vel eros donec ac odio tempor orci. Elit at imperdiet dui accumsan sit amet nulla facilisi morbi. Senectus et netus et malesuada fames ac turpis egestas integer. Pharetra diam sit amet nisl suscipit adipiscing bibendum est. Lectus quam id leo in vitae.\r\n\r\nQuam vulputate dignissim suspendisse in est ante. Volutpat ac tincidunt vitae semper quis. Ac ut consequat semper viverra nam libero justo laoreet. Ac auctor augue mauris augue neque. Enim nec dui nunc mattis enim. Ut faucibus pulvinar elementum integer enim neque volutpat ac tincidunt. Tristique et egestas quis ipsum suspendisse. Risus pretium quam vulputate dignissim suspendisse in est. Lorem dolor sed viverra ipsum. Sagittis aliquam malesuada bibendum arcu vitae. Nibh cras pulvinar mattis nunc sed blandit libero volutpat. Sodales neque sodales ut etiam sit amet. Faucibus pulvinar elementum integer enim neque. Erat pellentesque adipiscing commodo elit at imperdiet dui accumsan sit. Vestibulum lectus mauris ultrices eros in cursus turpis massa tincidunt.",
+        "category": "Course",
+        "host": [
+          "rgmark"
         ],
-        [
-          "view_event_menu",
-          "events",
-          "event"
-        ]
-      ]
+        "added_datetime": "2023-02-14T19:58:29.752Z",
+        "start_date": "2033-06-14",
+        "end_date": "2033-10-14",
+        "slug": "PsenZXNhPluI",
+        "allowed_domains": null
     }
   }
 ]
