@@ -6,7 +6,11 @@
 
 {% load project_templatetags %}
 
+{# Note: wfdb-python (<= 4.1.0) expects to find the project version #}
+{# number in the following format.  This is deprecated; relying on it #}
+{# is unwise, and it'll probably be removed someday. #}
 {% block meta %}
+  <!-- wfdb-python: <p>Version: {{ project.version }}</p> -->
   {% if project.short_description %}
     <meta name="description" content="{{ project.short_description }}">
   {% endif %}
