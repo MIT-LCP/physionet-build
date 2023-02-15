@@ -8,6 +8,8 @@ urlpatterns = [
     path('<slug:event_slug>/', views.event_detail, name='event_detail'),
     path('<slug:event_slug>/edit_event/', views.update_event, name='update_event'),
     path('<slug:event_slug>/details/', views.get_event_details, name='get_event_details'),
+    path('<slug:event_slug>/participant/<int:participant_id>/toggle_cohost_status', views.toggle_cohost_status,
+         name='toggle_cohost_status'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)

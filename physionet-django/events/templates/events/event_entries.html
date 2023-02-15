@@ -6,6 +6,7 @@
           <th>Full name</th>
           <th>Email</th>
           <th>Credentialed</th>
+          <th>Cohost</th>
         </tr>
       </thead>
       <tbody>
@@ -14,7 +15,14 @@
             <td>{{ participant.user.username }}</td>
             <td>{{ participant.user.get_full_name }}</td>
             <td>{{ participant.user.email }}</td>
-            <td>{{ participant.user.is_credentialed }}</td>  
+            <td>{{ participant.user.is_credentialed }}</td>
+            <td>
+                {% if participant.is_cohost %}
+                    <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ participant.id }}"  checked>
+                {% else %}
+                    <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ participant.id }}"  >
+                {% endif %}
+            </td>
           </tr>
         {% endfor %}
       </tbody>
