@@ -6,6 +6,8 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission
 from events.enums import EventCategory
 from events import validators
+from project.modelcomponents.fields import SafeHTMLField
+from project.validators import validate_version
 
 
 class Event(models.Model):
@@ -153,6 +155,37 @@ class EventApplication(models.Model):
             comment_to_applicant (str): The comment to add to the participant about the status.
         """
         self._apply_decision(self.EventApplicationStatus.WITHDRAWN, comment_to_applicant)
+
+
+class EventAgreement(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120, unique=True)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=True)
+    html_content = SafeHTMLField(default='')
+    access_template = SafeHTMLField(default='')
+    creator = models.ForeignKey("user.User", on_delete=models.CASCADE)
+
+    class Meta:
+        default_permissions = ('add',)
+        unique_together = (('name', 'version', 'creator'),)
+
+    def __str__(self):
+        return self.name
+
+
+class EventAgreementSignature(models.Model):
+    """
+    Log of user signing EventAgreement
+    """
+    event = models.ForeignKey('events.Event', on_delete=models.CASCADE)
+    event_agreement = models.ForeignKey('events.EventAgreement', on_delete=models.CASCADE)
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE,
+                             related_name='event_agreement_signatures')
+    sign_datetime = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        default_permissions = ()
 
 
 class EventDataset(models.Model):
