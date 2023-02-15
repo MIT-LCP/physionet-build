@@ -13,4 +13,4 @@ urlpatterns = [
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)
-TEST_DEFAULTS = {'event_slug': 'iLII4L9jSDFh', }
+TEST_DEFAULTS = {'event_slug': 'iLII4L9jSDFh', 'participant_id': 1}
