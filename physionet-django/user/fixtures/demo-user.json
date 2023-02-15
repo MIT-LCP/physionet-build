@@ -14553,6 +14553,11 @@
         "view_event_menu",
         "events",
         "event"
+      ],
+      [
+        "can_view_admin_console",
+        "user",
+        "user"
       ]
     ]
   }
