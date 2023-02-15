@@ -347,7 +347,6 @@
       <!-- /.sidebar -->
     </div>
     <h2 id="files">Files</h2>
-    {% if project.allow_file_downloads %}
     {% if project.deprecated_files %}
       <div class="alert alert-danger col-md-8" role="alert">
         {% if project.is_latest_version %}
@@ -365,9 +364,8 @@
       </div>
     {% else %}
       {% if has_access %}
-        {#  refactored code goes here            #}
         <p>Total uncompressed size: {{ main_size }}.</p>
-        {# ZIP START #}
+        {# Notify contributor review users that access is given on a project specific basis. #}
         <h5>Access the files</h5>
         {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
           <p>You have been granted access for a <a
@@ -377,6 +375,8 @@
           </p>
         {% endif %}
 
+        {% if project.allow_file_downloads %}
+        {# Various mechanisms of distributing a compressed file with the file content. #}
         <ul>
           {% if project.access_policy %}
             {% if project.compressed_storage_size %}
@@ -416,7 +416,10 @@
               </li>
             {% endif %}
           {% endif %}
+
+          {# Alternate sources available for accessing the files (e.g. cloud buckets) #}
           {% include "project/published_project_data_access.html" %}
+
           {% if is_wget_supported %}
             <li>
               Download the files using your terminal:
@@ -425,7 +428,6 @@
           {% endif %}
 
         </ul>
-        {# ZIP END #}
 
         {% if is_lightwave_supported and project.access_policy == AccessPolicy.OPEN %}
           {% if project.has_wfdb %}
@@ -437,13 +439,15 @@
         <div id="files-panel" class="card">
           {% include "project/files_panel.html" %}
         </div>
+        {% else %}
+          {# User has access to project, but the platform has disallowed file downloads. #}
+          {% include "project/published_project_denied_downloads.html" %}
+        {% endif %}
       {% else %}
+        {# User does not have access to the project content. #}
         {% include "project/published_project_unauthorized.html" %}
       {% endif %}
 
-    {% endif %}
-    {% else %}
-    {% include "project/published_project_denied_downloads.html" %}
     {% endif %}
     <br>
     {% if accepted_access_requests %}
