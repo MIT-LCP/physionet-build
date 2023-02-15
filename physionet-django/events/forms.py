@@ -1,9 +1,8 @@
 from django import forms
 
 from events.widgets import DatePickerInput
-from events.models import Event, EventApplication, EventDataset
+from events.models import Event, EventApplication, EventAgreement, EventDataset
 from project.models import PublishedProject
-
 
 class AddEventForm(forms.ModelForm):
     """
@@ -73,3 +72,18 @@ class EventDatasetForm(forms.ModelForm):
     class Meta:
         model = EventDataset
         fields = ('dataset', 'access_type')
+
+
+class EventAgreementForm(forms.ModelForm):
+    class Meta:
+        model = EventAgreement
+        fields = (
+            'name',
+            'version',
+            'slug',
+            'is_active',
+            'html_content',
+            'access_template',
+        )
+        labels = {'html_content': 'Content'}
+
