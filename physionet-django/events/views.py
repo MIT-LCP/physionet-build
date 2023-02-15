@@ -152,7 +152,7 @@ def event_detail(request, event_slug):
         registration_error_message = 'You are the host of this event'
     elif event.participants.filter(user=user).exists():
         registration_allowed = False
-        registration_error_message = 'You are already registered for this event'
+        registration_error_message = 'You are registered for this event'
     else:  # we don't need to check for waitlisted / other stuff if the user is already registered
         event_participation_request = EventApplication.objects. \
             filter(event=event, user=user, status=EventApplication.EventApplicationStatus.WAITLISTED)
@@ -160,7 +160,7 @@ def event_detail(request, event_slug):
         if event_participation_request.exists():
             registration_allowed = False
             is_waitlisted = True
-            registration_error_message = 'Your request to join this event is already pending'
+            registration_error_message = 'Your request to join this event is pending'
 
         if event.allowed_domains:
             domains = event.allowed_domains.split(',')

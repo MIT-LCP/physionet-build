@@ -92,13 +92,15 @@
             <h3>{{ event.title }}</h3>
             <p class="list-group-item-text text-muted">
             <strong>Host: {{ event.host.get_full_name }} </strong><br>
-            <small>Created: {{ event.added_datetime|date }}.  {% if event.host == user %} Number of participants: {{ event.participants.all|length }} {% endif %} </small><br>
-            <small>Start Date: {{ event.start_date }}. End Date: {{ event.end_date }}.</small><br>
+            <small>Created: {{ event.added_datetime|date }}</small><br>
+            {% if event.host == user %} <small>Number of participants: {{ event.participants.all|length }}</small><br>{% endif %}
+            <small>Start Date: {{ event.start_date }}</small><br>
+            <small>End Date: {{ event.end_date }}</small><br>
 
             {% if user|is_participant:event %}
-              <small>Application Status: Approved</small><br>
-            {% else %}
-                <small>Application Status: Waiting for Approval</small><br>
+              <small>Registration status: Registered</small><br>
+            {% elif user|is_on_waiting_list:event  %}
+                <small>Registration status: On waiting list</small><br>
             {% endif %}
 
             {% if event.host == user %}
@@ -149,13 +151,15 @@
             <h3>{{ event.title }}</h3>
             <p class="list-group-item-text text-muted">
             <strong>Host: {{ event.host.get_full_name }} </strong><br>
-            <small>Created: {{ event.added_datetime|date }}. {% if event.host == user %} Number of participants: {{ event.participants.all|length }} {% endif %}  </small><br>
-            <small>Start Date: {{ event.start_date }}. End Date: {{ event.end_date }}.</small><br>
+            <small>Created: {{ event.added_datetime|date }}</small><br>
+            {% if event.host == user %} <small>Number of participants: {{ event.participants.all|length }}</small><br>{% endif %}
+            <small>Start Date: {{ event.start_date }}</small><br>
+            <small>End Date: {{ event.end_date }}</small><br>
 
             {% if user|is_participant:event %}
-              <small>Application Status: Approved</small><br>
-            {% else %}
-                <small>Application Status: Waiting for Approval</small><br>
+              <small>Registration status: Approved</small><br>
+            {% elif user|is_on_waiting_list:event  %}
+                <small>Registration status: Waiting for Approval</small><br>
             {% endif %}
 
             {% if event.host == user %}

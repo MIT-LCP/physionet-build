@@ -1,12 +1,9 @@
 {% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 Dear {{ name }},
 
-Thanks for requesting to join the Event {{ event_title }}. You have been added to the waiting list.
+Thanks for your interest in joining: {{ event_title }}. You will receive an email when your registration is confirmed.
 
-We will notify you once a decision has been made.
-
-Please check the event details by clicking the following link or by copying and pasting the link into your web browser:
-
+You can also use the following link to check your registration status at any time:
 {{ url_prefix }}{{ event_url }}
 
 
