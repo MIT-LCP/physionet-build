@@ -51,6 +51,12 @@ class Event(models.Model):
                                                 content_type__app_label="events")
             user.user_permissions.add(permission)
 
+    def get_cohosts(self):
+        """
+        Returns a list of cohosts for the event.
+        """
+        return self.participants.filter(is_cohost=True)
+
 
 class EventParticipant(models.Model):
     """
