@@ -92,6 +92,15 @@
             <h3>{{ event.title }}</h3>
             <p class="list-group-item-text text-muted">
             <strong>Host: {{ event.host.get_full_name }} </strong><br>
+            {% with event_cohosts=event.get_cohosts %}
+              {% if event_cohosts %}
+                <small>Cohost:
+                {% for cohost in event_cohosts %}
+                  {{ cohost.user.get_full_name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                </small><br>
+              {% endif %}
+            {% endwith %}
             <small>Created: {{ event.added_datetime|date }}</small><br>
             {% if event.host == user %} <small>Number of participants: {{ event.participants.all|length }}</small><br>{% endif %}
             <small>Start Date: {{ event.start_date }}</small><br>
@@ -151,6 +160,15 @@
             <h3>{{ event.title }}</h3>
             <p class="list-group-item-text text-muted">
             <strong>Host: {{ event.host.get_full_name }} </strong><br>
+            {% with event_cohosts=event.get_cohosts %}
+              {% if event_cohosts %}
+                <small>Cohost:
+                {% for cohost in event_cohosts %}
+                  {{ cohost.user.get_full_name }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+                </small><br>
+              {% endif %}
+            {% endwith %}
             <small>Created: {{ event.added_datetime|date }}</small><br>
             {% if event.host == user %} <small>Number of participants: {{ event.participants.all|length }}</small><br>{% endif %}
             <small>Start Date: {{ event.start_date }}</small><br>
@@ -223,5 +241,28 @@
        });
 
    });
+
+    $(document).ready(function() {
+        $('body').on('click', 'input[name="toggle-cohost-status"]', function(event) {
+            event.preventDefault(); // prevent the default action
+            console.log(event.target,'hello');
+            let checkbox = $(event.target);
+            let participant_id = checkbox.val();
+            let event_slug = checkbox.attr('event-slug');
+            let url = '/events/' + event_slug + '/participant/' + participant_id + '/toggle_cohost_status';
+
+            $.ajax({
+                url: url,
+                type: "GET",
+                success: function (data) {
+                  console.log(data);
+                  if(data[0].status===true){
+                    checkbox.prop('checked', !checkbox.prop('checked'));
+                  }
+                },
+            });
+        });
+    });
+
   </script>
 {% endblock %}

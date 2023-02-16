@@ -11,7 +11,7 @@ from django.urls import reverse
 
 import notification.utility as notification
 from events.forms import AddEventForm, EventApplicationResponseForm
-from events.models import Event, EventApplication
+from events.models import Event, EventApplication, EventParticipant
 
 
 @login_required
@@ -38,6 +38,25 @@ def get_event_details(request, event_slug):
         return JsonResponse([{'error': 'You don\'t have permission to access event'}], safe=False)
     event = Event.objects.filter(slug=event_slug).values()
     return JsonResponse(list(event), safe=False)
+
+
+@login_required
+def toggle_cohost_status(request, event_slug, participant_id):
+    is_instructor = request.user.has_perm('events.add_event')
+    is_host = Event.objects.filter(slug=event_slug, host=request.user).exists()
+
+    if not is_instructor:
+        return JsonResponse([{'status': False, 'message': 'You don\'t have permission to edit event'}], safe=False)
+    if not is_host:
+        return JsonResponse([{'status': False, 'message': 'You are not the host of this event'}], safe=False)
+
+    event_participant = EventParticipant.objects.get(id=participant_id)
+    if event_participant.is_cohost:
+        event_participant.remove_cohost()
+    else:
+        event_participant.make_cohost()
+
+    return JsonResponse([{'status': True, 'message': 'Updated cohost status'}], safe=False)
 
 
 @login_required
