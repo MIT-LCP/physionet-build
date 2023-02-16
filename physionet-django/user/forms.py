@@ -33,6 +33,8 @@ from user.widgets import ProfilePhotoInput
 
 from django.db.models import OuterRef, Exists
 
+MIN_WORDS_RESEARCH_SUMMARY = settings.MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING
+
 
 class AssociatedEmailChoiceForm(forms.Form):
     """
@@ -478,9 +480,10 @@ class ResearchCAF(forms.ModelForm):
         model = CredentialApplication
         fields = ('research_summary',)
         help_texts = {
-            'research_summary': """Please provide a detailed description of how you plan to use the data,
+            'research_summary': f"""Please provide a detailed description of how you plan to use the data,
             including the name of any specific dataset(s) you intend to use. If you will be using the
-            data for a class, please also include the name and number of the course.""",
+            data for a class, please also include the name and number of the course.
+            (Minimum : {MIN_WORDS_RESEARCH_SUMMARY} words)""",
         }
         widgets = {
            'research_summary': forms.Textarea(attrs={'rows': 2}),
@@ -492,7 +495,7 @@ class ResearchCAF(forms.ModelForm):
 
     def clean_research_summary(self):
         research_summary = self.cleaned_data['research_summary']
-        if len(research_summary.split()) < 20:
+        if len(research_summary.split()) < MIN_WORDS_RESEARCH_SUMMARY:
             raise forms.ValidationError("Please provide more information about your research topic.")
         return research_summary
 

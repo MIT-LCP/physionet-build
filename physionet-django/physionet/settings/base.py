@@ -601,3 +601,6 @@ MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)
 # Starting at 3.2, new projects are generated with DEFAULT_AUTO_FIELD set to BigAutoField
 # https://docs.djangoproject.com/en/3.2/releases/3.2/#customizing-type-of-auto-created-primary-keys
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+# minimum number of word needed for research_summary field for Credentialing Model.
+MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING = config('MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING', cast=int, default=20)
