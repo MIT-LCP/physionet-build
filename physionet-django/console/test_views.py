@@ -8,6 +8,7 @@ import requests_mock
 from background_task.tasks import tasks
 from django.test.utils import get_runner
 from django.urls import reverse
+from events.models import EventAgreement
 from project.models import (
     ActiveProject,
     ArchivedProject,
@@ -614,3 +615,159 @@ class TestFrontPageButton(TestMixin):
             reverse("frontpage_button_delete", args=(self.button_1.pk,)), follow=True)
         self.assertRedirects(response, reverse("frontpage_buttons"), status_code=302)
         self.assertEqual(FrontPageButton.objects.count(), frontpage_button_count - 1)
+
+
+class TestEventAgreements(TestMixin):
+    """ Test that all views are behaving as expected """
+
+    def setUp(self):
+        """Setup for tests"""
+
+        super().setUp()
+        self.event_agreement_name = "test event agreement"
+        self.event_agreement_version = "0.1"
+        self.event_agreement_version_invalid = "1"
+        self.event_agreement_version_new_version = "0.2"
+        self.event_agreement_slug = "pyvO3g6Nuc"
+        self.event_agreement_slug_new_version = "a1b2c3d4e5"
+        self.updated_event_agreement_name = "updated test event agreement"
+        self.event_agreement_html_content = "<p>My test Event Agreement test content</p>"
+        self.event_agreement_access_template = "<p>My test Event Agreement test content</p>"
+
+        self.client.login(username='rgmark', password='Tester11!')
+
+    def test_add_event_agreement_valid(self):
+        """tests the view that adds a valid event agreement"""
+
+        # Create an event Agreement
+        response = self.client.post(
+            reverse('event_agreement_list'),
+            data={
+                'name': self.event_agreement_name,
+                'version': self.event_agreement_version,
+                'slug': self.event_agreement_slug,
+                'is_active': True,
+                'html_content': self.event_agreement_html_content,
+                'access_template': self.event_agreement_access_template
+            })
+        self.assertEqual(response.status_code, 200)
+        event_agreement = EventAgreement.objects.get(slug=self.event_agreement_slug)
+        self.assertEqual(event_agreement.name, self.event_agreement_name)
+        return event_agreement
+
+    def test_add_event_agreement_invalid(self):
+        """tests the view that adds an invalid event agreement"""
+
+        # Try to Create an Invalid event Agreement
+        response = self.client.post(
+            reverse('event_agreement_list'),
+            data={
+                'name': self.event_agreement_name,
+                'version': self.event_agreement_version_invalid,
+                'slug': self.event_agreement_slug,
+                'is_active': True,
+                'html_content': self.event_agreement_html_content,
+                'access_template': self.event_agreement_access_template
+            })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'console/event_agreement_list.html')
+        self.assertContains(response,
+                            'Version may only contain numbers and dots, and must begin and end with a number.')
+
+    def test_edit_event_agreement_valid(self):
+        """tests the view that edits a valid event agreement"""
+
+        event_agreement = self.test_add_event_agreement_valid()
+
+        # Edit the event Agreement
+        response = self.client.post(
+            reverse('event_agreement_detail', args=[event_agreement.pk]),
+            data={
+                'name': self.updated_event_agreement_name,
+                'version': self.event_agreement_version,
+                'slug': self.event_agreement_slug,
+                'is_active': True,
+                'html_content': self.event_agreement_html_content,
+                'access_template': self.event_agreement_access_template
+            })
+
+        self.assertEqual(response.status_code, 200)
+        event_agreement = EventAgreement.objects.get(slug=self.event_agreement_slug)
+        self.assertEqual(event_agreement.name, self.updated_event_agreement_name)
+
+    def test_edit_event_agreement_invalid(self):
+        """tests the view that edits an invalid event agreement"""
+
+        event_agreement = self.test_add_event_agreement_valid()
+
+        # Edit the event Agreement
+        response = self.client.post(
+            reverse('event_agreement_detail', args=[event_agreement.pk]),
+            data={
+                'name': self.updated_event_agreement_name,
+                'version': self.event_agreement_version_invalid,
+                'slug': self.event_agreement_slug,
+                'is_active': True,
+                'html_content': self.event_agreement_html_content,
+                'access_template': self.event_agreement_access_template
+            })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'console/event_agreement_detail.html')
+        self.assertContains(response,
+                            'Version may only contain numbers and dots, and must begin and end with a number.')
+
+    def test_delete_event_agreement(self):
+        """tests the view that deletes an event agreement"""
+
+        event_agreement = self.test_add_event_agreement_valid()
+
+        # Delete the event Agreement
+        response = self.client.post(
+            reverse('event_agreement_delete', args=[event_agreement.pk]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(EventAgreement.objects.filter(slug=self.event_agreement_slug).exists(), False)
+
+    def test_event_agreement_new_version_valid(self):
+        """tests the view that adds a valid new version of event agreement"""
+
+        event_agreement = self.test_add_event_agreement_valid()
+
+        # Create an event Agreement
+        response = self.client.post(
+            reverse('event_agreement_new_version', args=[event_agreement.pk]),
+            data={
+                'name': self.event_agreement_name,
+                'version': self.event_agreement_version_new_version,
+                'slug': self.event_agreement_slug_new_version,
+                'is_active': True,
+                'html_content': self.event_agreement_html_content,
+                'access_template': self.event_agreement_access_template
+            })
+
+        self.assertEqual(response.status_code, 302)
+        event_agreement = EventAgreement.objects.get(slug=self.event_agreement_slug_new_version)
+        self.assertEqual(event_agreement.version, self.event_agreement_version_new_version)
+
+    def test_event_agreement_new_version_invalid(self):
+        """tests the view that adds an invalid new version of event agreement"""
+
+        event_agreement = self.test_add_event_agreement_valid()
+
+        # Create an event Agreement
+        response = self.client.post(
+            reverse('event_agreement_new_version', args=[event_agreement.pk]),
+            data={
+                'name': self.event_agreement_name,
+                'version': self.event_agreement_version_new_version,
+                'slug': self.event_agreement_slug,
+                'is_active': True,
+                'html_content': self.event_agreement_html_content,
+                'access_template': self.event_agreement_access_template
+            })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'console/event_agreement_new_version.html')
+        self.assertContains(response, 'Event agreement with this Slug already exists.')
