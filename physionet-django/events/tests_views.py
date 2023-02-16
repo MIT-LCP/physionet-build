@@ -3,7 +3,7 @@ import logging
 
 from django.urls import reverse
 
-from events.models import Event
+from events.models import Event, EventApplication
 from user.test_views import TestMixin
 
 
@@ -128,3 +128,132 @@ class TestEvents(TestMixin):
         self.assertEqual(response.status_code, 302)
         event = Event.objects.get(slug=slug)
         self.assertEqual(event.title, self.new_event_name)
+
+    def test_event_participation_join_waitlist(self):
+        """tests the view that adds a user to the waitlist of an event"""
+
+        # add an event first
+        self.test_add_event_valid()
+        event = Event.objects.get(title=self.new_event_name)
+        slug = event.slug
+
+        # login as a user and try to join the event
+        self.client.login(username='amitupreti', password='Tester11!')
+        # add a user to the waitlist
+        response = self.client.post(
+            reverse('event_detail', kwargs={'event_slug': slug}),
+            data={
+                'confirm_registration': ''
+            })
+        self.assertEqual(response.status_code, 302)
+        event.refresh_from_db()
+
+        # check if the user is added to the waitlist
+        EventApplication.objects.get(
+            event=event,
+            user__username='amitupreti',
+            status=EventApplication.EventApplicationStatus.WAITLISTED
+        )
+
+    def test_event_participation_withdraw(self):
+        """tests the view that withdraws a user from an event"""
+
+        # Create an event, add a user to the waitlist
+        self.test_event_participation_join_waitlist()
+
+        event = Event.objects.get(title=self.new_event_name)
+        # add a user to the waitlist
+        response = self.client.post(
+            reverse('event_detail', kwargs={'event_slug': event.slug}),
+            data={
+                'confirm_withdraw': ''
+            })
+        self.assertEqual(response.status_code, 302)
+
+        # check if the user application is withdrawn
+        EventApplication.objects.get(
+            event=event,
+            user__username='amitupreti',
+            status=EventApplication.EventApplicationStatus.WITHDRAWN
+        )
+
+    def test_event_participation_approved(self):
+        """tests the view that approves a user for an event"""
+
+        # create an event, and add a user to the waitlist and verify that the user is added to the waitlist
+        self.test_event_participation_join_waitlist()
+
+        event = Event.objects.get(title=self.new_event_name)
+
+        # login as the host and approve the user
+        self.client.login(username='admin', password='Tester11!')
+
+        # get event application
+        event_application = EventApplication.objects.get(
+            event=event,
+            user__username='amitupreti',
+            status=EventApplication.EventApplicationStatus.WAITLISTED
+        )
+
+        # approve the user
+        response = self.client.post(
+            reverse('event_home'),
+            data={
+                'form-TOTAL_FORMS': ['1'],
+                'form-INITIAL_FORMS': ['1'],
+                'form-MIN_NUM_FORMS': ['0'],
+                'form-MAX_NUM_FORMS': ['1000'],
+                'form-0-status': ['AP'],
+                'form-0-comment_to_applicant': ['Great Job! Welcome to the event!'],
+                'form-0-id': [f'{event_application.id}'],
+                'participation_response': [f'{event_application.id}']
+            }
+        )
+        self.assertEqual(response.status_code, 302)
+
+        # check if the user was approved
+        event.refresh_from_db()
+        event.participants.get(user__username='amitupreti')
+
+    def test_event_participation_rejected(self):
+        """tests the view that rejects a user for an event"""
+
+        # create an event, and add a user to the waitlist and verify that the user is added to the waitlist
+        self.test_event_participation_join_waitlist()
+
+        event = Event.objects.get(title=self.new_event_name)
+
+        # login as the host and reject the user
+        self.client.login(username='admin', password='Tester11!')
+
+        # get event application
+        event_application = EventApplication.objects.get(
+            event=event,
+            user__username='amitupreti',
+            status=EventApplication.EventApplicationStatus.WAITLISTED
+        )
+
+        # reject the user
+        response = self.client.post(
+            reverse('event_home'),
+            data={
+                'form-TOTAL_FORMS': ['1'],
+                'form-INITIAL_FORMS': ['1'],
+                'form-MIN_NUM_FORMS': ['0'],
+                'form-MAX_NUM_FORMS': ['1000'],
+                'form-0-status': ['NA'],
+                'form-0-comment_to_applicant': ['Sorry, you were not selected for the event!'],
+                'form-0-id': [f'{event_application.id}'],
+                'participation_response': [f'{event_application.id}']
+            }
+        )
+        self.assertEqual(response.status_code, 302)
+
+        # check if the user was rejected
+        event.refresh_from_db()
+
+        self.assertEqual(event.participants.filter(user__username='amitupreti').count(), 0)
+
+        # check the status on the event application
+        event_application.refresh_from_db()
+        self.assertEqual(event_application.status, EventApplication.EventApplicationStatus.NOT_APPROVED)

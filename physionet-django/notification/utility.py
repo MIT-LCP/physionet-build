@@ -10,6 +10,7 @@ from django.core.mail import EmailMessage, mail_admins, send_mail
 from django.template import defaultfilters, loader
 from django.utils import timezone
 from project.models import DataAccessRequest, License
+from django.urls import reverse
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
@@ -920,5 +921,65 @@ def notify_account_registration(request, user, uidb64, token, sso=False):
         'SITE_NAME': settings.SITE_NAME,
     }
     body = loader.render_to_string('user/email/register_email.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+
+def notify_participant_event_waitlist(request, user, event):
+    """
+    Send the event registration email to participant.
+    """
+    # Send email to the participant to confirm their that their registration request was received
+
+    subject = f"{settings.SITE_NAME} Event Registration"
+    context = {
+        'name': user.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'event_title': event.title,
+        'event_url': reverse('event_detail', args=[event.slug]),
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    body = loader.render_to_string('events/email/event_participation_waitlist.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+
+def notify_participant_event_withdraw(request, user, event):
+    """
+    Send the withdraw email to participant(when participant withdraw their request).
+    """
+
+    subject = f"{settings.SITE_NAME} Event Registration Withdrawn"
+    context = {
+        'name': user.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'event_title': event.title,
+        'event_url': reverse('event_detail', args=[event.slug]),
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    body = loader.render_to_string('events/email/event_participation_withdraw.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+
+def notify_participant_event_decision(request, user, event, decision, comment_to_applicant):
+    """
+    Send email to participant about update on their application status.
+    """
+
+    subject = f"{settings.SITE_NAME} Event Registration Decision"
+    context = {
+        'name': user.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'event_title': event.title,
+        'event_url': reverse('event_detail', args=[event.slug]),
+        'decision': decision,
+        'comment_to_applicant': comment_to_applicant,
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    body = loader.render_to_string('events/email/event_participation_decision.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)

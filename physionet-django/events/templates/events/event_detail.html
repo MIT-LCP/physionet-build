@@ -16,14 +16,6 @@
         <br/>
         <h4>Event Details</h4>
         <hr>
-{#        <div class="row mb-1">#}
-{#            <div class="col-md-3">#}
-{#                Hosted by:#}
-{#            </div>#}
-{#            <div class="col-md-9">#}
-{#                {{ event.host.get_full_name }}#}
-{#            </div>#}
-{#        </div>#}
         <div class="row mb-1">
             <div class="col-md-3">
                 Category:
@@ -48,7 +40,6 @@
                 {{ event.end_date | date:"M. d, Y" }}
             </div>
         </div>
-
         <div class="row mb-1">
             <div class="row col-md-3">
                 Description:
@@ -57,21 +48,12 @@
                 {{ event.description }}
             </div>
         </div>
-
-
-
     </div>
-        <hr>
+    <hr>
 
+    {% include  "events/event_participation.html" %}
 
-    <br>
-    <strong><p>Click the button below to join the waiting list. You will receive a notification when your registration is confirmed.</p></strong>
-
-    <form  method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-sm btn-primary" name="confirm_event" value="confirm" role="button">Join waitlist</button>
-    </form>
-
+    
 </div>
 {% endif %}
 {% endblock %}

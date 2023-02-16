@@ -1,0 +1,17 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+{% if decision == 'Approved' %}
+We are pleased to confirm that you are now registered for the following event: {{ event_title }}.
+{% elif decision == 'Not Approved' %}
+We were unable to register you for the following event: {{ event_title }}.
+{% endif %}
+{% if comment_to_applicant %}Comments from the event organizer:
+- {{ comment_to_applicant }}
+{% endif %}
+You can view further information about the event using the following link:
+{{ url_prefix }}{{ event_url }}
+
+
+Regards
+The {{ SITE_NAME }} Team
+{% endfilter %}{% endautoescape %}

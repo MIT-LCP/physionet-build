@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+Thanks for your interest in joining: {{ event_title }}. You will receive an email when your registration is confirmed.
+
+You can also use the following link to check your registration status at any time:
+{{ url_prefix }}{{ event_url }}
+
+
+Regards
+The {{ SITE_NAME }} Team
+{% endfilter %}{% endautoescape %}
