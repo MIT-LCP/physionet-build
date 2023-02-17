@@ -364,7 +364,7 @@
         The files in this project version are under embargo until: {{ project.embargo_end_date|date }}
       </div>
     {% else %}
-      {% if has_access %}
+      {% if can_view_files %}
         {#  refactored code goes here            #}
         <p>Total uncompressed size: {{ main_size }}.</p>
         {# ZIP START #}
