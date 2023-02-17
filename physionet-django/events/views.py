@@ -17,11 +17,11 @@ from events.models import Event, EventApplication, EventParticipant
 @login_required
 def update_event(request, event_slug, **kwargs):
     user = request.user
-    is_instructor = user.has_perm('events.add_event')
+    can_change_event = user.has_perm('events.add_event')
     if request.method == 'POST':
         event = Event.objects.get(slug=event_slug)
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
-        if event_form.is_valid() and is_instructor:
+        if event_form.is_valid() and can_change_event:
             event_form.save()
             messages.success(request, "Updated Event Successfully")
         else:
@@ -33,8 +33,8 @@ def update_event(request, event_slug, **kwargs):
 
 @login_required
 def get_event_details(request, event_slug):
-    is_instructor = request.user.has_perm('events.add_event')
-    if not is_instructor:
+    can_change_event = request.user.has_perm('events.add_event')
+    if not can_change_event:
         return JsonResponse([{'error': 'You don\'t have permission to access event'}], safe=False)
     event = Event.objects.filter(slug=event_slug).values()
     return JsonResponse(list(event), safe=False)
@@ -42,10 +42,10 @@ def get_event_details(request, event_slug):
 
 @login_required
 def toggle_cohost_status(request, event_slug, participant_id):
-    is_instructor = request.user.has_perm('events.add_event')
+    can_change_event = request.user.has_perm('events.add_event')
     is_host = Event.objects.filter(slug=event_slug, host=request.user).exists()
 
-    if not is_instructor:
+    if not can_change_event:
         return JsonResponse([{'status': False, 'message': 'You don\'t have permission to edit event'}], safe=False)
     if not is_host:
         return JsonResponse([{'status': False, 'message': 'You are not the host of this event'}], safe=False)
@@ -65,7 +65,7 @@ def event_home(request):
     List of events
     """
     user = request.user
-    is_instructor = user.has_perm('events.add_event')
+    can_change_event = user.has_perm('events.add_event')
 
     EventApplicationResponseFormSet = modelformset_factory(EventApplication,
                                                            form=EventApplicationResponseForm, extra=0)
@@ -84,10 +84,10 @@ def event_home(request):
 
     form_error = False
 
-    if is_instructor:
+    if can_change_event:
         if request.method == 'POST' and 'add-event' in request.POST.keys():
             event_form = AddEventForm(user=user, data=request.POST)
-            if event_form.is_valid() and is_instructor:
+            if event_form.is_valid() and can_change_event:
                 event_form.save()
                 return redirect(event_home)
             else:
@@ -141,7 +141,7 @@ def event_home(request):
                    'events_past': events_past,
                    'event_form': event_form,
                    'url_prefix': url_prefix,
-                   'is_instructor': is_instructor,
+                   'can_change_event': can_change_event,
                    'form_error': form_error,
                    'participation_response_formset': participation_response_formset,
                    })
