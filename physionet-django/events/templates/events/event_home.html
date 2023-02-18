@@ -117,7 +117,7 @@
               <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
               </p>
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
-              <button class="btn btn-sm btn-secondary edit-btn" data-toggle ="modal" data-target="#edit-event-modal"  data-event-url="{% url 'get_event_details' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</button>
+              <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
             {% endif %}
 
             <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-info">View Event</a>
@@ -185,7 +185,7 @@
               <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
               </p>
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
-              <button class="btn btn-sm btn-secondary edit-btn" data-toggle ="modal" data-target="#edit-event-modal"  data-event-url="{% url 'get_event_details' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</button>
+              <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
             {% endif %}
 
             <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-info">View Event</a>
@@ -221,27 +221,6 @@
 
 {% block local_js_bottom %}
   <script>
-   $('.edit-btn').click(function(e) {
-       $('#edit-event-modal').modal('hide');
-       let url = $(this).data('event-url');
-       let form_url = $(this).data('form-url');
-        $.ajax({
-           url: url,
-           type: 'GET',
-           success: function(data) {
-                let event = data[0];
-                $('#edit-event-modal').find('#id_title').val(event.title);
-                $('#edit-event-modal').find('#id_description').val(event.description);
-                $('#edit-event-modal').find('#id_start_date').val(event.start_date);
-                $('#edit-event-modal').find('#id_end_date').val(event.end_date);
-                $('#edit-event-modal').find('#id_slug').val(event.slug);
-                $('#edit-event-modal').find('#id_category').val(event.category);
-                $('#edit-event-modal').find('#id_allowed_domains').val(event.allowed_domains);
-                $('form.edit-event').attr('action', form_url);
-           }
-       });
-
-   });
   </script>
   <script src="{% static 'custom/js/resize-ck.js' %}"></script>
 {% endblock %}

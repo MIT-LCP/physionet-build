@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Edit - {{ event.title }}{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}">
+{% endblock %} 
+
+{% block content %}
+ <div class="container">
+  <form action="" method="post" class="form-signin edit-event" >
+    {% csrf_token %}
+    <h2 class="form-signin-heading">Edit - {{ event.title }}</h2>
+    <hr>
+    {{ event_form.media }}
+    {% include "form_snippet.html" with form=event_form %}
+    <button class="btn btn-primary btn-fixed" name="edit-event" type="submit">Save</button>
+  </form>
+</div>
+{% endblock %}
+{% block local_js_bottom %}
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}

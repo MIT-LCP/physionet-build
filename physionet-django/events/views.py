@@ -18,8 +18,8 @@ from events.models import Event, EventApplication, EventParticipant
 def update_event(request, event_slug, **kwargs):
     user = request.user
     can_change_event = user.has_perm('events.add_event')
+    event = Event.objects.get(slug=event_slug)
     if request.method == 'POST':
-        event = Event.objects.get(slug=event_slug)
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
         if event_form.is_valid():
             if can_change_event and event.host == user:
@@ -27,11 +27,14 @@ def update_event(request, event_slug, **kwargs):
                 messages.success(request, "Updated Event Successfully")
             else:
                 messages.error(request, "You don't have permission to edit this event")
+            return redirect(event_home)
         else:
             messages.error(request, event_form.errors)
     else:
-        messages.error(request, "Invalid request")
-    return redirect(event_home)
+        event_form = AddEventForm(instance=event, user=user)
+
+    return render(
+        request, 'events/event_edit.html', {'event': event, 'event_form': event_form})
 
 
 @login_required
