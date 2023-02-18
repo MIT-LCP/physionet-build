@@ -125,7 +125,9 @@ class TestEvents(TestMixin):
                 'allowed_domains': ''
             })
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'events/event_edit.html')
+        self.assertContains(response, 'Event with this title already exists')
         event = Event.objects.get(slug=slug)
         self.assertEqual(event.title, self.new_event_name)
 
