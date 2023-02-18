@@ -16,7 +16,7 @@ class Event(models.Model):
     Used to allow event hosts to assist with credentialing.
     """
     title = models.CharField(max_length=128)
-    description = models.TextField(blank=True, null=True)
+    description = SafeHTMLField(max_length=10000, blank=True, null=True)
     category = models.CharField(choices=EventCategory.choices, max_length=32)
     host = models.ForeignKey("user.User", on_delete=models.CASCADE)
     added_datetime = models.DateTimeField(auto_now_add=True)
