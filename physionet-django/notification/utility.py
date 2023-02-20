@@ -983,3 +983,19 @@ def notify_participant_event_decision(request, user, event, decision, comment_to
     body = loader.render_to_string('events/email/event_participation_decision.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+
+def notify_users_of_training_expiry(user, training, expiry):
+    """
+    Send the training expiry email.
+    """
+
+    subject = f"{settings.SITE_NAME} Training Validation Notification"
+    context = {
+        'name': user.get_full_name(),
+        'SITE_NAME': settings.SITE_NAME,
+        'training': training,
+        'expiry': expiry
+    }
+    body = loader.render_to_string('training/email/training_notification.html', context)
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user, ], fail_silently=False)

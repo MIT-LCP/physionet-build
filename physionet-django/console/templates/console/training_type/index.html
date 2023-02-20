@@ -1,0 +1,72 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Training Types{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Training Types <span class="badge badge-pill badge-info">{{ training_types|length }}</span>
+  </div>
+  <div class="card-body">
+    <div><button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#op-training">Create an On Platform Training</button></div>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Valid Duration</th>
+            <th>On Platform Training</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for training in training_types %}
+            <tr>
+                <td>{{ training.name|title }}</td>
+                <td>{{ training.valid_duration }}</td>
+                <td>{% if training.required_field == 2 %} True {% else %} False {% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal fade" id="op-training" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                
+                <div class="modal-body">
+                    <p>Download Sample Json File by <a href="{% static 'sample/create.json' %}" download>Clicking Here</a></p>
+                    <div>
+                        <form action="{% url 'op_training' %}" method="POST" enctype="multipart/form-data" class=""> 
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label>Training Type: </label>
+                                <select name="training_id" class="form-control" required>
+                                    <option disabled>Choose...</option>
+                                    {% for training in training_types %}
+                                    <option value="{{ training.id }}">{{ training.name|title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>File: </label>
+                                <input type="file" name="json_file" id="json_file" required="True" class="form-control">
+                            </div>
+                            <div class="form-group">                    
+                                <input type="submit" name="create" class="btn btn-primary">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}
