@@ -696,8 +696,8 @@ class TestEventAgreements(TestMixin):
         event_agreement = EventAgreement.objects.get(slug=self.event_agreement_slug)
         self.assertEqual(event_agreement.name, self.updated_event_agreement_name)
 
-    def test_edit_event_agreement_invalid(self):
-        """tests the view that edits an invalid event agreement"""
+    def test_edit_event_agreement_invalid_version(self):
+        """tests the view that edits an invalid event agreement(invalid version)"""
 
         event_agreement = self.test_add_event_agreement_valid()
 
@@ -751,8 +751,8 @@ class TestEventAgreements(TestMixin):
         event_agreement = EventAgreement.objects.get(slug=self.event_agreement_slug_new_version)
         self.assertEqual(event_agreement.version, self.event_agreement_version_new_version)
 
-    def test_event_agreement_new_version_invalid(self):
-        """tests the view that adds an invalid new version of event agreement"""
+    def test_event_agreement_new_version_invalid_slug(self):
+        """tests the view that adds an invalid new version of event agreement(invalid slug)"""
 
         event_agreement = self.test_add_event_agreement_valid()
 
@@ -771,3 +771,25 @@ class TestEventAgreements(TestMixin):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'console/event_agreement_new_version.html')
         self.assertContains(response, 'Event agreement with this Slug already exists.')
+
+    def test_event_agreement_new_version_invalid_version(self):
+        """tests the view that adds an invalid new version of event agreement(invalid version)"""
+
+        event_agreement = self.test_add_event_agreement_valid()
+
+        # Create an event Agreement
+        response = self.client.post(
+            reverse('event_agreement_new_version', args=[event_agreement.pk]),
+            data={
+                'name': self.event_agreement_name,
+                'version': self.event_agreement_version_invalid,
+                'slug': self.event_agreement_slug_new_version,
+                'is_active': True,
+                'html_content': self.event_agreement_html_content,
+                'access_template': self.event_agreement_access_template
+            })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'console/event_agreement_new_version.html')
+        self.assertContains(response,
+                            'Version may only contain numbers and dots, and must begin and end with a number.')

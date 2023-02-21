@@ -2929,16 +2929,16 @@ def event_management(request, event_slug):
 @permission_required('events.add_event', raise_exception=True)
 def event_agreement_list(request):
     if request.method == 'POST':
-        event_agreement_form = EventAgreementForm(data=request.POST)
+        event_agreement_form = EventAgreementForm(user=request.user, data=request.POST)
         if event_agreement_form.is_valid():
             event_agreement_form.instance.creator = request.user
             event_agreement_form.save()
-            event_agreement_form = EventAgreementForm()
+            event_agreement_form = EventAgreementForm(user=request.user)
             messages.success(request, "The Event Agreement has been created.")
         else:
             messages.error(request, "Invalid submission. Check errors below.")
     else:
-        event_agreement_form = EventAgreementForm()
+        event_agreement_form = EventAgreementForm(user=request.user)
 
     event_agreements = EventAgreement.objects.filter(creator=request.user).order_by('name')
     event_agreements = paginate(request, event_agreements, 20)
@@ -2959,7 +2959,7 @@ def event_agreement_new_version(request, pk):
     event_agreement = get_object_or_404(EventAgreement, pk=pk)
 
     if request.method == 'POST':
-        event_agreement_form = EventAgreementForm(data=request.POST)
+        event_agreement_form = EventAgreementForm(user=request.user, data=request.POST)
         if event_agreement_form.is_valid():
             event_agreement_form.instance.creator = request.user
             event_agreement_form.save()
@@ -2971,7 +2971,7 @@ def event_agreement_new_version(request, pk):
         event_agreement_data = model_to_dict(event_agreement)
         event_agreement_data['id'] = None
         event_agreement_data['version'] = None
-        event_agreement_form = EventAgreementForm(initial=event_agreement_data)
+        event_agreement_form = EventAgreementForm(user=request.user, initial=event_agreement_data)
 
     return render(
         request,
@@ -2989,7 +2989,7 @@ def event_agreement_detail(request, pk):
     event_agreement = get_object_or_404(EventAgreement, pk=pk)
 
     if request.method == 'POST':
-        event_agreement_form = EventAgreementForm(data=request.POST, instance=event_agreement)
+        event_agreement_form = EventAgreementForm(user=request.user, data=request.POST, instance=event_agreement)
         if event_agreement_form.is_valid():
             event_agreement_form.save()
             messages.success(request, "The Event Agreement has been updated.")
@@ -2997,7 +2997,7 @@ def event_agreement_detail(request, pk):
             messages.error(request, "Invalid submission. Check errors below.")
 
     else:
-        event_agreement_form = EventAgreementForm(instance=event_agreement)
+        event_agreement_form = EventAgreementForm(user=request.user, instance=event_agreement)
 
     return render(
         request,
