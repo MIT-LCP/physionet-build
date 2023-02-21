@@ -169,7 +169,7 @@ class EventDataset(models.Model):
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='datasets')
     dataset = models.ForeignKey("project.PublishedProject", on_delete=models.CASCADE)
-    access_type = models.CharField(default=EventDatasetAccessType.GOOGLE_BIG_QUERY, max_length=3,
+    access_type = models.CharField(default=EventDatasetAccessType.GOOGLE_BIG_QUERY, max_length=10,
                                    choices=EventDatasetAccessType.choices)
     status = models.CharField(default=EventDatasetStatus.Active, max_length=2,
                               choices=EventDatasetStatus.choices)
