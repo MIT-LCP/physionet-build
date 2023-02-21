@@ -2894,6 +2894,7 @@ def event_management(request, event_slug):
             if event_dataset_form.is_valid():
                 if selected_event.datasets.filter(
                         dataset=event_dataset_form.cleaned_data['dataset'],
+                        access_type=event_dataset_form.cleaned_data['access_type'],
                         status=EventDataset.EventDatasetStatus.Active).count() == 0:
                     event_dataset_form.instance.event = selected_event
                     event_dataset_form.save()
