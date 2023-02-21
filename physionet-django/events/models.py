@@ -189,7 +189,7 @@ class EventDataset(models.Model):
         if self.status == self.EventDatasetStatus.Inactive:
             return False
 
-        if self.event.end_date < timezone.now().date():
+        if timezone.now().date() > self.event.end_date:
             return False
         return True
 

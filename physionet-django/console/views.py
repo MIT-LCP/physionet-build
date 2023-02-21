@@ -2887,8 +2887,6 @@ def event_management(request, event_slug):
     """
     selected_event = get_object_or_404(Event, slug=event_slug)
 
-    event_dataset_form = EventDatasetForm()
-
     # handle the add dataset form(s)
     if request.method == "POST":
         if 'add-event-dataset' in request.POST.keys():
@@ -2901,7 +2899,7 @@ def event_management(request, event_slug):
                     event_dataset_form.save()
                     messages.success(request, "The dataset has been added to the event.")
                 else:
-                    messages.error(request, "The dataset is already added to the event.")
+                    messages.error(request, "The dataset has already been added to the event.")
             else:
                 messages.error(request, event_dataset_form.errors)
 
@@ -2913,6 +2911,9 @@ def event_management(request, event_slug):
             messages.success(request, "The dataset has been removed from the event.")
 
             return redirect('event_management', event_slug=event_slug)
+    else:
+        event_dataset_form = EventDatasetForm()
+
     event_datasets = selected_event.datasets.filter(status=EventDataset.EventDatasetStatus.Active)
 
     return render(

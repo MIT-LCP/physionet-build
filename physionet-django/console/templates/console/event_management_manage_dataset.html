@@ -3,13 +3,13 @@
   <div class="card-body">
     <ul class="list-group list-group-flush">
       <li class="list-group-item">
-        <h5>Add Dataset</h5>
+        <h5>Add a dataset to the event</h5>
         <form action="" method="post" class="form-event-dataset">
           {% csrf_token %}
-          {% include "form_snippet.html" with form=event_dataset_form %}
+          {% include 'form_snippet.html' with form=event_dataset_form %}
           <button class="btn btn-primary btn-fixed"
                   name="add-event-dataset"
-                  type="submit">Add Event</button>
+                  type="submit">Add to event</button>
         </form>
       </li>
       <li class="list-group-item">
@@ -51,7 +51,7 @@
                           </div>
                           <div class="modal-body">
                             <div class="row">
-                              <p>Are you sure you want to delete the dataset {{ dataset.dataset.title }}</p>
+                              <p>Remove {{ dataset.dataset.title }} from the event?</p>
                             </div>
                           </div>
                           <div class="modal-footer">
@@ -61,7 +61,7 @@
                                     name="remove-event-dataset">
                               Yes
                             </button>
-                            <button class="btn btn-primary" data-dismiss="modal">Cancel</button>
+                            <button class="btn btn-primary" data-dismiss="modal">No</button>
                           </div>
                         </div>
                       </div>
