@@ -129,7 +129,7 @@
             <ul class="sidenav-second-level collapse" id="events">
           {% endif %}
               <li class="nav-item {% if events_nav %}active{% endif %}">
-                <a id="nav_active_users" class="nav-link" href="{% url 'event' %}">Event List</a>
+                <a id="nav_events" class="nav-link" href="{% url 'event' %}">Event List</a>
               </li>
             </ul>
         </li>
@@ -154,17 +154,17 @@
           {% endif %}
               {% if perms.project.add_license %}
                 <li class="nav-item {% if license_nav %}active{% endif %}">
-                  <a id="nav_active_users" class="nav-link" href="{% url 'license_list' %}">Licenses</a>
+                  <a id="nav_license" class="nav-link" href="{% url 'license_list' %}">Licenses</a>
                 </li>
               {% endif %}
               {% if perms.project.add_dua %}
                 <li class="nav-item {% if dua_nav %}active{% endif %}">
-                  <a id="nav_active_users" class="nav-link" href="{% url 'dua_list' %}">DUAs</a>
+                  <a id="nav_dua" class="nav-link" href="{% url 'dua_list' %}">DUAs</a>
                 </li>
               {% endif %}
               {% if perms.project.add_codeofconduct %}
                 <li class="nav-item {% if code_of_conduct_nav %}active{% endif %}">
-                  <a id="code_of_conduct_nav" class="nav-link" href="{% url 'code_of_conduct_list' %}">Code of Conduct</a>
+                  <a id="nav_code_of_conduct" class="nav-link" href="{% url 'code_of_conduct_list' %}">Code of Conduct</a>
                 </li>
               {% endif %}
             </ul>
@@ -228,7 +228,7 @@
               <a id="nav_active_users" class="nav-link" href="{% url 'users' 'active' %}">Active Users</a>
             </li>
             <li class="nav-item {% if group == 'inactive' %}active{% endif %}">
-              <a id="nav_active_users" class="nav-link" href="{% url 'users' 'inactive' %}">Inactive Users</a>
+              <a id="nav_inactive_users" class="nav-link" href="{% url 'users' 'inactive' %}">Inactive Users</a>
             </li>
             <li class="nav-item {% if group == 'all' %}active{% endif %}">
               <a id="nav_all_users" class="nav-link" href="{% url 'users' 'all' %}">All Users</a>
