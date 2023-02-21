@@ -39,7 +39,7 @@
                 <td>
                   <a href="{% url 'event_agreement_detail' event_agreement.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
                   <a href="{% url 'event_agreement_new_version' event_agreement.pk %}" class="btn btn-sm btn-success" role="button">New version</a>
-                  <button type="button" class="btn btn-sm btn-danger " data-toggle="modal" data-target="#remove-event-agreement-{{ event_agreement.pk }}">Delete</button>
+                  <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#remove-event-agreement-{{ event_agreement.pk }}">Delete</button>
 
                   <div class="modal fade" id="remove-event-agreement-{{ event_agreement.pk }}" tabindex="1" role="dialog" aria-hidden="true">
                     <form method="post" action="{% url 'event_agreement_delete' event_agreement.pk %}">
@@ -47,13 +47,13 @@
                       <div class="modal-dialog" role="document">
                         <div class="modal-content">
                           <div class="modal-header">
-                            <h5 class="modal-title">Delete DUA</h5>
+                            <h5 class="modal-title">Delete agreement</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                               <span aria-hidden="true">&times;</span>
                             </button>
                           </div>
                           <div class="modal-body">
-                              <p>Are you sure you want to delete the DUA?</p>
+                              <p>Are you sure you want to delete the agreement?</p>
                           </div>
                           <div class="modal-footer">
                               <button class="btn btn-danger" type="submit">Delete</button>
@@ -71,7 +71,7 @@
       {% include "console/pagination.html" with pagination=event_agreements %}
     </div>
     {% else %}
-      <p>There aren't any data Event agreements.</p>
+      <p>No event agreements available.</p>
     {% endif %}
   </div>
 </div>

@@ -2955,6 +2955,36 @@ def event_agreement_list(request):
 
 
 @permission_required('events.add_event', raise_exception=True)
+def event_agreement_new_version(request, pk):
+    event_agreement = get_object_or_404(EventAgreement, pk=pk)
+
+    if request.method == 'POST':
+        event_agreement_form = EventAgreementForm(data=request.POST)
+        if event_agreement_form.is_valid():
+            event_agreement_form.instance.creator = request.user
+            event_agreement_form.save()
+            messages.success(request, "The Event Agreement has been created.")
+            return redirect("event_agreement_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        event_agreement_data = model_to_dict(event_agreement)
+        event_agreement_data['id'] = None
+        event_agreement_data['version'] = None
+        event_agreement_form = EventAgreementForm(initial=event_agreement_data)
+
+    return render(
+        request,
+        'console/event_agreement_new_version.html',
+        {
+            'event_agreement_nav': True,
+            'event_agreement': event_agreement,
+            'event_agreement_form': event_agreement_form
+        }
+    )
+
+
+@permission_required('events.add_event', raise_exception=True)
 def event_agreement_detail(request, pk):
     event_agreement = get_object_or_404(EventAgreement, pk=pk)
 
@@ -2987,33 +3017,3 @@ def event_agreement_delete(request, pk):
         event_agreement.delete()
 
     return redirect("event_agreement_list")
-
-
-@permission_required('events.add_event', raise_exception=True)
-def event_agreement_new_version(request, pk):
-    event_agreement = get_object_or_404(EventAgreement, pk=pk)
-
-    if request.method == 'POST':
-        event_agreement_form = EventAgreementForm(data=request.POST)
-        if event_agreement_form.is_valid():
-            event_agreement_form.instance.creator = request.user
-            event_agreement_form.save()
-            messages.success(request, "The Event Agreement has been created.")
-            return redirect("event_agreement_list")
-        else:
-            messages.error(request, "Invalid submission. Check errors below.")
-    else:
-        event_agreement_data = model_to_dict(event_agreement)
-        event_agreement_data['id'] = None
-        event_agreement_data['version'] = None
-        event_agreement_form = EventAgreementForm(initial=event_agreement_data)
-
-    return render(
-        request,
-        'console/event_agreement_new_version.html',
-        {
-            'event_agreement_nav': True,
-            'event_agreement': event_agreement,
-            'event_agreement_form': event_agreement_form
-        }
-    )
