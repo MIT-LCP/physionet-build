@@ -1145,13 +1145,17 @@ class TestGenerateSignedUrl(TestMixin):
         )
         cls.user_credentials = {'username': 'rgmark@mit.edu', 'password': 'Tester11!'}
         cls.unauthorized_user_credentials = {'username': 'aewj@mit.edu', 'password': 'Tester11!'}
-        cls.invalid_size_data_1 = {'size': -10, 'filename': 'random.txt'}
-        cls.invalid_size_data_2 = {'size': 'file_size', 'filename': 'random.txt'}
-        cls.invalid_size_data_3 = {'filename': 'random.txt'}
-        cls.invalid_filename_data_1 = {'size': 250000, 'filename': 'ran dom.txt'}
-        cls.invalid_filename_data_2 = {'size': 250000, 'filename': 'random§.txt'}
-        cls.invalid_filename_length_data_1 = {'size': 250000, 'filename': 'invalid' * 100 + '.txt'}
-        cls.valid_data = {'size': 250000, 'filename': 'folder1/folder2/random.txt'}
+        cls.invalid_size_data_1 = {'size': -10, 'filename': '/random.txt'}
+        cls.invalid_size_data_2 = {'size': 'file_size', 'filename': '/random.txt'}
+        cls.invalid_size_data_3 = {'filename': '/random.txt'}
+        cls.invalid_filename_data_1 = {'size': 250000, 'filename': '/ran dom.txt'}
+        cls.invalid_filename_data_2 = {'size': 250000, 'filename': '/random§.txt'}
+        cls.invalid_filename_data_3 = {'size': 250000, 'filename': 'random.txt'}
+        cls.invalid_filename_data_4 = {'size': 250000, 'filename': '//random.txt'}
+        cls.invalid_filename_data_5 = {'size': 250000, 'filename': '/random.txt/'}
+        cls.invalid_filename_data_6 = {'size': 250000, 'filename': '/ran//dom.txt'}
+        cls.invalid_filename_length_data_1 = {'size': 250000, 'filename': '/invalid' * 100 + '.txt'}
+        cls.valid_data = {'size': 250000, 'filename': '/folder1/folder2/random.txt'}
 
     def test_invalid_size(self):
         self.client.login(**self.user_credentials)
@@ -1181,6 +1185,26 @@ class TestGenerateSignedUrl(TestMixin):
 
         with self.subTest('A filename containing non-ascii characters returns a bad request.'):
             response = self.client.post(self.url, self.invalid_filename_data_2, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+        with self.subTest('A filename without a leading slash returns a bad reqeust.'):
+            response = self.client.post(self.url, self.invalid_filename_data_3, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+        with self.subTest('A filename with  leading slashes returns a bad reqeust.'):
+            response = self.client.post(self.url, self.invalid_filename_data_4, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+        with self.subTest('A filename with a trailing slash returns a bad reqeust.'):
+            response = self.client.post(self.url, self.invalid_filename_data_5, format='json')
+
+            self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
+
+        with self.subTest('A filename with an empty segment returns a bad reqeust.'):
+            response = self.client.post(self.url, self.invalid_filename_data_6, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
