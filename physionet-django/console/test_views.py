@@ -628,7 +628,7 @@ class TestEventAgreements(TestMixin):
         self.event_agreement_version = "0.1"
         self.event_agreement_version_invalid = "1"
         self.event_agreement_version_new_version = "0.2"
-        self.event_agreement_slug = "pyvO3g6Nuc"
+        self.event_agreement_slug = "pyvo3g6nuc"
         self.event_agreement_slug_new_version = "a1b2c3d4e5"
         self.updated_event_agreement_name = "updated test event agreement"
         self.event_agreement_html_content = "<p>My test Event Agreement test content</p>"

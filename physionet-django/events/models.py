@@ -7,7 +7,7 @@ from django.contrib.auth.models import Permission
 from events.enums import EventCategory
 from events import validators
 from project.modelcomponents.fields import SafeHTMLField
-from project.validators import validate_version
+from project.validators import validate_version, validate_slug
 
 
 class Event(models.Model):
@@ -159,7 +159,7 @@ class EventApplication(models.Model):
 
 class EventAgreement(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=120, unique=True)
+    slug = models.SlugField(max_length=120, unique=True, validators=[validate_slug])
     version = models.CharField(max_length=15, default='', validators=[validate_version])
     is_active = models.BooleanField(default=True)
     html_content = SafeHTMLField(default='')
