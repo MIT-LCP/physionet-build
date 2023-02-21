@@ -2950,7 +2950,7 @@ def event_agreement_list(request):
             'event_agreement_nav': True,
             'event_agreements': event_agreements,
             'event_agreement_form': event_agreement_form
-         }
+        }
     )
 
 
