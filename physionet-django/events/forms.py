@@ -95,16 +95,12 @@ class EventAgreementForm(forms.ModelForm):
             'access_template': '* Instructions on accessing the dataset.'
         }
 
-    def __init__(self, user, *args, **kwargs):
-        self.creator = user
-        super(EventAgreementForm, self).__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super(EventAgreementForm, self).clean()
-        if EventAgreement.objects.filter(name=cleaned_data['name'], version=cleaned_data['version'],
-                                         creator=self.creator).exists():
+        if EventAgreement.objects.filter(name=cleaned_data['name'], version=cleaned_data['version']).exists():
             raise forms.ValidationError(
-                {"name": ["Agreement with this name and version already exists for this user."],
-                 "version": ["Agreement with this name and version already exists for this user."]
+                {"name": ["An agreement with this name and version already exists."],
+                 "version": ["An agreement with this name and version already exists."]
                  })
         return cleaned_data

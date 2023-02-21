@@ -168,7 +168,7 @@ class EventAgreement(models.Model):
 
     class Meta:
         default_permissions = ('add',)
-        unique_together = (('name', 'version', 'creator'),)
+        unique_together = (('name', 'version'),)
 
     def __str__(self):
         return self.name
