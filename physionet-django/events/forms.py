@@ -86,4 +86,11 @@ class EventAgreementForm(forms.ModelForm):
             'access_template',
         )
         labels = {'html_content': 'Content'}
-
+        help_texts = {
+            'name': '* The displayed name of the agreement.',
+            'version': '* The version number of the agreement.',
+            'slug': '* A simple string for use in the URL displaying the agreement. Should include the version number.',
+            'is_active': '* Only active agreements are usable in future events.',
+            'html_content': '* The agreement text displayed to the participant.',
+            'access_template': '* Instructions on accessing the dataset.'
+        }

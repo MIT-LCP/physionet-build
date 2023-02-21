@@ -7,17 +7,18 @@
 {% block content %}
   <div class="card mb-3">
     <div class="card-header">
-        {{ event_agreement.name }} - edit
+      {{ event_agreement.name }} - edit
     </div>
     <div class="card-body">
-        <form method="post" action="{% url 'event_agreement_detail' event_agreement.pk %}">
-            {% include "inline_form_snippet.html" with form=event_agreement_form %}
-          <button class="btn btn-primary btn-fixed" type="submit">Save</button>
-        </form>
+      <form method="post" action="{% url 'event_agreement_detail' event_agreement.pk %}">
+        {% include "project/content_inline_form_snippet.html" with form=event_agreement_form %}
+        <button class="btn btn-primary btn-fixed" type="submit">Save</button>
+      </form>
     </div>
   </div>
 {% endblock %}
 
 {% block local_js_bottom %}
   <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+  <script src="{% static 'custom/js/enable-popover.js' %}"></script>
 {% endblock %}
