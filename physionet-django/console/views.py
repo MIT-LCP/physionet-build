@@ -3015,5 +3015,6 @@ def event_agreement_delete(request, pk):
     if request.method == 'POST':
         event_agreement = get_object_or_404(EventAgreement, pk=pk)
         event_agreement.delete()
+        messages.success(request, "The Event Agreement has been deleted.")
 
     return redirect("event_agreement_list")
