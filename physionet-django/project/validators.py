@@ -156,5 +156,11 @@ def validate_gcs_bucket_object(filename, size):
             f'File names may be at most {MAX_GCS_OBJECT_NAME_LENGTH} characters long.'
         )
 
-    for path_segment in filename.split('/'):
+    if filename[0] != '/':
+        raise ValidationError(
+            f'Invalid file name "{filename}". '
+            'File names must start with a forward slash.'
+        )
+
+    for path_segment in filename[1:].split('/'):
         validate_filename(path_segment)
