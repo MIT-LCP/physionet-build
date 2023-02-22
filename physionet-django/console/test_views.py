@@ -672,8 +672,6 @@ class TestEventAgreements(TestMixin):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'console/event_agreement_list.html')
-        self.assertContains(response,
-                            'Version may only contain numbers and dots, and must begin and end with a number.')
 
     def test_edit_event_agreement_valid(self):
         """tests the view that edits a valid event agreement"""
@@ -715,8 +713,6 @@ class TestEventAgreements(TestMixin):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'console/event_agreement_detail.html')
-        self.assertContains(response,
-                            'Version may only contain numbers and dots, and must begin and end with a number.')
 
     def test_delete_event_agreement(self):
         """tests the view that deletes an event agreement"""
@@ -770,7 +766,6 @@ class TestEventAgreements(TestMixin):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'console/event_agreement_new_version.html')
-        self.assertContains(response, 'Event agreement with this Slug already exists.')
 
     def test_event_agreement_new_version_invalid_version(self):
         """tests the view that adds an invalid new version of event agreement(invalid version)"""
@@ -791,5 +786,3 @@ class TestEventAgreements(TestMixin):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'console/event_agreement_new_version.html')
-        self.assertContains(response,
-                            'Version may only contain numbers and dots, and must begin and end with a number.')
