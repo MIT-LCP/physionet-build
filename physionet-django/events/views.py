@@ -210,6 +210,10 @@ def event_detail(request, event_slug):
 
     # Handle Event Registration  End #
 
+    # Handle Event Datastore  Start #
+    event_datasets = event.datasets.filter(is_active=True)
+    # Handle Event Datastore  End #
+
     return render(
         request,
         'events/event_detail.html',
@@ -217,4 +221,5 @@ def event_detail(request, event_slug):
          'registration_allowed': registration_allowed,
          'registration_error_message': registration_error_message,
          'is_waitlisted': is_waitlisted,
+         'event_datasets': event_datasets,
          })

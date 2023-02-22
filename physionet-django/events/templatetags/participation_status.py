@@ -17,3 +17,8 @@ def is_on_waiting_list(user, event):
         event=event,
         status=EventApplication.EventApplicationStatus.WAITLISTED
     ).exists()
+
+
+@register.filter(name='has_access_to_event_dataset')
+def has_access_to_event_dataset(user, dataset):
+    return dataset.has_access(user)
