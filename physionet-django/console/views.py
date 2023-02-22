@@ -2895,7 +2895,7 @@ def event_management(request, event_slug):
                 if selected_event.datasets.filter(
                         dataset=event_dataset_form.cleaned_data['dataset'],
                         access_type=event_dataset_form.cleaned_data['access_type'],
-                        status=EventDataset.EventDatasetStatus.Active).count() == 0:
+                        is_active=True).count() == 0:
                     event_dataset_form.instance.event = selected_event
                     event_dataset_form.save()
                     messages.success(request, "The dataset has been added to the event.")
@@ -2915,8 +2915,7 @@ def event_management(request, event_slug):
     else:
         event_dataset_form = EventDatasetForm()
 
-    event_datasets = selected_event.datasets.filter(status=EventDataset.EventDatasetStatus.Active)
-
+    event_datasets = selected_event.datasets.filter(is_active=True)
     return render(
         request,
         'console/event_management.html',

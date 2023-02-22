@@ -159,9 +159,6 @@ class EventDataset(models.Model):
     """
     Captures information about datasets for events.
     """
-    class EventDatasetStatus(models.TextChoices):
-        Active = 'AC', _('Active')
-        Inactive = 'IN', _('Inactive')
 
     class EventDatasetAccessType(models.TextChoices):
         GOOGLE_BIG_QUERY = 'GBQ', _('Google BigQuery')
@@ -171,8 +168,7 @@ class EventDataset(models.Model):
     dataset = models.ForeignKey("project.PublishedProject", on_delete=models.CASCADE)
     access_type = models.CharField(default=EventDatasetAccessType.GOOGLE_BIG_QUERY, max_length=10,
                                    choices=EventDatasetAccessType.choices)
-    status = models.CharField(default=EventDatasetStatus.Active, max_length=2,
-                              choices=EventDatasetStatus.choices)
+    is_active = models.BooleanField(default=True)
     added_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
 
@@ -186,7 +182,7 @@ class EventDataset(models.Model):
         1. The dataset is active
         2. The event has not ended
         """
-        if self.status == self.EventDatasetStatus.Inactive:
+        if not self.is_active:
             return False
 
         if timezone.now().date() > self.event.end_date:
@@ -197,5 +193,5 @@ class EventDataset(models.Model):
         """
         Revokes access to the dataset for the event.
         """
-        self.status = self.EventDatasetStatus.Inactive
+        self.is_active = False
         self.save()
