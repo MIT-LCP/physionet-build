@@ -1,0 +1,81 @@
+<div class="card mb-3">
+  <div class="card-header">Project Dataset</div>
+  <div class="card-body">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        <h5>Add a dataset to the event</h5>
+        <form action="" method="post" class="form-event-dataset">
+          {% csrf_token %}
+          {% include 'form_snippet.html' with form=event_dataset_form %}
+          <button class="btn btn-primary btn-fixed"
+                  name="add-event-dataset"
+                  type="submit">Add to event</button>
+        </form>
+      </li>
+      <li class="list-group-item">
+        <h5>Manage Dataset</h5>
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Dataset</th>
+              <th scope="col">Version</th>
+              <th scope="col">Access Type</th>
+              <th scope="col">Date</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dataset in event_datasets %}
+              <tr>
+                <td>
+                  <a href="{% url 'published_project' dataset.dataset.slug dataset.dataset.version %}">{{ dataset.dataset.title }}</a>
+                </td>
+                <td>{{ dataset.dataset.version }}</td>
+                <td>{{ dataset.access_type }}</td>
+                <td>{{ dataset.updated_datetime | date:"M. d, Y" }}</td>
+                <td>
+                  <form action="" method="post">
+                    {% csrf_token %}
+                    <div class="modal fade"
+                         id="remove-dataset-modal-{{ dataset.id }}"
+                         tabindex="-1"
+                         role="dialog"
+                         aria-labelledBy="remove-dataset-modal-{{ dataset.id }}"
+                         aria-hidden="true">
+                      <div class="modal-dialog modal-lg" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">x</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                            <div class="row">
+                              <p>Remove {{ dataset.dataset.title }} from the event?</p>
+                            </div>
+                          </div>
+                          <div class="modal-footer">
+                            <button class="btn btn-group btn-danger"
+                                    type="submit"
+                                    value="{{ dataset.id }}"
+                                    name="remove-event-dataset">
+                              Yes
+                            </button>
+                            <button class="btn btn-primary" data-dismiss="modal">No</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <a class="btn  btn-sm btn-danger"
+                       data-toggle="modal"
+                       data-target="#remove-dataset-modal-{{ dataset.id }}">Remove</a>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </li>
+    </ul>
+  </div>
+</div>

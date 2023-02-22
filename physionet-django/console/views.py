@@ -24,7 +24,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
-from events.models import Event
+from events.models import Event, EventDataset
+from events.forms import EventDatasetForm
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -2885,9 +2886,41 @@ def event_management(request, event_slug):
     Admin page for managing an individual Event.
     """
     selected_event = get_object_or_404(Event, slug=event_slug)
+
+    # handle the add dataset form(s)
+    if request.method == "POST":
+        if 'add-event-dataset' in request.POST.keys():
+            event_dataset_form = EventDatasetForm(request.POST)
+            if event_dataset_form.is_valid():
+                if selected_event.datasets.filter(
+                        dataset=event_dataset_form.cleaned_data['dataset'],
+                        access_type=event_dataset_form.cleaned_data['access_type'],
+                        is_active=True).count() == 0:
+                    event_dataset_form.instance.event = selected_event
+                    event_dataset_form.save()
+                    messages.success(request, "The dataset has been added to the event.")
+                else:
+                    messages.error(request, "The dataset has already been added to the event.")
+            else:
+                messages.error(request, event_dataset_form.errors)
+
+            return redirect('event_management', event_slug=event_slug)
+        elif 'remove-event-dataset' in request.POST.keys():
+            event_dataset_id = request.POST['remove-event-dataset']
+            event_dataset = get_object_or_404(EventDataset, pk=event_dataset_id)
+            event_dataset.revoke_dataset_access()
+            messages.success(request, "The dataset has been removed from the event.")
+
+            return redirect('event_management', event_slug=event_slug)
+    else:
+        event_dataset_form = EventDatasetForm()
+
+    event_datasets = selected_event.datasets.filter(is_active=True)
     return render(
         request,
         'console/event_management.html',
         {
-            'event': selected_event
+            'event': selected_event,
+            'event_dataset_form': event_dataset_form,
+            'event_datasets': event_datasets,
         })

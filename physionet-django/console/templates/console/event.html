@@ -28,12 +28,13 @@
                   <th>Ended</th>
                   <th>Credentialing</th>
                   <th>Training</th>
+                  <th>Manage</th>
                 </tr>
               </thead>
               <tbody>
               {% for event in events %}
                 <tr>
-                    <td><a href="{% url 'event_management' event.slug %}">{{ event.title }}</a></td>
+                    <td><a href="{% url 'event_detail' event.slug %}">{{ event.title }}</a></td>
                     <td>{{ event.get_category_display|title }}</td>
                     <td>{{ event.host }}</td>
                     <td>{{ event.added_datetime|date }}</td>
@@ -41,6 +42,7 @@
                     <td>{{ event.end_date }}</td>
                     <td><a href = "{% url 'credential_processing' %}?event={{ event.slug }}">View list</a></td>
                     <td><a href = "{% url 'training_list' status='review' %}?event={{ event.slug }}">View list</a></td>
+                    <td><a href="{% url 'event_management' event.slug %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
                 </tr>
               {% endfor %}
               </tbody>
