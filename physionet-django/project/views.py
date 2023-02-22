@@ -1921,7 +1921,7 @@ def sign_dua(request, project_slug, version):
         project.deprecated_files
         or project.embargo_active()
         or project.access_policy not in {AccessPolicy.RESTRICTED, AccessPolicy.CREDENTIALED}
-        or project.can_view_files(user)
+        or project.is_authorized(user)
     ):
         return redirect('published_project',
                         project_slug=project_slug, version=version)
@@ -2206,7 +2206,7 @@ def published_project_request_access(request, project_slug, version, access_type
                                             platform=access_type)
 
     # Check if the person has access to the project.
-    if not project.can_view_files(request.user):
+    if not project.is_authorized(request.user):
         return redirect('published_project', project_slug=project_slug,
             version=version)
 
