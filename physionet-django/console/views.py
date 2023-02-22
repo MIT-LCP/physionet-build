@@ -2926,7 +2926,7 @@ def event_management(request, event_slug):
         })
 
 
-@permission_required('events.add_event', raise_exception=True)
+@permission_required('events.add_eventagreement', raise_exception=True)
 def event_agreement_list(request):
     if request.method == 'POST':
         event_agreement_form = EventAgreementForm(data=request.POST)
@@ -2954,7 +2954,7 @@ def event_agreement_list(request):
     )
 
 
-@permission_required('events.add_event', raise_exception=True)
+@permission_required('events.add_eventagreement', raise_exception=True)
 def event_agreement_new_version(request, pk):
     event_agreement = get_object_or_404(EventAgreement, pk=pk)
 
@@ -2984,7 +2984,7 @@ def event_agreement_new_version(request, pk):
     )
 
 
-@permission_required('events.add_event', raise_exception=True)
+@permission_required('events.add_eventagreement', raise_exception=True)
 def event_agreement_detail(request, pk):
     event_agreement = get_object_or_404(EventAgreement, pk=pk)
 
@@ -3010,7 +3010,7 @@ def event_agreement_detail(request, pk):
     )
 
 
-@permission_required('events.add_event', raise_exception=True)
+@permission_required('events.add_eventagreement', raise_exception=True)
 def event_agreement_delete(request, pk):
     if request.method == 'POST':
         event_agreement = get_object_or_404(EventAgreement, pk=pk)

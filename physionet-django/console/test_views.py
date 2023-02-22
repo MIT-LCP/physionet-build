@@ -634,7 +634,7 @@ class TestEventAgreements(TestMixin):
         self.event_agreement_html_content = "<p>My test Event Agreement test content</p>"
         self.event_agreement_access_template = "<p>My test Event Agreement test content</p>"
 
-        self.client.login(username='rgmark', password='Tester11!')
+        self.client.login(username='admin', password='Tester11!')
 
     def test_add_event_agreement_valid(self):
         """tests the view that adds a valid event agreement"""
