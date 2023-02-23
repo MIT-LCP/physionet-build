@@ -189,6 +189,27 @@ class EventDataset(models.Model):
             return False
         return True
 
+    def has_access(self, user):
+        """
+        checks if the user has access to the dataset for the Event
+        This method is independent of the PublishedProject.has_access method. it will only check if the user should
+        have access to the dataset for the event.
+        It is expected that the PublishedProject.has_access method will use this method to check if the user has access
+        in case the dataset access is made through an event.
+        """
+        if not self.is_accessible():
+            return False
+
+        # check if the user is a participant of the event or the host of the event
+        # In addition to participants, host should also have access to the dataset of their own event
+        # we dont need to worry about cohosts here as they are already participants
+        if not self.event.participants.filter(user=user).exists() and not self.event.host == user:
+            return False
+
+        # TODO once Event Agreement/DUA is merged, check if the user has accepted the agreement
+
+        return True
+
     def revoke_dataset_access(self):
         """
         Revokes access to the dataset for the event.

@@ -1,0 +1,45 @@
+{% load participation_status %}
+
+<div class="container">
+  <h5>Datasets</h5>
+  <div class="card mb-3">
+    <div class="card-body">
+      {% if event_datasets %}
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Title</th>
+              <th scope="col">Version</th>
+              <th scope="col">Access Type</th>
+              <th scope="col">Access</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dataset in event_datasets %}
+              <tr>
+                <td>
+                  <a href="{% url 'published_project' dataset.dataset.slug dataset.dataset.version %}">{{ dataset.dataset.title }}</a>
+                </td>
+                <td>{{ dataset.dataset.version }}</td>
+                <td>{{ dataset.get_access_type_display }}</td>
+                <td>
+                    {% if not dataset.is_accessible %}
+                      <a class="btn btn-success" href="#">Access Archieved</a>
+                    {% elif is_waitlisted%}
+                      <a class="btn btn-secondary" href="#">On waiting list</a>
+                    {% elif user|has_access_to_event_dataset:dataset %}
+                      <a class="btn btn-success" href="/environments/">Access here</a>
+                    {% else %}
+                      <p>Please register to the event for access</p>
+                    {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No datasets available.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
