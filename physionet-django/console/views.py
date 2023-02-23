@@ -24,8 +24,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
-from events.models import Event, EventDataset
-from events.forms import EventDatasetForm
+from events.forms import EventAgreementForm, EventDatasetForm
+from events.models import Event, EventAgreement, EventDataset
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -2924,3 +2924,97 @@ def event_management(request, event_slug):
             'event_dataset_form': event_dataset_form,
             'event_datasets': event_datasets,
         })
+
+
+@permission_required('events.add_eventagreement', raise_exception=True)
+def event_agreement_list(request):
+    if request.method == 'POST':
+        event_agreement_form = EventAgreementForm(data=request.POST)
+        if event_agreement_form.is_valid():
+            event_agreement_form.instance.creator = request.user
+            event_agreement_form.save()
+            event_agreement_form = EventAgreementForm()
+            messages.success(request, "The Event Agreement has been created.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        event_agreement_form = EventAgreementForm()
+
+    event_agreements = EventAgreement.objects.filter(creator=request.user).order_by('name')
+    event_agreements = paginate(request, event_agreements, 20)
+
+    return render(
+        request,
+        'console/event_agreement_list.html',
+        {
+            'event_agreement_nav': True,
+            'event_agreements': event_agreements,
+            'event_agreement_form': event_agreement_form
+        }
+    )
+
+
+@permission_required('events.add_eventagreement', raise_exception=True)
+def event_agreement_new_version(request, pk):
+    event_agreement = get_object_or_404(EventAgreement, pk=pk)
+
+    if request.method == 'POST':
+        event_agreement_form = EventAgreementForm(data=request.POST)
+        if event_agreement_form.is_valid():
+            event_agreement_form.instance.creator = request.user
+            event_agreement_form.save()
+            messages.success(request, "The Event Agreement has been created.")
+            return redirect("event_agreement_list")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+    else:
+        event_agreement_data = model_to_dict(event_agreement)
+        event_agreement_data['id'] = None
+        event_agreement_data['version'] = None
+        event_agreement_form = EventAgreementForm(initial=event_agreement_data)
+
+    return render(
+        request,
+        'console/event_agreement_new_version.html',
+        {
+            'event_agreement_nav': True,
+            'event_agreement': event_agreement,
+            'event_agreement_form': event_agreement_form
+        }
+    )
+
+
+@permission_required('events.add_eventagreement', raise_exception=True)
+def event_agreement_detail(request, pk):
+    event_agreement = get_object_or_404(EventAgreement, pk=pk)
+
+    if request.method == 'POST':
+        event_agreement_form = EventAgreementForm(data=request.POST, instance=event_agreement)
+        if event_agreement_form.is_valid():
+            event_agreement_form.save()
+            messages.success(request, "The Event Agreement has been updated.")
+        else:
+            messages.error(request, "Invalid submission. Check errors below.")
+
+    else:
+        event_agreement_form = EventAgreementForm(instance=event_agreement)
+
+    return render(
+        request,
+        'console/event_agreement_detail.html',
+        {
+            'event_agreement_nav': True,
+            'event_agreement': event_agreement,
+            'event_agreement_form': event_agreement_form
+        }
+    )
+
+
+@permission_required('events.add_eventagreement', raise_exception=True)
+def event_agreement_delete(request, pk):
+    if request.method == 'POST':
+        event_agreement = get_object_or_404(EventAgreement, pk=pk)
+        event_agreement.delete()
+        messages.success(request, "The Event Agreement has been deleted.")
+
+    return redirect("event_agreement_list")

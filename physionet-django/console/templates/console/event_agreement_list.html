@@ -1,0 +1,94 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block title %}{{ SITE_NAME }} - Event Agreements{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Event Agreement <span class="badge badge-pill badge-info">{{ event_agreements|length }}</span>
+  </div>
+  <div class="card-body">
+    {% if event_agreements %}
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for event_agreement in event_agreements %}
+            <tr>
+                <td>
+                  {{ event_agreement.name }}
+                  {% if event_agreement.is_active %}
+                    <span class="badge badge-success">Active</span>
+                  {% else %}
+                    <span class="badge badge-danger">Inactive</span>
+                  {% endif %}
+                </td>
+                <td>{{ event_agreement.version }}</td>
+                <td>
+                  <a href="{% url 'event_agreement_detail' event_agreement.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
+                  <a href="{% url 'event_agreement_new_version' event_agreement.pk %}" class="btn btn-sm btn-success" role="button">New version</a>
+                  <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#remove-event-agreement-{{ event_agreement.pk }}">Delete</button>
+
+                  <div class="modal fade" id="remove-event-agreement-{{ event_agreement.pk }}" tabindex="1" role="dialog" aria-hidden="true">
+                    <form method="post" action="{% url 'event_agreement_delete' event_agreement.pk %}">
+                      {% csrf_token %}
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Delete agreement</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                              <p>Are you sure you want to delete the agreement?</p>
+                          </div>
+                          <div class="modal-footer">
+                              <button class="btn btn-danger" type="submit">Delete</button>
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=event_agreements %}
+    </div>
+    {% else %}
+      <p>No event agreements available.</p>
+    {% endif %}
+  </div>
+</div>
+<div class="card mb-3">
+  <div class="card-header">
+    New Event Agreement
+  </div>
+  <div class="card-body">
+      <form method="post" action="{% url 'event_agreement_list' %}">
+          {% include "project/content_inline_form_snippet.html" with form=event_agreement_form %}
+          <button class="btn btn-primary btn-fixed" type="submit">Create</button>
+      </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+  <script src="{% static 'custom/js/enable-popover.js' %}"></script>
+{% endblock %}

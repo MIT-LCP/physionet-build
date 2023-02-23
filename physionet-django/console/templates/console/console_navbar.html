@@ -136,7 +136,7 @@
       {% endif %}
 
       <!-- legal -->
-      {% if perms.project.add_dua or perms.project.add_codeofconduct or perms.project.add_license %}
+      {% if perms.project.add_dua or perms.project.add_codeofconduct or perms.project.add_license or perms.events.add_eventagreement %}
         <li class="nav-item" data-toggle="tooltip" data-placement="right">
           {% if license_nav or dua_nav or code_of_conduct_nav %}
             <a id="nav_credentialing_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#license" data-parent="#sideAccordion" aria-expanded="true">
@@ -147,7 +147,7 @@
               <span class="nav-link-text">Legal</span>
             </a>
             <!-- submenu -->
-          {% if license_nav or dua_nav or code_of_conduct_nav %}
+          {% if license_nav or dua_nav or code_of_conduct_nav or event_agreement_nav %}
             <ul class="sidenav-second-level collapse show" id="license">
           {% else  %}
             <ul class="sidenav-second-level collapse" id="license">
@@ -165,6 +165,11 @@
               {% if perms.project.add_codeofconduct %}
                 <li class="nav-item {% if code_of_conduct_nav %}active{% endif %}">
                   <a id="nav_code_of_conduct" class="nav-link" href="{% url 'code_of_conduct_list' %}">Code of Conduct</a>
+                </li>
+              {% endif %}
+              {% if perms.events.add_eventagreement %}
+                <li class="nav-item {% if event_agreement_nav %}active{% endif %}">
+                  <a id="nav_event_agreement" class="nav-link" href="{% url 'event_agreement_list' %}">Event Agreements</a>
                 </li>
               {% endif %}
             </ul>
