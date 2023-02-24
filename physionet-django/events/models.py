@@ -224,11 +224,8 @@ class EventDataset(models.Model):
 
     def has_access(self, user):
         """
-        checks if the user has access to the dataset for the Event
-        This method is independent of the PublishedProject.has_access method. it will only check if the user should
-        have access to the dataset for the event.
-        It is expected that the PublishedProject.has_access method will use this method to check if the user has access
-        in case the dataset access is made through an event.
+        Checks if the user has access to this EventDataset.
+        This does not check if the associated dataset(PublishedProject) is accessible
         """
         if not self.is_accessible():
             return False
