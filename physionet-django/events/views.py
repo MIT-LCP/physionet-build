@@ -156,8 +156,6 @@ def event_detail(request, event_slug):
 
     event = get_object_or_404(Event, slug=event_slug)
 
-    # Handle Event Registration  Start #
-
     registration_allowed = True
     is_waitlisted = False
     registration_error_message = ''
@@ -208,11 +206,7 @@ def event_detail(request, event_slug):
                                           "Please submit a new request if you wish to join again.")
                 return redirect(event_home)
 
-    # Handle Event Registration  End #
-
-    # Handle Event Datastore  Start #
     event_datasets = event.datasets.filter(is_active=True)
-    # Handle Event Datastore  End #
 
     return render(
         request,
