@@ -21,9 +21,12 @@ def update_event(request, event_slug, **kwargs):
     if request.method == 'POST':
         event = Event.objects.get(slug=event_slug)
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
-        if event_form.is_valid() and can_change_event and event.host == user:
-            event_form.save()
-            messages.success(request, "Updated Event Successfully")
+        if event_form.is_valid():
+            if can_change_event and event.host == user:
+                event_form.save()
+                messages.success(request, "Updated Event Successfully")
+            else:
+                messages.error(request, "You don't have permission to edit this event")
         else:
             messages.error(request, event_form.errors)
     else:
