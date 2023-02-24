@@ -98,43 +98,42 @@ def event_home(request):
 
     form_error = False
 
-    if can_change_event:
-        # handle notifications to join an event
-        if request.method == 'POST' and 'participation_response' in request.POST.keys():
+    # handle notifications to join an event
+    if request.method == 'POST' and 'participation_response' in request.POST.keys():
 
-            formset = EventApplicationResponseFormSet(request.POST)
-            # only process the form that was submitted
-            for form in formset:
-                if form.instance.id == int(request.POST['participation_response']):
-                    if form.is_valid():
-                        event_application = form.save(commit=False)
-                        if event_application.status == EventApplication.EventApplicationStatus.APPROVED:
-                            event_application.accept(
-                                comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
-                            )
-                            notification.notify_participant_event_decision(
-                                request=request,
-                                user=event_application.user,
-                                event=event_application.event,
-                                decision=EventApplication.EventApplicationStatus.APPROVED.label,
-                                comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
-                            )
-                        elif event_application.status == EventApplication.EventApplicationStatus.NOT_APPROVED:
-                            event_application.reject(
-                                comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
-                            )
-                            notification.notify_participant_event_decision(
-                                request=request,
-                                user=event_application.user,
-                                event=event_application.event,
-                                decision=EventApplication.EventApplicationStatus.NOT_APPROVED.label,
-                                comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
-                            )
-                    else:
-                        messages.error(request, form.errors)
-                    return redirect(event_home)
-            else:
-                form_error = True
+        formset = EventApplicationResponseFormSet(request.POST)
+        # only process the form that was submitted
+        for form in formset:
+            if form.instance.id == int(request.POST['participation_response']):
+                if form.is_valid():
+                    event_application = form.save(commit=False)
+                    if event_application.status == EventApplication.EventApplicationStatus.APPROVED:
+                        event_application.accept(
+                            comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                        )
+                        notification.notify_participant_event_decision(
+                            request=request,
+                            user=event_application.user,
+                            event=event_application.event,
+                            decision=EventApplication.EventApplicationStatus.APPROVED.label,
+                            comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                        )
+                    elif event_application.status == EventApplication.EventApplicationStatus.NOT_APPROVED:
+                        event_application.reject(
+                            comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                        )
+                        notification.notify_participant_event_decision(
+                            request=request,
+                            user=event_application.user,
+                            event=event_application.event,
+                            decision=EventApplication.EventApplicationStatus.NOT_APPROVED.label,
+                            comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                        )
+                else:
+                    messages.error(request, form.errors)
+                return redirect(event_home)
+        else:
+            form_error = True
 
     # get all participation requests for Active events where the current user is the host and the participants are
     # waiting for a response
