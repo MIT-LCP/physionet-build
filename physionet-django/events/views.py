@@ -21,7 +21,7 @@ def update_event(request, event_slug, **kwargs):
     if request.method == 'POST':
         event = Event.objects.get(slug=event_slug)
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
-        if event_form.is_valid() and can_change_event:
+        if event_form.is_valid() and can_change_event and event.host == user:
             event_form.save()
             messages.success(request, "Updated Event Successfully")
         else:
