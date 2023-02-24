@@ -3,7 +3,7 @@ import notification.utility as notification
 
 def notify_host_cohosts_new_registration(request, registered_user, event):
     """
-    Notify the host and cohosts of an event of a message.
+    Notify the host and cohosts that a user has submitted a request to join their event.
     """
 
     notification.notify_event_participant_application(
