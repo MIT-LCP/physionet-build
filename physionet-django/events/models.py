@@ -172,7 +172,7 @@ class EventAgreement(models.Model):
         unique_together = (('name', 'version'),)
 
     def __str__(self):
-        return self.name
+        return self.name + ' ' + self.version
 
 
 class EventAgreementSignature(models.Model):
