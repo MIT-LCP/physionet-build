@@ -25,6 +25,7 @@ class Event(models.Model):
     slug = models.SlugField(unique=True)
     allowed_domains = models.CharField(blank=True, null=True, validators=[
                                        validators.validate_domain_list], max_length=100)
+    event_agreement = models.ForeignKey('events.EventAgreement', null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         unique_together = ('title', 'host')
