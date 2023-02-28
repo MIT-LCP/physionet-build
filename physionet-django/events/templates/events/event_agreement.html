@@ -1,0 +1,10 @@
+{% if is_participant and event.event_agreement %}
+  <div class="container">
+    <h5>Event Agreement</h5>
+    {% if not has_signed_event_agreement %}
+        <p><a href="#">Please sign the Event Agreement</a> to access the Datasets</p>
+    {% else %}
+      <p>You have signed the Event Agreement. Please check the Datasets table below to access data.</p>
+    {% endif %}
+  </div>
+{% endif %}
