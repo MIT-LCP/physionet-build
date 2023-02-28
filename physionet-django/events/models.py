@@ -231,10 +231,12 @@ class EventDataset(models.Model):
         if not self.is_accessible():
             return False
 
+        if self.event.host == user:
+            return True
         # check if the user is a participant of the event or the host of the event
         # In addition to participants, host should also have access to the dataset of their own event
         # we dont need to worry about cohosts here as they are already participants
-        if not self.event.participants.filter(user=user).exists() and not self.event.host == user:
+        if not self.event.participants.filter(user=user).exists():
             return False
 
         if self.event.event_agreement and \
