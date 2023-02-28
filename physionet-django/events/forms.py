@@ -12,7 +12,7 @@ class AddEventForm(forms.ModelForm):
     class Meta:
         model = Event
         fields = ('title', 'description', 'start_date', 'end_date',
-                  'category', 'allowed_domains')
+                  'category', 'event_agreement', 'allowed_domains')
         labels = {'title': 'Event Name', 'description': 'Description',
                   'start_date': 'Start Date', 'end_date': 'End Date',
                   'category': 'Category', 'allowed_domains': 'Allowed domains'}
@@ -23,6 +23,7 @@ class AddEventForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         self.host = user
         super(AddEventForm, self).__init__(*args, **kwargs)
+        self.fields['event_agreement'].queryset = EventAgreement.objects.filter(is_active=True)
 
     def clean(self):
         cleaned_data = super(AddEventForm, self).clean()
