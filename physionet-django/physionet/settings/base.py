@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'background_task',
     'rest_framework',
 
+    'training',
     'user',
     'project',
     'console',
@@ -370,7 +371,7 @@ CKEDITOR_CONFIGS = {
             ['NumberedList', 'BulletedList'],
             ['InlineEquation', 'BlockEquation', 'CodeSnippet', 'Table'],
             ['Link', 'Unlink'],
-            ['RemoveFormat', 'Source'],
+            ['RemoveFormat', 'Source']
         ],
         'removeDialogTabs': 'link:advanced',
         'disableNativeSpellChecker': False,

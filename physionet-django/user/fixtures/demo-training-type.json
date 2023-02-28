@@ -18,6 +18,24 @@
         }
     },
     {
+        "model": "user.trainingtype",
+        "pk": 2,
+        "fields": {
+            "name": "On Platform Training",
+            "description": "<p>This training teaches about name of places.</p><br/><p>Lorem ipsum dolor sit amet. Et excepturi amet <strong>Et autem aut quisquam galisum eos totam esse ut omnis eveniet</strong>. Et eius assumenda non tempore sequiqui laboriosam est corporis dolores. Eos consequatur fugiatAut iste ad corrupti nostrum est quos autem est optio quod et iure nemo ea temporibus magni. Est placeat dicta 33 laborum nulla33 veritatis non nihil quod sit quia dolor. </p><p>Id internos repellatSed culpa cum natus internos aut enim consectetur et architecto quibusdam eum ipsam fugit et quia animi. Eos obcaecati exercitationem <em>Ut repellat aut nemo quia ut quia perferendis</em>. </p>",
+            "home_page": "/",
+            "valid_duration": "1095 00:00:00",
+            "required_field": 2,
+            "questions": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ]
+        }
+    },
+    {
         "model": "user.question",
         "pk": 1,
         "fields": {
