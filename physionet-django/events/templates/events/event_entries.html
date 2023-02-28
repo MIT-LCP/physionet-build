@@ -18,9 +18,9 @@
             <td>{{ participant.user.is_credentialed }}</td>
             <td>
                 {% if participant.is_cohost %}
-                    <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ participant.id }}"  checked>
+                    <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ participant.id }}" disabled checked>
                 {% else %}
-                    <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ participant.id }}"  >
+                    <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ participant.id }}" disabled>
                 {% endif %}
             </td>
           </tr>
