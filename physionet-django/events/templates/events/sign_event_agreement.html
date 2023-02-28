@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Sign Event Agreement for {{ event }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Sign Event Agreement - {{ event }}</h1>
+  <hr>
+  <p>Sign the following Event agreement to access the datasets in <a href="{% url 'event_detail' event.slug %}">{{ event }}</a>.</p>
+  <hr>
+  <h2>{{ event.event_agreement.name }}</h2>
+
+  {{ event.event_agreement.html_content|safe }}
+  <hr>
+  {{ event.event_agreement.access_template|safe }}
+  <hr>
+  <form method="POST">
+    {% csrf_token %}
+    <p class="text-center">
+      <button class="btn btn-lg btn-success" name="agree" type="submit">I agree</button> <a class="btn btn-lg btn-danger" href="{% url 'event_detail' event.slug %}">I do not agree</a>
+    </p>
+  </form>
+
+</div>
+{% endblock %}

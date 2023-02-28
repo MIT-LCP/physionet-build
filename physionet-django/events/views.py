@@ -245,3 +245,32 @@ def event_detail(request, event_slug):
          'has_signed_event_agreement': has_signed_event_agreement,
          'event_datasets': event_datasets,
          })
+
+
+@login_required
+def sign_event_agreement(request, event_slug):
+    """
+    Page to sign the event agreement for participants of an event
+    """
+    user = request.user
+
+    event = get_object_or_404(Event, slug=event_slug)
+
+    if not event.event_agreement:
+        messages.error(request, "Event does not have an event agreement.")
+        return redirect('event_detail', event_slug=event.slug)
+
+    if not event.participants.filter(user=user).exists():
+        messages.error(request, "You are not a participant of this event.")
+        return redirect('event_detail', event_slug=event.slug)
+
+    if EventAgreementSignature.objects.filter(event=event, user=user, event_agreement=event.event_agreement).exists():
+        messages.error(request, "You have already signed the event agreement.")
+        return redirect('event_detail', event_slug=event.slug)
+
+    if request.method == 'POST' and 'agree' in request.POST:
+        EventAgreementSignature.objects.create(event=event, user=user, event_agreement=event.event_agreement)
+        messages.success(request, "You have successfully signed the event agreement.")
+        return redirect('event_detail', event_slug=event.slug)
+
+    return render(request, 'events/sign_event_agreement.html', {'event': event})
