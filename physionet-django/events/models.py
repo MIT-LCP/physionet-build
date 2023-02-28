@@ -237,7 +237,9 @@ class EventDataset(models.Model):
         if not self.event.participants.filter(user=user).exists() and not self.event.host == user:
             return False
 
-        # TODO once Event Agreement/DUA is merged, check if the user has accepted the agreement
+        if self.event.event_agreement and \
+                not EventAgreementSignature.objects.filter(event=self.event, user=user).exists():
+            return False
 
         return True
 
