@@ -241,28 +241,5 @@
        });
 
    });
-
-    $(document).ready(function() {
-        $('body').on('click', 'input[name="toggle-cohost-status"]', function(event) {
-            event.preventDefault(); // prevent the default action
-            console.log(event.target,'hello');
-            let checkbox = $(event.target);
-            let participant_id = checkbox.val();
-            let event_slug = checkbox.attr('event-slug');
-            let url = '/events/' + event_slug + '/participant/' + participant_id + '/toggle_cohost_status';
-
-            $.ajax({
-                url: url,
-                type: "GET",
-                success: function (data) {
-                  console.log(data);
-                  if(data[0].status===true){
-                    checkbox.prop('checked', !checkbox.prop('checked'));
-                  }
-                },
-            });
-        });
-    });
-
   </script>
 {% endblock %}
