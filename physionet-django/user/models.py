@@ -827,6 +827,7 @@ class CredentialApplication(models.Model):
     responder_comments = models.CharField(max_length=500, default='',
                                           blank=True)
     revoked_datetime = models.DateTimeField(null=True)
+    reference_reminder_datetime = models.DateTimeField(null=True)
 
     class Meta:
         default_permissions = ('change',)
