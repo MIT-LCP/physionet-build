@@ -17,7 +17,8 @@ class TestRemindPendingCredentialingApplications(TestMixin):
         # load list of applications to be reminded
         applications = get_credential_awaiting_reference(
             n=settings.DEFAULT_NUMBER_OF_APPLICATIONS_TO_REMIND,
-            days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REMINDER)
+            days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REMINDER,
+            ignore_reminded_application=True)
 
         LOGGER.info(f'Found {len(applications)} applications to be reminded.')
 
@@ -30,7 +31,7 @@ class TestRemindPendingCredentialingApplications(TestMixin):
         if settings.ENABLE_CREDENTIALING_AUTO_REJECTION:
             for application in applications:
                 application.refresh_from_db()
-                # placeholder for checking if the reminder is sent
+                self.assertIsNotNone(application.reference_reminder_datetime)
 
         else:
             LOGGER.info('Auto rejection of credentialing applications is disabled. No reminder sent. Exiting.')

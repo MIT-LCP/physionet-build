@@ -4,6 +4,8 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import transaction
 from django.http import HttpRequest
+from django.utils import timezone
+
 
 import notification.utility as notification
 from user.management.commands.utilities import get_credential_awaiting_reference
@@ -36,12 +38,15 @@ class Command(BaseCommand):
 
         filtered_applications = get_credential_awaiting_reference(
             n=total_applications_to_remind,
-            days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REMINDER)
+            days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REMINDER,
+            ignore_reminded_application=True)
 
         LOGGER.info(f'{len(filtered_applications)} credentialing applications selected for reminder.'
                     f' No ref response.')
         for application in filtered_applications:
             with transaction.atomic():
+                application.reference_reminder_datetime = timezone.now()
+                application.save()
                 notification.remind_reference_identity_check(request, application, auto_rejection_days)
                 LOGGER.info(f'Reminded ApplicationID: {application.id}. Notification sent to applicant: '
                             f'{application.get_full_name()}')
