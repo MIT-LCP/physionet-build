@@ -4,7 +4,7 @@ from io import StringIO
 from django.conf import settings
 from django.core.management import call_command
 
-from user.management.commands.utilities import get_credential_awaiting_reference
+from user.management.commands.utility import get_credential_awaiting_reference
 from user.test_views import TestMixin
 
 LOGGER = logging.getLogger(__name__)

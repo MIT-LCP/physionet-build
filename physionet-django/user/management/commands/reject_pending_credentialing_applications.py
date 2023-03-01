@@ -7,7 +7,7 @@ from django.http import HttpRequest
 
 import notification.utility as notification
 from user.models import CredentialApplication, User
-from user.management.commands.utilities import get_credential_awaiting_reference
+from user.management.commands.utility import get_credential_awaiting_reference
 
 LOGGER = logging.getLogger(__name__)
 

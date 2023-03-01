@@ -8,7 +8,7 @@ from django.utils import timezone
 
 
 import notification.utility as notification
-from user.management.commands.utilities import get_credential_awaiting_reference
+from user.management.commands.utility import get_credential_awaiting_reference
 
 LOGGER = logging.getLogger(__name__)
 
