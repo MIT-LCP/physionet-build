@@ -4,29 +4,12 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import transaction
 from django.http import HttpRequest
-from django.utils import timezone
 
 import notification.utility as notification
 from user.models import CredentialApplication, User
+from user.management.commands.utilities import get_credential_awaiting_reference
 
 LOGGER = logging.getLogger(__name__)
-
-
-def get_application_to_be_rejected(number_of_applications=settings.DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT):
-    """
-    Get all CredentialApplication that has been pending for more than
-    settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION days.
-    """
-    today = timezone.now()
-    limit = today - timezone.timedelta(days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION)
-
-    # get all applications that have decision pending
-    applications = CredentialApplication.objects.filter(status=0)
-    # get applications with Reference Response pending
-    response_applications = applications.filter(credential_review__status=30)
-    # finally get applications that have been pending for more than the limit
-    filtered_applications = response_applications.filter(reference_contact_datetime__lt=limit)[:number_of_applications]
-    return filtered_applications
 
 
 class Command(BaseCommand):
@@ -51,7 +34,9 @@ class Command(BaseCommand):
         # creating an instance of HttpRequest to be used in the notification utility
         request = HttpRequest()
 
-        filtered_applications = get_application_to_be_rejected(total_applications_to_reject)
+        filtered_applications = get_credential_awaiting_reference(
+            n=total_applications_to_reject,
+            days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION)
 
         LOGGER.info(f'{len(filtered_applications)} credentialing applications selected for rejection.'
                     f' No ref response.')
