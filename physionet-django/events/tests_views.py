@@ -35,6 +35,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
+                'event_agreement': ['1'],
                 'allowed_domains': '',
                 'add-event': ''
             })
@@ -57,6 +58,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
+                'event_agreement': ['1'],
                 'allowed_domains': '',
                 'add-event': ''
             })
@@ -81,6 +83,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
+                'event_agreement': ['1'],
                 'allowed_domains': ''
             })
 
@@ -105,6 +108,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
+                'event_agreement': ['1'],
                 'allowed_domains': '',
                 'add-event': ''
             })
@@ -122,6 +126,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Workshop',
+                'event_agreement': ['1'],
                 'allowed_domains': ''
             })
 
