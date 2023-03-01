@@ -42,7 +42,6 @@ class Command(BaseCommand):
                     f' No ref response.')
         for application in filtered_applications:
             with transaction.atomic():
-                # place holder for reminder email
-
+                notification.remind_reference_identity_check(request, application, auto_rejection_days)
                 LOGGER.info(f'Reminded ApplicationID: {application.id}. Notification sent to applicant: '
                             f'{application.get_full_name()}')
