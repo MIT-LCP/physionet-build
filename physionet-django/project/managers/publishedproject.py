@@ -61,4 +61,4 @@ class PublishedProjectManager(Manager):
                 accessible_projects_ids.append(event_dataset.dataset.id)
         query |= Q(id__in=accessible_projects_ids)
 
-        return self.filter(query)
+        return self.filter(query).distinct()
