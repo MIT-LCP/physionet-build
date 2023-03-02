@@ -44,25 +44,6 @@ def get_event_details(request, event_slug):
 
 
 @login_required
-def toggle_cohost_status(request, event_slug, participant_id):
-    can_change_event = request.user.has_perm('events.add_event')
-    is_host = Event.objects.filter(slug=event_slug, host=request.user).exists()
-
-    if not can_change_event:
-        return JsonResponse([{'status': False, 'message': 'You don\'t have permission to edit event'}], safe=False)
-    if not is_host:
-        return JsonResponse([{'status': False, 'message': 'You are not the host of this event'}], safe=False)
-
-    event_participant = EventParticipant.objects.get(id=participant_id)
-    if event_participant.is_cohost:
-        event_participant.remove_cohost()
-    else:
-        event_participant.make_cohost()
-
-    return JsonResponse([{'status': True, 'message': 'Updated cohost status'}], safe=False)
-
-
-@login_required
 def event_home(request):
     """
     List of events
