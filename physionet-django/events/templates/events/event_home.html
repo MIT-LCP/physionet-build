@@ -29,8 +29,8 @@
       {% if can_change_event %}
       <p class="lead">Create new events and access event details.</p>
       <p>
-        <button class = "btn btn-success" data-toggle="modal" data-target="#add-event-modal">
-          <i class="fa fa-cloud-upload-alt"></i> Create New Event </button>
+        <a class = "btn btn-success" href="{% url 'create_event' %}" >
+          <i class="fa fa-cloud-upload-alt"></i> Create New Event </a>
       </p>
       {% else %}
       <p class="lead">View events that you have registered to attend.</p>

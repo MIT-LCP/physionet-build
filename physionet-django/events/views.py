@@ -38,6 +38,32 @@ def update_event(request, event_slug, **kwargs):
 
 
 @login_required
+def create_event(request):
+    """
+    Adds an event
+    """
+    user = request.user
+    can_change_event = user.has_perm('events.add_event')
+    if not can_change_event:
+        messages.error(request, "You don't have permission to add an event")
+        return redirect(event_home)
+
+    if request.method == 'POST':
+        event_form = AddEventForm(user=user, data=request.POST)
+        if event_form.is_valid():
+            event_form.save()
+            messages.success(request, "Added Event Successfully")
+            return redirect(event_home)
+        else:
+            messages.error(request, event_form.errors)
+    else:
+        event_form = AddEventForm(user=user)
+
+    return render(
+        request, 'events/event_create.html', {'event_form': event_form})
+
+
+@login_required
 def get_event_details(request, event_slug):
     can_change_event = request.user.has_perm('events.add_event')
     if not can_change_event:
