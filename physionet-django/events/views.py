@@ -98,14 +98,6 @@ def event_home(request):
     form_error = False
 
     if can_change_event:
-        if request.method == 'POST' and 'add-event' in request.POST.keys():
-            event_form = AddEventForm(user=user, data=request.POST)
-            if event_form.is_valid() and can_change_event:
-                event_form.save()
-                return redirect(event_home)
-            else:
-                form_error = True
-
         # handle notifications to join an event
         if request.method == 'POST' and 'participation_response' in request.POST.keys():
 

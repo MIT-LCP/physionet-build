@@ -8,16 +8,6 @@
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}">
-{% endblock %} 
-
-{% block local_js_top %}
-  {% if form_error %}
-    <script type="text/javascript">
-      $(window).on('load', function() {
-          $('#add-event-modal').modal('show');
-      });
-    </script>
-  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -36,27 +26,6 @@
       <p class="lead">View events that you have registered to attend.</p>
       {% endif %} 
 </div>
-
-  <div class="modal fade" id="add-event-modal" tabindex="-1" role="dialog" aria-labelledby="add-event-modal" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Add Event</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="container">
-          <form action="" method="post" class="form-signin">
-            {% csrf_token %}
-              {{ event_form.media }}
-            {% include "form_snippet.html" with form=event_form %}
-            <button class="btn btn-primary btn-fixed" name="add-event" type="submit">Add Event</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
 
     <div class="modal fade" id="edit-event-modal" tabindex="-1" role="dialog" aria-labelledby="edit-event-modal" aria-hidden="true">
         <div class="modal-dialog" role="document">
