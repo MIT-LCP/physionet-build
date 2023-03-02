@@ -28,7 +28,7 @@ class TestEvents(TestMixin):
 
         # Create an event
         response = self.client.post(
-            reverse('event_home'),
+            reverse('create_event'),
             data={
                 'title': self.new_event_name,
                 'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
@@ -50,7 +50,7 @@ class TestEvents(TestMixin):
 
         # Create another event with same title
         response = self.client.post(
-            reverse('event_home'),
+            reverse('create_event'),
             data={
                 'title': self.new_event_name,
                 'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit2.',
@@ -62,7 +62,7 @@ class TestEvents(TestMixin):
             })
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'events/event_home.html')
+        self.assertTemplateUsed(response, 'events/event_create.html')
         self.assertContains(response, 'Event with this title already exists')
 
     def test_edit_event_valid(self):
@@ -98,7 +98,7 @@ class TestEvents(TestMixin):
 
         # Create another event with another title
         response = self.client.post(
-            reverse('event_home'),
+            reverse('create_event'),
             data={
                 'title': self.updated_event_name,
                 'description': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
