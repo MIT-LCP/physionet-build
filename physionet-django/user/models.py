@@ -765,6 +765,12 @@ class CredentialApplication(models.Model):
         WITHDRAWN = 3, 'Withdrawn'
         REVOKED = 4, 'Revoked'
 
+        @classmethod
+        def choices_process_application(cls):
+            return ((cls.REJECTED, cls.REJECTED.label),
+                    (cls.ACCEPTED, cls.ACCEPTED.label),
+                    (cls.WITHDRAWN, cls.WITHDRAWN.label))
+
     class AutoRejectionReason(models.TextChoices):
         NO_RESPONSE_FROM_REFERENCE = 'NRFR', _('No response from reference')
 

@@ -406,7 +406,7 @@ class ProcessCredentialForm(forms.ModelForm):
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.responder = responder
-        self.fields['status'].choices = CredentialApplication.REJECT_ACCEPT_WITHDRAW[:3]
+        self.fields['status'].choices = CredentialApplication.CredentialApplicationStatus.choices_process_application
 
     def clean(self):
         if self.errors:
@@ -449,7 +449,7 @@ class ProcessCredentialReviewForm(forms.ModelForm):
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.responder = responder
-        self.fields['status'].choices = CredentialApplication.REJECT_ACCEPT_WITHDRAW[:3]
+        self.fields['status'].choices = CredentialApplication.CredentialApplicationStatus.choices_process_application
 
     def clean(self):
         if self.errors:
