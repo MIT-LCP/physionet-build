@@ -617,7 +617,8 @@ class CredentialApplicationForm(forms.ModelForm):
         if state_required and not data['state_province']:
             raise forms.ValidationError("Please add your state or province.")
 
-        if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
+        if not self.instance and CredentialApplication.objects\
+                .filter(user=self.user, status=CredentialApplication.CredentialApplicationStatus.PENDING):
             raise forms.ValidationError('Outstanding application exists.')
 
     def save(self):
@@ -655,7 +656,7 @@ class CredentialReferenceForm(forms.ModelForm):
 
         # Deny (1) or approve (2)
         if self.cleaned_data['reference_response'] == 1:
-            application.status = 1
+            application.status = CredentialApplication.CredentialApplicationStatus.REJECTED
         elif self.cleaned_data['reference_response'] == 2:
             application.update_review_status(40)
 
