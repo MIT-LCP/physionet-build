@@ -758,13 +758,12 @@ class CredentialApplication(models.Model):
         (2, 'Yes')
     )
 
-    REJECT_ACCEPT_WITHDRAW = (
-        ('', '-----------'),
-        (1, 'Reject'),
-        (2, 'Accept'),
-        (3, 'Withdrawn'),
-        (4, 'Revoked')
-    )
+    class CredentialApplicationStatus(models.IntegerChoices):
+        PENDING = 0, 'Pending'
+        REJECTED = 1, 'Rejected'
+        ACCEPTED = 2, 'Accepted'
+        WITHDRAWN = 3, 'Withdrawn'
+        REVOKED = 4, 'Revoked'
 
     class AutoRejectionReason(models.TextChoices):
         NO_RESPONSE_FROM_REFERENCE = 'NRFR', _('No response from reference')
@@ -817,7 +816,8 @@ class CredentialApplication(models.Model):
     reference_title = models.CharField(max_length=60, default='', blank=True,
                                        validators=[validators.validate_reference_title])
     # 0 1 2 3 = pending, rejected, accepted, withdrawn
-    status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT_WITHDRAW)
+    status = models.PositiveSmallIntegerField(default=CredentialApplicationStatus.PENDING,
+                                              choices=CredentialApplicationStatus.choices)
     reference_contact_datetime = models.DateTimeField(null=True)
     reference_response_datetime = models.DateTimeField(null=True)
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
@@ -893,7 +893,7 @@ class CredentialApplication(models.Model):
         """
         Reject a credentialing application.
         """
-        self._apply_decision(1, responder)
+        self._apply_decision(self.CredentialApplicationStatus.REJECTED, responder)
 
     def accept(self, responder):
         """
@@ -901,7 +901,7 @@ class CredentialApplication(models.Model):
         """
         try:
             with transaction.atomic():
-                self._apply_decision(2, responder)
+                self._apply_decision(self.CredentialApplicationStatus.ACCEPTED, responder)
                 # update the user credentials
                 user = self.user
                 user.is_credentialed = True
@@ -914,7 +914,7 @@ class CredentialApplication(models.Model):
         """
         Reject a credentialing application.
         """
-        self._apply_decision(3, responder)
+        self._apply_decision(self.CredentialApplicationStatus.WITHDRAWN, responder)
 
     def ref_known_flag(self):
         """
@@ -976,7 +976,7 @@ class CredentialApplication(models.Model):
         Revokes an approved application.
         """
         # Set the application as unsucessful with the current datetime
-        self.status = 4
+        self.status = self.CredentialApplicationStatus.REVOKED
         self.revoked_datetime = timezone.now()
 
         # Removes credentialing from the user
