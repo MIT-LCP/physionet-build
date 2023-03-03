@@ -632,6 +632,7 @@ class TestEventAgreements(TestMixin):
         self.event_agreement_slug_new_version = "a1b2c3d4e5"
         self.updated_event_agreement_name = "updated test event agreement"
         self.event_agreement_html_content = "<p>My test Event Agreement test content</p>"
+        self.updated_event_agreement_html_content = "<p>My updated test Event Agreement test content</p>"
         self.event_agreement_access_template = "<p>My test Event Agreement test content</p>"
 
         self.client.login(username='admin', password='Tester11!')
@@ -673,8 +674,8 @@ class TestEventAgreements(TestMixin):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'console/event_agreement_list.html')
 
-    def test_edit_event_agreement_valid(self):
-        """tests the view that edits a valid event agreement"""
+    def test_edit_event_agreement_valid_1(self):
+        """tests the view that edits name in event agreement"""
 
         event_agreement = self.test_add_event_agreement_valid()
 
@@ -693,6 +694,27 @@ class TestEventAgreements(TestMixin):
         self.assertEqual(response.status_code, 200)
         event_agreement = EventAgreement.objects.get(slug=self.event_agreement_slug)
         self.assertEqual(event_agreement.name, self.updated_event_agreement_name)
+
+    def test_edit_event_agreement_valid_2(self):
+        """tests the view that edits html_content in event agreement"""
+
+        event_agreement = self.test_add_event_agreement_valid()
+
+        # Edit the event Agreement
+        response = self.client.post(
+            reverse('event_agreement_detail', args=[event_agreement.pk]),
+            data={
+                'name': self.event_agreement_name,
+                'version': self.event_agreement_version,
+                'slug': self.event_agreement_slug,
+                'is_active': True,
+                'html_content': self.updated_event_agreement_html_content,
+                'access_template': self.event_agreement_access_template
+            })
+
+        self.assertEqual(response.status_code, 200)
+        event_agreement = EventAgreement.objects.get(slug=self.event_agreement_slug)
+        self.assertEqual(event_agreement.html_content, self.updated_event_agreement_html_content)
 
     def test_edit_event_agreement_invalid_version(self):
         """tests the view that edits an invalid event agreement(invalid version)"""
