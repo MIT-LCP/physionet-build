@@ -412,17 +412,18 @@ class ProcessCredentialForm(forms.ModelForm):
         if self.errors:
             return
 
-        if self.cleaned_data['status'] == 1 and not self.cleaned_data['responder_comments']:
+        if self.cleaned_data['status'] == CredentialApplication.CredentialApplicationStatus.REJECTED\
+                and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
 
     def save(self):
         application = super().save()
 
-        if application.status == 1:
+        if application.status == CredentialApplication.CredentialApplicationStatus.REJECTED:
             application.reject(self.responder)
-        elif application.status == 2:
+        elif application.status == CredentialApplication.CredentialApplicationStatus.ACCEPTED:
             application.accept(self.responder)
-        elif application.status == 3:
+        elif application.status == CredentialApplication.CredentialApplicationStatus.WITHDRAWN:
             application.withdraw(self.responder)
         else:
             raise forms.ValidationError('Application status not valid.')
@@ -455,17 +456,18 @@ class ProcessCredentialReviewForm(forms.ModelForm):
         if self.errors:
             return
 
-        if self.cleaned_data['status'] == 1 and not self.cleaned_data['responder_comments']:
+        if self.cleaned_data['status'] == CredentialApplication.CredentialApplicationStatus.REJECTED\
+                and not self.cleaned_data['responder_comments']:
             raise forms.ValidationError('If you reject, you must explain why.')
 
     def save(self):
         application = super().save()
 
-        if application.status == 1:
+        if application.status == CredentialApplication.CredentialApplicationStatus.REJECTED:
             application.reject(self.responder)
-        elif application.status == 2:
+        elif application.status == CredentialApplication.CredentialApplicationStatus.ACCEPTED:
             application.accept(self.responder)
-        elif application.status == 3:
+        elif application.status == CredentialApplication.CredentialApplicationStatus.WITHDRAWN:
             application.withdraw(self.responder)
         else:
             raise forms.ValidationError('Application status not valid.')
