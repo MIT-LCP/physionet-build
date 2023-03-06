@@ -52,13 +52,8 @@ class PublishedProjectManager(Manager):
             )
 
         # add projects that are accessible through events
-        events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
-        active_events = set(events_all.filter(end_date__gte=datetime.now()))
-        accessible_datasets = EventDataset.objects.filter(event__in=active_events, is_active=True)
-        accessible_projects_ids = []
-        for event_dataset in accessible_datasets:
-            if event_dataset.has_access(user):
-                accessible_projects_ids.append(event_dataset.dataset.id)
-        query |= Q(id__in=accessible_projects_ids)
+        accessible_event_dataset = EventDataset.objects.accessible_by(user)
+        accessible_projects_ids = [dataset.dataset.pk for dataset in accessible_event_dataset]
+        query |= Q(pk__in=accessible_projects_ids)
 
         return self.filter(query)
