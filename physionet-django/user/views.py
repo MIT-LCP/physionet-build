@@ -633,7 +633,7 @@ def edit_credentialing(request):
         ticket_system_url = None
 
     applications = CredentialApplication.objects.filter(user=request.user)
-    current_application = applications.filter(status=CredentialApplication.CredentialApplicationStatus.PENDING).first()
+    current_application = applications.filter(status=CredentialApplication.Status.PENDING).first()
 
     if request.method == 'POST' and 'withdraw_credentialing' in request.POST:
         if current_application:
@@ -669,7 +669,7 @@ def credential_application(request):
     """
     user = request.user
     if user.is_credentialed or CredentialApplication.objects.filter(
-            user=user, status=CredentialApplication.CredentialApplicationStatus.PENDING):
+            user=user, status=CredentialApplication.Status.PENDING):
         return redirect('edit_credentialing')
 
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:

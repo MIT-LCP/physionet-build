@@ -1227,7 +1227,7 @@ def process_credential_application(request, application_slug):
     """
     try:
         application = CredentialApplication.objects.get(
-            slug=application_slug, status=CredentialApplication.CredentialApplicationStatus.PENDING)
+            slug=application_slug, status=CredentialApplication.Status.PENDING)
         # create the review object if it does not exist
         CredentialReview.objects.get_or_create(application=application)
     except CredentialApplication.DoesNotExist:
@@ -1371,7 +1371,7 @@ def credential_processing(request):
     Process applications for credentialed access.
     """
     applications = CredentialApplication.objects.filter(
-        status=CredentialApplication.CredentialApplicationStatus.PENDING).select_related('user__profile')
+        status=CredentialApplication.Status.PENDING).select_related('user__profile')
 
     # Allow filtering by event.
     if 'event' in request.GET:
@@ -1460,7 +1460,7 @@ def credential_applications(request, status):
             c_application = CredentialApplication.objects.filter(id=cid)
             if c_application:
                 c_application = c_application.get()
-                c_application.status = CredentialApplication.CredentialApplicationStatus.PENDING
+                c_application.status = CredentialApplication.Status.PENDING
                 c_application.save()
         elif "search" in request.POST:
             (all_successful_apps, unsuccessful_apps,
@@ -1487,18 +1487,18 @@ def credential_applications(request, status):
                    .select_related('migrated_user__profile'))
 
     successful_apps = (CredentialApplication.objects.filter(
-        status=CredentialApplication.CredentialApplicationStatus.ACCEPTED).
+        status=CredentialApplication.Status.ACCEPTED).
                        order_by('-decision_datetime')
                        .select_related('user__profile', 'responder__profile'))
 
     unsuccessful_apps = CredentialApplication.objects.filter(
-        status__in=[CredentialApplication.CredentialApplicationStatus.REJECTED,
-                    CredentialApplication.CredentialApplicationStatus.WITHDRAWN,
-                    CredentialApplication.CredentialApplicationStatus.REVOKED]
+        status__in=[CredentialApplication.Status.REJECTED,
+                    CredentialApplication.Status.WITHDRAWN,
+                    CredentialApplication.Status.REVOKED]
     ).order_by('-decision_datetime').select_related('user__profile', 'responder')
 
     pending_apps = (CredentialApplication.objects.filter(
-        status=CredentialApplication.CredentialApplicationStatus.PENDING)
+        status=CredentialApplication.Status.PENDING)
                     .order_by('-application_datetime')
                     .select_related('user__profile', 'credential_review'))
 
@@ -1525,10 +1525,10 @@ def search_credential_applications(request):
     """
     if request.POST:
         search_field = request.POST['search']
-        pending_status = CredentialApplication.CredentialApplicationStatus.PENDING
-        accepted_status = CredentialApplication.CredentialApplicationStatus.ACCEPTED
-        rejected_status = CredentialApplication.CredentialApplicationStatus.REJECTED
-        withdrawn_status = CredentialApplication.CredentialApplicationStatus.WITHDRAWN
+        pending_status = CredentialApplication.Status.PENDING
+        accepted_status = CredentialApplication.Status.ACCEPTED
+        rejected_status = CredentialApplication.Status.REJECTED
+        withdrawn_status = CredentialApplication.Status.WITHDRAWN
 
         legacy_apps = (LegacyCredential.objects.filter(
             Q(migrated=True)
@@ -1572,7 +1572,7 @@ def credentialed_user_info(request, username):
     try:
         c_user = User.objects.get(username__iexact=username)
         application = CredentialApplication.objects.get(
-            user=c_user, status=CredentialApplication.CredentialApplicationStatus.ACCEPTED)
+            user=c_user, status=CredentialApplication.Status.ACCEPTED)
     except (User.DoesNotExist, CredentialApplication.DoesNotExist):
         raise Http404()
     return render(request, 'console/credentialed_user_info.html', {'c_user': c_user, 'application': application})
@@ -1961,8 +1961,8 @@ def credentialing_stats(request):
     for y in stats:
         # accepted = 2. rejected = 1.
         acc_and_rej = apps.filter(application_datetime__year=y)
-        a = acc_and_rej.filter(status=CredentialApplication.CredentialApplicationStatus.ACCEPTED).count()
-        r = acc_and_rej.filter(status=CredentialApplication.CredentialApplicationStatus.REJECTED).count()
+        a = acc_and_rej.filter(status=CredentialApplication.Status.ACCEPTED).count()
+        r = acc_and_rej.filter(status=CredentialApplication.Status.REJECTED).count()
         stats[y]['processed'] = a + r
         stats[y]['approved'] = round((100 * a) / (a + r))
 

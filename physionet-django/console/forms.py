@@ -406,24 +406,24 @@ class ProcessCredentialForm(forms.ModelForm):
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.responder = responder
-        self.fields['status'].choices = CredentialApplication.CredentialApplicationStatus.choices_process_application
+        self.fields['status'].choices = CredentialApplication.Status.choices_process_application
 
     def clean(self):
         if self.errors:
             return
 
-        if self.cleaned_data['status'] == CredentialApplication.CredentialApplicationStatus.REJECTED\
-                and not self.cleaned_data['responder_comments']:
+        if (self.cleaned_data['status'] == CredentialApplication.Status.REJECTED
+                and not self.cleaned_data['responder_comments']):
             raise forms.ValidationError('If you reject, you must explain why.')
 
     def save(self):
         application = super().save()
 
-        if application.status == CredentialApplication.CredentialApplicationStatus.REJECTED:
+        if application.status == CredentialApplication.Status.REJECTED:
             application.reject(self.responder)
-        elif application.status == CredentialApplication.CredentialApplicationStatus.ACCEPTED:
+        elif application.status == CredentialApplication.Status.ACCEPTED:
             application.accept(self.responder)
-        elif application.status == CredentialApplication.CredentialApplicationStatus.WITHDRAWN:
+        elif application.status == CredentialApplication.Status.WITHDRAWN:
             application.withdraw(self.responder)
         else:
             raise forms.ValidationError('Application status not valid.')
@@ -450,24 +450,24 @@ class ProcessCredentialReviewForm(forms.ModelForm):
     def __init__(self, responder, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.responder = responder
-        self.fields['status'].choices = CredentialApplication.CredentialApplicationStatus.choices_process_application
+        self.fields['status'].choices = CredentialApplication.Status.choices_process_application
 
     def clean(self):
         if self.errors:
             return
 
-        if self.cleaned_data['status'] == CredentialApplication.CredentialApplicationStatus.REJECTED\
-                and not self.cleaned_data['responder_comments']:
+        if (self.cleaned_data['status'] == CredentialApplication.Status.REJECTED
+                and not self.cleaned_data['responder_comments']):
             raise forms.ValidationError('If you reject, you must explain why.')
 
     def save(self):
         application = super().save()
 
-        if application.status == CredentialApplication.CredentialApplicationStatus.REJECTED:
+        if application.status == CredentialApplication.Status.REJECTED:
             application.reject(self.responder)
-        elif application.status == CredentialApplication.CredentialApplicationStatus.ACCEPTED:
+        elif application.status == CredentialApplication.Status.ACCEPTED:
             application.accept(self.responder)
-        elif application.status == CredentialApplication.CredentialApplicationStatus.WITHDRAWN:
+        elif application.status == CredentialApplication.Status.WITHDRAWN:
             application.withdraw(self.responder)
         else:
             raise forms.ValidationError('Application status not valid.')
