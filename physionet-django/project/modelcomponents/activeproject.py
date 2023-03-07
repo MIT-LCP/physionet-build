@@ -621,10 +621,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Whether the user can edit the project
         """
-        if self.authors.filter(is_submitting=True, user=user).exists():
-            if self.author_editable():
-                return True
-        elif user == self.editor:
-            if self.copyeditable():
-                return True
-        return False
+        author_submitting = self.author_editable() and self.authors.filter(is_submitting=True, user=user).exists()
+        editor_copyediting = self.copyeditable() and user == self.editor
+
+        return author_submitting or editor_copyediting
