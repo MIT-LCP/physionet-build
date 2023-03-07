@@ -281,7 +281,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.clear_files()
         else:
             # Move over files
-            os.rename(self.file_root(), archived_project.file_root())
+            ProjectFiles().rename(self.file_root(), archived_project.file_root())
 
         # Copy the ActiveProject timestamp to the ArchivedProject.
         # Since this is an auto_now field, save() doesn't allow
