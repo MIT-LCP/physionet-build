@@ -983,3 +983,22 @@ def notify_participant_event_decision(request, user, event, decision, comment_to
     body = loader.render_to_string('events/email/event_participation_decision.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+
+def notify_event_participant_application(request, user, registered_user, event):
+    """
+    Send email to host and co-host about new registration request on event.
+    """
+
+    subject = f"{settings.SITE_NAME} {event.title} New Participant Registration"
+    context = {
+        'name': user.get_full_name(),
+        'registered_user_name': registered_user.get_full_name(),
+        'url_prefix': get_url_prefix(request),
+        'events_home': reverse('event_home'),
+        'event_title': event.title,
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    body = loader.render_to_string('events/email/event_registration.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)

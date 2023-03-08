@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+{{ registered_user_name }} has requested to join: {{ event_title }}
+
+You can use the following link to respond to the request:
+{{ url_prefix }}{{ events_home }}
+
+Regards
+The {{ SITE_NAME }} Team
+{% endfilter %}{% endautoescape %}

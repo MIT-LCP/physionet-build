@@ -12,6 +12,7 @@ from django.urls import reverse
 import notification.utility as notification
 from events.forms import AddEventForm, EventApplicationResponseForm
 from events.models import Event, EventApplication, EventParticipant
+from events.utility import notify_host_cohosts_new_registration
 
 
 @login_required
@@ -177,6 +178,7 @@ def event_detail(request, event_slug):
         if 'confirm_registration' in request.POST.keys():
             event.join_waitlist(user=user, comment_to_applicant='')
             notification.notify_participant_event_waitlist(request=request, user=user, event=event)
+            notify_host_cohosts_new_registration(request=request, registered_user=user, event=event)
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
         elif 'confirm_withdraw' in request.POST.keys():
