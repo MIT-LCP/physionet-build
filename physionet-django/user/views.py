@@ -793,15 +793,6 @@ def training_report(request, training_id):
     return utility.serve_file(training.completion_report.path, attach=False)
 
 
-@login_required
-def training_report_view(request, application_slug):
-    """
-    Wrapper for training_report. Serves the training report in the browser
-    for KP's custom pages.
-    """
-    return training_report(request, application_slug, attach=False)
-
-
 # @login_required
 def credential_reference(request, application_slug):
     """
@@ -872,12 +863,12 @@ def view_agreements(request):
     )
 
 @login_required
-def view_signed_agreement(request, id):
+def view_signed_agreement(request, dua_signature_id):
     """
     View a printable agreement in the user profile.
     """
     user = request.user
-    signed = get_object_or_404(DUASignature, user=user, id=id)
+    signed = get_object_or_404(DUASignature, user=user, id=dua_signature_id)
 
     return render(request, 'user/view_signed_agreement.html',
                   {'user': user, 'signed': signed})

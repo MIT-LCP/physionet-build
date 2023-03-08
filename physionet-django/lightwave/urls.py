@@ -11,3 +11,9 @@ urlpatterns = [
     path('projects/<project_slug>/server', views.lightwave_project_server,
          name='lightwave_project_server'),
 ]
+
+# Parameters for testing URLs (see physionet/test_urls.py)
+TEST_DEFAULTS = {
+    'project_slug': 'SHuKI1APLrwWCqxSQnSk',
+    '_user_': 'rgmark',
+}

@@ -6673,9 +6673,9 @@
     "email": "aewj@fake-gmail.com",
     "is_primary_email": false,
     "added_date": "2020-04-10T16:47:27.949Z",
-    "verification_date": "2020-04-10T16:47:34.922Z",
+    "verification_date": null,
     "verification_token": "oax3ZcG47GYUhAobbJyp",
-    "is_verified": true,
+    "is_verified": false,
     "is_public": false
   }
 },

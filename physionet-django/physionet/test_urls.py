@@ -2,8 +2,8 @@ import os
 import textwrap
 import urllib.parse
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.test import TestCase
 from django.urls import URLPattern, URLResolver, get_resolver
 from django.utils.regex_helper import normalize
 
@@ -150,7 +150,28 @@ class TestURLs(TestMixin):
                         name=name, parameter=exc.args[0], pattern=pattern,
                         module=mod.__name__, source_file=mod.__file__)
                     raise Exception(message) from None
-                self._handle_request(url, **args)
+
+                try:
+                    self._handle_request(url, **args)
+                except RedirectedToLogin:
+                    message = textwrap.dedent("""
+                        Login required for {name} in {module}
+                        (URL: {url!r})
+
+                        Note: you probably need to add something like this in
+                        {source_file}:
+
+                            TEST_CASES = {{
+                                {name!r}: {{
+                                    '_user_': 'somebody',
+                                    ...
+                                }},
+                                ...
+                            }}
+                    """).lstrip('\n').format(
+                        name=name, url=url,
+                        module=mod.__name__, source_file=mod.__file__)
+                    raise Exception(message) from None
 
     def _handle_request(self, url, _user_=None, _query_={}, _skip_=False,
                         **kwargs):
@@ -168,6 +189,13 @@ class TestURLs(TestMixin):
         response = self.client.get(url, _query_)
         self.assertGreaterEqual(response.status_code, 200)
         self.assertLess(response.status_code, 400)
+
+        # Assume if we are redirected to LOGIN_URL, that means we
+        # don't have permission to view this page.  An appropriate
+        # _user_ should be specified.
+        location = response.headers.get('Location', '')
+        if urllib.parse.urlparse(location).path == settings.LOGIN_URL:
+            raise RedirectedToLogin
 
         if self._dump_dir is not None:
             path = self._output_filename(url, _query_, response)
@@ -190,3 +218,8 @@ class TestURLs(TestMixin):
         if query:
             path += '?' + urllib.parse.urlencode(query)
         return path.lstrip('/')
+
+
+class RedirectedToLogin(Exception):
+    """Exception raised if a URL redirects to the login page."""
+    pass

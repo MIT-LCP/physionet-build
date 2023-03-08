@@ -25,7 +25,7 @@ urlpatterns = [
     path('settings/training/', views.edit_training, name='edit_training'),
     path('settings/training/<int:training_id>/', views.edit_training_detail, name='edit_training_detail'),
     path('settings/agreements/', views.view_agreements, name='edit_agreements'),
-    path('settings/agreements/<int:id>/', views.view_signed_agreement, name='view_signed_agreement'),
+    path('settings/agreements/<int:dua_signature_id>/', views.view_signed_agreement, name='view_signed_agreement'),
 
     # Current tokens are 20 characters long and consist of 0-9A-Za-z
     # Obsolete tokens are 34 characters long and also include a hyphen
@@ -43,8 +43,6 @@ urlpatterns = [
     path('credential-reference/<application_slug>/',
         views.credential_reference, name='credential_reference'),
     path('trainings/<int:training_id>/report/', views.training_report, name='training_report'),
-    path('credential-applications/<application_slug>/training-report/view/',
-        views.training_report_view, name='training_report_view'),
 ]
 
 if not settings.ENABLE_SSO:
@@ -68,3 +66,26 @@ if not settings.ENABLE_SSO:
         path('reset/complete/', views.reset_password_complete,
              name='reset_password_complete'),
     ])
+
+# Parameters for testing URLs (see physionet/test_urls.py)
+TEST_DEFAULTS = {
+    '_user_': 'aewj',
+    'training_id': 106,
+    'dua_signature_id': 1,
+    'application_slug': 'Osm0FMaavviixpsL26v2',
+    'username': 'rgmark',
+}
+TEST_CASES = {
+    'verify_email': {
+        'uidb64': 'MjEx',
+        'token': 'oax3ZcG47GYUhAobbJyp',
+    },
+
+    # Testing activate_user and reset_password_confirm requires a
+    # dynamically-generated token.  Skip these URLs for now.
+    'activate_user': {'uidb64': 'x', 'token': 'x', '_skip_': True},
+    'reset_password_confirm': {'uidb64': 'x', 'token': 'x', '_skip_': True},
+
+    # Testing auth_orcid requires a mock oauth server.  Skip this URL.
+    'auth_orcid': {'_skip_': True},
+}
