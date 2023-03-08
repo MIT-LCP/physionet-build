@@ -13,6 +13,7 @@ from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth.models import Group
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, DurationField, F, Q
@@ -1034,6 +1035,17 @@ def users(request, group='all'):
     users = paginate(request, user_list, 50)
 
     return render(request, 'console/users.html', {'users': users, 'group': group, 'user_nav': True})
+
+
+@permission_required('user.view_user', raise_exception=True)
+def user_groups(request):
+    """
+    List of all user groups
+    """
+    groups = Group.objects.all().order_by('name')
+    for group in groups:
+        group.user_count = User.objects.filter(groups=group).count()
+    return render(request, 'console/user_groups.html', {'groups': groups, 'user_nav': True, 'user_groups_nav': True})
 
 
 @permission_required('user.view_user', raise_exception=True)
