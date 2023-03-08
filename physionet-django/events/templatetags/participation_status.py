@@ -23,3 +23,13 @@ def is_on_waiting_list(user, event):
 @register.filter(name='has_access_to_event_dataset')
 def has_access_to_event_dataset(user, dataset):
     return has_access_to_event_dataset_func(user, dataset)
+
+
+@register.filter(name='get_inactive_applications')
+def get_inactive_applications(event):
+    return event.applications.filter(
+        status__in=[
+            EventApplication.EventApplicationStatus.NOT_APPROVED,
+            EventApplication.EventApplicationStatus.WITHDRAWN
+        ]
+    )
