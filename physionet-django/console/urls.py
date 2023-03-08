@@ -78,6 +78,7 @@ urlpatterns = [
     path('training/process/<int:pk>/', views.training_process, name='training_process'),
     path('users/search/<group>/', views.users_search, name='users_list_search'),
     path('users/groups/', views.user_groups, name='user_groups'),
+    path('users/groups/<group>/', views.user_group, name='user_group'),
     path('users/<group>/', views.users, name='users'),
     path('users/aws-access-list.json', views.users_aws_access_list_json,
          name='users_aws_access_list_json'),

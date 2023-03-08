@@ -1049,6 +1049,21 @@ def user_groups(request):
 
 
 @permission_required('user.view_user', raise_exception=True)
+def user_group(request, group):
+    """
+    Shows details of a user group, lists users in the group, lists permissions for the group
+    """
+    group = get_object_or_404(Group, name=group)
+    users = User.objects.filter(groups=group).order_by('username').annotate(login_time_count=Count('login_time'))
+    permissions = group.permissions.all().order_by('content_type__app_label', 'content_type__model')
+    return render(
+        request,
+        'console/user_group.html',
+        {'group': group, 'users': users, 'permissions': permissions, 'user_nav': True, 'user_groups_nav': True}
+    )
+
+
+@permission_required('user.view_user', raise_exception=True)
 def user_management(request, username):
     """
     Admin page for managing an individual user account.

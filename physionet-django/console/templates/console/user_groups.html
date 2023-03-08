@@ -20,7 +20,7 @@
         <tbody>
         {% for group in groups %}
           <tr>
-            <td><a href="">{{ group.name }}</a></td>
+            <td><a href="{% url 'user_group' group.name %}">{{ group.name }}</a></td>
             <td>{{ group.user_count }}</td>
             <td>{{ group.permissions.all.count }}</td>
           </tr>
