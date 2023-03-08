@@ -310,3 +310,50 @@ def event_detail(request, event_slug):
          'is_waitlisted': is_waitlisted,
          'event_datasets': event_datasets,
          })
+
+
+@login_required
+def manage_co_hosts(request):
+    """
+    Manage co-hosts of an event
+    """
+    user = request.user
+
+    if request.method == 'POST' and request.is_ajax():
+        participant_id = request.POST.get('participant_id')
+
+        event_slug = request.POST.get('event_slug')
+        event = get_object_or_404(Event, slug=event_slug)
+
+        if not event.host == user:
+            return JsonResponse({'error': 'You are not the host of this event'}, status=403)
+
+        if event.end_date < datetime.now().date():
+            return JsonResponse({'error': 'You cannot manage co-hosts of an event that has ended'}, status=403)
+
+        if not event.participants.filter(id=participant_id).exists():
+            return JsonResponse({'error': 'User is not a participant of this event'}, status=403)
+
+        participant = event.participants.get(id=participant_id)
+
+        if 'Remove cohost' in request.POST.get('submit'):
+            if not participant.is_cohost:
+                return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
+            participant.is_cohost = False
+            participant.save()
+
+            # placeholder for notification to cohost that they have been removed and to host that they removed a cohost
+
+            return JsonResponse({'success': 'Cohost removed successfully'})
+        elif 'Make cohost' in request.POST.get('submit'):
+            if participant.is_cohost:
+                return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
+            participant.is_cohost = True
+            participant.save()
+
+            # placeholder for notification to cohost that they have been added and to host that they added a cohost
+
+            return JsonResponse({'success': 'Cohost added successfully'})
+
+    messages.error(request, 'Invalid request')
+    return redirect(event_home)
