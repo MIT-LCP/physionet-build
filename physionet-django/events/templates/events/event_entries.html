@@ -21,6 +21,7 @@
             <td>{{ participant.user.email }}</td>
             <td>{{ participant.user.is_credentialed }}</td>
             <td>
+              {% if not event.has_ended %}
               {% if participant.is_cohost %}
               <form class="manage-cohost" action="{% url 'manage_co_hosts' %}">
                 {% csrf_token %}
@@ -35,6 +36,7 @@
                 <input type="text" name="participant" value="{{ participant.id }}" hidden>
                 <input type="submit" value="Make cohost" class="btn btn-sm btn-success">
               </form>
+              {% endif %}
               {% endif %}
             </td>
           </tr>

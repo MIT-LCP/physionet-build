@@ -59,6 +59,12 @@ class Event(models.Model):
         """
         return self.participants.filter(is_cohost=True)
 
+    def has_ended(self):
+        """
+        Returns true if the event has ended.
+        """
+        return self.end_date < timezone.now().date()
+
 
 class EventParticipant(models.Model):
     """
