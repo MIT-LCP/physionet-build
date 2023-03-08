@@ -22,11 +22,19 @@
             <td>{{ participant.user.is_credentialed }}</td>
             <td>
               {% if participant.is_cohost %}
-              <input type="checkbox" name="toggle-cohost-status" event-slug="{{ event.slug }}"
-                value="{{ participant.id }}" disabled checked>
+              <form class="manage-cohost" action="{% url 'manage_co_hosts' %}">
+                {% csrf_token %}
+                <input type="text" name="event" value="{{ event.slug }}" hidden>
+                <input type="text" name="participant" value="{{ participant.id }}" hidden>
+                <input type="submit" value="Remove cohost" class="btn btn-sm btn-danger">
+              </form>
               {% else %}
-              <input type="checkbox" name="toggle-cohost-status" event-slug="{{ event.slug }}"
-                value="{{ participant.id }}" disabled>
+              <form class="manage-cohost" action="{% url 'manage_co_hosts' %}">
+                {% csrf_token %}
+                <input type="text" name="event" value="{{ event.slug }}" hidden>
+                <input type="text" name="participant" value="{{ participant.id }}" hidden>
+                <input type="submit" value="Make cohost" class="btn btn-sm btn-success">
+              </form>
               {% endif %}
             </td>
           </tr>
