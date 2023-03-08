@@ -1070,8 +1070,12 @@ def user_management(request, username):
     projects['Published'] = PublishedProject.objects.filter(authors__user=user).order_by('-publish_datetime')
 
     credentialing_app = CredentialApplication.objects.filter(user=user).order_by("application_datetime")
+
+    groups = user.groups.all()
+
     return render(request, 'console/user_management.html', {'subject': user,
                                                             'profile': user.profile,
+                                                            'groups': groups,
                                                             'emails': emails,
                                                             'projects': projects,
                                                             'training_list': training,

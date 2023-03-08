@@ -86,6 +86,22 @@
     </div>
   {% endif %}
 
+  {% if groups %}
+      <div class="row mb-1">
+        <div class="col-md-3">
+          User Groups:
+        </div>
+        <div class="col-md-9">
+          {% for group in groups %}
+            {{ group.name }}
+          {% empty %}
+            N/A
+          {% endfor %}
+        </div>
+      </div>
+
+  {% endif %}
+
   <br />
   <h3>Projects</h3>
   <hr>
