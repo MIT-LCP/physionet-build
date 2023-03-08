@@ -41,11 +41,11 @@
             </div>
         </div>
         <div class="row mb-1">
-            <div class="row col-md-3">
+            <div class="col-md-3">
                 Description:
             </div>
-            <div class="row col-md-12">
-                {{ event.description }}
+            <div class="col-md-12">
+                {{ event.description | safe }}
             </div>
         </div>
     </div>

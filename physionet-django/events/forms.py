@@ -18,7 +18,7 @@ class AddEventForm(forms.ModelForm):
                   'category': 'Category', 'allowed_domains': 'Allowed domains'}
         widgets = {'start_date': DatePickerInput(),
                    'end_date': DatePickerInput(),
-                   'description': forms.Textarea(attrs={'rows': 4, 'cols': 40})}
+                   }
 
     def __init__(self, user, *args, **kwargs):
         self.host = user

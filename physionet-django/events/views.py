@@ -19,8 +19,8 @@ from events.utility import notify_host_cohosts_new_registration
 def update_event(request, event_slug, **kwargs):
     user = request.user
     can_change_event = user.has_perm('events.add_event')
+    event = Event.objects.get(slug=event_slug)
     if request.method == 'POST':
-        event = Event.objects.get(slug=event_slug)
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
         if event_form.is_valid():
             if can_change_event and event.host == user:
@@ -28,11 +28,40 @@ def update_event(request, event_slug, **kwargs):
                 messages.success(request, "Updated Event Successfully")
             else:
                 messages.error(request, "You don't have permission to edit this event")
+            return redirect(event_home)
         else:
             messages.error(request, event_form.errors)
     else:
-        messages.error(request, "Invalid request")
-    return redirect(event_home)
+        event_form = AddEventForm(instance=event, user=user)
+
+    return render(
+        request, 'events/event_edit.html', {'event': event, 'event_form': event_form})
+
+
+@login_required
+def create_event(request):
+    """
+    Adds an event
+    """
+    user = request.user
+    can_change_event = user.has_perm('events.add_event')
+    if not can_change_event:
+        messages.error(request, "You don't have permission to add an event")
+        return redirect(event_home)
+
+    if request.method == 'POST':
+        event_form = AddEventForm(user=user, data=request.POST)
+        if event_form.is_valid():
+            event_form.save()
+            messages.success(request, "Added Event Successfully")
+            return redirect(event_home)
+        else:
+            messages.error(request, event_form.errors)
+    else:
+        event_form = AddEventForm(user=user)
+
+    return render(
+        request, 'events/event_create.html', {'event_form': event_form})
 
 
 @login_required
@@ -70,14 +99,6 @@ def event_home(request):
     form_error = False
 
     if can_change_event:
-        if request.method == 'POST' and 'add-event' in request.POST.keys():
-            event_form = AddEventForm(user=user, data=request.POST)
-            if event_form.is_valid() and can_change_event:
-                event_form.save()
-                return redirect(event_home)
-            else:
-                form_error = True
-
         # handle notifications to join an event
         if request.method == 'POST' and 'participation_response' in request.POST.keys():
 
