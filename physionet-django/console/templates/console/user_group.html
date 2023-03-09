@@ -1,0 +1,74 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}{{ SITE_NAME }} User Group: {{ group }}{% endblock %}
+
+{% block content %}
+<h1>Group: {{ group }}</h1>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Users  <span class="badge badge-pill badge-primary">{{ users | length }}</span>
+  </div>
+  <div class="card-body">
+      <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Join Date</th>
+            <th>Last Login</th>
+            <th>Login (90 days)	</th>
+            <th>Credentialed</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for user in users %}
+          <tr>
+            <td><a href="{% url 'user_management' user.username %}">{{ user.username }}</a></td>
+            <td>{{ user.get_full_name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.join_date }}</td>
+            <td>{{ user.last_login|date }}</td>
+            <td>{{ user.login_time_count }} </td>
+            <td>{{ user.credential_datetime|date}}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+    
+<div class="card mb-3">
+  <div class="card-header">
+    Permissions <span class="badge badge-pill badge-primary">{{ permissions | length }}</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+        <thead>
+          <tr>
+            <th>App Name</th>
+            <th>Model</th>
+            <th>Permission</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for permission in permissions %}
+          <tr>
+            <td>{{ permission.content_type.app_label }}</td>
+            <td>{{ permission.content_type.model }}</td>
+            <td>{{ permission.name }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

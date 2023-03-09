@@ -238,6 +238,9 @@
             <li class="nav-item {% if group == 'all' %}active{% endif %}">
               <a id="nav_all_users" class="nav-link" href="{% url 'users' 'all' %}">All Users</a>
             </li>
+            <li class="nav-item {% if user_groups_nav%}active{% endif %}">
+              <a id="nav_user_groups" class="nav-link" href="{% url 'user_groups' %}">User Groups</a>
+            </li>
             <li class="nav-item {% if group == 'admin' %}active{% endif %}">
               <a id="nav_all_users" class="nav-link" href="{% url 'users' 'admin' %}"> {{admin}}Administrators</a>
             </li>
