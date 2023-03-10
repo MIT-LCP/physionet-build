@@ -66,6 +66,11 @@ class GCSObject:
         """Return the name"""
         return self._object_name
 
+    @property
+    def local_name(self):
+        """Return the relative name inside the bucket"""
+        return '' if self.name == '/' else self.name
+
     def open(self, mode):
         """Open the location with the given mode"""
         return self._storage.open(self.name, mode=mode)
@@ -95,8 +100,7 @@ class GCSObject:
     def size(self):
         """Size of the object/all objects in the dictionary, in bytes."""
         if self.is_dir():
-            prefix = '' if self.name == '/' else self.name
-            return sum(obj.size for obj in self.bucket.list_blobs(prefix=prefix))
+            return sum(obj.size for obj in self.bucket.list_blobs(prefix=self.local_name))
 
         file = self.bucket.get_blob(self.blob.name)
         if not file:
@@ -108,9 +112,7 @@ class GCSObject:
         if not self.is_dir():
             raise GCSObjectException(f'The {repr(self)} is not a directory.')
 
-        prefix = '' if self.name == '/' else self.name
-
-        return self.bucket.list_blobs(prefix=prefix, delimiter=delimiter)
+        return self.bucket.list_blobs(prefix=self.local_name, delimiter=delimiter)
 
     def rm(self):
         """Remove"""
@@ -184,7 +186,7 @@ class GCSObject:
         if ignored_files is None:
             ignored_files = []
         else:
-            ignored_files = [os.path.join(self.name, f) for f in ignored_files]
+            ignored_files = [os.path.join(self.local_name, f) for f in ignored_files]
 
         relative_dir = '' if copy_content_only else self.get_filename()
         try:
