@@ -1006,6 +1006,45 @@ def notify_participant_event_decision(request, user, event, decision, comment_to
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
 
 
+def notify_event_cohost_cohost_status_change(request, cohost, event, status='Make cohost'):
+    """
+    Send email to co-host about their cohost status change for the event.
+    """
+    subject = f"{settings.SITE_NAME} Event Cohost Status Change"
+    context = {
+        'name': cohost.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'event_title': event.title,
+        'event_url': reverse('event_detail', args=[event.slug]),
+        'status': status,
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    body = loader.render_to_string('events/email/event_cohost_cohost_status_change.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [cohost.email], fail_silently=False)
+
+
+def notify_event_host_cohost_status_change(request, cohost, event, status='Make cohost'):
+    """
+    Send email to host about cohost status change for the event.
+    """
+    subject = f"{settings.SITE_NAME} Event Cohost Status Change"
+    context = {
+        'host_name': event.host.get_full_name(),
+        'cohost_name': cohost.get_full_name(),
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'event_title': event.title,
+        'event_url': reverse('event_detail', args=[event.slug]),
+        'status': status,
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    body = loader.render_to_string('events/email/event_host_cohost_status_change.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [cohost.email], fail_silently=False)
+
+
 def notify_event_participant_application(request, user, registered_user, event):
     """
     Send email to host and co-host about new registration request on event.

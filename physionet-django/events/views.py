@@ -341,8 +341,12 @@ def manage_co_hosts(request):
                 return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
             participant.is_cohost = False
             participant.save()
-
-            # placeholder for notification to cohost that they have been removed and to host that they removed a cohost
+            # notify the cohost that their cohost permission has been removed
+            notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
+                                                                  event=event, status='Remove cohost')
+            # notify the host that they have removed a cohost
+            notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
+                                                                status='Remove cohost')
 
             return JsonResponse({'success': 'Cohost removed successfully'})
         elif 'Make cohost' in request.POST.get('submit'):
@@ -350,8 +354,12 @@ def manage_co_hosts(request):
                 return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
             participant.is_cohost = True
             participant.save()
-
-            # placeholder for notification to cohost that they have been added and to host that they added a cohost
+            # notify the cohost that they have been added as a cohost for the event
+            notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
+                                                                  event=event, status='Make cohost')
+            # notify the host that they have added a cohost for the event
+            notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
+                                                                status='Make cohost')
 
             return JsonResponse({'success': 'Cohost added successfully'})
 
