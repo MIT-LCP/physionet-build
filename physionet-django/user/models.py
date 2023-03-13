@@ -823,6 +823,7 @@ class CredentialApplication(models.Model):
     # Whether reference verifies the applicant. 0 1 2 = null, no, yes
     reference_response = models.PositiveSmallIntegerField(default=0, choices=REFERENCE_RESPONSES)
     reference_response_text = models.CharField(max_length=2000, validators=[validators.validate_reference_response])
+    reference_verification_token = models.CharField(max_length=32, blank=True, null=True)
     research_summary = models.CharField(max_length=1000, validators=[validators.validate_research_summary])
     project_of_interest = models.ForeignKey(
         'project.PublishedProject',
