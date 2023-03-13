@@ -15,13 +15,22 @@ AUTO_REJECTION_REASON = 'Event has ended.'
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        parser.add_argument("-n", "--number", type=int, help="Number of applications to be rejected")
+
     def handle(self, *args, **options):
         """
         Auto reject pending registration applications for events that have ended
         """
+        if not settings.ENABLE_EVENT_REGISTRATION_AUTO_REJECTION:
+            LOGGER.info('Auto rejection of event applications is disabled.')
+            return
+
         # creating an instance of HttpRequest to be used in the notification utility
         request = HttpRequest()
 
+        total_applications_per_event_to_reject = (options['number']
+                                                  or settings.DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT_PER_EVENT)
         past_events = Event.objects.filter(
             end_date__lt=timezone.now(),
             applications__status=EventApplication.EventApplicationStatus.WAITLISTED)
@@ -29,7 +38,9 @@ class Command(BaseCommand):
         LOGGER.info(f'{past_events.count()} events selected for auto rejection of waitlisted applications.')
 
         for event in past_events:
-            applications = event.applications.filter(status=EventApplication.EventApplicationStatus.WAITLISTED)
+            applications = event.applications.filter(status=EventApplication.EventApplicationStatus.WAITLISTED)[
+                :total_applications_per_event_to_reject
+            ]
             for application in applications:
                 with transaction.atomic():
                     application.reject(comment_to_applicant=AUTO_REJECTION_REASON)
