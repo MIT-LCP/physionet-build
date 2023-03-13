@@ -485,6 +485,12 @@ def generate_doi_payload(project, core_project=False, event="draft"):
             author_metadata = {"givenName": author.first_names,
                                "familyName": author.last_name,
                                "name": author.get_full_name(reverse=True)}
+            if author.user.has_orcid():
+                author_metadata["nameIdentifiers"] = [{
+                    "nameIdentifier": f'https://orcid.org/{author.user.get_orcid_id()}',
+                    "nameIdentifierScheme": "ORCID",
+                    "schemeUri": "https://orcid.org/"
+                }]
             authors.append(author_metadata)
 
     # link to parent or child projects

@@ -444,6 +444,15 @@ class User(AbstractBaseUser, PermissionsMixin):
             pass
         return False
 
+    def get_orcid_id(self):
+        """
+        Returns the user's orcid.
+        """
+        try:
+            return self.orcid.orcid_id
+        except Orcid.DoesNotExist:
+            return None
+
     @staticmethod
     def get_users_with_permission(app_label, permission_codename):
         """
