@@ -40,8 +40,11 @@ urlpatterns = [
         name='profile_photo'),
     path('credential-application/', views.credential_application,
         name='credential_application'),
+    # TODO: remove this after 30 days of commit merge, we want let the old links that was sent to the referees work
     path('credential-reference/<application_slug>/',
         views.credential_reference, name='credential_reference'),
+    path('credential-reference/<application_slug>/<verification_token>/',
+         views.credential_reference_verification, name='credential_reference_verification'),
     path('trainings/<int:training_id>/report/', views.training_report, name='training_report'),
 ]
 
@@ -73,6 +76,7 @@ TEST_DEFAULTS = {
     'training_id': 106,
     'dua_signature_id': 1,
     'application_slug': 'Osm0FMaavviixpsL26v2',
+    'verification_token': 'rJ2i7vlzh6AgZ1Wwtcz8zCoI5BqxH0kU',
     'username': 'rgmark',
 }
 TEST_CASES = {
