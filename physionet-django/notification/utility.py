@@ -734,6 +734,26 @@ def credential_application_request(request, application):
               [application.user.email], fail_silently=False)
 
 
+def remind_reference_identity_check(request, application, auto_rejection_days):
+    """
+    Send reminder to user that we are waiting for their reference's response on their credentialing application
+    """
+    applicant_name = application.get_full_name()
+    subject = f'{settings.SITE_NAME} credentialing application reminder'
+    body = loader.render_to_string(
+        'notification/email/notify_remind_reference_identity_check.html', {
+            'application': application,
+            'applicant_name': applicant_name,
+            'domain': get_current_site(request),
+            'url_prefix': get_url_prefix(request),
+            'signature': settings.EMAIL_SIGNATURE,
+            'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME,
+            'auto_rejection_days': auto_rejection_days
+        })
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [application.user.email], fail_silently=False)
+
+
 def notify_gcp_access_request(data_access, user, project, successful):
     """
     Notify user of GCP access

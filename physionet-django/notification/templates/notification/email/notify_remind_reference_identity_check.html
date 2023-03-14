@@ -1,0 +1,18 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ applicant_name }},
+
+This is to remind you that your application for credentialed access to {{ SITE_NAME }} is still pending. We are currently waiting for your reference {{ application.reference_name }} to submit their response.
+
+We contacted your reference on {{ application.reference_contact_datetime }}
+
+Please follow up with your reference so that they can submit their response as soon as possible.
+
+Please note that your application will be closed if we do not receive a response from your reference within {{ auto_rejection_days }} days of the date of this email.
+
+It may take several days to process your request after we receive response from your reference. Thank you for your understanding and patience. You can follow the status of your application at: {{ url_prefix }}{% url 'credential_application' %}.
+
+{{ signature }}
+
+{{ footer }}
+{% include "notification/email/mailto_contact_applicant.html" %}
+{% endfilter %}{% endautoescape %}

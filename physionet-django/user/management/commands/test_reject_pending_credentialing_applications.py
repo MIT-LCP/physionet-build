@@ -4,7 +4,7 @@ from io import StringIO
 from django.conf import settings
 from django.core.management import call_command
 
-from user.management.commands.reject_pending_credentialing_applications import get_application_to_be_rejected
+from user.management.commands.utility import get_credential_awaiting_reference
 from user.test_views import TestMixin
 
 LOGGER = logging.getLogger(__name__)
@@ -15,7 +15,10 @@ class TestRejectPendingCredentialingApplications(TestMixin):
     def test_rejection(self):
 
         # load list of applications to be rejected
-        applications = get_application_to_be_rejected()
+        applications = get_credential_awaiting_reference(
+            n=settings.DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT,
+            days=settings.MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION)
+
         LOGGER.info(f'Found {len(applications)} applications to be rejected.')
 
         # call the management command to auto reject applications
