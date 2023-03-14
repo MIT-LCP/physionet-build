@@ -625,6 +625,7 @@ class CredentialApplicationForm(forms.ModelForm):
         slug = get_random_string(20)
         while CredentialApplication.objects.filter(slug=slug):
             slug = get_random_string(20)
+        credential_application.reference_verification_token = get_random_string(32)
         credential_application.user = self.user
         credential_application.slug = slug
         credential_application.save()
