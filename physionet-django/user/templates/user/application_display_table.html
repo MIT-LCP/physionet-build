@@ -56,7 +56,9 @@ Reference's job title or position: {{ application.reference_title }}</p>
 {% if application.decision_datetime %}
   Decision Date: {{ application.decision_datetime|date }}<br>
 {% endif %}
-{% if application.status != CredentialApplication.Status.PENDING %}
+{% if application.status == CredentialApplication.Status.PENDING %}
+  Decision: Pending<br>
+{% else %}
   Decision: {{ application.get_status_display }}<br>
   {% if application.status == CredentialApplication.Status.REVOKED %}
     Revoked Date: {{ application.revoked_datetime|date }}<br><br>
@@ -69,6 +71,4 @@ Reference's job title or position: {{ application.reference_title }}</p>
       <button class="btn btn-success pull-right" name="manage_credentialing" value="{{ application.id }}" type="submit">Submit</button>
     </form>
   {% endif %}
-{% else %}
-  Decision: Pending<br>
 {% endif %}
