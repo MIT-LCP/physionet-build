@@ -659,7 +659,7 @@ def user_credential_applications(request):
         user=request.user).order_by('-application_datetime')
 
     return render(request, 'user/user_credential_applications.html',
-        {'applications':applications})
+                  {'applications': applications, 'CredentialApplication': CredentialApplication})
 
 
 @login_required

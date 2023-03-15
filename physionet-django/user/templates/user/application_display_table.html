@@ -56,9 +56,9 @@ Reference's job title or position: {{ application.reference_title }}</p>
 {% if application.decision_datetime %}
   Decision Date: {{ application.decision_datetime|date }}<br>
 {% endif %}
-{% if application.status != 0 %}
+{% if application.status != CredentialApplication.Status.PENDING %}
   Decision: {{ application.get_status_display }}<br>
-  {% if application.status == 4 %}
+  {% if application.status == CredentialApplication.Status.REVOKED %}
     Revoked Date: {{ application.revoked_datetime|date }}<br><br>
   {% endif %}
   {% if request.user.is_superuser or request.user|has_group:"Admin" and form %}

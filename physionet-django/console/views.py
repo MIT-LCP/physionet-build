@@ -1433,7 +1433,7 @@ def view_credential_application(request, application_slug):
 
     return render(request, 'console/view_credential_application.html',
                   {'application': application, 'app_user': application.user,
-                   'form': form, 'past_credentials_nav': True})
+                   'form': form, 'past_credentials_nav': True, 'CredentialApplication': CredentialApplication})
 
 
 @permission_required('user.change_credentialapplication', raise_exception=True)
@@ -1575,7 +1575,8 @@ def credentialed_user_info(request, username):
             user=c_user, status=CredentialApplication.Status.ACCEPTED)
     except (User.DoesNotExist, CredentialApplication.DoesNotExist):
         raise Http404()
-    return render(request, 'console/credentialed_user_info.html', {'c_user': c_user, 'application': application})
+    return render(request, 'console/credentialed_user_info.html', {'c_user': c_user, 'application': application,
+                                                                   'CredentialApplication': CredentialApplication})
 
 
 @permission_required('user.can_review_training', raise_exception=True)
