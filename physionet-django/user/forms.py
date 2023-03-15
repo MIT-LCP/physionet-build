@@ -11,6 +11,7 @@ from django.db.models import F, Q
 from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy
 from physionet.utility import validate_pdf_file_type
 from user.models import (
@@ -298,6 +299,13 @@ class RegistrationForm(forms.ModelForm):
                     widget=forms.TextInput(attrs={'class': 'form-control'}),
                     validators=[validate_name])
 
+    privacy_policy = forms.BooleanField(required=True,
+                                        label=format_html('I consent to the collection and use of my personal '
+                                                          'information consistent with the '
+                                                          '<a href="{}">Privacy Policy</a>. Without your consent,'
+                                                          ' we can not create an account'
+                                                          .format(settings.PRIVACY_POLICY_URL))
+                                        )
     # Minimum and maximum number of seconds from when the client first
     # loads the page until the form may be submitted.
     MIN_SUBMISSION_SECONDS = 15
