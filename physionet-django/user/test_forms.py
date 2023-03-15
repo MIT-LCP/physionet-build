@@ -63,6 +63,6 @@ class TestForms(TestCase):
     def test_user_creation_form(self):
         self.create_test_forms(RegistrationForm, {'email': 'tester0@mit.edu',
             'username': 'The-Tester', 'first_names': 'Tester Mid',
-            'last_name': 'Bot'}, {'email': 'tester0@mit.edu',
-            'username': 'bot-net', 'first_names': '', 'last_name': 'Bot'})
+            'last_name': 'Bot', 'privacy_policy': 'True'}, {'email': 'tester0@mit.edu',
+            'username': 'bot-net', 'first_names': '', 'last_name': 'Bot', 'privacy_policy': 'True'})
         self.run_test_forms({'first_names': ['This field is required.']})
