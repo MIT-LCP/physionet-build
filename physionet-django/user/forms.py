@@ -300,11 +300,11 @@ class RegistrationForm(forms.ModelForm):
                     validators=[validate_name])
 
     privacy_policy = forms.BooleanField(required=True,
-                                        label=format_html('I consent to the collection and use of my personal '
-                                                          'information consistent with the '
-                                                          '<a href="{}">Privacy Policy</a>. Without your consent,'
-                                                          ' we can not create an account'
-                                                          .format(settings.PRIVACY_POLICY_URL))
+                                        label=format_html(
+                                            'I consent to the collection and use of my personal '
+                                            'information consistent with the '
+                                            f'<a href="{settings.PRIVACY_POLICY_URL}">Privacy Policy</a>.'
+                                            'Without your consent, we can not create an account')
                                         )
     # Minimum and maximum number of seconds from when the client first
     # loads the page until the form may be submitted.
