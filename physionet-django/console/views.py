@@ -1340,7 +1340,7 @@ def process_credential_application(request, application_slug):
                     notification.process_credential_complete(request,
                                                              application)
                     return render(request, 'console/process_credential_complete.html',
-                                  {'application': application})
+                                  {'application': application, 'CredentialApplication': CredentialApplication})
                 page_title = title_dict[application.credential_review.status]
                 intermediate_credential_form = forms.ProcessCredentialReviewForm(
                     responder=request.user, instance=application)
