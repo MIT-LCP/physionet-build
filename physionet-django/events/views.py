@@ -184,8 +184,10 @@ def event_detail(request, event_slug):
         registration_allowed = False
         registration_error_message = 'You are registered for this event'
     else:  # we don't need to check for waitlisted / other stuff if the user is already registered
-        event_participation_request = EventApplication.objects. \
-            filter(event=event, user=user, status=EventApplication.EventApplicationStatus.WAITLISTED)
+        event_participation_request = EventApplication.objects.filter(
+            event=event,
+            user=user,
+            status=EventApplication.EventApplicationStatus.WAITLISTED)
         # currently we are not blocking rejected, revoked access users from registering again
         if event_participation_request.exists():
             registration_allowed = False
@@ -198,9 +200,9 @@ def event_detail(request, event_slug):
             domain_match = [domain for domain in domains if any('@' + domain.strip() in email for email in emails)]
             if not domain_match:
                 registration_allowed = False
-                registration_error_message = f"To register for the event, your account must be linked with " \
-                                             f"an email address from the following domains: {domains}. " \
-                                             f"You can add email addresses to your account in the settings menu."
+                registration_error_message = ("To register for the event, your account must be linked with "
+                                              f"an email address from the following domains: {domains}. "
+                                              "You can add email addresses to your account in the settings menu.")
 
     if request.method == 'POST':
         if 'confirm_registration' in request.POST.keys():
@@ -210,8 +212,10 @@ def event_detail(request, event_slug):
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
         elif 'confirm_withdraw' in request.POST.keys():
-            event_participation_request = EventApplication.objects. \
-                filter(event=event, user=user, status=EventApplication.EventApplicationStatus.WAITLISTED)
+            event_participation_request = EventApplication.objects.filter(
+                event=event,
+                user=user,
+                status=EventApplication.EventApplicationStatus.WAITLISTED)
             if event_participation_request.exists():
                 event_participation_request = event_participation_request.first()
                 event_participation_request.withdraw(comment_to_applicant='Withdrawn by user')

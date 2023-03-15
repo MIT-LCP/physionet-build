@@ -100,8 +100,8 @@ class EventAgreementForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(EventAgreementForm, self).clean()
         if EventAgreement.objects.filter(name=cleaned_data['name'], version=cleaned_data['version']).exists():
-            if self.initial.get('name') == cleaned_data['name'] and \
-                    self.initial.get('version') == cleaned_data['version']:
+            if (self.initial.get('name') == cleaned_data['name']
+                    and self.initial.get('version') == cleaned_data['version']):
                 return cleaned_data
             raise forms.ValidationError(
                 {"name": ["An agreement with this name and version already exists."],
