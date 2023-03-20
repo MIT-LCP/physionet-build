@@ -101,14 +101,31 @@
         </li>
       {% endif %}
 
+      <!-- Training -->
       {% if perms.user.can_review_training %}
-        <!-- training -->
-        <li class="nav-item {% if training_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
-          <a id="nav_storage_requests" class="nav-link" href="{% url 'training_list' 'review' %}">
-            <i class="fa fa-fw fa-school"></i>
-            <span class="nav-link-text">Training check</span>
+      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        {% if training_type_nav or training_nav %}
+          <a id="nav_pages_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#trainingComponent" data-parent="#sideAccordion" aria-expanded="true">
+        {% else %}
+          <a id="nav_pages_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#trainingComponent" data-parent="#sideAccordion" aria-expanded="false">
+        {% endif %}
+            <i class="fa fa-fw fa-window-maximize"></i>
+            <span class="nav-link-text">Training</span>
           </a>
-        </li>
+          <!-- submenu -->
+        {% if training_type_nav or training_nav %}
+          <ul class="sidenav-second-level collapse show" id="trainingComponent" style="">
+        {% else %}
+          <ul class="sidenav-second-level collapse" id="trainingComponent">
+        {% endif %}
+            <li class="nav-item {% if training_nav %}active{% endif %}">
+              <a id="nav_console_news" class="nav-link" href="{% url 'training_list' 'review' %}">Training Check</a>
+            </li>
+            <li class="nav-item {% if training_type_nav %}active{% endif %}">
+              <a id="nav_console_news" class="nav-link" href="{% url 'op_training' %}">OP Training</a>
+            </li>
+          </ul>
+      </li>
       {% endif %}
 
       <!-- events -->
