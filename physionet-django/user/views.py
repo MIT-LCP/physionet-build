@@ -58,7 +58,7 @@ from user.models import (
 )
 from user.userfiles import UserFiles
 from physionet.models import StaticPage
-
+from training.forms import OnPlatformTrainingForm
 
 logger = logging.getLogger(__name__)
 
@@ -732,6 +732,8 @@ def edit_training(request):
         training_form = forms.TrainingForm(
             user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type')
         )
+        platform_training_form = OnPlatformTrainingForm(
+            data=request.POST, training_type=request.POST.get('training_type'), auto_id="op_%s")
         if training_form.is_valid():
             training_form.save()
             messages.success(request, 'The training has been submitted successfully.')
@@ -744,8 +746,10 @@ def edit_training(request):
         training_type = request.GET.get('trainingType')
         if training_type:
             training_form = forms.TrainingForm(user=request.user, training_type=training_type)
+            platform_training_form = OnPlatformTrainingForm(training_type=training_type, auto_id="op_%s")
         else:
             training_form = forms.TrainingForm(user=request.user)
+            platform_training_form = OnPlatformTrainingForm(auto_id="op_%s")
 
     training = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
     training_by_status = {
@@ -759,6 +763,7 @@ def edit_training(request):
         request,
         'user/edit_training.html',
         {'training_form': training_form,
+         'platform_training_form': platform_training_form,
          'training_by_status': training_by_status,
          'ticket_system_url': ticket_system_url},
     )
