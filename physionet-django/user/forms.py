@@ -303,7 +303,7 @@ class RegistrationForm(forms.ModelForm):
                                         label=format_html(
                                             'I consent to the collection and use of my personal '
                                             'information consistent with the '
-                                            f'<a href="{settings.PRIVACY_POLICY_URL}">Privacy Policy</a>.'
+                                            f'<a href="{settings.PRIVACY_POLICY_URL}">Privacy Policy</a>. '
                                             'Without your consent, we can not create an account')
                                         )
     # Minimum and maximum number of seconds from when the client first
