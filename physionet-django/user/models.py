@@ -725,6 +725,30 @@ class Orcid(models.Model):
         return settings.ORCID_DOMAIN
 
 
+class CITI(models.Model):
+    """
+    Class for storing CITI account information.
+    Here are examples of expected formats from a CITI account:
+    member_id: int MemberID e.g 12102652
+    course_id: int GroupID e.g 43007
+    course_name: str CompletionReport e.g Human Research
+    course_expiration: datetime Expiration e.g 2026-03-13T17:03:34.18-04:00
+    report_score: int Score e.g 95
+    """
+    user = models.OneToOneField('user.User', related_name='citi',
+                                on_delete=models.CASCADE)
+    member_id = models.CharField(max_length=20, default='', blank=True,
+                                validators=[validators.validate_member_id])
+    course_id = models.CharField(max_length=20, default='', blank=True)
+    course_name = models.CharField(max_length=50, default='', blank=True)
+    course_expiration = models.DateTimeField(null=True, validators=[validators.validate_course_expiration])
+    report_score = models.CharField(max_length=3, default='', 
+                                    validators=[validators.validate_report_score], blank=True)
+    
+    class Meta:
+        default_permissions = ()
+
+
 class CredentialApplication(models.Model):
     """
     An application to become credentialed

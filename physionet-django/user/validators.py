@@ -1,4 +1,5 @@
 import re
+import datetime
 
 from django.conf import settings
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -230,6 +231,24 @@ def validate_orcid_id(value):
     """
     if not re.fullmatch(r'^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$', value):
         raise ValidationError('ORCID ID is not in expected format.')
+
+def validate_report_score(value):
+    """
+    Validator function to ensure that the value is a valid CITI Score.
+    """
+    if not value.isdigit() or not (0 <= int(value) <= 100):
+        raise ValidationError('Score should be an integer between 0 and 100')
+
+def validate_course_expiration(value):
+    """
+    Validator function to ensure that the value is a valid datetime in the format
+    yyyy-mm-ddTHH:MM:SS.ssZ (e.g. 2023-03-21T15:30:00.00Z).
+    """
+    try:
+        # Check if the string is a valid datetime in the expected format
+        datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%fZ')
+    except ValueError:
+        raise ValidationError('Invalid datetime format.')
 
 # DEPRECATED VALIDATIONS KEPT FOR MIGRATIONS
 def validate_alphaplus(value):
