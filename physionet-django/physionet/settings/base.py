@@ -237,6 +237,11 @@ ORCID_CLIENT_ID = config('ORCID_CLIENT_ID', default=False)
 ORCID_CLIENT_SECRET = config('ORCID_CLIENT_SECRET', default=False)
 ORCID_SCOPE = config('ORCID_SCOPE', default=False)
 
+# Tags for the CITISOAPService API
+CITI_USERNAME = config('CITI_USERNAME', default='')
+CITI_PASSWORD = config('CITI_PASSWORD', default='')
+CITI_SOAP_URL= config('CITI_SOAP_URL', default='')
+
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
 # configurations may be added that permit different sets of tags.
