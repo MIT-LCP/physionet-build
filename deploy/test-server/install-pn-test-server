@@ -114,8 +114,9 @@ su pn -c '
    echo staging > deploy-branch
    mkdir -p physionet-build python-env deploy
 
-   virtualenv --no-download -ppython3 /physionet/python-env/physionet
-   . /physionet/python-env/physionet/bin/activate
+   virtualenv --no-download -ppython3 /physionet/python-env/initial
+   ln -s initial /physionet/python-env/physionet
+   . /physionet/python-env/initial/bin/activate
 
    git clone --bare "$REPOSITORY" physionet-build.git
    cd /physionet/physionet-build.git
