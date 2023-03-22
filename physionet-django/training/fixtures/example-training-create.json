@@ -1,37 +1,44 @@
 {
-  "name":"On Platform Training 1",
-  "description":"<p>Test content description</div>",
-  "valid_duration":"1095 00:00:00",
+  "name": "On Platform Training 1",
+  "description": "<p>Test content description</div>",
+  "valid_duration": "1095 00:00:00",
   "required_field": 2,
   "home_page": "http://localhost:8000/training/",
   "op_trainings": {
     "version": "1.0",
-    "contents": [
+    "modules": [
       {
-        "body": "<p>Hello This is a test</p><div><p>Test content1</p></div>",
-        "order": 0
-      }
-    ],
-    "quizzes": [
-      {
-        "question": "What is the correct answer(choice1)?",
-        "order": 1,
-        "choices": [
+        "name": "Module 1",
+        "description": "<p>Module description</div>",
+        "order": 0,
+        "contents": [
           {
-            "body": "I am a choice1",
-            "is_correct": true
-          },
+            "body": "<p>Hello This is a test</p><div><p>Test content1</p></div>",
+            "order": 0
+          }
+        ],
+        "quizzes": [
           {
-            "body": "I am a choice2",
-            "is_correct": false
-          },
-          {
-            "body": "I am a choice3",
-            "is_correct": false
-          },
-          {
-            "body": "I am a choice4",
-            "is_correct": false
+            "question": "What is the correct answer(choice1)?",
+            "order": 1,
+            "choices": [
+              {
+                "body": "I am a choice1",
+                "is_correct": true
+              },
+              {
+                "body": "I am a choice2",
+                "is_correct": false
+              },
+              {
+                "body": "I am a choice3",
+                "is_correct": false
+              },
+              {
+                "body": "I am a choice4",
+                "is_correct": false
+              }
+            ]
           }
         ]
       }
