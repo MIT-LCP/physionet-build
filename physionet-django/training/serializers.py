@@ -85,35 +85,41 @@ class TrainingTypeSerializer(serializers.ModelSerializer):
 
         with transaction.atomic():
             op_training = validated_data.pop('op_trainings')
-            quizzes = op_training.pop('quizzes')
-            contents = op_training.pop('contents')
+            modules = op_training.pop('modules')
 
             op_training['training_type'] = instance
 
             op_training_instance = OnPlatformTraining.objects.create(**op_training)
 
-            quiz_bulk = []
-            choice_bulk = []
-            for quiz in quizzes:
-                choices = quiz.pop('choices')
+            for module in modules:
+                quizzes = module.pop('quizzes')
+                contents = module.pop('contents')
 
-                quiz['training'] = op_training_instance
-                q = Quiz(**quiz)
-                q.save()
-                quiz_bulk.append(q)
+                module['training'] = op_training_instance
+                module_instance = Module.objects.create(**module)
 
-                for choice in choices:
-                    choice['quiz'] = q
-                    choice_bulk.append(QuizChoice(**choice))
+                # quiz_bulk = []
+                choice_bulk = []
+                for quiz in quizzes:
+                    choices = quiz.pop('choices')
 
-            # Quiz.objects.bulk_create(quiz_bulk)
-            QuizChoice.objects.bulk_create(choice_bulk)
+                    quiz['module'] = module_instance
+                    q = Quiz(**quiz)
+                    q.save()
+                    # quiz_bulk.append(q)
 
-            content_bulk = []
-            for content in contents:
-                content['training'] = op_training_instance
-                content_bulk.append(ContentBlock(**content))
-            ContentBlock.objects.bulk_create(content_bulk)
+                    for choice in choices:
+                        choice['quiz'] = q
+                        choice_bulk.append(QuizChoice(**choice))
+
+                # Quiz.objects.bulk_create(quiz_bulk)
+                QuizChoice.objects.bulk_create(choice_bulk)
+
+                content_bulk = []
+                for content in contents:
+                    content['module'] = module_instance
+                    content_bulk.append(ContentBlock(**content))
+                ContentBlock.objects.bulk_create(content_bulk)
 
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
@@ -123,7 +129,7 @@ class TrainingTypeSerializer(serializers.ModelSerializer):
                 if str(op_training.get("version")).endswith("0"):
                     self.update_training_for_major_version_change(instance)
 
-        return instance
+        return op_training_instance
 
     def create(self, validated_data):
 
