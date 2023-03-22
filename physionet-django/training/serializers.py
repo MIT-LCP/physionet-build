@@ -121,10 +121,6 @@ class TrainingTypeSerializer(serializers.ModelSerializer):
                     content_bulk.append(ContentBlock(**content))
                 ContentBlock.objects.bulk_create(content_bulk)
 
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
-
             if op_training.get("version"):
                 if str(op_training.get("version")).endswith("0"):
                     self.update_training_for_major_version_change(instance)
