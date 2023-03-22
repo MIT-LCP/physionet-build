@@ -1037,7 +1037,7 @@ class CredentialApplication(models.Model):
         elif self.credential_review.status <= 20:
             status = 'Awaiting review'
         elif self.credential_review.status == 30:
-            status = 'Awaiting a response from your reference'
+            status = 'Awaiting a response from reference'
         elif self.credential_review.status >= 40:
             status = 'Awaiting final approval'
 
