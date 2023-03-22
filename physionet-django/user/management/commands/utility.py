@@ -12,7 +12,8 @@ def get_credential_awaiting_reference(n, days, ignore_reminded_application=False
     today = timezone.now()
     limit = today - timezone.timedelta(days=days)
 
-    pending_applications = CredentialApplication.objects.filter(status=0, credential_review__status=30)
+    pending_applications = CredentialApplication.objects.filter(status=CredentialApplication.Status.PENDING,
+                                                                credential_review__status=30)
     if ignore_reminded_application:
         pending_applications = pending_applications.filter(reference_reminder_datetime__isnull=True)
     # finally get applications that have been pending for more than the limit

@@ -12,6 +12,8 @@ from django.utils import timezone
 from project.models import DataAccessRequest, License
 from django.urls import reverse
 
+from user.models import CredentialApplication
+
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 
@@ -653,6 +655,7 @@ def process_credential_complete(request, application, include_comments=True):
     body = loader.render_to_string(
         'notification/email/process_credential_complete.html', {
             'application': application,
+            'CredentialApplication': CredentialApplication,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
             'url_prefix': get_url_prefix(request),
