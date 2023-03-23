@@ -4,6 +4,7 @@ import urllib.parse
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.redirects.models import Redirect
 from django.urls import URLPattern, URLResolver, get_resolver
 from django.utils.regex_helper import normalize
 
@@ -223,3 +224,39 @@ class TestURLs(TestMixin):
 class RedirectedToLogin(Exception):
     """Exception raised if a URL redirects to the login page."""
     pass
+
+
+class TestRedirect(TestMixin):
+    """
+    Test the redirect app.
+
+    This test case attempts to access a non-existent URL, which raises a 404.
+    We then set up a redirect on the URL, and test that the redirect works as
+    expected.
+    """
+    def _add_redirect(self, site_id=1, old_path='/contact-us/', new_path='/contact/'):
+        """
+        Adds a redirect to test.
+        """
+        Redirect.objects.create(site_id=site_id,
+                                old_path=old_path,
+                                new_path=new_path)
+
+    def test_redirect(self):
+        """
+        Creates and tests a redirect.
+        """
+        site_id = settings.SITE_ID
+        old_path = '/redirect/me/'
+        new_path = '/news/'
+
+        response = self.client.get(old_path)
+        self.assertEqual(response.status_code, 404)
+
+        self._add_redirect(site_id=site_id, old_path=old_path, new_path=new_path)
+
+        response = self.client.get(old_path)
+        self.assertEqual(response.status_code, 301)
+
+        redirect = Redirect.objects.get(old_path=old_path)
+        redirect.delete()
