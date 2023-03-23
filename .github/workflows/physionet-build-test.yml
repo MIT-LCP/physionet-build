@@ -76,6 +76,7 @@ jobs:
           else
             pip3 install -r requirements.txt
           fi
+          pip3 freeze
 
       - name: Setup postgres
         run: |
