@@ -1074,9 +1074,11 @@ def project_files(request, project_slug, subdir='', **kwargs):
     storage_request_form = (
         forms.StorageRequestForm(project=project) if (not storage_request and is_submitting) else None
     )
-    upload_agreement_form = (
-        forms.UploadedAgreementDataForm(project=project)
-    )
+    try:
+        agreement = DataUploadAgreement.objects.get(project=project)
+    except DataUploadAgreement.DoesNotExist:
+        agreement = None
+    upload_agreement_form = forms.UploadedAgreementDataForm(project=project, instance=agreement)
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
