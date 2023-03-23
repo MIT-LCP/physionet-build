@@ -1078,6 +1078,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         agreement = DataUploadAgreement.objects.get(project=project)
     except DataUploadAgreement.DoesNotExist:
         agreement = None
+        files_editable = False
     upload_agreement_form = forms.UploadedAgreementDataForm(project=project, instance=agreement)
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
