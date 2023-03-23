@@ -1,8 +1,13 @@
 <strong>PhysioNet Data Upload and Sharing Agreement</strong>
-<ul>
-  <li>Please complete the project data upload agreement form below before uploading the project files.
-</li>
-</ul>
+{% if not project.datauploadagreement %}
+  <div class="alert alert-warning">
+   Please complete the project data upload agreement form below before uploading the project files.
+  </div>
+  {% else %}
+  <div class="alert alert-info">
+      Please don't include any Personal Health Information within your uploaded project files.
+  </div>
+{% endif %}
         <button id="upload-agreement-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#upload-agreement-modal">
         <i class="fa fa-handshake"></i> Data Upload Agreement
         </button>
