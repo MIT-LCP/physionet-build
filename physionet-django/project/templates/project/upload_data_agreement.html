@@ -1,4 +1,4 @@
-<strong>PhysioNet Data Upload and Sharing Agreement</strong>
+<h4> Data Upload and Sharing Agreement</h4>
 {% if not project.datauploadagreement %}
   <div class="alert alert-warning">
    Please complete the project data upload agreement form below before uploading the project files.
@@ -24,10 +24,9 @@
               <form action="" method="post" enctype="multipart/form-data">
                 <div class="modal-body">
                   {% csrf_token %}
-                  <h5>PhysioNet Data Upload and Sharing Agreement</h5>
                   <p>Your responses to the following questions will be shared with the editor, but will not be published.</p>
                   {{upload_agreement_form}}
-                  <p>By clicking “I agree” and uploading files to PhysioNet, you agree that the above information is accurate.</p>
+                  <p>By clicking “I agree” and uploading files to {{SITE_NAME}}, you agree that the above information is accurate.</p>
                   </div>
                 <div class="modal-footer">
                   <button class="btn btn-primary" name="submit_upload_agreement" type="submit"><i class="fa fa-thumbs-up"></i> I agree</button>
