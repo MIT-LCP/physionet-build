@@ -16,6 +16,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test, per
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.redirects.models import Redirect
 from django.db.models import Count, DurationField, F, Q
 from django.db.models.functions import Cast
 from django.forms import Select, Textarea, modelformset_factory
@@ -2456,6 +2457,18 @@ def known_references(request):
 
     return render(request, 'console/known_references.html', {
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
+
+
+@permission_required('physionet.view_redirect', raise_exception=True)
+def view_redirects(request):
+    """
+    Display a list of redirected URLs.
+    """
+    redirects = Redirect.objects.all().order_by("old_path")
+    return render(
+        request,
+        'console/redirects.html',
+        {'redirects': redirects, 'redirects_nav': True})
 
 
 @permission_required('physionet.change_frontpagebutton', raise_exception=True)

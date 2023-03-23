@@ -1,0 +1,41 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Redirects{% endblock %}
+
+{% block local_js_top %}
+{% endblock %}
+
+{% block local_css %}
+{% endblock %}
+
+{% block content %}
+
+ <div class="card mb-3">
+  <div class="card-header">
+    Redirects <span class="badge badge-pill badge-info">{{ redirects.count }}</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Site</th>
+            <th>Old path</th>
+            <th>New path</th>
+          </tr>
+        </thead>
+          {% for redirect in redirects %}
+            <tr>
+              <td>{{ redirect.site }}</td>
+              <td>{{ redirect.old_path }}</td>
+              <td>{{ redirect.new_path }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
