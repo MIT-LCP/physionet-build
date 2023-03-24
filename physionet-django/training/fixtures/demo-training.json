@@ -40,7 +40,7 @@
     "pk": 1,
     "fields": {
       "module": 1,
-      "question": "Which two continents make up the Americas?",
+      "question": "Which two continents make up the Americas?(Answer : North America and South America)",
       "order": 3
     }
   },
@@ -85,7 +85,7 @@
     "pk": 2,
     "fields": {
       "module": 1,
-      "question": "What connects North America and South America?",
+      "question": "What connects North America and South America?(Answer : The Isthmus of Panama)",
       "order": 4
     }
   },
@@ -130,7 +130,7 @@
     "pk": 3,
     "fields": {
       "module": 1,
-      "question": "Which is NOT a large country in North America?",
+      "question": "Which is NOT a large country in North America?(Answer : Cuba)",
       "order": 5
     }
   },
@@ -184,7 +184,7 @@
     "pk": 4,
     "fields": {
       "module": 1,
-      "question": "Which of the following is NOT a country in the Americas?",
+      "question": "Which of the following is NOT a country in the Americas? (Answer : India)",
       "order": 7
     }
   },
@@ -251,7 +251,7 @@
       "order": 10
     }
   },
-   {
+  {
     "model": "training.contentblock",
     "pk": 7,
     "fields": {
@@ -259,6 +259,177 @@
       "body": "<p>As our course on World 101: Introduction to Continents and Countries comes to an end, I would like to take this opportunity to thank each and every one of you for your participation and engagement throughout the course.</p>\n\n<p>It has been a pleasure to share this journey with you and I hope that the knowledge and insights gained during our time together will serve you well in your future endeavors.</p>\n\n<p>Thank you for making this course a success. I wish you all the best in your future studies and pursuits.</p>\n",
       "order": 11
     }
+  },
+  {
+    "model": "training.module",
+    "pk": 2,
+    "fields": {
+      "training": 1,
+      "name": "Wondering about Europe?",
+      "description": "Europe is a continent located in the Northern Hemisphere. It is bordered by the Arctic Ocean to the north, the Atlantic Ocean to the west, and the Mediterranean Sea to the south. It is also connected to Asia by the Ural Mountains and the Caspian Sea.",
+      "order": 2
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 8,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is a continent located in the Northern Hemisphere. It is bordered by the Arctic Ocean to the north, the Atlantic Ocean to the west, and the Mediterranean Sea to the south. It is also connected to Asia by the Ural Mountains and the Caspian Sea.</p>\n\n<p>Europe is home to a diverse range of cultures, landscapes, and languages. It is also the second-smallest continent in the world, with a total area of 3.93 million square miles (10.2 million square kilometers).</p>\n",
+      "order": 1
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 9,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is made up of 50 countries. The largest by area is Russia, while the smallest is Monaco. The continent is also home to many important cities, including London, Paris, and Istanbul.</p>\n",
+      "order": 2
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 10,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is the second most populous continent in the world, with a population of 741 million. It is also home to many of the world&rsquo;s most well-known historical sites, including Stonehenge, the Parthenon, and the Colosseum.</p>\n",
+      "order": 3
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 11,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is also known for its diverse landscapes. It is home to the highest mountain in the world, Mount Everest, as well as the lowest point on land, the Dead Sea. It is also home to the world&rsquo;s largest ice sheet, the Greenland ice sheet.</p>\n",
+      "order": 4
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 12,
+    "fields": {
+      "module": 2,
+      "body": "<p>The continent is also home to some of the world&rsquo;s largest lakes, including Lake Superior and Lake Baikal. It is also home to the world&rsquo;s largest river, the Amazon.</p>\n",
+      "order": 5
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 13,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is also home to many of the world&rsquo;s most well-known cities. London, Paris, and Rome are some of the most famous cities in the world. They are also home to many of the world&rsquo;s most famous landmarks, including the Eiffel Tower, the Colosseum, and the Parthenon.</p>\n",
+      "order": 6
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 14,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is also home to many of the world&rsquo;s most famous museums. The Louvre in Paris is one of the most famous museums in the world. It is also home to many of the world&rsquo;s most famous works of art, including the Mona Lisa and the Venus de Milo.</p>\n",
+      "order": 7
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 15,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is also home to many of the world&rsquo;s most famous landmarks. The Eiffel Tower in Paris is one of the most famous landmarks in the world. It is also home to many of the world&rsquo;s most famous works of art, including the Mona Lisa and the Venus de Milo.</p>\n",
+      "order": 8
+    }
+  },
+  {
+    "model": "training.quiz",
+    "pk": 5,
+    "fields": {
+      "module": 2,
+      "question": "Which of the following countries is NOT located in Europe? (Answer: Nepal)",
+      "order": 9
+    }
+  },
+    {
+    "model": "training.quizchoice",
+    "pk": 17,
+    "fields": {
+      "quiz": 5,
+        "body": "France",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 18,
+    "fields": {
+      "quiz": 5,
+        "body": "Nepal",
+        "is_correct": true
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 19,
+    "fields": {
+      "quiz": 5,
+        "body": "Spain",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 20,
+    "fields": {
+      "quiz": 5,
+        "body": "Germany",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quiz",
+    "pk": 6,
+    "fields": {
+      "module": 2,
+      "question": "Which of the following countries is NOT located in Africa?(Answer: Nepal)",
+      "order": 10
+    }
+  },
+    {
+    "model": "training.quizchoice",
+    "pk": 21,
+    "fields": {
+      "quiz": 6,
+        "body": "Egypt",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 22,
+    "fields": {
+      "quiz": 6,
+        "body": "Nepal",
+        "is_correct": true
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 23,
+    "fields": {
+      "quiz": 6,
+        "body": "Zimbabwe",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 24,
+    "fields": {
+      "quiz": 6,
+        "body": "Cameroon",
+        "is_correct": false
+    }
   }
-
 ]

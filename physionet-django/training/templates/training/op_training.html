@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Training - {{ training.training_type.name }}{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet"
+        type="text/css"
+        href="{% static 'project/css/project-home.css' %}">
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+  <h1>{{ training.training_type.name }}</h1>
+  {% include "message_snippet.html" %}
+    <div class="description">
+      <h2>Training Description</h2>
+      {{ training.training_type.description | safe }}
+    </div>
+
+   <div class="card mb-3">
+    <div class="card-header">
+      <h3>Training Modules</h3>
+    </div>
+    <div class="card-body">
+      {% if modules %}
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col">Module</th>
+              <th scope="col">Progress</th>
+              <th scope="col">Dates</th>
+              <th scope="col">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for module in modules %}
+              <tr>
+                <td>
+                  <strong>{{ module.name }}</strong>
+                </td>
+                <td>Not Started</td>
+                <td>Not Started</td>
+                <td>
+                    <a href="">Start</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>No datasets available.</p>
+      {% endif %}
+    </div>
+  </div>
+  <br>
+  
+  </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script>
+  </script>
+  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}

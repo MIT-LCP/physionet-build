@@ -14,7 +14,7 @@ from rest_framework.parsers import JSONParser
 from user.models import Training, TrainingType, TrainingQuestion, RequiredField
 from user.enums import TrainingStatus
 
-from training.models import OnPlatformTraining, QuizChoice, ContentBlock
+from training.models import OnPlatformTraining, Quiz, QuizChoice, ContentBlock
 from training.serializers import TrainingTypeSerializer
 
 
@@ -69,15 +69,12 @@ def take_training(request, training_id=None):
         return redirect("edit_training",)
 
     training = OnPlatformTraining.objects.prefetch_related(
-        Prefetch("quizzes__choices", queryset=QuizChoice.objects.order_by("?")),
-        Prefetch("contents", queryset=ContentBlock.objects.all())).filter(
+        Prefetch("modules__quizzes", queryset=Quiz.objects.order_by("?")),
+        Prefetch("modules__contents", queryset=ContentBlock.objects.all())).filter(
             training_type__id=training_id).order_by('version').last()
 
-    return render(request, 'training/quiz.html', {
-        'quiz_content': sorted(chain(
-            training.quizzes.all(), training.contents.all()),
-            key=operator.attrgetter('order')),
-        'quiz_answer': training.quizzes.filter(choices__is_correct=True).values_list("id", "choices"),
+    return render(request, 'training/op_training.html', {
+        'modules': sorted(chain(training.modules.all()), key=operator.attrgetter('order')),
         'training': training,
     })
 
