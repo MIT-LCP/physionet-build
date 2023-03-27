@@ -78,7 +78,13 @@
 {% endblock %}
 {% block local_js_bottom %}
   {% for quiz, answer in quiz_answer %}
-    <script>sessionStorage.setItem({{quiz }}, {{answer }})</script>{% endfor %}
+    <script>
+        sessionStorage.setItem({{quiz }}, {{answer }});
+        {% if quiz in completed_quizzes_ids %}
+          document.querySelector("input[type='radio'][id='{{ quiz }}_{{ answer }}']").checked = true;
+        {% endif %}
+    </script>
+  {% endfor %}
   <script src="{% static 'custom/js/quiz.js' %}"></script>
   <script>
     sessionStorage.setItem("slidePosition", 0);
