@@ -18,6 +18,7 @@
 
       <form method="POST" class="training">
         {% csrf_token %}
+        <input type="text" hidden name="resume-from" value="{{ resume_content_or_quiz_from }}"/>
         <input type="text" hidden name="question_answers" value=""/>
         {% for item in quiz_content %}
           {% if item.body %}
@@ -79,4 +80,9 @@
   {% for quiz, answer in quiz_answer %}
     <script>sessionStorage.setItem({{quiz }}, {{answer }})</script>{% endfor %}
   <script src="{% static 'custom/js/quiz.js' %}"></script>
+  <script>
+    sessionStorage.setItem("slidePosition", 0);
+    var slideIndex = parseInt(document.querySelector("input[name='resume-from']").value) || 0;
+    showSlide(slideIndex);
+  </script>
 {% endblock %}

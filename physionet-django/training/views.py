@@ -84,14 +84,22 @@ def take_training(request, training_id=None):
 
 @login_required
 def take_module_training(request, training_id, module_id):
-    # Todo add a check to ensure that the user has completed all the previous modules
-    # this will be implemented with the resume training feature
-    # this is needed for both post and get requests
+    op_training = OnPlatformTraining.objects.select_related('training_type').filter(
+        training_type__id=training_id).last()
+    module = op_training.modules.filter(pk=module_id).first()
+
+    training_progress = OnPlatformTrainingProgress.objects.filter(user=request.user, training__id=op_training.id).last()
+    if not training_progress:
+        training_progress = OnPlatformTrainingProgress.objects.create(user=request.user, training_id=op_training.id)
+
+    # mandate the user to complete all the previous modules before starting the requested module
+    next_module = training_progress.get_next_module()
+    if next_module and next_module.id < int(module_id):
+        messages.error(request, 'Please complete the previous modules before starting this module.')
+        return redirect('platform_training', training_id)
 
     if request.method == 'POST':
-        op_training = OnPlatformTraining.objects.select_related('training_type').filter(
-            training_type__id=training_id).last()
-        module = op_training.modules.filter(pk=module_id).first()
+
 
         # check if the questions are answered correctly
         try:
@@ -134,7 +142,6 @@ def take_module_training(request, training_id, module_id):
         else:
             messages.success(
                 request, f'Congratulations! You completed the module {module.name} successfully.')
-            # Todo implement the resume training feature
             return redirect('platform_training', request.POST['training_type'])
 
         return redirect('platform_training', request.POST['training_type'])
@@ -144,14 +151,25 @@ def take_module_training(request, training_id, module_id):
         Prefetch("modules__contents", queryset=ContentBlock.objects.all())).filter(
             training_type__id=training_id).order_by('version').last()
 
-    module = training.modules.get(id=module_id)
+    # we shouldn't use the next_module here as users might request to review a completed module
+    requested_module = training.modules.get(id=module_id)
+
+    # find the content or quiz to be displayed
+    resume_content_or_quiz = training_progress.module_progresses.filter(
+        module=requested_module).last()
+    if not resume_content_or_quiz:
+        resume_content_or_quiz_from = 1
+    else:
+        resume_content_or_quiz_from = resume_content_or_quiz.get_next_content_or_quiz().order
+
     return render(request, 'training/quiz.html', {
         'quiz_content': sorted(chain(
-            module.quizzes.all(), module.contents.all()),
+            requested_module.quizzes.all(), requested_module.contents.all()),
             key=operator.attrgetter('order')),
-        'quiz_answer': module.quizzes.filter(choices__is_correct=True).values_list("id", "choices"),
-        'module': module,
+        'quiz_answer': requested_module.quizzes.filter(choices__is_correct=True).values_list("id", "choices"),
+        'module': requested_module,
         'training': training,
+        'resume_content_or_quiz_from': resume_content_or_quiz_from,
     })
 
 

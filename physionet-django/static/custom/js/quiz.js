@@ -1,7 +1,4 @@
-var slideIndex = 1;
-sessionStorage.setItem("slidePosition", 0);
 
-showSlide(slideIndex);
 
 function changeSlide(n) {
     showSlide(slideIndex += n);
