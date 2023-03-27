@@ -4,7 +4,9 @@ from itertools import chain
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
+from django.db import transaction
 from django.db.models import Prefetch
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -15,6 +17,7 @@ from user.models import Training, TrainingType, TrainingQuestion, RequiredField
 from user.enums import TrainingStatus
 
 from training.models import OnPlatformTraining, Quiz, QuizChoice, ContentBlock
+from training.models import OnPlatformTrainingProgress, ModuleProgress, CompletedContent, CompletedQuiz
 from training.serializers import TrainingTypeSerializer
 
 
@@ -150,6 +153,46 @@ def take_module_training(request, training_id, module_id):
         'module': module,
         'training': training,
     })
+
+
+@login_required
+def update_module_progress(request):
+    if request.method == 'POST':
+        training_id = request.POST.get('training_id')
+        module_id = request.POST.get('module_id')
+        update_type = request.POST.get('update_type')
+        update_type_id = request.POST.get('update_type_id')
+
+        if update_type not in ['content', 'quiz']:
+            return JsonResponse({'detail': 'Unsupported update type'}, status=400)
+
+        op_training_progress = OnPlatformTrainingProgress.objects.filter(
+            user=request.user, training__id=training_id).last()
+        module_progress = op_training_progress.module_progress.filter(module__id=module_id).last()
+
+        with transaction.atomic():
+            if not module_progress:
+                module_progress = ModuleProgress.objects.create(
+                    training_progress=op_training_progress,
+                    module_id=module_id)
+
+            if update_type == 'content':
+                completed_content = CompletedContent.objects.create(
+                    module_progress=module_progress,
+                    content_id=update_type_id)
+                completed_content.save()
+                module_progress.last_completed_order = completed_content.content.order
+
+            elif update_type == 'quiz':
+                completed_quiz = CompletedQuiz.objects.create(
+                    module_progress=module_progress,
+                    quiz_id=update_type_id)
+                completed_quiz.save()
+                module_progress.last_completed_order = completed_quiz.content.order
+
+            return JsonResponse({'detail': 'success'}, status=200)
+
+    return JsonResponse({'detail': 'Unsupported request method'}, status=400)
 
 
 @permission_required('physionet.change_onplatformtraining', raise_exception=True)
