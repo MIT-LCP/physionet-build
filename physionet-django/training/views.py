@@ -162,6 +162,15 @@ def take_module_training(request, training_id, module_id):
     else:
         resume_content_or_quiz_from = resume_content_or_quiz.get_next_content_or_quiz().order
 
+    # get the ids of the completed contents and quizzes
+    completed_contents = training_progress.module_progresses.filter(
+        module=requested_module).values_list('completed_contents__content_id', flat=True)
+    completed_contents_ids = [content for content in completed_contents if content]
+
+    completed_quizzes = training_progress.module_progresses.filter(
+        module=requested_module).values_list('completed_quizzes__quiz_id', flat=True)
+    completed_quizzes_ids = [quiz for quiz in completed_quizzes if quiz]
+
     return render(request, 'training/quiz.html', {
         'quiz_content': sorted(chain(
             requested_module.quizzes.all(), requested_module.contents.all()),
@@ -170,6 +179,8 @@ def take_module_training(request, training_id, module_id):
         'module': requested_module,
         'training': training,
         'resume_content_or_quiz_from': resume_content_or_quiz_from,
+        'completed_contents_ids': completed_contents_ids,
+        'completed_quizzes_ids': completed_quizzes_ids,
     })
 
 

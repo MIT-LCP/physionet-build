@@ -59,7 +59,7 @@
               <br>
               <div class="row ml-1">
                 {% if forloop.counter != 1 %}<a class="btn btn-warning previous">Back</a>{% endif %}
-                <a class="btn btn-success next text-white ml-auto mr-3 disabled">
+                <a class="btn btn-success next text-white ml-auto mr-3 {% if item.id not in completed_quizzes_ids %}disabled{% endif %}">
                   {% if forloop.last %}
                     Submit Module
                   {% else %}
