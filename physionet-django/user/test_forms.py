@@ -68,3 +68,13 @@ class TestForms(TestCase):
                                                   'username': 'bot-net', 'first_names': '',
                                                   'last_name': 'Bot', 'privacy_policy': 'True'})
         self.run_test_forms({'first_names': ['This field is required.']})
+
+    def test_privacy_policy_user_creation_form(self):
+        self.create_test_forms(RegistrationForm, {'email': 'tester0@mit.edu',
+                                                  'username': 'The-Tester', 'first_names': 'Tester Mid',
+                                                  'last_name': 'Bot', 'privacy_policy': 'True'},
+                                                 {'email': 'tester0@mit.edu',
+                                                  'username': 'The-Tester', 'first_names': 'Tester Mid',
+                                                  'last_name': 'Bot', 'privacy_policy': 'False'})
+
+        self.run_test_forms({'privacy_policy': ['This field is required.']})
