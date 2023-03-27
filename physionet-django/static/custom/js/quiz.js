@@ -26,7 +26,7 @@ function showSlide(n) {
     let i;
     let slides = document.getElementsByClassName("eachQuiz");
     if (n > slides.length) {
-        alertBox("<strong>Congratulations</strong> You have come to the end of the training.");
+        alertBox("<strong>Congratulations</strong> You have come to the end of this module.");
         sessionStorage.clear();
 
         let question_answers = {};

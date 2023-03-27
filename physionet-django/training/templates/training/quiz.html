@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load physionet_templatetags %}
-{% block title %}{{ training.name }}{% endblock %}
+{% block title %}{{ training.training_type.name }}{% endblock %}
 {% block local_css %}
   <link rel="stylesheet"
         type="text/css"
@@ -11,8 +11,11 @@
   <div class="container my-3">
     <div class="quizContainer">
       <div class="quizHeader">
-        <h1 >{{ training.training_type.name }}</h1>
+        <h1>{{ training.training_type.name }}</h1>
       </div>
+      <hr>
+      <h2>{{ module.name }}</h2>
+
       <form method="POST" class="training">
         {% csrf_token %}
         <input type="text" hidden name="question_answers" value=""/>
@@ -24,7 +27,7 @@
                 {% if forloop.counter != 1 %}<a class="btn btn-warning previous">Back</a>{% endif %}
                 <a class="btn btn-success next text-white ml-auto mr-3">
                   {% if forloop.last %}
-                    Submit Training
+                    Submit Module
                   {% else %}
                     Next
                   {% endif %}
@@ -36,8 +39,9 @@
               <div class="list-group">
                 <div class="list-group-item py-4">{{ item.question | safe }}</div>
                 {% for choice in item.choices.all %}
-                  <label class="list-group-item list-group-item-action q_{{ item.id }} {{ item.id }}_{{ choice.id }} mb-0"
-                         for="{{ item.id }}_{{ choice.id }}">
+                  <label
+                      class="list-group-item list-group-item-action q_{{ item.id }} {{ item.id }}_{{ choice.id }} mb-0"
+                      for="{{ item.id }}_{{ choice.id }}">
                     <input type="radio"
                            id="{{ item.id }}_{{ choice.id }}"
                            name="{{ item.id }}"
@@ -56,7 +60,7 @@
                 {% if forloop.counter != 1 %}<a class="btn btn-warning previous">Back</a>{% endif %}
                 <a class="btn btn-success next text-white ml-auto mr-3 disabled">
                   {% if forloop.last %}
-                    Submit Training
+                    Submit Module
                   {% else %}
                     Next
                   {% endif %}
@@ -72,6 +76,7 @@
   </div>
 {% endblock %}
 {% block local_js_bottom %}
-  {% for quiz, answer in quiz_answer %}<script>sessionStorage.setItem({{quiz }}, {{answer }})</script>{% endfor %}
+  {% for quiz, answer in quiz_answer %}
+    <script>sessionStorage.setItem({{quiz }}, {{answer }})</script>{% endfor %}
   <script src="{% static 'custom/js/quiz.js' %}"></script>
 {% endblock %}

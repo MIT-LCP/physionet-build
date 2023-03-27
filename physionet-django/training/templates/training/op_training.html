@@ -43,7 +43,7 @@
                 <td>Not Started</td>
                 <td>Not Started</td>
                 <td>
-                    <a href="">Start</a>
+                    <a href="{% url 'platform_training_module' training.training_type.pk module.pk %}">Start</a>
                 </td>
               </tr>
             {% endfor %}
