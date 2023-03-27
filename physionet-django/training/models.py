@@ -49,3 +49,90 @@ class QuizChoice(models.Model):
                              on_delete=models.CASCADE, related_name='choices')
     body = models.TextField()
     is_correct = models.BooleanField('Correct Choice?', default=False)
+
+
+class OnPlatformTrainingProgress(models.Model):
+    class Status(models.TextChoices):
+        IN_PROGRESS = 'IP', 'In Progress'
+        COMPLETED = 'C', 'Completed'
+
+    user = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    training = models.ForeignKey('training.OnPlatformTraining', on_delete=models.CASCADE)
+    status = models.CharField(max_length=2, choices=Status.choices, default=Status.IN_PROGRESS)
+    started_datetime = models.DateTimeField(auto_now_add=True)
+    completed_datetime = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'training')
+
+    def __str__(self):
+        return f'{self.user.username} - {self.training}'
+
+    def get_next_module(self):
+        if self.status == self.Status.COMPLETED:
+            return None
+
+        next_module = self.module_progresses.filter(status=self.module_progresses.model.Status.IN_PROGRESS).first()
+        if next_module:
+            return next_module.module
+
+        last_module = self.module_progresses.filter(status=self.module_progresses.model.Status.COMPLETED).order_by('-last_completed_order').first()
+        if last_module:
+            return self.training.modules.filter(order__gt=last_module.module.order).order_by('order').first()
+
+        return self.training.modules.first()
+
+
+class ModuleProgress(models.Model):
+    class Status(models.TextChoices):
+        IN_PROGRESS = 'IP', 'In Progress'
+        COMPLETED = 'C', 'Completed'
+
+    training_progress = models.ForeignKey('training.OnPlatformTrainingProgress', on_delete=models.CASCADE, related_name='module_progresses')
+    module = models.ForeignKey('training.Module', on_delete=models.CASCADE)
+    status = models.CharField(max_length=2, choices=Status.choices, default=Status.IN_PROGRESS)
+    last_completed_order = models.PositiveIntegerField(null=True, default=0)
+    started_datetime = models.DateTimeField(null=True, blank=True)
+    updated_datetime = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.training_progress.user.username} - {self.module}'
+
+    def get_next_content_or_quiz(self):
+        if self.status == self.Status.COMPLETED:
+            return None
+
+        next_content = self.module.contents.filter(order__gt=self.last_completed_order).order_by('order').first()
+        next_quiz = self.module.quizzes.filter(order__gt=self.last_completed_order).order_by('order').first()
+
+        if next_content and next_quiz:
+            return next_content if next_content.order < next_quiz.order else next_quiz
+        elif next_content:
+            return next_content
+        elif next_quiz:
+            return next_quiz
+        else:
+            return None
+
+    def update_last_completed_order(self, completed_content_or_quiz):
+        if completed_content_or_quiz.order > self.last_completed_order:
+            self.last_completed_order = completed_content_or_quiz.order
+            self.save()
+
+
+class CompletedContent(models.Model):
+    module_progress = models.ForeignKey('training.ModuleProgress', on_delete=models.CASCADE, related_name='completed_contents')
+    content = models.ForeignKey('training.ContentBlock', on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.module_progress.training_progress.user.username} - {self.content}'
+
+
+class CompletedQuiz(models.Model):
+    module_progress = models.ForeignKey('training.ModuleProgress', on_delete=models.CASCADE, related_name='completed_quizzes')
+    quiz = models.ForeignKey('training.Quiz', on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.module_progress.training_progress.user.username} - {self.quiz}'
