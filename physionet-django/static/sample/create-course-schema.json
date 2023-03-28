@@ -2,31 +2,31 @@
   "name": "string",
   "description": "string",
   "valid_duration": "string",
-  "required_field": "integer",
-  "home_page": "string",
-  "courses": {
-    "version": "float",
-    "modules": [
-      {
-        "contents": [
-          {
-            "body": "string",
-            "order": "integer"
-          }
-        ],
-        "quizzes": [
-          {
-            "question": "string",
-            "order": "integer",
-            "choices": [
-              {
-                "body": "string",
-                "is_correct": "boolean"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+  "courses": [
+    {
+      "version": "float",
+      "modules": [
+        {
+          "contents": [
+            {
+              "body": "string",
+              "order": "integer"
+            }
+          ],
+          "quizzes": [
+            {
+              "question": "string",
+              "order": "integer",
+              "choices": [
+                {
+                  "body": "string",
+                  "is_correct": "boolean"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

@@ -1902,6 +1902,15 @@ def guidelines_review(request):
                   {'guidelines_review_nav': True})
 
 
+@permission_required('training.can_view_course_guidelines', raise_exception=True)
+def guidelines_course(request):
+    """
+    Guidelines for course creators.
+    """
+    return render(request, 'console/guidelines_course.html',
+                  {'guidelines_course_nav': True})
+
+
 @permission_required('project.can_view_stats', raise_exception=True)
 def editorial_stats(request):
     """

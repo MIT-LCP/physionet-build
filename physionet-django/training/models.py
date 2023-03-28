@@ -11,6 +11,9 @@ class Course(models.Model):
     class Meta:
         default_permissions = ('change',)
         unique_together = ('training_type', 'version')
+        permissions = [
+            ('can_view_course_guidelines', 'Can view course guidelines'),
+        ]
 
     def __str__(self):
         return f'{self.training_type} v{self.version}'
