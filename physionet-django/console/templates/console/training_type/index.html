@@ -1,0 +1,71 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Training Types{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Courses <span class="badge badge-pill badge-info">{{ training_types|length }}</span>
+  </div>
+  <div class="card-body">
+    <div><button type="button" class="btn btn-sm btn-success" data-toggle="modal" data-target="#course">Create/Update Courses</button></div>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Valid Duration</th>
+            <th>Latest Version</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for training in training_types %}
+
+            <tr>
+                <td>{{ training.name|title }} {% for course in training.courses.all %}<a href="{% url 'download_course' training.pk course.version %}"><i class="fa fa-download"></i>{{ course.version }}</a>{% if not forloop.last %} , {% endif %}{% endfor %}</td>
+                <td>{{ training.valid_duration.days }} days</td>
+                <td>{{ training.courses.last.version }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal fade" id="course" tabindex="-1">
+        <div class="modal-dialog">
+            <form action="{% url 'courses' %}" method="POST" enctype="multipart/form-data" class="">
+                <div class="modal-content">
+                    <div class="modal-body">
+                      <p>Learn how to create a course <a href="{% url 'guidelines_course' %}">here</a> or see sample files to <a href="{% static 'sample/example-course-create.json' %}">create a new course</a> or to <a href="{% static 'sample/example-course-update.json' %}">update a course</a></p>
+                        <div>
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label>Training Type: </label>
+                                <select name="training_id" class="form-control" required>
+                                    <option disabled>Choose...</option>
+                                    <option value="-1">Create new course</option>
+                                    {% for training in training_types %}
+                                    <option value="{{ training.id }}">{{ training.name|title }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>File: </label>
+                                <input type="file" name="json_file" id="json_file" required="True" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" name="create" class="btn btn-primary">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+            </div>
+            </form>
+        </div>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}

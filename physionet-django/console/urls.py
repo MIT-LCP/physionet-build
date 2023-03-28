@@ -1,4 +1,5 @@
 from console import views
+from training import views as training_views
 from django.urls import path
 
 urlpatterns = [
@@ -92,6 +93,8 @@ urlpatterns = [
 
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
+    path('guidelines/course/', views.guidelines_course, name='guidelines_course'),
+
 
     path('user-autocomplete/', views.UserAutocomplete.as_view(), name='user-autocomplete'),
     path('project-autocomplete/', views.ProjectAutocomplete.as_view(), name='project-autocomplete'),
@@ -154,6 +157,10 @@ urlpatterns = [
     path('event_agreements/<int:pk>/delete/', views.event_agreement_delete, name='event_agreement_delete'),
     path('event_agreements/<int:pk>/new-version/', views.event_agreement_new_version,
          name='event_agreement_new_version'),
+
+    # Courses/On Platform Training
+    path('courses/', training_views.courses, name='courses'),
+    path('courses/<int:pk>/download/<str:version>', training_views.download_course, name='download_course'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)

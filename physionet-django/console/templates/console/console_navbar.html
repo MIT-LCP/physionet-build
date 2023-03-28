@@ -13,42 +13,37 @@
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
       {% console_nav_menu_items request as nav_menu_items %}
       {% for item in nav_menu_items %}
-        {% if item.subitems %}
-          <li class="nav-item">
-            <a id="nav_{{ item.name }}_dropdown"
-               class="nav-link nav-link-collapse drop {{ item.active|yesno:',collapsed' }}"
-               data-toggle="collapse"
-               data-target="#nav_{{ item.name }}_components"
-               data-parent="#sideAccordion"
-               aria-expanded="{{ item.active|yesno:'true,false' }}"
-               href="#">
-              {% if item.icon %}
-                <span class="nav-link-icon fa fa-fw fa-{{ item.icon }}"></span>
-              {% endif %}
-              <span class="nav-link-text">{{ item.title }}</span>
-            </a>
-            <ul class="sidenav-second-level collapse {{ item.active|yesno:'show,' }}"
-                id="nav_{{ item.name }}_components">
-              {% for subitem in item.subitems %}
-                <li class="nav-item {{ subitem.active|yesno:'active,' }}">
-                  <a id="nav_{{ subitem.name }}" class="nav-link"
-                     href="{{ subitem.url }}">{{ subitem.title }}</a>
-                </li>
-              {% endfor %}
-            </ul>
+      {% if item.subitems %}
+      <li class="nav-item">
+        <a id="nav_{{ item.name }}_dropdown"
+          class="nav-link nav-link-collapse drop {{ item.active|yesno:',collapsed' }}" data-toggle="collapse"
+          data-target="#nav_{{ item.name }}_components" data-parent="#sideAccordion"
+          aria-expanded="{{ item.active|yesno:'true,false' }}" href="#">
+          {% if item.icon %}
+          <span class="nav-link-icon fa fa-fw fa-{{ item.icon }}"></span>
+          {% endif %}
+          <span class="nav-link-text">{{ item.title }}</span>
+        </a>
+        <ul class="sidenav-second-level collapse {{ item.active|yesno:'show,' }}" id="nav_{{ item.name }}_components">
+          {% for subitem in item.subitems %}
+          <li class="nav-item {{ subitem.active|yesno:'active,' }}">
+            <a id="nav_{{ subitem.name }}" class="nav-link" href="{{ subitem.url }}">{{ subitem.title }}</a>
           </li>
-        {% else %}
-          <li class="nav-item {{ item.active|yesno:'active,' }}">
-            <a id="nav_{{ item.name }}" class="nav-link" href="{{ item.url }}">
-              {% if item.icon %}
-                <span class="nav-link-icon fa fa-fw fa-{{ item.icon }}"></span>
-              {% endif %}
-              <span class="nav-link-text">{{ item.title }}</span>
-            </a>
-          </li>
-        {% endif %}
+          {% endfor %}
+        </ul>
+      </li>
+      {% else %}
+      <li class="nav-item {{ item.active|yesno:'active,' }}">
+        <a id="nav_{{ item.name }}" class="nav-link" href="{{ item.url }}">
+          {% if item.icon %}
+          <span class="nav-link-icon fa fa-fw fa-{{ item.icon }}"></span>
+          {% endif %}
+          <span class="nav-link-text">{{ item.title }}</span>
+        </a>
+      </li>
+      {% endif %}
       {% endfor %}
-    <!-- end of menu items -->
+      <!-- end of menu items -->
     </ul>
 
     <ul class="navbar-nav sidenav-toggler">
@@ -64,10 +59,11 @@
   </div>
   <div class="navbar-search">
     <form class="form-inline" action="{% url 'content_index' %}">
-        <input name="topic" class="search-input" type="text" placeholder="Search">
-        <span class="input-group-btn">
-          <button id="search-button" type="submit" class="btn-search my-2 my-sm-0" type="button"><i class="fa fa-search"></i></button>
-        </span>
+      <input name="topic" class="search-input" type="text" placeholder="Search">
+      <span class="input-group-btn">
+        <button id="search-button" type="submit" class="btn-search my-2 my-sm-0" type="button"><i
+            class="fa fa-search"></i></button>
+      </span>
     </form>
   </div>
 </nav>

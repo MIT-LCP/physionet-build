@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from training.models import Course, Module, Quiz, QuizChoice, ContentBlock
 from user.models import Training, TrainingType
+from user.enums import RequiredField
 from notification.utility import notify_users_of_training_expiry
 
 
@@ -15,7 +16,7 @@ class QuizChoiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QuizChoice
-        fields = "__all__"
+        fields = ['body', 'is_correct']
         read_only_fields = ['id', 'quiz']
 
 
@@ -24,7 +25,7 @@ class QuizSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Quiz
-        fields = "__all__"
+        fields = ['question', 'order', 'choices']
         read_only_fields = ['id', 'module']
 
 
@@ -32,7 +33,7 @@ class ContentBlockSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContentBlock
-        fields = "__all__"
+        fields = ['body', 'order']
         read_only_fields = ['id', 'module']
 
 
@@ -42,7 +43,7 @@ class ModuleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Module
-        fields = "__all__"
+        fields = ['name', 'description', 'order', 'contents', 'quizzes']
         read_only_fields = ['id', 'course']
 
 
@@ -51,16 +52,16 @@ class CourseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Course
-        fields = "__all__"
+        fields = ['version', 'modules']
         read_only_fields = ['id', 'training_type']
 
 
 class TrainingTypeSerializer(serializers.ModelSerializer):
-    courses = CourseSerializer()
+    courses = CourseSerializer(many=True)
 
     class Meta:
         model = TrainingType
-        fields = "__all__"
+        fields = ['name', 'description', 'valid_duration', 'courses']
         read_only_fields = ['id']
 
     def update_course_for_major_version_change(self, instance):
@@ -84,7 +85,7 @@ class TrainingTypeSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
 
         with transaction.atomic():
-            course = validated_data.pop('courses')
+            course = validated_data.pop('courses')[0]
             modules = course.pop('modules')
 
             course['training_type'] = instance
@@ -130,9 +131,10 @@ class TrainingTypeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
 
         with transaction.atomic():
-            course = validated_data.pop('courses')
+            course = validated_data.pop('courses')[0]
             modules = course.pop('modules')
 
+            validated_data['required_field'] = RequiredField.PLATFORM
             course['training_type'] = instance = TrainingType.objects.create(**validated_data)
 
             course_instance = Course.objects.create(**course)
