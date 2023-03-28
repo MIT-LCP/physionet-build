@@ -25,6 +25,8 @@ urlpatterns = [
     path('console/', include('console.urls')),
     # user app
     path('', include('user.urls')),
+    # training app
+    path('', include('training.urls')),
     # project app
     path('projects/', include('project.urls')),
     # events
