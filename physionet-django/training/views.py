@@ -75,8 +75,15 @@ def take_module_training(request, training_id, module_id):
             messages.error(request, 'Please submit the training correctly.')
             return redirect('platform_training', request.POST['training_type'])
 
+        # update the module progress
+        module_progress = training_progress.module_progresses.filter(module_id=module_id).last()
+        module_progress.status = ModuleProgress.Status.COMPLETED
+        module_progress.save()
+
         # only save a training object to database in Training if it is the last module
         if module == op_training.modules.last():
+            training_progress.status = OnPlatformTrainingProgress.Status.COMPLETED
+            training_progress.save()
             training = Training()
             slug = get_random_string(20)
             while Training.objects.filter(slug=slug).exists():
