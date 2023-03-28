@@ -142,9 +142,9 @@ def take_module_training(request, training_id, module_id):
         else:
             messages.success(
                 request, f'Congratulations! You completed the module {module.name} successfully.')
-            return redirect('platform_training', request.POST['training_type'])
+            return redirect('platform_training', op_training.training_type.id)
 
-        return redirect('platform_training', request.POST['training_type'])
+        return redirect('platform_training', op_training.training_type.id)
 
     training = OnPlatformTraining.objects.prefetch_related(
         Prefetch("modules__quizzes", queryset=Quiz.objects.order_by("?")),
@@ -155,12 +155,12 @@ def take_module_training(request, training_id, module_id):
     requested_module = training.modules.get(id=module_id)
 
     # find the content or quiz to be displayed
-    resume_content_or_quiz = training_progress.module_progresses.filter(
+    resume_content_or_quiz_module = training_progress.module_progresses.filter(
         module=requested_module).last()
-    if not resume_content_or_quiz:
+    if not resume_content_or_quiz_module:
         resume_content_or_quiz_from = 1
     else:
-        resume_content_or_quiz_from = resume_content_or_quiz.get_next_content_or_quiz().order
+        resume_content_or_quiz_from = resume_content_or_quiz_module.get_next_content_or_quiz().order
 
     # get the ids of the completed contents and quizzes
     completed_contents = training_progress.module_progresses.filter(
@@ -197,7 +197,7 @@ def update_module_progress(request):
 
         op_training_progress = OnPlatformTrainingProgress.objects.filter(
             user=request.user, training__id=training_id).last()
-        module_progress = op_training_progress.module_progress.filter(module__id=module_id).last()
+        module_progress = op_training_progress.module_progresses.filter(module__id=module_id).last()
 
         with transaction.atomic():
             if not module_progress:
@@ -217,7 +217,8 @@ def update_module_progress(request):
                     module_progress=module_progress,
                     quiz_id=update_type_id)
                 completed_quiz.save()
-                module_progress.last_completed_order = completed_quiz.content.order
+                module_progress.last_completed_order = completed_quiz.quiz.order
+            module_progress.save()
 
             return JsonResponse({'detail': 'success'}, status=200)
 

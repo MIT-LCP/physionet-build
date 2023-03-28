@@ -20,18 +20,22 @@
         {% csrf_token %}
         <input type="text" hidden name="resume-from" value="{{ resume_content_or_quiz_from }}"/>
         <input type="text" hidden name="question_answers" value=""/>
+        <input type="text" hidden name="data-update-url" value="{% url 'update_module_progress' %}"/>
+        <input type="text" hidden name="data-module-id" value="{{ module.id }}"/>
+        <input type="text" hidden name="data-training-id" value="{{ training.id }}"/>
         {% for item in quiz_content %}
           {% if item.body %}
             <div class="eachQuiz">
               <div>{{ item.body | safe }}</div>
               <div class="row ml-1">
                 {% if forloop.counter != 1 %}<a class="btn btn-warning previous">Back</a>{% endif %}
-                <a class="btn btn-success next text-white ml-auto mr-3">
+                <a class="btn btn-success next text-white ml-auto mr-3 {% if item.id in completed_contents_ids %}completed{% endif %}" data-update-type="content" data-update-type-id="{{ item.id }}">
                   {% if forloop.last %}
                     Submit Module
                   {% else %}
                     Next
                   {% endif %}
+                {% csrf_token %}
                 </a>
               </div>
             </div>
@@ -59,12 +63,13 @@
               <br>
               <div class="row ml-1">
                 {% if forloop.counter != 1 %}<a class="btn btn-warning previous">Back</a>{% endif %}
-                <a class="btn btn-success next text-white ml-auto mr-3 {% if item.id not in completed_quizzes_ids %}disabled{% endif %}">
+                <a class="btn btn-success next text-white ml-auto mr-3 {% if item.id in completed_quizzes_ids %}completed{% else %}disabled{% endif %}" data-update-type="quiz" data-update-type-id="{{ item.id }}">
                   {% if forloop.last %}
                     Submit Module
                   {% else %}
                     Next
                   {% endif %}
+                  {% csrf_token %}
                 </a>
               </div>
             </div>

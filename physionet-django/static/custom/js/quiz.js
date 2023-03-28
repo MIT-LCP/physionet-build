@@ -6,9 +6,51 @@ function changeSlide(n) {
 
 $('.next').on('click', function () {
     // move to next slide but keep track of start of partaining training
-    let slidePosition = parseInt(sessionStorage.getItem("slidePosition"));
-    sessionStorage.setItem("slidePosition", slidePosition - 1)
-    changeSlide(1);
+
+    // when next is clicked, update the progress of the user(for content and quiz) only if the content or quiz was not completed before
+    if($(this).hasClass('completed') == false){
+        $(this).addClass('disabled');
+        const url = document.querySelector('input[name="data-update-url"]').value;
+        const update_type = $(this).attr('data-update-type');
+        const update_type_id = $(this).attr('data-update-type-id');
+        const csrf_token = $(this).find('input[name="csrfmiddlewaretoken"]').val();
+        const module_id = document.querySelector('input[name="data-module-id"]').value;
+        const training_id = document.querySelector('input[name="data-training-id"]').value;
+
+        const data = {
+            'update_type': update_type,
+            'update_type_id': parseInt(update_type_id),
+            'module_id': parseInt(module_id),
+            'training_id': parseInt(training_id),
+        }
+        const $btn = $(this);
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: data,
+            headers: {
+                'X-CSRFToken': csrf_token
+            },
+            success: function (data) {
+                console.log(data);
+                $btn.addClass('completed');
+                console.log('ajax done');
+                let slidePosition = parseInt(sessionStorage.getItem("slidePosition"));
+                sessionStorage.setItem("slidePosition", slidePosition - 1)
+                changeSlide(1);
+            },
+            error: function (data) {
+                console.log(data);
+                alertBox("<strong>Oops!</strong> Something went wrong, kindly try again.", "danger")
+            }
+        });
+        $(this).removeClass('disabled');
+    }
+    else{
+        let slidePosition = parseInt(sessionStorage.getItem("slidePosition"));
+        sessionStorage.setItem("slidePosition", slidePosition - 1)
+        changeSlide(1);
+    }
 })
 
 $('.previous').on('click', function () {
