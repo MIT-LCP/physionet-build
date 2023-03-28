@@ -57,7 +57,157 @@ def take_training(request, training_id=None):
 
 @login_required
 def take_module_training(request, training_id, module_id):
-    pass
+    course = Course.objects.select_related('training_type').filter(
+        training_type__id=training_id).last()
+    module = course.modules.filter(pk=module_id).first()
+
+    course_progress = CourseProgress.objects.filter(user=request.user, course__id=course.id).last()
+    if not course_progress:
+        course_progress = CourseProgress.objects.create(user=request.user, course_id=course.id)
+
+    # mandate the user to complete all the previous modules before starting the requested module
+    next_module = course_progress.get_next_module()
+    if next_module and next_module.id < int(module_id):
+        messages.error(request, 'Please complete the previous modules before starting this module.')
+        return redirect('platform_training', training_id)
+
+    if request.method == 'POST':
+
+        # check if the questions are answered correctly
+        try:
+            user_question_answers = json.loads(request.POST['question_answers'])
+            # convert the keys to int(javascript sends them as string)
+            user_question_answers = {int(k): v for k, v in user_question_answers.items()}
+            for question in module.quizzes.all():
+                correct_answer = question.choices.filter(is_correct=True).first().id
+                if (question.id not in user_question_answers
+                        or user_question_answers.get(question.id) != correct_answer):
+                    messages.error(request, 'Please answer all questions correctly.')
+                    return redirect('platform_training', course.training_type.id)
+
+        except json.JSONDecodeError:
+            messages.error(request, 'Please submit the training correctly.')
+            return redirect('platform_training', course.training_type.id)
+
+        # update the module progress
+        module_progress = course_progress.module_progresses.filter(module_id=module_id).last()
+
+        if module_progress.status == ModuleProgress.Status.COMPLETED:
+            messages.info(request, 'You have already completed this module.')
+            return redirect('platform_training', course.training_type.id)
+
+        module_progress.status = ModuleProgress.Status.COMPLETED
+        module_progress.save()
+
+        # only save a training object to database in Training if it is the last module
+        if module == course.modules.last():
+            course_progress.status = CourseProgress.Status.COMPLETED
+            course_progress.save()
+            training = Training()
+            slug = get_random_string(20)
+            while Training.objects.filter(slug=slug).exists():
+                slug = get_random_string(20)
+
+            training.slug = slug
+            training.training_type = course.training_type
+            training.user = request.user
+            training.process_datetime = timezone.now()
+            training.status = TrainingStatus.ACCEPTED
+            training.save()
+
+            training_questions = []
+            for question in course.training_type.questions.all():
+                training_questions.append(TrainingQuestion(training=training, question=question))
+
+            TrainingQuestion.objects.bulk_create(training_questions)
+
+            messages.success(
+                request, f'Congratulations! You completed the training {course.training_type.name} successfully.')
+        else:
+            messages.success(
+                request, f'Congratulations! You completed the module {module.name} successfully.')
+            return redirect('platform_training', course.training_type.id)
+
+        return redirect('platform_training', course.training_type.id)
+
+    course = Course.objects.prefetch_related(
+        Prefetch("modules__quizzes", queryset=Quiz.objects.order_by("?")),
+        Prefetch("modules__contents", queryset=ContentBlock.objects.all())).filter(
+            training_type__id=training_id).order_by('version').last()
+
+    # we shouldn't use the next_module here as users might request to review a completed module
+    requested_module = course.modules.get(id=module_id)
+
+    # find the content or quiz to be displayed
+    resume_content_or_quiz_module = course_progress.module_progresses.filter(
+        module=requested_module).last()
+    if not resume_content_or_quiz_module:
+        resume_content_or_quiz_from = 1
+    else:
+        resume_content_or_quiz_object = resume_content_or_quiz_module.get_next_content_or_quiz()
+        resume_content_or_quiz_from = resume_content_or_quiz_object.order if resume_content_or_quiz_object else 1
+
+    # get the ids of the completed contents and quizzes
+    completed_contents = course_progress.module_progresses.filter(
+        module=requested_module).values_list('completed_contents__content_id', flat=True)
+    completed_contents_ids = [content for content in completed_contents if content]
+
+    completed_quizzes = course_progress.module_progresses.filter(
+        module=requested_module).values_list('completed_quizzes__quiz_id', flat=True)
+    completed_quizzes_ids = [quiz for quiz in completed_quizzes if quiz]
+
+    return render(request, 'training/quiz.html', {
+        'quiz_content': sorted(chain(
+            requested_module.quizzes.all(), requested_module.contents.all()),
+            key=operator.attrgetter('order')),
+        'quiz_answer': requested_module.quizzes.filter(choices__is_correct=True).values_list("id", "choices"),
+        'module': requested_module,
+        'course': course,
+        'resume_content_or_quiz_from': resume_content_or_quiz_from,
+        'completed_contents_ids': completed_contents_ids,
+        'completed_quizzes_ids': completed_quizzes_ids,
+    })
+
+
+@login_required
+def update_module_progress(request):
+    if request.method == 'POST':
+        course_id = request.POST.get('course_id')
+        module_id = request.POST.get('module_id')
+        update_type = request.POST.get('update_type')
+        update_type_id = request.POST.get('update_type_id')
+
+        if update_type not in ['content', 'quiz']:
+            return JsonResponse({'detail': 'Unsupported update type'}, status=400)
+
+        course_progress = CourseProgress.objects.filter(
+            user=request.user, course__id=course_id).last()
+        module_progress = course_progress.module_progresses.filter(module__id=module_id).last()
+
+        with transaction.atomic():
+            if not module_progress:
+                module_progress = ModuleProgress.objects.create(
+                    course_progress=course_progress,
+                    module_id=module_id)
+
+            if update_type == 'content':
+                completed_content = CompletedContent.objects.create(
+                    module_progress=module_progress,
+                    content_id=update_type_id)
+                completed_content.save()
+                module_progress.last_completed_order = completed_content.content.order
+
+            elif update_type == 'quiz':
+                completed_quiz = CompletedQuiz.objects.create(
+                    module_progress=module_progress,
+                    quiz_id=update_type_id)
+                completed_quiz.save()
+                module_progress.last_completed_order = completed_quiz.quiz.order
+            module_progress.save()
+
+            return JsonResponse({'detail': 'success'}, status=200)
+
+    return JsonResponse({'detail': 'Unsupported request method'}, status=400)
 
 
 @permission_required('training.change_course', raise_exception=True)
