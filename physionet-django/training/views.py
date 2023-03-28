@@ -21,6 +21,45 @@ from training.models import CourseProgress, ModuleProgress, CompletedContent, Co
 from training.serializers import TrainingTypeSerializer
 
 
+@login_required
+def take_training(request, training_id=None):
+
+    if request.method == 'POST':
+        if request.POST.get('training_type'):
+            return redirect('platform_training', request.POST['training_type'])
+
+        return redirect("edit_training")
+
+    course = Course.objects.prefetch_related(
+        Prefetch("modules__quizzes", queryset=Quiz.objects.order_by("?")),
+        Prefetch("modules__contents", queryset=ContentBlock.objects.all())).filter(
+            training_type__id=training_id).order_by('version').last()
+    modules = sorted(chain(course.modules.all()), key=operator.attrgetter('order'))
+    # get the progress of the user for the modules, updated_date
+    course_progress = CourseProgress.objects.filter(user=request.user, course__id=course.id).last()
+    if not course_progress:
+        course_progress = CourseProgress.objects.create(user=request.user, course_id=course.id)
+
+    for module in modules:
+        module_progress = course_progress.module_progresses.filter(module_id=module.id).last()
+        if module_progress:
+            module.progress_status = module_progress.get_status_display()
+            module.progress_updated_date = module_progress.updated_at
+        else:
+            module.progress_status = 'Not Started'
+            module.progress_updated_date = None
+    return render(request, 'training/course.html', {
+        'modules': modules,
+        'course': course,
+        'ModuleStatus': ModuleProgress.Status,
+    })
+
+
+@login_required
+def take_module_training(request, training_id, module_id):
+    pass
+
+
 @permission_required('training.change_course', raise_exception=True)
 def courses(request):
     if request.POST:
