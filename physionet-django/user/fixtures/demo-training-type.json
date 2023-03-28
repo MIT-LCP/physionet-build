@@ -18,6 +18,24 @@
         }
     },
     {
+        "model": "user.trainingtype",
+        "pk": 2,
+        "fields": {
+            "name": "World 101: Introduction to Continents and Countries",
+            "description": "<p>Join us for an exciting journey around the globe as we explore the continents and countries that make up our world. In this training, you&rsquo;ll learn about the geography, culture, and history of different regions and gain a deeper understanding of our interconnected world.</p>\n\n<p><strong>What You Will Learn:</strong></p>\n\n<ul>\n\t<li>The names and locations of the seven continents</li>\n\t<li>Key countries and their capitals on each continent</li>\n\t<li>Basic geographical features and landmarks</li>\n\t<li>Cultural and historical highlights of different regions</li>\n</ul>\n\n<p><strong>Prerequisites:</strong></p>\n\n<ul>\n\t<li>No prior knowledge is required</li>\n\t<li>An interest in geography and world cultures is recommended</li>\n</ul>\n\n<p>Don&rsquo;t miss this opportunity to expand your horizons and discover the fascinating world we live in. Our experienced instructors will guide you through this engaging training, providing insights and knowledge along the way. Sign up now to reserve your spot!</p>\n\n<p><strong>Contact:</strong> For more information or to register for this training, please contact us at&nbsp;<a href=\"mailto:training@discoveringtheworld.com\">training@discoveringtheworld.com</a>&nbsp;or call us at 555-1234.</p>\n",
+            "home_page": "/",
+            "valid_duration": "1095 00:00:00",
+            "required_field": 2,
+            "questions": [
+                1,
+                2,
+                3,
+                4,
+                5
+            ]
+        }
+    },
+    {
         "model": "user.question",
         "pk": 1,
         "fields": {
