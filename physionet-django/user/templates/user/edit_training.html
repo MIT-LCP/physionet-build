@@ -5,10 +5,15 @@
 {% block main_content %}
 <h1>Training</h1>
   <hr>
-    <p>To gain access to certain datasets on {{ SITE_NAME }}, you are required to demonstrate that you have completed relevant training. You can find specific training requirements in the "Files" section of the project description.</p> 
-    
+    <p>To gain access to certain datasets on {{ SITE_NAME }}, you are required to demonstrate that you have completed relevant training. You can find specific training requirements in the "Files" section of the project description.</p>
+    {% if take_course_form %}
+    <p>You can either complete a training on a third-party platform and upload the training or take the training on this platform if available.</p>
+    {% else %}
+    <p>You can complete the training on a third-party platform and upload the training.</p>
+    {% endif %}
     <h6>You can view the status of your training submissions on the <a href="{% url 'edit_certification' %}">Certification</a> page.</h6>
   <hr>
+
   <h4>Submit evidence of a completed Training</h4>
 
   <p>Please use the form below to submit a new completion report.</p>
@@ -42,12 +47,46 @@
       </div>
   </form>
 
+    <br>
+
+  {% if take_course_form %}
+      <h4>Complete training course on Platform</h4>
+  <form action="{% url 'edit_training' %}" method="post" id="on_platform_training">
+    {% include "descriptive_inline_form_snippet.html" with form=take_course_form %}
+    <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#start-training">Open Training</button>
+
+    <div class="modal fade" id="start-training" tabindex="-1" role="dialog" aria-labelledby="start-training-modal" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Open Training Page</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+              <p>Are you sure you want to open the training page?</p>
+          </div>
+          <div class="modal-footer">
+              <button class="btn btn-primary" type="submit">Open Training</button>
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
+
 {% endblock %}
 
 {% block local_js_bottom %}
   <script>
     $(document).on('change', '#id_training_type', function() {
       $("#training").load(`{% url 'edit_training' %}?trainingType=${this.value} #training>`);
+    });
+    $(document).on('change', '#op_training_type', function() {
+      $("#on_platform_training").load(`{% url 'edit_training' %}?trainingType=${this.value} #on_platform_training>`);
     });
   </script>
 {% endblock %}

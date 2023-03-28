@@ -1,0 +1,21 @@
+.eachQuiz{
+    display: none
+}
+
+.blockContent{
+    display: none
+}
+
+.quizContainer {
+    max-width: 100%;
+    position: relative;
+    margin: auto;
+    display: block;
+}
+
+.blockContainer {
+    max-width: 100%;
+    position: relative;
+    margin: auto;
+    display: block;
+}

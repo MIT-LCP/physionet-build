@@ -44,6 +44,8 @@ from physionet.middleware.maintenance import (
 from physionet.models import Section
 from physionet.settings.base import StorageTypes
 from project.models import Author, DUASignature, DUA, PublishedProject
+from training.forms import CourseForm
+from training.models import Course
 from requests_oauthlib import OAuth2Session
 from user import forms, validators
 from user.awsverification import aws_verification_available
@@ -60,6 +62,7 @@ from user.models import (
     TrainingType,
 )
 from user.userfiles import UserFiles
+from user.enums import RequiredField
 from physionet.models import StaticPage
 from django.db.models import F
 
@@ -295,6 +298,7 @@ def set_public_email(request, public_email_form):
 
 def add_email(request, add_email_form):
     user = request.user
+    # noinspection GrazieInspection
     if add_email_form.is_valid():
         token = get_random_string(20)
         associated_email = AssociatedEmail.objects.create(user=user,
@@ -748,11 +752,19 @@ def edit_training(request):
         ticket_system_url = None
 
     if request.method == "POST":
+        if len(request.FILES) == 0 and request.POST.get("training_type") is not None:
+            training_slug = TrainingType.objects.get(
+                id=request.POST.get("training_type")
+            ).slug
+            return redirect("platform_training", training_slug)
         training_form = forms.TrainingForm(
             user=request.user,
             data=request.POST,
             files=request.FILES,
             training_type=request.POST.get("training_type"),
+        )
+        take_course_form = CourseForm(
+            data=request.POST, training_type=request.POST.get("training_type"), auto_id="op_%s"
         )
         if training_form.is_valid():
             training_form.save()
@@ -761,15 +773,25 @@ def edit_training(request):
             training_form = forms.TrainingForm(user=request.user)
         else:
             messages.error(request, "Invalid submission. Check the errors below.")
-
     else:
         training_type = request.GET.get("trainingType")
+        take_course_form = None
         if training_type:
             training_form = forms.TrainingForm(
                 user=request.user, training_type=training_type
             )
+            if Course.objects.filter(
+                    training_type__required_field=RequiredField.PLATFORM,
+                    is_active=True
+            ).exists():
+                take_course_form = CourseForm(training_type=training_type, auto_id="op_%s")
         else:
             training_form = forms.TrainingForm(user=request.user)
+            if Course.objects.filter(
+                    training_type__required_field=RequiredField.PLATFORM,
+                    is_active=True
+            ).exists():
+                take_course_form = CourseForm(auto_id="op_%s")
 
         expiring_trainings = Training.objects.filter(
             user=request.user,
@@ -787,7 +809,7 @@ def edit_training(request):
     return render(
         request,
         "user/edit_training.html",
-        {"training_form": training_form, "ticket_system_url": ticket_system_url},
+        {"training_form": training_form, "ticket_system_url": ticket_system_url, "take_course_form": take_course_form},
     )
 
 
@@ -799,7 +821,6 @@ def edit_certification(request):
     training = (
         Training.objects.select_related("training_type")
         .filter(user=request.user)
-        .order_by("-status")
     )
     training_by_status = {
         "under review": training.get_review(),
