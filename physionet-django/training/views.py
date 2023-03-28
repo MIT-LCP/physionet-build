@@ -125,7 +125,8 @@ def take_module_training(request, training_id, module_id):
     if not resume_content_or_quiz_module:
         resume_content_or_quiz_from = 1
     else:
-        resume_content_or_quiz_from = resume_content_or_quiz_module.get_next_content_or_quiz().order
+        resume_content_or_quiz_object = resume_content_or_quiz_module.get_next_content_or_quiz()
+        resume_content_or_quiz_from = resume_content_or_quiz_object.order if resume_content_or_quiz_object else 1
 
     # get the ids of the completed contents and quizzes
     completed_contents = training_progress.module_progresses.filter(
