@@ -11,7 +11,7 @@
   <div class="container my-3">
     <div class="quizContainer">
       <div class="quizHeader">
-        <h1>{{ training.training_type.name }}</h1>
+        <h1><a href="{% url 'platform_training' training.training_type.id %}">{{ training.training_type.name }}</a></h1>
       </div>
       <hr>
       <h2>{{ module.name }}</h2>

@@ -34,10 +34,21 @@ def take_training(request, training_id=None):
         Prefetch("modules__quizzes", queryset=Quiz.objects.order_by("?")),
         Prefetch("modules__contents", queryset=ContentBlock.objects.all())).filter(
             training_type__id=training_id).order_by('version').last()
-
+    modules = sorted(chain(training.modules.all()), key=operator.attrgetter('order'))
+    # get the progress of the user for the modules, updated_date
+    training_progress = OnPlatformTrainingProgress.objects.filter(user=request.user, training__id=training.id).last()
+    for module in modules:
+        module_progress = training_progress.module_progresses.filter(module_id=module.id).last()
+        if module_progress:
+            module.progress_status = module_progress.get_status_display()
+            module.progress_updated_date = module_progress.updated_datetime
+        else:
+            module.progress_status = 'Not Started'
+            module.progress_updated_date = None
     return render(request, 'training/op_training.html', {
-        'modules': sorted(chain(training.modules.all()), key=operator.attrgetter('order')),
+        'modules': modules,
         'training': training,
+        'ModuleStatus': ModuleProgress.Status,
     })
 
 

@@ -40,10 +40,18 @@
                 <td>
                   <strong>{{ module.name }}</strong>
                 </td>
-                <td>Not Started</td>
-                <td>Not Started</td>
+                <td>{{ module.progress_status }}</td>
+                <td>{{ module.progress_updated_date}}</td>
                 <td>
-                    <a href="{% url 'platform_training_module' training.training_type.pk module.pk %}">Start</a>
+                    <a href="{% url 'platform_training_module' training.training_type.pk module.pk %}">
+                      {% if module.progress_status ==  ModuleStatus.COMPLETED.label %}
+                        Review
+                      {% elif module.progress_status ==  ModuleStatus.IN_PROGRESS.label %}
+                        Continue
+                      {% else %}
+                        Start
+                      {% endif %}
+                    </a>
                 </td>
               </tr>
             {% endfor %}
