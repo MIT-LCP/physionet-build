@@ -822,7 +822,8 @@ class StaticPageForm(forms.ModelForm):
 
     def save(self):
         static_page = super().save(commit=False)
-        static_page.nav_order = StaticPage.objects.count() + 1
+        if not self.initial:
+            static_page.nav_order = StaticPage.objects.count() + 1
         static_page.save()
         return static_page
 
