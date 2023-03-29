@@ -9,7 +9,8 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage, mail_admins, send_mail
 from django.template import defaultfilters, loader
 from django.utils import timezone
-from project.models import DataAccessRequest, License
+from project.models import License
+from authorization.models import DataAccessRequest
 from django.urls import reverse
 
 from user.models import CredentialApplication

@@ -16,13 +16,12 @@ from project.models import (
     ArchivedProject,
     Author,
     AuthorInvitation,
-    DataAccessRequest,
-    DataAccessRequestReviewer,
     License,
     PublishedAuthor,
     PublishedProject,
     StorageRequest,
 )
+from authorization.models import DataAccessRequest, DataAccessRequestReviewer
 from user.models import User
 from user.test_views import TestMixin, prevent_request_warnings
 

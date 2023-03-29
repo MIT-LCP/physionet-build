@@ -37,9 +37,6 @@ from project.models import (
     ArchivedProject,
     Author,
     AuthorInvitation,
-    DataAccess,
-    DataAccessRequest,
-    DataAccessRequestReviewer,
     DUASignature,
     GCPLog,
     DUA,
@@ -51,6 +48,7 @@ from project.models import (
     Topic,
     UploadedDocument,
 )
+from authorization.models import DataAccess, DataAccessRequest, DataAccessRequestReviewer
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm

@@ -26,8 +26,6 @@ from project.models import (
     Author,
     AuthorInvitation,
     CoreProject,
-    DataAccessRequest,
-    DataAccessRequestReviewer,
     DUA,
     License,
     Metadata,
@@ -40,6 +38,7 @@ from project.models import (
     exists_project_slug,
     UploadedDocument,
 )
+from authorization.models import DataAccessRequest, DataAccessRequestReviewer
 from project.projectfiles import ProjectFiles
 from user.models import User, TrainingType
 from user.validators import validate_affiliation

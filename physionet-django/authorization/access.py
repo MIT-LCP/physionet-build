@@ -3,7 +3,8 @@ import datetime
 from django.db.models import Q
 
 from events.models import Event, EventDataset
-from project.models import AccessPolicy, DUASignature, DataAccessRequest
+from project.models import AccessPolicy, DUASignature
+from authorization.models import DataAccessRequest
 from user.models import Training, TrainingType
 
 

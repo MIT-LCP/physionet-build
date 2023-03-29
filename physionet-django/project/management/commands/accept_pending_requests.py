@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 import notification.utility as notification
-from project.models import DataAccessRequest
+from authorization.models import DataAccessRequest
 from user.models import User
 
 

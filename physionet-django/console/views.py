@@ -41,9 +41,7 @@ from project.models import (
     AccessPolicy,
     ActiveProject,
     ArchivedProject,
-    DataAccess,
     DUA,
-    DataAccessRequest,
     DUASignature,
     EditLog,
     License,
@@ -54,6 +52,7 @@ from project.models import (
     Topic,
     exists_project_slug,
 )
+from authorization.models import DataAccess, DataAccessRequest
 from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH

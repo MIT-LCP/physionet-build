@@ -2,7 +2,8 @@ from django.core import mail
 from django.utils import timezone
 
 from project.management.commands import accept_pending_requests
-from project.models import DataAccessRequest, PublishedProject
+from project.models import PublishedProject
+from authorization.models import DataAccessRequest
 from user.models import User
 from user.test_views import TestMixin
 

@@ -20,7 +20,6 @@ from project.models import (
     AccessPolicy,
     Contact,
     CopyeditLog,
-    DataAccess,
     DUA,
     EditLog,
     License,
@@ -29,6 +28,7 @@ from project.models import (
     PublishedProject,
     exists_project_slug,
 )
+from authorization.models import DataAccess
 from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
