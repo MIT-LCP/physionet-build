@@ -25,6 +25,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
+from authorization.access import Authorization
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset
 from notification.models import News
@@ -1157,6 +1158,7 @@ def users_aws_access_list_json(request):
         "mimiciv-2.0"
     ]
     published_projects = PublishedProject.objects.all()
+    authorization = Authorization(user=request.user)
     users_with_awsid = User.objects.filter(cloud_information__aws_id__isnull=False)
     datasets = {}
     datasets['datasets'] = []
@@ -1168,7 +1170,7 @@ def users_aws_access_list_json(request):
             dataset['name'] = project_name
             dataset['accounts'] = []
             for user in users_with_awsid:
-                if project.has_access(user):
+                if authorization.can_access_project(project):
                     dataset['accounts'].append(user.cloud_information.aws_id)
             datasets['datasets'].append(dataset)
 
