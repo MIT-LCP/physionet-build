@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'physionet',
     'django_sass',
     'events',
+    'authorization',
 ]
 
 if ENABLE_SSO:
