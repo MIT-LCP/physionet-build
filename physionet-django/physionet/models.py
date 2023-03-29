@@ -47,6 +47,13 @@ class StaticPage(models.Model):
         self.nav_order = nav_order + 1
         self.save()
 
+    def delete(self, *args, **kwargs):
+        nav_order = self.nav_order
+
+        super().delete(*args, **kwargs)
+
+        StaticPage.objects.filter(nav_order__gt=nav_order).update(nav_order=models.F('nav_order') - 1)
+
 
 class Section(models.Model):
     """
