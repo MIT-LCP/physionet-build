@@ -299,7 +299,8 @@ class RegistrationForm(forms.ModelForm):
                     widget=forms.TextInput(attrs={'class': 'form-control'}),
                     validators=[validate_name])
 
-    privacy_policy = forms.BooleanField(required=True, label=mark_safe(settings.PRIVACY_POLICY_HTML))
+    if settings.PRIVACY_POLICY_HTML:
+        privacy_policy = forms.BooleanField(required=True, label=mark_safe(settings.PRIVACY_POLICY_HTML))
     # Minimum and maximum number of seconds from when the client first
     # loads the page until the form may be submitted.
     MIN_SUBMISSION_SECONDS = 15
