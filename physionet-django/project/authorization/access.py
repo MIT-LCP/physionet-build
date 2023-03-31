@@ -59,3 +59,42 @@ def get_accessible_projects(user):
     query |= Q(id__in=accessible_projects_ids)
 
     return PublishedProject.objects.filter(query).distinct()
+
+
+def can_access_project(project, user):
+    """Checks if the project is accessible by the user"""
+    if project.deprecated_files:
+        return False
+
+    if not project.allow_file_downloads:
+        return False
+
+    if project.access_policy == AccessPolicy.OPEN:
+        return True
+    elif project.access_policy == AccessPolicy.RESTRICTED:
+        return user.is_authenticated and DUASignature.objects.filter(project=project, user=user).exists()
+    elif project.access_policy == AccessPolicy.CREDENTIALED:
+        return (
+            user.is_authenticated
+            and user.is_credentialed
+            and DUASignature.objects.filter(project=project, user=user).exists()
+            and Training.objects.get_valid()
+            .filter(training_type__in=project.required_trainings.all(), user=user)
+            .count()
+            == project.required_trainings.count()
+        )
+    elif project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
+        return (
+            user.is_authenticated
+            and user.is_credentialed
+            and DataAccessRequest.objects.get_active(
+                project=project,
+                requester=user,
+                status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+            ).exists()
+            and Training.objects.get_valid()
+            .filter(training_type__in=project.required_trainings.all(), user=user)
+            .count()
+            == project.required_trainings.count()
+        )
+    return False
