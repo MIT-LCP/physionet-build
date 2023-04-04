@@ -202,7 +202,7 @@ def call_method(obj, method_name, *args):
         args: arguments to be passed to the method
 
     Example:
-        {% call_method published_project 'has_access' request.user as user_has_access %}
+        {% call_method published_project 'can_view_files' request.user as user_can_view_files %}
     """
     method = getattr(obj, method_name)
     return method(*args)
