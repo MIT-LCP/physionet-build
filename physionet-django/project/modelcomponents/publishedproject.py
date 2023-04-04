@@ -207,6 +207,9 @@ class PublishedProject(Metadata, SubmissionInfo):
             args=(self.slug, self.version, os.path.join(subdir, file)))
 
     def can_view_files(self, user):
+        """
+        Whether the user has access to this project and files. Extends 'is_authorized'
+        """
         return self.allow_file_downloads and self.is_authorized(user)
 
     def is_authorized(self, user):
