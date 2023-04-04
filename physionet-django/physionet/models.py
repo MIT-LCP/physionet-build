@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.db import transaction
 from project.models import SafeHTMLField
 
 
@@ -25,7 +25,8 @@ class StaticPage(models.Model):
             return
 
         count = StaticPage.objects.count()
-        self.nav_order = count + 1
+        # hack to avoid unique constraint(10000 has no significance, it's just a large number)
+        self.nav_order = count + 10000
         self.save()
 
         StaticPage.objects.filter(nav_order=nav_order - 1).update(nav_order=nav_order)
@@ -38,14 +39,24 @@ class StaticPage(models.Model):
         nav_order = self.nav_order
         if nav_order == count:
             return
-
-        self.nav_order = count + 1
+        # hack to avoid unique constraint(10000 has no significance, it's just a large number)
+        self.nav_order = count + 10000
         self.save()
 
         StaticPage.objects.filter(nav_order=nav_order + 1).update(nav_order=nav_order)
 
         self.nav_order = nav_order + 1
         self.save()
+
+    def delete(self, *args, **kwargs):
+        nav_order = self.nav_order
+
+        with transaction.atomic():
+            super().delete(*args, **kwargs)
+            pages = StaticPage.objects.filter(nav_order__gt=nav_order).order_by('nav_order')
+            for page in pages:
+                page.nav_order = page.nav_order - 1
+                page.save()
 
 
 class Section(models.Model):
