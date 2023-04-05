@@ -5,6 +5,7 @@ import urllib.parse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.redirects.models import Redirect
+from django.test import TestCase
 from django.urls import URLPattern, URLResolver, get_resolver
 from django.utils.regex_helper import normalize
 
@@ -226,7 +227,7 @@ class RedirectedToLogin(Exception):
     pass
 
 
-class TestRedirect(TestMixin):
+class TestRedirect(TestCase):
     """
     Test the redirect app.
 
@@ -257,6 +258,3 @@ class TestRedirect(TestMixin):
 
         response = self.client.get(old_path)
         self.assertEqual(response.status_code, 301)
-
-        redirect = Redirect.objects.get(old_path=old_path)
-        redirect.delete()
