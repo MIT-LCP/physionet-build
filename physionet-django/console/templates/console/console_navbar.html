@@ -314,7 +314,7 @@
       {% endif %}
 
       <!-- Pages -->
-      {% if perms.user.change_staticpage or perms.user.change_frontpagebutton %}
+      {% if perms.user.change_staticpage or perms.user.change_frontpagebutton or perms.redirect.view_redirect %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         {% if frontpage_buttons_nav or static_pages_nav %}
           <a id="nav_pages_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#pagesComponent" data-parent="#sideAccordion" aria-expanded="true">
@@ -325,16 +325,19 @@
             <span class="nav-link-text">Pages</span>
           </a>
           <!-- submenu -->
-        {% if frontpage_buttons_nav or static_pages_nav %}
+        {% if frontpage_buttons_nav or static_pages_nav or redirects_nav %}
           <ul class="sidenav-second-level collapse show" id="pagesComponent" style="">
         {% else %}
           <ul class="sidenav-second-level collapse" id="pagesComponent">
         {% endif %}
             <li class="nav-item {% if static_pages_nav %}active{% endif %}">
-              <a id="nav_console_news" class="nav-link" href="{% url 'static_pages' %}">Static Pages</a>
+              <a id="nav_pages_dropdown" class="nav-link" href="{% url 'static_pages' %}">Static Pages</a>
             </li>
             <li class="nav-item {% if frontpage_buttons_nav %}active{% endif %}">
-              <a id="nav_console_news" class="nav-link" href="{% url 'frontpage_buttons' %}">Frontpage Buttons</a>
+              <a id="nav_pages_dropdown" class="nav-link" href="{% url 'frontpage_buttons' %}">Frontpage Buttons</a>
+            </li>
+            <li class="nav-item {% if redirects_nav %}active{% endif %}">
+              <a id="nav_pages_dropdown" class="nav-link" href="{% url 'redirects' %}">Redirects</a>
             </li>
           </ul>
       </li>

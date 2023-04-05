@@ -104,6 +104,9 @@ urlpatterns = [
     path('usage/credentialing/stats/', views.credentialing_stats, name='credentialing_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
 
+    # redirects
+    path('redirects/', views.view_redirects, name='redirects'),
+
     # front pages
     path('front-page-button/add/', views.frontpage_button_add, name='frontpage_button_add'),
     path('front-page-button/<int:button_pk>/edit/', views.frontpage_button_edit, name='frontpage_button_edit'),

@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django.contrib.redirects',
 
     'ckeditor',
     # 'django_cron',
@@ -78,7 +79,10 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # RedirectFallbackMiddleware should go at end of list, according
+    # to the docs: https://docs.djangoproject.com/en/4.1/ref/contrib/redirects/
+    'django.contrib.redirects.middleware.RedirectFallbackMiddleware'
 ]
 
 REST_FRAMEWORK = {
