@@ -812,15 +812,11 @@ class CredentialApplication(models.Model):
     course_info = models.CharField(max_length=100, default='', blank=True,
                                    validators=[validators.validate_course])
     # Reference
-    reference_category = models.PositiveSmallIntegerField(null=True,
-                                                          blank=True, choices=REFERENCE_CATEGORIES)
-    reference_name = models.CharField(max_length=202, default='', blank=True,
-                                      validators=[validators.validate_reference_name])
-    reference_email = models.EmailField(default='', blank=True)
-    reference_organization = models.CharField(max_length=200,
-                                              validators=[validators.validate_organization], blank=True)
-    reference_title = models.CharField(max_length=60, default='', blank=True,
-                                       validators=[validators.validate_reference_title])
+    reference_category = models.PositiveSmallIntegerField(null=True, choices=REFERENCE_CATEGORIES)
+    reference_name = models.CharField(max_length=202, default='', validators=[validators.validate_reference_name])
+    reference_email = models.EmailField(default='')
+    reference_organization = models.CharField(max_length=200, validators=[validators.validate_organization])
+    reference_title = models.CharField(max_length=60, default='', validators=[validators.validate_reference_title])
     # 0 1 2 3 = pending, rejected, accepted, withdrawn
     status = models.PositiveSmallIntegerField(default=Status.PENDING,
                                               choices=Status.choices)
