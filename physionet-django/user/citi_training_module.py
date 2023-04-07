@@ -4,9 +4,6 @@ import xml.etree.ElementTree as ET
 from django.conf import settings
 from django.template import loader
 
-# SOAP request URL
-url = "https://webservices.citiprogram.org/SOAP/CITISOAPService.asmx"
-
 def send_request(xml_payload):
     # Define the headers 
     headers = {
