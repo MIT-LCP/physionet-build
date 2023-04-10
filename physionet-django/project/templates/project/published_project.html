@@ -364,87 +364,88 @@
       </div>
     {% else %}
       {% if is_authorized %}
-        {% if project.allow_file_downloads %}
-          {#  refactored code goes here            #}
-          <p>Total uncompressed size: {{ main_size }}.</p>
-          {# ZIP START #}
-          <h5>Access the files</h5>
-          {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
-            <p>You have been granted access for a <a
-                href="{% url 'data_access_request_status' project.slug project.version %}">specific
-              project</a>. If you require access for an additional project, please submit a <a
-                href="{% url 'request_data_access' project.slug project.version %}">new request.</a>
-            </p>
-          {% endif %}
+        {% if can_create_research_environment %}
+          {% include "project/published_project_denied_downloads.html" %}
+        {% else %}
+          {% if project.allow_file_downloads %}
+            {#  refactored code goes here            #}
+            <p>Total uncompressed size: {{ main_size }}.</p>
+            {# ZIP START #}
+            <h5>Access the files</h5>
+            {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
+              <p>You have been granted access for a <a
+                  href="{% url 'data_access_request_status' project.slug project.version %}">specific
+                project</a>. If you require access for an additional project, please submit a <a
+                  href="{% url 'request_data_access' project.slug project.version %}">new request.</a>
+              </p>
+            {% endif %}
 
-          <ul>
-            {% if project.access_policy %}
-              {% if project.compressed_storage_size %}
-                <li><a href="{% url 'serve_published_project_zip' project.slug project.version %}">Download
-                  the ZIP file</a> ({{ compressed_size }})
-                </li>
-              {% endif %}
-            {% else %}
-              {% if project.gcp %}
-                {% if project.gcp.sent_zip %}
-                  <!-- Temporary fix: Change default location to local servers -->
-                  <!--
+            <ul>
+              {% if project.access_policy %}
+                {% if project.compressed_storage_size %}
+                  <li><a href="{% url 'serve_published_project_zip' project.slug project.version %}">Download
+                    the ZIP file</a> ({{ compressed_size }})
+                  </li>
+                {% endif %}
+              {% else %}
+                {% if project.gcp %}
+                  {% if project.gcp.sent_zip %}
+                    <!-- Temporary fix: Change default location to local servers -->
+                    <!--
                   <li><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}">
                       Download the ZIP file</a> ({{ compressed_size }}).</a></li>
                   -->
-                  <li><a href="{% static project.zip_url %}">Download the ZIP file</a>
-                    ({{ compressed_size }})
-                  </li>
+                    <li><a href="{% static project.zip_url %}">Download the ZIP file</a>
+                      ({{ compressed_size }})
+                    </li>
+                  {% elif project.compressed_storage_size %}
+                    <li><a href="{% static project.zip_url %}">Download the ZIP file</a>
+                      ({{ compressed_size }})
+                    </li>
+                  {% endif %}
+                  {% if project.gcp.sent_files %}
+                    <li>Access the files using the Google Cloud Storage Browser <a
+                        href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>.
+                      Login with a Google account is required.
+                    <li>
+                      Access the data using the Google Cloud command line tools (please refer to the <a
+                        href="https://cloud.google.com/storage/docs/gsutil_install">gsutil</a>
+                      documentation for guidance):
+                      <pre class="shell-command">gsutil -m -u YOUR_PROJECT_ID cp -r gs://{{ project.gcp.bucket_name }} DESTINATION</pre>
+                    </li>
+                  {% endif %}
                 {% elif project.compressed_storage_size %}
-                  <li><a href="{% static project.zip_url %}">Download the ZIP file</a>
-                    ({{ compressed_size }})
+                  <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})
                   </li>
                 {% endif %}
-                {% if project.gcp.sent_files %}
-                  <li>Access the files using the Google Cloud Storage Browser <a
-                      href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>.
-                    Login with a Google account is required.
-                  <li>
-                    Access the data using the Google Cloud command line tools (please refer to the <a
-                      href="https://cloud.google.com/storage/docs/gsutil_install">gsutil</a>
-                    documentation for guidance):
-                    <pre class="shell-command">gsutil -m -u YOUR_PROJECT_ID cp -r gs://{{ project.gcp.bucket_name }} DESTINATION</pre>
-                  </li>
-                {% endif %}
-              {% elif project.compressed_storage_size %}
-                <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})
+              {% endif %}
+              {% include "project/published_project_data_access.html" %}
+              {% if is_wget_supported %}
+                <li>
+                  Download the files using your terminal:
+                  <pre class="shell-command">wget -r -N -c -np{% if project.access_policy %} --user {{ user }}
+                    --ask-password{% endif %}
+                    {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre>
                 </li>
               {% endif %}
-            {% endif %}
-            {% include "project/published_project_data_access.html" %}
-            {% if is_wget_supported %}
-              <li>
-                Download the files using your terminal:
-                <pre class="shell-command">wget -r -N -c -np{% if project.access_policy %} --user {{ user }}
-                  --ask-password{% endif %}
-                  {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre>
-              </li>
+
+            </ul>
+            {# ZIP END #}
+
+            {% if is_lightwave_supported and project.access_policy == AccessPolicy.OPEN %}
+              {% if project.has_wfdb %}
+                <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i
+                    class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+              {% endif %}
             {% endif %}
 
-          </ul>
-          {# ZIP END #}
+            <div id="files-panel" class="card">
+              {% include "project/files_panel.html" %}
+            </div>
 
-          {% if is_lightwave_supported and project.access_policy == AccessPolicy.OPEN %}
-            {% if project.has_wfdb %}
-              <p><a href="{% url 'lightwave_home' %}?db={{ project.slug }}/{{ project.version }}"><i
-                  class="fas fa-chart-line"></i> Visualize waveforms</a></p>
-            {% endif %}
           {% endif %}
 
-          <div id="files-panel" class="card">
-            {% include "project/files_panel.html" %}
-          </div>
-        {% else %}
-          {% include "project/published_project_denied_downloads.html" %}
         {% endif %}
-
-      {% else %}
-        {% include "project/published_project_unauthorized.html" %}
       {% endif %}
     {% endif %}
     <br>
