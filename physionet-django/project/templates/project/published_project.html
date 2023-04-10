@@ -367,11 +367,10 @@
         {% if can_create_research_environment %}
           {% include "project/published_project_denied_downloads.html" %}
         {% else %}
-          {% if can_view_files %}
-            {#  refactored code goes here            #}
             <p>Total uncompressed size: {{ main_size }}.</p>
-            {# ZIP START #}
             <h5>Access the files</h5>
+          {% if can_view_files %}
+
             {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
               <p>You have been granted access for a <a
                   href="{% url 'data_access_request_status' project.slug project.version %}">specific
