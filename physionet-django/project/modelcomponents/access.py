@@ -1,6 +1,7 @@
 from datetime import timedelta
 from enum import IntEnum
 
+from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -13,6 +14,7 @@ from project.modelcomponents.fields import SafeHTMLField
 from project.validators import validate_version
 
 from project.managers.access import DataAccessRequestQuerySet, DataAccessRequestManager
+from physionet.settings.base import StorageTypes
 
 
 class AccessPolicy(IntEnum):
@@ -337,3 +339,42 @@ class DUA(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class DataSourceCreator:
+    def __init__(self, **kwargs):
+        self.data_location = kwargs.get('data_location', None)
+        self.files_available = kwargs.get('files_available', None)
+        self.email = kwargs.get('email', None)
+        self.uri = kwargs.get('uri', None)
+        self.access_mechanism = kwargs.get('access_mechanism', None)
+
+    def create(self, project):
+        DataSource.objects.create(
+            project=project,
+            files_available=self.files_available,
+            data_location=self.data_location,
+            access_mechanism=self.access_mechanism,
+            email=self.email,
+            uri=self.uri,
+        )
+
+    @staticmethod
+    def create_default(project):
+        if (settings.DEFAULT_PROJECT_DATA_LOCATION == DataSource.DataLocation.DIRECT
+                and settings.STORAGE_TYPE == StorageTypes.LOCAL):
+            DataSource.objects.create(
+                project=project,
+                files_available=True,
+                data_location=DataSource.DataLocation.DIRECT,
+            )
+        elif (settings.DEFAULT_PROJECT_ACCESS_MECHANISM == DataSource.DataLocation.RESEARCH_ENVIRONMENT
+                and settings.DEFAULT_PROJECT_DATA_LOCATION == DataSource.DataLocation.GOOGLE_CLOUD_STORAGE
+                and settings.STORAGE_TYPE == StorageTypes.GCP):
+            DataSource.objects.create(
+                project=project,
+                files_available=False,
+                data_location=DataSource.DataLocation.GOOGLE_CLOUD_STORAGE,
+                uri=f'gs://{project.project_file_root()}/',
+                access_mechanism=DataSource.AccessMechanism.RESEARCH_ENVIRONMENT,
+            )

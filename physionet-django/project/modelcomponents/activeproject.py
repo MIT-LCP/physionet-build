@@ -29,6 +29,7 @@ from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
 from project.projectfiles import ProjectFiles
+from project.models import DataSourceCreator
 from project.validators import validate_subdir
 
 LOGGER = logging.getLogger(__name__)
@@ -614,6 +615,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             raise
 
         ProjectFiles().publish_complete(self, published_project)
+        DataSourceCreator().create_default(published_project)
 
         return published_project
 
