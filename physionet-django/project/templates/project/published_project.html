@@ -399,6 +399,7 @@
             <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})
             </li>
           {% endif %}
+          {% include "project/published_project_data_access.html" %}
           {% if can_view_files %}
 
             {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
@@ -417,7 +418,7 @@
                   </li>
                 {% endif %}
               {% endif %}
-              {% include "project/published_project_data_access.html" %}
+
               {% if is_wget_supported %}
                 <li>
                   Download the files using your terminal:
