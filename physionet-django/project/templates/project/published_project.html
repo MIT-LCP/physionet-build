@@ -367,7 +367,7 @@
         {% if can_create_research_environment %}
           {% include "project/published_project_denied_downloads.html" %}
         {% else %}
-          {% if project.allow_file_downloads %}
+          {% if can_view_files %}
             {#  refactored code goes here            #}
             <p>Total uncompressed size: {{ main_size }}.</p>
             {# ZIP START #}
