@@ -367,8 +367,38 @@
         {% if can_create_research_environment %}
           {% include "project/published_project_denied_downloads.html" %}
         {% else %}
-            <p>Total uncompressed size: {{ main_size }}.</p>
-            <h5>Access the files</h5>
+          <p>Total uncompressed size: {{ main_size }}.</p>
+          <h5>Access the files</h5>
+          {% if project.gcp and not project.access_policy %}
+            {% if project.gcp.sent_zip %}
+              <!-- Temporary fix: Change default location to local servers -->
+              <!--
+                  <li><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}">
+                      Download the ZIP file</a> ({{ compressed_size }}).</a></li>
+                  -->
+              <li><a href="{% static project.zip_url %}">Download the ZIP file</a>
+                ({{ compressed_size }})
+              </li>
+            {% elif project.compressed_storage_size %}
+              <li><a href="{% static project.zip_url %}">Download the ZIP file</a>
+                ({{ compressed_size }})
+              </li>
+            {% endif %}
+            {% if project.gcp.sent_files %}
+              <li>Access the files using the Google Cloud Storage Browser <a
+                  href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>.
+                Login with a Google account is required.
+              <li>
+                Access the data using the Google Cloud command line tools (please refer to the <a
+                  href="https://cloud.google.com/storage/docs/gsutil_install">gsutil</a>
+                documentation for guidance):
+                <pre class="shell-command">gsutil -m -u YOUR_PROJECT_ID cp -r gs://{{ project.gcp.bucket_name }} DESTINATION</pre>
+              </li>
+            {% endif %}
+          {% elif project.compressed_storage_size %}
+            <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})
+            </li>
+          {% endif %}
           {% if can_view_files %}
 
             {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
@@ -387,36 +417,7 @@
                   </li>
                 {% endif %}
               {% else %}
-                {% if project.gcp %}
-                  {% if project.gcp.sent_zip %}
-                    <!-- Temporary fix: Change default location to local servers -->
-                    <!--
-                  <li><a href="https://storage.googleapis.com/{{ project.gcp.bucket_name }}/{{ project.zip_name }}">
-                      Download the ZIP file</a> ({{ compressed_size }}).</a></li>
-                  -->
-                    <li><a href="{% static project.zip_url %}">Download the ZIP file</a>
-                      ({{ compressed_size }})
-                    </li>
-                  {% elif project.compressed_storage_size %}
-                    <li><a href="{% static project.zip_url %}">Download the ZIP file</a>
-                      ({{ compressed_size }})
-                    </li>
-                  {% endif %}
-                  {% if project.gcp.sent_files %}
-                    <li>Access the files using the Google Cloud Storage Browser <a
-                        href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>.
-                      Login with a Google account is required.
-                    <li>
-                      Access the data using the Google Cloud command line tools (please refer to the <a
-                        href="https://cloud.google.com/storage/docs/gsutil_install">gsutil</a>
-                      documentation for guidance):
-                      <pre class="shell-command">gsutil -m -u YOUR_PROJECT_ID cp -r gs://{{ project.gcp.bucket_name }} DESTINATION</pre>
-                    </li>
-                  {% endif %}
-                {% elif project.compressed_storage_size %}
-                  <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})
-                  </li>
-                {% endif %}
+
               {% endif %}
               {% include "project/published_project_data_access.html" %}
               {% if is_wget_supported %}
