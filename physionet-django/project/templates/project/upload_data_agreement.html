@@ -3,6 +3,10 @@
   <div class="alert alert-warning">
    Please complete the project data upload agreement form below before uploading the project files.
   </div>
+  {% elif project.datauploadagreement.has_phi == 0 %}
+  <div class="alert alert-warning">
+      You are unable to submit your project for review, because you have not removed PHI from your project files.
+  </div>
   {% else %}
   <div class="alert alert-info">
       Please don't include any Personal Health Information within your uploaded project files.
