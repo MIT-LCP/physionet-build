@@ -331,9 +331,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         # Data Upload Agreement
         try:
-            data_upload=DataUploadAgreement.objects.get(project_id=self.id)
+            data_upload = DataUploadAgreement.objects.get(project_id=self.id)
             if data_upload.has_phi == 0:
-                self.integrity_errors.append('Please remove PHI from your data')
+                self.integrity_errors.append('Please remove any Personal Health Information from your data')
         except DataUploadAgreement.DoesNotExist:
             self.integrity_errors.append('Missing required field: Data Upload Agreement')
 
