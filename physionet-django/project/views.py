@@ -1076,6 +1076,8 @@ def project_files(request, project_slug, subdir='', **kwargs):
     )
     try:
         agreement = DataUploadAgreement.objects.get(project=project)
+        if agreement.has_phi == 0:
+            files_editable = False
     except DataUploadAgreement.DoesNotExist:
         agreement = None
         files_editable = False
