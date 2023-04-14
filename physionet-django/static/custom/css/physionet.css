@@ -288,6 +288,11 @@ a{
   margin: 0;
 }
 
+.pub-details-read-more{
+  color: grey;
+  margin: 0;
+}
+
 .news-content{
   margin-top: 1em;
 
