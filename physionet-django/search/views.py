@@ -80,17 +80,24 @@ def get_content(resource_type, orderby, direction, search_term):
 
     # Relevance
     for t in search_term:
-        published_projects = (published_projects.annotate(has_keys=Case(
-                When(title__iregex=r'{0}{1}{0}'.format(wb, t),
-                     then=Value(3)),
-                When(topics__description__iregex=r'{0}{1}{0}'.format(wb, t),
-                     then=Value(2)),
-                When(abstract__iregex=r'{0}{1}{0}'.format(wb, t),
-                     then=Value(1)),
+        published_projects = published_projects.annotate(
+            has_keys=Case(
+                When(title__iregex=r"{0}{1}{0}".format(wb, t), then=Value(3)),
                 default=Value(0),
-                output_field=IntegerField()
-            )).annotate(has_keys=Sum('has_keys'))
-        )
+                output_field=IntegerField(),
+            )
+            + Case(
+                When(topics__description__iregex=r"{0}{1}{0}".format(wb, t), then=Value(2)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+            + Case(
+                When(abstract__iregex=r"{0}{1}{0}".format(wb, t), then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        ).annotate(has_keys=Sum("has_keys"))
+
 
     # Sorting
     direction = '-' if direction == 'desc' else ''
