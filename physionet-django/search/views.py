@@ -81,9 +81,9 @@ def get_content(resource_type, orderby, direction, search_term):
     # Relevance
     for t in search_term:
         published_projects = (published_projects.annotate(has_keys=Case(
-                When(topics__description__iregex=r'{0}{1}{0}'.format(wb, t),
-                     then=Value(3)),
                 When(title__iregex=r'{0}{1}{0}'.format(wb, t),
+                     then=Value(3)),
+                When(topics__description__iregex=r'{0}{1}{0}'.format(wb, t),
                      then=Value(2)),
                 When(abstract__iregex=r'{0}{1}{0}'.format(wb, t),
                      then=Value(1)),
