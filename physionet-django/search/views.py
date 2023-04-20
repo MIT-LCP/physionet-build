@@ -55,6 +55,19 @@ def get_content(resource_type, orderby, direction, search_term):
     Helper function to get content shown on a resource listing page
     """
 
+    if 'postgresql' in settings.DATABASES['default']['ENGINE']:
+        published_projects = get_content_postgres_full_text_search(resource_type, orderby, direction, search_term)
+    else:
+        published_projects = get_content_normal_search(resource_type, orderby, direction, search_term)
+
+    return published_projects
+
+
+def get_content_postgres_full_text_search(resource_type, orderby, direction, search_term):
+    pass
+
+
+def get_content_normal_search(resource_type, orderby, direction, search_term):
     # Word boundary for different database engines
     wb = r'\b'
     if 'postgresql' in settings.DATABASES['default']['ENGINE']:
