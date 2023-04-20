@@ -1,8 +1,14 @@
 # Import the necessary libraries
 import requests
 import xml.etree.ElementTree as ET
+from datetime import datetime
 from django.conf import settings
 from django.template import loader
+
+def convert_data_time(str_date_time):
+    datetime_object = datetime.strptime(str_date_time.text, '%Y-%m-%dT%H:%M:%S.%f%z')
+    date_format = datetime_object.strftime('%Y-%m-%d %H:%M:%S.%f%z')
+    return date_format
 
 def send_request(xml_payload):
     # Define the headers 
@@ -34,13 +40,15 @@ def get_memberid(email):
             'email': email,
         }
     )
-    
-    root=send_request(xml_payload=payload)
+    try:
+        root=send_request(xml_payload=payload)
 
-    # get the member ID
-    memberid = root.find('.//intMemberID').text
+        # get the member ID
+        memberid = root.find('.//intMemberID').text
 
-    return memberid
+        return memberid
+    except:
+        return []
 
 
 def get_citiprogram_completion(email):
@@ -61,28 +69,43 @@ def get_citiprogram_completion(email):
     # parse the XML response for the member courses
     root_courses = send_request(xml_payload=payload_courses)
 
-    # find the completion information
+    # Creates a list of dictionarys for each CompletionReport
     completion_info = []
     for crs in root_courses.findall('.//CRSMEMBERID'):
-        report_elem = crs.find('strCompletionReport')
-        group_elem = crs.find('strGroup')
-        course_id = crs.find('intGroupID')
-        mini_score_elem = crs.find('intPassingScore')
-        score_elem = crs.find('intScore')
-        passed_elem = crs.find('dtePassed')
-        expire_elem = crs.find('dteExpiration')
+        FirstName = crs.find('FirstName')
+        LastName = crs.find('LastName')
+        MemberID = crs.find('MemberID')
+        memberEmail = crs.find('memberEmail')
+        strCompletionReport = crs.find('strCompletionReport')
+        strGroup = crs.find('strGroup')
+        intGroupID = crs.find('intGroupID')
+        intStageID = crs.find('intStageID')
+        intStageNumber = crs.find('intStageNumber')
+        strStage = crs.find('strStage')
+        intCompletionReportID = crs.find('intCompletionReportID')
+        intMemberStageID = crs.find('intMemberStageID')
+        intScore = crs.find('intScore')
+        intPassingScore = crs.find('intPassingScore')
+        dtePassed = crs.find('dtePassed')
+        dteExpiration = crs.find('dteExpiration')
 
-        if group_elem is not None and course_id.text == '43007' and \
-           group_elem.text == 'Data or Specimens Only Research':
-            # append the completion information to the list
-            completion_info.append({
-                'report': report_elem.text,
-                'group': group_elem.text,
-                'course_id': course_id.text,
-                'score': score_elem.text,
-                'mini_passing_score': mini_score_elem.text,
-                'passed_date': passed_elem.text,
-                'expiration_date': expire_elem.text
-            })
+        completion_info.append({
+        'FirstName': FirstName.text,
+        'LastName': LastName.text,
+        'MemberID': MemberID.text,
+        'memberEmail': memberEmail.text,
+        'strCompletionReport': strCompletionReport.text,
+        'intGroupID': intGroupID.text,
+        'strGroup': strGroup.text,
+        'intStageID': intStageID.text,
+        'intStageNumber': intStageNumber.text,
+        'strStage': strStage.text,
+        'intCompletionReportID': intCompletionReportID.text,
+        'intMemberStageID': intMemberStageID.text,
+        'dtePassed': convert_data_time(dtePassed),
+        'intScore': intScore.text,
+        'intPassingScore': intPassingScore.text,
+        'dteExpiration': convert_data_time(dteExpiration)
+        })
 
     return completion_info
