@@ -473,6 +473,23 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         return users
 
+    def get_credentialing_status(self):
+        """
+        Returns the credentialing status of the user.
+        If the user is not credentialed, returns the status of the user's credentialing application.
+        """
+        if self.is_credentialed:
+            return 'Credentialed'
+        else:
+            application = self.credential_applications.last()
+            if not application:
+                return 'No application found'
+
+            if application.status == CredentialApplication.Status.PENDING:
+                return application.get_review_status()
+
+            return 'No application found'
+
 
 class UserLogin(models.Model):
     """Represent users' logins, one per record"""
@@ -1020,7 +1037,7 @@ class CredentialApplication(models.Model):
         elif self.credential_review.status <= 20:
             status = 'Awaiting review'
         elif self.credential_review.status == 30:
-            status = 'Awaiting a response from your reference'
+            status = 'Awaiting a response from reference'
         elif self.credential_review.status >= 40:
             status = 'Awaiting final approval'
 

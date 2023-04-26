@@ -15,7 +15,7 @@
             <td>{{ participant.user.username }}</td>
             <td>{{ participant.user.get_full_name }}</td>
             <td>{{ participant.user.email }}</td>
-            <td>{{ participant.user.is_credentialed }}</td>
+            <td>{{ participant.user.get_credentialing_status }}</td>
             <td>
                 {% if participant.is_cohost %}
                     <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ participant.id }}" disabled checked>
