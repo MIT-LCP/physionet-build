@@ -206,52 +206,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         return reverse('display_published_project_file',
             args=(self.slug, self.version, os.path.join(subdir, file)))
 
-    def can_view_files(self, user):
-        """
-        Whether the user has access to this project and files. Extends 'is_authorized'
-        """
-        return self.allow_file_downloads and self.is_authorized(user)
-
-    def is_authorized(self, user):
-        """
-        Whether the user has access to this project
-        The logic should mirror PublishedProjectManager#accessible_by,
-        but for a specific project.
-        """
-        if self.deprecated_files:
-            return False
-
-        if self.access_policy == AccessPolicy.OPEN:
-            return True
-        elif self.access_policy == AccessPolicy.RESTRICTED:
-            return user.is_authenticated and DUASignature.objects.filter(project=self, user=user).exists()
-        elif self.access_policy == AccessPolicy.CREDENTIALED:
-            return (
-                user.is_authenticated
-                and user.is_credentialed
-                and DUASignature.objects.filter(project=self, user=user).exists()
-                and Training.objects.get_valid()
-                .filter(training_type__in=self.required_trainings.all(), user=user)
-                .count()
-                == self.required_trainings.count()
-            )
-        elif self.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
-            return (
-                user.is_authenticated
-                and user.is_credentialed
-                and DataAccessRequest.objects.get_active(
-                    project=self,
-                    requester=user,
-                    status=DataAccessRequest.ACCEPT_REQUEST_VALUE
-                ).exists()
-                and Training.objects.get_valid()
-                .filter(training_type__in=self.required_trainings.all(), user=user)
-                .count()
-                == self.required_trainings.count()
-            )
-
-        return False
-
     def can_approve_requests(self, user):
         """
         Whether the user can view and respond to access requests to self managed
