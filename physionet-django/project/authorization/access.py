@@ -86,7 +86,13 @@ def get_accessible_projects(user):
 
 
 def can_access_project(project, user):
-    """Checks if the project is accessible by the user"""
+    """
+    Checks if the project is accessible by the user
+    Users may access a project through different ways, for example, thorough direct download on the physionet website,
+    or through s3 bucket links, or gcs storage.
+    This function only checks access to the project in general, users might still not be able to access the files
+    even if they can access the project.
+    """
     if project.deprecated_files:
         return False
 
@@ -122,3 +128,11 @@ def can_access_project(project, user):
             == project.required_trainings.count()
         )
     return False
+
+
+def can_view_project_files(project, user):
+    """
+    Checks if the project files are  directly accessible by the user
+    Currently used to allow direct file downloads and to show project files on the platform
+    """
+    return can_access_project(project, user) and project.allow_file_downloads
