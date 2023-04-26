@@ -204,7 +204,7 @@ def validate_research_summary(value):
     spaces, underscores, apostrophes and the following special
     characters: !@#$%&*()[]~+={};:"<>?,./`-
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\'\[\]\n\r~!@#$%&*()+={};:"<>?,./` -]+', value):
+    if not re.fullmatch(r'[a-zA-Z][\w\'\[\]\n\r~!@#$%&*()+={};:‘’“”"<>?,./` -]+', value):
         raise ValidationError('Letters, numbers, spaces, apostrophes and [!@#$%&*()[]~_+-={ };:"<>?,./`] characters only. Must begin with a letter.')
 
 
