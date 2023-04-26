@@ -7,56 +7,80 @@ from project.models import AccessPolicy, DUASignature, DataAccessRequest, Publis
 from user.models import Training, TrainingType
 
 
-def get_accessible_projects(user):
-    """
-    Returns query filter for published projects accessible by a specified user
-    """
-    query = Q(access_policy=AccessPolicy.OPEN) & Q(deprecated_files=False)
+def get_public_projects_query():
+    """Returns query filter for public published projects"""
+    return Q(access_policy=AccessPolicy.OPEN)
 
+
+def get_restricted_projects_query(user):
+    """Returns query filter for restricted published projects accessible by a specified user"""
+    dua_signatures = DUASignature.objects.filter(user=user)
+    query = Q(access_policy=AccessPolicy.RESTRICTED) & Q(duasignature__in=dua_signatures)
+    return query
+
+
+def get_credentialed_projects_query(user):
+    """Returns query filter for credentialed published projects accessible by a specified user"""
     dua_signatures = DUASignature.objects.filter(user=user)
 
-    if user.is_authenticated:
-        query |= Q(access_policy=AccessPolicy.RESTRICTED) & Q(
-            duasignature__in=dua_signatures
-        )
+    completed_training = (
+        Training.objects.get_valid()
+        .filter(user=user)
+        .values_list("training_type")
+    )
+    not_completed_training = TrainingType.objects.exclude(pk__in=completed_training)
+    required_training_complete = ~Q(required_trainings__in=not_completed_training)
 
-    if user.is_credentialed:
-        completed_training = (
-            Training.objects.get_valid()
-            .filter(user=user)
-            .values_list("training_type")
-        )
-        not_completed_training = TrainingType.objects.exclude(
-            pk__in=completed_training
-        )
-        required_training_complete = ~Q(
-            required_trainings__in=not_completed_training
-        )
+    accepted_data_access_requests = DataAccessRequest.objects.filter(
+        requester=user, status=DataAccessRequest.ACCEPT_REQUEST_VALUE
+    )
 
-        accepted_data_access_requests = DataAccessRequest.objects.filter(
-            requester=user, status=DataAccessRequest.ACCEPT_REQUEST_VALUE
-        )
-        contributor_review_with_access = Q(
-            access_policy=AccessPolicy.CONTRIBUTOR_REVIEW
-        ) & Q(data_access_requests__in=accepted_data_access_requests)
+    contributor_review_with_access = Q(
+        access_policy=AccessPolicy.CONTRIBUTOR_REVIEW
+    ) & Q(data_access_requests__in=accepted_data_access_requests)
 
-        credentialed_with_dua_signed = Q(
-            access_policy=AccessPolicy.CREDENTIALED
-        ) & Q(duasignature__in=dua_signatures)
+    credentialed_with_dua_signed = Q(
+        access_policy=AccessPolicy.CREDENTIALED
+    ) & Q(duasignature__in=dua_signatures)
 
-        query |= required_training_complete & (
-            contributor_review_with_access | credentialed_with_dua_signed
-        )
+    query = required_training_complete & (
+        contributor_review_with_access | credentialed_with_dua_signed
+    )
+    return query
 
-    # add projects that are accessible through events
+
+def get_projects_accessible_through_events(user):
+    """Returns query filter for published projects accessible by a specified user through events"""
     events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
+
     active_events = set(events_all.filter(end_date__gte=datetime.now()))
+
     accessible_datasets = EventDataset.objects.filter(event__in=active_events, is_active=True)
+
     accessible_projects_ids = []
     for event_dataset in accessible_datasets:
         if event_dataset.has_access(user):
             accessible_projects_ids.append(event_dataset.dataset.id)
-    query |= Q(id__in=accessible_projects_ids)
+
+    query = Q(id__in=accessible_projects_ids)
+    return query
+
+
+def get_accessible_projects(user):
+    """
+    Returns all published projects accessible by a specified user
+    """
+    query = Q(deprecated_files=False)
+
+    query &= get_public_projects_query()
+
+    if user.is_authenticated:
+        query |= get_restricted_projects_query(user)
+
+    if user.is_credentialed:
+        query |= get_credentialed_projects_query(user)
+
+    query |= get_projects_accessible_through_events(user)
 
     return PublishedProject.objects.filter(query).distinct()
 
