@@ -79,8 +79,6 @@ urlpatterns = [
     path('charts/', views.charts, name='charts'),
 
     # Redirect from legacy
-    path('physiobank/', views.physiobank),
-    path('physiobank/database/', views.physiobank),
     path('physiotools/', views.physiotools),
     path('physiobank/database/wfdbcal', views.wfdbcal),
     re_path('^physiobank/database/(?P<project_slug>[\w\-]+)/$', views.redirect_project),
