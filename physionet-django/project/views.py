@@ -50,6 +50,7 @@ from project.models import (
     Topic,
     UploadedDocument,
 )
+from project.authorization.access import can_view_project_files, can_access_project
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
@@ -1568,7 +1569,7 @@ def published_files_panel(request, project_slug, version):
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    if project.can_view_files(user) or has_passphrase:
+    if can_view_project_files(project, user) or has_passphrase:
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
 
@@ -1630,7 +1631,7 @@ def serve_published_project_file(request, project_slug, version,
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    if project.can_view_files(user) or has_passphrase:
+    if can_view_project_files(project, user) or has_passphrase:
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)
@@ -1673,7 +1674,7 @@ def display_published_project_file(request, project_slug, version,
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    if project.can_view_files(user) or has_passphrase:
+    if can_view_project_files(project, user) or has_passphrase:
         return display_project_file(request, project, full_file_name)
 
     # Display error message: "you must [be a credentialed user and]
@@ -1706,7 +1707,7 @@ def serve_published_project_zip(request, project_slug, version):
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    if project.can_view_files(user) or has_passphrase:
+    if can_view_project_files(project, user) or has_passphrase:
         try:
             return serve_file(project.zip_name(full=True))
         except FileNotFoundError:
@@ -1802,8 +1803,8 @@ def published_project(request, project_slug, version, subdir=''):
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    can_view_files = project.can_view_files(user) or has_passphrase
-    is_authorized = project.is_authorized(user) or has_passphrase
+    can_view_files = can_view_project_files(project, user) or has_passphrase
+    is_authorized = can_access_project(project, user) or has_passphrase
     has_signed_dua = False if not user.is_authenticated else DUASignature.objects.filter(
         project=project,
         user=user
@@ -1921,7 +1922,7 @@ def sign_dua(request, project_slug, version):
         project.deprecated_files
         or project.embargo_active()
         or project.access_policy not in {AccessPolicy.RESTRICTED, AccessPolicy.CREDENTIALED}
-        or project.is_authorized(user)
+        or can_access_project(project, user)
     ):
         return redirect('published_project',
                         project_slug=project_slug, version=version)
@@ -2206,7 +2207,7 @@ def published_project_request_access(request, project_slug, version, access_type
                                             platform=access_type)
 
     # Check if the person has access to the project.
-    if not project.is_authorized(request.user):
+    if not can_access_project(project, user):
         return redirect('published_project', project_slug=project_slug,
             version=version)
 

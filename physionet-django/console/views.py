@@ -54,6 +54,7 @@ from project.models import (
     Topic,
     exists_project_slug,
 )
+from project.authorization.access import can_view_project_files
 from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
@@ -1169,7 +1170,7 @@ def users_aws_access_list_json(request):
             dataset['name'] = project_name
             dataset['accounts'] = []
             for user in users_with_awsid:
-                if project.can_view_files(user):
+                if can_view_project_files(project, user):
                     dataset['accounts'].append(user.cloud_information.aws_id)
             datasets['datasets'].append(dataset)
 
