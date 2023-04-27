@@ -229,11 +229,6 @@ def charts(request):
                            'plural_label': plural_label})
 
 
-def physiotools(request):
-    """Redirect"""
-    return redirect('software_index')
-
-  
 def wfdbcal(request):
     return redirect(static('wfdbcal'))
 
