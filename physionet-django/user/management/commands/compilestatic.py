@@ -18,23 +18,33 @@ def theme_generator(themes_colors):
         f.write('@import "bootstrap"\n')
 
 
+def setup_theme_colors(colors):
+    """
+    Setups a map of theme colors from environment variables, validates them and returns a dictionary
+    :param colors: a map of colors to be set
+    :return: a dictionary of theme colors
+    """
+    themes_colors = {}
+    for key, value in colors.items():
+        value = config(key, default=value)
+        if len(value) != 7:
+            raise CommandError(f'{key} environment variable is not a valid hex color')
+        themes_colors[key.lower()] = value
+    return themes_colors
+
+
 class Command(BaseCommand):
     help = 'Compile static Sass files'
 
     def handle(self, *args, **options):
 
         # getting the environment variables
-        dark = config('DARK', default='#343A40')
-        if len(dark) != 7:
-            raise CommandError('DARK environment variable is not a valid hex color')
-
-        primary = config('PRIMARY', default='#002A5C')
-        if len(primary) != 7:
-            raise CommandError('PRIMARY environment variable is not a valid hex color')
-        themes_colors = {
-            'dark': dark,
-            'primary': primary,
+        colors = {
+            'DARK': '#343A40',
+            'PRIMARY': '#002A5C',
         }
+        themes_colors = setup_theme_colors(colors)
+
         # calling the theme generator function
         theme_generator(themes_colors)
         # calling the compile static command
