@@ -518,15 +518,30 @@ table.files-panel {
 .files-panel thead {
   border: none;
 }
-.files-panel-name { width: 100%; }
+.files-panel-text {
+  display: flex;
+  align-items: center;
+}
+.files-panel-button-container { padding-right: 0.25em; }
+.files-panel-button-all {
+  float: right;
+  padding-right: 1em;
+}
+.files-panel-button {
+  display: none;
+  float: right;
+  padding-right: 1em;
+}
+.files-panel-select { width: 2em; }
+.files-panel-name { width: 100%; text-align: left; }
 .files-panel-size { width: 6em; }
 .files-panel-date { width: 8em; }
 .files-panel-checkbox { width: 2em; }
-.files-panel td + td, .files-panel th + th { text-align: right; }
-.files-panel td + td + td, .files-panel th + th + th { text-align: center; }
-.files-panel td + td + td + td, .files-panel th + th + th + th { text-align: right; }
+.files-panel td + td + td, .files-panel th + th +th { text-align: right; }
+.files-panel td + td + td + td, .files-panel th + th + th +th { text-align: center; }
+.files-panel td + td + td + td + td, .files-panel th + th + th + th +th { text-align: right; }
 
-.files-panel td:first-child:before {
+.files-panel td:nth-child(2):before {
   content: "\F15B"; /* file */
   font-family: "Font Awesome 5 Free";
   font-weight: 400;
@@ -535,7 +550,7 @@ table.files-panel {
   width: 1.5em;
   margin-right: 0.5em;
 }
-.files-panel tr.subdir td:first-child:before {
+.files-panel tr.subdir td:nth-child(2):before {
   content: "\F07C"; /* folder-open */
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
@@ -544,7 +559,7 @@ table.files-panel {
   width: 1.5em;
   margin-right: 0.5em;
 }
-.files-panel tr.parentdir td:first-child:before {
+.files-panel tr.parentdir td:nth-child(2):before {
   content: "\F106"; /* angle-up */
   font-family: "Font Awesome 5 Free";
   font-weight: 900;
