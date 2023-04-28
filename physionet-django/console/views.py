@@ -1156,7 +1156,9 @@ def users_aws_access_list_json(request):
         "mimiciv-0.3",
         "mimiciv-0.4",
         "mimiciv-1.0",
-        "mimiciv-2.0"
+        "mimiciv-2.0",
+        "mimiciv-2.1",
+        "mimiciv-2.2"
     ]
     published_projects = PublishedProject.objects.all()
     users_with_awsid = User.objects.filter(cloud_information__aws_id__isnull=False)
