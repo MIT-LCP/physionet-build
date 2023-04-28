@@ -7,7 +7,7 @@ from decouple import config
 from django.core.management import call_command
 
 
-def theme_generator(themes_colors):
+def theme_generator(themes_colors, imports=['bootstrap']):
     # creating the theme file
     with open('static/bootstrap/scss/theme.scss', 'w') as f:
         # cleaning the current contents of the file
@@ -17,7 +17,8 @@ def theme_generator(themes_colors):
         for key, value in themes_colors.items():
             f.write(f'"{key}" : {value},\n')
         f.write(');\n')
-        f.write('@import "bootstrap"\n')
+        for imp in imports:
+            f.write(f'@import "{imp}";\n')
 
 
 def setup_theme_colors(colors):
@@ -29,7 +30,7 @@ def setup_theme_colors(colors):
     themes_colors = {}
     for key, value in colors.items():
         value = config(key, default=value)
-        if len(value) != 7:
+        if len(value) != 7 and value[0] == '#':
             raise CommandError(f'{key} environment variable is not a valid hex color')
         themes_colors[key.lower()] = value
     return themes_colors
@@ -65,6 +66,8 @@ class Command(BaseCommand):
             'WARNING': '#FFC107',
             'DANGER': '#DC3545',
             'LIGHT': '#F8F9FA',
+            'GRADIENT_60': 'rgba(42, 47, 52, 0.6)',
+            'GRADIENT_85': 'rgba(42, 47, 52, 0.85)',
         }
         themes_colors = setup_theme_colors(colors)
 
@@ -81,3 +84,7 @@ class Command(BaseCommand):
         image_destination = 'static/images/background.jpg'
         setup_static_file(image_source, image_destination)
         self.stdout.write(self.style.SUCCESS('Successfully setup background image'))
+
+        # Demo section for home.css
+        theme_generator(themes_colors, imports=['../../custom/scss/home'])
+        call_command('sass', 'static/bootstrap/scss/theme.scss', 'static/custom/css/home.css')
