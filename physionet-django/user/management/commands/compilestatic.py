@@ -1,5 +1,7 @@
 # Management Command to compile static Sass files
 import os
+import urllib.request
+import urllib.error
 from django.core.management.base import BaseCommand, CommandError
 from decouple import config
 from django.core.management import call_command
@@ -33,6 +35,21 @@ def setup_theme_colors(colors):
     return themes_colors
 
 
+def setup_static_file(source, destination):
+    """
+    Copies a static file from source to destination
+    :param source: the source file path(direct url)
+    :param destination: the destination file path
+    """
+
+    try:
+        urllib.request.urlretrieve(source, destination)
+    except urllib.error.HTTPError:
+        raise CommandError(f'Could not download {source}')
+    except urllib.error.URLError:
+        raise CommandError(f'Could not download {source}')
+
+
 class Command(BaseCommand):
     help = 'Compile static Sass files'
 
@@ -58,3 +75,9 @@ class Command(BaseCommand):
 
         # writing the success message
         self.stdout.write(self.style.SUCCESS('Successfully compiled static Sass files'))
+
+        # setup background image
+        image_source = config('BACKGROUND_IMAGE', default='https://physionet.org/static/images/background.jpg')
+        image_destination = 'static/images/background.jpg'
+        setup_static_file(image_source, image_destination)
+        self.stdout.write(self.style.SUCCESS('Successfully setup background image'))
