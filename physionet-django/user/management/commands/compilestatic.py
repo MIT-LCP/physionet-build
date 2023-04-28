@@ -42,6 +42,12 @@ class Command(BaseCommand):
         colors = {
             'DARK': '#343A40',
             'PRIMARY': '#002A5C',
+            'SECONDARY': '#6C757D',
+            'SUCCESS': '#28A745',
+            'INFO': '#17A2B8',
+            'WARNING': '#FFC107',
+            'DANGER': '#DC3545',
+            'LIGHT': '#F8F9FA',
         }
         themes_colors = setup_theme_colors(colors)
 
