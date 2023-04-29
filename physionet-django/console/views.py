@@ -1154,11 +1154,6 @@ def users_aws_access_list_json(request):
     2022).  Don't rely on this function; it will go away.
     """
     projects_datathon = [
-        "mimiciv-0.3",
-        "mimiciv-0.4",
-        "mimiciv-1.0",
-        "mimiciv-2.0",
-        "mimiciv-2.1",
         "mimiciv-2.2"
     ]
     published_projects = PublishedProject.objects.all()
