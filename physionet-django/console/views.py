@@ -1126,7 +1126,9 @@ def users_search(request, group):
 
         users = User.objects.filter(Q(username__icontains=search_field)
                                     | Q(profile__first_names__icontains=search_field)
-                                    | Q(email__icontains=search_field))
+                                    | Q(email__icontains=search_field)
+                                    | Q(associated_emails__email__icontains=search_field)
+                                    ).distinct()
 
         if 'inactive' in group:
             users = users.filter(is_active=False)
