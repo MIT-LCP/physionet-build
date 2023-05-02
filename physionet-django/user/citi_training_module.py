@@ -5,34 +5,37 @@ from datetime import datetime
 from django.conf import settings
 from django.template import loader
 
+
 def convert_data_time(str_date_time):
+    # Convert the string date time to a datetime object
     datetime_object = datetime.strptime(str_date_time.text, '%Y-%m-%dT%H:%M:%S.%f%z')
-    date_format = datetime_object.strftime('%Y-%m-%d %H:%M:%S.%f%z')
-    return date_format
+    return datetime_object
+
 
 def send_request(xml_payload):
-    # Define the headers 
+    # Define the headers for the request
     headers = {
         'Content-Type': 'text/xml; charset=utf-8'
     }
- 
-    #URL for the request
-    soap_request_url=settings.CITI_SOAP_URL
+
+    # URL for the request
+    soap_request_url = settings.CITI_SOAP_URL
 
     # Send the POST request and get the response
     response = requests.request("POST", soap_request_url, headers=headers, data=xml_payload)
 
-    # parse the XML response into an ElementTree object
+    # Parse the XML response into an ElementTree object
     root = ET.fromstring(response.text)
-    
+
     return root
+
 
 def get_memberid(email):
     # Get username and password from Django settings
     username = settings.CITI_USERNAME
     password = settings.CITI_PASSWORD
 
-    # get the member ID using email
+    # Get the member ID using email
     payload = loader.render_to_string(
         'user/citi/get_inst_member_by_email.xml', {
             'username': username,
@@ -40,31 +43,29 @@ def get_memberid(email):
             'email': email,
         }
     )
-    try:
-        root=send_request(xml_payload=payload)
 
-        # get the member ID
-        memberid = root.find('.//intMemberID').text
+    root = send_request(xml_payload=payload)
 
-        return memberid
-    except:
-        return []
+    # Get the member ID
+    memberid = root.find('.//intMemberID')
+    if memberid is None:
+        return None
+    return memberid.text
 
 
 def get_citiprogram_completion(email):
     # Get username and password from Django settings
     username = settings.CITI_USERNAME
     password = settings.CITI_PASSWORD
-    memberid=get_memberid(email)
-    
-    # get the member courses using the member ID
-    payload_courses =loader.render_to_string(
-            'user/citi/get_courses_by_member.xml', {
-                'username': username,
-                'password': password,
-                'memberid': memberid,
-            }
-        )
+
+    memberid = get_memberid(email)
+
+    if memberid is None:
+        return []
+
+    # Get the member courses using the member ID
+    payload_courses = loader.render_to_string('user/citi/get_courses_by_member.xml', {
+        'username': username, 'password': password, 'memberid': memberid, })
 
     # parse the XML response for the member courses
     root_courses = send_request(xml_payload=payload_courses)
@@ -90,22 +91,21 @@ def get_citiprogram_completion(email):
         dteExpiration = crs.find('dteExpiration')
 
         completion_info.append({
-        'FirstName': FirstName.text,
-        'LastName': LastName.text,
-        'MemberID': MemberID.text,
-        'memberEmail': memberEmail.text,
-        'strCompletionReport': strCompletionReport.text,
-        'intGroupID': intGroupID.text,
-        'strGroup': strGroup.text,
-        'intStageID': intStageID.text,
-        'intStageNumber': intStageNumber.text,
-        'strStage': strStage.text,
-        'intCompletionReportID': intCompletionReportID.text,
-        'intMemberStageID': intMemberStageID.text,
-        'dtePassed': convert_data_time(dtePassed),
-        'intScore': intScore.text,
-        'intPassingScore': intPassingScore.text,
-        'dteExpiration': convert_data_time(dteExpiration)
-        })
+            'FirstName': FirstName.text,
+            'LastName': LastName.text,
+            'MemberID': MemberID.text,
+            'memberEmail': memberEmail.text,
+            'strCompletionReport': strCompletionReport.text,
+            'intGroupID': intGroupID.text,
+            'strGroup': strGroup.text,
+            'intStageID': intStageID.text,
+            'intStageNumber': intStageNumber.text,
+            'strStage': strStage.text,
+            'intCompletionReportID': intCompletionReportID.text,
+            'intMemberStageID': intMemberStageID.text,
+            'dtePassed': convert_data_time(dtePassed),
+            'intScore': intScore.text,
+            'intPassingScore': intPassingScore.text,
+            'dteExpiration': convert_data_time(dteExpiration)})
 
     return completion_info
