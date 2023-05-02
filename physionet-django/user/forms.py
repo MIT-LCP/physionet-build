@@ -439,7 +439,7 @@ class PersonalCAF(forms.ModelForm):
             'job_title': """Your job title or position (e.g., student) within
                 your institution or organization.""",
             'city': "The city where you live.",
-            'state_province': "The state or province where you live. (Required for residents of Canada or the US.)",
+            'state_province': "The state or province where you live.",
             'zip_code': "The zip code of the city where you live.",
             'country': "The country where you live.",
             'webpage': """Please include a link to a webpage with your
@@ -454,7 +454,7 @@ class PersonalCAF(forms.ModelForm):
            'suffix': forms.TextInput(attrs={'autocomplete': 'off'}),
         }
         labels = {
-            'state_province': 'State/Province',
+            'state_province': 'State/Province (Required for Canada/U.S.)',
             'first_names': 'First (given) name(s)',
             'last_name': 'Last (family) name(s)',
             'suffix': 'Suffix, if applicable:',
