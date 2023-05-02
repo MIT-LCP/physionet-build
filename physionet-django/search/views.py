@@ -79,9 +79,11 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
               + SearchVector('topics__description', weight='C'))
 
     # Filter projects by latest version and annotate relevance field
-    published_projects = (PublishedProject.objects.annotate(search=vector).
-                          filter(query, is_latest_version=True).
-                          annotate(relevance=SearchRank(vector, search_query)))
+    published_projects = PublishedProject.objects.annotate(search=vector).filter(query, is_latest_version=True)
+
+    # get distinct projects with subquery and also include relevance from published_projects
+    published_projects = PublishedProject.objects.filter(id__in=published_projects.values('id')).annotate(
+        relevance=SearchRank(vector, search_query)).distinct()
 
     # Sorting
     direction = '-' if direction == 'desc' else ''
