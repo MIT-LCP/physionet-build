@@ -87,12 +87,10 @@ def validate_location(value):
 
 def validate_organization(value):
     """
-    Validate the organization that start with an alphabetical character
-    followed by alphanumeric characters, spaces, underscores, hyphens, apostrophes,
-    periods and commas
+    Validate the organization that start with an alphanumeric character.
     """
-    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
-        raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
+    if not re.fullmatch(r'^[a-zA-Z0-9].*', value):
+        raise ValidationError('Must begin with a letter or a number.')
 
 
 def validate_job_title(value):
