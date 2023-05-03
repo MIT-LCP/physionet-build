@@ -1,6 +1,7 @@
 import csv
 import logging
 import os
+import re
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
@@ -1155,15 +1156,13 @@ def users_aws_access_list_json(request):
     2022).  Don't rely on this function; it will go away.
     """
     projects_datathon = [
-        "mimiciv-0.3",
-        "mimiciv-0.4",
-        "mimiciv-1.0",
-        "mimiciv-2.0"
+        "mimiciv-2.2"
     ]
     published_projects = PublishedProject.objects.all()
     users_with_awsid = User.objects.filter(cloud_information__aws_id__isnull=False)
     datasets = {}
     datasets['datasets'] = []
+    aws_id_pattern = r"\b\d{12}\b"
 
     for project in published_projects:
         dataset = {}
@@ -1173,7 +1172,8 @@ def users_aws_access_list_json(request):
             dataset['accounts'] = []
             for user in users_with_awsid:
                 if can_view_project_files(project, user):
-                    dataset['accounts'].append(user.cloud_information.aws_id)
+                    if re.search(aws_id_pattern, user.cloud_information.aws_id):
+                        dataset['accounts'].append(user.cloud_information.aws_id)
             datasets['datasets'].append(dataset)
 
     return JsonResponse(datasets)
