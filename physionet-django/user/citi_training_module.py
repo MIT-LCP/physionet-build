@@ -6,7 +6,7 @@ from django.conf import settings
 from django.template import loader
 
 
-def convert_data_time(str_date_time):
+def convert_date_time(str_date_time):
     # Convert the string date time to a datetime object
     datetime_object = datetime.strptime(str_date_time.text, '%Y-%m-%dT%H:%M:%S.%f%z')
     return datetime_object
@@ -67,7 +67,7 @@ def get_citiprogram_completion(email):
     payload_courses = loader.render_to_string('user/citi/get_courses_by_member.xml', {
         'username': username, 'password': password, 'memberid': memberid, })
 
-    # parse the XML response for the member courses
+    # Parse the XML response for the member courses
     root_courses = send_request(xml_payload=payload_courses)
 
     # Creates a list of dictionarys for each CompletionReport
@@ -103,9 +103,9 @@ def get_citiprogram_completion(email):
             'strStage': strStage.text,
             'intCompletionReportID': intCompletionReportID.text,
             'intMemberStageID': intMemberStageID.text,
-            'dtePassed': convert_data_time(dtePassed),
+            'dtePassed': convert_date_time(dtePassed),
             'intScore': intScore.text,
             'intPassingScore': intPassingScore.text,
-            'dteExpiration': convert_data_time(dteExpiration)})
+            'dteExpiration': convert_date_time(dteExpiration)})
 
     return completion_info
