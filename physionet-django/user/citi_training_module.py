@@ -1,41 +1,61 @@
-# Import the necessary libraries
 import requests
-import xml.etree.ElementTree as ET
 from datetime import datetime
+import xml.etree.ElementTree as ET
 from django.conf import settings
 from django.template import loader
 
 
 def convert_date_time(str_date_time):
-    # Convert the string date time to a datetime object
+    """
+    Converts a string in ISO 8601 format to a datetime object.
+
+    Args:
+        str_date_time (str): A string representing a date and time in the format
+            'YYYY-MM-DDTHH:MM:SS.ssssss±HH:MM', where ±HH:MM is the time zone offset.
+
+    Returns:
+        datetime: A datetime object corresponding to the input string.
+    """
     datetime_object = datetime.strptime(str_date_time.text, '%Y-%m-%dT%H:%M:%S.%f%z')
     return datetime_object
 
 
 def send_request(xml_payload):
-    # Define the headers for the request
+    """
+    Sends a SOAP request to a CITI API endpoint with the specified XML payload and returns the parsed response.
+
+    Args:
+        xml_payload (str): The XML payload to send in the SOAP request.
+
+    Returns:
+        The root element of the parsed XML response.
+    """
     headers = {
         'Content-Type': 'text/xml; charset=utf-8'
     }
 
-    # URL for the request
     soap_request_url = settings.CITI_SOAP_URL
 
-    # Send the POST request and get the response
     response = requests.request("POST", soap_request_url, headers=headers, data=xml_payload)
 
-    # Parse the XML response into an ElementTree object
     root = ET.fromstring(response.text)
 
     return root
 
 
 def get_memberid(email):
-    # Get username and password from Django settings
+    """
+    Retrieves the CITI member ID associated with the given email address.
+
+    Args:
+        email (str): The email address to search for.
+
+    Returns:
+        The member ID as a string, or None if no matching member is found.
+    """
     username = settings.CITI_USERNAME
     password = settings.CITI_PASSWORD
 
-    # Get the member ID using email
     payload = loader.render_to_string(
         'user/citi/get_inst_member_by_email.xml', {
             'username': username,
@@ -46,7 +66,6 @@ def get_memberid(email):
 
     root = send_request(xml_payload=payload)
 
-    # Get the member ID
     memberid = root.find('.//intMemberID')
     if memberid is None:
         return None
@@ -54,7 +73,35 @@ def get_memberid(email):
 
 
 def get_citiprogram_completion(email):
-    # Get username and password from Django settings
+    """
+    Retrieves completion information for all CITI courses associated with the given email address.
+
+    Args:
+        email (str): The email address to search for.
+
+    Returns:
+        A list of dictionaries containing completion information for each course.
+        Each dictionary contains the following keys:
+        - 'FirstName': The first name of the user who completed the course.
+        - 'LastName': The last name of the user who completed the course.
+        - 'MemberID': The CITI member ID of the user who completed the course.
+        - 'memberEmail': The email address of the user who completed the course.
+        - 'strCompletionReport': The completion status of the course (e.g.,'Human Research').
+        - 'intGroupID': The ID of the course group (e.g., '43007').
+        - 'strGroup': The name of the course group (e.g., 'Data or Specimens Only Research').
+        - 'intStageID': The ID of the course stage (e.g., '106240').
+        - 'intStageNumber': The number of the course stage within the group (e.g., '1').
+        - 'strStage': The name of the course stage (e.g., 'Basic Course').
+        - 'intCompletionReportID': The ID of the completion report.
+        - 'intMemberStageID': The ID of the member stage.
+        - 'dtePassed': The date and time the course was completed, as a datetime object.
+        - 'intScore': The score earned for the course.
+        - 'intPassingScore': The passing score for the course.
+        - 'dteExpiration': The date and time the course will expire, as a datetime object.
+
+        If no courses are found for the given email address, returns an empty list.
+    """
+
     username = settings.CITI_USERNAME
     password = settings.CITI_PASSWORD
 
@@ -63,14 +110,11 @@ def get_citiprogram_completion(email):
     if memberid is None:
         return []
 
-    # Get the member courses using the member ID
     payload_courses = loader.render_to_string('user/citi/get_courses_by_member.xml', {
         'username': username, 'password': password, 'memberid': memberid, })
 
-    # Parse the XML response for the member courses
     root_courses = send_request(xml_payload=payload_courses)
 
-    # Creates a list of dictionarys for each CompletionReport
     completion_info = []
     for crs in root_courses.findall('.//CRSMEMBERID'):
         FirstName = crs.find('FirstName')
