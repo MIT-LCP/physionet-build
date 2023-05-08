@@ -1,6 +1,8 @@
 import requests
+
 from datetime import datetime
 import xml.etree.ElementTree as ET
+
 from django.conf import settings
 from django.template import loader
 
@@ -16,7 +18,7 @@ def convert_date_time(str_date_time):
     Returns:
         datetime: A datetime object corresponding to the input string.
     """
-    datetime_object = datetime.strptime(str_date_time.text, '%Y-%m-%dT%H:%M:%S.%f%z')
+    datetime_object = datetime.strptime(str_date_time, '%Y-%m-%dT%H:%M:%S.%f%z')
     return datetime_object
 
 
@@ -147,9 +149,9 @@ def get_citiprogram_completion(email):
             'strStage': strStage.text,
             'intCompletionReportID': intCompletionReportID.text,
             'intMemberStageID': intMemberStageID.text,
-            'dtePassed': convert_date_time(dtePassed),
+            'dtePassed': convert_date_time(dtePassed.text),
             'intScore': intScore.text,
             'intPassingScore': intPassingScore.text,
-            'dteExpiration': convert_date_time(dteExpiration)})
+            'dteExpiration': convert_date_time(dteExpiration.text)})
 
     return completion_info
