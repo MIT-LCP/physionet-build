@@ -197,13 +197,10 @@ def validate_reference_response(value):
 
 def validate_research_summary(value):
     """
-    Validate the research summary e that start with an
-    alphabetical character followed by alphanumeric characters,
-    spaces, underscores, apostrophes and the following special
-    characters: !@#$%&*()[]~+={};:"<>?,./`-
+    Validate that the research summary starts with a letter or digit.
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\'\[\]\n\r~!@#$%&*()+={};:‘’“”"<>?,./` -]+', value):
-        raise ValidationError('Letters, numbers, spaces, apostrophes and [!@#$%&*()[]~_+-={ };:"<>?,./`] characters only. Must begin with a letter.')
+    if not re.fullmatch(r'\w.*', value, re.DOTALL):
+        raise ValidationError('Must begin with a letter or a digit.')
 
 
 def validate_nan(value):
