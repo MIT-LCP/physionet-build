@@ -18,3 +18,18 @@ class TestValidators(TestCase):
 
     def test_organization_with_special_character_as_first_character_is_invalid(self):
         self.assertRaises(ValidationError, validate_organization, '&Johnson')
+
+    def test_reference_response_with_special_character_is_valid(self):
+        self.assertIsNone(validate_reference_response('An excellent researcher. I worked with them directly '
+                                                      '& they were very helpful. This person is 100% awesome!'))
+
+    def test_reference_response_with_newline_is_valid(self):
+        self.assertIsNone(validate_reference_response('An excellent researcher.  \nI worked with them directly'))
+
+    def test_reference_response_with_number_as_first_character_is_valid(self):
+        self.assertIsNone(validate_reference_response('1. An excellent researcher. I worked with them directly'))
+
+    def test_reference_response_with_special_character_as_first_character_is_invalid(self):
+        self.assertRaises(ValidationError, validate_reference_response, '. An excellent researcher. '
+                                                                        'I worked with them directly')
+
