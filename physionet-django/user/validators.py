@@ -87,12 +87,10 @@ def validate_location(value):
 
 def validate_organization(value):
     """
-    Validate the organization that start with an alphabetical character
-    followed by alphanumeric characters, spaces, underscores, hyphens, apostrophes,
-    periods and commas
+    Validate the organization that start with an alphanumeric character.
     """
-    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
-        raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
+    if not re.fullmatch(r'^[a-zA-Z0-9].*', value):
+        raise ValidationError('Must begin with a letter or a number.')
 
 
 def validate_job_title(value):
@@ -189,23 +187,18 @@ def validate_reference_title(value):
 
 def validate_reference_response(value):
     """
-    Validate the reference response that start with an
-    alphabetical character followed by alphanumeric characters,
-    spaces, underscores, hyphens, apostrophes, periods and commas.
+    Validate that the reference response starts with a letter or digit.
     """
-    if not re.fullmatch(r'[^\W_0-9]([\w\',. -])+', value):
-        raise ValidationError('Letters, numbers, spaces, hyphens, underscores, apostrophes, periods, and commas only. Must begin with a letter.')
+    if not re.fullmatch(r'\w.*', value, re.DOTALL):
+        raise ValidationError('Must begin with a letter or a digit.')
 
 
 def validate_research_summary(value):
     """
-    Validate the research summary e that start with an
-    alphabetical character followed by alphanumeric characters,
-    spaces, underscores, apostrophes and the following special
-    characters: !@#$%&*()[]~+={};:"<>?,./`-
+    Validate that the research summary starts with a letter or digit.
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\'\[\]\n\r~!@#$%&*()+={};:‘’“”"<>?,./` -]+', value):
-        raise ValidationError('Letters, numbers, spaces, apostrophes and [!@#$%&*()[]~_+-={ };:"<>?,./`] characters only. Must begin with a letter.')
+    if not re.fullmatch(r'\w.*', value, re.DOTALL):
+        raise ValidationError('Must begin with a letter or a digit.')
 
 
 def validate_nan(value):
