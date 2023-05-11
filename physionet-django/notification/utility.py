@@ -43,26 +43,6 @@ def mailto_url(*recipients, **params):
     return url
 
 
-def send_contact_message(contact_form):
-    """
-    Send a message to the contact email
-    """
-    subject = contact_form.cleaned_data['subject']
-    body = contact_form.cleaned_data['message']
-    mail_from = formataddr((contact_form.cleaned_data['name'],
-        contact_form.cleaned_data['email']))
-    message = EmailMessage(
-        subject=subject,
-        body=body,
-        from_email=settings.DEFAULT_FROM_EMAIL,  # envelope sender
-        to=[settings.CONTACT_EMAIL],
-        headers={
-            'From': mail_from,
-            'Sender': settings.DEFAULT_FROM_EMAIL
-        })
-    message.send(fail_silently=False)
-
-
 # ---------- Project App ---------- #
 
 def get_url_prefix(request, bulk_download=False):
