@@ -33,3 +33,14 @@ class TestValidators(TestCase):
         self.assertRaises(ValidationError, validate_reference_response, '. An excellent researcher. '
                                                                         'I worked with them directly')
 
+    def test_research_summary_with_special_character_is_valid(self):
+        self.assertIsNone(validate_research_summary('I have done lots of research. 100% awesome!'))
+
+    def test_research_summary_with_newline_is_valid(self):
+        self.assertIsNone(validate_research_summary('An excellent researcher.  \n200 publications and counting.'))
+
+    def test_research_summary_with_number_as_first_character_is_valid(self):
+        self.assertIsNone(validate_research_summary('200 publications and counting. An excellent researcher.'))
+
+    def test_research_summary_with_special_character_as_first_character_is_invalid(self):
+        self.assertRaises(ValidationError, validate_research_summary, '. 200 publications and counting.')
