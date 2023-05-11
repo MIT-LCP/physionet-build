@@ -669,27 +669,6 @@ class CredentialReferenceForm(forms.ModelForm):
         return application
 
 
-class ContactForm(forms.Form):
-    """
-    For contacting support
-    """
-    name = forms.CharField(max_length=100, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Name *'}))
-    email = forms.EmailField(max_length=100, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Email *'}))
-    subject = forms.CharField(max_length=100, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Subject *'}))
-    message = forms.CharField(max_length=2000, widget=forms.Textarea(
-        attrs={'class': 'form-control', 'placeholder': 'Message *'}))
-
-    def clean_email(self):
-        # Disallow addresses that look like they come from this machine.
-        addr = self.cleaned_data['email'].lower()
-        for domain in settings.EMAIL_FROM_DOMAINS:
-            if addr.endswith('@' + domain) or addr.endswith('.' + domain):
-                raise forms.ValidationError('Please enter your email address.')
-        return self.cleaned_data['email']
-
 class CloudForm(forms.ModelForm):
     """
     Form to store the AWS ID, and point to the google GCP email.
