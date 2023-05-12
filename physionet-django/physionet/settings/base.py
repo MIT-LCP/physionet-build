@@ -88,7 +88,6 @@ MIDDLEWARE = [
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'oauth2_provider.middleware.OAuth2TokenMiddleware'
-    
 ]
 
 # to be adjusted after initial testing

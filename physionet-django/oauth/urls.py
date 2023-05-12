@@ -24,7 +24,7 @@ if settings.DEBUG:
     oauth2_endpoint_views += [
         path('authorized-tokens/', oauth2_views.AuthorizedTokensListView.as_view(), name="authorized-token-list"),
         path('authorized-tokens/<pk>/delete/', oauth2_views.AuthorizedTokenDeleteView.as_view(),
-            name="authorized-token-delete"),
+             name="authorized-token-delete"),
     ]
 
 urlpatterns = [
