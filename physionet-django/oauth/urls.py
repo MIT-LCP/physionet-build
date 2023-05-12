@@ -28,7 +28,7 @@ if settings.DEBUG:
     ]
 
 urlpatterns = [
-    path("o/", include('oauth2_provider.urls', namespace='oauth2_provider')),	    # OAuth 2 endpoints:
+    # OAuth 2 endpoints:
     # need to pass in a tuple of the endpoints as well as the app's name
     # because the app_name attribute is not set in the included module
     path('', include((oauth2_endpoint_views, 'oauth2_provider'), namespace="oauth2_provider")),
