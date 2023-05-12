@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     'background_task',
     'rest_framework',
     'oauth2_provider',
-    'corsheaders',    
+    'corsheaders',
 
     'user',
     'project',
@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     'physionet',
     'django_sass',
     'events',
-    'oauth',    
+    'oauth',
 ]
 
 if ENABLE_SSO:
