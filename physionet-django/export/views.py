@@ -8,6 +8,9 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework import mixins
 from rest_framework.response import Response
 
+# Importing the get_content function from Search Module's views.py
+from search.views import get_content
+
 # Temporary imports for Database List Function.
 from django.http import JsonResponse
 
@@ -61,3 +64,28 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
         project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
         serializer = PublishedProjectDetailSerializer(project)
         return Response(serializer.data)
+
+
+class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
+    """
+    Search for a Published Project using the get_content function inside Search Module's views.py
+    """
+
+    # Getting the variables (resource_type, orderby, direction, search_term) from the API Call's Body.
+
+    def get_queryset(self):
+        resource_type = self.request.query_params.get('resource_type', 'types=0&types=1&types=2&types=3')
+        orderby = self.request.query_params.get('orderby', 'relevance-desc')
+        direction = self.request.query_params.get('direction', None)
+        search_term = self.request.query_params.get('search_term', None)
+
+        # Calling the get_content function inside Search Module's views.py
+        queryset = get_content(resource_type, orderby, direction, search_term)
+
+        return queryset
+    
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+    
