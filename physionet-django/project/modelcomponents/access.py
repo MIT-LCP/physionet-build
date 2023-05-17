@@ -4,6 +4,7 @@ from enum import IntEnum
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -165,6 +166,35 @@ class DataAccess(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+class DataSource(models.Model):
+    """
+    Controls all access to project data.
+    """
+    class DataLocation(models.TextChoices):
+        DIRECT = 'Direct'
+        GOOGLE_BIGQUERY = 'Google BigQuery'
+        GOOGLE_CLOUD_STORAGE = 'Google Cloud Storage'
+        AWS_OPEN_DATA = 'AWS Open Data'
+        AWS_S3 = 'AWS S3'
+
+    class AccessMechanism(models.TextChoices):
+        GOOGLE_GROUP_EMAIL = 'Google Group Email'
+        S3 = 'S3'
+        RESEARCH_ENVIRONMENT = 'Research Environment'
+
+    project = models.ForeignKey('project.PublishedProject',
+                                related_name='data_sources', db_index=True, on_delete=models.CASCADE)
+    files_available = models.BooleanField(default=False)
+    data_location = models.CharField(max_length=20, choices=DataLocation.choices)
+    access_mechanism = models.CharField(max_length=20, choices=AccessMechanism.choices, null=True, blank=True)
+    email = models.EmailField(max_length=320, null=True, blank=True)
+    uri = models.CharField(max_length=320, null=True, blank=True)
+
+    class Meta:
+        default_permissions = ()
+        unique_together = ('project', 'data_location')
 
 
 class AnonymousAccess(models.Model):
