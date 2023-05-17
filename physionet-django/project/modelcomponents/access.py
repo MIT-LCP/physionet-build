@@ -196,6 +196,58 @@ class DataSource(models.Model):
         default_permissions = ()
         unique_together = ('project', 'data_location')
 
+    def clean(self):
+        super().clean()
+
+        # all the fields in the list are expected to be present for the given data_location
+        required_fields_data_location = {
+            self.DataLocation.GOOGLE_BIGQUERY: ["email"],
+            self.DataLocation.GOOGLE_CLOUD_STORAGE: ["uri"],
+            self.DataLocation.AWS_OPEN_DATA: ["uri"],
+            self.DataLocation.AWS_S3: ["uri"],
+            # self.DataLocation.DIRECT: []
+        }
+        # one of the access_mechanism in the list is expected to be present for the given data_location
+        required_access_mechanism_data_location = {
+            self.DataLocation.GOOGLE_BIGQUERY: [self.AccessMechanism.GOOGLE_GROUP_EMAIL],
+            self.DataLocation.GOOGLE_CLOUD_STORAGE: [self.AccessMechanism.GOOGLE_GROUP_EMAIL,
+                                                     self.AccessMechanism.RESEARCH_ENVIRONMENT],
+            self.DataLocation.AWS_OPEN_DATA: [self.AccessMechanism.S3],
+            self.DataLocation.AWS_S3: [self.AccessMechanism.S3],
+            # self.DataLocation.DIRECT: []
+        }
+        # None of the access_mechanism in the list are expected be present for the given data_location
+        forbidden_access_mechanism_data_location = {
+            self.DataLocation.DIRECT: [self.AccessMechanism.GOOGLE_GROUP_EMAIL, self.AccessMechanism.S3,
+                                       self.AccessMechanism.RESEARCH_ENVIRONMENT]
+        }
+        # None the fields in the list are expected to not be present for the given data_location
+        forbidden_fields_data_location = {
+            self.DataLocation.DIRECT: ["uri", "email"]
+        }
+
+        if self.data_location in required_access_mechanism_data_location:
+            if self.access_mechanism not in required_access_mechanism_data_location.get(self.data_location, []):
+                raise ValidationError(
+                    f'{self.data_location} data sources must use one of the following access mechanisms: '
+                    f'{", ".join(required_access_mechanism_data_location.get(self.data_location, []))}.')
+
+        if self.data_location in forbidden_access_mechanism_data_location:
+            if self.access_mechanism in forbidden_access_mechanism_data_location.get(self.data_location, []):
+                raise ValidationError(
+                    f'{self.data_location} data sources must not use the following access mechanisms: '
+                    f'{", ".join(forbidden_access_mechanism_data_location.get(self.data_location, []))}.')
+
+        if self.data_location in required_fields_data_location:
+            for required_field in required_fields_data_location.get(self.data_location, []):
+                if not getattr(self, required_field):
+                    raise ValidationError(f'{self.data_location} data sources must have a {required_field}.')
+
+        if self.data_location in forbidden_fields_data_location:
+            for forbidden_field in forbidden_fields_data_location.get(self.data_location, []):
+                if getattr(self, forbidden_field):
+                    raise ValidationError(f'{self.data_location} sources must not have a {forbidden_field}.')
+
 
 class AnonymousAccess(models.Model):
     """
