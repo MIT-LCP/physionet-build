@@ -69,7 +69,8 @@ from user.models import (
     Training,
     TrainingType,
     TrainingQuestion,
-    CodeOfConduct
+    CodeOfConduct,
+    CloudInformation
 )
 from physionet.enums import LogCategory
 from console import forms, utility, services
@@ -1072,6 +1073,14 @@ def user_management(request, username):
     Admin page for managing an individual user account.
     """
     user = get_object_or_404(User, username__iexact=username)
+    try:
+        aws_info = CloudInformation.objects.get(user=user).aws_id
+    except CloudInformation.DoesNotExist:
+        aws_info = None
+    try:
+        gcp_info = CloudInformation.objects.get(user=user).gcp_email
+    except CloudInformation.DoesNotExist:
+        gcp_info = None
 
     _training = Training.objects.select_related('training_type').filter(user=user).order_by('-status')
 
@@ -1109,7 +1118,9 @@ def user_management(request, username):
                                                             'emails': emails,
                                                             'projects': projects,
                                                             'training_list': training,
-                                                            'credentialing_app': credentialing_app})
+                                                            'credentialing_app': credentialing_app,
+                                                            'aws_info': aws_info,
+                                                            'gcp_info': gcp_info})
 
 
 @permission_required('user.view_user', raise_exception=True)
