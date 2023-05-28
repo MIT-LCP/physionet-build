@@ -67,9 +67,6 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
         return Response(serializer.data)
 
 
-from rest_framework import generics, mixins
-from search.views import get_content
-
 class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
     """
     Search for a Published Project using the get_content function inside Search Module's views.py
@@ -102,4 +99,3 @@ class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-    
