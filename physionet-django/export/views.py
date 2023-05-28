@@ -50,6 +50,7 @@ class ProjectVersionList(mixins.ListModelMixin, generics.GenericAPIView):
         return queryset
 
     def get(self, request, *args, **kwargs):
+        breakpoint()
         return self.list(request, *args, **kwargs)
 
 
@@ -66,25 +67,38 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
         return Response(serializer.data)
 
 
+from rest_framework import generics, mixins
+from search.views import get_content
+
 class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
     """
     Search for a Published Project using the get_content function inside Search Module's views.py
     """
 
-    # Getting the variables (resource_type, orderby, direction, search_term) from the API Call's Body.
+    serializer_class = PublishedProjectSerializer
 
     def get_queryset(self):
-        resource_type = self.request.query_params.get('resource_type', 'types=0&types=1&types=2&types=3')
-        orderby = self.request.query_params.get('orderby', 'relevance-desc')
-        direction = self.request.query_params.get('direction', None)
-        search_term = self.request.query_params.get('search_term', None)
+        resource_type = self.request.GET.get('resource_type', '0,1,2,3')
+        resource_type = [int(x) for x in resource_type.split(',')]
+        orderby = self.request.GET.get('orderby', 'relevance-desc')
+        search_term = self.request.GET.get('search_term', ' ')
 
-        # Calling the get_content function inside Search Module's views.py
-        queryset = get_content(resource_type, orderby, direction, search_term)
+        # Ensure that resource_type is a list of integers
+        if not all(isinstance(x, int) for x in resource_type):
+            resource_type = [int(x) for x in resource_type if str(x).isdigit()]
+
+        # Handle orderby parameter
+        if orderby == 'relevance-desc':
+            queryset = get_content(resource_type, 'relevance', 'desc', search_term)
+        elif orderby == 'publish_datetime-desc':
+            queryset = PublishedProject.objects.filter(resource_type__in=resource_type).order_by('-publish_datetime')
+        elif orderby == 'publish_datetime-asc':
+            queryset = PublishedProject.objects.filter(resource_type__in=resource_type).order_by('publish_datetime')
+        else:
+            # Default to relevance descending order
+            queryset = get_content(resource_type, 'relevance', 'desc', search_term)
 
         return queryset
-    
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
