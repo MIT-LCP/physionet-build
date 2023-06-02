@@ -163,10 +163,16 @@ soap_request_url = settings.CITI_SOAP_URL
 
 
 def match_member_email(request):
+    """
+    Matches the XML feature GetInstMemberByEmail for additional matcher callback
+    """
     return ('<GetInstMemberByEmail' in request.text)
 
 
 def match_member_courseinfo(request):
+    """
+    Matches the XML feature GetMemberCoursesbyID for additional matcher callback
+    """
     return ('<GetMemberCoursesbyID' in request.text)
 
 
