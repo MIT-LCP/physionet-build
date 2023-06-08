@@ -17,6 +17,7 @@ import sys
 
 from decouple import config, UndefinedValueError
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -617,3 +618,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # minimum number of word needed for research_summary field for Credentialing Model.
 MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING = config('MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING', cast=int, default=20)
+
+DEFAULT_PROJECT_DATA_LOCATION = config('DEFAULT_PROJECT_DATA_LOCATION', default='DI')
+DEFAULT_PROJECT_ACCESS_MECHANISM = config('DEFAULT_PROJECT_ACCESS_MECHANISM', default=None)

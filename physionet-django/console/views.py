@@ -43,6 +43,7 @@ from project.models import (
     ActiveProject,
     ArchivedProject,
     DataAccess,
+    DataSource,
     DUA,
     DataAccessRequest,
     DUASignature,
@@ -830,6 +831,7 @@ def manage_published_project(request, project_slug, version):
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
     data_access_form = forms.DataAccessForm(project=project)
+    data_source_form = forms.DataSourceForm(project=project)
     contact_form = forms.PublishedProjectContactForm(project=project,
                                                      instance=project.contact)
     legacy_author_form = forms.CreateLegacyAuthorForm(project=project)
@@ -896,6 +898,18 @@ def manage_published_project(request, project_slug, version):
             if data_access_form.is_valid():
                 data_access_form.save()
                 messages.success(request, "Stored method to access the files")
+        elif 'data_location' in request.POST:
+            data_source_form = forms.DataSourceForm(project=project, data=request.POST)
+            if data_source_form.is_valid():
+                data_source_form.save()
+                messages.success(request, "Stored method to access the files")
+        elif 'data_source_removal' in request.POST and request.POST['data_source_removal'].isdigit():
+            try:
+                data_source = DataSource.objects.get(project=project, id=request.POST['data_source_removal'])
+                data_source.delete()
+                # Deletes the object if it exists for that specific project.
+            except DataSource.DoesNotExist:
+                pass
         elif 'data_access_removal' in request.POST and request.POST['data_access_removal'].isdigit():
             try:
                 data_access = DataAccess.objects.get(project=project, id=request.POST['data_access_removal'])
@@ -922,6 +936,7 @@ def manage_published_project(request, project_slug, version):
                 legacy_author_form = forms.CreateLegacyAuthorForm(project=project)
 
     data_access = DataAccess.objects.filter(project=project)
+    data_sources = DataSource.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
     tasks = list(get_associated_tasks(project))
@@ -947,7 +962,9 @@ def manage_published_project(request, project_slug, version):
             'deprecate_form': deprecate_form,
             'has_credentials': has_credentials,
             'data_access_form': data_access_form,
+            'data_source_form': data_source_form,
             'data_access': data_access,
+            'data_sources': data_sources,
             'rw_tasks': rw_tasks,
             'ro_tasks': ro_tasks,
             'anonymous_url': anonymous_url,

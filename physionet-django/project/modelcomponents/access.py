@@ -1,16 +1,20 @@
 from datetime import timedelta
 from enum import IntEnum
 
+from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.translation import gettext_lazy as _
 from project.modelcomponents.fields import SafeHTMLField
 from project.validators import validate_version
 
 from project.managers.access import DataAccessRequestQuerySet, DataAccessRequestManager
+from physionet.settings.base import StorageTypes
 
 
 class AccessPolicy(IntEnum):
@@ -167,6 +171,67 @@ class DataAccess(models.Model):
         default_permissions = ()
 
 
+class DataSource(models.Model):
+    """
+    Controls all access to project data.
+    """
+    class DataLocation(models.TextChoices):
+        DIRECT = 'DI', 'Direct'
+        GOOGLE_BIGQUERY = 'GBQ', 'Google BigQuery'
+        GOOGLE_CLOUD_STORAGE = 'GCS', 'Google Cloud Storage'
+        AWS_OPEN_DATA = 'AOD', 'AWS Open Data'
+        AWS_S3 = 'AS3', 'AWS S3'
+
+    class AccessMechanism(models.TextChoices):
+        GOOGLE_GROUP_EMAIL = 'google-group-email', 'Google Group Email'
+        S3 = 's3', 'S3'
+        RESEARCH_ENVIRONMENT = 'research-environment', 'Research Environment'
+
+    project = models.ForeignKey('project.PublishedProject',
+                                related_name='data_sources', db_index=True, on_delete=models.CASCADE)
+    files_available = models.BooleanField(default=False)
+    data_location = models.CharField(max_length=3, choices=DataLocation.choices)
+    access_mechanism = models.CharField(max_length=20, choices=AccessMechanism.choices, null=True, blank=True)
+    email = models.CharField(max_length=320, null=True, blank=True)
+    uri = models.CharField(max_length=320, null=True, blank=True)
+
+    class Meta:
+        default_permissions = ()
+        unique_together = ('project', 'data_location')
+
+    def clean(self):
+        super().clean()
+
+        if self.data_location == self.DataLocation.GOOGLE_BIGQUERY:
+            if self.access_mechanism != self.AccessMechanism.GOOGLE_GROUP_EMAIL:
+                raise ValidationError('Google BigQuery data sources must use the Google Group Email access mechanism.')
+            if not self.email:
+                raise ValidationError('Google BigQuery data sources must have an email address.')
+        elif self.data_location == self.DataLocation.GOOGLE_CLOUD_STORAGE:
+            if self.access_mechanism != self.AccessMechanism.GOOGLE_GROUP_EMAIL:
+                raise ValidationError('Google Cloud Storage data sources must use the Google Group Email access '
+                                      'mechanism.')
+            if not self.uri:
+                raise ValidationError('Google Cloud Storage data sources must have an uri address.')
+        elif self.data_location == self.DataLocation.AWS_OPEN_DATA:
+            if self.access_mechanism != self.AccessMechanism.S3:
+                raise ValidationError('AWS Open Data data sources must use the S3 access mechanism.')
+            if not self.uri:
+                raise ValidationError('AWS Open Data data sources must have a URI.')
+        elif self.data_location == self.DataLocation.AWS_S3:
+            if self.access_mechanism != self.AccessMechanism.S3:
+                raise ValidationError('AWS S3 data sources must use the S3 access mechanism.')
+            if not self.uri:
+                raise ValidationError('AWS S3 data sources must have a URI.')
+        elif self.data_location == self.DataLocation.DIRECT:
+            if self.email:
+                raise ValidationError('Direct data sources must not have an email address.')
+            if self.uri:
+                raise ValidationError('Direct data sources must not have a URI.')
+        else:
+            raise ValidationError('Invalid data location.')
+
+
 class AnonymousAccess(models.Model):
     """
     Makes it possible to grant anonymous access (without user auth)
@@ -274,3 +339,42 @@ class DUA(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class DataSourceCreator:
+    def __init__(self, **kwargs):
+        self.data_location = kwargs.get('data_location', None)
+        self.files_available = kwargs.get('files_available', None)
+        self.email = kwargs.get('email', None)
+        self.uri = kwargs.get('uri', None)
+        self.access_mechanism = kwargs.get('access_mechanism', None)
+
+    def create(self, project):
+        DataSource.objects.create(
+            project=project,
+            files_available=self.files_available,
+            data_location=self.data_location,
+            access_mechanism=self.access_mechanism,
+            email=self.email,
+            uri=self.uri,
+        )
+
+    @staticmethod
+    def create_default(project):
+        if (settings.DEFAULT_PROJECT_DATA_LOCATION == DataSource.DataLocation.DIRECT
+                and settings.STORAGE_TYPE == StorageTypes.LOCAL):
+            DataSource.objects.create(
+                project=project,
+                files_available=True,
+                data_location=DataSource.DataLocation.DIRECT,
+            )
+        elif (settings.DEFAULT_PROJECT_ACCESS_MECHANISM == DataSource.DataLocation.RESEARCH_ENVIRONMENT
+                and settings.DEFAULT_PROJECT_DATA_LOCATION == DataSource.DataLocation.GOOGLE_CLOUD_STORAGE
+                and settings.STORAGE_TYPE == StorageTypes.GCP):
+            DataSource.objects.create(
+                project=project,
+                files_available=False,
+                data_location=DataSource.DataLocation.GOOGLE_CLOUD_STORAGE,
+                uri=f'gs://{project.project_file_root()}/',
+                access_mechanism=DataSource.AccessMechanism.RESEARCH_ENVIRONMENT,
+            )
