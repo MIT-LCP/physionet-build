@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from django.db import models, transaction
+from django.db.models import Manager, Q
 from django.utils.crypto import get_random_string
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -188,10 +191,25 @@ class EventAgreementSignature(models.Model):
         default_permissions = ()
 
 
+class EventDatasetManager(Manager):
+    def accessible_by(self, user):
+        """
+        Returns all the EventDatasets that are accessible to the user.
+        """
+        accessible_events = Event.objects.filter(Q(host=user) | Q(participants__user=user))
+        active_events = accessible_events.filter(end_date__gte=datetime.now())
+        accessible_datasets = EventDataset.objects.filter(event__in=active_events, is_active=True)
+        return accessible_datasets
+
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
+
+
 class EventDataset(models.Model):
     """
     Captures information about datasets for events.
     """
+    objects = EventDatasetManager()
 
     class EventDatasetAccessType(models.TextChoices):
         GOOGLE_BIG_QUERY = 'GBQ', _('Google BigQuery')
