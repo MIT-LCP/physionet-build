@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db.models import Manager, Q
 from events.models import Event, EventDataset
+from project.authorization.events import has_access_to_event_dataset
 from project.models import AccessPolicy, DUASignature, DataAccessRequest
 from user.models import Training, TrainingType
 
@@ -57,7 +58,7 @@ class PublishedProjectManager(Manager):
         accessible_datasets = EventDataset.objects.filter(event__in=active_events, is_active=True)
         accessible_projects_ids = []
         for event_dataset in accessible_datasets:
-            if event_dataset.has_access(user):
+            if has_access_to_event_dataset(user, event_dataset):
                 accessible_projects_ids.append(event_dataset.dataset.id)
         query |= Q(id__in=accessible_projects_ids)
 
