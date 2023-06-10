@@ -1,6 +1,11 @@
 from django.db import models
+from django.utils import timezone
 
 from project.modelcomponents.fields import SafeHTMLField
+from notification.utility import notify_users_of_training_expiry
+from user.models import Training
+
+NUMBER_OF_DAYS_SET_TO_EXPIRE = 30
 
 
 class Course(models.Model):
@@ -14,6 +19,24 @@ class Course(models.Model):
         permissions = [
             ('can_view_course_guidelines', 'Can view course guidelines'),
         ]
+
+    def update_course_for_major_version_change(self, instance):
+        """
+        If it is a major version change, it sets all former user trainings
+        to a reduced date, and informs them all.
+        """
+
+        trainings = Training.objects.filter(
+            training_type=instance,
+            process_datetime__gte=timezone.now() - instance.valid_duration)
+        _ = trainings.update(
+            process_datetime=(
+                timezone.now() - (instance.valid_duration - timezone.timedelta(
+                    days=NUMBER_OF_DAYS_SET_TO_EXPIRE))))
+
+        for training in trainings:
+            notify_users_of_training_expiry(
+                training.user, instance.name, NUMBER_OF_DAYS_SET_TO_EXPIRE)
 
     def __str__(self):
         return f'{self.training_type} v{self.version}'
@@ -101,27 +124,6 @@ class ModuleProgress(models.Model):
 
     def __str__(self):
         return f'{self.course_progress.user.username} - {self.module}'
-
-    def get_next_content_or_quiz(self):
-        if self.status == self.Status.COMPLETED:
-            return None
-
-        next_content = self.module.contents.filter(order__gt=self.last_completed_order).order_by('order').first()
-        next_quiz = self.module.quizzes.filter(order__gt=self.last_completed_order).order_by('order').first()
-
-        if next_content and next_quiz:
-            return next_content if next_content.order < next_quiz.order else next_quiz
-        elif next_content:
-            return next_content
-        elif next_quiz:
-            return next_quiz
-        else:
-            return None
-
-    def update_last_completed_order(self, completed_content_or_quiz):
-        if completed_content_or_quiz.order > self.last_completed_order:
-            self.last_completed_order = completed_content_or_quiz.order
-            self.save()
 
 
 class CompletedContent(models.Model):
