@@ -149,3 +149,4 @@ physionet-django/static/bootstrap/css/bootstrap-grid.css
 physionet-django/static/bootstrap/css/bootstrap-reboot.css
 physionet-django/static/bootstrap/css/bootstrap.css
 physionet-django/static/bootstrap/css/theme.css
+physionet-django/static/custom/css/home.css

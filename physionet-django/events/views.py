@@ -117,6 +117,9 @@ def event_home(request):
                 messages.error(request, "You don't have permission to accept/reject this application")
                 return redirect(event_home)
             elif event_application.status == EventApplication.EventApplicationStatus.APPROVED:
+                if EventParticipant.objects.filter(event=event, user=event_application.user).exists():
+                    messages.error(request, "Application was already approved")
+                    return redirect(event_home)
                 event_application.accept(
                     comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
                 )

@@ -114,8 +114,25 @@ If the migration behavior interacts with other changes that have been applied to
 
 #### Theming instructions
 
-The PRIMARY and DARK environment variables can be configured in the .env file.
- * The management command "compilestatic" generates a theme.scss file and compiles the CSS.
+The theme of the deployed website can be configured by changing the following environment variables:
+
+  * DARK
+  * PRIMARY
+  * SECONDARY
+  * SUCCESS
+  * INFO
+  * WARNING
+  * DANGER
+  * LIGHT
+  
+
+  The management command "compilestatic" generates a theme.scss file and compiles the following CSS files.
+  
+   *  static/custom/css/home.css
+   *  static/bootstrap/css/bootstrap.css
+
+**Note:** The css files above are not tracked by git and are generated only when you run compilestatic command.
+
 
 #### Setting Up Cronjobs
 

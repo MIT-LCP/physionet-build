@@ -35,6 +35,30 @@
       {{ subject.is_credentialed }}
     </div>
   </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Amazon ID
+    </div>
+    <div class="col-md-9">
+      {% if aws_info %}
+        {{ aws_info }}
+      {% else %}
+        Not provided.
+      {% endif %}
+    </div>
+  </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Google Cloud ID:
+    </div>
+    <div class="col-md-9">
+      {% if gcp_info %}
+        {{ gcp_info }}
+      {% else %} 
+        Not provided.
+      {% endif %}
+    </div>
+  </div>
   
     <div class="row mb-1">
       <div class="col-md-3">

@@ -91,7 +91,7 @@
 
 <hr>
 <h4>Add Email</h4>
-<p>Add a new email address(Max emails: {{ max_associated_emails_allowed }}).</p>
+<p>Add a new email address (maximum {{ max_associated_emails_allowed }}).</p>
 <form action="{% url 'edit_emails' %}" method="post" class="form-signin row no-pd" name="add_email">
   {% csrf_token %}
 
@@ -110,17 +110,10 @@
 
 {% block local_js_bottom %}
 <script>
-  $(function(){
-      var check_email = '[a-zA-Z0-9]{0,}([.]?[a-zA-Z0-9]{1,})[@](gmail.com|hotmail.com|yahoo.com|163.com|qq.com|126.com|outlook.com|foxmail.com|live.com|139.com)';
-      var patt = new RegExp(check_email);
-      var result = patt.test($('#id_associated_email').val());
-      if (result) {
-        alert('You should use an institutional email address if you are a Student, PostDoc, Professor, Researcher, Employee, or Physician. Applications using non-institutional addresses may not be approved.')
-      }
-    });
-
-  (function () {
-      {% if total_associated_emails >= max_associated_emails_allowed %} document.getElementById('id_email').readOnly = true; {% endif %}
-  })();
+  $(function () {
+      {% if total_associated_emails >= max_associated_emails_allowed %}
+        document.getElementById('id_email').readOnly = true;
+      {% endif %}
+  });
 </script>
 {% endblock %}

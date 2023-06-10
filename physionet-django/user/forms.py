@@ -439,7 +439,7 @@ class PersonalCAF(forms.ModelForm):
             'job_title': """Your job title or position (e.g., student) within
                 your institution or organization.""",
             'city': "The city where you live.",
-            'state_province': "The state or province where you live. (Required for residents of Canada or the US.)",
+            'state_province': "The state or province where you live.",
             'zip_code': "The zip code of the city where you live.",
             'country': "The country where you live.",
             'webpage': """Please include a link to a webpage with your
@@ -454,7 +454,7 @@ class PersonalCAF(forms.ModelForm):
            'suffix': forms.TextInput(attrs={'autocomplete': 'off'}),
         }
         labels = {
-            'state_province': 'State/Province',
+            'state_province': 'State/Province (Required for Canada/U.S.)',
             'first_names': 'First (given) name(s)',
             'last_name': 'Last (family) name(s)',
             'suffix': 'Suffix, if applicable:',
@@ -668,27 +668,6 @@ class CredentialReferenceForm(forms.ModelForm):
         application.save()
         return application
 
-
-class ContactForm(forms.Form):
-    """
-    For contacting support
-    """
-    name = forms.CharField(max_length=100, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Name *'}))
-    email = forms.EmailField(max_length=100, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Email *'}))
-    subject = forms.CharField(max_length=100, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Subject *'}))
-    message = forms.CharField(max_length=2000, widget=forms.Textarea(
-        attrs={'class': 'form-control', 'placeholder': 'Message *'}))
-
-    def clean_email(self):
-        # Disallow addresses that look like they come from this machine.
-        addr = self.cleaned_data['email'].lower()
-        for domain in settings.EMAIL_FROM_DOMAINS:
-            if addr.endswith('@' + domain) or addr.endswith('.' + domain):
-                raise forms.ValidationError('Please enter your email address.')
-        return self.cleaned_data['email']
 
 class CloudForm(forms.ModelForm):
     """

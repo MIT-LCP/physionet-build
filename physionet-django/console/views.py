@@ -1,6 +1,7 @@
 import csv
 import logging
 import os
+import re
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
@@ -54,6 +55,7 @@ from project.models import (
     Topic,
     exists_project_slug,
 )
+from project.authorization.access import can_view_project_files
 from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
@@ -67,7 +69,8 @@ from user.models import (
     Training,
     TrainingType,
     TrainingQuestion,
-    CodeOfConduct
+    CodeOfConduct,
+    CloudInformation
 )
 from physionet.enums import LogCategory
 from console import forms, utility, services
@@ -1070,6 +1073,14 @@ def user_management(request, username):
     Admin page for managing an individual user account.
     """
     user = get_object_or_404(User, username__iexact=username)
+    try:
+        aws_info = CloudInformation.objects.get(user=user).aws_id
+    except CloudInformation.DoesNotExist:
+        aws_info = None
+    try:
+        gcp_info = CloudInformation.objects.get(user=user).gcp_email
+    except CloudInformation.DoesNotExist:
+        gcp_info = None
 
     _training = Training.objects.select_related('training_type').filter(user=user).order_by('-status')
 
@@ -1107,7 +1118,9 @@ def user_management(request, username):
                                                             'emails': emails,
                                                             'projects': projects,
                                                             'training_list': training,
-                                                            'credentialing_app': credentialing_app})
+                                                            'credentialing_app': credentialing_app,
+                                                            'aws_info': aws_info,
+                                                            'gcp_info': gcp_info})
 
 
 @permission_required('user.view_user', raise_exception=True)
@@ -1125,7 +1138,10 @@ def users_search(request, group):
 
         users = User.objects.filter(Q(username__icontains=search_field)
                                     | Q(profile__first_names__icontains=search_field)
-                                    | Q(email__icontains=search_field))
+                                    | Q(profile__last_name__icontains=search_field)
+                                    | Q(email__icontains=search_field)
+                                    | Q(associated_emails__email__icontains=search_field)
+                                    ).distinct()
 
         if 'inactive' in group:
             users = users.filter(is_active=False)
@@ -1152,15 +1168,13 @@ def users_aws_access_list_json(request):
     2022).  Don't rely on this function; it will go away.
     """
     projects_datathon = [
-        "mimiciv-0.3",
-        "mimiciv-0.4",
-        "mimiciv-1.0",
-        "mimiciv-2.0"
+        "mimiciv-2.2"
     ]
     published_projects = PublishedProject.objects.all()
     users_with_awsid = User.objects.filter(cloud_information__aws_id__isnull=False)
     datasets = {}
     datasets['datasets'] = []
+    aws_id_pattern = r"\b\d{12}\b"
 
     for project in published_projects:
         dataset = {}
@@ -1169,8 +1183,9 @@ def users_aws_access_list_json(request):
             dataset['name'] = project_name
             dataset['accounts'] = []
             for user in users_with_awsid:
-                if project.can_view_files(user):
-                    dataset['accounts'].append(user.cloud_information.aws_id)
+                if can_view_project_files(project, user):
+                    if re.search(aws_id_pattern, user.cloud_information.aws_id):
+                        dataset['accounts'].append(user.cloud_information.aws_id)
             datasets['datasets'].append(dataset)
 
     return JsonResponse(datasets)

@@ -288,6 +288,11 @@ a{
   margin: 0;
 }
 
+.pub-details-read-more{
+  color: grey;
+  margin: 0;
+}
+
 .news-content{
   margin-top: 1em;
 
@@ -592,6 +597,13 @@ a, code{
   width: 100%;
   border-radius: 0.25rem;
   border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.screenshot {
+  width: 600px;
+  border: 1px solid rgba(160, 160, 160, 0.15);
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 /* fix layering of modal inside list-group-item
