@@ -35,13 +35,39 @@ def courses(request):
         if not json_file.name.endswith('.json'):
             messages.warning(request, 'File is not of JSON type')
             return redirect("courses")
-        file_data = JSONParser().parse(json_file.file)
-        serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
-        if serializer.is_valid(raise_exception=False):
-            serializer.save()
-            messages.success(request, 'Course created successfully.')
+
+        # Checking if the content of the JSON file is properly formatted and according to the schema
+        try:
+            file_data = JSONParser().parse(json_file.file)
+        except json.decoder.JSONDecodeError:
+            messages.error(request, 'JSON file is not properly formatted.')
+            return redirect("courses")
+
+        # Checking if the Training type with the same version already exists
+        existing_course = Course.objects.filter(training_type=training_type)
+        if existing_course.exists():
+            if not all(map(lambda x: x.isdigit() or x == '.', str(file_data['courses'][0]['version']))):
+                messages.error(request, 'Version number is not valid.')
+            elif file_data['courses'][0]['version'] <= existing_course.order_by(
+                    '-version').first().version:  # Version Number is greater than the latest version
+                messages.error(request, 'Version number should be greater than the latest version.')
+            else:  # Checks passed and moving to saving the course
+                serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
+                if serializer.is_valid(raise_exception=False):
+                    # A Major Version change is detected : The First digit of the version number is changed
+                    if int(str(existing_course.order_by('-version').first().version).split('.')[0]) != int(str(
+                            file_data['courses'][0]['version']).split('.')[0]):
+                        # calling the update_course_for_major_version_change method to update the course
+                        existing_course[0].update_course_for_major_version_change(training_type)
+                    serializer.save()
+                    messages.success(request, 'Course updated successfully.')
         else:
-            messages.error(request, serializer.errors)
+            serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
+            if serializer.is_valid(raise_exception=False):
+                serializer.save()
+                messages.success(request, 'Course created successfully.')
+            else:
+                messages.error(request, serializer.errors)
 
         return redirect("courses")
 
