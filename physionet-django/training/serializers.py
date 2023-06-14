@@ -125,5 +125,5 @@ class TrainingTypeSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['required_field'] = RequiredField.PLATFORM
         instance = TrainingType.objects.create(**validated_data)
-        course_instance = update_or_create_course(validated_data)
-        return instance  # is the return value correct?
+        update_or_create_course(validated_data)
+        return instance
