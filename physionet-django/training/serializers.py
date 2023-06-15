@@ -87,28 +87,6 @@ def create_modules(course_instance, modules_data):
         create_contentblocks(module_instance, contents)
 
 
-def update_or_create_course(validated_data):
-    with transaction.atomic():
-        course = validated_data.pop('courses')[0]
-        modules = course.pop('modules')
-
-        if 'id' in course:
-            instance = Course.objects.get(id=course['id'])
-            for attr, value in course.items():
-                setattr(instance, attr, value)
-            instance.save()
-        else:
-            course_instance = Course.objects.create(**course)
-
-        create_modules(course_instance, modules)
-
-        if course.get("version"):
-            if str(course.get("version")).endswith("0"):
-                course.update_course_for_major_version_change(instance)
-
-        return course_instance
-
-
 class TrainingTypeSerializer(serializers.ModelSerializer):
     courses = CourseSerializer(many=True)
 
@@ -118,12 +96,28 @@ class TrainingTypeSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def update(self, instance, validated_data):
-        validated_data['training_type'] = instance
-        course_instance = update_or_create_course(validated_data)
+        with transaction.atomic():
+            course = validated_data.pop('courses')[0]
+            modules = course.pop('modules')
+
+            course['training_type'] = instance
+            course_instance = Course.objects.create(**course)
+            create_modules(course_instance, modules)
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+
         return course_instance
 
     def create(self, validated_data):
-        validated_data['required_field'] = RequiredField.PLATFORM
-        instance = TrainingType.objects.create(**validated_data)
-        update_or_create_course(validated_data)
+        with transaction.atomic():
+            course = validated_data.pop('courses')[0]
+            modules = course.pop('modules')
+
+            validated_data['required_field'] = RequiredField.PLATFORM
+            course['training_type'] = instance = TrainingType.objects.create(**validated_data)
+            course_instance = Course.objects.create(**course)
+
+            create_modules(course_instance, modules)
+
         return instance
