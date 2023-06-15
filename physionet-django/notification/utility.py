@@ -2,6 +2,7 @@
 Module for generating notifications
 """
 from email.utils import formataddr
+from functools import cache
 from urllib import parse
 
 from django.conf import settings
@@ -9,9 +10,9 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage, mail_admins, send_mail
 from django.template import defaultfilters, loader
 from django.utils import timezone
-from project.models import DataAccessRequest, License
 from django.urls import reverse
 
+from project.models import DataAccessRequest, PublishedProject, AccessPolicy
 from user.models import CredentialApplication
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
@@ -206,6 +207,14 @@ def resubmit_notify(project, comments):
               [project.editor.email], fail_silently=False)
 
 # ---------- Console App ---------- #
+
+
+@cache
+def example_credentialed_access_project():
+    return PublishedProject.objects.filter(
+        access_policy=AccessPolicy.CREDENTIALED, is_latest_version=True,
+    ).first()
+
 
 def assign_editor_notify(project):
     """
@@ -638,6 +647,7 @@ def process_credential_complete(request, application, include_comments=True):
             'CredentialApplication': CredentialApplication,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
+            'example_project': example_credentialed_access_project(),
             'url_prefix': get_url_prefix(request),
             'include_comments': include_comments,
             'signature': settings.EMAIL_SIGNATURE,
@@ -664,6 +674,7 @@ def process_training_complete(request, training, include_comments=True):
             'training': training,
             'applicant_name': training.user.get_full_name(),
             'domain': get_current_site(request),
+            'example_project': example_credentialed_access_project(),
             'url_prefix': get_url_prefix(request),
             'include_comments': training.reviewer_comments,
             'signature': settings.EMAIL_SIGNATURE,
