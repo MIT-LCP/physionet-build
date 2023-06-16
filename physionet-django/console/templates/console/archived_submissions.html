@@ -31,7 +31,7 @@
         {% for project in projects %}
           <tr>
             <td>{{ project.title }}</td>
-            <td><a href="{% url 'rejected_submission_history' project.slug %}">View History</a></td>
+            <td><a href="{% url 'archived_submission_history' project.slug %}">View History</a></td>
             <td>{{ project.version }}</td>
             <td>{% if project.submitting_author %}
               <a href="{% url 'user_management' project.submitting_author.user.username %}">{{ project.submitting_author }}</a>
