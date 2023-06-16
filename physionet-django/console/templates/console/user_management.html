@@ -140,7 +140,7 @@
           <li><a href="{% url 'submission_info' project.slug %}">{{ project.title }}
             </a> (v{{ project.version }})</li>
         {% elif status == "Archived" %}
-          <li><a href="{% url 'rejected_submission_history' project.slug %}">{{ project.title }}
+          <li><a href="{% url 'archived_submission_history' project.slug %}">{{ project.title }}
             </a> (v{{ project.version }})</li>
         {% elif status == "Published" %}
           <li><a href="{% url 'manage_published_project' project.slug project.version %}">{{ project.title }}

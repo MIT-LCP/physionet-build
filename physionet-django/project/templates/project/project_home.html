@@ -236,15 +236,15 @@
 
   <!-- Closed projects -->
 
-  {% if rejected_projects %}
+  {% if archived_projects %}
     <div class="card" >
       <div class="card-header">
         <h2>Closed Submissions</h2>
       </div>
       <ul class="list-group list-group-flush">
-        {% for project in rejected_projects %}
+        {% for project in archived_projects %}
           <li class="list-group-item">
-            <h3>{{ project }} <a href="{% url 'rejected_submission_history' project.slug %}" class="btn btn-primary ml-1" role="button" style="float:right">Submission History</a></h3>
+            <h3>{{ project }} <a href="{% url 'archived_submission_history' project.slug %}" class="btn btn-primary ml-1" role="button" style="float:right">Submission History</a></h3>
             <p class="list-group-item-text text-muted">
             <strong>Submitting Author: {{ project.submitting_author.get_full_name }}</strong><br>
             <small>Created {{ project.creation_datetime|date }} Closed {{ project.archive_datetime|date }}</small>
