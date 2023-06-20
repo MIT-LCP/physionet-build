@@ -41,7 +41,6 @@ class ProjectVersionList(mixins.ListModelMixin, generics.GenericAPIView):
     """
     List all versions of a specific project
     """
-
     serializer_class = ProjectVersionsSerializer
 
     def get_queryset(self):
@@ -57,7 +56,6 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
     """
     Retrieve an Published Project
     """
-
     authentication_classes = [SessionAuthentication, BasicAuthentication]
 
     def get(self, request, project_slug, version, *args, **kwargs):
@@ -67,19 +65,15 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
 
 
 class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
-
     """
     Search for a Published Project using the get_content function inside Search Module's views.py
     """
-
     serializer_class = PublishedProjectSerializer
 
     def check_resource_type(self, resource_type):
-
         """
         Check if the resource_type requested is valid. Returns True if valid, else False
         """
-
         available_resource_types = ProjectType.objects.all().values_list('name', flat=True)
         for r_type in resource_type:
             if r_type != 'all' and r_type.capitalize() not in available_resource_types:
@@ -87,11 +81,9 @@ class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
         return True
 
     def get_queryset(self):
-
         """
         Modifying the get_queryset method to return the queryset based on the search_term and resource_type
         """
-
         resource_type = self.request.GET.getlist('resource_type', ['all'])
         search_term = self.request.GET.get('search_term', ' ')
 
@@ -111,12 +103,10 @@ class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
         return queryset
 
     def get(self, request, *args, **kwargs):
-
         """
         Default get method for PublishedProjectSearch that takes in the search_term
         and resource_type as query parameters
         """
-
         # check if the resource_type requested is valid
         resource_type = self.request.GET.getlist('resource_type', ['all'])
         if not self.check_resource_type(resource_type):
