@@ -2,7 +2,7 @@ FROM python:3.9-bullseye
 
 RUN apt-get update -y \
     && apt-get upgrade -y \
-    && apt-get install build-essential libflac-dev libseccomp-dev libpq-dev libpcre3-dev postgresql-client wget zip -y --no-install-recommends \
+    && apt-get install build-essential libcap-dev libflac-dev libseccomp-dev libpq-dev libpcre3-dev postgresql-client wget zip -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget https://github.com/bemoody/wfdb/archive/10.7.0.tar.gz -O wfdb.tar.gz \
