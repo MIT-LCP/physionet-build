@@ -7,9 +7,9 @@ from rest_framework import generics
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework import mixins
 from rest_framework.response import Response
-
-# Importing the get_content function from Search Module's views.py
 from search.views import get_content
+from project.models import ProjectType
+from rest_framework.renderers import JSONRenderer
 
 # Temporary imports for Database List Function.
 from django.http import JsonResponse
@@ -50,7 +50,6 @@ class ProjectVersionList(mixins.ListModelMixin, generics.GenericAPIView):
         return queryset
 
     def get(self, request, *args, **kwargs):
-        breakpoint()
         return self.list(request, *args, **kwargs)
 
 
@@ -68,34 +67,59 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
 
 
 class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
+
     """
     Search for a Published Project using the get_content function inside Search Module's views.py
     """
 
     serializer_class = PublishedProjectSerializer
 
+    def check_resource_type(self, resource_type):
+
+        """
+        Check if the resource_type requested is valid. Returns True if valid, else False
+        """
+
+        available_resource_types = ProjectType.objects.all().values_list('name', flat=True)
+        for r_type in resource_type:
+            if r_type != 'all' and r_type.capitalize() not in available_resource_types:
+                return False
+        return True
+
     def get_queryset(self):
-        resource_type = self.request.GET.get('resource_type', '0,1,2,3')
-        resource_type = [int(x) for x in resource_type.split(',')]
-        orderby = self.request.GET.get('orderby', 'relevance-desc')
+
+        """
+        Modifying the get_queryset method to return the queryset based on the search_term and resource_type
+        """
+
+        resource_type = self.request.GET.getlist('resource_type', ['all'])
         search_term = self.request.GET.get('search_term', ' ')
 
-        # Ensure that resource_type is a list of integers
-        if not all(isinstance(x, int) for x in resource_type):
-            resource_type = [int(x) for x in resource_type if str(x).isdigit()]
-
-        # Handle orderby parameter
-        if orderby == 'relevance-desc':
-            queryset = get_content(resource_type, 'relevance', 'desc', search_term)
-        elif orderby == 'publish_datetime-desc':
-            queryset = PublishedProject.objects.filter(resource_type__in=resource_type).order_by('-publish_datetime')
-        elif orderby == 'publish_datetime-asc':
-            queryset = PublishedProject.objects.filter(resource_type__in=resource_type).order_by('publish_datetime')
+        # If resource_type is 'all', then get all the resource types
+        if 'all' in resource_type:
+            resource_type_list = ProjectType.objects.all().values_list('name', flat=True)
         else:
-            # Default to relevance descending order
-            queryset = get_content(resource_type, 'relevance', 'desc', search_term)
+            resource_type_list = resource_type
+            resource_type_list = [x.capitalize() for x in resource_type_list]
+
+        # convert the resource_type_list to the respective ids
+        resource_type_list = ProjectType.objects.filter(name__in=resource_type_list).values_list('id', flat=True)
+
+        # Default to relevance descending order
+        queryset = get_content(resource_type_list, 'relevance', 'desc', search_term)
 
         return queryset
 
     def get(self, request, *args, **kwargs):
+
+        """
+        Default get method for PublishedProjectSearch that takes in the search_term
+        and resource_type as query parameters
+        """
+
+        # check if the resource_type requested is valid
+        resource_type = self.request.GET.getlist('resource_type', ['all'])
+        if not self.check_resource_type(resource_type):
+            return Response({'error': 'Invalid resource_type'}, status=400)
+
         return self.list(request, *args, **kwargs)
