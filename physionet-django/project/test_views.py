@@ -325,6 +325,48 @@ class TestAccessPresubmission(TestMixin):
             data={'create_folder':'', 'folder_name':'new-folder-valid'})
         self.assertEqual(response.status_code, 403)
 
+    def test_project_file_upload(self):
+        """
+        Additional test cases for project_files.
+        """
+        project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        # Set a small storage allowance
+        project.core_project.storage_allowance = project.storage_used() + 50000
+        project.core_project.save()
+
+        # Upload multiple files
+        self.client.post(reverse('project_files', args=(project.slug,)), data={
+            'upload_files': '', 'subdir': '',
+            'file_field': (
+                SimpleUploadedFile('t1', b'x'),
+                SimpleUploadedFile('t2', b'x'),
+            )
+        })
+        self.assertTrue(os.path.exists(os.path.join(project.file_root(), 't1')))
+        self.assertTrue(os.path.exists(os.path.join(project.file_root(), 't2')))
+
+        # Upload a file with an invalid name
+        self.client.post(reverse('project_files', args=(project.slug,)), data={
+            'upload_files': '', 'subdir': '',
+            'file_field': (
+                SimpleUploadedFile('\n', b'x'),
+            )
+        })
+        self.assertFalse(os.path.exists(os.path.join(project.file_root(), '\n')))
+
+        # Upload files whose combined size exceeds allowance
+        self.client.post(reverse('project_files', args=(project.slug,)), data={
+            'upload_files': '', 'subdir': '',
+            'file_field': (
+                SimpleUploadedFile('t3', b'x' * 30000),
+                SimpleUploadedFile('t4', b'x' * 30000),
+            )
+        })
+        self.assertFalse(os.path.exists(os.path.join(project.file_root(), 't3')))
+        self.assertFalse(os.path.exists(os.path.join(project.file_root(), 't4')))
+
 
 class TestProjectCreation(TestMixin):
     """
