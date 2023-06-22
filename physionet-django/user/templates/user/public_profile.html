@@ -68,14 +68,14 @@ Profile for {{ public_user.username }}
       {% endif %}
 
       {% if public_user.is_credentialed and profile.website %}
-    <div class="row mb-1">
-      <div class="col-md-2">
-        Website:
-      </div>
-      <div class="col-md-10">
-        <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a> 
-      </div>
-    </div>
+        <div class="row mb-1">
+          <div class="col-md-2">
+            Website:
+          </div>
+          <div class="col-md-10">
+            <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a> 
+          </div>
+        </div>
       {% endif %} 
       
       {% if projects %}
