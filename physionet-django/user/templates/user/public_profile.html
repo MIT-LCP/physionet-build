@@ -67,16 +67,16 @@ Profile for {{ public_user.username }}
         </div>
       {% endif %}
 
-      {% if profile.website %}
+      {% if public_user.is_credentialed and profile.website %}
         <div class="row mb-1">
           <div class="col-md-2">
             Website:
           </div>
           <div class="col-md-10">
-            <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a>
+            <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a> 
           </div>
         </div>
-      {% endif %}
+      {% endif %} 
       
       {% if projects %}
       <br />
