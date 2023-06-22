@@ -72,6 +72,18 @@
         {% endif %}
       </div>
     </div>
+    <div class="row mb-1">
+      <div class="col-md-3">
+        Personal Website:
+      </div>
+      <div class="col-md-9">
+        {% if profile.website %}
+        <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a>
+        {% else %}
+         Not provided.
+        {% endif %}
+      </div>
+    </div>
 
   {% if profile.location %}
     <div class="row mb-1">
@@ -98,17 +110,6 @@
         </div>
     </div>
   {% endfor %}
-
-  {% if profile.website %}
-    <div class="row mb-1">
-      <div class="col-md-3">
-        Website:
-      </div>
-      <div class="col-md-9">
-        <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a>
-      </div>
-    </div>
-  {% endif %}
 
   {% if groups %}
       <div class="row mb-1">
