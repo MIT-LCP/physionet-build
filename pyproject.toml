@@ -8,7 +8,7 @@ authors = []
 python = "^3.9"
 bleach = "^3.3.0"
 chardet = "^3.0.4"
-Django = "4.1.7"
+Django = "4.1.9"
 django-autocomplete-light = "^3.9.4"
 django-background-tasks-updated = "=1.2.7"
 django-ckeditor = "6.5.1"
