@@ -90,10 +90,6 @@ MIDDLEWARE = [
     'oauth2_provider.middleware.OAuth2TokenMiddleware'
 ]
 
-# to be adjusted after initial testing
-CORS_ORIGIN_ALLOW_ALL = True
-
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
