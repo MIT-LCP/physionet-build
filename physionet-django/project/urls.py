@@ -94,3 +94,11 @@ urlpatterns = [
         name='generate_signed_url',
     ),
 ]
+
+TEST_CASES = {
+    'project_files': {
+        '_user_': 'rgmark',
+        'project_slug': 'T108xFtYkRAxiRiuOLEJ',
+        'subdir': 'notes',
+    }
+}
