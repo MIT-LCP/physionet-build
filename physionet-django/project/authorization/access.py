@@ -3,6 +3,7 @@ from datetime import datetime
 from django.db.models import Q
 
 from events.models import Event, EventDataset
+from project.authorization.events import has_access_to_event_dataset
 from project.models import AccessPolicy, DUASignature, DataAccessRequest, PublishedProject
 from user.models import Training, TrainingType
 
@@ -59,7 +60,7 @@ def get_projects_accessible_through_events(user):
 
     accessible_projects_ids = []
     for event_dataset in accessible_datasets:
-        if event_dataset.has_access(user):
+        if has_access_to_event_dataset(user, event_dataset):
             accessible_projects_ids.append(event_dataset.dataset.id)
 
     query = Q(id__in=accessible_projects_ids)
