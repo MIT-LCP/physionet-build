@@ -35,6 +35,8 @@ urlpatterns = [
     path('', include('search.urls')),
     # export app
     path('api/', include('export.urls')),
+    # oauth app
+    path('oauth/', include('oauth.urls')),
 
     path('', views.home, name='home'),
     path('ping/', views.ping),

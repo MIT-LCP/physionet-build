@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     # 'django_cron',
     'background_task',
     'rest_framework',
+    'oauth2_provider',
+    'corsheaders',
 
     'user',
     'project',
@@ -63,6 +65,7 @@ INSTALLED_APPS = [
     'physionet',
     'django_sass',
     'events',
+    'oauth',
 ]
 
 if ENABLE_SSO:
@@ -76,19 +79,22 @@ MIDDLEWARE = [
     'physionet.middleware.maintenance.SystemMaintenanceMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # RedirectFallbackMiddleware should go at end of list, according
     # to the docs: https://docs.djangoproject.com/en/4.1/ref/contrib/redirects/
-    'django.contrib.redirects.middleware.RedirectFallbackMiddleware'
+    'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ]
 }
 
