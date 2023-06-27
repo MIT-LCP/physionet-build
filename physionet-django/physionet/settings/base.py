@@ -79,6 +79,8 @@ MIDDLEWARE = [
     'physionet.middleware.maintenance.SystemMaintenanceMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -86,8 +88,6 @@ MIDDLEWARE = [
     # RedirectFallbackMiddleware should go at end of list, according
     # to the docs: https://docs.djangoproject.com/en/4.1/ref/contrib/redirects/
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'oauth2_provider.middleware.OAuth2TokenMiddleware'
 ]
 
 REST_FRAMEWORK = {
