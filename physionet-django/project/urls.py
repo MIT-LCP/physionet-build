@@ -15,9 +15,9 @@ urlpatterns = [
         name='new_project_version',
     ),
     path(
-        'rejected/<project_slug>/submission-history/',
-        views.rejected_submission_history,
-        name='rejected_submission_history',
+        'archived/<project_slug>/submission-history/',
+        views.archived_submission_history,
+        name='archived_submission_history',
     ),
     path('published/<project_slug>/', views.published_versions, name='published_versions'),
     path(

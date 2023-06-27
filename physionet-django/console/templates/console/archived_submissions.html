@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}Rejected Projects{% endblock %}
+{% block title %}Archived Projects{% endblock %}
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
@@ -11,7 +11,7 @@
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-    Rejected Projects <span class="badge badge-pill badge-info">{{ projects.paginator.count }}</span>
+    Archived Projects <span class="badge badge-pill badge-info">{{ projects.paginator.count }}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -24,14 +24,14 @@
             <th>Submitting Author</th>
             <th>Editor</th>
             <th>Creation Date</th>
-            <th>Rejection Date</th>
+            <th>Archived Date</th>
           </tr>
         </thead>
         <tbody>
         {% for project in projects %}
           <tr>
             <td>{{ project.title }}</td>
-            <td><a href="{% url 'rejected_submission_history' project.slug %}">View History</a></td>
+            <td><a href="{% url 'archived_submission_history' project.slug %}">View History</a></td>
             <td>{{ project.version }}</td>
             <td>{% if project.submitting_author %}
               <a href="{% url 'user_management' project.submitting_author.user.username %}">{{ project.submitting_author }}</a>
