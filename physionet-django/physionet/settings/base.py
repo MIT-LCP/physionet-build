@@ -623,3 +623,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # minimum number of word needed for research_summary field for Credentialing Model.
 MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING = config('MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING', cast=int, default=20)
+
+# Django configuration for file upload (see https://docs.djangoproject.com/en/4.2/ref/settings/)
+DATA_UPLOAD_MAX_NUMBER_FILES = config('DATA_UPLOAD_MAX_NUMBER_FILES', cast=int, default=1000)
+DATA_UPLOAD_MAX_MEMORY_SIZE = config('DATA_UPLOAD_MAX_MEMORY_SIZE', cast=int, default=2621440)
