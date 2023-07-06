@@ -48,7 +48,7 @@ apt-get install -y \
         `# Python application server` \
         virtualenv python3-dev libpq-dev libffi-dev \
         `# Requirements for building LightWAVE` \
-        build-essential libflac-dev libseccomp-dev \
+        build-essential libcap-dev libflac-dev libseccomp-dev \
         `# Other tools required by PhysioNet` \
         zip unzip xfsprogs \
         `# Development and administration tools` \

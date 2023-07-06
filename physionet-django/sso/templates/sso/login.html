@@ -14,8 +14,14 @@
       <div class="card-body">
         <h5 class="card-title">Single Sign-On</h5>
         <h6 class="card-subtitle mb-2 text-muted">Login through an external institute</h6>
-        <a type="button" class="btn btn-primary center" href="{% url 'sso_login' %}" aria-disabled="true">
-          {{ sso_login_button_text }}
+        <a
+          type="button"
+          class="btn btn-primary center p-2 px-3"
+          href="{% url 'sso_login' %}"
+          aria-disabled="true"
+        >
+          <i class="fa fa-university fa-lg mr-3"></i>
+          <span class="h6">{{ sso_login_button_text }}</span>
         </a>
       </div>
     </div>

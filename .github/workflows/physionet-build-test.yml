@@ -37,6 +37,7 @@ jobs:
                   build-essential \
                   flake8 \
                   git \
+                  libcap-dev \
                   libffi-dev \
                   libflac-dev \
                   libpq-dev \

@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     # 'django_cron',
     'background_task',
     'rest_framework',
+    'oauth2_provider',
+    'corsheaders',
 
     'training',
     'user',
@@ -64,6 +66,7 @@ INSTALLED_APPS = [
     'physionet',
     'django_sass',
     'events',
+    'oauth',
 ]
 
 if ENABLE_SSO:
@@ -77,19 +80,22 @@ MIDDLEWARE = [
     'physionet.middleware.maintenance.SystemMaintenanceMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # RedirectFallbackMiddleware should go at end of list, according
     # to the docs: https://docs.djangoproject.com/en/4.1/ref/contrib/redirects/
-    'django.contrib.redirects.middleware.RedirectFallbackMiddleware'
+    'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ]
 }
 
@@ -618,3 +624,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # minimum number of word needed for research_summary field for Credentialing Model.
 MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING = config('MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING', cast=int, default=20)
+
+# Django configuration for file upload (see https://docs.djangoproject.com/en/4.2/ref/settings/)
+DATA_UPLOAD_MAX_NUMBER_FILES = config('DATA_UPLOAD_MAX_NUMBER_FILES', cast=int, default=1000)
+DATA_UPLOAD_MAX_MEMORY_SIZE = config('DATA_UPLOAD_MAX_MEMORY_SIZE', cast=int, default=2621440)

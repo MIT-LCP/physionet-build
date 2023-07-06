@@ -101,13 +101,42 @@ class ActiveProjectFilesForm(forms.Form):
         return data
 
 
+class MultipleFileInput(forms.ClearableFileInput):
+    """
+    Variant of ClearableFileInput that allows uploading multiple
+    files in a single form field.
+    """
+    allow_multiple_selected = True
+
+    def __init__(self, attrs={}):
+        super().__init__(attrs={'multiple': True, **attrs})
+
+
+class MultipleFileField(forms.FileField):
+    """
+    Variant of FileField that allows uploading multiple files in a
+    single form field.
+    """
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
+
 class UploadFilesForm(ActiveProjectFilesForm):
     """
     Form for uploading multiple files to a project.
     `subdir` is the project subdirectory relative to the file root.
     """
-    file_field = forms.FileField(widget=forms.ClearableFileInput(
-        attrs={'multiple': True, 'onchange': "check_upload_size_limit('upload');"}), required=False,
+    file_field = MultipleFileField(widget=MultipleFileInput(
+        attrs={'onchange': "check_upload_size_limit('upload');"}), required=False,
         allow_empty_file=True)
 
     def clean_file_field(self):

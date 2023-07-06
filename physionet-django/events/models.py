@@ -224,6 +224,7 @@ class EventDataset(models.Model):
 
     def has_access(self, user):
         """
+        Deprecated: use projects.authorization.access.has_access_to_event_dataset instead
         Checks if the user has access to this EventDataset.
         This does not check if the associated dataset(PublishedProject) is accessible
         """

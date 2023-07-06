@@ -1006,14 +1006,14 @@ def gcp_bucket_management(request, project, user):
 
 
 @permission_required('project.change_archivedproject', raise_exception=True)
-def rejected_submissions(request):
+def archived_submissions(request):
     """
-    List of rejected submissions
+    List of archived submissions
     """
-    projects = ArchivedProject.objects.filter(archive_reason=3).order_by('archive_datetime')
+    projects = ArchivedProject.objects.all().order_by('archive_datetime')
     projects = paginate(request, projects, 50)
-    return render(request, 'console/rejected_submissions.html',
-                  {'projects': projects, 'rejected_projects_nav': True})
+    return render(request, 'console/archived_submissions.html',
+                  {'projects': projects, 'archived_projects_nav': True})
 
 
 @permission_required('user.view_user', raise_exception=True)

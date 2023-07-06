@@ -259,7 +259,7 @@ def project_home(request):
             pending_revisions.append(p)
         if p.submission_status == 0 and p.authors.get(user=user).affiliations.count() == 0:
             missing_affiliations.append([p, p.authors.get(user=user).creation_date])
-    rejected_projects = [a.project for a in archived_authors if a.project.archive_reason == 3]
+    archived_projects = [a.project for a in archived_authors]
 
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
@@ -277,7 +277,7 @@ def project_home(request):
         {
             'projects': projects,
             'published_projects': published_projects,
-            'rejected_projects': rejected_projects,
+            'archived_projects': archived_projects,
             'missing_affiliations': missing_affiliations,
             'pending_author_approvals': pending_author_approvals,
             'invitation_response_formset': invitation_response_formset,
@@ -1472,20 +1472,17 @@ def serve_document(request, file_name):
 
 
 @login_required
-def rejected_submission_history(request, project_slug):
+def archived_submission_history(request, project_slug):
     """
-    Submission history for a rejected project
+    Submission history for an archived (rejected or closed) project
     """
     user = request.user
     try:
         # Checks if the user is an author
-        project = ArchivedProject.objects.get(slug=project_slug,
-                                              archive_reason=3,
-                                              authors__user=user)
+        project = ArchivedProject.objects.get(slug=project_slug, authors__user=user)
     except ArchivedProject.DoesNotExist:
         if user.has_perm('project.change_archivedproject'):
-            project = get_object_or_404(ArchivedProject, slug=project_slug,
-                                        archive_reason=3)
+            project = get_object_or_404(ArchivedProject, slug=project_slug)
         else:
             raise Http404()
 
@@ -1494,7 +1491,7 @@ def rejected_submission_history(request, project_slug):
         e.set_quality_assurance_results()
     copyedit_logs = project.copyedit_log_history()
 
-    return render(request, 'project/rejected_submission_history.html',
+    return render(request, 'project/archived_submission_history.html',
                   {'project': project, 'edit_logs': edit_logs,
                    'copyedit_logs': copyedit_logs})
 
