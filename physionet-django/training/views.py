@@ -231,7 +231,7 @@ def courses(request):
         except json.decoder.JSONDecodeError:
             messages.error(request, 'JSON file is not properly formatted.')
             return redirect("courses")
-        
+
         # Checking if a course with the same name already exists
         existing_course = Course.objects.filter(training_type__name=file_data['name'])
         if existing_course.exists():

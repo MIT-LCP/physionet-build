@@ -146,6 +146,7 @@ class ModuleProgress(models.Model):
             self.last_completed_order = completed_content_or_quiz.order
             self.save()
 
+
 class CompletedContent(models.Model):
     module_progress = models.ForeignKey('training.ModuleProgress', on_delete=models.CASCADE,
                                         related_name='completed_contents')
