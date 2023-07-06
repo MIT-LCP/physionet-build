@@ -125,6 +125,26 @@ class ModuleProgress(models.Model):
     def __str__(self):
         return f'{self.course_progress.user.username} - {self.module}'
 
+    def get_next_content_or_quiz(self):
+        if self.status == self.Status.COMPLETED:
+            return None
+
+        next_content = self.module.contents.filter(order__gt=self.last_completed_order).order_by('order').first()
+        next_quiz = self.module.quizzes.filter(order__gt=self.last_completed_order).order_by('order').first()
+
+        if next_content and next_quiz:
+            return next_content if next_content.order < next_quiz.order else next_quiz
+        elif next_content:
+            return next_content
+        elif next_quiz:
+            return next_quiz
+        else:
+            return None
+
+    def update_last_completed_order(self, completed_content_or_quiz):
+        if completed_content_or_quiz.order > self.last_completed_order:
+            self.last_completed_order = completed_content_or_quiz.order
+            self.save()
 
 class CompletedContent(models.Model):
     module_progress = models.ForeignKey('training.ModuleProgress', on_delete=models.CASCADE,
