@@ -638,7 +638,7 @@ class AffiliationFormSet(forms.BaseInlineFormSet):
     """
     form_name = 'affiliations'
     item_label = 'Affiliations'
-    max_forms = 3
+    max_forms = Affiliation.MAX_AFFILIATIONS
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
