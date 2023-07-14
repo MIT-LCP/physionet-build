@@ -49,6 +49,7 @@
     </div>
   </div>
 </div>
+
 <!-- legacy project management -->
 {% if project.is_legacy %}
 <div class="card mb-3">
@@ -66,6 +67,28 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Associated publication -->
+<div class="card mb-3">
+  <div class="card-header">
+    Associated publication
+  </div>
+  <div class="card-body">
+    {% if project.publications.all %}
+      {% for publication in project.publications.all %}
+        <p><strong>Citation</strong>: {{ publication.citation }}<br />
+          <strong>URL</strong>: {{ publication.url }}</p>
+      {% endfor %}
+    {% else %}
+      <form method="POST" id="publication_form">
+        {% include "inline_form_snippet.html" with form=publication_form %}
+        <button class="btn btn-primary btn-fixed" name="set_publication" type="submit">Add publication</button>
+      </form>
+    {% endif %}
+
+  </div>
+</div>
+
 
 <div class="card mb-3">
     <div class="card-header">

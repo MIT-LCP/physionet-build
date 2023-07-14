@@ -27,6 +27,7 @@ from project.models import (
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
+    PublishedPublication,
     SubmissionStatus,
     exists_project_slug,
 )
@@ -705,6 +706,22 @@ class PublishedProjectContactForm(forms.ModelForm):
         contact.project = self.project
         contact.save()
         return contact
+
+
+class PublishedProjectAddPublication(forms.ModelForm):
+    class Meta:
+        model = PublishedPublication
+        fields = ('citation', 'url')
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+    def save(self):
+        publication = super().save(commit=False)
+        publication.project = self.project
+        publication.save()
+        return publication
 
 
 class CreateLegacyAuthorForm(forms.ModelForm):

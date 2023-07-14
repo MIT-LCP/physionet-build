@@ -833,6 +833,7 @@ def manage_published_project(request, project_slug, version):
     contact_form = forms.PublishedProjectContactForm(project=project,
                                                      instance=project.contact)
     legacy_author_form = forms.CreateLegacyAuthorForm(project=project)
+    publication_form = forms.PublishedProjectAddPublication(project=project)
 
     if request.method == 'POST':
         if any(x in request.POST for x in ['create_doi_core',
@@ -914,6 +915,12 @@ def manage_published_project(request, project_slug, version):
             if contact_form.is_valid():
                 contact_form.save()
                 messages.success(request, 'The contact information has been updated')
+        elif 'set_publication' in request.POST:
+            publication_form = forms.PublishedProjectAddPublication(
+                project=project, data=request.POST)
+            if publication_form.is_valid():
+                publication_form.save()
+                messages.success(request, 'The associated publication has been added')
         elif 'set_legacy_author' in request.POST:
             legacy_author_form = forms.CreateLegacyAuthorForm(project=project,
                                                               data=request.POST)
@@ -957,6 +964,7 @@ def manage_published_project(request, project_slug, version):
             'bulk_url_prefix': bulk_url_prefix,
             'contact_form': contact_form,
             'legacy_author_form': legacy_author_form,
+            'publication_form': publication_form,
             'can_make_zip': project.files.can_make_zip(),
             'can_make_checksum': project.files.can_make_checksum(),
         },
