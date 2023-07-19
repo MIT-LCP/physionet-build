@@ -74,7 +74,8 @@
 
         </ol>
         <ol start="2">
-          <li><strong>Modules:</strong> A course may have one or more modules that contain the contents,quizzes for each
+          <li><strong>Modules:</strong> A course may have one or more modules. Each module contains the course content and quizzes.
+          Modules must include:
             section of the course. Each module should include:
           </li>
           <ul>
@@ -86,7 +87,7 @@
           </ul>
         </ol>
         <ol start="3">
-          <li><strong>Content:</strong> A module may have one or more content. Each content should include:</li>
+          <li><strong>Content:</strong> A module may have one or more content blocks. Each content block should include:</li>
           <ul>
             <li>A body for the content in html</li>
             <li>An order for the content</li>
@@ -106,31 +107,31 @@
               <pre><code>
 "contents": [
     {
-      "body": "content 1",
+      "body": "This content will display first for the given module.",
       "order": 1
     },
     {
-      "body": "content 2",
+      "body": "This content will appear third (order = 3), after the quiz below.",
       "order": 3
     }
 ],
 "quizzes": [
   {
-    "question": "quiz 1",
+    "question": "This quiz will appear after the first content block (order = 2).",
     "order": 2,
     "choices": [
       {
-        "body": "choice 1",
+        "body": "This answer is correct. The user will proceed to the next block if they answer it.",
         "is_correct": true
       },
       {
-        "body": "choice 2",
+        "body": "This choice is incorrect. The user will return to the beginning of the module if they answer it.",
         "is_correct": false
       }
     ]
   },
   {
-    "question": "quiz 2",
+    "question": "This quiz will appear last, after the final content block (order = 4).",
     "order": 4,
     "choices": [
       {
