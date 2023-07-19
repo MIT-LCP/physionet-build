@@ -4,6 +4,7 @@ from django.utils import timezone
 from project.modelcomponents.fields import SafeHTMLField
 from notification.utility import notify_users_of_training_expiry
 from user.models import Training
+from project.validators import validate_version
 
 NUMBER_OF_DAYS_SET_TO_EXPIRE = 30
 
@@ -11,14 +12,14 @@ NUMBER_OF_DAYS_SET_TO_EXPIRE = 30
 class Course(models.Model):
     training_type = models.ForeignKey('user.TrainingType',
                                       on_delete=models.CASCADE, related_name='courses')
-    version = models.FloatField(default=1.0)
+    version = models.CharField(max_length=15, default='', blank=True, validators=[validate_version])
 
     class Meta:
         default_permissions = ('change',)
     constraints = [
         models.UniqueConstraint(fields=['training_type', 'version'], name='unique_course')
     ]
-        permissions = [
+    permissions = [
             ('can_view_course_guidelines', 'Can view course guidelines'),
         ]
 
