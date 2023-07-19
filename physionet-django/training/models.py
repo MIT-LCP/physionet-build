@@ -15,7 +15,9 @@ class Course(models.Model):
 
     class Meta:
         default_permissions = ('change',)
-        unique_together = ('training_type', 'version')
+    constraints = [
+        models.UniqueConstraint(fields=['training_type', 'version'], name='unique_course')
+    ]
         permissions = [
             ('can_view_course_guidelines', 'Can view course guidelines'),
         ]
@@ -85,10 +87,12 @@ class CourseProgress(models.Model):
     course = models.ForeignKey('training.Course', on_delete=models.CASCADE)
     status = models.CharField(max_length=2, choices=Status.choices, default=Status.IN_PROGRESS)
     started_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('user', 'course')
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'course'], name='unique_course_progress')
+        ]
 
     def __str__(self):
         return f'{self.user.username} - {self.course}'
