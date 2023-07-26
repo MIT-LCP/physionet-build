@@ -53,7 +53,7 @@ jobs:
 
       - name: Install lightwave
         run: |
-          wget https://github.com/bemoody/lightwave/archive/0.71.tar.gz \
+          wget https://github.com/bemoody/lightwave/archive/0.72.tar.gz \
                -O lightwave.tar.gz
           tar -xf lightwave.tar.gz
           (cd lightwave-* && make CGIDIR=/usr/local/bin sandboxed-server)
