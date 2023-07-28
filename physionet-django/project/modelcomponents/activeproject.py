@@ -135,6 +135,8 @@ class SubmissionStatus(IntEnum):
     NEEDS_APPROVAL = 50
     NEEDS_PUBLICATION = 60
 
+    do_not_call_in_templates = True
+
 
 class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
