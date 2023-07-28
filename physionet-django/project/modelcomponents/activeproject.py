@@ -1,3 +1,4 @@
+from enum import IntEnum
 import logging
 import os
 import uuid
@@ -71,21 +72,76 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
         published_project.make_zip()
 
 
+class SubmissionStatus(IntEnum):
+    """
+    Numeric codes to indicate submission status of a project.
+
+    These codes are stored in the submission_status field of
+    ActiveProject.
+
+    0: UNSUBMITTED
+    --------------
+    The project has not been submitted.  In this stage, the
+    submitting author may edit the project content.  When they are
+    ready, the submitting author may submit the project, which moves
+    it to NEEDS_ASSIGNMENT.
+
+    10: NEEDS_ASSIGNMENT ("Awaiting Editor Assignment")
+    ---------------------------------------------------
+    The project has been submitted, but has no editor assigned.  A
+    managing editor may assign the project to an editor, which moves
+    it to NEEDS_DECISION.
+
+    20: NEEDS_DECISION ("Awaiting Decision")
+    ----------------------------------------
+    An editor has been assigned and needs to review the project.  The
+    editor may accept the project, which moves it to NEEDS_COPYEDIT;
+    may request resubmission, which moves the project to
+    NEEDS_RESUBMISSION; or may reject the project, which deletes the
+    ActiveProject and transfers its content to an ArchivedProject.
+
+    30: NEEDS_RESUBMISSION ("Awaiting Author Revisions")
+    -------------------------------------------------
+    The editor has requested a resubmission with revisions.  In this
+    stage, the submitting author may edit the project content.  When
+    they are ready, the submitting author may resubmit the project,
+    which moves it back to NEEDS_DECISION.
+
+    40: NEEDS_COPYEDIT ("Awaiting Copyedit")
+    ----------------------------------------
+    The editor has accepted the project.  In this stage, the editor
+    may edit the project content.  When they are ready, the editor may
+    complete copyediting, which moves the project to NEEDS_APPROVAL.
+
+    50: NEEDS_APPROVAL ("Awaiting Author Approval")
+    -----------------------------------------------
+    The editor has copyedited the project.  Each author needs to
+    approve the final version.  When all authors have done so, this
+    moves the project to NEEDS_PUBLICATION; alternatively, the editor
+    may reopen copyediting, which moves the project back to
+    NEEDS_COPYEDIT.
+
+    60: NEEDS_PUBLICATION ("Awaiting Publication")
+    ----------------------------------------------
+    All authors have approved the project.  The editor may publish the
+    project, which deletes the ActiveProject and transfers its content
+    to a PublishedProject.
+    """
+    UNSUBMITTED = 0
+    NEEDS_ASSIGNMENT = 10
+    NEEDS_DECISION = 20
+    NEEDS_RESUBMISSION = 30
+    NEEDS_COPYEDIT = 40
+    NEEDS_APPROVAL = 50
+    NEEDS_PUBLICATION = 60
+
 
 class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
     The project used for submitting
 
-    The submission_status field:
-    - 0 : Not submitted
-    - 10 : Submitting author submits. Awaiting editor assignment.
-    - 20 : Editor assigned. Awaiting editor decision.
-    - 30 : Revisions requested. Waiting for resubmission. Loops back
-          to 20 when author resubmits.
-    - 40 : Accepted. In copyedit stage. Awaiting editor to copyedit.
-    - 50 : Editor completes copyedit. Awaiting authors to approve.
-    - 60 : Authors approve copyedit. Ready for editor to publish
-
+    The submission_status field is a number indicating the current
+    "phase" of submission; see SubmissionStatus.
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
 
