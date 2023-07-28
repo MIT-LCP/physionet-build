@@ -193,13 +193,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     )
 
     SUBMISSION_STATUS_LABELS = {
-        0: 'Not submitted.',
-        10: 'Awaiting editor assignment.',
-        20: 'Awaiting editor decision.',
-        30: 'Revisions requested.',
-        40: 'Submission accepted; awaiting editor copyedits.',
-        50: 'Awaiting authors to approve publication.',
-        60: 'Awaiting editor to publish.',
+        SubmissionStatus.UNSUBMITTED: 'Not submitted.',
+        SubmissionStatus.NEEDS_ASSIGNMENT: 'Awaiting editor assignment.',
+        SubmissionStatus.NEEDS_DECISION: 'Awaiting editor decision.',
+        SubmissionStatus.NEEDS_RESUBMISSION: 'Revisions requested.',
+        SubmissionStatus.NEEDS_COPYEDIT: 'Submission accepted; awaiting editor copyedits.',
+        SubmissionStatus.NEEDS_APPROVAL: 'Awaiting authors to approve publication.',
+        SubmissionStatus.NEEDS_PUBLICATION: 'Awaiting editor to publish.',
     }
 
     class Meta:
@@ -277,14 +277,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Whether the project can be edited by its authors
         """
-        if self.submission_status in [0, 30]:
+        if self.submission_status in [SubmissionStatus.UNSUBMITTED, SubmissionStatus.NEEDS_RESUBMISSION]:
             return True
 
     def copyeditable(self):
         """
         Whether the project can be copyedited
         """
-        if self.submission_status == 40:
+        if self.submission_status == SubmissionStatus.NEEDS_COPYEDIT:
             return True
 
     def archive(self, archive_reason):
@@ -429,7 +429,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_submittable():
             raise Exception('ActiveProject is not submittable')
 
-        self.submission_status = 10
+        self.submission_status = SubmissionStatus.NEEDS_ASSIGNMENT
         self.submission_datetime = timezone.now()
         self.author_comments = author_comments
         self.save()
@@ -448,7 +448,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         edit stage.
         """
         self.editor = editor
-        self.submission_status = 20
+        self.submission_status = SubmissionStatus.NEEDS_DECISION
         self.editor_assignment_datetime = timezone.now()
         self.save()
 
@@ -469,7 +469,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Submit the project for review.
         """
-        return (self.submission_status == 30 and self.check_integrity())
+        return (self.submission_status == SubmissionStatus.NEEDS_RESUBMISSION and self.check_integrity())
 
     def resubmit(self, author_comments):
         """
@@ -478,7 +478,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             raise Exception('ActiveProject is not resubmittable')
 
         with transaction.atomic():
-            self.submission_status = 20
+            self.submission_status = SubmissionStatus.NEEDS_DECISION
             self.resubmission_datetime = timezone.now()
             self.save()
             # Create a new edit log
@@ -489,8 +489,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Reopen the project for copyediting
         """
-        if self.submission_status == 50:
-            self.submission_status = 40
+        if self.submission_status == SubmissionStatus.NEEDS_APPROVAL:
+            self.submission_status = SubmissionStatus.NEEDS_COPYEDIT
             self.copyedit_completion_datetime = None
             self.save()
             CopyeditLog.objects.create(project=self, is_reedit=True)
@@ -502,13 +502,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         author is the final outstanding one. Return whether the
         process was successful.
         """
-        if self.submission_status == 50 and not author.approval_datetime:
+        if self.submission_status == SubmissionStatus.NEEDS_APPROVAL and not author.approval_datetime:
             now = timezone.now()
             author.approval_datetime = now
             author.save()
             if self.all_authors_approved():
                 self.author_approval_datetime = now
-                self.submission_status = 60
+                self.submission_status = SubmissionStatus.NEEDS_PUBLICATION
                 self.save()
             return True
 
@@ -524,7 +524,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Check whether a project may be published
         """
-        if self.submission_status == 60 and self.check_integrity() and self.all_authors_approved():
+        if self.submission_status == SubmissionStatus.NEEDS_PUBLICATION and self.check_integrity() and self.all_authors_approved():
             return True
         return False
 

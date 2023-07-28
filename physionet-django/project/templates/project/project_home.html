@@ -174,7 +174,7 @@
             <p class="list-group-item-text text-muted">
             <strong>Submitting Author: {{ project.submitting_author.get_full_name }}</strong><br>
             <small>Created: {{ project.creation_datetime|date }}. Modified: {{ project.modified_datetime|date }}.</small><br>
-            <small>Status: {{ project.submission_status_label }} {% if project.submission_status == 0 %}Deadline: {{ project.submission_deadline|date }}.{% endif %}</small>
+            <small>Status: {{ project.submission_status_label }} {% if project.submission_status == SubmissionStatus.UNSUBMITTED %}Deadline: {{ project.submission_deadline|date }}.{% endif %}</small>
             </p>
           </li>
         {% endfor %}

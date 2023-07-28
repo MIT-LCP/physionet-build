@@ -17,6 +17,7 @@ from project.models import (
     License,
     PublishedProject,
     StorageRequest,
+    SubmissionStatus,
 )
 from user.models import User
 from physionet.models import FrontPageButton, StaticPage
@@ -55,7 +56,7 @@ class TestState(TestMixin):
             'editor':editor.id})
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
         self.assertTrue(project.editor, editor)
-        self.assertEqual(project.submission_status, 20)
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
 
     def test_reassign_editor(self):
         """
@@ -71,7 +72,7 @@ class TestState(TestMixin):
             'project': project.id, 'editor': editor.id})
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
         self.assertTrue(project.editor, editor)
-        self.assertEqual(project.submission_status, 20)
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
 
         # Reassign editor
         editor = User.objects.get(username='amitupreti')

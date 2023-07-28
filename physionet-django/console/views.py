@@ -52,6 +52,7 @@ from project.models import (
     PublishedProject,
     Reference,
     StorageRequest,
+    SubmissionStatus,
     Topic,
     exists_project_slug,
 )
@@ -147,21 +148,21 @@ def submitted_projects(request):
             messages.success(request, 'The editor has been assigned')
 
     # Submitted projects
-    projects = ActiveProject.objects.filter(submission_status__gt=0).order_by(
+    projects = ActiveProject.objects.filter(submission_status__gt=SubmissionStatus.UNSUBMITTED).order_by(
         'submission_datetime')
     # Separate projects by submission status
     # Awaiting editor assignment
-    assignment_projects = projects.filter(submission_status=10)
+    assignment_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_ASSIGNMENT)
     # Awaiting editor decision
-    decision_projects = projects.filter(submission_status=20)
+    decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION)
     # Awaiting author revisions
-    revision_projects = projects.filter(submission_status=30)
+    revision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_RESUBMISSION)
     # Awaiting editor copyedit
-    copyedit_projects = projects.filter(submission_status=40)
+    copyedit_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_COPYEDIT)
     # Awaiting author approval
-    approval_projects = projects.filter(submission_status=50)
+    approval_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_APPROVAL)
     # Awaiting editor publish
-    publish_projects = projects.filter(submission_status=60)
+    publish_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_PUBLICATION)
 
     assign_editor_form = forms.AssignEditorForm()
 
@@ -209,15 +210,15 @@ def editor_home(request):
         'submission_datetime')
 
     # Awaiting editor decision
-    decision_projects = projects.filter(submission_status=20)
+    decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION)
     # Awaiting author revisions
-    revision_projects = projects.filter(submission_status=30)
+    revision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_RESUBMISSION)
     # Awaiting editor copyedit
-    copyedit_projects = projects.filter(submission_status=40)
+    copyedit_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_COPYEDIT)
     # Awaiting author approval
-    approval_projects = projects.filter(submission_status=50)
+    approval_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_APPROVAL)
     # Awaiting editor publish
-    publish_projects = projects.filter(submission_status=60)
+    publish_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_PUBLICATION)
 
     # Time to check if the reminder email can be sent
     yesterday = timezone.now() + timezone.timedelta(days=-1)
@@ -320,7 +321,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
     embargo_form = forms.EmbargoFilesDaysForm()
 
     # The user must be the editor
-    if project.submission_status not in [20, 30]:
+    if project.submission_status not in [SubmissionStatus.NEEDS_DECISION, SubmissionStatus.NEEDS_RESUBMISSION]:
         return redirect('editor_home')
 
     if request.method == 'POST':
@@ -365,7 +366,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     Page to copyedit the submission
     """
     project = kwargs['project']
-    if project.submission_status != 40:
+    if project.submission_status != SubmissionStatus.NEEDS_COPYEDIT:
         return redirect('editor_home')
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
@@ -551,7 +552,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     """
     project = kwargs['project']
 
-    if project.submission_status != 50:
+    if project.submission_status != SubmissionStatus.NEEDS_APPROVAL:
         return redirect('editor_home')
 
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
@@ -613,7 +614,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
     """
     project = kwargs['project']
 
-    if project.submission_status != 60:
+    if project.submission_status != SubmissionStatus.NEEDS_PUBLICATION:
         return redirect('editor_home')
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         raise ServiceUnavailable()
@@ -727,7 +728,7 @@ def unsubmitted_projects(request):
     """
     List of unsubmitted projects
     """
-    projects = ActiveProject.objects.filter(submission_status=0).order_by(
+    projects = ActiveProject.objects.filter(submission_status=SubmissionStatus.UNSUBMITTED).order_by(
         'creation_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/unsubmitted_projects.html',
@@ -1102,9 +1103,9 @@ def user_management(request, username):
 
     projects = {}
     projects['Unsubmitted'] = ActiveProject.objects.filter(authors__user=user,
-                                                           submission_status=0).order_by('-creation_datetime')
+                                                           submission_status=SubmissionStatus.UNSUBMITTED).order_by('-creation_datetime')
     projects['Submitted'] = ActiveProject.objects.filter(authors__user=user,
-                                                         submission_status__gt=0).order_by('-submission_datetime')
+                                                         submission_status__gt=SubmissionStatus.UNSUBMITTED).order_by('-submission_datetime')
     projects['Archived'] = ArchivedProject.objects.filter(authors__user=user).order_by('-archive_datetime')
     projects['Published'] = PublishedProject.objects.filter(authors__user=user).order_by('-publish_datetime')
 

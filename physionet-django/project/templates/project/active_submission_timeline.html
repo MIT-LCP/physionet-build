@@ -3,7 +3,7 @@
 
     <!-- author approval -->
     {# Awaiting authors to approve final project #}
-    {% if project.submission_status == 50 %}
+    {% if project.submission_status == SubmissionStatus.NEEDS_APPROVAL %}
       <li class="list-group-item">
         <div class="row">
           <div class="col-md-2">Currently</div>
@@ -44,7 +44,7 @@
       </li>
 
     <!-- editor approval -->
-    {% elif project.submission_status == 60 %}
+    {% elif project.submission_status == SubmissionStatus.NEEDS_PUBLICATION %}
       <li class="list-group-item">
         <div class="row">
           <div class="col-md-2">Currently</div>
@@ -61,7 +61,7 @@
 
   <!-- copyediting -->
   {# Waiting for revisions #}
-  {% if project.submission_status == 30 %}
+  {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION %}
     <li class="list-group-item">
       <div class="row">
       <div class="col-md-2">Currently</div>
@@ -96,7 +96,7 @@
         {% endif %}
         </div>
       </li>
-    {% elif project.submission_status >= 40 %}
+    {% elif project.submission_status >= SubmissionStatus.NEEDS_COPYEDIT %}
       {# At this point, there may have been any number of copyedits #}
       {% for c in copyedit_logs reversed %}
         {% if c.is_reedit %}
@@ -180,7 +180,7 @@
 
   <!-- editor assigned -->
   {# Waiting for editor #}
-  {% if project.submission_status == 10 %}
+  {% if project.submission_status == SubmissionStatus.NEEDS_ASSIGNMENT %}
   <li class="list-group-item">
     <div class="row">
       <div class="col-md-2">Currently</div>
