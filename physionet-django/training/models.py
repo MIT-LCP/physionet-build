@@ -16,12 +16,12 @@ class Course(models.Model):
 
     class Meta:
         default_permissions = ('change',)
-    constraints = [
-        models.UniqueConstraint(fields=['training_type', 'version'], name='unique_course')
-    ]
-    permissions = [
-            ('can_view_course_guidelines', 'Can view course guidelines'),
+        constraints = [
+            models.UniqueConstraint(fields=['training_type', 'version'], name='unique_course')
         ]
+        permissions = [
+                ('can_view_course_guidelines', 'Can view course guidelines'),
+            ]
 
     def update_course_for_major_version_change(self, instance):
         """
