@@ -2,6 +2,7 @@
 Module for generating notifications
 """
 from email.utils import formataddr
+from functools import cache
 from urllib import parse
 
 from django.conf import settings
@@ -9,8 +10,10 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import EmailMessage, mail_admins, send_mail
 from django.template import defaultfilters, loader
 from django.utils import timezone
-from project.models import DataAccessRequest, License
 from django.urls import reverse
+
+from project.models import DataAccessRequest, PublishedProject, AccessPolicy
+from user.models import CredentialApplication
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
@@ -39,26 +42,6 @@ def mailto_url(*recipients, **params):
     if params:
         url += '?' + parse.urlencode(params, quote_via=parse.quote)
     return url
-
-
-def send_contact_message(contact_form):
-    """
-    Send a message to the contact email
-    """
-    subject = contact_form.cleaned_data['subject']
-    body = contact_form.cleaned_data['message']
-    mail_from = formataddr((contact_form.cleaned_data['name'],
-        contact_form.cleaned_data['email']))
-    message = EmailMessage(
-        subject=subject,
-        body=body,
-        from_email=settings.DEFAULT_FROM_EMAIL,  # envelope sender
-        to=[settings.CONTACT_EMAIL],
-        headers={
-            'From': mail_from,
-            'Sender': settings.DEFAULT_FROM_EMAIL
-        })
-    message.send(fail_silently=False)
 
 
 # ---------- Project App ---------- #
@@ -224,6 +207,14 @@ def resubmit_notify(project, comments):
               [project.editor.email], fail_silently=False)
 
 # ---------- Console App ---------- #
+
+
+@cache
+def example_credentialed_access_project():
+    return PublishedProject.objects.filter(
+        access_policy=AccessPolicy.CREDENTIALED, is_latest_version=True,
+    ).first()
+
 
 def assign_editor_notify(project):
     """
@@ -653,8 +644,10 @@ def process_credential_complete(request, application, include_comments=True):
     body = loader.render_to_string(
         'notification/email/process_credential_complete.html', {
             'application': application,
+            'CredentialApplication': CredentialApplication,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
+            'example_project': example_credentialed_access_project(),
             'url_prefix': get_url_prefix(request),
             'include_comments': include_comments,
             'signature': settings.EMAIL_SIGNATURE,
@@ -681,6 +674,7 @@ def process_training_complete(request, training, include_comments=True):
             'training': training,
             'applicant_name': training.user.get_full_name(),
             'domain': get_current_site(request),
+            'example_project': example_credentialed_access_project(),
             'url_prefix': get_url_prefix(request),
             'include_comments': training.reviewer_comments,
             'signature': settings.EMAIL_SIGNATURE,

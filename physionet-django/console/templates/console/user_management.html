@@ -35,6 +35,30 @@
       {{ subject.is_credentialed }}
     </div>
   </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Amazon ID
+    </div>
+    <div class="col-md-9">
+      {% if aws_info %}
+        {{ aws_info }}
+      {% else %}
+        Not provided.
+      {% endif %}
+    </div>
+  </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Google Cloud ID:
+    </div>
+    <div class="col-md-9">
+      {% if gcp_info %}
+        {{ gcp_info }}
+      {% else %} 
+        Not provided.
+      {% endif %}
+    </div>
+  </div>
   
     <div class="row mb-1">
       <div class="col-md-3">
@@ -45,6 +69,18 @@
           {{ profile.affiliation }}
         {% else %}
           Not provided.
+        {% endif %}
+      </div>
+    </div>
+    <div class="row mb-1">
+      <div class="col-md-3">
+        Personal Website:
+      </div>
+      <div class="col-md-9">
+        {% if profile.website %}
+        <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a>
+        {% else %}
+         Not provided.
         {% endif %}
       </div>
     </div>
@@ -74,17 +110,6 @@
         </div>
     </div>
   {% endfor %}
-
-  {% if profile.website %}
-    <div class="row mb-1">
-      <div class="col-md-3">
-        Website:
-      </div>
-      <div class="col-md-9">
-        <a href="{{ profile.website }}" rel="nofollow">{{ profile.website }}</a>
-      </div>
-    </div>
-  {% endif %}
 
   {% if groups %}
       <div class="row mb-1">
@@ -116,7 +141,7 @@
           <li><a href="{% url 'submission_info' project.slug %}">{{ project.title }}
             </a> (v{{ project.version }})</li>
         {% elif status == "Archived" %}
-          <li><a href="{% url 'rejected_submission_history' project.slug %}">{{ project.title }}
+          <li><a href="{% url 'archived_submission_history' project.slug %}">{{ project.title }}
             </a> (v{{ project.version }})</li>
         {% elif status == "Published" %}
           <li><a href="{% url 'manage_published_project' project.slug project.version %}">{{ project.title }}

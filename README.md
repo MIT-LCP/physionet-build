@@ -112,11 +112,27 @@ If the migration behavior interacts with other changes that have been applied to
  * `./manage.py migrate && ./manage.py test`
  * `git add */migrations/ && git commit`
 
-
 #### Theming instructions
 
-The PRIMARY and DARK environment variables can be configured in the .env file.
- * The management command "compilestatic" generates a theme.scss file and compiles the CSS.
+The theme of the deployed website can be configured by changing the following environment variables:
+
+  * DARK
+  * PRIMARY
+  * SECONDARY
+  * SUCCESS
+  * INFO
+  * WARNING
+  * DANGER
+  * LIGHT
+  
+
+  The management command "compilestatic" generates a theme.scss file and compiles the following CSS files.
+  
+   *  static/custom/css/home.css
+   *  static/bootstrap/css/bootstrap.css
+
+**Note:** The css files above are not tracked by git and are generated only when you run compilestatic command.
+
 
 #### Setting Up Cronjobs
 
@@ -130,9 +146,18 @@ Here are the loations where you might want to add your cronjobs.
 
 3. `deploy/production/etc/cron.d/` (For cronjobs that should run on production environment)
 
-
 Here is an example of existing cronjob from `deploy/production/etc/cron.d/physionet`:
 
 ```sh
 31 23 * * *  www-data  env DJANGO_SETTINGS_MODULE=physionet.settings.production /physionet/python-env/physionet/bin/python3 /physionet/physionet-build/physionet-django/manage.py clearsessions
 ```
+
+## Package management
+
+`pyproject.toml` is the primary record of dependencies. This file is typically [used by pip](https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/) for package management. Dependencies are also tracked in [`pyproject.toml`](https://python-poetry.org/docs/pyproject/) and [`requirements.txt`](https://pip.pypa.io/en/stable/reference/requirements-file-format/).
+
+The process for updating packages is:
+
+1. Add the dependency to `pyproject.toml`
+2. Generate a new `poetry.lock` file with: `poetry lock --no-update`
+3. Generate a new requirements.txt with: `poetry export -f requirements.txt --output requirements.txt --with dev`

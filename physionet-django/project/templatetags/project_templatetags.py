@@ -6,6 +6,7 @@ from django.utils.html import format_html, escape
 from django.utils.http import urlencode
 import html2text
 
+from project.authorization.access import can_view_project_files as can_view_project_files_func
 from project.models import AccessPolicy
 from notification.utility import mailto_url
 
@@ -202,7 +203,12 @@ def call_method(obj, method_name, *args):
         args: arguments to be passed to the method
 
     Example:
-        {% call_method published_project 'has_access' request.user as user_has_access %}
+        {% call_method published_project 'can_view_files' request.user as user_can_view_files %}
     """
     method = getattr(obj, method_name)
     return method(*args)
+
+
+@register.simple_tag(name='can_view_project_files')
+def can_view_project_files(project, user):
+    return can_view_project_files_func(project, user)

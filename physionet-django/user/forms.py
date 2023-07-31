@@ -11,6 +11,7 @@ from django.db.models import F, Q
 from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy
 from physionet.utility import validate_pdf_file_type
 from user.models import (
@@ -300,6 +301,8 @@ class RegistrationForm(forms.ModelForm):
                     widget=forms.TextInput(attrs={'class': 'form-control'}),
                     validators=[validate_name])
 
+    if settings.PRIVACY_POLICY_HTML:
+        privacy_policy = forms.BooleanField(required=True, label=mark_safe(settings.PRIVACY_POLICY_HTML))
     # Minimum and maximum number of seconds from when the client first
     # loads the page until the form may be submitted.
     MIN_SUBMISSION_SECONDS = 15
@@ -436,7 +439,7 @@ class PersonalCAF(forms.ModelForm):
             'job_title': """Your job title or position (e.g., student) within
                 your institution or organization.""",
             'city': "The city where you live.",
-            'state_province': "The state or province where you live. (Required for residents of Canada or the US.)",
+            'state_province': "The state or province where you live.",
             'zip_code': "The zip code of the city where you live.",
             'country': "The country where you live.",
             'webpage': """Please include a link to a webpage with your
@@ -451,7 +454,7 @@ class PersonalCAF(forms.ModelForm):
            'suffix': forms.TextInput(attrs={'autocomplete': 'off'}),
         }
         labels = {
-            'state_province': 'State/Province',
+            'state_province': 'State/Province (Required for Canada/U.S.)',
             'first_names': 'First (given) name(s)',
             'last_name': 'Last (family) name(s)',
             'suffix': 'Suffix, if applicable:',
@@ -617,7 +620,8 @@ class CredentialApplicationForm(forms.ModelForm):
         if state_required and not data['state_province']:
             raise forms.ValidationError("Please add your state or province.")
 
-        if not self.instance and CredentialApplication.objects.filter(user=self.user, status=0):
+        if (not self.instance and CredentialApplication.objects
+                .filter(user=self.user, status=CredentialApplication.Status.PENDING)):
             raise forms.ValidationError('Outstanding application exists.')
 
     def save(self):
@@ -625,6 +629,7 @@ class CredentialApplicationForm(forms.ModelForm):
         slug = get_random_string(20)
         while CredentialApplication.objects.filter(slug=slug):
             slug = get_random_string(20)
+        credential_application.reference_verification_token = get_random_string(32)
         credential_application.user = self.user
         credential_application.slug = slug
         credential_application.save()
@@ -654,7 +659,7 @@ class CredentialReferenceForm(forms.ModelForm):
 
         # Deny (1) or approve (2)
         if self.cleaned_data['reference_response'] == 1:
-            application.status = 1
+            application.status = CredentialApplication.Status.REJECTED
         elif self.cleaned_data['reference_response'] == 2:
             application.update_review_status(40)
 
@@ -663,27 +668,6 @@ class CredentialReferenceForm(forms.ModelForm):
         application.save()
         return application
 
-
-class ContactForm(forms.Form):
-    """
-    For contacting support
-    """
-    name = forms.CharField(max_length=100, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Name *'}))
-    email = forms.EmailField(max_length=100, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Email *'}))
-    subject = forms.CharField(max_length=100, widget=forms.TextInput(
-        attrs={'class': 'form-control', 'placeholder': 'Subject *'}))
-    message = forms.CharField(max_length=2000, widget=forms.Textarea(
-        attrs={'class': 'form-control', 'placeholder': 'Message *'}))
-
-    def clean_email(self):
-        # Disallow addresses that look like they come from this machine.
-        addr = self.cleaned_data['email'].lower()
-        for domain in settings.EMAIL_FROM_DOMAINS:
-            if addr.endswith('@' + domain) or addr.endswith('.' + domain):
-                raise forms.ValidationError('Please enter your email address.')
-        return self.cleaned_data['email']
 
 class CloudForm(forms.ModelForm):
     """

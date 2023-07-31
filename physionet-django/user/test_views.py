@@ -401,7 +401,7 @@ class TestPublic(TestMixin):
         # Try to register
         response = self.client.post(reverse('register'), data={
             'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
-            'first_names': 'Jack', 'last_name': 'Reacher'})
+            'first_names': 'Jack', 'last_name': 'Reacher', 'privacy_policy': 'True'})
         # User object should not have been created, since we submitted
         # the form too quickly
         self.assertFalse(User.objects.filter(username='awesomeness'))
@@ -413,7 +413,7 @@ class TestPublic(TestMixin):
         # Register the new user
         response = self.client.post(reverse('register'), data={
             'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
-            'first_names': 'Jack', 'last_name': 'Reacher'})
+            'first_names': 'Jack', 'last_name': 'Reacher', 'privacy_policy': 'True'})
         # Recall that register uses same view upon success, so not 302
         self.assertEqual(response.status_code, 200)
         # Check user object was created
@@ -452,14 +452,14 @@ class TestPublic(TestMixin):
             self.client.get(reverse('register'))
         response = self.client.post(reverse('register'), data={
             'email': 'jackreacher@mit.edu', 'username': 'awesomeness',
-            'first_names': 'Jack', 'last_name': 'Reacher'})
+            'first_names': 'Jack', 'last_name': 'Reacher', 'privacy_policy': 'True'})
         self.assertEqual(response.status_code, 200)
 
         with offset_system_clock(seconds=-60):
             self.client.get(reverse('register'))
         response = self.client.post(reverse('register'), data={
             'email': 'admin@upr.edu', 'username': 'adminupr',
-            'first_names': 'admin', 'last_name': 'upr'})
+            'first_names': 'admin', 'last_name': 'upr', 'privacy_policy': 'True'})
         self.assertEqual(response.status_code, 200)
 
         user1 = User.objects.get(email='jackreacher@mit.edu')

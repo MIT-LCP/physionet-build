@@ -1,4 +1,4 @@
-{# Submission timeline for a non-changing project. Used for rejected archived and published projects #}
+{# Submission timeline for a non-changing project. Used for archived and published projects #}
 {# This assumes all edits and copyedits have been complete #}
 
 <ul class="list-group list-group-flush">
@@ -95,23 +95,37 @@
   {% endfor %}
 
   <!-- editor assigned -->
-  <li class="list-group-item">
-    <div class="row">
-      <div class="col-md-2">{{ project.editor_assignment_datetime|date }}</div>
-      <div class="col-md-10">The project was assigned an editor.</div>
-    </div>
-  </li>
+  {% if project.editor_assignment_datetime %}
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col-md-2">{{ project.editor_assignment_datetime|date }}</div>
+        <div class="col-md-10">The project was assigned an editor.</div>
+      </div>
+    </li>
+  {% endif %}
 
   <!-- submitted -->
+  {% if project.submission_datetime %}
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col-md-2">{{ project.submission_datetime|date }}</div>
+        <div class="col-md-10">
+          The project was submitted for review.
+          {% if project.author_comments %}
+            <p>The submitting author included the following comments:</p>
+            <a class="editor-comments">{{ project.author_comments|linebreaks }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+  {% endif %}
+
+  <!-- created -->
   <li class="list-group-item">
     <div class="row">
-      <div class="col-md-2">{{ project.submission_datetime|date }}</div>
+      <div class="col-md-2">{{ project.creation_datetime|date }}</div>
       <div class="col-md-10">
-        <p>The project was submitted for review.</p>
-        {% if project.author_comments %}
-          <p>The submitting author included the following comments:</p>
-          <a class="editor-comments">{{ project.author_comments|linebreaks }}</a>
-        {% endif %}
+        The project was created.
       </div>
     </div>
   </li>

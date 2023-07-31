@@ -98,7 +98,10 @@ class TestViews(TestCase):
         self.assertNotAuthenticated()
 
         # POST registration form
-        data = {'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New'}
+        data = {
+            'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New',
+            'privacy_policy': 'True'
+        }
         response = self.client.post(reverse('sso_register'), data=data, HTTP_REMOTE_USER='new_remote_id')
         self.assertEqual(response.status_code, 200)
         new_user = User.objects.get(sso_id='new_remote_id')
@@ -121,7 +124,10 @@ class TestViews(TestCase):
 
     def test_sso_activate_user_invalid(self):
         # POST registration form
-        data = {'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New'}
+        data = {
+            'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New',
+            'privacy_policy': 'True'
+        }
         response = self.client.post(reverse('sso_register'), data=data, HTTP_REMOTE_USER='new_remote_id')
 
         # GET activation page without REMOTE USER
@@ -156,7 +162,10 @@ class TestViews(TestCase):
 
     def test_sso_activate_user_new(self):
         # POST registration form
-        data = {'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New'}
+        data = {
+            'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New',
+            'privacy_policy': 'True'
+        }
         response = self.client.post(reverse('sso_register'), data=data, HTTP_REMOTE_USER='new_remote_id')
 
         # GET activation page
@@ -171,7 +180,10 @@ class TestViews(TestCase):
 
     def test_sso_activate_user_active(self):
         # POST registration form
-        data = {'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New'}
+        data = {
+            'email': 'sso_new@mit.edu', 'username': 'ssonew', 'first_names': 'SSO', 'last_name': 'New',
+            'privacy_policy': 'True'
+        }
         response = self.client.post(reverse('sso_register'), data=data, HTTP_REMOTE_USER='new_remote_id')
 
         # GET activation page

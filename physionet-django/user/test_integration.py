@@ -236,8 +236,7 @@ class TestCredentialing(TestMixin):
         # Register and activate a user with old credentialed account
         response = self.client.post(reverse('register'),
                                     data={'email': 'admin@upr.edu', 'username': 'adminupr',
-                                          'first_names': 'admin', 'last_name': 'upr'})
-
+                                          'first_names': 'admin', 'last_name': 'upr', 'privacy_policy': 'True'})
         uidb64, token = re.findall(
             r'activate/(?P<uidb64>[0-9A-Za-z_\-]+)/'
             r'(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})/',
@@ -277,7 +276,7 @@ class TestCredentialing(TestMixin):
         response = self.client.post(reverse('register'),
             data={'email':'admin@upr.edu', 'username':'sneakyfriend',
                   'first_names': 'admin', 'last_name': 'upr',
-                  'password1': 'Very5trongt0t@11y', 'password2': 'Very5trongt0t@11y'})
+                  'password1': 'Very5trongt0t@11y', 'password2': 'Very5trongt0t@11y', 'privacy_policy': 'True'})
 
         uidb64, token = re.findall(
             r'activate/(?P<uidb64>[0-9A-Za-z_\-]+)/'

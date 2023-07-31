@@ -21,6 +21,7 @@ jobs:
                   build-essential \
                   flake8 \
                   git \
+                  libcap-dev \
                   libffi-dev \
                   libflac-dev \
                   libpq-dev \
@@ -32,7 +33,7 @@ jobs:
                   zip
 
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -52,7 +53,7 @@ jobs:
 
       - name: Install lightwave
         run: |
-          wget https://github.com/bemoody/lightwave/archive/0.71.tar.gz \
+          wget https://github.com/bemoody/lightwave/archive/0.72.tar.gz \
                -O lightwave.tar.gz
           tar -xf lightwave.tar.gz
           (cd lightwave-* && make CGIDIR=/usr/local/bin sandboxed-server)

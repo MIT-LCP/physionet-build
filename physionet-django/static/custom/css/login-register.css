@@ -37,3 +37,13 @@ body {
 .form-signin input[name="password"]{
   margin-bottom: 10px;
 }
+
+input[name="privacy_policy"] {
+  float: left;
+  margin-right: 10px;
+  margin-top: 4px;
+}
+
+label[for="id_privacy_policy"] {
+  width: 90%;
+}

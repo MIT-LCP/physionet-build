@@ -13,8 +13,7 @@ urlpatterns = [
         name='submitted_projects'),
     path('published-projects/', views.published_projects,
         name='published_projects'),
-    path('rejected-submissions/', views.rejected_submissions,
-        name='rejected_submissions'),
+    path('archived-submissions/', views.archived_submissions, name='archived_submissions'),
     path('project-access-manage/<pid>/', views.project_access_manage,
         name='project_access_manage'),
     path('published-projects/<project_slug>/<version>/',
@@ -103,6 +102,9 @@ urlpatterns = [
     path('usage/editorial/stats/', views.editorial_stats, name='editorial_stats'),
     path('usage/credentialing/stats/', views.credentialing_stats, name='credentialing_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
+
+    # redirects
+    path('redirects/', views.view_redirects, name='redirects'),
 
     # front pages
     path('front-page-button/add/', views.frontpage_button_add, name='frontpage_button_add'),

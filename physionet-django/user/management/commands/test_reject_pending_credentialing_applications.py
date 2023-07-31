@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.management import call_command
 
 from user.management.commands.utility import get_credential_awaiting_reference
+from user.models import CredentialApplication
 from user.test_views import TestMixin
 
 LOGGER = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ class TestRejectPendingCredentialingApplications(TestMixin):
             for application in applications:
                 application.refresh_from_db()
                 # rejected applications should have status 1
-                self.assertEqual(application.status, 1)
+                self.assertEqual(application.status, CredentialApplication.Status.REJECTED)
 
         else:
             LOGGER.info('Auto rejection of credentialing applications is disabled. Exiting.')

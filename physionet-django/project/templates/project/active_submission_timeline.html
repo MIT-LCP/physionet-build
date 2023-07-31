@@ -199,17 +199,31 @@
 
   <!-- submitted -->
   {# Submitted #}
+  {% if project.submission_datetime %}
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col-md-2">{{ project.submission_datetime|date }}</div>
+        <div class="col-md-10">
+          <p>The project was submitted for review.</p>
+          {% if project.author_comments %}
+            <p>The submitting author included the following comments:</p>
+            <a class="editor-comments">{{ project.author_comments|linebreaks }}</a>
+          {% endif %}
+        </div>
+      </div>
+    </li>
+  {% endif %}
+
+  <!-- created -->
+  {# Created #}
   <li class="list-group-item">
     <div class="row">
-      <div class="col-md-2">{{ project.submission_datetime|date }}</div>
+      <div class="col-md-2">{{ project.creation_datetime|date }}</div>
       <div class="col-md-10">
-        <p>The project was submitted for review.</p>
-        {% if project.author_comments %}
-          <p>The submitting author included the following comments:</p>
-          <a class="editor-comments">{{ project.author_comments|linebreaks }}</a>
-        {% endif %}
+        <p>The project was created.</p>
       </div>
     </div>
   </li>
+
 
 </ul>

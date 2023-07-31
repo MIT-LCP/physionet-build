@@ -633,7 +633,7 @@ def edit_credentialing(request):
         ticket_system_url = None
 
     applications = CredentialApplication.objects.filter(user=request.user)
-    current_application = applications.filter(status=0).first()
+    current_application = applications.filter(status=CredentialApplication.Status.PENDING).first()
 
     if request.method == 'POST' and 'withdraw_credentialing' in request.POST:
         if current_application:
@@ -659,7 +659,7 @@ def user_credential_applications(request):
         user=request.user).order_by('-application_datetime')
 
     return render(request, 'user/user_credential_applications.html',
-        {'applications':applications})
+                  {'applications': applications, 'CredentialApplication': CredentialApplication})
 
 
 @login_required
@@ -669,7 +669,7 @@ def credential_application(request):
     """
     user = request.user
     if user.is_credentialed or CredentialApplication.objects.filter(
-            user=user, status=0):
+            user=user, status=CredentialApplication.Status.PENDING):
         return redirect('edit_credentialing')
 
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
@@ -793,6 +793,7 @@ def training_report(request, training_id):
     return utility.serve_file(training.completion_report.path, attach=False)
 
 
+# TODO: remove this after 30 days of commit merge, we want let the old links that was sent to the referees work
 # @login_required
 def credential_reference(request, application_slug):
     """
@@ -824,6 +825,40 @@ def credential_reference(request, application_slug):
 
     return render(request, 'user/credential_reference.html',
         {'form': form, 'application': application})
+
+
+def credential_reference_verification(request, application_slug, verification_token):
+    """
+    Page for a reference to verify or reject a credential application. This is an updated version of
+    `credential_reference` that uses an additional verification token.
+    """
+    application = CredentialApplication.objects.filter(
+        slug=application_slug, reference_response_datetime=None, status=0,
+        reference_verification_token=verification_token)
+
+    if not application:
+        return redirect('/')
+    application = application.get()
+    form = forms.CredentialReferenceForm(instance=application)
+
+    if request.method == 'POST':
+        form = forms.CredentialReferenceForm(data=request.POST, instance=application)
+        if form.is_valid():
+            application = form.save()
+            # Automated email notifying that their reference has denied
+            # their application.
+            if application.reference_response == 1:
+                process_credential_complete(request, application,
+                                            include_comments=False)
+
+            response = 'verifying' if application.reference_response == 2 else 'denying'
+            return render(request, 'user/credential_reference_complete.html',
+                          {'response': response, 'application': application})
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+
+    return render(request, 'user/credential_reference.html', {'form': form, 'application': application})
+
 
 @login_required
 def edit_cloud(request):

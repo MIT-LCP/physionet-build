@@ -4,7 +4,11 @@
 
 If you support their application, please indicate your approval using the link below. If you do not support their application, you may ignore this email or update us via the link.
 
+{% if application.reference_verification_token  %}
+{{ url_prefix }}{% url 'credential_reference_verification' application.slug application.reference_verification_token %}
+{% else %}
 {{ url_prefix }}{% url 'credential_reference' application.slug %}
+{% endif %}
 
 {{ applicant_name }} provided the following reason for requesting access: 
 

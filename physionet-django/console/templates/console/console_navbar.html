@@ -32,7 +32,7 @@
       <!-- projects -->
       {% if perms.project.change_publishedproject %}
         <li class="nav-item" data-toggle="tooltip" data-placement="right">
-        {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or rejected_projects_nav %}
+        {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or archived_projects_nav %}
           <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
           <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#projectComponents" data-parent="#sideAccordion" aria-expanded="false">
@@ -41,7 +41,7 @@
             <span class="nav-link-text">Projects</span>
           </a>
           <!-- submenu -->
-        {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or rejected_projects_nav %}
+        {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or archived_projects_nav %}
           <ul class="sidenav-second-level collapse show" id="projectComponents" style="">
         {% else %}
           <ul class="sidenav-second-level collapse" id="projectComponents">
@@ -55,8 +55,8 @@
             <li class="nav-item {% if published_projects_nav %}active{% endif %}">
               <a id="nav_published_projects" class="nav-link" href="{% url 'published_projects' %}">Published</a>
             </li>
-            <li class="nav-item {% if rejected_projects_nav %}active{% endif %}">
-              <a id="nav_rejected_submissions" class="nav-link" href="{% url 'rejected_submissions' %}">Rejected</a>
+            <li class="nav-item {% if archived_projects_nav %}active{% endif %}">
+              <a id="nav_archived_submissions" class="nav-link" href="{% url 'archived_submissions' %}">Archived</a>
             </li>          
           </ul>
         </li>
@@ -314,7 +314,7 @@
       {% endif %}
 
       <!-- Pages -->
-      {% if perms.user.change_staticpage or perms.user.change_frontpagebutton %}
+      {% if perms.user.change_staticpage or perms.user.change_frontpagebutton or perms.redirect.view_redirect %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         {% if frontpage_buttons_nav or static_pages_nav %}
           <a id="nav_pages_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#pagesComponent" data-parent="#sideAccordion" aria-expanded="true">
@@ -325,16 +325,19 @@
             <span class="nav-link-text">Pages</span>
           </a>
           <!-- submenu -->
-        {% if frontpage_buttons_nav or static_pages_nav %}
+        {% if frontpage_buttons_nav or static_pages_nav or redirects_nav %}
           <ul class="sidenav-second-level collapse show" id="pagesComponent" style="">
         {% else %}
           <ul class="sidenav-second-level collapse" id="pagesComponent">
         {% endif %}
             <li class="nav-item {% if static_pages_nav %}active{% endif %}">
-              <a id="nav_console_news" class="nav-link" href="{% url 'static_pages' %}">Static Pages</a>
+              <a id="nav_pages_dropdown" class="nav-link" href="{% url 'static_pages' %}">Static Pages</a>
             </li>
             <li class="nav-item {% if frontpage_buttons_nav %}active{% endif %}">
-              <a id="nav_console_news" class="nav-link" href="{% url 'frontpage_buttons' %}">Frontpage Buttons</a>
+              <a id="nav_pages_dropdown" class="nav-link" href="{% url 'frontpage_buttons' %}">Frontpage Buttons</a>
+            </li>
+            <li class="nav-item {% if redirects_nav %}active{% endif %}">
+              <a id="nav_pages_dropdown" class="nav-link" href="{% url 'redirects' %}">Redirects</a>
             </li>
           </ul>
       </li>
