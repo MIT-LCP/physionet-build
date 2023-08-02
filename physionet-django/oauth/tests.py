@@ -2,6 +2,7 @@ import base64
 import random
 import hashlib
 from datetime import timedelta
+import re
 from django.test import TestCase
 from django.utils import timezone
 from user.models import User
@@ -183,6 +184,14 @@ class TestAuthorizationCodeTokenView(BaseAuthorizationCodeTokenView):
             reverse("oauth2_provider:token"), data=token_request_data, **auth_headers
         )
         self.assertEqual(response.status_code, 200)
+        token = response.json()["access_token"]
+
+        # Testing the Token Acquired through the above request
+        self.client.logout()
+
+        auth = self._create_authorization_header(token)
+        response = self.client.get("/oauth/hello", HTTP_AUTHORIZATION=auth)
+        self.assertEqual(response.status_code, 200)
 
     def test_secure_auth_pkce(self):
         """
@@ -210,4 +219,12 @@ class TestAuthorizationCodeTokenView(BaseAuthorizationCodeTokenView):
         response = self.client.post(
             reverse("oauth2_provider:token"), data=token_request_data, **auth_headers
         )
+        self.assertEqual(response.status_code, 200)
+        token = response.json()["access_token"]
+
+        # Testing the Token Acquired through the above request
+        self.client.logout()
+
+        auth = self._create_authorization_header(token)
+        response = self.client.get("/oauth/hello", HTTP_AUTHORIZATION=auth)
         self.assertEqual(response.status_code, 200)
