@@ -22,7 +22,7 @@
         <a class="nav-link {% if passphrase %} active {% endif %}" id="embargo-tab" data-toggle="tab" href="#embargo" role="tab" aria-controls="reassign" aria-selected="false">Embargo</a>
       </li>
       {% endif %}
-      {% if project.submission_status >= 40 %}
+      {% if project.submission_status >= SubmissionStatus.NEEDS_COPYEDIT %}
       <li class="nav-item">
         <a class="nav-link" id="doi-tab" data-toggle="tab" href="#doi" role="tab" aria-controls="timeline" aria-selected="false">DOIs</a>
       </li>

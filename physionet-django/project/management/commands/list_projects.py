@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from django.db.models import Q
 import html2text
 
-from project.models import ActiveProject
+from project.models import ActiveProject, SubmissionStatus
 from user.models import AssociatedEmail, User
 
 
@@ -68,10 +68,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         projects = ActiveProject.objects
         if options['unsubmitted']:
-            projects = projects.filter(submission_status__lt=10)
+            projects = projects.filter(submission_status__lt=SubmissionStatus.NEEDS_ASSIGNMENT)
             order = 'creation_datetime'
         else:
-            projects = projects.filter(submission_status__gte=10)
+            projects = projects.filter(submission_status__gte=SubmissionStatus.NEEDS_ASSIGNMENT)
             order = 'submission_datetime'
 
         if options['title']:

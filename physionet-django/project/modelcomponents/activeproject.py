@@ -1,3 +1,4 @@
+from enum import IntEnum
 import logging
 import os
 import uuid
@@ -71,21 +72,78 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
         published_project.make_zip()
 
 
+class SubmissionStatus(IntEnum):
+    """
+    Numeric codes to indicate submission status of a project.
+
+    These codes are stored in the submission_status field of
+    ActiveProject.
+
+    0: UNSUBMITTED
+    --------------
+    The project has not been submitted.  In this stage, the
+    submitting author may edit the project content.  When they are
+    ready, the submitting author may submit the project, which moves
+    it to NEEDS_ASSIGNMENT.
+
+    10: NEEDS_ASSIGNMENT ("Awaiting Editor Assignment")
+    ---------------------------------------------------
+    The project has been submitted, but has no editor assigned.  A
+    managing editor may assign the project to an editor, which moves
+    it to NEEDS_DECISION.
+
+    20: NEEDS_DECISION ("Awaiting Decision")
+    ----------------------------------------
+    An editor has been assigned and needs to review the project.  The
+    editor may accept the project, which moves it to NEEDS_COPYEDIT;
+    may request resubmission, which moves the project to
+    NEEDS_RESUBMISSION; or may reject the project, which deletes the
+    ActiveProject and transfers its content to an ArchivedProject.
+
+    30: NEEDS_RESUBMISSION ("Awaiting Author Revisions")
+    -------------------------------------------------
+    The editor has requested a resubmission with revisions.  In this
+    stage, the submitting author may edit the project content.  When
+    they are ready, the submitting author may resubmit the project,
+    which moves it back to NEEDS_DECISION.
+
+    40: NEEDS_COPYEDIT ("Awaiting Copyedit")
+    ----------------------------------------
+    The editor has accepted the project.  In this stage, the editor
+    may edit the project content.  When they are ready, the editor may
+    complete copyediting, which moves the project to NEEDS_APPROVAL.
+
+    50: NEEDS_APPROVAL ("Awaiting Author Approval")
+    -----------------------------------------------
+    The editor has copyedited the project.  Each author needs to
+    approve the final version.  When all authors have done so, this
+    moves the project to NEEDS_PUBLICATION; alternatively, the editor
+    may reopen copyediting, which moves the project back to
+    NEEDS_COPYEDIT.
+
+    60: NEEDS_PUBLICATION ("Awaiting Publication")
+    ----------------------------------------------
+    All authors have approved the project.  The editor may publish the
+    project, which deletes the ActiveProject and transfers its content
+    to a PublishedProject.
+    """
+    UNSUBMITTED = 0
+    NEEDS_ASSIGNMENT = 10
+    NEEDS_DECISION = 20
+    NEEDS_RESUBMISSION = 30
+    NEEDS_COPYEDIT = 40
+    NEEDS_APPROVAL = 50
+    NEEDS_PUBLICATION = 60
+
+    do_not_call_in_templates = True
+
 
 class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
     The project used for submitting
 
-    The submission_status field:
-    - 0 : Not submitted
-    - 10 : Submitting author submits. Awaiting editor assignment.
-    - 20 : Editor assigned. Awaiting editor decision.
-    - 30 : Revisions requested. Waiting for resubmission. Loops back
-          to 20 when author resubmits.
-    - 40 : Accepted. In copyedit stage. Awaiting editor to copyedit.
-    - 50 : Editor completes copyedit. Awaiting authors to approve.
-    - 60 : Authors approve copyedit. Ready for editor to publish
-
+    The submission_status field is a number indicating the current
+    "phase" of submission; see SubmissionStatus.
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
 
@@ -135,13 +193,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     )
 
     SUBMISSION_STATUS_LABELS = {
-        0: 'Not submitted.',
-        10: 'Awaiting editor assignment.',
-        20: 'Awaiting editor decision.',
-        30: 'Revisions requested.',
-        40: 'Submission accepted; awaiting editor copyedits.',
-        50: 'Awaiting authors to approve publication.',
-        60: 'Awaiting editor to publish.',
+        SubmissionStatus.UNSUBMITTED: 'Not submitted.',
+        SubmissionStatus.NEEDS_ASSIGNMENT: 'Awaiting editor assignment.',
+        SubmissionStatus.NEEDS_DECISION: 'Awaiting editor decision.',
+        SubmissionStatus.NEEDS_RESUBMISSION: 'Revisions requested.',
+        SubmissionStatus.NEEDS_COPYEDIT: 'Submission accepted; awaiting editor copyedits.',
+        SubmissionStatus.NEEDS_APPROVAL: 'Awaiting authors to approve publication.',
+        SubmissionStatus.NEEDS_PUBLICATION: 'Awaiting editor to publish.',
     }
 
     class Meta:
@@ -219,14 +277,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Whether the project can be edited by its authors
         """
-        if self.submission_status in [0, 30]:
+        if self.submission_status in [SubmissionStatus.UNSUBMITTED, SubmissionStatus.NEEDS_RESUBMISSION]:
             return True
 
     def copyeditable(self):
         """
         Whether the project can be copyedited
         """
-        if self.submission_status == 40:
+        if self.submission_status == SubmissionStatus.NEEDS_COPYEDIT:
             return True
 
     def archive(self, archive_reason):
@@ -371,7 +429,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_submittable():
             raise Exception('ActiveProject is not submittable')
 
-        self.submission_status = 10
+        self.submission_status = SubmissionStatus.NEEDS_ASSIGNMENT
         self.submission_datetime = timezone.now()
         self.author_comments = author_comments
         self.save()
@@ -390,7 +448,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         edit stage.
         """
         self.editor = editor
-        self.submission_status = 20
+        self.submission_status = SubmissionStatus.NEEDS_DECISION
         self.editor_assignment_datetime = timezone.now()
         self.save()
 
@@ -411,7 +469,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Submit the project for review.
         """
-        return (self.submission_status == 30 and self.check_integrity())
+        return (self.submission_status == SubmissionStatus.NEEDS_RESUBMISSION and self.check_integrity())
 
     def resubmit(self, author_comments):
         """
@@ -420,7 +478,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             raise Exception('ActiveProject is not resubmittable')
 
         with transaction.atomic():
-            self.submission_status = 20
+            self.submission_status = SubmissionStatus.NEEDS_DECISION
             self.resubmission_datetime = timezone.now()
             self.save()
             # Create a new edit log
@@ -431,8 +489,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Reopen the project for copyediting
         """
-        if self.submission_status == 50:
-            self.submission_status = 40
+        if self.submission_status == SubmissionStatus.NEEDS_APPROVAL:
+            self.submission_status = SubmissionStatus.NEEDS_COPYEDIT
             self.copyedit_completion_datetime = None
             self.save()
             CopyeditLog.objects.create(project=self, is_reedit=True)
@@ -444,13 +502,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         author is the final outstanding one. Return whether the
         process was successful.
         """
-        if self.submission_status == 50 and not author.approval_datetime:
+        if self.submission_status == SubmissionStatus.NEEDS_APPROVAL and not author.approval_datetime:
             now = timezone.now()
             author.approval_datetime = now
             author.save()
             if self.all_authors_approved():
                 self.author_approval_datetime = now
-                self.submission_status = 60
+                self.submission_status = SubmissionStatus.NEEDS_PUBLICATION
                 self.save()
             return True
 
@@ -466,7 +524,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Check whether a project may be published
         """
-        if self.submission_status == 60 and self.check_integrity() and self.all_authors_approved():
+        if (
+            self.submission_status == SubmissionStatus.NEEDS_PUBLICATION
+            and self.check_integrity()
+            and self.all_authors_approved()
+        ):
             return True
         return False
 
