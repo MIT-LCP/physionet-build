@@ -5,36 +5,44 @@ import project.validators
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('training', '0001_initial'),
+        ("training", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='course',
+            name="course",
             unique_together=set(),
         ),
         migrations.AlterUniqueTogether(
-            name='courseprogress',
+            name="courseprogress",
             unique_together=set(),
         ),
         migrations.AlterField(
-            model_name='course',
-            name='version',
-            field=models.CharField(blank=True, default='', max_length=15, validators=[project.validators.validate_version]),
+            model_name="course",
+            name="version",
+            field=models.CharField(
+                blank=True,
+                default="",
+                max_length=15,
+                validators=[project.validators.validate_version],
+            ),
         ),
         migrations.AlterField(
-            model_name='courseprogress',
-            name='completed_at',
+            model_name="courseprogress",
+            name="completed_at",
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddConstraint(
-            model_name='course',
-            constraint=models.UniqueConstraint(fields=('training_type', 'version'), name='unique_course'),
+            model_name="course",
+            constraint=models.UniqueConstraint(
+                fields=("training_type", "version"), name="unique_course"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='courseprogress',
-            constraint=models.UniqueConstraint(fields=('user', 'course'), name='unique_course_progress'),
+            model_name="courseprogress",
+            constraint=models.UniqueConstraint(
+                fields=("user", "course"), name="unique_course_progress"
+            ),
         ),
     ]
