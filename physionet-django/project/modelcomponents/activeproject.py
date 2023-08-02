@@ -524,7 +524,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Check whether a project may be published
         """
-        if self.submission_status == SubmissionStatus.NEEDS_PUBLICATION and self.check_integrity() and self.all_authors_approved():
+        if (
+            self.submission_status == SubmissionStatus.NEEDS_PUBLICATION
+            and self.check_integrity()
+            and self.all_authors_approved()
+        ):
             return True
         return False
 

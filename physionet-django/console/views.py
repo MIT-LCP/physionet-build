@@ -1102,10 +1102,12 @@ def user_management(request, username):
                                                           is_verified=False)
 
     projects = {}
-    projects['Unsubmitted'] = ActiveProject.objects.filter(authors__user=user,
-                                                           submission_status=SubmissionStatus.UNSUBMITTED).order_by('-creation_datetime')
-    projects['Submitted'] = ActiveProject.objects.filter(authors__user=user,
-                                                         submission_status__gt=SubmissionStatus.UNSUBMITTED).order_by('-submission_datetime')
+    projects["Unsubmitted"] = ActiveProject.objects.filter(
+        authors__user=user, submission_status=SubmissionStatus.UNSUBMITTED
+    ).order_by("-creation_datetime")
+    projects["Submitted"] = ActiveProject.objects.filter(
+        authors__user=user, submission_status__gt=SubmissionStatus.UNSUBMITTED
+    ).order_by("-submission_datetime")
     projects['Archived'] = ArchivedProject.objects.filter(authors__user=user).order_by('-archive_datetime')
     projects['Published'] = PublishedProject.objects.filter(authors__user=user).order_by('-publish_datetime')
 

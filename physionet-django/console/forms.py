@@ -92,10 +92,12 @@ class AssignEditorForm(forms.Form):
                 .order_by('username')
 
     def clean_project(self):
-        pid = self.cleaned_data['project']
+        pid = self.cleaned_data["project"]
         validate_integer(pid)
-        if ActiveProject.objects.get(id=pid) not in ActiveProject.objects.filter(submission_status=SubmissionStatus.NEEDS_ASSIGNMENT):
-            raise forms.ValidationError('Incorrect project selected.')
+        if ActiveProject.objects.get(id=pid) not in ActiveProject.objects.filter(
+            submission_status=SubmissionStatus.NEEDS_ASSIGNMENT
+        ):
+            raise forms.ValidationError("Incorrect project selected.")
         return pid
 
 
