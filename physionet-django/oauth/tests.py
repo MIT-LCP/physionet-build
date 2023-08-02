@@ -10,6 +10,7 @@ from oauth2_provider.models import get_access_token_model, get_application_model
 from django.urls import reverse
 from urllib.parse import parse_qs, urlparse
 from oauth2_provider.settings import oauth2_settings
+from django.utils.crypto import get_random_string
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
@@ -67,18 +68,6 @@ class BaseTest(TestCase):
 
         return auth_headers
 
-    def get_random_string(
-        self,
-        length=12,
-        allowed_chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
-    ):
-        """
-        Return a securely generated random string.
-        The default length of 12 with the a-z, A-Z, 0-9 character set returns
-        a 71-bit value. log_2((26+26+10)^12) =~ 71 bits
-        """
-        return "".join(random.choice(allowed_chars) for i in range(length))
-
 
 class TestOAuth2Authentication(BaseTest):
     def test_unauthenticated(self):
@@ -102,7 +91,7 @@ class BaseAuthorizationCodeTokenView(BaseTest):
         """
         Generate a code verifier and a code challenge according to the PKCE
         """
-        verifier = self.get_random_string(length=length)
+        verifier = get_random_string(length=length)
         if algorithm == "S256":
             challenge = (
                 base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest())
