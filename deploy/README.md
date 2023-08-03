@@ -100,8 +100,8 @@ cd /physionet
 # Copy over the .env file into /physionet/physionet-build
 scp <somewhere>/.env /physionet/physionet-build/
 # The software folder should be owned by the dedicated user. The socket file directory should be accessible by nginx.
-chown -R pn.pn /physionet
-chown pn.www-data /physionet/deploy
+chown -R pn:pn /physionet
+chown pn:www-data /physionet/deploy
 chmod g+w /physionet/deploy
 # Make the static and media roots
 mkdir /data
@@ -109,7 +109,7 @@ mkdir /data/pn-static
 mkdir /data/pn-static/published-projects
 mkdir /data/pn-media
 mkdir /data/pn-media/{active-projects,archived-projects,credential-applications,published-projects,users}
-chown -R pn.pn /data/{pn-media,pn-static}
+chown -R pn:pn /data/{pn-media,pn-static}
 ```
 
 The directory structure for the site's software and files will be:
