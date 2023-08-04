@@ -1025,22 +1025,6 @@ def notify_event_participant_application(request, user, registered_user, event):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
 
 
-def notify_users_of_training_expiry(user, training, expiry):
-    """
-    Send the training expiry email.
-    """
-
-    subject = f"{settings.SITE_NAME} Training Expiry Notification"
-    context = {
-        'name': user.get_full_name(),
-        'SITE_NAME': settings.SITE_NAME,
-        'training': training,
-        'expiry': expiry
-    }
-    body = loader.render_to_string('training/email/training_expiry_notification.html', context)
-    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user, ], fail_silently=False)
-
-
 def notify_primary_email(associated_email):
     """
     Inform a user of the primary email address linked to their account.

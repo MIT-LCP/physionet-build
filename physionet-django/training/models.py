@@ -2,7 +2,6 @@ from django.db import models
 from django.utils import timezone
 
 from project.modelcomponents.fields import SafeHTMLField
-from notification.utility import notify_users_of_training_expiry
 from user.models import Training
 from project.validators import validate_version
 
@@ -47,11 +46,6 @@ class Course(models.Model):
                 )
             )
         )
-
-        for training in trainings:
-            notify_users_of_training_expiry(
-                training.user, instance.name, NUMBER_OF_DAYS_SET_TO_EXPIRE
-            )
 
     def __str__(self):
         return f"{self.training_type} v{self.version}"
