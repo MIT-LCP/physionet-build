@@ -769,16 +769,18 @@ def edit_training(request):
             )
         else:
             training_form = forms.TrainingForm(user=request.user)
-        
+
         expiring_trainings = Training.objects.filter(
-            user=request.user, 
+            user=request.user,
             process_datetime__lte=date.today() - F('training_type__valid_duration') + timedelta(days=30),
             process_datetime__gt=date.today() - F('training_type__valid_duration')
         )
         if expiring_trainings:
             for training in expiring_trainings:
-                days_until_expiry = (training.process_datetime.date() + training.training_type.valid_duration - date.today()).days
-                message = f"Your {training.training_type.name} training will expire in {days_until_expiry} days. Please renew it."
+                days_until_expiry = (
+                    training.process_datetime.date() + training.training_type.valid_duration - date.today()
+                ).days
+                message = f"Your {training.training_type.name} training will expire in {days_until_expiry} days."
                 messages.warning(request, message)
 
     return render(
