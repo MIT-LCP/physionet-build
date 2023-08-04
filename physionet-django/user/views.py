@@ -770,7 +770,11 @@ def edit_training(request):
         else:
             training_form = forms.TrainingForm(user=request.user)
         
-        expiring_trainings = Training.objects.filter(user=request.user, process_datetime__lte=date.today() - F('training_type__valid_duration') + timedelta(days=30), process_datetime__gt=date.today() - F('training_type__valid_duration'))
+        expiring_trainings = Training.objects.filter(
+            user=request.user, 
+            process_datetime__lte=date.today() - F('training_type__valid_duration') + timedelta(days=30),
+            process_datetime__gt=date.today() - F('training_type__valid_duration')
+        )
         if expiring_trainings:
             for training in expiring_trainings:
                 days_until_expiry = (training.process_datetime.date() + training.training_type.valid_duration - date.today()).days
@@ -828,8 +832,15 @@ def edit_certification(request):
 
     return render(
         request,
+<<<<<<< HEAD
         "user/edit_certification.html",
         {"training_by_status": training_by_status},
+=======
+        'user/edit_training.html',
+        {'training_form': training_form,
+         'training_by_status': training_by_status,
+         'ticket_system_url': ticket_system_url},
+>>>>>>> 40c25082 (removing accidental changes)
     )
 
 
