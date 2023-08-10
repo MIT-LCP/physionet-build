@@ -1079,38 +1079,8 @@ class CredentialReview(models.Model):
     status = models.PositiveSmallIntegerField(default=10,
                                               choices=REVIEW_STATUS_LABELS)
 
-    # Initial review questions
-    # No longer checked. Consider removing these.
-    fields_complete = models.BooleanField(null=True)
-    appears_correct = models.BooleanField(null=True)
-    lang_understandable = models.BooleanField(null=True)
-
-    # ID check questions
-    # No longer checked. Consider removing these.
-    user_searchable = models.BooleanField(null=True)
-    user_has_papers = models.BooleanField(null=True)
-    research_summary_clear = models.BooleanField(null=True)
-    course_name_provided = models.BooleanField(null=True)
-    user_understands_privacy = models.BooleanField(null=True)
-    user_org_known = models.BooleanField(null=True)
-    user_details_consistent = models.BooleanField(null=True)
-
-    # Reference check questions
-    # No longer checked. Consider removing these.
-    ref_appropriate = models.BooleanField(null=True)
-    ref_searchable = models.BooleanField(null=True)
-    ref_has_papers = models.BooleanField(null=True)
-    ref_is_supervisor = models.BooleanField(null=True)
-    ref_course_list = models.BooleanField(null=True)
-
     # Log skipped reference
     ref_skipped = models.BooleanField(null=True)
-
-    # Reference response check questions
-    # No longer checked. Consider removing these.
-    ref_knows_applicant = models.BooleanField(null=True)
-    ref_approves = models.BooleanField(null=True)
-    ref_understands_privacy = models.BooleanField(null=True)
 
     # Reference response check questions
     responder_comments = models.CharField(max_length=500, default='',
