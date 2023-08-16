@@ -50,6 +50,7 @@ from project.models import (
     SubmissionStatus,
     Topic,
     UploadedDocument,
+    DataUploadAgreement
 )
 from project.authorization.access import can_view_project_files, can_access_project
 from project.projectfiles import ProjectFiles
@@ -1038,6 +1039,19 @@ def project_files(request, project_slug, subdir='', **kwargs):
             if storage_request:
                 storage_request.get().delete()
                 messages.success(request, 'Your storage request has been cancelled.')
+        elif 'submit_upload_agreement' in request.POST:
+            try:
+                agreement = DataUploadAgreement.objects.get(project=project)
+            except DataUploadAgreement.DoesNotExist:
+                agreement = None
+            upload_agreement_form = forms.UploadedAgreementDataForm(project=project,
+                                                                    data=request.POST, instance=agreement)
+            if upload_agreement_form.is_valid():
+                upload_agreement_form.instance.project = project
+                upload_agreement_form.save()
+                messages.success(request, 'Your upload agreement has been received.')
+            else:
+                messages.error(request, utility.get_form_errors(upload_agreement_form))
         else:
             # process the file manipulation post
             subdir = process_files_post(request, project)
@@ -1050,8 +1064,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         maintenance_message = settings.SYSTEM_MAINTENANCE_MESSAGE or (
             "The site is currently undergoing maintenance, and project "
-            "files cannot be edited.  Please try again later."
-        )
+            "files cannot be edited.  Please try again later.")
         files_editable = False
     else:
         maintenance_message = None
@@ -1063,6 +1076,14 @@ def project_files(request, project_slug, subdir='', **kwargs):
     storage_request_form = (
         forms.StorageRequestForm(project=project) if (not storage_request and is_submitting) else None
     )
+    try:
+        agreement = DataUploadAgreement.objects.get(project=project)
+        if agreement.has_phi == 0:
+            files_editable = False
+    except DataUploadAgreement.DoesNotExist:
+        agreement = None
+        files_editable = False
+    upload_agreement_form = forms.UploadedAgreementDataForm(project=project, instance=agreement)
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
@@ -1098,6 +1119,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'maintenance_message': maintenance_message,
             'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
             'storage_type': settings.STORAGE_TYPE,
+            'upload_agreement_form': upload_agreement_form,
         },
     )
 

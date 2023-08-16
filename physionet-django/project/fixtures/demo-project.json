@@ -2249,5 +2249,16 @@
     "responder": null,
     "responder_comments": ""
   }
+},
+{
+  "model": "project.datauploadagreement",
+  "pk": 1,
+  "fields": {
+    "project": 1,
+    "has_copy_right_permission":0,
+    "has_human_subject_data":0,
+    "has_phi":0
+  }
 }
 ]
+

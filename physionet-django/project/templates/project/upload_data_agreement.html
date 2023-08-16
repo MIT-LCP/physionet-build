@@ -1,0 +1,42 @@
+<h4> Data Upload and Sharing Agreement</h4>
+{% if not project.datauploadagreement %}
+  <div class="alert alert-warning">
+   Please complete the project data upload agreement form below before uploading the project files.
+  </div>
+{% elif project.datauploadagreement.has_phi == 0 %}
+  <div class="alert alert-warning">
+      You are unable to submit your project for review, because you have not removed Personal Health Information from your project files.
+  </div>
+{% else %}
+  <div class="alert alert-info">
+      Please don't include any Personal Health Information within your uploaded project files.
+  </div>
+{% endif %}
+        <button id="upload-agreement-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#upload-agreement-modal">
+        <i class="fa fa-handshake"></i> Data Upload Agreement
+        </button>
+        <p></p>
+        <div class="modal fade" id="upload-agreement-modal" tabindex="-1" role="dialog" aria-labelledby="upload-agreement-modal" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Data Upload Agreement</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <form action="" method="post" enctype="multipart/form-data">
+                <div class="modal-body">
+                  {% csrf_token %}
+                  <p>Your responses to the following questions will be shared with the editor, but will not be published.</p>
+                  {{upload_agreement_form}}
+                  <p>By clicking “I agree” and uploading files to {{SITE_NAME}}, you agree that the above information is accurate.</p>
+                  </div>
+                <div class="modal-footer">
+                  <button class="btn btn-primary" name="submit_upload_agreement" type="submit"><i class="fa fa-thumbs-up"></i> I agree</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
