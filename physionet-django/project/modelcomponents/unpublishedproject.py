@@ -7,7 +7,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.metadata import Metadata
-from project.projectfiles import ProjectFiles
 from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 
@@ -99,7 +98,7 @@ class UnpublishedProject(models.Model):
         """
         Whether the project has wfdb files.
         """
-        return ProjectFiles().has_wfdb_files(self)
+        return self.files.has_wfdb_files(self)
 
     def content_modified(self):
         """

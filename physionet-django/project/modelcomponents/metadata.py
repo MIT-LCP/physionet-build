@@ -11,7 +11,6 @@ from html2text import html2text
 from project.modelcomponents.access import AccessPolicy, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.authors import Affiliation
-from project.projectfiles import ProjectFiles
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import validate_title, validate_topic, validate_version
 
@@ -311,7 +310,7 @@ class Metadata(models.Model):
         project directory, replacing any existing file with that name.
         """
         fname = os.path.join(self.file_root(), 'LICENSE.txt')
-        ProjectFiles().fwrite(fname, self.license_content(fmt='text'))
+        self.files.fwrite(fname, self.license_content(fmt='text'))
 
     def get_directory_content(self, subdir=''):
         """
@@ -319,7 +318,7 @@ class Metadata(models.Model):
         the project's file root.
         """
         inspect_dir = self.get_inspect_dir(subdir)
-        return ProjectFiles().get_project_directory_content(inspect_dir, subdir, self.file_display_url, self.file_url)
+        return self.files.get_project_directory_content(inspect_dir, subdir, self.file_display_url, self.file_url)
 
     def schema_org_resource_type(self):
         """

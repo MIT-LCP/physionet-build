@@ -57,7 +57,6 @@ from project.models import (
     exists_project_slug,
 )
 from project.authorization.access import can_view_project_files
-from project.projectfiles import ProjectFiles
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
@@ -958,8 +957,8 @@ def manage_published_project(request, project_slug, version):
             'bulk_url_prefix': bulk_url_prefix,
             'contact_form': contact_form,
             'legacy_author_form': legacy_author_form,
-            'can_make_zip': ProjectFiles().can_make_zip(),
-            'can_make_checksum': ProjectFiles().can_make_checksum(),
+            'can_make_zip': project.files.can_make_zip(),
+            'can_make_checksum': project.files.can_make_checksum(),
         },
     )
 

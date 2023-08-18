@@ -89,20 +89,20 @@ class PublishedProject(Metadata, SubmissionInfo):
         This is the parent directory of the main and special file
         directories.
         """
-        return ProjectFiles().get_project_file_root(self.slug, self.version, self.access_policy, PublishedProject)
+        return self.files.get_project_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def file_root(self):
         """
         Root directory where the main user uploaded files are located
         """
-        return ProjectFiles().get_file_root(self.slug, self.version, self.access_policy, PublishedProject)
+        return self.files.get_file_root(self.slug, self.version, self.access_policy, PublishedProject)
 
     def storage_used(self):
         """
         Bytes of storage used by main files and compressed file if any
         """
-        storage_used = ProjectFiles().published_project_storage_used(self)
-        zip_file_size = ProjectFiles().get_zip_file_size(self)
+        storage_used = self.files.published_project_storage_used(self)
+        zip_file_size = self.files.get_zip_file_size(self)
 
         return storage_used, zip_file_size
 
@@ -134,7 +134,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make a (new) zip file of the main files.
         """
-        return ProjectFiles().make_zip(project=self)
+        return self.files.make_zip(project=self)
 
     def remove_zip(self):
         fname = self.zip_name(full=True)
@@ -157,13 +157,13 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Make the checksums file for the main files
         """
-        return ProjectFiles().make_checksum_file(self)
+        return self.files.make_checksum_file(self)
 
     def remove_files(self):
         """
         Remove files of this project
         """
-        ProjectFiles().rm_dir(self.file_root(), remove_zip=self.remove_zip)
+        self.files.rm_dir(self.file_root(), remove_zip=self.remove_zip)
         self.set_storage_info()
 
     def deprecate_files(self, delete_files):

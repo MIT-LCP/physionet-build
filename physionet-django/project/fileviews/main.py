@@ -8,7 +8,6 @@ from project.fileviews.csv import CSVFileView, GzippedCSVFileView
 from project.fileviews.image import ImageFileView
 from project.fileviews.inline import InlineFileView
 from project.fileviews.text import TextFileView
-from project.projectfiles import ProjectFiles
 
 _suffixes = {
     '.bmp': ImageFileView,
@@ -35,7 +34,7 @@ def display_project_file(request, project, file_path):
     try:
         abs_path = os.path.join(project.file_root(), file_path)
 
-        infile = ProjectFiles().open(abs_path)
+        infile = project.files.open(abs_path)
     except IsADirectoryError:
         return redirect(request.path + '/')
     except (FileNotFoundError, NotADirectoryError):
