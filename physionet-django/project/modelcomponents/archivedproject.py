@@ -3,7 +3,6 @@ import os
 from django.conf import settings
 from django.db import models
 
-from project.projectfiles import ProjectFiles
 from project.modelcomponents.metadata import Metadata
 from project.modelcomponents.unpublishedproject import UnpublishedProject
 from project.modelcomponents.submission import SubmissionInfo
@@ -20,8 +19,8 @@ class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     archive_datetime = models.DateTimeField(auto_now_add=True)
     archive_reason = models.PositiveSmallIntegerField()
 
-    # Where all the archived project files are kept
-    FILE_ROOT = os.path.join(ProjectFiles().file_root, 'archived-projects')
+    # Subdirectory (under self.files.file_root) where files are stored
+    FILE_STORAGE_SUBDIR = 'archived-projects'
 
     class Meta:
         default_permissions = ('change',)

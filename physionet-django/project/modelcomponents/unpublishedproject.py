@@ -51,13 +51,16 @@ class UnpublishedProject(models.Model):
         """
         Root directory containing the project's files
         """
-        return os.path.join(self.__class__.FILE_ROOT, self.slug)
+        return os.path.join(self.files.file_root,
+                            self.FILE_STORAGE_SUBDIR,
+                            self.slug)
 
     def bucket(self):
         """
         Object storage bucket name
         """
-        return self.__class__.FILE_ROOT
+        return os.path.join(self.files.file_root,
+                            self.FILE_STORAGE_SUBDIR)
 
     def get_storage_info(self, force_calculate=True):
         """

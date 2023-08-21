@@ -29,7 +29,6 @@ from project.modelcomponents.metadata import (
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
-from project.projectfiles import ProjectFiles
 from project.validators import validate_subdir
 
 LOGGER = logging.getLogger(__name__)
@@ -150,9 +149,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Max number of active submitting projects a user is allowed to have
     MAX_SUBMITTING_PROJECTS = 10
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
-    # Where all the active project files are kept
 
-    FILE_ROOT = os.path.join(ProjectFiles().file_root, 'active-projects')
+    # Subdirectory (under self.files.file_root) where files are stored
+    FILE_STORAGE_SUBDIR = 'active-projects'
 
     REQUIRED_FIELDS = (
         # 0: Database
