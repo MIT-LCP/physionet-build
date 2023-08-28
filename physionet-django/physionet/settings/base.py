@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'oauth2_provider',
     'corsheaders',
 
+    'training',
     'user',
     'project',
     'console',

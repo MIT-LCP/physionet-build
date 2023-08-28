@@ -17,6 +17,7 @@ class TrainingStatus(IntEnum):
 class RequiredField(IntEnum):
     DOCUMENT = 0
     URL = 1
+    PLATFORM = 2
 
     @classmethod
     def choices(cls):

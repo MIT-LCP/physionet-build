@@ -1,0 +1,9 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+Your training {{ training }} on {{ domain }} will be expiring in {{ expiry }} days. To retain the access it provides, kindly login to your account to retake it.
+
+
+Regards
+The {{ SITE_NAME }} Team
+{% endfilter %}{% endautoescape %}
