@@ -27,6 +27,7 @@ from project.models import (
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
+    SubmissionStatus,
     exists_project_slug,
 )
 from project.projectfiles import ProjectFiles
@@ -91,10 +92,12 @@ class AssignEditorForm(forms.Form):
                 .order_by('username')
 
     def clean_project(self):
-        pid = self.cleaned_data['project']
+        pid = self.cleaned_data["project"]
         validate_integer(pid)
-        if ActiveProject.objects.get(id=pid) not in ActiveProject.objects.filter(submission_status=10):
-            raise forms.ValidationError('Incorrect project selected.')
+        if ActiveProject.objects.get(id=pid) not in ActiveProject.objects.filter(
+            submission_status=SubmissionStatus.NEEDS_ASSIGNMENT
+        ):
+            raise forms.ValidationError("Incorrect project selected.")
         return pid
 
 
@@ -230,13 +233,13 @@ class EditSubmissionForm(forms.ModelForm):
                 edit_log = EditLog.objects.get(id=edit_log.id)
             # Resubmit with revisions
             elif edit_log.decision == 1:
-                project.submission_status = 30
+                project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
                 project.revision_request_datetime = now
                 project.latest_reminder = now
                 project.save()
             # Accept
             else:
-                project.submission_status = 40
+                project.submission_status = SubmissionStatus.NEEDS_COPYEDIT
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
 
@@ -289,7 +292,7 @@ class CopyeditForm(forms.ModelForm):
             project = copyedit_log.project
             now = timezone.now()
             copyedit_log.complete_datetime = now
-            project.submission_status = 50
+            project.submission_status = SubmissionStatus.NEEDS_APPROVAL
             project.copyedit_completion_datetime = now
             project.latest_reminder = now
             copyedit_log.save()

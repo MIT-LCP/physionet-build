@@ -97,9 +97,6 @@ def can_access_project(project, user):
     if project.deprecated_files:
         return False
 
-    if not project.allow_file_downloads:
-        return False
-
     if project.access_policy == AccessPolicy.OPEN:
         return True
     elif project.access_policy == AccessPolicy.RESTRICTED:

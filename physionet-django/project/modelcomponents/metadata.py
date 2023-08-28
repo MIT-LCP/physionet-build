@@ -10,6 +10,7 @@ from django.utils.html import format_html
 from html2text import html2text
 from project.modelcomponents.access import AccessPolicy, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
+from project.modelcomponents.authors import Affiliation
 from project.projectfiles import ProjectFiles
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import validate_title, validate_topic, validate_version
@@ -620,7 +621,7 @@ class Contact(models.Model):
     Contact for a PublishedProject
     """
     name = models.CharField(max_length=120)
-    affiliations = models.CharField(max_length=150)
+    affiliations = models.CharField(max_length=(Affiliation.MAX_AFFILIATIONS * (Affiliation.MAX_LENGTH + 2)))
     email = models.EmailField(max_length=255)
     project = models.OneToOneField('project.PublishedProject',
         related_name='contact', on_delete=models.CASCADE)

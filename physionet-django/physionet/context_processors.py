@@ -1,10 +1,16 @@
 from django.conf import settings
 
-from project.models import AccessPolicy
+from project.models import (
+    AccessPolicy,
+    SubmissionStatus,
+)
 
 
-def access_policy(request):
-    return {'AccessPolicy': AccessPolicy}
+def project_enums(request):
+    return {
+        'AccessPolicy': AccessPolicy,
+        'SubmissionStatus': SubmissionStatus,
+    }
 
 
 def storage_type(request):

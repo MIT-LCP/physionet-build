@@ -51,6 +51,7 @@ class Affiliation(models.Model):
     Affiliations belonging to an author
     """
     MAX_LENGTH = 202
+    MAX_AFFILIATIONS = 3
     name = models.CharField(max_length=MAX_LENGTH,
                             validators=[validate_affiliation])
     author = models.ForeignKey('project.Author', related_name='affiliations',

@@ -90,7 +90,7 @@ printf '%s\n%s\n' "$DBPASSWORD" "$DBPASSWORD" |
 su postgres -c 'createdb physionet -O physionet'
 
 mkdir -p /physionet /data/pn-static /data/pn-media
-chown pn.pn /physionet /data/pn-static /data/pn-media
+chown pn:pn /physionet /data/pn-static /data/pn-media
 su pn -c '
    set -e
    umask 0002
@@ -153,17 +153,17 @@ su pn -c '
    yes | python3 manage.py loaddemo
 '
 
-chown www-data.www-data -R /physionet/deploy
-chown www-data.www-data -R /data/pn-media
-chown www-data.www-data -R /data/pn-static/published-projects
+chown www-data:www-data -R /physionet/deploy
+chown www-data:www-data -R /data/pn-media
+chown www-data:www-data -R /data/pn-static/published-projects
 
 rm /etc/nginx/sites-enabled/default
 ln -s ../sites-available/physionet_nginx.conf \
    /etc/nginx/sites-enabled/physionet_nginx.conf
 
 mkdir /data/log /data/log/nginx /data/log/uwsgi /data/log/pn
-chown www-data.root /data/log/uwsgi
-chown pn.root /data/log/pn
+chown www-data:root /data/log/uwsgi
+chown pn:root /data/log/pn
 
 (
     cd /physionet/physionet-build/deploy/common
