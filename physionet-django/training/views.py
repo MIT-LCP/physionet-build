@@ -91,7 +91,6 @@ def download_course(request, pk, version):
 
     serializer = TrainingTypeSerializer(training_type)
     response_data = serializer.data
-    response_data['courses'] = list(filter(lambda x: x['version'] == version, response_data['courses']))
     response = JsonResponse(response_data, safe=False, json_dumps_params={'indent': 2})
     response['Content-Disposition'] = f'attachment; filename={training_type.name}--version-{version}.json'
     return response
