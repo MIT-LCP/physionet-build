@@ -625,7 +625,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
-            if project.version_order:
+            if project.is_new_version:
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']

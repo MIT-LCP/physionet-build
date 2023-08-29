@@ -313,7 +313,7 @@ class PublishForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.project = project
         # No option to set slug if publishing new version
-        if self.project.version_order:
+        if self.project.is_new_version:
             del(self.fields['slug'])
         else:
             self.fields['slug'].initial = project.slug

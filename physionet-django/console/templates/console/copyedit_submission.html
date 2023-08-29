@@ -94,7 +94,7 @@
 </script>
 
 <script>disableAddButtons();</script>
-{% if project.has_other_versions or project.version_order %}
+{% if project.is_new_version %}
   <script src="{% static 'custom/js/disable-title.js' %}"></script>
 {% endif %}
 
