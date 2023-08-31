@@ -90,6 +90,9 @@ def validate_version(value):
         raise ValidationError('Version may only contain numbers and dots, and must begin and end with a number.')
     if re.fullmatch(r'[0.]+', value):
         raise ValidationError('Version must not be entirely zeroes.')
+    if re.search(r'\b0[0-9]', value):
+        raise ValidationError('Version must not contain leading zeroes. '
+                              'For example, write "1.0.1" instead of "1.00.01".')
 
 
 def validate_slug(value):
