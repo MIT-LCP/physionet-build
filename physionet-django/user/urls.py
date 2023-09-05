@@ -23,6 +23,7 @@ urlpatterns = [
     path('settings/credentialing/applications/',
         views.user_credential_applications, name='user_credential_applications'),
     path('settings/training/', views.edit_training, name='edit_training'),
+    path('settings/course/', views.edit_course, name='edit_course'),
     path('settings/training/<int:training_id>/', views.edit_training_detail, name='edit_training_detail'),
     path('settings/agreements/', views.view_agreements, name='edit_agreements'),
     path('settings/agreements/<int:dua_signature_id>/', views.view_signed_agreement, name='view_signed_agreement'),

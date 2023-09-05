@@ -1,0 +1,51 @@
+{% extends "user/settings.html" %}
+
+{% block title %}{{ SITE_NAME }} Courses{% endblock %}
+
+{% block main_content %}
+<h1>Courses</h1>
+  <hr>
+    <p>To gain access to certain datasets on {{ SITE_NAME }}, you are required to demonstrate that you have completed relevant training. You can find specific training requirements in the "Files" section of the project description.</p>
+  <hr>
+  <h4>Submit evidence of a completed course</h4>
+
+  <p>Please use the form below to submit a new completion report.</p>
+  <p>For CITI training, please refer to our <a href="{% url "citi_course" %}" target="_blank">step-by-step instructions</a> and
+    be sure to <strong>upload the training report</strong>, not the certificate. Please ensure that you complete the "Data or
+    Specimens Only Research" course (<strong>with HIPAA module</strong>).
+  {% if ticket_system_url %}To raise a support request, please <a href="{{ ticket_system_url }}">click here</a>.
+  {% endif %}</p>
+
+  <form action="{% url "edit_course" %}" method="post" enctype="multipart/form-data" id="training">
+      {% include "descriptive_inline_form_snippet.html" with form=training_form %}
+      <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#submit-training">Submit Course</button>
+      <div class="modal fade" id="submit-training" tabindex="-1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Submit Course</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                  <p>Are you sure you want to submit the course?</p>
+              </div>
+              <div class="modal-footer">
+                  <button class="btn btn-primary" type="submit">Submit Course</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+      </div>
+  </form>
+
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script>
+    $(document).on('change', '#id_training_type', function() {
+      $("#training").load(`{% url 'edit_course' %}?trainingType=${this.value} #training>`);
+    });
+  </script>
+{% endblock %}
