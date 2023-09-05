@@ -7,7 +7,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.metadata import Metadata
-from project.projectfiles import ProjectFiles
 from project.utility import StorageInfo
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 
@@ -52,13 +51,16 @@ class UnpublishedProject(models.Model):
         """
         Root directory containing the project's files
         """
-        return os.path.join(self.__class__.FILE_ROOT, self.slug)
+        return os.path.join(self.files.file_root,
+                            self.FILE_STORAGE_SUBDIR,
+                            self.slug)
 
     def bucket(self):
         """
         Object storage bucket name
         """
-        return self.__class__.FILE_ROOT
+        return os.path.join(self.files.file_root,
+                            self.FILE_STORAGE_SUBDIR)
 
     def get_storage_info(self, force_calculate=True):
         """
@@ -99,7 +101,7 @@ class UnpublishedProject(models.Model):
         """
         Whether the project has wfdb files.
         """
-        return ProjectFiles().has_wfdb_files(self)
+        return self.files.has_wfdb_files(self)
 
     def content_modified(self):
         """

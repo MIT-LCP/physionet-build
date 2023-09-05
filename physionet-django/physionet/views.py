@@ -13,7 +13,6 @@ from django.db.models.functions import Lower
 from django.http import Http404, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from notification.models import News
-from project.projectfiles import ProjectFiles
 from physionet.models import FrontPageButton, Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
@@ -38,7 +37,6 @@ def home(request):
             'news_pieces': news_pieces,
             'front_page_buttons': front_page_buttons,
             'front_page_banner': front_page_banner,
-            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
         },
     )
 

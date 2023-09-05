@@ -1,8 +1,14 @@
+import functools
+
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from project.quota import DemoQuotaManager
 from django.conf import settings
+
+from physionet.settings.base import StorageTypes
+from project.projectfiles.gcs import GCSProjectFiles
+from project.projectfiles.local import LocalProjectFiles
 
 
 class EditLog(models.Model):
@@ -255,3 +261,20 @@ class SubmissionInfo(models.Model):
             creation_time=self.creation_datetime)
         quota_manager.set_limits(bytes_hard=limit, bytes_soft=limit)
         return quota_manager
+
+    @functools.cached_property
+    def files(self):
+        """
+        Return a ProjectFiles instance for this project.
+
+        This object can be used to manipulate the project's files; see
+        project.projectfiles.base.BaseProjectFiles.
+
+        Currently there is only a single ProjectFiles implementation
+        per site, but in future each project may have its own storage
+        backend.
+        """
+        if settings.STORAGE_TYPE == StorageTypes.LOCAL:
+            return LocalProjectFiles()
+        elif settings.STORAGE_TYPE == StorageTypes.GCP:
+            return GCSProjectFiles()

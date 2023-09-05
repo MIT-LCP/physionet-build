@@ -29,7 +29,6 @@ from project.modelcomponents.metadata import (
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
-from project.projectfiles import ProjectFiles
 from project.validators import validate_subdir
 
 LOGGER = logging.getLogger(__name__)
@@ -150,9 +149,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Max number of active submitting projects a user is allowed to have
     MAX_SUBMITTING_PROJECTS = 10
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
-    # Where all the active project files are kept
 
-    FILE_ROOT = os.path.join(ProjectFiles().file_root, 'active-projects')
+    # Subdirectory (under self.files.file_root) where files are stored
+    FILE_STORAGE_SUBDIR = 'active-projects'
 
     REQUIRED_FIELDS = (
         # 0: Database
@@ -218,7 +217,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         versions of this CoreProject.  (The QuotaManager should ensure
         that the same file is not counted twice in this total.)
         """
-        current = ProjectFiles().active_project_storage_used(self)
+        current = self.files.active_project_storage_used(self)
         published = self.core_project.total_published_size
 
         return current + published
@@ -339,7 +338,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.clear_files()
         else:
             # Move over files
-            ProjectFiles().rename(self.file_root(), archived_project.file_root())
+            self.files.rename(self.file_root(), archived_project.file_root())
 
         # Copy the ActiveProject timestamp to the ArchivedProject.
         # Since this is an auto_now field, save() doesn't allow
@@ -536,7 +535,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Delete the project file directory
         """
-        ProjectFiles().rmtree(self.file_root())
+        self.files.rmtree(self.file_root())
 
     def publish(self, slug=None, make_zip=True, title=None):
         """
@@ -562,7 +561,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # Create project file root if this is first version or the first
         # version with a different access policy
 
-        ProjectFiles().publish_initial(self, published_project)
+        self.files.publish_initial(self, published_project)
 
         try:
             with transaction.atomic():
@@ -671,11 +670,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.delete()
 
         except BaseException:
-            ProjectFiles().publish_rollback(self, published_project)
+            self.files.publish_rollback(self, published_project)
 
             raise
 
-        ProjectFiles().publish_complete(self, published_project)
+        self.files.publish_complete(self, published_project)
 
         return published_project
 

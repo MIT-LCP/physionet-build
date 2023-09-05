@@ -5,8 +5,6 @@ from django.conf import settings
 from django.core.management import call_command
 from django.db import migrations
 
-from project.projectfiles import ProjectFiles
-
 
 def migrate_forward(apps, schema_editor):
     CredentialReview = apps.get_model('user', 'CredentialReview')

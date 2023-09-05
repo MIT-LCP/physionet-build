@@ -11,7 +11,6 @@ from django.shortcuts import redirect, render, reverse
 from django.templatetags.static import static
 from physionet.utility import paginate
 from project.models import PublishedProject, PublishedTopic
-from project.projectfiles import ProjectFiles
 from search import forms
 
 
@@ -223,7 +222,6 @@ def content_index(request, resource_type=None):
             'form_type': form_type,
             'form_topic': form_topic,
             'querystring': querystring,
-            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
         },
     )
 

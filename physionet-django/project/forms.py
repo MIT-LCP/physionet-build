@@ -40,7 +40,6 @@ from project.models import (
     exists_project_slug,
     UploadedDocument,
 )
-from project.projectfiles import ProjectFiles
 from user.models import User, TrainingType
 from user.validators import validate_affiliation
 
@@ -176,7 +175,7 @@ class UploadFilesForm(ActiveProjectFilesForm):
         errors = ErrorList()
         for file in self.files.getlist('file_field'):
             try:
-                ProjectFiles().fput(self.file_dir, file)
+                self.project.files.fput(self.file_dir, file)
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists', file.name))
@@ -202,7 +201,7 @@ class CreateFolderForm(ActiveProjectFilesForm):
 
         file_path = os.path.join(self.file_dir, name)
         try:
-            ProjectFiles().mkdir(file_path)
+            self.project.files.mkdir(file_path)
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', name))
@@ -238,7 +237,7 @@ class DeleteItemsForm(EditItemsForm):
         for item in self.cleaned_data['items']:
             path = os.path.join(self.file_dir, item)
             try:
-                ProjectFiles().rm(path)
+                self.project.files.rm(path)
             except OSError as e:
                 if not os.path.exists(path):
                     errors.append(format_html(
@@ -274,7 +273,7 @@ class RenameItemForm(EditItemsForm):
         old_path = os.path.join(self.file_dir, old_name)
         new_path = os.path.join(self.file_dir, new_name)
         try:
-            ProjectFiles().rename(old_path, new_path)
+            self.project.files.rename(old_path, new_path)
         except FileExistsError:
             errors.append(format_html(
                 'Item named <i>{}</i> already exists', new_name))
@@ -349,7 +348,7 @@ class MoveItemsForm(EditItemsForm):
         for item in self.cleaned_data['items']:
             path = os.path.join(self.file_dir, item)
             try:
-                ProjectFiles().mv(path, self.dest_dir)
+                self.project.files.mv(path, self.dest_dir)
             except FileExistsError:
                 errors.append(format_html(
                     'Item named <i>{}</i> already exists in <i>{}</i>',
@@ -392,7 +391,7 @@ class CreateProjectForm(forms.ModelForm):
             is_submitting=True, is_corresponding=True)
         author.import_profile_info()
         # Create file directory
-        ProjectFiles().mkdir(project.file_root())
+        project.files.mkdir(project.file_root())
         return project
 
 
@@ -507,7 +506,9 @@ class NewProjectVersionForm(forms.ModelForm):
         ignored_files = ('SHA256SUMS.txt', 'LICENSE.txt')
 
         if settings.COPY_FILES_TO_NEW_VERSION:
-            ProjectFiles().cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
+            # NOTE: This assumes the new active project is using the
+            # same storage backend as the existing published project.
+            project.files.cp_dir(older_file_root, current_file_root, ignored_files=ignored_files)
 
         return project
 

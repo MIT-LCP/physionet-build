@@ -30,7 +30,6 @@ from project.models import (
     SubmissionStatus,
     exists_project_slug,
 )
-from project.projectfiles import ProjectFiles
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
@@ -318,7 +317,7 @@ class PublishForm(forms.Form):
         else:
             self.fields['slug'].initial = project.slug
 
-        if not ProjectFiles().can_make_zip():
+        if not project.files.can_make_zip():
             self.fields['make_zip'].disabled = True
             self.fields['make_zip'].required = False
             self.fields['make_zip'].initial = 0

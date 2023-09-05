@@ -4,7 +4,6 @@ import os
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from physionet.utility import file_content_type
-from project.projectfiles import ProjectFiles
 from project.utility import get_dir_breadcrumbs
 
 MAX_PLAIN_SIZE = 5 * 1024 * 1024
@@ -89,7 +88,7 @@ class FileView:
         parameter indicating that we should try to force the browser
         to save the file rather than displaying it.
         """
-        return ProjectFiles().download_url(self.project, self.path)
+        return self.project.files.download_url(self.project, self.path)
 
     def raw_url(self):
         """
@@ -99,7 +98,7 @@ class FileView:
         according to the browser's default settings for the
         corresponding content type.
         """
-        return ProjectFiles().raw_url(self.project, self.path)
+        return self.project.files.raw_url(self.project, self.path)
 
     def size(self):
         """

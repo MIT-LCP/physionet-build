@@ -1096,7 +1096,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'file_warning': file_warning,
             'files_editable': files_editable,
             'maintenance_message': maintenance_message,
-            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+            'is_lightwave_supported': project.files.is_lightwave_supported(),
             'storage_type': settings.STORAGE_TYPE,
         },
     )
@@ -1221,7 +1221,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
             'platform_citations': platform_citations,
             'parent_projects': parent_projects,
             'has_passphrase': has_passphrase,
-            'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
+            'is_lightwave_supported': project.files.is_lightwave_supported(),
             'show_platform_wide_citation': show_platform_wide_citation,
             'main_platform_citation': main_platform_citation,
         },
@@ -1851,8 +1851,8 @@ def published_project(request, project_slug, version, subdir=''):
         'data_access': data_access,
         'messages': messages.get_messages(request),
         'platform_citations': platform_citations,
-        'is_lightwave_supported': ProjectFiles().is_lightwave_supported(),
-        'is_wget_supported': ProjectFiles().is_wget_supported(),
+        'is_lightwave_supported': project.files.is_lightwave_supported(),
+        'is_wget_supported': project.files.is_wget_supported(),
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
     }
