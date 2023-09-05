@@ -434,7 +434,6 @@ class NewProjectVersionForm(forms.ModelForm):
 
         # Set new fields
         project.creation_datetime = timezone.now()
-        project.version_order = self.latest_project.version_order + 1
         project.is_new_version = True
 
         # Change internal links (that point to files within the

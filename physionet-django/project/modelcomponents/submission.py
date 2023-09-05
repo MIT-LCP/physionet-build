@@ -229,9 +229,6 @@ class SubmissionInfo(models.Model):
     copyedit_logs = GenericRelation('project.CopyeditLog')
     logs = GenericRelation('project.Log')
 
-    # For ordering projects with multiple versions
-    version_order = models.PositiveSmallIntegerField(default=0)
-
     # Anonymous access
     anonymous = GenericRelation('project.AnonymousAccess')
 

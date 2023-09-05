@@ -83,7 +83,7 @@ class UnpublishedProject(models.Model):
         If this is a new version of a project, get the slug of the
         published versions.
         """
-        if self.version_order:
+        if self.is_new_version:
             return self.core_project.publishedprojects.all().get(
                 version_order=0).slug
         else:

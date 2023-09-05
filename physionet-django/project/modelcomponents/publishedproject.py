@@ -41,7 +41,10 @@ class PublishedProject(Metadata, SubmissionInfo):
     is_legacy = models.BooleanField(default=False)
     full_description = SafeHTMLField(default='')
 
+    # For ordering projects with multiple versions
+    version_order = models.PositiveSmallIntegerField(default=0)
     is_latest_version = models.BooleanField(default=True)
+
     # Featured content
     featured = models.PositiveSmallIntegerField(null=True)
     has_wfdb = models.BooleanField(default=False)

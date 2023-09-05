@@ -567,7 +567,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             with transaction.atomic():
                 # If this is a new version, previous fields need to be updated
                 # and slug needs to be carried over
-                if self.version_order:
+                if self.is_new_version:
                     previous_published_projects = self.core_project.publishedprojects.all()
 
                     slug = previous_published_projects.first().slug
@@ -589,7 +589,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.save()
 
                 # If this is a new version, all version fields have to be updated
-                if self.version_order > 0:
+                if self.is_new_version:
                     published_project.set_version_order()
 
                 # Same content, different objects.
