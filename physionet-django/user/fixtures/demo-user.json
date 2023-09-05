@@ -14380,6 +14380,11 @@
         "activeproject"
       ],
       [
+        "can_edit_activeprojects",
+        "project",
+        "activeproject"
+      ],
+      [
         "change_activeproject",
         "project",
         "activeproject"
