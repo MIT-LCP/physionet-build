@@ -571,14 +571,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     previous_published_projects = self.core_project.publishedprojects.all()
 
                     slug = previous_published_projects.first().slug
-                    title = previous_published_projects.first().title
                     if slug != published_project.slug:
                         raise ValueError(
                             {"message": "The published project has different slugs."})
 
                 # Set the slug if specified
                 published_project.slug = slug or self.slug
-                published_project.title = title or self.title
+                published_project.title = self.title
                 published_project.doi = self.doi
 
                 # Change internal links (that point to files within
