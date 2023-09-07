@@ -1,5 +1,9 @@
 # Management Command to compile static Sass files
 import os
+import shutil
+import urllib.request
+import urllib.error
+
 from django.core.management.base import BaseCommand, CommandError
 from decouple import config
 from django.core.management import call_command
@@ -34,6 +38,34 @@ def setup_theme_colors(colors):
     return themes_colors
 
 
+def setup_static_file(source, destination):
+    """
+    Copies a static file from source to destination
+    :param source: the source file path(local), or a url
+    :param destination: the destination file path(local)
+    """
+
+    if source.startswith('http'):
+        try:
+            urllib.request.urlretrieve(source, destination)
+        except urllib.error.HTTPError:
+            raise CommandError(f'Could not download {source}')
+        except urllib.error.URLError:
+            raise CommandError(f'Could not download {source}')
+    else:
+        try:
+            # check if the destination directories exist, if not create them
+            if not os.path.isdir(os.path.dirname(destination)):
+                os.makedirs(os.path.dirname(destination))
+
+            # copy the file
+            shutil.copy(source, destination)
+        except IOError as e:
+            raise Exception(f'Could not copy {source}. Error: {e.strerror}')
+        except Exception as e:
+            raise Exception(f'Unexpected error: {e}')
+
+
 class Command(BaseCommand):
     help = 'Compile static Sass files'
 
@@ -65,3 +97,9 @@ class Command(BaseCommand):
         # Demo section for home.css
         theme_generator(themes_colors, imports=['../../custom/scss/home'])
         call_command('sass', 'static/bootstrap/scss/theme.scss', 'static/custom/css/home.css')
+
+        # setup background image
+        image_source = config('BACKGROUND_IMAGE', default='static/images/background.jpg')
+        image_destination = 'static-overrides/images/background.jpg'
+        setup_static_file(image_source, image_destination)
+        self.stdout.write(self.style.SUCCESS('Successfully setup background image'))
