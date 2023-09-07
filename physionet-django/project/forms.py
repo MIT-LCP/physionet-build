@@ -869,11 +869,13 @@ class AccessMetadataForm(forms.ModelForm):
             self.fields['required_trainings'].disabled = True
             self.fields['required_trainings'].required = False
             self.fields['required_trainings'].widget = forms.HiddenInput()
+            self.initial['required_trainings'] = ''
 
         if self.access_policy == AccessPolicy.OPEN:
             self.fields['dua'].disabled = True
             self.fields['dua'].required = False
             self.fields['dua'].widget = forms.HiddenInput()
+            self.initial['dua'] = ''
 
         if not self.editable:
             for field in self.fields.values():
