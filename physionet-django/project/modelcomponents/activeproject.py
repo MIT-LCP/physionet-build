@@ -537,7 +537,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         self.files.rmtree(self.file_root())
 
-    def publish(self, slug=None, make_zip=True, title=None):
+    def publish(self, slug=None, make_zip=True):
         """
         Create a published version of this project and update the
         submission status.
