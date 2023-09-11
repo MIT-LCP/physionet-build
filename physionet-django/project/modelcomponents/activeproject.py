@@ -354,7 +354,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         self.archive(archive_reason=1)
 
-
     def check_integrity(self):
         """
         Run integrity tests on metadata fields and return whether the
@@ -409,6 +408,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         if self.access_policy != AccessPolicy.OPEN and self.dua is None:
             self.integrity_errors.append('You have to choose one of the data use agreements.')
+
+        if self.access_policy in {AccessPolicy.CREDENTIALED,
+                                  AccessPolicy.CONTRIBUTOR_REVIEW} and self.required_trainings is None:
+            self.integrity_errors.append('You have to choose a required training.')
 
         if self.integrity_errors:
             return False
