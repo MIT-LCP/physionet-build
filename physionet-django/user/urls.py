@@ -25,8 +25,10 @@ urlpatterns = [
         views.user_credential_applications,
         name="user_credential_applications",
     ),
+    path(
+        "settings/certification/", views.edit_certification, name="edit_certification"
+    ),
     path("settings/training/", views.edit_training, name="edit_training"),
-    path("settings/course/", views.edit_course, name="edit_course"),
     path(
         "settings/training/<int:training_id>/",
         views.edit_training_detail,

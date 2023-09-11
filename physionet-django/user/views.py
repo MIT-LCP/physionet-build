@@ -815,9 +815,9 @@ def credential_application(request):
 
 
 @login_required
-def edit_course(request):
+def edit_training(request):
     """
-    Courses settings page.
+    Trainings settings page.
     """
     if settings.TICKET_SYSTEM_URL:
         ticket_system_url = settings.TICKET_SYSTEM_URL
@@ -850,15 +850,15 @@ def edit_course(request):
 
     return render(
         request,
-        "user/edit_course.html",
+        "user/edit_training.html",
         {"training_form": training_form, "ticket_system_url": ticket_system_url},
     )
 
 
 @login_required
-def edit_training(request):
+def edit_certification(request):
     """
-    Training settings page.
+    Certifications page.
     """
 
     if request.method == "POST":
@@ -899,7 +899,7 @@ def edit_training(request):
 
     return render(
         request,
-        "user/edit_training.html",
+        "user/edit_certification.html",
         {"training_by_status": training_by_status},
     )
 

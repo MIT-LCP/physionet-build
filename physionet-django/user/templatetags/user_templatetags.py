@@ -13,8 +13,8 @@ def settings_tabs(hide_password_settings: bool):
         "Cloud",
         "ORCID",
         "Credentialing",
-        "Course",
         "Training",
+        "Certification",
         "Agreements",
     ]
     if not hide_password_settings:
