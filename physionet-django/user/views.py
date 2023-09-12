@@ -721,46 +721,90 @@ def credential_application(request):
 @login_required
 def edit_training(request):
     """
-    Training settings page.
+    Trainings settings page.
     """
     if settings.TICKET_SYSTEM_URL:
         ticket_system_url = settings.TICKET_SYSTEM_URL
     else:
         ticket_system_url = None
 
-    if request.method == 'POST':
+    if request.method == "POST":
         training_form = forms.TrainingForm(
-            user=request.user, data=request.POST, files=request.FILES, training_type=request.POST.get('training_type')
+            user=request.user,
+            data=request.POST,
+            files=request.FILES,
+            training_type=request.POST.get("training_type"),
         )
         if training_form.is_valid():
             training_form.save()
-            messages.success(request, 'The training has been submitted successfully.')
+            messages.success(request, "The training has been submitted successfully.")
             training_application_request(request, training_form)
             training_form = forms.TrainingForm(user=request.user)
         else:
-            messages.error(request, 'Invalid submission. Check the errors below.')
+            messages.error(request, "Invalid submission. Check the errors below.")
 
     else:
-        training_type = request.GET.get('trainingType')
+        training_type = request.GET.get("trainingType")
         if training_type:
-            training_form = forms.TrainingForm(user=request.user, training_type=training_type)
+            training_form = forms.TrainingForm(
+                user=request.user, training_type=training_type
+            )
         else:
             training_form = forms.TrainingForm(user=request.user)
 
-    training = Training.objects.select_related('training_type').filter(user=request.user).order_by('-status')
+    return render(
+        request,
+        "user/edit_training.html",
+        {"training_form": training_form, "ticket_system_url": ticket_system_url},
+    )
+
+
+@login_required
+def edit_certification(request):
+    """
+    Certifications page.
+    """
+
+    if request.method == "POST":
+        training_form = forms.TrainingForm(
+            user=request.user,
+            data=request.POST,
+            files=request.FILES,
+            training_type=request.POST.get("training_type"),
+        )
+        if training_form.is_valid():
+            training_form.save()
+            messages.success(request, "The training has been submitted successfully.")
+            training_application_request(request, training_form)
+            training_form = forms.TrainingForm(user=request.user)
+        else:
+            messages.error(request, "Invalid submission. Check the errors below.")
+
+    else:
+        training_type = request.GET.get("trainingType")
+        if training_type:
+            training_form = forms.TrainingForm(
+                user=request.user, training_type=training_type
+            )
+        else:
+            training_form = forms.TrainingForm(user=request.user)
+
+    training = (
+        Training.objects.select_related("training_type")
+        .filter(user=request.user)
+        .order_by("-status")
+    )
     training_by_status = {
-        'under review': training.get_review(),
-        'active': training.get_valid(),
-        'expired': training.get_expired(),
-        'rejected': training.get_rejected(),
+        "under review": training.get_review(),
+        "active": training.get_valid(),
+        "expired": training.get_expired(),
+        "rejected": training.get_rejected(),
     }
 
     return render(
         request,
-        'user/edit_training.html',
-        {'training_form': training_form,
-         'training_by_status': training_by_status,
-         'ticket_system_url': ticket_system_url},
+        "user/edit_certification.html",
+        {"training_by_status": training_by_status},
     )
 
 

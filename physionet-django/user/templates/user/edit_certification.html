@@ -1,0 +1,30 @@
+{% extends "user/settings.html" %}
+
+{% block title %}{{ SITE_NAME }} Certification{% endblock %}
+
+{% block main_content %}
+<h1>Certification</h1>
+  <hr>
+    <p>To gain access to certain datasets on {{ SITE_NAME }}, you are required to demonstrate that you have completed relevant training. You can find specific training requirements in the "Files" section of the project description.</p>
+  <h6> To submit a new completion report, please go to the <a href="{% url 'edit_training' %}">Training</a> page.</h6>
+  <hr>
+
+    {% for status, group in training_by_status.items %}
+        <div class="mb-3">
+          <h4>{{ status|capfirst }}</h4>
+          <ul class="list-group list-group-flush">
+            {% for course in group %}
+              <li class="list-group-item d-flex align-items-center justify-content-between">
+                <div>
+                  {{ course.training_type.name }} 
+                </div>
+                <a href="{% url 'edit_training_detail' course.id %}" class="btn btn-sm btn-primary" role="button">View</a>
+              </li>
+            {% empty %}
+              <p>N/A</p>
+            {% endfor %}
+          </ul>
+        </div>
+    {% endfor %}
+
+{% endblock %}
