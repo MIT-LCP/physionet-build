@@ -12,8 +12,8 @@ from django.template import defaultfilters, loader
 from django.utils import timezone
 from django.urls import reverse
 
-from project.models import DataAccessRequest, PublishedProject, AccessPolicy
-from user.models import CredentialApplication
+import project.models
+import user.models
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
@@ -211,8 +211,9 @@ def resubmit_notify(project, comments):
 
 @cache
 def example_credentialed_access_project():
-    return PublishedProject.objects.filter(
-        access_policy=AccessPolicy.CREDENTIALED, is_latest_version=True,
+    return project.models.PublishedProject.objects.filter(
+        access_policy=project.models.AccessPolicy.CREDENTIALED,
+        is_latest_version=True,
     ).first()
 
 
@@ -644,7 +645,7 @@ def process_credential_complete(request, application, include_comments=True):
     body = loader.render_to_string(
         'notification/email/process_credential_complete.html', {
             'application': application,
-            'CredentialApplication': CredentialApplication,
+            'CredentialApplication': user.models.CredentialApplication,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
             'example_project': example_credentialed_access_project(),
@@ -812,7 +813,7 @@ def confirm_user_data_access_request(data_access_request, request_protocol,
     subject = f"{settings.SITE_NAME} Data Access Request"
 
     due_date = timezone.now() + timezone.timedelta(
-        days=DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT)
+        days=project.models.DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT)
 
     body = loader.render_to_string(
         'notification/email/confirm_user_data_access_request.html', {

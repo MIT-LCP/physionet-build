@@ -15,6 +15,8 @@ from django.forms.utils import ErrorList
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
+
+from console.tasks import associated_task
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.archivedproject import ArchivedProject
@@ -34,6 +36,7 @@ from project.validators import validate_subdir
 LOGGER = logging.getLogger(__name__)
 
 
+@associated_task(PublishedProject, 'pid')
 @background()
 def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
