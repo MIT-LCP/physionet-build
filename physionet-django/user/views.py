@@ -834,15 +834,8 @@ def edit_certification(request):
 
     return render(
         request,
-<<<<<<< HEAD
         "user/edit_certification.html",
         {"training_by_status": training_by_status},
-=======
-        'user/edit_training.html',
-        {'training_form': training_form,
-         'training_by_status': training_by_status,
-         'ticket_system_url': ticket_system_url},
->>>>>>> 40c25082 (removing accidental changes)
     )
 
 
