@@ -1,0 +1,55 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Archived Events{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% load console_templatetags %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-header">
+        Archived Events <span class="badge badge-pill badge-info">{{ archive_event.paginator.count }}</span> 
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Event Type</th>
+                  <th>Host</th>
+                  <th>Created</th>
+                  <th>Started</th>
+                  <th>Ended</th>
+                  <th>Credentialing</th>
+                  <th>Training</th>
+                  <th>Manage</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for event in archive_event %}
+                <tr>
+                    <td><a href="{% url 'event_detail' event.slug %}">{{ event.title }}</a></td>
+                    <td>{{ event.get_category_display|title }}</td>
+                    <td>{{ event.host }}</td>
+                    <td>{{ event.added_datetime|date }}</td>
+                    <td>{{ event.start_date }}</td>
+                    <td>{{ event.end_date }}</td>
+                    <td><a href = "{% url 'credential_processing' %}?event={{ event.slug }}">View list</a></td>
+                    <td><a href = "{% url 'training_list' status='review' %}?event={{ event.slug }}">View list</a></td>
+                    <td><a href="{% url 'event_management' event.slug %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            {% include "console/pagination.html" with pagination=events %}
+          </div>           
+    </div>
+</div>
+{% endblock %}
+

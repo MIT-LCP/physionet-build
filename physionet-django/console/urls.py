@@ -148,6 +148,8 @@ urlpatterns = [
     # Lists of event components
     path('event/', views.event,
          name='event'),
+    path('archive_event/', views.archive_event,
+         name='archive_event'),
     path('event/manage/<event_slug>', views.event_management, name='event_management'),
     path('event_agreements/', views.event_agreement_list, name='event_agreement_list'),
     path('event_agreements/<int:pk>/', views.event_agreement_detail, name='event_agreement_detail'),

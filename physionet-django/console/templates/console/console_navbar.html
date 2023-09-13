@@ -123,13 +123,16 @@
               <span class="nav-link-text">Events</span>
             </a>
             <!-- submenu -->
-          {% if events_nav %}
+          {% if events_nav or archive_event_nav %}
             <ul class="sidenav-second-level collapse show" id="events">
           {% else  %}
             <ul class="sidenav-second-level collapse" id="events">
           {% endif %}
               <li class="nav-item {% if events_nav %}active{% endif %}">
                 <a id="nav_events" class="nav-link" href="{% url 'event' %}">Event List</a>
+              </li>
+              <li class="nav-item {% if archive_event_nav %}active{% endif %}">
+                <a id="nav_archive_event" class="nav-link" href="{% url 'archive_event' %}">Archived Events</a>
               </li>
             </ul>
         </li>

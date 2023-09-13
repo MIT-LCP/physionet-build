@@ -2952,6 +2952,21 @@ def event(request):
 
 
 @permission_required('user.view_all_events', raise_exception=True)
+def archive_event(request):
+    """
+    List of archived events
+    """
+    now = timezone.now()
+    archive_event = Event.objects.filter(end_date__lte=now)
+    archive_event = paginate(request, archive_event, 50)
+
+    return render(request, 'console/event_archive_event.html',
+                  {'archive_event': archive_event,
+                   'archive_event_nav': True
+                   })
+
+
+@permission_required('user.view_all_events', raise_exception=True)
 def event_management(request, event_slug):
     """
     Admin page for managing an individual Event.
