@@ -13,7 +13,7 @@
 {% block content %}
 <div class="card mb-3">
     <div class="card-header">
-        Archived Events <span class="badge badge-pill badge-info">{{ events.paginator.count }}</span> 
+        Archived Events <span class="badge badge-pill badge-info">{{ archive_event.paginator.count }}</span> 
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -32,9 +32,9 @@
                 </tr>
               </thead>
               <tbody>
-              {% for event in events %}
+              {% for event in archive_event %}
                 <tr>
-                    <td><a href="{% url 'archive_event_detail' event.slug %}">{{ event.title }}</a></td>
+                    <td><a href="{% url 'event_detail' event.slug %}">{{ event.title }}</a></td>
                     <td>{{ event.get_category_display|title }}</td>
                     <td>{{ event.host }}</td>
                     <td>{{ event.added_datetime|date }}</td>

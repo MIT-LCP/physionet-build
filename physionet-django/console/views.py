@@ -2952,17 +2952,18 @@ def event(request):
                    })
 
 
-@permission_required('user.view_archive_event', raise_exception=True)
+@permission_required('user.view_all_events', raise_exception=True)
 def archive_event(request):
     """
     List of archived events
     """
-    archive_event = Event.objects.filter(all).order_by('archive_datetime')
+    now = timezone.now()
+    archive_event = Event.objects.filter(end_date__lte=now)
     archive_event = paginate(request, archive_event, 50)
 
     return render(request, 'console/event_archive_event.html',
-                  {'event_archive_event': archive_event,
-                   'events_nav': True
+                  {'archive_event': archive_event,
+                   'archive_event_nav': True
                    })
 
 
