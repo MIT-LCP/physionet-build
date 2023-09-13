@@ -46,11 +46,13 @@ def courses(request):
         # Checking if the Training type with the same version already exists
         existing_course = Course.objects.filter(training_type=training_type)
         if existing_course.exists():
+            # checking if the version number is valid
             if not all(map(lambda x: x.isdigit() or x == '.', str(file_data['courses'][0]['version']))):
                 messages.error(request, 'Version number is not valid.')
-            elif file_data['courses'][0]['version'] <= float(existing_course.order_by(
-                    '-version').first().version):  # Version Number is greater than the latest version
-                messages.error(request, 'Version number should be greater than the latest version.')
+            # checking if the version number is greater than the existing version
+            elif float(file_data['courses'][0]['version']
+                       ) <= float(existing_course.order_by('-version').first().version):
+                messages.error(request, 'Version number should be greater than the existing version.')
             else:  # Checks passed and moving to saving the course
                 serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
                 if serializer.is_valid(raise_exception=False):
