@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}Archived Events{% endblock %}
+{% block title %}Events{% endblock %}
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
@@ -13,7 +13,7 @@
 {% block content %}
 <div class="card mb-3">
     <div class="card-header">
-        Archived Events <span class="badge badge-pill badge-info">{{ archive_event.paginator.count }}</span> 
+        Active Events <span class="badge badge-pill badge-info">{{ event_active.paginator.count }}</span> 
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -32,7 +32,7 @@
                 </tr>
               </thead>
               <tbody>
-              {% for event in archive_event %}
+              {% for event in event_active %}
                 <tr>
                     <td><a href="{% url 'event_detail' event.slug %}">{{ event.title }}</a></td>
                     <td>{{ event.get_category_display|title }}</td>

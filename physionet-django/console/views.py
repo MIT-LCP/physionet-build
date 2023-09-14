@@ -2938,31 +2938,30 @@ def code_of_conduct_activate(request, pk):
 
 
 @permission_required('user.view_all_events', raise_exception=True)
-def event(request):
+def event_active(request):
     """
     List of events
     """
-    events = Event.objects.all()
-    events = paginate(request, events, 50)
+    event_active = Event.objects.filter(end_date__gte=timezone.now())
+    event_active = paginate(request, event_active, 50)
 
-    return render(request, 'console/event.html',
-                  {'events': events,
-                   'events_nav': True
+    return render(request, 'console/event_active.html',
+                  {'event_active': event_active,
+                   'nav_event_active': True
                    })
 
 
 @permission_required('user.view_all_events', raise_exception=True)
-def archive_event(request):
+def event_archive(request):
     """
     List of archived events
     """
-    now = timezone.now()
-    archive_event = Event.objects.filter(end_date__lte=now)
-    archive_event = paginate(request, archive_event, 50)
+    event_archive = Event.objects.filter(end_date__lte=timezone.now())
+    event_archive = paginate(request, event_archive, 50)
 
-    return render(request, 'console/event_archive_event.html',
-                  {'archive_event': archive_event,
-                   'archive_event_nav': True
+    return render(request, 'console/event_archive.html',
+                  {'event_archive': event_archive,
+                   'nav_event_archive': True
                    })
 
 
