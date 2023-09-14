@@ -57,6 +57,8 @@ def create_bucket(project, version, title, protected=True):
     bucket = storage_client.bucket(bucket_name)
     # Only bucket-level permissions are enforced; there are no per-file ACLs.
     bucket.iam_configuration.uniform_bucket_level_access_enabled = True
+    # Clients accessing this bucket will be billed for download costs.
+    bucket.requester_pays = True
     storage_client.create_bucket(bucket)
 
     LOGGER.info("Created bucket {0} for project {1}".format(
