@@ -5,6 +5,7 @@ from django.shortcuts import redirect
 from google.cloud.exceptions import Conflict, NotFound
 from physionet.gcs import GCSObject, GCSObjectException, create_bucket, delete_bucket
 from project.projectfiles.base import BaseProjectFiles
+from project.quota import GCSQuotaManager
 from project.utility import DirectoryInfo, FileInfo, readable_size
 
 
@@ -126,6 +127,15 @@ class GCSProjectFiles(BaseProjectFiles):
 
     def get_file_root(self, slug, version, access_policy, klass):
         return self.get_project_file_root(slug, version, access_policy, klass)
+
+    def project_quota_manager(self, project):
+        allowance = project.core_project.storage_allowance
+        published = project.core_project.total_published_size
+        limit = allowance - published
+
+        quota_manager = GCSQuotaManager(project.file_root())
+        quota_manager.set_limits(bytes_hard=limit, bytes_soft=limit)
+        return quota_manager
 
     def active_project_storage_used(self, project):
         return self._storage_used(project)
