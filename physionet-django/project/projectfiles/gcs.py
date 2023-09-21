@@ -137,9 +137,6 @@ class GCSProjectFiles(BaseProjectFiles):
         quota_manager.set_limits(bytes_hard=limit, bytes_soft=limit)
         return quota_manager
 
-    def active_project_storage_used(self, project):
-        return self._storage_used(project)
-
     def published_project_storage_used(self, project):
         return self._storage_used(project)
 

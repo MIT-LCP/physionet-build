@@ -220,7 +220,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         versions of this CoreProject.  (The QuotaManager should ensure
         that the same file is not counted twice in this total.)
         """
-        current = self.files.active_project_storage_used(self)
+        current = self.quota_manager().bytes_used
         published = self.core_project.total_published_size
 
         return current + published

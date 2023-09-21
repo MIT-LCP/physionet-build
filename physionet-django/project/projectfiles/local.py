@@ -147,9 +147,6 @@ class LocalProjectFiles(BaseProjectFiles):
         quota_manager.set_limits(bytes_hard=limit, bytes_soft=limit)
         return quota_manager
 
-    def active_project_storage_used(self, project):
-        return project.quota_manager().bytes_used
-
     def published_project_storage_used(self, project):
         return get_tree_size(project.file_root())
 

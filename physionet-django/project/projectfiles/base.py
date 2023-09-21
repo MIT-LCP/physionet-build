@@ -115,11 +115,6 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def active_project_storage_used(self, project):
-        """Total storage used in bytes - active project."""
-        raise NotImplementedError
-
-    @abc.abstractmethod
     def published_project_storage_used(self, project):
         """Total storage used in bytes - published project."""
         raise NotImplementedError
