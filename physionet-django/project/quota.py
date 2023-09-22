@@ -1,6 +1,8 @@
 import errno
 import os
 
+from physionet.gcs import GCSObject
+
 
 class QuotaManager:
     """
@@ -282,3 +284,102 @@ class DemoQuotaManager(QuotaManager):
         if not self._cache_valid:
             self.refresh()
         self._inodes_used -= 1
+
+
+class GCSQuotaManager(QuotaManager):
+    """
+    QuotaManager for Google Cloud storage.
+
+    This implementation, like DemoQuotaManager, is not robust or
+    scalable.  As far as I know, as of 2023, there is no way to
+    implement robust, scalable storage quotas using GCS.
+
+    - As with DemoQuotaManager, there is nothing to stop multiple
+      authorized clients from uploading multiple files at once and
+      exceeding the storage limit, even if all of them are
+      well-behaved.
+
+    - Usage is calculated by listing all objects in the specified
+      prefix (which is only slightly more efficient than a "directory
+      traversal" as DemoQuotaManager does) and adding up their sizes.
+
+    There is no way to create hard links, so every new project version
+    must have a copy of every file; therefore, all files are counted
+    equally against the quota.
+
+    The check_create_file function will raise an OSError if the
+    specified hard limits would be exceeded, simulating the behavior
+    of a filesystem that enforces quota.
+
+    Currently this does not attempt to track or limit the number of
+    objects, and inodes_used will be zero.
+    """
+    def __init__(self, project_path):
+        # _project_path must be a directory name (ending with a
+        # slash); see GCSObject.is_dir().
+        self._project_path = project_path.rstrip('/') + '/'
+        self._cache_valid = False
+        self._block_size = 1
+        self._bytes_used = 0
+        self._bytes_soft = 0
+        self._bytes_hard = 0
+        self._inodes_used = 0
+        self._inodes_soft = 0
+        self._inodes_hard = 0
+
+    def refresh(self):
+        """
+        Refresh the current usage and limits from the backend.
+
+        This is done by listing objects underneath the project prefix
+        and counting the total number of bytes.
+        """
+        # FIXME: it'd probably be a *good idea* to try to limit the
+        # number of files.  GCSObject doesn't have a way to calculate
+        # total size and number of objects all at once, but it'd be
+        # easy to do.
+        self._bytes_used = GCSObject(self._project_path).size()
+        self._cache_valid = True
+
+    def set_limits(self, bytes_soft=None, bytes_hard=None,
+                   inodes_soft=None, inodes_hard=None):
+        """
+        Set limits on the number of bytes and/or inodes.
+        """
+        if bytes_soft is not None:
+            self._bytes_soft = bytes_soft
+        if bytes_hard is not None:
+            self._bytes_hard = bytes_hard
+        if inodes_soft is not None:
+            self._inodes_soft = inodes_soft
+        if inodes_hard is not None:
+            self._inodes_hard = inodes_hard
+
+    def create_toplevel_directory(self):
+        """
+        Create the top-level project directory.
+        """
+        GCSObject(self._project_path).mkdir()
+
+    def check_create_file(self, path, size):
+        """
+        Update usage when creating a file.
+
+        If creating a file of the given size would cause the hard
+        limits to be exceeded, this raises an OSError with errno =
+        EDQUOT, and bytes_used is unchanged.  Otherwise, bytes_used is
+        increased accordingly.
+        """
+        if not self._cache_valid:
+            self.refresh()
+
+        if self._bytes_used + size > self._bytes_hard > 0:
+            raise OSError(errno.EDQUOT, 'Quota exceeded')
+
+        self._bytes_used += size
+
+    def check_delete_file(self, path, size):
+        """
+        Update usage when deleting a file.
+        """
+        self._bytes_used -= size

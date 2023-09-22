@@ -5,6 +5,7 @@ import shutil
 from django.conf import settings
 from physionet.utility import serve_file, sorted_tree_files, zip_dir
 from project.projectfiles.base import BaseProjectFiles
+from project.quota import DemoQuotaManager
 from project.utility import (
     clear_directory,
     get_directory_info,
@@ -131,8 +132,20 @@ class LocalProjectFiles(BaseProjectFiles):
     def get_file_root(self, slug, version, access_policy, klass):
         return os.path.join(self.get_project_file_root(slug, version, access_policy, klass), version)
 
-    def active_project_storage_used(self, project):
-        return project.quota_manager().bytes_used
+    def project_quota_manager(self, project):
+        allowance = project.core_project.storage_allowance
+        published = project.core_project.total_published_size
+        limit = allowance - published
+
+        # DemoQuotaManager needs to know the project's toplevel
+        # directory as well as its creation time (so that files
+        # present in multiple versions can be correctly attributed to
+        # the version where they first appeared.)
+        quota_manager = DemoQuotaManager(
+            project_path=project.file_root(),
+            creation_time=project.creation_datetime)
+        quota_manager.set_limits(bytes_hard=limit, bytes_soft=limit)
+        return quota_manager
 
     def published_project_storage_used(self, project):
         return get_tree_size(project.file_root())

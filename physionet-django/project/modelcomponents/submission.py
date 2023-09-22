@@ -3,7 +3,6 @@ import functools
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from project.quota import DemoQuotaManager
 from django.conf import settings
 
 from physionet.settings.base import StorageTypes
@@ -245,19 +244,7 @@ class SubmissionInfo(models.Model):
         (represented by the bytes_used and inodes_used properties of
         the QuotaManager object.)
         """
-        allowance = self.core_project.storage_allowance
-        published = self.core_project.total_published_size
-        limit = allowance - published
-
-        # DemoQuotaManager needs to know the project's toplevel
-        # directory as well as its creation time (so that files
-        # present in multiple versions can be correctly attributed to
-        # the version where they first appeared.)
-        quota_manager = DemoQuotaManager(
-            project_path=self.file_root(),
-            creation_time=self.creation_datetime)
-        quota_manager.set_limits(bytes_hard=limit, bytes_soft=limit)
-        return quota_manager
+        return self.files.project_quota_manager(self)
 
     @functools.cached_property
     def files(self):
