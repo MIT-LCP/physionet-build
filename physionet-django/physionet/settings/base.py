@@ -226,6 +226,12 @@ GCP_DOMAIN = config('GCP_DOMAIN', default='')
 # Alternate hostname to be used in example download commands
 BULK_DOWNLOAD_HOSTNAME = config('BULK_DOWNLOAD_HOSTNAME', default=None)
 
+# AWS credentials to access to S3 storage
+AWS_PROFILE = config('AWS_PROFILE', default=False)
+
+# Bucket name for the S3 bucket containing the open access data
+OPEN_ACCESS_DATA_BUCKET_NAME = config('OPEN_ACCESS_DATA_BUCKET_NAME', default=False)
+
 # Header tags for the AWS lambda function that grants access to S3 storage
 AWS_HEADER_KEY = config('AWS_KEY', default=False)
 AWS_HEADER_VALUE = config('AWS_VALUE', default=False)
