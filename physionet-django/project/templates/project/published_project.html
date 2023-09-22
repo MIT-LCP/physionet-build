@@ -430,6 +430,12 @@
               <pre class="shell-command">wget -r -N -c -np{% if project.access_policy %} --user {{ user }} --ask-password{% endif %} {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre>
             </li>
           {% endif %}
+          {% if aws_bucket_exists %}
+            <li>
+              Download the files using AWS command line tools:
+              <pre class="shell-command">aws s3 sync s3://{{ s3_bucket_name }} DESTINATION</pre>
+            </li>
+          {% endif %}  
 
         </ul>
         {# ZIP END #}
