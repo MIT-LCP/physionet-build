@@ -1803,6 +1803,7 @@ def published_project(request, project_slug, version, subdir=''):
     """
     Displays a published project
     """
+    from console.utility import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists
     try:
         project = PublishedProject.objects.get(slug=project_slug,
                                                version=version)
@@ -1827,6 +1828,8 @@ def published_project(request, project_slug, version, subdir=''):
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
     main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
+    s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
+    s3_bucket_name = get_bucket_name_and_prefix(project)
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
@@ -1884,6 +1887,8 @@ def published_project(request, project_slug, version, subdir=''):
         'platform_citations': platform_citations,
         'is_lightwave_supported': project.files.is_lightwave_supported(),
         'is_wget_supported': project.files.is_wget_supported(),
+        'aws_bucket_exists': s3_bucket_exists,
+        's3_bucket_name': s3_bucket_name,
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
     }
@@ -1940,6 +1945,8 @@ def sign_dua(request, project_slug, version):
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
+    from console import utility
+    from console import views
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
@@ -1964,6 +1971,7 @@ def sign_dua(request, project_slug, version):
 
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
+        views.update_aws_bucket_policy(project.id)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 
