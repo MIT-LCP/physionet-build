@@ -708,7 +708,7 @@ class PublishedProjectContactForm(forms.ModelForm):
         return contact
 
 
-class PublishedProjectAddPublication(forms.ModelForm):
+class AddPublishedPublicationForm(forms.ModelForm):
     class Meta:
         model = PublishedPublication
         fields = ('citation', 'url')
@@ -717,10 +717,20 @@ class PublishedProjectAddPublication(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.project = project
 
-    def save(self):
+    def clean(self):
+        cleaned_data = super().clean()
+        existing_publication = PublishedPublication.objects.filter(project=self.project).first()
+
+        if existing_publication:
+            raise forms.ValidationError("A publication already exists for this project.")
+
+        return cleaned_data
+
+    def save(self, commit=True):
         publication = super().save(commit=False)
         publication.project = self.project
-        publication.save()
+        if commit:
+            publication.save()
         return publication
 
 
