@@ -1,9 +1,4 @@
-import pdb
 import re
-
-from django.forms.widgets import RadioSelect
-
-from django.forms.widgets import RadioSelect
 
 from console.utility import generate_doi_payload, register_doi
 from dal import autocomplete
