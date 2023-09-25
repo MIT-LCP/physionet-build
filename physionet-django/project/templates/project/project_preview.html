@@ -84,7 +84,7 @@
     {% if project.version_clash %}
       <a style="color:red"><strong>{{ project.version}} * Clashing Version</strong></a>
     {% else %}
-      {{ project.version}}
+      {{ project.version }}
     {% endif %}
   {% else %}
     <a style="color:red"><strong>* Required field missing</strong></a>
@@ -177,7 +177,11 @@
       <div class="card my-4">
         <h5 class="card-header">Discovery</h5>
         <div class="card-body">
-          <p><strong>DOI:</strong><br>
+          <p><strong>DOI (version {{ project.version }}):</strong><br>
+            https://doi.org/10.13026/*****
+          </p>
+
+          <p><strong>DOI (latest version):</strong><br>
             https://doi.org/10.13026/*****
           </p>
 
