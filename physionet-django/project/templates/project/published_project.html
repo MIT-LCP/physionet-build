@@ -280,9 +280,16 @@
           <h5 class="card-header">Discovery</h5>
           <div class="card-body">
             {% if project.doi %}
-              <p><strong>DOI:</strong>
+              <p><strong>DOI (version {{ project.version }}):</strong>
                 <br>
                 <a href="https://doi.org/{{ project.doi }}">https://doi.org/{{ project.doi }}</a>
+              </p>
+            {% endif %}
+
+            {% if project.core_project.doi %}
+              <p><strong>DOI (latest version):</strong>
+                <br>
+                <a href="https://doi.org/{{ project.core_project.doi }}">https://doi.org/{{ project.core_project.doi }}</a>
               </p>
             {% endif %}
 
