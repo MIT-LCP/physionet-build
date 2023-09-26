@@ -33,6 +33,33 @@ class DOICreationError(Exception):
     pass
 
 # Manage AWS buckets and objects
+def missing_S3_open_data_info(project):
+    """
+    Check if S3 open data information is missing for a project.
+
+    This function evaluates whether a project lacks the necessary S3 open data information,
+    based on its access policy and the availability of an S3 open data bucket name.
+
+    Args:
+        project (project.models.Project): The project to check for S3 open data information.
+
+    Returns:
+        bool: True if S3 open data information is missing, False otherwise.
+    """
+    from project.models import AccessPolicy
+    if project.access_policy != AccessPolicy.OPEN:
+        return False
+    else:
+        return not has_S3_open_data_bucket_name()
+
+def has_S3_open_data_bucket_name():
+    """
+    Check if AWS credentials (AWS_PROFILE) have been set in the project's settings.
+
+    Returns:
+        bool: True if AWS_PROFILE is set, False otherwise.
+    """
+    return bool(settings.OPEN_ACCESS_DATA_BUCKET_NAME)
 
 def has_aws_credentials():
     """
@@ -89,9 +116,9 @@ def get_bucket_name(project):
     """
     from project.models import AccessPolicy
 
-    bucket_name = project.slug + "-" + project.version
+    bucket_name = None
 
-    if project.access_policy == AccessPolicy.OPEN:
+    if project.access_policy == AccessPolicy.OPEN and has_S3_open_data_bucket_name():
         bucket_name = settings.OPEN_ACCESS_DATA_BUCKET_NAME
     elif project.access_policy == AccessPolicy.RESTRICTED or project.access_policy == AccessPolicy.CREDENTIALED or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
         bucket_name = project.slug + "-" + project.version
@@ -590,7 +617,7 @@ def upload_project_to_S3(project):
     bucket_name = get_bucket_name(project)
     # create bucket if it does not exist
     s3 = create_s3_access_object()
-    if s3 is None:
+    if s3 is None or bucket_name is None:
         return
     create_s3_bucket(s3, bucket_name)
 
