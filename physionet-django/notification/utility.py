@@ -888,6 +888,7 @@ def task_failed_notify(name, attempts, last_error, date_time, task_name, task_pa
     """
     Notify when a task has failed and not rescheduled
     """
+    name = name or task_name
     body = loader.render_to_string(
         'notification/email/notify_failed_task.html', {
             'name': name,
@@ -906,6 +907,7 @@ def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, ta
     """
     Notify when a task has been rescheduled
     """
+    name = name or task_name
     body = loader.render_to_string(
         'notification/email/notify_rescheduled_task.html', {
             'name': name,
