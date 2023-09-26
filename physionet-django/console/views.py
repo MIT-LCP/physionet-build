@@ -872,11 +872,13 @@ def manage_published_project(request, project_slug, version):
     - Deprecate files
     - Create GCP bucket and send files
     """
-    from console.utility import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists
+    from console.utility import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists, has_aws_credentials
     try:
         project = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
         raise Http404()
+    s3_bucket_exists = None
+    s3_bucket_name = None
     user = request.user
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
@@ -884,9 +886,10 @@ def manage_published_project(request, project_slug, version):
     topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
-    has_aws_credentials = bool(settings.AWS_PROFILE)
-    s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
-    s3_bucket_name = get_bucket_name_and_prefix(project)
+    has_aws_credentials = has_aws_credentials()
+    if has_aws_credentials:
+        s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
+        s3_bucket_name = get_bucket_name_and_prefix(project)
     data_access_form = forms.DataAccessForm(project=project)
     contact_form = forms.PublishedProjectContactForm(project=project,
                                                      instance=project.contact)

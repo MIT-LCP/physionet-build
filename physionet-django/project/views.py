@@ -1803,7 +1803,9 @@ def published_project(request, project_slug, version, subdir=''):
     """
     Displays a published project
     """
-    from console.utility import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists
+    from console.utility import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists, has_aws_credentials
+    s3_bucket_exists = None
+    s3_bucket_name = None
     try:
         project = PublishedProject.objects.get(slug=project_slug,
                                                version=version)
@@ -1828,8 +1830,10 @@ def published_project(request, project_slug, version, subdir=''):
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
     main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
-    s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
-    s3_bucket_name = get_bucket_name_and_prefix(project)
+    has_aws_credentials = has_aws_credentials()
+    if has_aws_credentials:
+        s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
+        s3_bucket_name = get_bucket_name_and_prefix(project)
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
@@ -1971,7 +1975,8 @@ def sign_dua(request, project_slug, version):
 
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
-        views.update_aws_bucket_policy(project.id)
+        if utility.has_aws_credentials():
+            views.update_aws_bucket_policy(project.id)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 

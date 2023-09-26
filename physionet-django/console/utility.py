@@ -34,9 +34,18 @@ class DOICreationError(Exception):
 
 # Manage AWS buckets and objects
 
+def has_aws_credentials():
+    """
+    Check if AWS credentials (AWS_PROFILE) have been set in the project's settings.
+
+    Returns:
+        bool: True if AWS_PROFILE is set, False otherwise.
+    """
+    return bool(settings.AWS_PROFILE)
+
 def create_s3_access_object():
     """
-    Create and return an AWS S3 client object.
+    Create and return an AWS S3 client object if AWS_PROFILE is not None.
 
     This function establishes a session with AWS using the specified AWS profile
     from the 'settings' module and initializes an S3 client object for interacting with
@@ -48,11 +57,15 @@ def create_s3_access_object():
     - The AWS_PROFILE should be defined in the settings module.
 
     Returns:
-        botocore.client.S3: An initialized AWS S3 client object.
+        botocore.client.S3 or None: An initialized AWS S3 client object if AWS_PROFILE
+        is not None, otherwise None.
     """
-    session = boto3.Session(profile_name=settings.AWS_PROFILE)
-    s3 = session.client('s3')
-    return s3
+    if settings.AWS_PROFILE is not None:
+        session = boto3.Session(profile_name=settings.AWS_PROFILE)
+        s3 = session.client('s3')
+        return s3
+    else:
+        return None
 
 def get_bucket_name(project):
     """
@@ -135,6 +148,10 @@ def get_all_prefixes(project):
     if check_s3_bucket_exists(project):
         # Initialize the S3 client
         s3 = create_s3_access_object()
+
+        # Check if s3 is None
+        if s3 is None:
+            return
 
         # Specify the bucket name
         bucket_name = get_bucket_name(project)
@@ -233,6 +250,9 @@ def check_s3_bucket_exists(project):
     - The S3 bucket should exist and be accessible based on the project's configuration.
     """
     s3 = create_s3_access_object()
+    # Check if s3 is None
+    if s3 is None:
+        return
     bucket_name = get_bucket_name(project)
     try:
         s3.head_bucket(Bucket=bucket_name)
@@ -312,7 +332,11 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name):
         for file_name in files:
             local_file_path = os.path.join(root, file_name)
             s3_key = os.path.join(s3_prefix, os.path.relpath(local_file_path, folder_path))
-            create_s3_access_object().upload_file(
+            s3 = create_s3_access_object()
+            # Check if s3 is None
+            if s3 is None:
+                return
+            s3.upload_file(
                 Filename=local_file_path,
                 Bucket=bucket_name,
                 Key=s3_key,
@@ -461,6 +485,9 @@ def set_bucket_policy(bucket_name, bucket_policy):
     - The 'bucket_policy' should be a valid JSON string adhering to AWS S3 policy syntax.
     """ 
     s3 = create_s3_access_object()
+    # Check if s3 is None
+    if s3 is None:
+        return
     s3.put_bucket_policy(Bucket=bucket_name, Policy=bucket_policy)
 
 def put_public_access_block(client, bucket_name, configuration):
@@ -523,7 +550,10 @@ def update_bucket_policy(project, bucket_name):
     project_name = project.slug + "-" + project.version 
     aws_ids = get_aws_accounts_for_dataset(project_name)
     if project.access_policy == AccessPolicy.OPEN:
-        put_public_access_block(create_s3_access_object(), bucket_name, False)
+        s3 = create_s3_access_object()
+        if s3 is None:
+            return
+        put_public_access_block(s3, bucket_name, False)
         bucket_policy = create_bucket_policy(bucket_name, aws_ids, True)
     elif project.access_policy == AccessPolicy.CREDENTIALED or project.access_policy == AccessPolicy.RESTRICTED or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
         if aws_ids == []:
@@ -559,7 +589,10 @@ def upload_project_to_S3(project):
     from project.models import AccessPolicy
     bucket_name = get_bucket_name(project)
     # create bucket if it does not exist
-    create_s3_bucket(create_s3_access_object(), bucket_name)
+    s3 = create_s3_access_object()
+    if s3 is None:
+        return
+    create_s3_bucket(s3, bucket_name)
 
     # update bucket's policy for projects
     update_bucket_policy(project, bucket_name)
@@ -639,7 +672,7 @@ def empty_s3_bucket(bucket):
 
 def empty_project_from_S3(project):
     """
-    Empty an AWS S3 bucket associated with a project.
+    Empty an AWS S3 bucket associated with a project if AWS_PROFILE is not None.
 
     This function removes all files within the AWS S3 bucket associated with the specified 'project',
     effectively emptying the bucket. It leverages the 'empty_s3_bucket' function for this purpose.
@@ -655,11 +688,13 @@ def empty_project_from_S3(project):
     - Ensure that AWS credentials (Access Key and Secret Key) with sufficient permissions
       are properly configured for the S3 client used in this function.
     """
-    boto3.setup_default_session(settings.AWS_PROFILE)
-    s3 = boto3.resource('s3')
-    bucket_name = get_bucket_name(project)
-    bucket = s3.Bucket(bucket_name)
-    empty_s3_bucket(bucket)   
+    if settings.AWS_PROFILE is not None:
+        boto3.setup_default_session(settings.AWS_PROFILE)
+        s3 = boto3.resource('s3')
+        bucket_name = get_bucket_name(project)
+        bucket = s3.Bucket(bucket_name)
+        empty_s3_bucket(bucket)
+
 
 def empty_list_of_projects(projects):
     """
@@ -711,7 +746,7 @@ def empty_all_projects_from_S3():
 
 def delete_project_from_S3(project):
     """
-    Delete a project's files and associated AWS S3 bucket.
+    Delete a project's files and associated AWS S3 bucket if AWS_PROFILE is not None.
 
     This function cleans up and removes all files associated with the specified 'project' from an
     AWS S3 bucket. It then deletes the empty S3 bucket itself.
@@ -727,14 +762,16 @@ def delete_project_from_S3(project):
     - Ensure that AWS credentials (Access Key and Secret Key) with sufficient permissions
       are properly configured for the S3 client used in this function.
     """
-    boto3.setup_default_session(settings.AWS_PROFILE)
-    s3 = boto3.resource('s3')
-    bucket_name = get_bucket_name(project)
-    bucket = s3.Bucket(bucket_name)
-    # Empty the specified AWS S3 'bucket' by deleting all objects (files) within it
-    empty_s3_bucket(bucket)
-    # Delete the empty bucket itself
-    bucket.delete()   
+    if settings.AWS_PROFILE is not None:
+        boto3.setup_default_session(settings.AWS_PROFILE)
+        s3 = boto3.resource('s3')
+        bucket_name = get_bucket_name(project)
+        bucket = s3.Bucket(bucket_name)
+        # Empty the specified AWS S3 'bucket' by deleting all objects (files) within it
+        empty_s3_bucket(bucket)
+        # Delete the empty bucket itself
+        bucket.delete()
+
 
 def delete_list_of_projects_from_s3(projects):
     """"
