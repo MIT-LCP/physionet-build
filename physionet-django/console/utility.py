@@ -14,8 +14,6 @@ from django.contrib.sites.models import Site
 from django.conf import settings
 from django.urls import reverse
 from project.validators import validate_doi
-import os
-import re
 
 import logging
 
