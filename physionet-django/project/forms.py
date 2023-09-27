@@ -429,7 +429,7 @@ class NewProjectVersionForm(forms.ModelForm):
 
         # Direct copy over fields
         for field in (field.name for field in Metadata._meta.fields):
-            if field not in ['slug', 'version', 'creation_datetime']:
+            if field not in ['slug', 'version', 'creation_datetime', 'embargo_files_days']:
                 setattr(project, field, getattr(self.latest_project, field))
 
         # Set new fields
