@@ -1803,7 +1803,7 @@ def published_project(request, project_slug, version, subdir=''):
     """
     Displays a published project
     """
-    from console.utility import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists, has_aws_credentials
+    from project.cloud.s3 import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists, has_aws_credentials
     s3_bucket_exists = None
     s3_bucket_name = None
     try:
@@ -1949,7 +1949,7 @@ def sign_dua(request, project_slug, version):
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
-    from console import utility
+    from project.cloud.s3 import has_aws_credentials
     from console import views
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
@@ -1975,7 +1975,7 @@ def sign_dua(request, project_slug, version):
 
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
-        if utility.has_aws_credentials():
+        if has_aws_credentials():
             views.update_aws_bucket_policy(project.id)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})

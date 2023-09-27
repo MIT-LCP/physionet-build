@@ -76,6 +76,7 @@ from physionet.enums import LogCategory
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
 from console import views
+from project.cloud.s3 import create_s3_bucket
 
 LOGGER = logging.getLogger(__name__)
 
@@ -782,8 +783,9 @@ def send_files_to_aws(pid):
     Note:
     - Verify that AWS credentials and configurations are correctly set up for the S3 client.
     """ 
+    from project.cloud.s3 import upload_project_to_S3
     project = PublishedProject.objects.get(id=pid) 
-    utility.upload_project_to_S3(project)
+    upload_project_to_S3(project)
 
 
 @associated_task(PublishedProject, 'pid', read_only=True)
@@ -806,13 +808,13 @@ def update_aws_bucket_policy(pid):
     - Verify that AWS credentials and configurations are correctly set up for the S3 client.
     - The 'updated_policy' variable indicates whether the policy was updated successfully.
     """
-    from console import utility
+    from project.cloud.s3 import get_bucket_name, check_s3_bucket_exists, update_bucket_policy
     updated_policy = False
     project = PublishedProject.objects.get(id=pid)
-    exists = utility.check_s3_bucket_exists(project)
+    exists = check_s3_bucket_exists(project)
     if exists:
-        bucket_name = utility.get_bucket_name(project)
-        utility.update_bucket_policy(project, bucket_name)
+        bucket_name = get_bucket_name(project)
+        update_bucket_policy(project, bucket_name)
         updated_policy = True
     else:
         updated_policy = False
@@ -872,7 +874,7 @@ def manage_published_project(request, project_slug, version):
     - Deprecate files
     - Create GCP bucket and send files
     """
-    from console.utility import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists, has_aws_credentials, missing_S3_open_data_info
+    from project.cloud.s3 import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists, has_aws_credentials, missing_S3_open_data_info
     try:
         project = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
@@ -1064,7 +1066,7 @@ def gcp_bucket_management(request, project, user):
             LOGGER.info("The bucket {0} already exists, skipping bucket and \
                 group creation".format(bucket_name))
         else:
-            utility.create_s3_bucket(project.slug, project.version, project.title, is_private)
+            create_s3_bucket(project.slug, project.version, project.title, is_private)
             messages.success(request, "The GCP bucket for project {0} was \
                 successfully created.".format(project))
         GCP.objects.create(project=project, bucket_name=bucket_name,
