@@ -8,6 +8,7 @@ from project.models import PublishedProject, AccessPolicy
 from user.models import User
 from project.authorization.access import can_view_project_files
 
+
 # Manage AWS buckets and objects
 def missing_S3_open_data_info(project):
     """
