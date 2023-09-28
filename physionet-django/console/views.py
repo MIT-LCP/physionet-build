@@ -82,6 +82,10 @@ from project.cloud.s3 import (
     get_bucket_name,
     check_s3_bucket_exists,
     update_bucket_policy,
+    get_bucket_name_and_prefix,
+    check_s3_bucket_with_prefix_exists,
+    has_aws_credentials,
+    missing_S3_open_data_info,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -887,12 +891,6 @@ def manage_published_project(request, project_slug, version):
     - Deprecate files
     - Create GCP bucket and send files
     """
-    from project.cloud.s3 import (
-        get_bucket_name_and_prefix,
-        check_s3_bucket_with_prefix_exists,
-        has_aws_credentials,
-        missing_S3_open_data_info
-    )
     try:
         project = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
@@ -906,11 +904,11 @@ def manage_published_project(request, project_slug, version):
     topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
-    has_aws_credentials = has_aws_credentials()
-    if has_aws_credentials:
+    has_s3_credentials = has_aws_credentials()
+    if has_s3_credentials:
         s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
         s3_bucket_name = get_bucket_name_and_prefix(project)
-    missing_S3_open_data_info = missing_S3_open_data_info(project)
+    missing_S3_open_data = missing_S3_open_data_info(project)
     data_access_form = forms.DataAccessForm(project=project)
     contact_form = forms.PublishedProjectContactForm(project=project,
                                                      instance=project.contact)
@@ -1040,8 +1038,8 @@ def manage_published_project(request, project_slug, version):
             'topic_form': topic_form,
             'deprecate_form': deprecate_form,
             'has_credentials': has_credentials,
-            'has_aws_credentials': has_aws_credentials,
-            'missing_S3_open_data_info': missing_S3_open_data_info,
+            'has_s3_credentials': has_s3_credentials,
+            'missing_S3_open_data': missing_S3_open_data,
             'aws_bucket_exists': s3_bucket_exists,
             's3_bucket_name': s3_bucket_name,
             'data_access_form': data_access_form,

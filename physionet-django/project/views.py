@@ -1830,8 +1830,8 @@ def published_project(request, project_slug, version, subdir=''):
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
     main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
-    has_aws_credentials = has_aws_credentials()
-    if has_aws_credentials:
+    has_s3_credentials = has_aws_credentials()
+    if has_s3_credentials:
         s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
         s3_bucket_name = get_bucket_name_and_prefix(project)
 
