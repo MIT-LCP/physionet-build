@@ -5,7 +5,8 @@ import os
 import json
 from django.conf import settings
 from project.models import PublishedProject, AccessPolicy
-
+from user.models import User
+from project.authorization.access import can_view_project_files
 
 # Manage AWS buckets and objects
 def missing_S3_open_data_info(project):
@@ -107,10 +108,7 @@ def get_bucket_name(project):
     """
     bucket_name = None
 
-    if (
-        project.access_policy == AccessPolicy.OPEN and
-        has_S3_open_data_bucket_name()
-    ):
+    if project.access_policy == AccessPolicy.OPEN and has_S3_open_data_bucket_name():
         bucket_name = settings.OPEN_ACCESS_DATA_BUCKET_NAME
     elif (
         project.access_policy == AccessPolicy.RESTRICTED
@@ -308,7 +306,7 @@ def check_s3_bucket_exists(project):
     try:
         s3.head_bucket(Bucket=bucket_name)
         return True
-    except botocore.exceptions.ClientError as e:
+    except botocore.exceptions.ClientError:
         return False
 
 
@@ -436,9 +434,6 @@ def get_aws_accounts_for_dataset(dataset_name):
     - Users with the appropriate permissions and AWS account IDs
     are included in the result list.
     """
-    from user.models import User
-    from project.authorization.access import can_view_project_files
-
     aws_accounts = []
 
     published_projects = PublishedProject.objects.all()

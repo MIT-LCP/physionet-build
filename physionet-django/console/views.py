@@ -76,7 +76,13 @@ from physionet.enums import LogCategory
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
 from console import views
-from project.cloud.s3 import create_s3_bucket
+from project.cloud.s3 import (
+    create_s3_bucket,
+    upload_project_to_S3,
+    get_bucket_name,
+    check_s3_bucket_exists,
+    update_bucket_policy,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -764,6 +770,7 @@ def send_files_to_gcp(pid):
             project.gcp.sent_zip = True
         project.gcp.save()
 
+
 @associated_task(PublishedProject, "pid", read_only=True)
 @background()
 def send_files_to_aws(pid):
@@ -784,8 +791,6 @@ def send_files_to_aws(pid):
     - Verify that AWS credentials and configurations are correctly set
     up for the S3 client.
     """
-    from project.cloud.s3 import upload_project_to_S3
-
     project = PublishedProject.objects.get(id=pid)
     upload_project_to_S3(project)
 
@@ -816,12 +821,6 @@ def update_aws_bucket_policy(pid):
     - The 'updated_policy' variable indicates whether the policy was
     updated successfully.
     """
-    from project.cloud.s3 import (
-        get_bucket_name,
-        check_s3_bucket_exists,
-        update_bucket_policy,
-    )
-
     updated_policy = False
     project = PublishedProject.objects.get(id=pid)
     exists = check_s3_bucket_exists(project)
@@ -889,9 +888,9 @@ def manage_published_project(request, project_slug, version):
     - Create GCP bucket and send files
     """
     from project.cloud.s3 import (
-        get_bucket_name_and_prefix, 
-        check_s3_bucket_with_prefix_exists, 
-        has_aws_credentials, 
+        get_bucket_name_and_prefix,
+        check_s3_bucket_with_prefix_exists,
+        has_aws_credentials,
         missing_S3_open_data_info
     )
     try:
