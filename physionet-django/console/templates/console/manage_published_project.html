@@ -411,9 +411,11 @@
       <li class="list-group-item">
         <h5 class="card-title mt-3 mb-1">AWS</h5>
         {% if not has_s3_credentials %}
-          <p>You are missing the AWS credentials.</p>
-        {% elif missing_S3_open_data %}
-          <p>You are missing the S3_OPEN_ACCESS_BUCKET information.</p>
+          <p>
+            Support for Amazon S3 is not enabled.  (Check that
+            <code>AWS_PROFILE</code> and <code>S3_OPEN_ACCESS_BUCKET</code>
+            are set.)
+          </p>
         {% elif not aws_bucket_exists %}
           <p>Create a bucket on AWS to store the files associated with this project.</p>
           <form action="" method="post">

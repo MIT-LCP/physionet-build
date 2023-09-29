@@ -56,7 +56,11 @@ from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
-
+from project.cloud.s3 import (
+    get_bucket_name_and_prefix,
+    check_s3_bucket_with_prefix_exists,
+    has_s3_credentials,
+)
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
@@ -1803,7 +1807,6 @@ def published_project(request, project_slug, version, subdir=''):
     """
     Displays a published project
     """
-    from project.cloud.s3 import get_bucket_name_and_prefix, check_s3_bucket_with_prefix_exists, has_aws_credentials
     s3_bucket_exists = None
     s3_bucket_name = None
     try:
@@ -1830,8 +1833,7 @@ def published_project(request, project_slug, version, subdir=''):
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
     main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
-    has_s3_credentials = has_aws_credentials()
-    if has_s3_credentials:
+    if has_s3_credentials():
         s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
         s3_bucket_name = get_bucket_name_and_prefix(project)
 
@@ -1891,6 +1893,7 @@ def published_project(request, project_slug, version, subdir=''):
         'platform_citations': platform_citations,
         'is_lightwave_supported': project.files.is_lightwave_supported(),
         'is_wget_supported': project.files.is_wget_supported(),
+        'has_s3_credentials': has_s3_credentials(),
         'aws_bucket_exists': s3_bucket_exists,
         's3_bucket_name': s3_bucket_name,
         'show_platform_wide_citation': show_platform_wide_citation,
@@ -1949,8 +1952,6 @@ def sign_dua(request, project_slug, version):
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
-    from project.cloud.s3 import has_aws_credentials
-    from console import views
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
@@ -1975,7 +1976,7 @@ def sign_dua(request, project_slug, version):
 
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
-        if has_aws_credentials():
+        if has_s3_credentials():
             views.update_aws_bucket_policy(project.id)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})

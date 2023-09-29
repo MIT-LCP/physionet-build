@@ -10,28 +10,6 @@ from project.authorization.access import can_view_project_files
 
 
 # Manage AWS buckets and objects
-def missing_S3_open_data_info(project):
-    """
-    Check if S3 open data information is missing for a project.
-
-    This function evaluates whether a project lacks the necessary
-    S3 open data information, based on its access policy and the
-    availability of an S3 open data bucket name.
-
-    Args:
-        project (project.models.Project): The project to check for
-        S3 open data information.
-
-    Returns:
-        bool: True if S3 open data information is missing,
-        False otherwise.
-    """
-    if project.access_policy != AccessPolicy.OPEN:
-        return False
-    else:
-        return not has_S3_open_data_bucket_name()
-
-
 def has_S3_open_data_bucket_name():
     """
     Check if AWS credentials (AWS_PROFILE) have been set in
@@ -43,7 +21,7 @@ def has_S3_open_data_bucket_name():
     return bool(settings.S3_OPEN_ACCESS_BUCKET)
 
 
-def has_aws_credentials():
+def has_s3_credentials():
     """
     Check if AWS credentials (AWS_PROFILE) have been set in
     the project's settings.
@@ -51,7 +29,10 @@ def has_aws_credentials():
     Returns:
         bool: True if AWS_PROFILE is set, False otherwise.
     """
-    return bool(settings.AWS_PROFILE)
+    return all([
+        settings.AWS_PROFILE,
+        settings.S3_OPEN_ACCESS_BUCKET,
+    ])
 
 
 def create_s3_access_object():

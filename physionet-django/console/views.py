@@ -84,8 +84,7 @@ from project.cloud.s3 import (
     update_bucket_policy,
     get_bucket_name_and_prefix,
     check_s3_bucket_with_prefix_exists,
-    has_aws_credentials,
-    missing_S3_open_data_info,
+    has_s3_credentials,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -904,11 +903,9 @@ def manage_published_project(request, project_slug, version):
     topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
-    has_s3_credentials = has_aws_credentials()
-    if has_s3_credentials:
+    if has_s3_credentials():
         s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
         s3_bucket_name = get_bucket_name_and_prefix(project)
-    missing_S3_open_data = missing_S3_open_data_info(project)
     data_access_form = forms.DataAccessForm(project=project)
     contact_form = forms.PublishedProjectContactForm(project=project,
                                                      instance=project.contact)
@@ -972,7 +969,7 @@ def manage_published_project(request, project_slug, version):
                 messages.error(request, 'Project has tasks pending.')
             else:
                 gcp_bucket_management(request, project, user)
-        elif 'aws-bucket' in request.POST and has_aws_credentials:
+        elif 'aws-bucket' in request.POST and has_s3_credentials():
             if any(get_associated_tasks(project, read_only=False)):
                 messages.error(request, 'Project has tasks pending.')
             else:
@@ -1038,8 +1035,7 @@ def manage_published_project(request, project_slug, version):
             'topic_form': topic_form,
             'deprecate_form': deprecate_form,
             'has_credentials': has_credentials,
-            'has_s3_credentials': has_s3_credentials,
-            'missing_S3_open_data': missing_S3_open_data,
+            'has_s3_credentials': has_s3_credentials(),
             'aws_bucket_exists': s3_bucket_exists,
             's3_bucket_name': s3_bucket_name,
             'data_access_form': data_access_form,
@@ -1082,7 +1078,7 @@ def gcp_bucket_management(request, project, user):
             LOGGER.info("The bucket {0} already exists, skipping bucket and \
                 group creation".format(bucket_name))
         else:
-            create_s3_bucket(project.slug, project.version, project.title, is_private)
+            utility.create_bucket(project.slug, project.version, project.title, is_private)
             messages.success(request, "The GCP bucket for project {0} was \
                 successfully created.".format(project))
         GCP.objects.create(project=project, bucket_name=bucket_name,
