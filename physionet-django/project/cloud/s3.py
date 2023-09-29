@@ -35,7 +35,7 @@ def has_s3_credentials():
     ])
 
 
-def create_s3_access_object():
+def create_s3_client():
     """
     Create and return an AWS S3 client object if
     AWS_PROFILE is not None.
@@ -54,7 +54,7 @@ def create_s3_access_object():
         botocore.client.S3 or None: An initialized AWS S3 client
         object if AWS_PROFILE is not None, otherwise None.
     """
-    if settings.AWS_PROFILE is not None:
+    if has_s3_credentials():
         session = boto3.Session(profile_name=settings.AWS_PROFILE)
         s3 = session.client("s3")
         return s3
@@ -162,7 +162,7 @@ def get_all_prefixes(project):
     common_prefixes = []
     if check_s3_bucket_exists(project):
         # Initialize the S3 client
-        s3 = create_s3_access_object()
+        s3 = create_s3_client()
 
         # Check if s3 is None
         if s3 is None:
@@ -280,7 +280,7 @@ def check_s3_bucket_exists(project):
     - The S3 bucket should exist and be accessible based on the
     project's configuration.
     """
-    s3 = create_s3_access_object()
+    s3 = create_s3_client()
     # Check if s3 is None
     if s3 is None:
         return
@@ -368,23 +368,23 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name):
         bucket_name (str): The name of the AWS S3 bucket where
         files will be uploaded.
 
-    Returns:
-        None
+    Raises:
+        ValueError: If AWS_PROFILE is undefined.
 
     Note:
     - Ensure that AWS credentials (Access Key and Secret Key) are
     properly configured for the S3 client used in this function.
     """
+    if not has_s3_credentials():
+        raise ValueError("AWS_PROFILE is undefined. Please set it in your settings.")
+
+    s3 = create_s3_client()
     for root, _, files in os.walk(folder_path):
         for file_name in files:
             local_file_path = os.path.join(root, file_name)
             s3_key = os.path.join(
                 s3_prefix, os.path.relpath(local_file_path, folder_path)
             )
-            s3 = create_s3_access_object()
-            # Check if s3 is None
-            if s3 is None:
-                return
             s3.upload_file(
                 Filename=local_file_path,
                 Bucket=bucket_name,
@@ -555,7 +555,7 @@ def set_bucket_policy(bucket_name, bucket_policy):
     - The 'bucket_policy' should be a valid JSON string adhering
     to AWS S3 policy syntax.
     """
-    s3 = create_s3_access_object()
+    s3 = create_s3_client()
     # Check if s3 is None
     if s3 is None:
         return
@@ -636,7 +636,7 @@ def update_bucket_policy(project, bucket_name):
     project_name = project.slug + "-" + project.version
     aws_ids = get_aws_accounts_for_dataset(project_name)
     if project.access_policy == AccessPolicy.OPEN:
-        s3 = create_s3_access_object()
+        s3 = create_s3_client()
         if s3 is None:
             return
         put_public_access_block(s3, bucket_name, False)
@@ -686,7 +686,7 @@ def upload_project_to_S3(project):
     """
     bucket_name = get_bucket_name(project)
     # create bucket if it does not exist
-    s3 = create_s3_access_object()
+    s3 = create_s3_client()
     if s3 is None or bucket_name is None:
         return
     create_s3_bucket(s3, bucket_name)
@@ -805,7 +805,7 @@ def empty_project_from_S3(project):
     with sufficient permissions are properly configured for the
     S3 client used in this function.
     """
-    if settings.AWS_PROFILE is not None:
+    if has_s3_credentials():
         boto3.setup_default_session(settings.AWS_PROFILE)
         s3 = boto3.resource("s3")
         bucket_name = get_bucket_name(project)
@@ -894,7 +894,7 @@ def delete_project_from_S3(project):
     with sufficient permissions are properly configured for
     the S3 client used in this function.
     """
-    if settings.AWS_PROFILE is not None:
+    if has_s3_credentials():
         boto3.setup_default_session(settings.AWS_PROFILE)
         s3 = boto3.resource("s3")
         bucket_name = get_bucket_name(project)
