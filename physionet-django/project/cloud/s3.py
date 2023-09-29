@@ -40,7 +40,7 @@ def has_S3_open_data_bucket_name():
     Returns:
         bool: True if AWS_PROFILE is set, False otherwise.
     """
-    return bool(settings.OPEN_ACCESS_DATA_BUCKET_NAME)
+    return bool(settings.S3_OPEN_ACCESS_BUCKET)
 
 
 def has_aws_credentials():
@@ -91,7 +91,7 @@ def get_bucket_name(project):
     If the project has a specific access policy defined, the
     bucket name will be generated accordingly. For projects with
     an 'OPEN' access policy, the default bucket name is specified
-    in settings.OPEN_ACCESS_DATA_BUCKET_NAME. For other access
+    in settings.S3_OPEN_ACCESS_BUCKET. For other access
     policies ('RESTRICTED', 'CREDENTIALED', 'CONTRIBUTOR_REVIEW'),
     the bucket name is constructed using the project's slug and version.
 
@@ -110,7 +110,7 @@ def get_bucket_name(project):
     bucket_name = None
 
     if project.access_policy == AccessPolicy.OPEN and has_S3_open_data_bucket_name():
-        bucket_name = settings.OPEN_ACCESS_DATA_BUCKET_NAME
+        bucket_name = settings.S3_OPEN_ACCESS_BUCKET
     elif (
         project.access_policy == AccessPolicy.RESTRICTED
         or project.access_policy == AccessPolicy.CREDENTIALED

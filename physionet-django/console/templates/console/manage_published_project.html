@@ -413,7 +413,7 @@
         {% if not has_s3_credentials %}
           <p>You are missing the AWS credentials.</p>
         {% elif missing_S3_open_data %}
-          <p>You are missing the OPEN_ACCESS_DATA_BUCKET_NAME information.</p>
+          <p>You are missing the S3_OPEN_ACCESS_BUCKET information.</p>
         {% elif not aws_bucket_exists %}
           <p>Create a bucket on AWS to store the files associated with this project.</p>
           <form action="" method="post">
