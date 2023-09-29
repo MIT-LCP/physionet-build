@@ -1952,6 +1952,7 @@ def sign_dua(request, project_slug, version):
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
+    from console.views import update_aws_bucket_policy
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
@@ -1977,7 +1978,7 @@ def sign_dua(request, project_slug, version):
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
         if has_s3_credentials():
-            views.update_aws_bucket_policy(project.id)
+            update_aws_bucket_policy(project.id)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 
