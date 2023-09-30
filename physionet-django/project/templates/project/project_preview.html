@@ -236,7 +236,7 @@
     {% endif %}
   {% endif %}
   <div id="files-panel" class="card">
-    {% include "project/files_panel.html" %}
+    {% include "project/files_panel_v2.html" %}
   </div>
   <br>
 
@@ -244,6 +244,7 @@
 {% endblock %}
 
 {% block local_js_bottom %}
+<script src="{% static 'project/js/dynamic-files-panel.js' %}"></script>
 <script src="{% static 'custom/js/enable-popover.js' %}"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 {% endblock %}

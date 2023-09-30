@@ -1151,7 +1151,12 @@ def preview_files_panel(request, project_slug, **kwargs):
     file_warning = get_project_file_warning(display_files, display_dirs,
                                               subdir)
 
-    return render(request, 'project/files_panel.html',
+    if request.GET.get('v', '1') == '1':
+        template = 'project/files_panel.html'
+    else:
+        template = 'project/files_panel_v2.html'
+
+    return render(request, template,
         {'project':project, 'subdir':subdir, 'file_error':file_error,
          'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
          'display_files':display_files, 'display_dirs':display_dirs,
@@ -1574,7 +1579,12 @@ def published_files_panel(request, project_slug, version):
         files_panel_url = reverse('published_files_panel',
             args=(project.slug, project.version))
 
-        return render(request, 'project/files_panel.html',
+        if request.GET.get('v', '1') == '1':
+            template = 'project/files_panel.html'
+        else:
+            template = 'project/files_panel_v2.html'
+
+        return render(request, template,
             {'project':project, 'subdir':subdir,
              'dir_breadcrumbs':dir_breadcrumbs, 'parent_dir':parent_dir,
              'display_files':display_files, 'display_dirs':display_dirs,
