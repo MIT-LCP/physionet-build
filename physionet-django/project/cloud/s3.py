@@ -55,7 +55,9 @@ def create_s3_client():
         object if AWS_PROFILE is not None, otherwise None.
     """
     if has_s3_credentials():
-        session = boto3.Session(profile_name=settings.AWS_PROFILE)
+        session = boto3.Session(
+            profile_name=settings.AWS_PROFILE
+        )
         s3 = session.client("s3")
         return s3
     else:
@@ -806,7 +808,9 @@ def empty_project_from_S3(project):
     S3 client used in this function.
     """
     if has_s3_credentials():
-        boto3.setup_default_session(settings.AWS_PROFILE)
+        boto3.setup_default_session(
+            settings.AWS_PROFILE
+        )
         s3 = boto3.resource("s3")
         bucket_name = get_bucket_name(project)
         bucket = s3.Bucket(bucket_name)
@@ -895,7 +899,9 @@ def delete_project_from_S3(project):
     the S3 client used in this function.
     """
     if has_s3_credentials():
-        boto3.setup_default_session(settings.AWS_PROFILE)
+        boto3.setup_default_session(
+            settings.AWS_PROFILE
+        )
         s3 = boto3.resource("s3")
         bucket_name = get_bucket_name(project)
         bucket = s3.Bucket(bucket_name)

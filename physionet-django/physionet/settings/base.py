@@ -227,6 +227,12 @@ GCP_DOMAIN = config('GCP_DOMAIN', default='')
 BULK_DOWNLOAD_HOSTNAME = config('BULK_DOWNLOAD_HOSTNAME', default=None)
 
 # AWS credentials to access to S3 storage
+if config('AWS_SHARED_CREDENTIALS_FILE', default=None):
+    AWS_SHARED_CREDENTIALS_FILE = os.path.expanduser(config('AWS_SHARED_CREDENTIALS_FILE'))
+    os.environ['AWS_SHARED_CREDENTIALS_FILE'] = AWS_SHARED_CREDENTIALS_FILE
+else:
+    AWS_SHARED_CREDENTIALS_FILE = None
+
 AWS_PROFILE = config('AWS_PROFILE', default=False)
 
 # Bucket name for the S3 bucket containing the open access data
