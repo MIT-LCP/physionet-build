@@ -86,6 +86,9 @@
               <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
               </p>
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#pending-applications-modal-{{ event.id }}">Pending Applications</button>
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#rejected-applications-modal-{{ event.id }}">Rejected Applications</button>
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#withdrawn-applications-modal-{{ event.id }}">Withdrawn Applications</button>              
               <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
             {% endif %}
 
@@ -114,7 +117,46 @@
             </div>
           </div>
         </div>
-    {% endfor %}
+        <div class="modal fade" id="pending-applications-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="pending-applications-modal" aria-hidden="true">
+          <div class="modal-dialog modal-lg"  role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Pending Applications</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+                {% include 'events/event_pending_applications.html' %}
+              </div>
+            </div>
+          </div>
+          <div class="modal fade" id="rejected-applications-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="rejected-applications-modal" aria-hidden="true">
+            <div class="modal-dialog modal-lg"  role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Rejected Applications</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                  {% include 'events/event_rejected_applications.html' %}
+                </div>
+              </div>
+            </div>
+            <div class="modal fade" id="withdrawn-applications-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="withdrawn-applications-modal" aria-hidden="true">
+              <div class="modal-dialog modal-lg"  role="document">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Withdrawn Application</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                    {% include 'events/event_withdrawn_applications.html' %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
   {% endif %}
 
 <!-- Past events -->

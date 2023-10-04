@@ -46,11 +46,51 @@
             <div class="col-md-11">
               <button class="btn btn-sm btn-primary"
                       data-toggle="modal"
-                      data-target="#view-participants">View participants</button>
+                      data-target="#participants">View</button>
             </div>
           </div>
         </div>
       </div>
+      <div class="row mb-1">
+        <div class="col-md-3">Pending Applications:</div>
+        <div class="col-md-9">
+          <div class="row mb-1">
+            <div class="col-md-1">{{ event.participants.count }}</div>
+            <div class="col-md-11">
+              <button class="btn btn-sm btn-primary"
+                      data-toggle="modal"
+                      data-target="#pending_applications">View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row mb-1">
+        <div class="col-md-3">Rejected Applications:</div>
+        <div class="col-md-9">
+          <div class="row mb-1">
+            <div class="col-md-1">{{ event.participants.count }}</div>
+            <div class="col-md-11">
+              <button class="btn btn-sm btn-primary"
+                      data-toggle="modal"
+                      data-target="#rejected_applications">View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row mb-1">
+        <div class="col-md-3">Withdrawn Applications:</div>
+        <div class="col-md-9">
+          <div class="row mb-1">
+            <div class="col-md-1">{{ event.participants.count }}</div>
+            <div class="col-md-11">
+              <button class="btn btn-sm btn-primary"
+                      data-toggle="modal"
+                      data-target="#withdrawn_applications">View</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="row mb-1">
         <div class="col-md-3">Description:</div>
         <div class="col-md-9">{{ event.description }}</div>
@@ -59,7 +99,7 @@
   </div>
   {% include 'console/event_management_manage_dataset.html' %}
   <div class="modal fade"
-       id="view-participants"
+       id="participants"
        tabindex="-1"
        role="dialog"
        aria-labelledby="view-participants-modal"
@@ -76,4 +116,59 @@
       </div>
     </div>
   </div>
+  <div class="modal fade"
+       id="pending_applications"
+       tabindex="-2"
+       role="dialog"
+       aria-labelledby="view-pending_applications-modal"
+       aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Pending Applications</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {% include 'events/event_pending_applications.html' %}
+      </div>
+    </div>
+  </div>
+  <div class="modal fade"
+       id="rejected_applications"
+       tabindex="-1"
+       role="dialog"
+       aria-labelledby="view-rejected_applications-modal"
+       aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Rejected Applications</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {% include 'events/event_rejected_applications.html' %}
+      </div>
+    </div>
+  </div>
+  <div class="modal fade"
+       id="withdrawn_applications"
+       tabindex="-1"
+       role="dialog"
+       aria-labelledby="view-withdrawn_applications-modal"
+       aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Withdrawn Applications</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {% include 'events/event_withdrawn_applications.html' %}
+      </div>
+    </div>
+  </div>
+
 {% endblock %}

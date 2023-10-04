@@ -1,10 +1,4 @@
 {% load participation_status %}
-<nav>
-  <div class="nav nav-tabs" id="nav-tab" role="tablist">
-    <button class="nav-link active" id="active-participant-tab" data-toggle="tab" data-target="#active-participant" type="button" role="tab" aria-controls="active-participant" aria-selected="true">Active Participant</button>
-    <button class="nav-link" id="inactive-participant-tab" data-toggle="tab" data-target="#inactive-participant" type="button" role="tab" aria-controls="inactive-participant" aria-selected="false">Inactive Participant</button>
-  </div>
-</nav>
 <div class="tab-content" id="nav-tabContent">
   <div class="tab-pane fade show active" id="active-participant" role="tabpanel" aria-labelledby="active-participant-tab">
     <div class="table-responsive">
@@ -37,31 +31,5 @@
           </tbody>
         </table>
       </div>
-  </div>
-  <div class="tab-pane fade" id="inactive-participant" role="tabpanel" aria-labelledby="inactive-participant-tab">
-      <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Full name</th>
-              <th>Email</th>
-              <th>Reason</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-          {% with inactive_applications=event|get_inactive_applications %}
-            {% for application in inactive_applications %}
-              <tr>
-                <td>{{ application.user.username }}</td>
-                <td>{{ application.user.get_full_name }}</td>
-                <td>{{ application.user.email }}</td>
-                <td>{{ application.comment_to_applicant }}</td>
-                <td>{{ application.decision_datetime | date }}</td>
-              </tr>
-            {% endfor %}
-          {% endwith %}
-          </tbody>
-      </table>
   </div>
 </div>

@@ -33,3 +33,24 @@ def get_inactive_applications(event):
             EventApplication.EventApplicationStatus.WITHDRAWN
         ]
     )
+
+
+@register.filter(name='get_pending_applications')
+def get_pending_applications(event):
+    return event.applications.filter(
+        status__in=[EventApplication.EventApplicationStatus.WAITLISTED]
+    )
+
+
+@register.filter(name='get_withdrawn_applications')
+def get_withdrawn_applications(event):
+    return event.applications.filter(
+        status__in=[EventApplication.EventApplicationStatus.WITHDRAWN]
+    )
+
+
+@register.filter(name='get_rejected_applications')
+def get_rejected_applications(event):
+    return event.applications.filter(
+        status__in=[EventApplication.EventApplicationStatus.NOT_APPROVED]
+    )
