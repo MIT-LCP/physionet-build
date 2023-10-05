@@ -43,43 +43,46 @@
         {% endfor %}
       </div>
     </div>
-    <a href="#latest">
-      <div class="down-container"><div class="down"></div></div>
-    </a>
   </div>
   <div class="main">
-    <div class="main-content" id="latest">
-      <div class="content-box">
-        <h2>
-          Featured Resources
-        </h2>
+    <div class="main-content">
+      <div class="card-header">
+        <ul class="nav nav-tabs" id="Tab" role="tablist">
+          <li class="nav-item">
+            <a class="nav-link" id="featured-tab" data-toggle="tab" href="#featured" role="tab" aria-controls="featured" aria-selected="true">Featured Resources</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" id="latest-tab" data-toggle="tab" href="#latest" role="tab" aria-controls="latest" araia-selected="false">Latest Resources</a>
+          </li>
+        </ul>
         <br>
-        {% include "search/content_list.html" with projects=featured content_list_header='h3' %}
-      </div><div class="content-box">
-        <h2>
-          Latest Resources
-        </h2>
-        <br>
-        {% include "search/content_list.html" with projects=latest content_list_header='h3' %}
-        <div class="more"><a class="btn btn-outline-dark" href="{% url 'content_index' %}">More resources</a></div>
+          <div class="tab-content" id="TabContent">
+            <div class="tab-pane fade show active" id="featured" role="tabpanel" aria-labelledby="featured-tab">{% include "search/content_list.html" with projects=featured content_list_header='h3' %}</div>
+            <div class="tab-pane fade" id="latest" role="tabpanel" aria-labelledby="latest-tab">{% include "search/content_list.html" with projects=latest content_list_header='h3' %}
+            </div>
+            <div class="more">
+              <a class="btn btn-outline-dark" href="{% url 'content_index' %}">More content</a></div>
+          </div>
+        </ul>
       </div>
-    </div><div class="main-side">
-      <h2>
-        News
-      </h2>
-      <br>
-      {% for news in news_pieces %}
-        <h3>
-          <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
-        </h3>
-        {% include "notification/news_content.html" %}
-        <hr>
-      {% endfor %}
-      <div class="more"><a class="btn btn-outline-dark" href="{% url 'news' %}">More news</a></div>
     </div>
-  </div>
+    <div class="main-side">
+    <h2>
+      News
+    </h2>
+    <br>
+    {% for news in news_pieces %}
+      <h3>
+        <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
+      </h3>
+      {% include "notification/news_content.html" %}
+      <hr>
+    {% endfor %}
+    <div class="more"><a class="btn btn-outline-dark" href="{% url 'news' %}">More news</a></div>
+    </div>
+</div>
 
-  {% include "footer.html" %}
-  {% include "base_js_bottom.html" %}
+{% include "footer.html" %}
+{% include "base_js_bottom.html" %}
 </body>
 {% endblock %}
