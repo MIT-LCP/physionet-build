@@ -1,9 +1,4 @@
-import pdb
 import re
-
-from django.forms.widgets import RadioSelect
-
-from django.forms.widgets import RadioSelect
 
 from console.utility import generate_doi_payload, register_doi
 from dal import autocomplete
@@ -27,6 +22,7 @@ from project.models import (
     PublishedAffiliation,
     PublishedAuthor,
     PublishedProject,
+    PublishedPublication,
     SubmissionStatus,
     exists_project_slug,
 )
@@ -705,6 +701,32 @@ class PublishedProjectContactForm(forms.ModelForm):
         contact.project = self.project
         contact.save()
         return contact
+
+
+class AddPublishedPublicationForm(forms.ModelForm):
+    class Meta:
+        model = PublishedPublication
+        fields = ('citation', 'url')
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+    def clean(self):
+        cleaned_data = super().clean()
+        existing_publication = PublishedPublication.objects.filter(project=self.project).first()
+
+        if existing_publication:
+            raise forms.ValidationError("A publication already exists for this project.")
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        publication = super().save(commit=False)
+        publication.project = self.project
+        if commit:
+            publication.save()
+        return publication
 
 
 class CreateLegacyAuthorForm(forms.ModelForm):
