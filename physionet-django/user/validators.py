@@ -271,3 +271,14 @@ def is_institutional_email(value):
         return True
     except ValidationError:
         return False
+
+
+def validate_aws_id(value):
+    """"
+    Validate an AWS ID.
+    """
+    aws_id_pattern = r"\b\d{12}\b"
+    if value is not None and not re.search(aws_id_pattern, value):
+        raise ValidationError(
+            "Invalid AWS ID. Please provide a valid AWS ID, which should be a 12-digit number."
+        )
