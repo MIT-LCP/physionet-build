@@ -634,6 +634,7 @@ def edit_credentialing(request):
 
     applications = CredentialApplication.objects.filter(user=request.user)
     current_application = applications.filter(status=CredentialApplication.Status.PENDING).first()
+    estimated_time = 'one week'
 
     if request.method == 'POST' and 'withdraw_credentialing' in request.POST:
         if current_application:
@@ -645,6 +646,7 @@ def edit_credentialing(request):
     return render(request, 'user/edit_credentialing.html', {
         'applications': applications,
         'pause_applications': pause_applications,
+        'estimated_time_for_credentialing': estimated_time,
         'pause_message': pause_message,
         'current_application': current_application,
         'ticket_system_url': ticket_system_url})

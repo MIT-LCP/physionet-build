@@ -670,11 +670,13 @@ def process_training_complete(request, training, include_comments=True):
     Notify user of training decision
     """
     subject = f'Your application for {settings.SITE_NAME} training'
+    estimated_time = 'one week'
     body = loader.render_to_string(
         'notification/email/process_training_complete.html', {
             'training': training,
             'applicant_name': training.user.get_full_name(),
             'domain': get_current_site(request),
+            'estimated_time_for_credentialing': estimated_time,
             'example_project': example_credentialed_access_project(),
             'url_prefix': get_url_prefix(request),
             'include_comments': training.reviewer_comments,
@@ -715,11 +717,13 @@ def credential_application_request(request, application):
     """
     applicant_name = application.get_full_name()
     subject = f'{settings.SITE_NAME} credentialing application notification'
+    estimated_time = 'one week'
     body = loader.render_to_string(
         'notification/email/notify_credential_request.html', {
             'application': application,
             'applicant_name': applicant_name,
             'domain': get_current_site(request),
+            'estimated_time_for_credentialing': estimated_time,
             'url_prefix': get_url_prefix(request),
             'signature': settings.EMAIL_SIGNATURE,
             'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME
