@@ -319,7 +319,7 @@ def manage_co_hosts(request):
     """
     user = request.user
 
-    if request.method == 'POST' and request.is_ajax():
+    if request.method == 'POST' and request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
         participant_id = request.POST.get('participant_id')
 
         event_slug = request.POST.get('event_slug')
@@ -341,10 +341,8 @@ def manage_co_hosts(request):
                 return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
             participant.is_cohost = False
             participant.save()
-            # notify the cohost that their cohost permission has been removed
             notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
                                                                   event=event, status='Remove cohost')
-            # notify the host that they have removed a cohost
             notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
                                                                 status='Remove cohost')
 
@@ -354,10 +352,8 @@ def manage_co_hosts(request):
                 return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
             participant.is_cohost = True
             participant.save()
-            # notify the cohost that they have been added as a cohost for the event
             notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
                                                                   event=event, status='Make cohost')
-            # notify the host that they have added a cohost for the event
             notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
                                                                 status='Make cohost')
 

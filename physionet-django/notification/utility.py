@@ -3,6 +3,7 @@ Module for generating notifications
 """
 from email.utils import formataddr
 from functools import cache
+import re
 from urllib import parse
 
 from django.conf import settings
@@ -1006,7 +1007,7 @@ def notify_participant_event_decision(request, user, event, decision, comment_to
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
 
 
-def notify_event_cohost_cohost_status_change(request, cohost, event, status='Make cohost'):
+def notify_event_cohost_cohost_status_change(request, cohost, event, status):
     """
     Send email to co-host about their cohost status change for the event.
     """
@@ -1014,9 +1015,8 @@ def notify_event_cohost_cohost_status_change(request, cohost, event, status='Mak
     context = {
         'name': cohost.get_full_name(),
         'domain': get_current_site(request),
-        'url_prefix': get_url_prefix(request),
         'event_title': event.title,
-        'event_url': reverse('event_detail', args=[event.slug]),
+        'event_url': request.build_absolute_uri(reverse('event_detail', args=[event.slug])),
         'status': status,
         'SITE_NAME': settings.SITE_NAME,
     }
@@ -1034,9 +1034,8 @@ def notify_event_host_cohost_status_change(request, cohost, event, status='Make 
         'host_name': event.host.get_full_name(),
         'cohost_name': cohost.get_full_name(),
         'domain': get_current_site(request),
-        'url_prefix': get_url_prefix(request),
         'event_title': event.title,
-        'event_url': reverse('event_detail', args=[event.slug]),
+        'event_url': request.build_absolute_uri(reverse('event_detail', args=[event.slug])),
         'status': status,
         'SITE_NAME': settings.SITE_NAME,
     }

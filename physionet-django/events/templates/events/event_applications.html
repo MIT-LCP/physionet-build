@@ -2,35 +2,75 @@
 <div class="tab-content" id="nav-tabContent">
   <div class="tab-pane fade show active" id="{{ info.id }}" role="tabpanel" aria-labelledby="{{ option.id }}-tab">
     <div class="table-responsive">
-        <table class="table table-bordered">
-          <thead>
-            <tr>
-              <th>Username</th>
-              <th>Full name</th>
-              <th>Email</th>
-              <th>Credentialed</th>
-              <th>Cohost</th>
-            </tr>
-          </thead>
-          <tbody>
-              {% for object in info.objects %}
-                <tr>
-                  <td>{{ object.user.username }}</td>
-                  <td>{{ object.user.get_full_name }}</td>
-                  <td>{{ object.user.email }}</td>
-                  <td>{{ object.comment_to_applicant }}</td>
-                  <td>{{ object.decision_datetime | date }}</td>
-                  <td>
-                    {% if object.is_cohost %}
-                        <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ object.id }}" disabled checked>
-                    {% else %}
-                        <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ object.id }}" disabled>
-                    {% endif %}
-                </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-        </table>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Full name</th>
+            <th>Email</th>
+            <th>Credentialed</th>
+            <th>Cohost</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for object in info.objects %}
+          <tr>
+            <td>{{ object.user.username }}</td>
+            <td>{{ object.user.get_full_name }}</td>
+            <td>{{ object.user.email }}</td>
+            <td>{{ object.comment_to_applicant }}</td>
+            <td>{{ object.decision_datetime | date }}</td>
+            <td>
+              {% if object.is_cohost %}
+              <input type="checkbox" name="toggle-cohost-status" event-slug="{{ event.slug }}" value="{{ object.id }}"
+                disabled checked>
+              {% else %}
+              <input type="checkbox" name="toggle-cohost-status" event-slug="{{ event.slug }}" value="{{ object.id }}"
+                disabled>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Full name</th>
+        <th>Email</th>
+        <th>Credentialed</th>
+        <th>Cohost</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for participant in event.participants.all %}
+      <tr>
+        <td>{{ participant.user.username }}</td>
+        <td>{{ participant.user.get_full_name }}</td>
+        <td>{{ participant.user.email }}</td>
+        <td>{{ participant.user.is_credentialed }}</td>
+        <td>
+          {% if not event.has_ended %}
+          <form class="manage-cohost" action="{% url 'manage_co_hosts' %}">
+            {% csrf_token %}
+            <input type="text" name="event" value="{{ event.slug }}" hidden>
+            <input type="text" name="participant" value="{{ participant.id }}" hidden>
+            {% if participant.is_cohost %}
+            <input type="submit" value="Remove cohost" class="btn btn-sm btn-danger">
+            {% else %}
+            <input type="submit" value="Make cohost" class="btn btn-sm btn-success">
+            {% endif %}
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
