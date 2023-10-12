@@ -111,21 +111,27 @@
     </div>
   {% endfor %}
 
-  {% if groups %}
-      <div class="row mb-1">
-        <div class="col-md-3">
-          User Groups:
-        </div>
-        <div class="col-md-9">
-          {% for group in groups %}
-              <a href="{% url 'user_group' group.name %}">{{ group.name }}</a>
-          {% empty %}
-            N/A
-          {% endfor %}
-        </div>
+  <br />
+  <h3>Permission groups</h3>
+  <hr>
+    <div class="row mb-1">
+      {% if groups %}
+      <div class="col-md-6">
+        The user is a member of the following groups:
       </div>
-
-  {% endif %}
+      <div class="col-md-9">
+        <ul>
+        {% for group in groups %}
+            <li><a href="{% url 'user_group' group.name %}">{{ group.name }}</a></li>
+        {% endfor %}
+        </ul>
+      </div>
+      {% else %}
+        <div class="col-md-6">
+          The user does not belong to a permission group.
+        </div>
+        {% endif %}
+    </div>
 
   <br />
   <h3>Projects</h3>
