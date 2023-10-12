@@ -113,7 +113,7 @@ def get_bucket_name(project):
         or project.access_policy == AccessPolicy.CREDENTIALED
         or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW
     ):
-        bucket_name = project.slug + "-" + project.version
+        bucket_name = project.slug
     return bucket_name
 
 
