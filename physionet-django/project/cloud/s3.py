@@ -64,6 +64,20 @@ def create_s3_client():
         return None
 
 
+def create_s3_resource():
+    """
+    
+    """
+    if has_s3_credentials():
+        session = boto3.Session(
+            profile_name=settings.AWS_PROFILE
+        )
+        s3 = session.resource("s3")
+        return s3
+    else:
+        return None
+
+
 def get_bucket_name(project):
     """
     Determine and return the S3 bucket name associated with
@@ -807,14 +821,12 @@ def empty_project_from_S3(project):
     with sufficient permissions are properly configured for the
     S3 client used in this function.
     """
-    if has_s3_credentials():
-        boto3.setup_default_session(
-            settings.AWS_PROFILE
-        )
-        s3 = boto3.resource("s3")
-        bucket_name = get_bucket_name(project)
-        bucket = s3.Bucket(bucket_name)
-        empty_s3_bucket(bucket)
+    if not check_s3_bucket_exists(project):
+        return
+    s3 = create_s3_resource()
+    bucket_name = get_bucket_name(project)
+    bucket = s3.Bucket(bucket_name)
+    empty_s3_bucket(bucket)
 
 
 def empty_list_of_projects(projects):
@@ -898,18 +910,16 @@ def delete_project_from_S3(project):
     with sufficient permissions are properly configured for
     the S3 client used in this function.
     """
-    if has_s3_credentials():
-        boto3.setup_default_session(
-            settings.AWS_PROFILE
-        )
-        s3 = boto3.resource("s3")
-        bucket_name = get_bucket_name(project)
-        bucket = s3.Bucket(bucket_name)
-        # Empty the specified AWS S3 'bucket'
-        # by deleting all objects (files) within it
-        empty_s3_bucket(bucket)
-        # Delete the empty bucket itself
-        bucket.delete()
+    if not check_s3_bucket_exists(project):
+        return
+    s3 = create_s3_resource()
+    bucket_name = get_bucket_name(project)
+    bucket = s3.Bucket(bucket_name)
+    # Empty the specified AWS S3 'bucket'
+    # by deleting all objects (files) within it
+    empty_s3_bucket(bucket)
+    # Delete the empty bucket itself
+    bucket.delete()
 
 
 def delete_list_of_projects_from_s3(projects):
