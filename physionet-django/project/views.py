@@ -1807,8 +1807,6 @@ def published_project(request, project_slug, version, subdir=''):
     """
     Displays a published project
     """
-    s3_bucket_exists = None
-    s3_bucket_name = None
     try:
         project = PublishedProject.objects.get(slug=project_slug,
                                                version=version)
@@ -1833,9 +1831,6 @@ def published_project(request, project_slug, version, subdir=''):
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
     main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
-    if has_s3_credentials():
-        s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
-        s3_bucket_name = get_bucket_name_and_prefix(project)
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
@@ -1894,8 +1889,6 @@ def published_project(request, project_slug, version, subdir=''):
         'is_lightwave_supported': project.files.is_lightwave_supported(),
         'is_wget_supported': project.files.is_wget_supported(),
         'has_s3_credentials': has_s3_credentials(),
-        'aws_bucket_exists': s3_bucket_exists,
-        's3_bucket_name': s3_bucket_name,
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
     }

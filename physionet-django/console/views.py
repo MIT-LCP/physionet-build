@@ -38,6 +38,7 @@ from project import forms as project_forms
 from project.models import (
     GCP,
     GCPLog,
+    AWS,
     AccessLog,
     AccessPolicy,
     ActiveProject,
@@ -796,6 +797,11 @@ def send_files_to_aws(pid):
     """
     project = PublishedProject.objects.get(id=pid)
     upload_project_to_S3(project)
+    project.aws.sent_files = True
+    project.aws.finished_datetime = timezone.now()
+    if project.compressed_storage_size:
+        project.aws.sent_zip = True
+    project.aws.save()
 
 
 @associated_task(PublishedProject, "pid", read_only=True)
@@ -894,8 +900,8 @@ def manage_published_project(request, project_slug, version):
         project = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
         raise Http404()
-    s3_bucket_exists = None
-    s3_bucket_name = None
+    # s3_bucket_exists = None
+    # s3_bucket_name = None
     user = request.user
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
@@ -903,9 +909,9 @@ def manage_published_project(request, project_slug, version):
     topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
-    if has_s3_credentials():
-        s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
-        s3_bucket_name = get_bucket_name_and_prefix(project)
+    # if has_s3_credentials():
+    #     s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
+    #     s3_bucket_name = get_bucket_name_and_prefix(project)
     data_access_form = forms.DataAccessForm(project=project)
     contact_form = forms.PublishedProjectContactForm(project=project,
                                                      instance=project.contact)
@@ -1036,8 +1042,8 @@ def manage_published_project(request, project_slug, version):
             'deprecate_form': deprecate_form,
             'has_credentials': has_credentials,
             'has_s3_credentials': has_s3_credentials(),
-            'aws_bucket_exists': s3_bucket_exists,
-            's3_bucket_name': s3_bucket_name,
+            # 'aws_bucket_exists': s3_bucket_exists,
+            # 's3_bucket_name': s3_bucket_name,
             'data_access_form': data_access_form,
             'data_access': data_access,
             'rw_tasks': rw_tasks,
@@ -1119,6 +1125,28 @@ def aws_bucket_management(request, project, user):
     - Ensure that AWS credentials and configurations are correctly set
     up for the S3 client.
     """
+    is_private = True
+
+    if project.access_policy == AccessPolicy.OPEN:
+        is_private = False
+
+    bucket_name = get_bucket_name(project)
+
+    try:
+        aws_object = AWS.objects.get(bucket_name=bucket_name)
+        messages.success(request, "The bucket already exists. Resending the \
+            files for the project {0}.".format(project))
+    except AWS.DoesNotExist:
+        if check_s3_bucket_exists(project):
+            LOGGER.info("The bucket {0} already exists, skipping bucket \
+                creation".format(bucket_name))
+        # else:
+            # create_bucket(project.slug, project.version, project.title, is_private)
+            # messages.success(request, "The GCP bucket for project {0} was \
+            #     successfully created.".format(project))
+        AWS.objects.create(project=project, bucket_name=bucket_name,
+                           is_private=is_private)
+
     send_files_to_aws(project.id)
 
 

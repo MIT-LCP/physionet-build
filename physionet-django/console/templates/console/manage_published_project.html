@@ -416,16 +416,16 @@
             <code>AWS_PROFILE</code> and <code>S3_OPEN_ACCESS_BUCKET</code>
             are set.)
           </p>
-        {% elif not aws_bucket_exists %}
-          <p>Create a bucket on AWS to store the files associated with this project.</p>
+        {% elif not project.aws.bucket_name %}
+          <p>Create a bucket on AWS to store the files associated with this project. dsjkbjak {{project.id}} {{project.aws.bucket_name}} {{project.aws.sent_files}}</p>
           <form action="" method="post">
             {% csrf_token %}
             <button class="btn btn-primary" name="aws-bucket" value='{{project.slug}}'
                     {% if rw_tasks %} disabled="disabled" {% endif %}
-                    type="submit">Create AWS bucket and send files </button><br><br>
+                    type="submit">Create AWS bucket and send files</button><br><br>
             </form>
-        {% elif aws_bucket_exists %}
-          <p>The files have been sent to AWS. The bucket name is: {{s3_bucket_name}}.</p>
+        {% elif project.aws.sent_files and project.aws.bucket_name %}
+          <p>The files have been sent to AWS. The bucket name is: {{project.aws.bucket_name}}.</p>
           <form action="" method="post">
           {% csrf_token %}
           <button class="btn btn-primary" name="aws-bucket" value='{{project.slug}}'
