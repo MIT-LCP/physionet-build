@@ -157,3 +157,106 @@ urlpatterns = [
     path('event_agreements/<int:pk>/new-version/', views.event_agreement_new_version,
          name='event_agreement_new_version'),
 ]
+
+# Parameters for testing URLs (see physionet/test_urls.py)
+TEST_DEFAULTS = {
+    '_user_': 'admin',
+    'button_pk': 1,
+    'event_slug': 'iLII4L9jSDFh',
+    'page_pk': 2,
+    'pk': 1,
+    'pid': 1,
+    'section_pk': 1,
+    'news_id': 1,
+    'username': 'rgmark',
+}
+TEST_CASES = {
+    'manage_published_project': {
+        'project_slug': 'demoeicu',
+        'version': '2.0.0',
+    },
+
+    'project_access_requests_detail': {
+        # id of a PublishedProject with access_policy=CONTRIBUTOR_REVIEW
+        'pk': 4,
+    },
+
+    'submission_info_redirect': {
+        'project_slug': 'p7TCIMkltNswuOB9FZH1',
+    },
+    'submission_info': {
+        'project_slug': 'p7TCIMkltNswuOB9FZH1',
+    },
+    # Missing demo data (projects in appropriate submission states)
+    'edit_submission': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        '_skip_': True,
+    },
+    'copyedit_submission': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        '_skip_': True,
+    },
+    'awaiting_authors': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        '_skip_': True,
+    },
+    'publish_submission': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        '_skip_': True,
+    },
+    'publish_slug_available': {
+        '_user_': 'tompollard',
+        'project_slug': 'p7TCIMkltNswuOB9FZH1',
+        '_query_': {'desired_slug': 'note-parser'},
+    },
+
+    'credential_applications': [
+        # categories defined in views.credential_applications()
+        {'status': 'successful'},
+        {'status': 'unsucccessful'},
+        {'status': 'pending'},
+    ],
+
+    'view_credential_application': {
+        # slug of a CredentialApplication with any status
+        'application_slug': '5rDeC8Om9dBJTeJN91y2',
+    },
+    'process_credential_application': {
+        # slug of a CredentialApplication with status=PENDING
+        'application_slug': '5rDeC8Om9dBJTeJN91y2',
+    },
+
+    'training_list': [
+        # categories defined in views.training_list()
+        {'status': 'review'},
+        {'status': 'valid'},
+        {'status': 'expired'},
+        {'status': 'rejected'},
+    ],
+    'training_process': {
+        # id of a Training with status=REVIEW
+        'pk': 2,
+    },
+
+    'user_group': {
+        # name of a Group
+        'group': 'Managing%20Editor',
+    },
+    'users': [
+        # categories defined in views.users()
+        {'group': 'all'},
+        {'group': 'admin'},
+        {'group': 'active'},
+        {'group': 'inactive'},
+    ],
+
+    # Missing demo data
+    'event_agreement_detail': {'_skip_': True},
+    'event_agreement_delete': {'_skip_': True},
+    'event_agreement_new_version': {'_skip_': True},
+
+    # Broken views: POST required for no reason
+    'users_list_search': {'group': 'all', '_skip_': True},
+    'known_references_search': {'_skip_': True},
+    'news_search': {'_skip_': True},
+}

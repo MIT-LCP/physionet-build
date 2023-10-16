@@ -1991,7 +1991,10 @@ def credentialing_stats(request):
         a = acc_and_rej.filter(status=CredentialApplication.Status.ACCEPTED).count()
         r = acc_and_rej.filter(status=CredentialApplication.Status.REJECTED).count()
         stats[y]['processed'] = a + r
-        stats[y]['approved'] = round((100 * a) / (a + r))
+        try:
+            stats[y]['approved'] = round((100 * a) / (a + r))
+        except ZeroDivisionError:
+            stats[y]['approved'] = None
 
     # Time taken to contact the reference
     time_to_ref = apps.annotate(tm=Cast(F('reference_contact_datetime')
