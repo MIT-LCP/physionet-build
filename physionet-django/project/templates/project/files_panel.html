@@ -43,14 +43,14 @@
   <tbody>
   {% if subdir %}
     <tr class="parentdir">
-      <td><a href="../#files-panel" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></td>
+      <td><a href="../#files-panel" onclick="return navigateDir('{{ parent_dir|escapejs }}')">Parent Directory</a></td>
       <td></td>
       <td></td>
     </tr>
   {% endif %}
   {% for dir in display_dirs %}
     <tr class="subdir">
-      <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></td>
+      <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir|escapejs }}')">{{ dir.name }}</a></td>
       <td></td>
       <td></td>
     </tr>
@@ -77,7 +77,7 @@
   function navigateDir(subdir){
     $.ajax({
             type: "GET",
-            url: "{{ files_panel_url }}",
+            url: "{{ files_panel_url|escapejs }}",
             data: {'subdir':subdir
             },
             success: function reloadSection(result){
