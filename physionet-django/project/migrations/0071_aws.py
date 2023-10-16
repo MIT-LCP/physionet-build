@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                     "project",
                     models.OneToOneField(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name='aws', 
+                        related_name='aws',
                         to='project.PublishedProject'
                     ),
                 ),

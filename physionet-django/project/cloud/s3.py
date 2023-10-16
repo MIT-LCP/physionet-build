@@ -58,7 +58,7 @@ def create_s3_client():
         session = boto3.Session(
             profile_name=settings.AWS_PROFILE
         )
-        s3 = session.client("s3")
+        s3 = session.client("s3", region_name="us-east-1")
         return s3
     else:
         return None
@@ -66,13 +66,17 @@ def create_s3_client():
 
 def create_s3_resource():
     """
-    
+    Creates and returns an AWS S3 resource if valid credentials are available.
+
+    Returns:
+        boto3.resources.base.ServiceResource or None:
+            An S3 resource if credentials are valid, otherwise None.
     """
     if has_s3_credentials():
         session = boto3.Session(
             profile_name=settings.AWS_PROFILE
         )
-        s3 = session.resource("s3")
+        s3 = session.resource("s3", region_name="us-east-1")
         return s3
     else:
         return None
@@ -712,13 +716,12 @@ def upload_project_to_S3(project):
 
     # upload files to bucket
     folder_path = project.project_file_root()
-    project_name = project.slug + "-" + project.version
 
     # set the prefix only for the projects
     # in the open data bucket
     s3_prefix = ""
     if project.access_policy == AccessPolicy.OPEN:
-        s3_prefix = f"{project_name}/"
+        s3_prefix = f"{project.slug}/"
     send_files_to_s3(folder_path, s3_prefix, bucket_name)
 
 
