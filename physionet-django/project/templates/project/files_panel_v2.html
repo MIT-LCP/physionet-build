@@ -1,5 +1,7 @@
-{# Note: This template is obsolescent. Use files_panel_v2 instead. #}
-<div class="card-header">
+{# Note: This template is used together with dynamic-files-panel.js. #}
+<div class="card-header"
+     data-dfp-panel-url="{{ files_panel_url }}"
+     data-dfp-cur-dir="{{ subdir }}">
   Folder Navigation:
   {% spaceless %}
     <span class="dir-breadcrumbs">
@@ -8,7 +10,7 @@
           <span class="dir-breadcrumb-self">{{ breadcrumb.name }}</span>
         {% else %}
           <a href="{{ breadcrumb.rel_path }}#files-panel"
-             onclick="return navigateDir('{{ breadcrumb.full_subdir }}')"
+             data-dfp-dir="{{ breadcrumb.full_subdir }}"
              class="dir-breadcrumb-up">{{ breadcrumb.name }}</a>
           <span class="dir-breadcrumb-sep">/</span>
         {% endif %}
@@ -44,21 +46,21 @@
   <tbody>
   {% if subdir %}
     <tr class="parentdir">
-      <td><a href="../#files-panel" onclick="return navigateDir('{{ parent_dir|escapejs }}')">Parent Directory</a></td>
+      <td><a href="../#files-panel" data-dfp-dir="{{ parent_dir }}">Parent Directory</a></td>
       <td></td>
       <td></td>
     </tr>
   {% endif %}
   {% for dir in display_dirs %}
     <tr class="subdir">
-      <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir|escapejs }}')">{{ dir.name }}</a></td>
+      <td><a href="{{ dir.name }}/#files-panel" data-dfp-dir="{{ dir.full_subdir }}">{{ dir.name }}</a></td>
       <td></td>
       <td></td>
     </tr>
   {% endfor %}
   {% for file in display_files %}
     <tr>
-      <td><a href="{{ file.url }}">{{ file.name }}</a>
+      <td><a href="{{ file.name }}">{{ file.name }}</a>
         <a class="download" href="{{ file.download_url }}"
            title="Download {{ file.name }}">
           <span class="visually-hidden">(download)</span>
@@ -71,20 +73,3 @@
   </tbody>
 </table>
 {% endif %}
-
-<script>
-  // Navigate to another file directory and reload the file panel
-  // subdir is the full subdirectory
-  function navigateDir(subdir){
-    $.ajax({
-            type: "GET",
-            url: "{{ files_panel_url|escapejs }}",
-            data: {'subdir':subdir
-            },
-            success: function reloadSection(result){
-                $("#files-panel").html(result);
-            },
-    });
-    return false
-  }
-</script>
