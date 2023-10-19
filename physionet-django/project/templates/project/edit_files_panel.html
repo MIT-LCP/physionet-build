@@ -26,7 +26,7 @@
                 <span class="dir-breadcrumb-self">{{ breadcrumb.name }}</span>
               {% else %}
                 <a href="{{ breadcrumb.rel_path }}#files-panel"
-                   onclick="return navigateDir('{{ breadcrumb.full_subdir }}')"
+                   onclick="return navigateDir('{{ breadcrumb.full_subdir|escapejs }}')"
                    class="dir-breadcrumb-up">{{ breadcrumb.name }}</a>
                 <span class="dir-breadcrumb-sep">/</span>
               {% endif %}
@@ -64,7 +64,7 @@
         <tbody>
         {% if subdir %}
           <tr class="parentdir">
-            <td><a href="../#files-panel" onclick="return navigateDir('{{ parent_dir }}')">Parent Directory</a></td>
+            <td><a href="../#files-panel" onclick="return navigateDir('{{ parent_dir|escapejs }}')">Parent Directory</a></td>
             <td></td>
             <td></td>
             <td></td>
@@ -72,7 +72,7 @@
         {% endif %}
         {% for dir in display_dirs %}
           <tr class="subdir">
-            <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir }}')">{{ dir.name }}</a></td>
+            <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir|escapejs }}')">{{ dir.name }}</a></td>
             <td></td>
             <td></td>
             <td>{% if files_editable %}<input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected(this)">{% endif %}</td>
@@ -117,7 +117,7 @@
                 };
             },
             accept: (file, done) => {
-                const payload = {size: file.size, filename: `{{ subdir }}/${file.upload.filename}`, csrfmiddlewaretoken: "{{ csrf_token }}"};
+                const payload = {size: file.size, filename: "{{ subdir|escapejs }}/" + file.upload.filename, csrfmiddlewaretoken: "{{ csrf_token }}"};
 
                 $.post("{% url 'generate_signed_url' project_slug=project.slug %}", payload, "json")
                 .done(data => {
