@@ -269,6 +269,9 @@ AWS_HEADER_KEY2 = config('AWS_KEY2', default=False)
 AWS_HEADER_VALUE2 = config('AWS_VALUE2', default=False)
 AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION', default=False)
 
+# User verification bucket (see user/awsverification.py)
+AWS_VERIFICATION_BUCKET_NAME = config('AWS_VERIFICATION_BUCKET_NAME', default=None)
+
 # Tags for the DataCite API used for DOI
 DATACITE_API_URL = config('DATACITE_API_URL', default='https://api.test.datacite.org/dois')
 DATACITE_PREFIX = config('DATACITE_PREFIX', default='')
