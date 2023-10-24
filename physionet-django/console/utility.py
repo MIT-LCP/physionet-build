@@ -516,6 +516,24 @@ def generate_doi_payload(project, core_project=False, event="draft"):
     else:
         relation = []
 
+    # projects from which this project is derived
+    for parent_project in project.parent_projects.all():
+        if parent_project.doi:
+            relation.append({
+                "relationType": "IsDerivedFrom",
+                "relatedIdentifier": parent_project.doi,
+                "relatedIdentifierType": "DOI",
+            })
+        else:
+            url = "https://{0}{1}".format(current_site, reverse(
+                'published_project',
+                args=(parent_project.slug, parent_project.version)))
+            relation.append({
+                "relationType": "IsDerivedFrom",
+                "relatedIdentifier": url,
+                "relatedIdentifierType": "URL",
+            })
+
     resource_type = 'Dataset'
     if project.resource_type.name == 'Software':
         resource_type = 'Software'
