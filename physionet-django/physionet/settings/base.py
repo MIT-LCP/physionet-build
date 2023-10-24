@@ -238,6 +238,9 @@ AWS_PROFILE = config('AWS_PROFILE', default=False)
 # Bucket name for the S3 bucket containing the open access data
 S3_OPEN_ACCESS_BUCKET = config('S3_OPEN_ACCESS_BUCKET', default=False)
 
+# Bucket name to store logs and metrics related to project usage.
+S3_SERVER_ACCESS_LOGS = config('S3_SERVER_ACCESS_LOGS', default=False)
+
 # Header tags for the AWS lambda function that grants access to S3 storage
 AWS_HEADER_KEY = config('AWS_KEY', default=False)
 AWS_HEADER_VALUE = config('AWS_VALUE', default=False)

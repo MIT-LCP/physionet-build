@@ -57,8 +57,6 @@ from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
 from project.cloud.s3 import (
-    get_bucket_name_and_prefix,
-    check_s3_bucket_with_prefix_exists,
     has_s3_credentials,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper

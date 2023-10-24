@@ -83,8 +83,6 @@ from project.cloud.s3 import (
     get_bucket_name,
     check_s3_bucket_exists,
     update_bucket_policy,
-    get_bucket_name_and_prefix,
-    check_s3_bucket_with_prefix_exists,
     has_s3_credentials,
 )
 
@@ -797,13 +795,13 @@ def send_files_to_aws(pid):
     """
     project = PublishedProject.objects.get(id=pid)
     # Create or get the associated AWS object
-    aws_instance = AWS.objects.get_or_create(project=project)
+    AWS.objects.get_or_create(project=project)
     upload_project_to_S3(project)
-    aws_instance.sent_files = True
-    aws_instance.finished_datetime = timezone.now()
+    project.aws.sent_files = True
+    project.aws.finished_datetime = timezone.now()
     if project.compressed_storage_size:
-        aws_instance.sent_zip = True
-    aws_instance.save()
+        project.aws.sent_zip = True
+    project.aws.save()
 
 
 @associated_task(PublishedProject, "pid", read_only=True)
@@ -902,8 +900,6 @@ def manage_published_project(request, project_slug, version):
         project = PublishedProject.objects.get(slug=project_slug, version=version)
     except PublishedProject.DoesNotExist:
         raise Http404()
-    # s3_bucket_exists = None
-    # s3_bucket_name = None
     user = request.user
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
@@ -911,9 +907,6 @@ def manage_published_project(request, project_slug, version):
     topic_form.set_initial()
     deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
-    # if has_s3_credentials():
-    #     s3_bucket_exists = check_s3_bucket_with_prefix_exists(project)
-    #     s3_bucket_name = get_bucket_name_and_prefix(project)
     data_access_form = forms.DataAccessForm(project=project)
     contact_form = forms.PublishedProjectContactForm(project=project,
                                                      instance=project.contact)

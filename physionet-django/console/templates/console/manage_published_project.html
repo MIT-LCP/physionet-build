@@ -417,7 +417,7 @@
             are set.)
           </p>
         {% elif not project.aws.bucket_name %}
-          <p>Create a bucket on AWS to store the files associated with this project. dsjkbjak {{project.id}} {{project.aws.bucket_name}} {{project.aws.sent_files}}</p>
+          <p>Create a bucket on AWS to store the files associated with this project.</p>
           <form action="" method="post">
             {% csrf_token %}
             <button class="btn btn-primary" name="aws-bucket" value='{{project.slug}}'

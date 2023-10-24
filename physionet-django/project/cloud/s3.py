@@ -32,6 +32,7 @@ def has_s3_credentials():
     return all([
         settings.AWS_PROFILE,
         settings.S3_OPEN_ACCESS_BUCKET,
+        settings.S3_SERVER_ACCESS_LOGS,
     ])
 
 
@@ -51,8 +52,10 @@ def create_s3_client():
     - The AWS_PROFILE should be defined in the settings module.
 
     Returns:
-        botocore.client.S3 or None: An initialized AWS S3 client
-        object if AWS_PROFILE is not None, otherwise None.
+        botocore.client.S3: An initialized AWS S3 client object.
+
+    Raises:
+        botocore.exceptions.NoCredentialsError: If S3 credentials are undefined.
     """
     if has_s3_credentials():
         session = boto3.Session(
@@ -60,8 +63,7 @@ def create_s3_client():
         )
         s3 = session.client("s3", region_name="us-east-1")
         return s3
-    else:
-        return None
+    raise botocore.exceptions.NoCredentialsError("S3 credentials are undefined.")
 
 
 def create_s3_resource():
@@ -69,8 +71,11 @@ def create_s3_resource():
     Creates and returns an AWS S3 resource if valid credentials are available.
 
     Returns:
-        boto3.resources.base.ServiceResource or None:
-            An S3 resource if credentials are valid, otherwise None.
+        boto3.resources.base.ServiceResource:
+            An S3 resource if credentials are valid.
+
+    Raises:
+        botocore.exceptions.NoCredentialsError: If S3 credentials are undefined.
     """
     if has_s3_credentials():
         session = boto3.Session(
@@ -78,8 +83,7 @@ def create_s3_resource():
         )
         s3 = session.resource("s3", region_name="us-east-1")
         return s3
-    else:
-        return None
+    raise botocore.exceptions.NoCredentialsError("S3 credentials are undefined.")
 
 
 def get_bucket_name(project):
@@ -112,44 +116,8 @@ def get_bucket_name(project):
 
     if project.access_policy == AccessPolicy.OPEN and has_S3_open_data_bucket_name():
         bucket_name = settings.S3_OPEN_ACCESS_BUCKET
-    elif (
-        project.access_policy == AccessPolicy.RESTRICTED
-        or project.access_policy == AccessPolicy.CREDENTIALED
-        or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW
-    ):
-        bucket_name = project.slug
-    return bucket_name
-
-
-def get_bucket_name_and_prefix(project):
-    """
-    Determine the S3 bucket name and optional prefix for a
-    given project.
-
-    This function calculates the S3 bucket name based on the
-    project's attributes. If the project has an 'OPEN' access policy
-    and a non-empty prefix defined, the bucket name includes the prefix.
-    For all other access policies or if no prefix is defined, the
-    bucket name consists of the calculated project-specific name only.
-
-    Args:
-        project (project.models.Project): The project for which to
-        determine the S3 bucket name and prefix.
-
-    Returns:
-        str: The S3 bucket name and an optional prefix associated
-        with the project.
-
-    Note:
-    - This function does not create or verify the existence of the
-    actual S3 bucket; it only providesthe calculated bucket name
-    and prefix based on project attributes.
-    """
-    prefix = get_prefix_open_project(project)
-    if project.access_policy == AccessPolicy.OPEN and prefix is not None:
-        bucket_name = get_bucket_name(project) + "/" + prefix
     else:
-        bucket_name = get_bucket_name(project)
+        bucket_name = project.slug
     return bucket_name
 
 
@@ -225,7 +193,7 @@ def get_prefix_open_project(project):
     if project.access_policy != AccessPolicy.OPEN:
         return None
     else:
-        target_prefix = project.slug + "-" + project.version + "/"
+        target_prefix = project.slug + "/"
         matching_prefix = find_matching_prefix(get_all_prefixes(project), target_prefix)
     return matching_prefix
 
@@ -253,26 +221,6 @@ def find_matching_prefix(prefix_list, target_prefix):
         if prefix == target_prefix:
             return prefix.rstrip("/")
     return None
-
-
-def get_list_prefixes(common_prefixes):
-    """
-    Extract and return a list of prefixes from a given list of
-    common prefixes.
-
-    This function takes a list of common prefixes (often obtained
-    from S3 bucket listings) and extracts the 'Prefix' values from
-    each element, returning them as a list.
-
-    Args:
-        common_prefixes (list): A list of common prefixes, typically
-        from an S3 bucket listing.
-
-    Returns:
-        list: A list of extracted prefixes.
-    """
-    perfixes = [prefix.get("Prefix") for prefix in common_prefixes]
-    return perfixes
 
 
 def check_s3_bucket_exists(project):
@@ -312,40 +260,6 @@ def check_s3_bucket_exists(project):
         return False
 
 
-def check_s3_bucket_with_prefix_exists(project):
-    """
-    Check the existence of an S3 bucket, considering the optional
-    prefix for open projects.
-
-    This function assesses whether an S3 bucket associated with the
-      given project exists.
-    If the project has an 'OPEN' access policy and a non-empty
-    prefix defined, the function checks for the existence of the bucket
-    along with the prefix. For all other access policies
-    or if no prefix is defined, it checks only the existence
-    of the bucket.
-
-    Args:
-        project (project.models.Project): The project for which to
-        check the S3 bucket's existence.
-
-    Returns:
-        bool: True if the S3 bucket (and optional prefix) exists and
-        is accessible, False otherwise.
-
-    Note:
-    - Make sure that AWS credentials (Access Key and Secret Key)
-    are properly configured for this function to work.
-    - The S3 bucket should exist and be accessible based on the
-    project's configuration.
-    """
-    prefix = get_prefix_open_project(project)
-    if project.access_policy == AccessPolicy.OPEN and prefix is None:
-        return False
-    else:
-        return check_s3_bucket_exists(project)
-
-
 def create_s3_bucket(s3, bucket_name):
     """
     Create a new Amazon S3 bucket with the specified name.
@@ -368,6 +282,43 @@ def create_s3_bucket(s3, bucket_name):
     choose a unique name.
     """
     s3.create_bucket(Bucket=bucket_name)
+
+
+def put_bucket_logging(s3, bucket_name, target_bucket, target_prefix):
+    """
+    Configures server access logging for an Amazon S3 bucket.
+
+    Args:
+        s3 (boto3.client): The Amazon S3 client.
+        bucket_name (str): The name of the source bucket.
+        target_bucket (str): The name of the bucket where log
+        files will be stored.
+        target_prefix (str): The prefix for log file names within the
+        target bucket.
+
+    Returns:
+        None
+
+    Note:
+        This method utilizes the `put_bucket_logging` operation to enable
+        server access logging for the specified source bucket, directing
+        logs to the specified target bucket and prefix.
+
+    Example:
+        put_bucket_logging(s3_client, 'source_bucket', 'log_bucket', 'logs/')
+    """
+    logging_config = {
+        'LoggingEnabled': {
+            'TargetBucket': target_bucket,
+            'TargetPrefix': target_prefix,
+        },
+    }
+
+    # Enable bucket logging
+    s3.put_bucket_logging(
+        Bucket=bucket_name,
+        BucketLoggingStatus=logging_config
+    )
 
 
 def send_files_to_s3(folder_path, s3_prefix, bucket_name):
@@ -454,34 +405,6 @@ def get_aws_accounts_for_dataset(dataset_name):
     return aws_accounts
 
 
-def get_initial_bucket_policy(bucket_name):
-    """
-    Create an initial bucket policy for an AWS S3 bucket.
-    """
-    bucket_policy = {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Sid": "DenyListAndGetObject",
-                "Effect": "Deny",
-                "Principal": "*",
-                "Action": ["s3:Get*", "s3:List*"],
-                "Resource": [
-                    f"arn:aws:s3:::{bucket_name}",
-                    f"arn:aws:s3:::{bucket_name}/*",
-                ],
-                "Condition": {
-                    "StringNotLike": {"aws:PrincipalArn": "arn:aws:iam::724665945834:*"}
-                },
-            }
-        ],
-    }
-    # Convert the policy from JSON dict to string
-    bucket_policy_str = json.dumps(bucket_policy)
-
-    return bucket_policy_str
-
-
 def create_bucket_policy(bucket_name, aws_ids, public):
     """
     Generate an initial AWS S3 bucket policy that restricts
@@ -495,6 +418,10 @@ def create_bucket_policy(bucket_name, aws_ids, public):
     Args:
         bucket_name (str): The name of the AWS S3 bucket for
         which to generate the initial policy.
+        aws_ids (list): A list of AWS account IDs and user names
+        allowed to access the bucket.
+        public (bool): True if the bucket should be made public,
+        False otherwise.
 
     Returns:
         str: A JSON-formatted string representing the initial
@@ -503,6 +430,9 @@ def create_bucket_policy(bucket_name, aws_ids, public):
     Note:
     - This initial policy serves as a baseline and can be customized
     further to meet specific access requirements for the bucket.
+    - If 'public' is True, the policy allows public access to the
+    bucket. If 'public' is False, it restricts access to the specified
+    AWS accounts and users.
     """
     user = None
     principal_value = (
@@ -529,19 +459,9 @@ def create_bucket_policy(bucket_name, aws_ids, public):
                 "Resource": [
                     f"arn:aws:s3:::{bucket_name}",
                     f"arn:aws:s3:::{bucket_name}/*",
-                ],
-            },
-            {
-                "Sid": "RestrictDeleteActions",
-                "Effect": "Deny",
-                "Principal": "*",
-                "Action": "s3:Delete*",
-                "Resource": f"arn:aws:s3:::{bucket_name}/*",
-                "Condition": {
-                    "StringNotLike": {"aws:PrincipalArn": "arn:aws:iam::724665945834:*"}
-                },
-            },
-        ],
+                ]
+            }
+        ]
     }
 
     # Convert the policy from JSON dict to string
@@ -653,6 +573,7 @@ def update_bucket_policy(project, bucket_name):
     - Ensure that AWS credentials (Access Key and Secret Key)
     are properly configured for the S3 client used in this function.
     """
+    bucket_policy = ""
     project_name = project.slug + "-" + project.version
     aws_ids = get_aws_accounts_for_dataset(project_name)
     if project.access_policy == AccessPolicy.OPEN:
@@ -666,12 +587,11 @@ def update_bucket_policy(project, bucket_name):
         or project.access_policy == AccessPolicy.RESTRICTED
         or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW
     ):
-        if aws_ids == []:
-            bucket_policy = get_initial_bucket_policy(bucket_name)
-        else:
+        if aws_ids != []:
             bucket_policy = create_bucket_policy(bucket_name, aws_ids, False)
 
-    set_bucket_policy(bucket_name, bucket_policy)
+    if bucket_policy not in [None, ""]:
+        set_bucket_policy(bucket_name, bucket_policy)
 
 
 def upload_project_to_S3(project):
@@ -724,6 +644,10 @@ def upload_project_to_S3(project):
         s3_prefix = f"{project.slug}/"
     send_files_to_s3(folder_path, s3_prefix, bucket_name)
 
+    put_bucket_logging(
+        s3, bucket_name, settings.S3_SERVER_ACCESS_LOGS, bucket_name + "/logs/"
+    )
+
 
 def upload_list_of_projects(projects):
     """
@@ -774,224 +698,3 @@ def upload_all_projects():
     published_projects = PublishedProject.objects.all()
     for project in published_projects:
         upload_project_to_S3(project)
-
-
-def empty_s3_bucket(bucket):
-    """
-    Delete all objects (files) within an AWS S3 bucket.
-
-    This function iterates through all objects within the specified
-    'bucket' and deletes each object, effectively emptying
-    the bucket of its contents.
-
-    Args:
-        bucket (boto3.resources.factory.s3.Bucket): The AWS S3
-        bucket to empty.
-
-    Returns:
-        None
-
-    Note:
-    - Ensure that AWS credentials (Access Key and Secret Key) with
-    sufficient permissions are properly configured for the S3
-    client used in this function.
-    """
-    for key in bucket.objects.all():
-        key.delete()
-
-
-def empty_project_from_S3(project):
-    """
-    Empty an AWS S3 bucket associated with a project if
-    AWS_PROFILE is not None.
-
-    This function removes all files within the AWS S3 bucket
-    associated with the specified 'project', effectively emptying
-    the bucket. It leverages the 'empty_s3_bucket' function
-    for this purpose.
-
-    Args:
-        project (project.models.Project): The project for
-        which to empty the associated AWS S3 bucket.
-
-    Returns:
-        None
-
-    Note:
-    - The function ensures that the AWS S3 bucket remains intact
-    but contains no files after execution.
-    - Ensure that AWS credentials (Access Key and Secret Key)
-    with sufficient permissions are properly configured for the
-    S3 client used in this function.
-    """
-    if not check_s3_bucket_exists(project):
-        return
-    s3 = create_s3_resource()
-    bucket_name = get_bucket_name(project)
-    bucket = s3.Bucket(bucket_name)
-    empty_s3_bucket(bucket)
-
-
-def empty_list_of_projects(projects):
-    """
-    Bulk empty AWS S3 buckets associated with a list of projects.
-
-    This function takes a list of 'projects' and empties the
-    AWS S3 buckets associated with each project, effectively
-    removing all files within them. It delegates the emptying
-    process to the 'empty_project_from_S3' function.
-
-    Args:
-        projects (list of project.models.Project): A list of
-        projects for which to empty the associated AWS S3 buckets.
-
-    Returns:
-        None
-
-    Note:
-    - The function ensures that AWS S3 buckets remain intact
-    but contain no files after execution.
-    - Ensure that AWS credentials (Access Key and Secret Key)
-    with sufficient permissions are properly configured for
-    the S3 client used in this function.
-    """
-    for project in projects:
-        empty_project_from_S3(project)
-
-
-def empty_all_projects_from_S3():
-    """
-    Bulk empty all AWS S3 buckets associated with published
-    projects.
-
-    This function iterates through all published projects in the
-    database and empties the AWS S3 buckets associated with each
-    project, effectively removing all files within them. It
-    leverages the 'empty_project_from_S3' function for this purpose.
-
-    Args:
-        None
-
-    Returns:
-        None
-
-    Note:
-    - The function ensures that AWS S3 buckets remain intact
-    but contain no files after execution.
-    - Ensure that AWS credentials (Access Key and Secret Key)
-    with sufficient permissions are properly configured for the
-    S3 client used in this function.
-    """
-
-    # Retrieve all published projects from the database
-    published_projects = PublishedProject.objects.all()
-    # Empty the AWS S3 buckets associated with each published project
-    for project in published_projects:
-        empty_project_from_S3(project)
-
-
-def delete_project_from_S3(project):
-    """
-    Delete a project's files and associated AWS S3 bucket
-    if AWS_PROFILE is not None.
-
-    This function cleans up and removes all files associated
-    with the specified 'project' from an AWS S3 bucket.
-    It then deletes the empty S3 bucket itself.
-
-    Args:
-        project (project.models.Project): The project for which
-        to delete files and the associated bucket.
-
-    Returns:
-        None
-
-    Note:
-    - The function leverages the 'delete_s3_bucket' method
-    to perform the deletion.
-    - Ensure that AWS credentials (Access Key and Secret Key)
-    with sufficient permissions are properly configured for
-    the S3 client used in this function.
-    """
-    if not check_s3_bucket_exists(project):
-        return
-    s3 = create_s3_resource()
-    bucket_name = get_bucket_name(project)
-    bucket = s3.Bucket(bucket_name)
-    # Empty the specified AWS S3 'bucket'
-    # by deleting all objects (files) within it
-    empty_s3_bucket(bucket)
-    # Delete the empty bucket itself
-    bucket.delete()
-
-
-def delete_list_of_projects_from_s3(projects):
-    """ "
-    Bulk delete a list of projects from AWS S3.
-
-    This function deletes a list of projects, including
-    their files and associated AWS S3 buckets.
-    If the list includes open projects, the
-    'delete_project_from_S3' function will be called only
-    once for the first open project encountered.
-
-    Args:
-        projects (list of project.models.Project): A list of
-        projects to delete from AWS S3.
-
-    Returns:
-        None
-
-    Note:
-    - The function leverages the 'delete_project_from_S3' method
-    to perform project deletions.
-    - Ensure that AWS credentials (Access Key and Secret Key)
-    with sufficient permissions are properly configured for
-    the S3 client used in this function.
-    """
-    for project in projects:
-        delete_project_from_S3(project)
-        if project.access_policy == AccessPolicy.OPEN:
-            break
-
-
-def delete_all_projects_from_S3():
-    """
-    Bulk delete all published projects from AWS S3.
-
-    This function deletes all published projects, including
-    their files and associated AWS S3 buckets.
-    It distinguishes between open and non-open projects,
-    calling the 'delete_project_from_S3' function
-    accordingly. Non-open projects, such as 'RESTRICTED',
-    'CREDENTIALED', or 'CONTRIBUTOR_REVIEW', are
-    deleted individually. Open projects are stored in the same
-    S3 bucket, so only one delete operation is needed, which is
-    performed by passing the first open project.
-
-    Args:
-        None
-
-    Returns:
-        None
-
-    Note:
-    - The function leverages the 'delete_project_from_S3' method
-    to perform project deletions.
-    - Ensure that AWS credentials (Access Key and Secret Key)
-    with sufficient permissions are properly configured for the
-    S3 client used in this function.
-    """
-    not_open_published_projects = (
-        PublishedProject.objects.filter(access_policy=AccessPolicy.RESTRICTED)
-        | PublishedProject.objects.filter(access_policy=AccessPolicy.CREDENTIALED)
-        | PublishedProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW)
-    )
-    for project in not_open_published_projects:
-        delete_project_from_S3(project)
-    # since all open projects are stored in the same bucket, we only
-    # need to delete the bucket once by passing
-    # the first open project
-    delete_project_from_S3(
-        PublishedProject.objects.filter(access_policy=AccessPolicy.OPEN)[0]
-    )
