@@ -321,7 +321,7 @@ def put_bucket_logging(s3, bucket_name, target_bucket, target_prefix):
     )
 
 
-def send_files_to_s3(folder_path, s3_prefix, bucket_name):
+def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
     """
     Upload files from a local folder to an AWS S3 bucket with
     a specified prefix.
@@ -361,6 +361,21 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name):
                 Bucket=bucket_name,
                 Key=s3_key,
             )
+
+    # If project has a ZIP file, upload it as well
+    if project.compressed_storage_size:
+        zip_name = project.zip_name()
+        zip_file_path = os.path.join(project.project_file_root(), zip_name)
+        if project.access_policy == AccessPolicy.OPEN:
+            s3_key = os.path.join(f"{project.slug}/", zip_name)
+        else:
+            s3_key = zip_name
+
+        s3.upload_file(
+            Filename=zip_file_path,
+            Bucket=bucket_name,
+            Key=s3_key,
+        )
 
 
 def get_aws_accounts_for_dataset(dataset_name):
@@ -455,7 +470,7 @@ def create_bucket_policy(bucket_name, aws_ids, public):
                 "Sid": "AllowReadOnlyAccess",
                 "Effect": "Allow",
                 "Principal": principal_value,
-                "Action": ["s3:Get*", "s3:List*"],
+                "Action": ["s3:GetObject", "s3:ListBucket"],
                 "Resource": [
                     f"arn:aws:s3:::{bucket_name}",
                     f"arn:aws:s3:::{bucket_name}/*",
@@ -635,14 +650,14 @@ def upload_project_to_S3(project):
     update_bucket_policy(project, bucket_name)
 
     # upload files to bucket
-    folder_path = project.project_file_root()
-
+    folder_path = project.file_root()
     # set the prefix only for the projects
     # in the open data bucket
-    s3_prefix = ""
     if project.access_policy == AccessPolicy.OPEN:
-        s3_prefix = f"{project.slug}/"
-    send_files_to_s3(folder_path, s3_prefix, bucket_name)
+        s3_prefix = f"{project.slug}/{project.version}/"
+    else:
+        s3_prefix = f"{project.version}/"
+    send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
 
     put_bucket_logging(
         s3, bucket_name, settings.S3_SERVER_ACCESS_LOGS, bucket_name + "/logs/"
