@@ -12,12 +12,83 @@
     <li>Follow the instructions to request access. If instructions for cloud access are not shown, the project is not currently available on the cloud.</li>
 </ul>
 
+<h2 id="gcp">Google Cloud Platform</h2>
+
 <form action="{% url 'edit_cloud' %}" method="post" class="form-signin no-pd">
   <hr>
   {% csrf_token %}
-  {% include "inline_form_snippet.html" %}
-  <button class="btn btn-primary btn-custom btn-rsp" type="submit">Save</button>
+  {% include "inline_form_snippet.html" with form=gcp_form %}
+  <button class="btn btn-primary btn-custom btn-rsp mb-4"
+          type="submit" name="save-gcp">Save</button>
 </form>
 
+{% if aws_verification_available %}
+  <h2 id="aws">Amazon Web Services</h2>
+  <form action="" method="post">
+    {% csrf_token %}
+    {% if user.cloud_information.aws_verification_datetime %}
+      <div class="card">
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item">
+            <button class="float-right btn btn-sm btn-danger"
+                    type="button" title="Remove"
+                    data-toggle="modal" data-target="#delete-aws-modal">
+              <span class="fas fa-trash-alt">
+                <span class="visually-hidden">Remove</span>
+              </span>
+            </button>
+            <dl class="row">
+              <dt class="col-3">Account</dt>
+              <dd class="col-9">{{ user.cloud_information.aws_id }}</dd>
+              <dt class="col-3">User ID</dt>
+              <dd class="col-9">{{ user.cloud_information.aws_userid }}</dd>
+              <dt class="col-3"><abbr title="Amazon Resource Name">ARN</abbr></dt>
+              <dd class="col-9">{{ user.cloud_information.aws_user_arn }}</dd>
+            </dl>
+          </li>
+        </ul>
+      </div>
+
+      {# modal start #}
+      <div class="modal fade" id="delete-aws-modal" role="dialog" aria-labelledby="delete-aws-modal-title" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="delete-aws-modal-title">Remove <abbr title="Amazon Web Services">AWS</abbr> ID</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              Are you sure you want to remove your Amazon Web Services ID?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button class="btn btn-danger" name="delete-aws" type="submit">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {# modal end #}
+    {% else %}
+      <hr>
+      <p>To link your Amazon Web Services account using the
+        <a href="https://aws.amazon.com/cli/"><abbr title="Amazon Web Services">AWS</abbr> Command Line Interface</a>:
+      </p>
+      <ol>
+        <li>
+          Open a terminal and run the following command:
+          <pre><code>aws sts get-caller-identity</code></pre>
+        </li>
+        <li>
+          Copy and paste the output into the box below.
+          {% include "form_snippet_no_labels.html" with form=aws_form %}
+        </li>
+      </ol>
+      <button class="btn btn-primary btn-custom btn-rsp"
+              type="submit" name="save-aws">Submit</button>
+    {% endif %}
+  </form>
+{% endif %}
 
 {% endblock %}
