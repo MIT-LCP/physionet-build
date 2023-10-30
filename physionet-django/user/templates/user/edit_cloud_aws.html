@@ -1,0 +1,28 @@
+{% extends "user/settings.html" %}
+
+{% block title %}Verify AWS Account{% endblock %}
+
+{% block main_content %}
+<h1 class="form-signin-heading">Verify <abbr title="Amazon Web Services">AWS</abbr> Account</h1>
+<hr>
+
+<form action="" method="post">
+  {% csrf_token %}
+  <p>
+    To verify your Amazon Web Services account using the
+    <a href="https://aws.amazon.com/cli/"><abbr title="Amazon Web Services">AWS</abbr> Command Line Interface</a>:
+  </p>
+  <ol>
+    <li>
+      Open a terminal and run the following command (one line):
+      <pre><code>{{ form.aws_verification_command }}</code></pre>
+    </li>
+    <li>
+      Copy and paste the output into the box below.
+      {% include "form_snippet_no_labels.html" %}
+    </li>
+  </ol>
+  <button class="btn btn-primary btn-custom btn-rsp"
+          type="submit">Save</button>
+</form>
+{% endblock %}

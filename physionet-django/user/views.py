@@ -46,6 +46,7 @@ from physionet.settings.base import StorageTypes
 from project.models import Author, DUASignature, DUA, PublishedProject
 from requests_oauthlib import OAuth2Session
 from user import forms, validators
+from user.awsverification import aws_verification_available
 from user.models import (
     AssociatedEmail,
     CodeOfConduct,
@@ -914,11 +915,26 @@ def credential_reference_verification(request, application_slug, verification_to
 def edit_cloud(request):
     """
     Page to add the information for cloud usage.
+
+    This page allows the user to specify their credentials for
+    accessing cloud services, of which two are currently supported:
+
+    - Google Cloud Platform authentication is based on the email
+      address associated with the person's GCP account.  They must
+      verify this address through the usual AssociatedEmail
+      verification process, after which they can select it as their
+      GCP address on this page.
+
+    - Amazon Web Services authentication is based on the AWS "userid"
+      (a mostly-random string of alphanumeric characters.)  This
+      identity is verified through a two-step process: this page asks
+      the person who they are, and the 'edit_cloud_aws' page asks them
+      to enter a code to prove it.
     """
     user = request.user
     cloud_info = CloudInformation.objects.get_or_create(user=user)[0]
     form = forms.CloudForm(instance=cloud_info)
-    if request.method == 'POST':
+    if request.method == 'POST' and 'save-gcp' in request.POST:
         form = forms.CloudForm(instance=cloud_info, data=request.POST)
         if form.is_valid():
             form.save()
@@ -926,7 +942,76 @@ def edit_cloud(request):
         else:
             messages.error(request, 'Invalid submission. See errors below.')
 
-    return render(request, 'user/edit_cloud.html', {'form':form, 'user':user})
+    if request.method == 'POST' and 'delete-aws' in request.POST:
+        cloud_info.aws_id = None
+        cloud_info.aws_userid = None
+        cloud_info.aws_user_arn = None
+        cloud_info.aws_verification_datetime = None
+        cloud_info.save()
+
+    aws_form = forms.AWSIdentityForm()
+    if request.method == 'POST' and 'save-aws' in request.POST:
+        aws_form = forms.AWSIdentityForm(data=request.POST)
+        if aws_form.is_valid():
+            request.session['new_aws_account'] = \
+                aws_form.cleaned_data['aws_account']
+            request.session['new_aws_userid'] = \
+                aws_form.cleaned_data['aws_userid']
+            request.session['new_aws_user_arn'] = \
+                aws_form.cleaned_data['aws_user_arn']
+            return redirect('edit_cloud_aws')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+
+    return render(request, 'user/edit_cloud.html', {
+        'user': user,
+        'gcp_form': form,
+        'aws_form': aws_form,
+        'aws_verification_available': aws_verification_available(),
+    })
+
+
+@login_required
+def edit_cloud_aws(request):
+    """
+    Page to submit a code for AWS identity verification.
+
+    Verifying AWS identity is a two-step process.  After entering your
+    AWS identity information (account and userid) on the 'edit_cloud'
+    page, this page asks you to enter a code (a signed URL) that
+    proves you have the appropriate credentials (AWS access key).
+    """
+    if not aws_verification_available():
+        return redirect('edit_cloud')
+
+    site_domain = get_current_site(request).domain
+    aws_account = request.session.get('new_aws_account', '')
+    aws_userid = request.session.get('new_aws_userid', '')
+    aws_user_arn = request.session.get('new_aws_user_arn', '')
+    form = forms.AWSVerificationForm(user=request.user,
+                                     site_domain=site_domain,
+                                     aws_account=aws_account,
+                                     aws_userid=aws_userid,
+                                     aws_user_arn=aws_user_arn)
+    if request.method == 'POST' and 'signed_url' in request.POST:
+        form = forms.AWSVerificationForm(user=request.user,
+                                         site_domain=site_domain,
+                                         aws_account=aws_account,
+                                         aws_userid=aws_userid,
+                                         aws_user_arn=aws_user_arn,
+                                         data=request.POST)
+        if form.is_valid():
+            form.save()
+            request.session.pop('new_aws_account')
+            request.session.pop('new_aws_userid')
+            request.session.pop('new_aws_user_arn')
+            messages.success(request, 'Your cloud information has been saved.')
+            return redirect('edit_cloud')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+
+    return render(request, 'user/edit_cloud_aws.html', {'form': form})
+
 
 @login_required
 def view_agreements(request):
