@@ -151,7 +151,7 @@ def event_home(request):
     for selected_event in events_all:
         participants = selected_event.participants.all()
         pending_applications = selected_event.applications.filter(
-            status__in=[EventApplication.EventApplicationStatus.WAITLISTED])
+            status=EventApplication.EventApplicationStatus.WAITLISTED)
         rejected_applications = selected_event.applications.filter(
             status__in=[EventApplication.EventApplicationStatus.NOT_APPROVED])
         withdrawn_applications = selected_event.applications.filter(
