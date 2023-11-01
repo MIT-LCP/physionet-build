@@ -1,4 +1,5 @@
 from datetime import datetime
+import stat
 
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -146,6 +147,43 @@ def event_home(request):
         else:
             form_error = True
 
+    event_details = {}
+    for selected_event in events_all:
+        participants = selected_event.participants.all()
+        pending_applications = selected_event.applications.filter(
+            status__in=[EventApplication.EventApplicationStatus.WAITLISTED])
+        rejected_applications = selected_event.applications.filter(
+            status__in=[EventApplication.EventApplicationStatus.NOT_APPROVED])
+        withdrawn_applications = selected_event.applications.filter(
+            status__in=[EventApplication.EventApplicationStatus.WITHDRAWN])
+
+        event_details[selected_event.id] = [
+            {
+                'id': 'participants',
+                'title': 'Total participants:',
+                'count': participants.count(),
+                'objects': participants,
+            },
+            {
+                'id': 'pending_applications',
+                'title': 'Pending applications:',
+                'count': pending_applications.count(),
+                'objects': pending_applications,
+            },
+            {
+                'id': 'rejected_applications',
+                'title': 'Rejected applications:',
+                'count': rejected_applications.count(),
+                'objects': rejected_applications,
+            },
+            {
+                'id': 'withdrawn_applications',
+                'title': 'Withdrawn applications:',
+                'count': withdrawn_applications.count(),
+                'objects': withdrawn_applications,
+            },
+        ]
+
     # get all participation requests for Active events where the current user is the host and the participants are
     # waiting for a response
     participation_requests = EventApplication.objects.filter(
@@ -160,6 +198,7 @@ def event_home(request):
                    'can_change_event': can_change_event,
                    'form_error': form_error,
                    'participation_response_formset': participation_response_formset,
+                   'event_details': event_details,
                    })
 
 

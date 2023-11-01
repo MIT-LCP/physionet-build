@@ -25,32 +25,6 @@ def has_access_to_event_dataset(user, dataset):
     return has_access_to_event_dataset_func(user, dataset)
 
 
-@register.filter(name='get_inactive_applications')
-def get_inactive_applications(event):
-    return event.applications.filter(
-        status__in=[
-            EventApplication.EventApplicationStatus.NOT_APPROVED,
-            EventApplication.EventApplicationStatus.WITHDRAWN
-        ]
-    )
-
-
-@register.filter(name='get_pending_applications')
-def get_pending_applications(event):
-    return event.applications.filter(
-        status__in=[EventApplication.EventApplicationStatus.WAITLISTED]
-    )
-
-
-@register.filter(name='get_withdrawn_applications')
-def get_withdrawn_applications(event):
-    return event.applications.filter(
-        status__in=[EventApplication.EventApplicationStatus.WITHDRAWN]
-    )
-
-
-@register.filter(name='get_rejected_applications')
-def get_rejected_applications(event):
-    return event.applications.filter(
-        status__in=[EventApplication.EventApplicationStatus.NOT_APPROVED]
-    )
+@register.filter(name='get_status_options')
+def get_status_options(event_details, event_id):
+    return event_details[event_id]

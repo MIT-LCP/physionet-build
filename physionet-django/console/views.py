@@ -5,6 +5,7 @@ import re
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
+import stat
 from statistics import StatisticsError, median
 
 import notification.utility as notification
@@ -28,7 +29,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
-from events.models import Event, EventAgreement, EventDataset
+from events.models import Event, EventAgreement, EventDataset, EventApplication
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -3011,7 +3012,42 @@ def event_management(request, event_slug):
     else:
         event_dataset_form = EventDatasetForm()
 
+    participants = selected_event.participants.all()
+    pending_applications = selected_event.applications.filter(
+        status__in=[EventApplication.EventApplicationStatus.WAITLISTED])
+    rejected_applications = selected_event.applications.filter(
+        status__in=[EventApplication.EventApplicationStatus.NOT_APPROVED])
+    withdrawn_applications = selected_event.applications.filter(
+        status__in=[EventApplication.EventApplicationStatus.WITHDRAWN])
+
     event_datasets = selected_event.datasets.filter(is_active=True)
+    status_options = [
+        {
+            'id': 'participants',
+            'title': 'Total participants:',
+            'count': participants.count(),
+            'objects': participants,
+        },
+        {
+            'id': 'pending_applications',
+            'title': 'Pending applications:',
+            'count': pending_applications.count(),
+            'objects': pending_applications,
+        },
+        {
+            'id': 'rejected_applications',
+            'title': 'Rejected applications:',
+            'count': rejected_applications.count(),
+            'objects': rejected_applications,
+        },
+        {
+            'id': 'withdrawn_applications',
+            'title': 'Withdrawn applications:',
+            'count': withdrawn_applications.count(),
+            'objects': withdrawn_applications,
+        },
+    ]
+
     return render(
         request,
         'console/event_management.html',
@@ -3019,6 +3055,11 @@ def event_management(request, event_slug):
             'event': selected_event,
             'event_dataset_form': event_dataset_form,
             'event_datasets': event_datasets,
+            'status_options': status_options,
+            'participants': participants,
+            'pending_applications': pending_applications,
+            'rejected_applications': rejected_applications,
+            'withdrawn_applications': withdrawn_applications,
         })
 
 
