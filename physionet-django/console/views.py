@@ -3643,6 +3643,7 @@ def event_agreement_delete(request, pk):
 
     return redirect("event_agreement_list")
 
+
 @permission_required('user.view_all_events', raise_exception=True)
 def event_invite_host(request, username):
     """
