@@ -9,6 +9,14 @@ NUMBER_OF_DAYS_SET_TO_EXPIRE = 30
 
 
 class Course(models.Model):
+    """
+    A model representing a course for a specific training type.
+
+    Attributes:
+        training_type (ForeignKey): The training type associated with the course.
+        version (CharField): The version of the course.
+    """
+
     training_type = models.ForeignKey(
         "user.TrainingType", on_delete=models.CASCADE, related_name="courses"
     )
@@ -52,6 +60,16 @@ class Course(models.Model):
 
 
 class Module(models.Model):
+    """
+    A module is a unit of teaching within a course, typically covering a single topic or area of knowledge.
+
+    Attributes:
+        name (str): The name of the module.
+        course (Course): The course to which the module belongs.
+        order (int): The order in which the module appears within the course.
+        description (SafeHTML): The description of the module, in SafeHTML format.
+    """
+
     name = models.CharField(max_length=100)
     course = models.ForeignKey(
         "training.Course", on_delete=models.CASCADE, related_name="modules"
@@ -67,6 +85,12 @@ class Module(models.Model):
 
 
 class Quiz(models.Model):
+    """
+    A model representing a quiz within a training module.
+
+    Each quiz has a question, belongs to a specific module, and has a designated order within that module.
+    """
+
     question = SafeHTMLField()
     module = models.ForeignKey(
         "training.Module", on_delete=models.CASCADE, related_name="quizzes"
@@ -75,6 +99,15 @@ class Quiz(models.Model):
 
 
 class ContentBlock(models.Model):
+    """
+    A model representing a block of content within a training module.
+
+    Attributes:
+        module (ForeignKey): The module to which this content block belongs.
+        body (SafeHTMLField): The HTML content of the block.
+        order (PositiveIntegerField): The order in which this block should be displayed within the module.
+    """
+
     module = models.ForeignKey(
         "training.Module", on_delete=models.CASCADE, related_name="contents"
     )
@@ -83,6 +116,12 @@ class ContentBlock(models.Model):
 
 
 class QuizChoice(models.Model):
+    """
+    A quiz choice is a collection of choices, which is a collection of several types of
+    content. A quiz choice is associated with a quiz, and an order number.
+    The order number is used to track the order of the quiz choices in a quiz.
+    """
+
     quiz = models.ForeignKey(
         "training.Quiz", on_delete=models.CASCADE, related_name="choices"
     )
@@ -91,6 +130,21 @@ class QuizChoice(models.Model):
 
 
 class CourseProgress(models.Model):
+    """
+    Model representing the progress of a user in a course.
+
+    Fields:
+    - user: ForeignKey to User model
+    - course: ForeignKey to Course model
+    - status: CharField with choices of "In Progress" and "Completed"
+    - started_at: DateTimeField that is automatically added on creation
+    - completed_at: DateTimeField that is nullable and blankable
+
+    Methods:
+    - __str__: Returns a string representation of the CourseProgress object
+    - get_next_module: Returns the next module that the user should be working on
+    """
+
     class Status(models.TextChoices):
         IN_PROGRESS = "IP", "In Progress"
         COMPLETED = "C", "Completed"
@@ -141,6 +195,22 @@ class CourseProgress(models.Model):
 
 
 class ModuleProgress(models.Model):
+    """
+    Model representing the progress of a user in a module.
+
+    Fields:
+    - course_progress: ForeignKey to CourseProgress model
+    - module: ForeignKey to Module model
+    - status: CharField with choices of "In Progress" and "Completed"
+    - last_completed_order: PositiveIntegerField with default value of 0
+    - started_at: DateTimeField that is nullable and blankable
+    - updated_at: DateTimeField that is automatically updated on save
+
+    Methods:
+    - __str__: Returns a string representation of the ModuleProgress object
+
+    """
+
     class Status(models.TextChoices):
         IN_PROGRESS = "IP", "In Progress"
         COMPLETED = "C", "Completed"
@@ -163,6 +233,18 @@ class ModuleProgress(models.Model):
 
 
 class CompletedContent(models.Model):
+    """
+    Model representing a completed content block.
+
+    Fields:
+    - module_progress: ForeignKey to ModuleProgress model
+    - content: ForeignKey to ContentBlock model
+    - completed_at: DateTimeField that is nullable and blankable
+
+    Methods:
+    - __str__: Returns a string representation of the CompletedContent object
+    """
+
     module_progress = models.ForeignKey(
         "training.ModuleProgress",
         on_delete=models.CASCADE,
@@ -176,6 +258,18 @@ class CompletedContent(models.Model):
 
 
 class CompletedQuiz(models.Model):
+    """
+    Model representing a completed quiz.
+
+    Fields:
+    - module_progress: ForeignKey to ModuleProgress model
+    - quiz: ForeignKey to Quiz model
+    - completed_at: DateTimeField that is nullable and blankable
+
+    Methods:
+    - __str__: Returns a string representation of the CompletedQuiz object
+    """
+
     module_progress = models.ForeignKey(
         "training.ModuleProgress",
         on_delete=models.CASCADE,
