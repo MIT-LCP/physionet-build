@@ -235,6 +235,8 @@ else:
 
 AWS_PROFILE = config('AWS_PROFILE', default=False)
 
+BUCKET_OWNER_ID = config('BUCKET_OWNER_ID', default=False)
+
 # Bucket name for the S3 bucket containing the open access data
 S3_OPEN_ACCESS_BUCKET = config('S3_OPEN_ACCESS_BUCKET', default=False)
 

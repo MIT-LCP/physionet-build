@@ -58,6 +58,7 @@ from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
 from project.cloud.s3 import (
     has_s3_credentials,
+    files_sent_to_S3,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
@@ -1968,7 +1969,7 @@ def sign_dua(request, project_slug, version):
 
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
-        if has_s3_credentials():
+        if has_s3_credentials() and files_sent_to_S3(project) is not None:
             update_aws_bucket_policy(project.id)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})

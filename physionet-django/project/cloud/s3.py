@@ -4,7 +4,7 @@ import re
 import os
 import json
 from django.conf import settings
-from project.models import PublishedProject, AccessPolicy
+from project.models import PublishedProject, AccessPolicy, AWS
 from user.models import User
 from project.authorization.access import can_view_project_files
 
@@ -31,9 +31,27 @@ def has_s3_credentials():
     """
     return all([
         settings.AWS_PROFILE,
+        settings.BUCKET_OWNER_ID,
         settings.S3_OPEN_ACCESS_BUCKET,
         settings.S3_SERVER_ACCESS_LOGS,
     ])
+
+
+def files_sent_to_S3(project):
+    """
+    Get information about project files sent to Amazon S3
+    for a project.
+
+    Tries to access the AWS instance associated with the
+    project to retrieve sent file information.
+    Returns the information or None if it's not available.
+    """
+    try:
+        aws_instance = project.aws
+        sent_files_info = aws_instance.sent_files
+    except AWS.DoesNotExist:
+        sent_files_info = None
+    return sent_files_info
 
 
 def create_s3_client():
@@ -609,6 +627,12 @@ def update_bucket_policy(project, bucket_name):
         set_bucket_policy(bucket_name, bucket_policy)
 
 
+def get_bucket_owner(s3_client, bucket_name):
+    response = s3_client.get_bucket_acl(Bucket=bucket_name)
+    owner_id = response['Owner']['ID']
+    return owner_id
+
+
 def upload_project_to_S3(project):
     """
     Upload project-related files to an AWS S3 bucket
@@ -618,9 +642,9 @@ def upload_project_to_S3(project):
     files to an AWS S3 bucket.
     It performs the following steps:
     1. Creates the S3 bucket if it doesn't exist.
-    2. Updates the bucket's access policy to align with the
+    2. Uploads project files from the local directory to the S3 bucket.
+    3. Updates the bucket's access policy to align with the
     project's requirements.
-    3. Uploads project files from the local directory to the S3 bucket.
 
     Args:
         project (project.models.Project): The project for which
@@ -639,29 +663,39 @@ def upload_project_to_S3(project):
     access policy, providing an optional prefix within the
     S3 bucket.
     """
+    bucket_owner_id = None
     bucket_name = get_bucket_name(project)
     # create bucket if it does not exist
     s3 = create_s3_client()
     if s3 is None or bucket_name is None:
         return
-    create_s3_bucket(s3, bucket_name)
 
-    # update bucket's policy for projects
-    update_bucket_policy(project, bucket_name)
+    if check_s3_bucket_exists(project):
+        # Check bucket ownership
+        bucket_owner_id = get_bucket_owner(s3, bucket_name)
+        if bucket_owner_id != settings.BUCKET_OWNER_ID:
+            raise Exception("Bucket is owned by another AWS account.")
+    if bucket_owner_id is None or bucket_owner_id == settings.BUCKET_OWNER_ID:
+        try:
+            create_s3_bucket(s3, bucket_name)
+        except s3.exceptions.BucketAlreadyOwnedByYou:
+            pass
 
-    # upload files to bucket
-    folder_path = project.file_root()
-    # set the prefix only for the projects
-    # in the open data bucket
-    if project.access_policy == AccessPolicy.OPEN:
-        s3_prefix = f"{project.slug}/{project.version}/"
-    else:
-        s3_prefix = f"{project.version}/"
-    send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
+        put_bucket_logging(
+            s3, bucket_name, settings.S3_SERVER_ACCESS_LOGS, bucket_name + "/logs/"
+        )
+        # upload files to bucket
+        folder_path = project.file_root()
+        # set the prefix only for the projects
+        # in the open data bucket
+        if project.access_policy == AccessPolicy.OPEN:
+            s3_prefix = f"{project.slug}/{project.version}/"
+        else:
+            s3_prefix = f"{project.version}/"
+        send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
 
-    put_bucket_logging(
-        s3, bucket_name, settings.S3_SERVER_ACCESS_LOGS, bucket_name + "/logs/"
-    )
+        # update bucket's policy for projects
+        update_bucket_policy(project, bucket_name)
 
 
 def upload_list_of_projects(projects):
