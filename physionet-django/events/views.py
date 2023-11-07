@@ -159,14 +159,14 @@ def event_home(request):
         else:
             form_error = True
 
-    events_all = Event.objects.all().prefetch_related(
+    events = Event.objects.all().prefetch_related(
         "participants",
         "applications",
     )
 
     event_details = {}
-    for selected_event in events_all:
-        all_applications = selected_event.applications.all()
+    for event in events:
+        all_applications = event.applications.all()
         pending_applications = [
             application
             for application in all_applications
@@ -183,12 +183,12 @@ def event_home(request):
             if application.status == EventApplication.EventApplicationStatus.WITHDRAWN
         ]
 
-        event_details[selected_event.id] = [
+        event_details[event.id] = [
             {
                 "id": "participants",
                 "title": "Total participants:",
-                "count": len(selected_event.participants.all()),
-                "objects": selected_event.participants.all(),
+                "count": len(event.participants.all()),
+                "objects": event.participants.all(),
             },
             {
                 "id": "pending_applications",
