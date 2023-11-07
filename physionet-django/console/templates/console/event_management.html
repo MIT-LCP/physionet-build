@@ -39,16 +39,16 @@
         </div>
       </div>
 
-      {% for option in status_options %}
+      {% for info in applicant_info %}
       <div class="row mb-1">
-        <div class="col-md-3">{{ option.title }}</div>
+        <div class="col-md-3">{{ info.title }}</div>
         <div class="col-md-9">
           <div class="row mb-1">
-            <div class="col-md-1">{{ option.count }}</div>
+            <div class="col-md-1">{{ info.count }}</div>
             <div class="col-md-11">
               <button class="btn btn-sm btn-primary"
                       data-toggle="modal"
-                      data-target="#{{ option.id }}">View</button>
+                      data-target="#{{ info.id }}">View</button>
             </div>
           </div>
         </div>
@@ -64,17 +64,17 @@
   </div>
   {% include 'console/event_management_manage_dataset.html' %}
 
-  {% for option in status_options %}
+  {% for info in applicant_info %}
   <div class="modal fade"
-        id="{{ option.id }}"
+        id="{{ info.id }}"
         tabindex="-1"
         role="dialog"
-        aria-labelledby="view-{{ option.id }}-modal"
+        aria-labelledby="view-{{ info.id }}-modal"
         aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">{{ option.title }}</h5>
+          <h5 class="modal-title">{{ info.title }}</h5>
           <button type="button"
                   class="close"
                   data-dismiss="modal"

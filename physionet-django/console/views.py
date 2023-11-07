@@ -2977,7 +2977,7 @@ def event_archive(request):
                    })
 
 
-@permission_required('user.view_all_events', raise_exception=True)
+@permission_required("user.view_all_events", raise_exception=True)
 def event_management(request, event_slug):
     """
     Admin page for managing an individual Event.
@@ -2986,81 +2986,91 @@ def event_management(request, event_slug):
 
     # handle the add dataset form(s)
     if request.method == "POST":
-        if 'add-event-dataset' in request.POST.keys():
+        if "add-event-dataset" in request.POST.keys():
             event_dataset_form = EventDatasetForm(request.POST)
             if event_dataset_form.is_valid():
-                if selected_event.datasets.filter(
-                        dataset=event_dataset_form.cleaned_data['dataset'],
-                        access_type=event_dataset_form.cleaned_data['access_type'],
-                        is_active=True).count() == 0:
+                if (
+                    selected_event.datasets.filter(
+                        dataset=event_dataset_form.cleaned_data["dataset"],
+                        access_type=event_dataset_form.cleaned_data["access_type"],
+                        is_active=True,
+                    ).count()
+                    == 0
+                ):
                     event_dataset_form.instance.event = selected_event
                     event_dataset_form.save()
-                    messages.success(request, "The dataset has been added to the event.")
+                    messages.success(
+                        request, "The dataset has been added to the event."
+                    )
                 else:
-                    messages.error(request, "The dataset has already been added to the event.")
+                    messages.error(
+                        request, "The dataset has already been added to the event."
+                    )
             else:
                 messages.error(request, event_dataset_form.errors)
 
-            return redirect('event_management', event_slug=event_slug)
-        elif 'remove-event-dataset' in request.POST.keys():
-            event_dataset_id = request.POST['remove-event-dataset']
+            return redirect("event_management", event_slug=event_slug)
+        elif "remove-event-dataset" in request.POST.keys():
+            event_dataset_id = request.POST["remove-event-dataset"]
             event_dataset = get_object_or_404(EventDataset, pk=event_dataset_id)
             event_dataset.revoke_dataset_access()
             messages.success(request, "The dataset has been removed from the event.")
 
-            return redirect('event_management', event_slug=event_slug)
+            return redirect("event_management", event_slug=event_slug)
     else:
         event_dataset_form = EventDatasetForm()
 
     participants = selected_event.participants.all()
     pending_applications = selected_event.applications.filter(
-        status__in=[EventApplication.EventApplicationStatus.WAITLISTED])
+        status__in=[EventApplication.EventApplicationStatus.WAITLISTED]
+    )
     rejected_applications = selected_event.applications.filter(
-        status__in=[EventApplication.EventApplicationStatus.NOT_APPROVED])
+        status__in=[EventApplication.EventApplicationStatus.NOT_APPROVED]
+    )
     withdrawn_applications = selected_event.applications.filter(
-        status__in=[EventApplication.EventApplicationStatus.WITHDRAWN])
+        status__in=[EventApplication.EventApplicationStatus.WITHDRAWN]
+    )
 
     event_datasets = selected_event.datasets.filter(is_active=True)
-    status_options = [
+    applicant_info = [
         {
-            'id': 'participants',
-            'title': 'Total participants:',
-            'count': participants.count(),
-            'objects': participants,
+            "id": "participants",
+            "title": "Total participants:",
+            "count": len(participants),
+            "objects": participants,
         },
         {
-            'id': 'pending_applications',
-            'title': 'Pending applications:',
-            'count': pending_applications.count(),
-            'objects': pending_applications,
+            "id": "pending_applications",
+            "title": "Pending applications:",
+            "count": len(pending_applications),
+            "objects": pending_applications,
         },
         {
-            'id': 'rejected_applications',
-            'title': 'Rejected applications:',
-            'count': rejected_applications.count(),
-            'objects': rejected_applications,
+            "id": "rejected_applications",
+            "title": "Rejected applications:",
+            "count": len(rejected_applications),
+            "objects": rejected_applications,
         },
         {
-            'id': 'withdrawn_applications',
-            'title': 'Withdrawn applications:',
-            'count': withdrawn_applications.count(),
-            'objects': withdrawn_applications,
+            "id": "withdrawn_applications",
+            "title": "Withdrawn applications:",
+            "count": len(withdrawn_applications),
+            "objects": withdrawn_applications,
         },
     ]
 
     return render(
         request,
-        'console/event_management.html',
+        "console/event_management.html",
         {
-            'event': selected_event,
-            'event_dataset_form': event_dataset_form,
-            'event_datasets': event_datasets,
-            'status_options': status_options,
-            'participants': participants,
-            'pending_applications': pending_applications,
-            'rejected_applications': rejected_applications,
-            'withdrawn_applications': withdrawn_applications,
-        })
+            "event": selected_event,
+            "event_dataset_form": event_dataset_form,
+            "event_datasets": event_datasets,
+            "applicant_info": applicant_info,
+            "participants": participants,
+        },
+    )
+
 
 
 @permission_required('events.add_eventagreement', raise_exception=True)
