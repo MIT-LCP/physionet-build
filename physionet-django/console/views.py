@@ -1138,7 +1138,7 @@ def aws_bucket_management(request, project, user):
         AWS.objects.create(project=project, bucket_name=bucket_name,
                            is_private=is_private)
 
-    send_files_to_aws(project.id)
+    send_files_to_aws(project.id, verbose_name='AWS - {}'.format(project), creator=user)
 
 
 @permission_required('project.change_archivedproject', raise_exception=True)
