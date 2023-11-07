@@ -4,7 +4,6 @@ import re
 from functools import reduce
 
 from django.conf import settings
-from django.contrib.postgres.search import SearchQuery, SearchVector, SearchRank
 from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
 from django.http import Http404
 from django.shortcuts import redirect, render, reverse
@@ -63,6 +62,11 @@ def get_content(resource_type, orderby, direction, search_term):
 
 
 def get_content_postgres_full_text_search(resource_type, orderby, direction, search_term):
+    from django.contrib.postgres.search import (
+        SearchQuery,
+        SearchRank,
+        SearchVector,
+    )
 
     # Split search term by whitespace or punctuation
     if search_term:
