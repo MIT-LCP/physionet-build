@@ -46,6 +46,7 @@ urllib3 = "^1.26.18"
 
 [tool.poetry.dev-dependencies]
 coverage = "^7.2.3"
+django-coverage-plugin = "^3.1.0"
 django-debug-toolbar = "^3.2.4"
 requests = "^2.21.0"
 requests-mock = "^1.7.0"
