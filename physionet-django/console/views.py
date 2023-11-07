@@ -5,7 +5,6 @@ import re
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
-import stat
 from statistics import StatisticsError, median
 
 import notification.utility as notification
@@ -2989,14 +2988,11 @@ def event_management(request, event_slug):
         if "add-event-dataset" in request.POST.keys():
             event_dataset_form = EventDatasetForm(request.POST)
             if event_dataset_form.is_valid():
-                if (
-                    selected_event.datasets.filter(
-                        dataset=event_dataset_form.cleaned_data["dataset"],
-                        access_type=event_dataset_form.cleaned_data["access_type"],
-                        is_active=True,
-                    ).count()
-                    == 0
-                ):
+                active_datasets = selected_event.datasets.filter(
+                    dataset=event_dataset_form.cleaned_data["dataset"],
+                    access_type=event_dataset_form.cleaned_data["access_type"],
+                    is_active=True)
+                if len(active_datasets) == 0:
                     event_dataset_form.instance.event = selected_event
                     event_dataset_form.save()
                     messages.success(

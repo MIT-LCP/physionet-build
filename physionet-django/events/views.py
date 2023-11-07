@@ -3,7 +3,7 @@ from datetime import datetime
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from django.db.models import Q, Prefetch
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.urls import reverse
@@ -168,19 +168,19 @@ def event_home(request):
     for selected_event in events_all:
         all_applications = selected_event.applications.all()
         pending_applications = [
-            app
-            for app in all_applications
-            if app.status == EventApplication.EventApplicationStatus.WAITLISTED
+            application
+            for application in all_applications
+            if application.status == EventApplication.EventApplicationStatus.WAITLISTED
         ]
         rejected_applications = [
-            app
-            for app in all_applications
-            if app.status == EventApplication.EventApplicationStatus.NOT_APPROVED
+            application
+            for application in all_applications
+            if application.status == EventApplication.EventApplicationStatus.NOT_APPROVED
         ]
         withdrawn_applications = [
-            app
-            for app in all_applications
-            if app.status == EventApplication.EventApplicationStatus.WITHDRAWN
+            application
+            for application in all_applications
+            if application.status == EventApplication.EventApplicationStatus.WITHDRAWN
         ]
 
         event_details[selected_event.id] = [
