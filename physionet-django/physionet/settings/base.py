@@ -122,6 +122,7 @@ TEMPLATES = [
                 'sso.context_processors.sso_enabled',
                 'physionet.context_processors.cloud_research_environments_config',
             ],
+            'debug': DEBUG,
         },
     },
 ]
