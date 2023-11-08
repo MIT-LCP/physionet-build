@@ -4,6 +4,7 @@ from enum import IntEnum
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -165,6 +166,87 @@ class DataAccess(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+class DataSource(models.Model):
+    """
+    Controls all access to project data.
+    """
+    class DataLocation(models.TextChoices):
+        DIRECT = 'Direct'
+        GOOGLE_BIGQUERY = 'Google BigQuery'
+        GOOGLE_CLOUD_STORAGE = 'Google Cloud Storage'
+        AWS_OPEN_DATA = 'AWS Open Data'
+        AWS_S3 = 'AWS S3'
+
+    class AccessMechanism(models.TextChoices):
+        GOOGLE_GROUP_EMAIL = 'Google Group Email'
+        S3 = 'S3'
+        RESEARCH_ENVIRONMENT = 'Research Environment'
+
+    project = models.ForeignKey('project.PublishedProject',
+                                related_name='data_sources', db_index=True, on_delete=models.CASCADE)
+    files_available = models.BooleanField(default=False)
+    data_location = models.CharField(max_length=20, choices=DataLocation.choices)
+    access_mechanism = models.CharField(max_length=20, choices=AccessMechanism.choices, null=True, blank=True)
+    email = models.EmailField(max_length=320, null=True, blank=True)
+    uri = models.CharField(max_length=320, null=True, blank=True)
+
+    class Meta:
+        default_permissions = ()
+        unique_together = ('project', 'data_location')
+
+    def clean(self):
+        super().clean()
+
+        # all the fields in the list are expected to be present for the given data_location
+        required_fields_data_location = {
+            self.DataLocation.GOOGLE_BIGQUERY: ["email"],
+            self.DataLocation.GOOGLE_CLOUD_STORAGE: ["uri"],
+            self.DataLocation.AWS_OPEN_DATA: ["uri"],
+            self.DataLocation.AWS_S3: ["uri"],
+            # self.DataLocation.DIRECT: []
+        }
+        # one of the access_mechanism in the list is expected to be present for the given data_location
+        required_access_mechanism_data_location = {
+            self.DataLocation.GOOGLE_BIGQUERY: [self.AccessMechanism.GOOGLE_GROUP_EMAIL],
+            self.DataLocation.GOOGLE_CLOUD_STORAGE: [self.AccessMechanism.GOOGLE_GROUP_EMAIL,
+                                                     self.AccessMechanism.RESEARCH_ENVIRONMENT],
+            self.DataLocation.AWS_OPEN_DATA: [self.AccessMechanism.S3],
+            self.DataLocation.AWS_S3: [self.AccessMechanism.S3],
+            # self.DataLocation.DIRECT: []
+        }
+        # None of the access_mechanism in the list are expected be present for the given data_location
+        forbidden_access_mechanism_data_location = {
+            self.DataLocation.DIRECT: [self.AccessMechanism.GOOGLE_GROUP_EMAIL, self.AccessMechanism.S3,
+                                       self.AccessMechanism.RESEARCH_ENVIRONMENT]
+        }
+        # None the fields in the list are expected to not be present for the given data_location
+        forbidden_fields_data_location = {
+            self.DataLocation.DIRECT: ["uri", "email"]
+        }
+
+        if self.data_location in required_access_mechanism_data_location:
+            if self.access_mechanism not in required_access_mechanism_data_location.get(self.data_location, []):
+                raise ValidationError(
+                    f'{self.data_location} data sources must use one of the following access mechanisms: '
+                    f'{", ".join(required_access_mechanism_data_location.get(self.data_location, []))}.')
+
+        if self.data_location in forbidden_access_mechanism_data_location:
+            if self.access_mechanism in forbidden_access_mechanism_data_location.get(self.data_location, []):
+                raise ValidationError(
+                    f'{self.data_location} data sources must not use the following access mechanisms: '
+                    f'{", ".join(forbidden_access_mechanism_data_location.get(self.data_location, []))}.')
+
+        if self.data_location in required_fields_data_location:
+            for required_field in required_fields_data_location.get(self.data_location, []):
+                if not getattr(self, required_field):
+                    raise ValidationError(f'{self.data_location} data sources must have a {required_field}.')
+
+        if self.data_location in forbidden_fields_data_location:
+            for forbidden_field in forbidden_fields_data_location.get(self.data_location, []):
+                if getattr(self, forbidden_field):
+                    raise ValidationError(f'{self.data_location} sources must not have a {forbidden_field}.')
 
 
 class AnonymousAccess(models.Model):
