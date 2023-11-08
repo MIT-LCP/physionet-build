@@ -1,10 +1,10 @@
 {% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 Dear {{ name }},
-{% if status == 'Make cohost' %}
+{% if status == True %}
 You have been added as Cohost to the Event : {{ event_title }}.
 
 You can now manage the event participants from your events dashboard.
-{% elif status == 'Remove cohost' %}
+{% elif status == False %}
 Your Cohost access has been removed from the Event : {{ event_title }}.
 {% endif %}
 You can view further information about the event using the following link:

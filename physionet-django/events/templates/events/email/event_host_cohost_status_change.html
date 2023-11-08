@@ -1,8 +1,9 @@
 {% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
 Dear {{ host_name }},
-{% if status == 'Make cohost' %}
+
+{% if status == True %}
 You have provided {{ cohost_name }} Cohost access to the Event : {{ event_title }}.
-{% elif status == 'Remove cohost' %}
+{% elif status == False %}
 You have removed {{ cohost_name }}'s Cohost access from the Event : {{ event_title }}.
 {% endif %}
 If this was done by mistake, you can change the cohost status by visiting the events dashboard.
