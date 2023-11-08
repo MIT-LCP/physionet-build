@@ -326,13 +326,11 @@ def manage_co_hosts(request):
         event = get_object_or_404(Event, slug=event_slug)
 
         if not event.host == user:
-            return JsonResponse({'error': 'You are not the host of this event'}, status=403)
-
+            error_message = = 'You are not the host of this event'
         if event.end_date < datetime.now().date():
-            return JsonResponse({'error': 'You cannot manage co-hosts of an event that has ended'}, status=403)
-
+            error_message = 'You cannot manage co-hosts of an event that has ended'
         if not event.participants.filter(id=participant_id).exists():
-            return JsonResponse({'error': 'User is not a participant of this event'}, status=403)
+            error_message = 'User is not a participant of this event' 
 
         participant = event.participants.get(id=participant_id)
 
@@ -360,4 +358,8 @@ def manage_co_hosts(request):
             return JsonResponse({'success': 'Cohost added successfully'})
 
     messages.error(request, 'Invalid request')
+
+    if error_message:
+        return JsonResponse({'error': error_message}, status=403)
+
     return redirect(event_home)
