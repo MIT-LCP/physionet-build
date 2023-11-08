@@ -1,0 +1,5 @@
+[run]
+plugins = django_coverage_plugin
+
+[django_coverage_plugin]
+template_extensions = html, txt, json, xml
