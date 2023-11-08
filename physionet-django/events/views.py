@@ -326,7 +326,7 @@ def manage_co_hosts(request):
         event = get_object_or_404(Event, slug=event_slug)
 
         if not event.host == user:
-            error_message = = 'You are not the host of this event'
+            error_message = 'You are not the host of this event'
         if event.end_date < datetime.now().date():
             error_message = 'You cannot manage co-hosts of an event that has ended'
         if not event.participants.filter(id=participant_id).exists():

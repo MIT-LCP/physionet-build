@@ -74,3 +74,39 @@
     </tbody>
   </table>
 </div>
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Full name</th>
+      <th>Email</th>
+      <th>Credentialed</th>
+      <th>Cohost</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for participant in event.participants.all %}
+    <tr>
+      <td>{{ participant.user.username }}</td>
+      <td>{{ participant.user.get_full_name }}</td>
+      <td>{{ participant.user.email }}</td>
+      <td>{{ participant.user.is_credentialed }}</td>
+      <td>
+        {% if not event.has_ended %}
+        <form class="manage-cohost" action="{% url 'manage_co_hosts' %}">
+          {% csrf_token %}
+          <input type="text" name="event" value="{{ event.slug }}" hidden>
+          <input type="text" name="participant" value="{{ participant.id }}" hidden>
+          {% if participant.is_cohost %}
+          <input type="submit" value="Remove cohost" class="btn btn-sm btn-danger">
+          {% else %}
+          <input type="submit" value="Make cohost" class="btn btn-sm btn-success">
+          {% endif %}
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
