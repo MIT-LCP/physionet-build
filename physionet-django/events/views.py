@@ -166,20 +166,20 @@ def event_home(request):
 
     event_details = {}
     for event in events:
-        all_applications = event.applications.all()
+        applications = event.applications.all()
         pending_applications = [
             application
-            for application in all_applications
+            for application in applications
             if application.status == EventApplication.EventApplicationStatus.WAITLISTED
         ]
         rejected_applications = [
             application
-            for application in all_applications
+            for application in applications
             if application.status == EventApplication.EventApplicationStatus.NOT_APPROVED
         ]
         withdrawn_applications = [
             application
-            for application in all_applications
+            for application in applications
             if application.status == EventApplication.EventApplicationStatus.WITHDRAWN
         ]
 

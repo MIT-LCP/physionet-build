@@ -2992,7 +2992,7 @@ def event_management(request, event_slug):
                     dataset=event_dataset_form.cleaned_data["dataset"],
                     access_type=event_dataset_form.cleaned_data["access_type"],
                     is_active=True)
-                if len(active_datasets) == 0:
+                if active_datasets.count() == 0:
                     event_dataset_form.instance.event = selected_event
                     event_dataset_form.save()
                     messages.success(
@@ -3018,13 +3018,13 @@ def event_management(request, event_slug):
 
     participants = selected_event.participants.all()
     pending_applications = selected_event.applications.filter(
-        status__in=[EventApplication.EventApplicationStatus.WAITLISTED]
+        status=EventApplication.EventApplicationStatus.WAITLISTED
     )
     rejected_applications = selected_event.applications.filter(
-        status__in=[EventApplication.EventApplicationStatus.NOT_APPROVED]
+        status=EventApplication.EventApplicationStatus.NOT_APPROVED
     )
     withdrawn_applications = selected_event.applications.filter(
-        status__in=[EventApplication.EventApplicationStatus.WITHDRAWN]
+        status=EventApplication.EventApplicationStatus.WITHDRAWN
     )
 
     event_datasets = selected_event.datasets.filter(is_active=True)
