@@ -242,6 +242,34 @@ AWS_CLOUD_FORMATION=URL
 This functionality will send the AWS ID to a Lambda function in the AWS Cloud Formation.
 That ID will be then added to the storage bucket and databases.
 
+### User authentication for AWS
+
+Before accessing restricted data via AWS, users will need to add their AWS account on the "Cloud" page of their user profile.
+
+In order for this option to appear on the site, the site operator must create a *verification bucket* and configure the `AWS_VERIFICATION_BUCKET_NAME` setting in `.env`.  A "verification bucket" is a special S3 bucket that doesn't contain any files.
+
+For demo/testing purposes, you can use the same verification bucket that PhysioNet uses (the bucket name isn't secret.)  For production use, each site should have a verification bucket that is owned and controlled by the site's own AWS account.  To do that:
+
+- Log in to the AWS console, and create an IAM user with full privileges for S3 administration. (This can be the same user that will be used for managing S3 project buckets.)
+- Generate an access key for this user, and configure the AWS CLI (`aws configure`).
+- Open a Python shell (`manage.py shell`) and run:
+```
+import user.awsverification
+user.awsverification.configure_aws_verification_bucket(BUCKET)
+```
+where BUCKET is the bucket name you want to use (`AWS_VERIFICATION_BUCKET_NAME`).
+- Delete the user / access key if you're not going to use them again.
+
+To test that a verification bucket is functioning correctly:
+
+- Log in to the AWS console, and create an IAM user with no added privileges.
+- Generate an access key for this user, and configure the AWS CLI (`aws configure`).
+- Open a Python shell (`manage.py shell`) and run:
+```
+import user.awsverification
+user.awsverification.test_aws_verification_bucket(BUCKET)
+```
+
 ## ORCID account integration
 
 Obtaining a client_id / client_secret for interacting with the ORCID API:
