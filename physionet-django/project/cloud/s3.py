@@ -31,9 +31,9 @@ def has_s3_credentials():
     """
     return all([
         settings.AWS_PROFILE,
-        settings.BUCKET_OWNER_ID,
+        settings.S3_BUCKET_OWNER_ID,
         settings.S3_OPEN_ACCESS_BUCKET,
-        settings.S3_SERVER_ACCESS_LOGS,
+        settings.S3_SERVER_ACCESS_LOG_BUCKET,
     ])
 
 
@@ -551,18 +551,13 @@ def put_public_access_block(client, bucket_name, configuration):
         client object.
         bucket_name (str): The name of the S3 bucket
         to configure.
-        configuration (bool): The desired configuration for
-        public access. Set to 'True' to allow public access
-        or 'False' to restrict public access.
+        configuration (bool): The PublicAccessBlock configuration
+        to be applied to the S3 bucket.
 
     Returns:
         None
 
     Note:
-    - To create a bucket that allows public access, you must
-      set 'configuration' to 'True' for all four settings:
-      'BlockPublicAcls', 'IgnorePublicAcls', 'BlockPublicPolicy',
-      and 'RestrictPublicBuckets'.
     - Ensure that AWS credentials (Access Key and Secret Key)
     are properly configured for the provided 'client'.
     """
@@ -673,16 +668,16 @@ def upload_project_to_S3(project):
     if check_s3_bucket_exists(project):
         # Check bucket ownership
         bucket_owner_id = get_bucket_owner(s3, bucket_name)
-        if bucket_owner_id != settings.BUCKET_OWNER_ID:
+        if bucket_owner_id != settings.S3_BUCKET_OWNER_ID:
             raise Exception("Bucket is owned by another AWS account.")
-    if bucket_owner_id is None or bucket_owner_id == settings.BUCKET_OWNER_ID:
+    if bucket_owner_id is None or bucket_owner_id == settings.S3_BUCKET_OWNER_ID:
         try:
             create_s3_bucket(s3, bucket_name)
         except s3.exceptions.BucketAlreadyOwnedByYou:
             pass
 
         put_bucket_logging(
-            s3, bucket_name, settings.S3_SERVER_ACCESS_LOGS, bucket_name + "/logs/"
+            s3, bucket_name, settings.S3_SERVER_ACCESS_LOG_BUCKET, bucket_name + "/logs/"
         )
         # upload files to bucket
         folder_path = project.file_root()

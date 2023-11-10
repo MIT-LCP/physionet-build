@@ -76,7 +76,6 @@ from user.models import (
 from physionet.enums import LogCategory
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
-from console import views
 from project.cloud.s3 import (
     create_s3_bucket,
     upload_project_to_S3,
