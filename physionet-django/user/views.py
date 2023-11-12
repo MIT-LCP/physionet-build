@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
@@ -29,6 +30,7 @@ from notification.utility import (
     credential_application_request,
     get_url_prefix,
     notify_account_registration,
+    notify_primary_email,
     process_credential_complete,
     training_application_request,
 )
@@ -95,13 +97,27 @@ class LogoutView(auth_views.LogoutView):
     pass
 
 
+class CustomPasswordResetForm(PasswordResetForm):
+    def clean_email(self):
+        """
+        Override the clean_email method to allow for secondary email checks.
+        """
+        email = self.cleaned_data['email']
+        secondary_email = AssociatedEmail.objects.filter(is_verified=True, is_primary_email=False, email=email).first()
+
+        if secondary_email:
+            notify_primary_email(secondary_email)
+
+        return email
+
+
 # Request password reset
 class PasswordResetView(auth_views.PasswordResetView):
     template_name = 'user/reset_password_request.html'
     success_url = reverse_lazy('reset_password_sent')
     email_template_name = 'user/email/reset_password_email.html'
     extra_email_context = {'SITE_NAME': settings.SITE_NAME}
-
+    form_class = CustomPasswordResetForm
 
 # Page shown after reset email has been sent
 class PasswordResetDoneView(auth_views.PasswordResetDoneView):
