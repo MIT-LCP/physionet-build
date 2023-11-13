@@ -607,15 +607,23 @@ def project_authors(request, project_slug, **kwargs):
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
-    return render(request, 'project/project_authors.html', {'project':project,
-        'authors':authors, 'invitations':invitations,
-        'affiliation_formset':affiliation_formset,
-        'invite_author_form':invite_author_form,
-        'corresponding_author_form':corresponding_author_form,
-        'corresponding_email_form':corresponding_email_form,
-        'transfer_author_form': transfer_author_form,
-        'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url,
-        'is_submitting':is_submitting})
+    return render(
+        request,
+        "project/project_authors.html",
+        {
+            "project": project,
+            "authors": authors,
+            "invitations": invitations,
+            "affiliation_formset": affiliation_formset,
+            "invite_author_form": invite_author_form,
+            "corresponding_author_form": corresponding_author_form,
+            "corresponding_email_form": corresponding_email_form,
+            "transfer_author_form": transfer_author_form,
+            "add_item_url": edit_affiliations_url,
+            "remove_item_url": edit_affiliations_url,
+            "is_submitting": is_submitting,
+        },
+    )
 
 
 def edit_content_item(request, project_slug):
