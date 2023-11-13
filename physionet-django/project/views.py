@@ -536,8 +536,10 @@ def project_authors(request, project_slug, **kwargs):
             inviter=user)
         corresponding_author_form = forms.CorrespondingAuthorForm(
             project=project)
+        transfer_author_form = forms.TransferAuthorForm(
+            project=project)
     else:
-        invite_author_form, corresponding_author_form = None, None
+        invite_author_form, corresponding_author_form, transfer_author_form = None, None, None
 
     if author.is_corresponding:
         corresponding_email_form = AssociatedEmailChoiceForm(
@@ -591,6 +593,16 @@ def project_authors(request, project_slug, **kwargs):
                 messages.success(request, 'Your corresponding email has been updated.')
             else:
                 messages.error(request, 'Submission unsuccessful. See form for errors.')
+        elif 'transfer_author' in request.POST and is_submitting:
+            transfer_author_form = forms.TransferAuthorForm(
+                project=project, data=request.POST)
+            if transfer_author_form.is_valid():
+                transfer_author_form.transfer()
+                notification.notify_submitting_author(request, project)
+                messages.success(request, 'The submitting author has been updated.')
+                return redirect('project_authors', project_slug=project.slug)
+            else:
+                messages.error(request, 'Submission unsuccessful. See form for errors.')
 
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
@@ -601,6 +613,7 @@ def project_authors(request, project_slug, **kwargs):
         'invite_author_form':invite_author_form,
         'corresponding_author_form':corresponding_author_form,
         'corresponding_email_form':corresponding_email_form,
+        'transfer_author_form': transfer_author_form,
         'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url,
         'is_submitting':is_submitting})
 
