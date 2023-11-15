@@ -553,6 +553,45 @@ class TestProjectEditing(TestCase):
         self.assertFalse(project.is_submittable())
 
 
+class TestProjectTransfer(TestCase):
+    """
+    Tests that submitting author status can be transferred to a co-author
+    """
+    AUTHOR_EMAIL = 'rgmark@mit.edu'
+    COAUTHOR_EMAIL = 'aewj@mit.edu'
+    PASSWORD = 'Tester11!'
+    PROJECT_SLUG = 'T108xFtYkRAxiRiuOLEJ'
+
+    def setUp(self):
+        self.client.login(username=self.AUTHOR_EMAIL, password=self.PASSWORD)
+        self.project = ActiveProject.objects.get(slug=self.PROJECT_SLUG)
+        self.submitting_author = self.project.authors.filter(is_submitting=True).first()
+        self.coauthor = self.project.authors.filter(is_submitting=False).first()
+
+    def test_transfer_author(self):
+        """
+        Test that an activate project can be transferred to a co-author.
+        """
+        self.assertEqual(self.submitting_author.user.email, self.AUTHOR_EMAIL)
+        self.assertEqual(self.coauthor.user.email, self.COAUTHOR_EMAIL)
+
+        response = self.client.post(
+            reverse('project_authors', args=(self.project.slug,)),
+            data={
+                'transfer_author': self.coauthor.user.id,
+            })
+
+        # Check if redirect happens, implying successful transfer
+        self.assertEqual(response.status_code, 302)
+
+        # Fetch the updated project data
+        updated_project = ActiveProject.objects.get(slug=self.PROJECT_SLUG)
+
+        # Verify that the author has been transferred
+        self.assertFalse(updated_project.authors.get(user=self.submitting_author.user).is_submitting)
+        self.assertTrue(updated_project.authors.get(user=self.coauthor.user).is_submitting)
+
+
 class TestAccessPublished(TestMixin):
     """
     Test that certain views or content in their various states can only

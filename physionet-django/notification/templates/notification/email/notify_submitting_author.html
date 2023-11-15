@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+You have been made submitting author of the project entitled "{{ project.title }}" on {{ SITE_NAME }}.
+
+You can view and edit the project on your project homepage: {{ url_prefix }}{% url "project_home" %}.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

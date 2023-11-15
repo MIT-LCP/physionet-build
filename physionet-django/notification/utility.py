@@ -1039,3 +1039,22 @@ def notify_primary_email(associated_email):
         }
         body = loader.render_to_string('user/email/notify_primary_email.html', context)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [associated_email.email], fail_silently=False)
+
+
+def notify_submitting_author(request, project):
+    """
+    Notify a user that they have been made submitting author for a project.
+    """
+    author = project.authors.get(is_submitting=True)
+    subject = f"{settings.SITE_NAME}: You are now a submitting author"
+    context = {
+        'name': author.get_full_name(),
+        'project': project,
+        'url_prefix': get_url_prefix(request),
+        'SITE_NAME': settings.SITE_NAME,
+        'signature': settings.EMAIL_SIGNATURE,
+        'footer': email_footer()
+    }
+    body = loader.render_to_string('notification/email/notify_submitting_author.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [author.user.email], fail_silently=False)
