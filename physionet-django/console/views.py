@@ -793,8 +793,6 @@ def send_files_to_aws(pid):
     up for the S3 client.
     """
     project = PublishedProject.objects.get(id=pid)
-    # Create or get the associated AWS object
-    AWS.objects.get_or_create(project=project)
     upload_project_to_S3(project)
     project.aws.sent_files = True
     project.aws.finished_datetime = timezone.now()
@@ -1103,10 +1101,9 @@ def aws_bucket_management(request, project, user):
     """
     Manage AWS S3 bucket for a project.
 
-    This function is responsible for creating an AWS S3 bucket and
-    sending the project's files to that bucket. It orchestrates the
-    necessary steps to set up the bucket and populate it with the
-    project's data.
+    This function is responsible for sending the project's files
+    to that bucket. It orchestrates the necessary steps to set up
+    the bucket and populate it with the project's data.
 
     Args:
         project (PublishedProject): The project for which to create and
@@ -1126,16 +1123,10 @@ def aws_bucket_management(request, project, user):
 
     bucket_name = get_bucket_name(project)
 
-    try:
-        AWS.objects.get(bucket_name=bucket_name)
-        messages.success(request, "The bucket already exists. Resending the \
-            files for the project {0}.".format(project))
-    except AWS.DoesNotExist:
-        if check_s3_bucket_exists(project):
-            LOGGER.info("The bucket {0} already exists, skipping bucket \
-                creation".format(bucket_name))
-        AWS.objects.create(project=project, bucket_name=bucket_name,
-                           is_private=is_private)
+    if not AWS.objects.filter(project=project).exists():
+        AWS.objects.create(
+            project=project, bucket_name=bucket_name, is_private=is_private
+        )
 
     send_files_to_aws(project.id, verbose_name='AWS - {}'.format(project), creator=user)
 
