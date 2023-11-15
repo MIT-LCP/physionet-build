@@ -315,7 +315,7 @@ def event_detail(request, event_slug):
 
 
 @login_required
-def manage_co_hosts(request):
+def manage_co_hosts(request, event_slug):
     """
     Manage co-hosts of an event
     """
@@ -327,7 +327,6 @@ def manage_co_hosts(request):
     if request.method == 'POST':
         participant_id = request.POST.get('participant_id')
 
-        event_slug = request.POST.get('event_slug')
         event = get_object_or_404(Event, slug=event_slug)
 
         if not event.host == user:

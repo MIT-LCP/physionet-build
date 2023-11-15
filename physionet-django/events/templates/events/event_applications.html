@@ -19,7 +19,7 @@
         <td>{{ participant.user.is_credentialed }}</td>
         <td>
           {% if not event.has_ended %}
-          <form class="manage-cohost" action="{% url 'manage_co_hosts' %}">
+          <form class="manage-cohost" action="{% url 'manage_co_hosts' event.slug %}">
             {% csrf_token %}
             <input type="text" name="event" value="{{ event.slug }}" hidden>
             <input type="text" name="participant" value="{{ participant.id }}" hidden>
