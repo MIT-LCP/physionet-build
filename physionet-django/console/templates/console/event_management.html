@@ -2,90 +2,85 @@
 {% load static %}
 {% block title %}Event Management{% endblock %}
 {% block content %}
-  <h1>{{ event.title }}</h1>
-  <hr/>
-  <div class="card mb-3">
-    <div class="card-header">Event Details</div>
-    <div class="card-body">
-      <div class="row mb-1">
-        <div class="col-md-3">Event Organizer:</div>
-        <div class="col-md-9">
-          <a href="{% url 'user_management' event.host.username %}">{{ event.host.username }}</a>
-        </div>
+<h1>{{ event.title }}</h1>
+<hr />
+<div class="card mb-3">
+  <div class="card-header">Event Details</div>
+  <div class="card-body">
+    <div class="row mb-1">
+      <div class="col-md-3">Event Organizer:</div>
+      <div class="col-md-9">
+        <a href="{% url 'user_management' event.host.username %}">{{ event.host.username }}</a>
       </div>
-      <div class="row mb-1">
-        <div class="col-md-3">Category:</div>
-        <div class="col-md-9">{{ event.category }}</div>
+    </div>
+    <div class="row mb-1">
+      <div class="col-md-3">Category:</div>
+      <div class="col-md-9">{{ event.category }}</div>
+    </div>
+    <div class="row mb-1">
+      <div class="col-md-3">Created on:</div>
+      <div class="col-md-9">{{ event.added_datetime | date:"d M Y" }}</div>
+    </div>
+    <div class="row mb-1">
+      <div class="col-md-3">Start Date:</div>
+      <div class="col-md-9">{{ event.start_date | date:"d M Y" }}</div>
+    </div>
+    <div class="row mb-1">
+      <div class="col-md-3">End Date:</div>
+      <div class="col-md-9">{{ event.end_date | date:"d M Y" }}</div>
+    </div>
+    <div class="row mb-1">
+      <div class="col-md-3">Allowed Domains:</div>
+      <div class="col-md-9">
+        {% if event.allowed_domains %}
+        {{ event.allowed_domains }}
+        {% else %}
+        {% endif %}
       </div>
-      <div class="row mb-1">
-        <div class="col-md-3">Created on:</div>
-        <div class="col-md-9">{{ event.added_datetime | date:"d M Y" }}</div>
-      </div>
-      <div class="row mb-1">
-        <div class="col-md-3">Start Date:</div>
-        <div class="col-md-9">{{ event.start_date | date:"d M Y" }}</div>
-      </div>
-      <div class="row mb-1">
-        <div class="col-md-3">End Date:</div>
-        <div class="col-md-9">{{ event.end_date | date:"d M Y" }}</div>
-      </div>
-      <div class="row mb-1">
-        <div class="col-md-3">Allowed Domains:</div>
-        <div class="col-md-9">
-          {% if event.allowed_domains %}
-            {{ event.allowed_domains }}
-          {% else %}
-          {% endif %}
-        </div>
-      </div>
+    </div>
 
-      {% for info in applicant_info %}
-      <div class="row mb-1">
-        <div class="col-md-3">{{ info.title }}</div>
-        <div class="col-md-9">
-          <div class="row mb-1">
-            <div class="col-md-1">{{ info.count }}</div>
-            <div class="col-md-11">
-              <button class="btn btn-sm btn-primary"
-                      data-toggle="modal"
-                      data-target="#{{ info.id }}">View</button>
-            </div>
+    {% for info in applicant_info %}
+    <div class="row mb-1">
+      <div class="col-md-3">{{ info.title }}</div>
+      <div class="col-md-9">
+        <div class="row mb-1">
+          <div class="col-md-1">{{ info.count }}</div>
+          <div class="col-md-11">
+            <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#{{ info.id }}">View</button>
           </div>
         </div>
       </div>
-      {% endfor %}
+    </div>
+    {% endfor %}
 
-      <div class="row mb-1">
-        <div class="col-md-3">Description:</div>
-        <div class="col-md-9">{{ event.description }}</div>
+    <div class="row mb-1">
+      <div class="col-md-3">Description:</div>
+      <div class="col-md-9">{{ event.description }}</div>
+    </div>
+
+  </div>
+</div>
+{% include 'console/event_management_manage_dataset.html' %}
+
+{% for info in applicant_info %}
+<div class="modal fade" id="{{ info.id }}" tabindex="-1" role="dialog" aria-labelledby="view-{{ info.id }}-modal"
+  aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{ info.title }}</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
-      
+      {% include 'events/event_applications.html' %}
     </div>
   </div>
-  {% include 'console/event_management_manage_dataset.html' %}
+</div>
+{% endfor %}
 
-  {% for info in applicant_info %}
-  <div class="modal fade"
-        id="{{ info.id }}"
-        tabindex="-1"
-        role="dialog"
-        aria-labelledby="view-{{ info.id }}-modal"
-        aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">{{ info.title }}</h5>
-          <button type="button"
-                  class="close"
-                  data-dismiss="modal"
-                  aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        {% include 'events/event_applications.html' %}
-      </div>
-    </div>
-  </div>
-  {% endfor %}
+{% endblock %}
 
+{% block local_js_bottom %}
+<script src="{% static 'custom/js/resize-ck.js' %}"></script>
 {% endblock %}

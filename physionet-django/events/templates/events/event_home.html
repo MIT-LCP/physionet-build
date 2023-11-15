@@ -16,229 +16,199 @@
   {% include "message_snippet.html" %}
   <div class="jumbotron">
     <h1>Events Home</h1>
-      {% if can_change_event %}
-      <p class="lead">Create new events and access event details.</p>
-      <p>
-        <a class = "btn btn-success" href="{% url 'create_event' %}" >
-          <i class="fa fa-cloud-upload-alt"></i> Create New Event </a>
-      </p>
-      {% else %}
-      <p class="lead">View events that you have registered to attend.</p>
-      {% endif %} 
-</div>
+    {% if can_change_event %}
+    <p class="lead">Create new events and access event details.</p>
+    <p>
+      <a class="btn btn-success" href="{% url 'create_event' %}">
+        <i class="fa fa-cloud-upload-alt"></i> Create New Event </a>
+    </p>
+    {% else %}
+    <p class="lead">View events that you have registered to attend.</p>
+    {% endif %}
+  </div>
 
-    <div class="modal fade" id="edit-event-modal" tabindex="-1" role="dialog" aria-labelledby="edit-event-modal" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Edit Event</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="container">
-              <form action="" method="post" class="form-signin edit-event" >
-                {% csrf_token %}
-                {% include "form_snippet.html" with form=event_form %}
-                <button class="btn btn-primary btn-fixed" name="edit-event" type="submit">Save</button>
-              </form>
-            </div>
-          </div>
+  <div class="modal fade" id="edit-event-modal" tabindex="-1" role="dialog" aria-labelledby="edit-event-modal"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Event</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="container">
+          <form action="" method="post" class="form-signin edit-event">
+            {% csrf_token %}
+            {% include "form_snippet.html" with form=event_form %}
+            <button class="btn btn-primary btn-fixed" name="edit-event" type="submit">Save</button>
+          </form>
         </div>
       </div>
+    </div>
+  </div>
 
-{% include 'events/event_notifications.html' %}
+  {% include 'events/event_notifications.html' %}
 
-<!-- Active events -->
+  <!-- Active events -->
 
-  <div class="card" >
+  <div class="card">
     <div class="card-header">
       <h2>Active Events</h2>
     </div>
-    
+
     <ul class="list-group list-group-flush">
       {% for event in events_active %}
-          <li class="list-group-item">
-            <h3>{{ event.title }}</h3>
-            <p class="list-group-item-text text-muted">
-            <strong>Host: {{ event.host.get_full_name }} </strong><br>
-            {% with event_cohosts=event.get_cohosts %}
-              {% if event_cohosts %}
-                <small>Cohost:
-                {% for cohost in event_cohosts %}
-                  {{ cohost.user.get_full_name }}{% if not forloop.last %}, {% endif %}
-                {% endfor %}
-                </small><br>
-              {% endif %}
-            {% endwith %}
-            <small>Created: {{ event.added_datetime|date }}</small><br>
-            {% if event.host == user %} <small>Number of participants: {{ event.participants.all|length }}</small><br>{% endif %}
-            <small>Start Date: {{ event.start_date }}</small><br>
-            <small>End Date: {{ event.end_date }}</small><br>
+      <li class="list-group-item">
+        <h3>{{ event.title }}</h3>
+        <p class="list-group-item-text text-muted">
+          <strong>Host: {{ event.host.get_full_name }} </strong><br>
+          {% with event_cohosts=event.get_cohosts %}
+          {% if event_cohosts %}
+          <small>Cohost:
+            {% for cohost in event_cohosts %}
+            {{ cohost.user.get_full_name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </small><br>
+          {% endif %}
+          {% endwith %}
+          <small>Created: {{ event.added_datetime|date }}</small><br>
+          {% if event.host == user %}
+          <small>Number of participants: {{ event.participants.all|length }}</small>
+          <br>{% endif %}
+          <small>Start Date: {{ event.start_date }}</small><br>
+          <small>End Date: {{ event.end_date }}</small><br>
 
-            {% if user|is_participant:event %}
-              <small>Registration status: Registered</small><br>
-            {% elif user|is_on_waiting_list:event  %}
-                <small>Registration status: On waiting list</small><br>
-            {% endif %}
+          {% if user|is_participant:event %}
+          <small>Registration status: Registered</small><br>
+          {% elif user|is_on_waiting_list:event %}
+          <small>Registration status: On waiting list</small><br>
+          {% endif %}
 
-            {% if event.host == user %}
-              <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
-              </p>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#participants-modal-{{ event.id }}">View participants</button>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#pending_applications-modal-{{ event.id }}">Pending Applications</button>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#rejected_applications-modal-{{ event.id }}">Rejected Applications</button>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#withdrawn_applications-modal-{{ event.id }}">Withdrawn Applications</button>              
-              <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
-            {% endif %}
+          {% if event.host == user %}
+          <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
+        </p>
+        <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#participants-modal-{{ event.id }}">View
+          participants</button>
+        <button class="btn btn-sm btn-primary" data-toggle="modal"
+          data-target="#pending_applications-modal-{{ event.id }}">Pending Applications</button>
+        <button class="btn btn-sm btn-primary" data-toggle="modal"
+          data-target="#rejected_applications-modal-{{ event.id }}">Rejected Applications</button>
+        <button class="btn btn-sm btn-primary" data-toggle="modal"
+          data-target="#withdrawn_applications-modal-{{ event.id }}">Withdrawn Applications</button>
+        <a class="btn btn-sm btn-secondary" href="{% url 'update_event' event.slug %}"
+          data-form-url="{% url 'update_event' event.slug %}">Edit Event</a>
+        {% endif %}
 
-            <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-info">View Event</a>
-          </li>
+        <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-info">View Event</a>
+      </li>
       {% empty %}
-        <div class="card-body text-center">
-          <p class="card-text">No events to show</p>
-        </div>
+      <div class="card-body text-center">
+        <p class="card-text">No events to show</p>
+      </div>
       {% endfor %}
     </ul>
   </div>
   <br>
   {% if events_active %}
   {% for event in events_active %}
-    {% for info in event_details|get_applicant_info:event.id %}
-      <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ info.id }}-modal" aria-hidden="true">
-        <div class="modal-dialog modal-lg"  role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">{{ info.title }}</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-              {% include 'events/event_applications.html' %}
-            </div>
-          </div>
+  {% for info in event_details|get_applicant_info:event.id %}
+  <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog"
+    aria-labelledby="{{ info.id }}-modal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ info.title }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
-    {% endfor %}
+        {% include 'events/event_applications.html' %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
   {% endfor %}
   {% endif %}
-   
 
-<!-- Past events -->
 
-  <div class="card" >
+  <!-- Past events -->
+
+  <div class="card">
     <div class="card-header">
       <h2>Past Events</h2>
     </div>
-    
+
     <ul class="list-group list-group-flush">
       {% for event in events_past %}
-          <li class="list-group-item">
-            <h3>{{ event.title }}</h3>
-            <p class="list-group-item-text text-muted">
-            <strong>Host: {{ event.host.get_full_name }} </strong><br>
-            {% with event_cohosts=event.get_cohosts %}
-              {% if event_cohosts %}
-                <small>Cohost:
-                {% for cohost in event_cohosts %}
-                  {{ cohost.user.get_full_name }}{% if not forloop.last %}, {% endif %}
-                {% endfor %}
-                </small><br>
-              {% endif %}
-            {% endwith %}
-            <small>Created: {{ event.added_datetime|date }}</small><br>
-            {% if event.host == user %} <small>Number of participants: {{ event.participants.all|length }}</small><br>{% endif %}
-            <small>Start Date: {{ event.start_date }}</small><br>
-            <small>End Date: {{ event.end_date }}</small><br>
+      <li class="list-group-item">
+        <h3>{{ event.title }}</h3>
+        <p class="list-group-item-text text-muted">
+          <strong>Host: {{ event.host.get_full_name }} </strong><br>
+          {% with event_cohosts=event.get_cohosts %}
+          {% if event_cohosts %}
+          <small>Cohost:
+            {% for cohost in event_cohosts %}
+            {{ cohost.user.get_full_name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </small><br>
+          {% endif %}
+          {% endwith %}
+          <small>Created: {{ event.added_datetime|date }}</small><br>
+          {% if event.host == user %}
+          <small>Number of participants: {{ event.participants.all|length }}</small><br>
+          {% endif %}
+          <small>Start Date: {{ event.start_date }}</small><br>
+          <small>End Date: {{ event.end_date }}</small><br>
 
-            {% if user|is_participant:event %}
-              <small>Registration status: Approved</small><br>
-            {% elif user|is_on_waiting_list:event  %}
-                <small>Registration status: Waiting for Approval</small><br>
-            {% endif %}
+          {% if user|is_participant:event %}
+          <small>Registration status: Approved</small><br>
+          {% elif user|is_on_waiting_list:event %}
+          <small>Registration status: Waiting for Approval</small><br>
+          {% endif %}
 
-            {% if event.host == user %}
-              <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
-              </p>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#participants-modal-{{ event.id }}">View participants</button>
-              <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
-            {% endif %}
+          {% if event.host == user %}
+          <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
+        </p>
+        <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#participants-modal-{{ event.id }}">View
+          participants</button>
+        <a class="btn btn-sm btn-secondary" href="{% url 'update_event' event.slug %}"
+          data-form-url="{% url 'update_event' event.slug %}">Edit Event</a>
+        {% endif %}
 
-            <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-info">View Event</a>
-          </li>
+        <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-info">View Event</a>
+      </li>
       {% empty %}
-        <div class="card-body text-center">
-          <p class="card-text">No events to show</p>
-        </div>
+      <div class="card-body text-center">
+        <p class="card-text">No events to show</p>
+      </div>
       {% endfor %}
     </ul>
   </div>
   <br>
   {% if events_past %}
-    {% for event in events_past %}
-    {% for info in event_details|get_applicant_info:event.id %}
-      <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ info.id }}-modal" aria-hidden="true">
-        <div class="modal-dialog modal-lg"  role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">{{ info.title }}</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-              {% include 'events/event_applications.html' %}
-            </div>
-          </div>
+  {% for event in events_past %}
+  {% for info in event_details|get_applicant_info:event.id %}
+  <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog"
+    aria-labelledby="{{ info.id }}-modal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ info.title }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
-    {% endfor %}
-    {% endfor %}
-  {% endif %}
+        {% include 'events/event_applications.html' %}
+      </div>
+    </div>
   </div>
+  {% endfor %}
+  {% endfor %}
+  {% endif %}
+</div>
 {% endblock %}
 
-
 {% block local_js_bottom %}
-  <script>
-  $(document).ready(function() {
-    $('.manage-cohost').submit(function(e) {
-        e.preventDefault();
-        let $form = $(this);
-        $form.find('input[type="submit"]').prop('disabled', true);
-
-        let participant_id = e.target.participant.value;
-        let event_slug = e.target.event.value;
-        let submit_value = $form.find('input[type="submit"]').val();
-        let csrftoken = e.target.csrfmiddlewaretoken.value;
-        let url = e.target.action;
-
-        $.ajax({
-          url: url,
-          type: 'POST',
-          data: {
-              'participant_id': participant_id,
-              'event_slug': event_slug,
-              'csrfmiddlewaretoken': csrftoken,
-              'submit': submit_value
-          },
-          success: function(data) {
-
-              $form.find('input[type="submit"]').prop('disabled', false);
-
-              if (submit_value == 'Make cohost') {
-                $form.find('input[type="submit"]').val('Remove cohost');
-                $form.find('input[type="submit"]').removeClass('btn-primary');
-                $form.find('input[type="submit"]').addClass('btn-danger');
-              } else if (submit_value == 'Remove cohost') {
-                $form.find('input[type="submit"]').val('Make cohost');
-                $form.find('input[type="submit"]').removeClass('btn-danger');
-                $form.find('input[type="submit"]').addClass('btn-success');
-              }
-          },
-          error: function(data) {
-            $form.find('input[type="submit"]').prop('disabled', false);
-          }
-      });
-    });
-  });
-  </script>
-  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+<script src="{% static 'custom/js/resize-ck.js' %}"></script>
 {% endblock %}
