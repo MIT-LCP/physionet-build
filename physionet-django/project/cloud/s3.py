@@ -729,3 +729,50 @@ def upload_all_projects():
     published_projects = PublishedProject.objects.all()
     for project in published_projects:
         upload_project_to_S3(project)
+
+
+def create_s3_server_access_log_bucket():
+    """
+    Create the bucket for server access logs.
+
+    This creates the bucket designated by S3_SERVER_ACCESS_LOG_BUCKET,
+    and allows it to be used to deposit S3 server access logs.  Only
+    buckets owned by the AWS_ACCOUNT_ID account will be allowed to
+    store logs in this bucket.
+
+    If the bucket already exists, an exception will be raised.
+    """
+    s3 = create_s3_client()
+
+    bucket_name = settings.S3_SERVER_ACCESS_LOG_BUCKET
+    source_accounts = [settings.AWS_ACCOUNT_ID]
+
+    s3.create_bucket(Bucket=bucket_name)
+
+    put_public_access_block(s3, bucket_name, True)
+
+    # Policy for logging - see:
+    # https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-server-access-logging.html
+    s3.put_bucket_policy(Bucket=bucket_name, Policy=json.dumps({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Principal": {
+                    "Service": "logging.s3.amazonaws.com",
+                },
+                "Action": [
+                    "s3:PutObject",
+                ],
+                "Resource": f"arn:aws:s3:::{bucket_name}/*",
+                "Condition": {
+                    "ArnLike": {
+                        "aws:SourceArn": "arn:aws:s3:::*",
+                    },
+                    "StringEquals": {
+                        "aws:SourceAccount": source_accounts,
+                    },
+                },
+            },
+        ],
+    }))
