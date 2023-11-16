@@ -38,42 +38,54 @@
           {% endif %}
         </div>
       </div>
+
+      {% for info in applicant_info %}
       <div class="row mb-1">
-        <div class="col-md-3">Total participants:</div>
+        <div class="col-md-3">{{ info.title }}</div>
         <div class="col-md-9">
           <div class="row mb-1">
-            <div class="col-md-1">{{ event.participants.count }}</div>
+            <div class="col-md-1">{{ info.count }}</div>
             <div class="col-md-11">
               <button class="btn btn-sm btn-primary"
                       data-toggle="modal"
-                      data-target="#view-participants">View participants</button>
+                      data-target="#{{ info.id }}">View</button>
             </div>
           </div>
         </div>
       </div>
+      {% endfor %}
+
       <div class="row mb-1">
         <div class="col-md-3">Description:</div>
         <div class="col-md-9">{{ event.description }}</div>
       </div>
+      
     </div>
   </div>
   {% include 'console/event_management_manage_dataset.html' %}
+
+  {% for info in applicant_info %}
   <div class="modal fade"
-       id="view-participants"
-       tabindex="-1"
-       role="dialog"
-       aria-labelledby="view-participants-modal"
-       aria-hidden="true">
+        id="{{ info.id }}"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="view-{{ info.id }}-modal"
+        aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">Participants</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <h5 class="modal-title">{{ info.title }}</h5>
+          <button type="button"
+                  class="close"
+                  data-dismiss="modal"
+                  aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        {% include 'events/event_entries.html' %}
+        {% include 'events/event_applications.html' %}
       </div>
     </div>
   </div>
+  {% endfor %}
+
 {% endblock %}
