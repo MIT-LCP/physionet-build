@@ -5,6 +5,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 from django.db.models import F, Q
@@ -28,7 +29,7 @@ from user.models import (
 )
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
-from user.validators import UsernameValidator, validate_name, validate_training_file_size
+from user.validators import UsernameValidator, validate_email, validate_name, validate_training_file_size
 from user.validators import validate_institutional_email
 from user.widgets import ProfilePhotoInput
 
@@ -473,6 +474,21 @@ class PersonalCAF(forms.ModelForm):
             'last_name':self.profile.last_name,
             'organization_name':self.profile.affiliation,
             'webpage':self.profile.website}
+
+    def clean(self):
+        email = self.user.email
+        category = self.cleaned_data.get('researcher_category')
+
+        if category in [0, 1, 2, 7]:
+            validate_email(email)
+            domains = [
+                "yahoo.com", "163.com", "126.com", "outlook.com", "gmail.com", "qq.com",
+                "foxmail.com", "hotmail.com", "168.com"
+            ]
+            if email.split('@')[-1].lower() in domains:
+                self.add_error('researcher_category', 'Please provide your academic email address'
+                               ' in your email settings.'
+                               ' Select your academic email as your primary email address.')
 
 
 class ResearchCAF(forms.ModelForm):
