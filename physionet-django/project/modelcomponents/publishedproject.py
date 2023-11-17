@@ -123,11 +123,21 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
-    def zip_name(self, full=False):
+    def zip_name(self, full=False, legacy=True):
         """
         Name of the zip file. Either base name or full path name.
+
+        If legacy is true, use the project title to generate the file
+        name (e.g. "demo-ecg-signal-toolbox-10.5.24.zip").
+
+        If false, use the project slug (e.g. "demoecg-10.5.24.zip").
+
+        Eventually the old style will be replaced with the new style.
         """
-        name = '{}.zip'.format(self.slugged_label())
+        if legacy:
+            name = '{}.zip'.format(self.slugged_label())
+        else:
+            name = '{}-{}.zip'.format(self.slug, self.version)
         if full:
             name = os.path.join(self.project_file_root(), name)
         return name
