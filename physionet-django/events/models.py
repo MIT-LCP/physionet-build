@@ -1,3 +1,4 @@
+from enum import IntEnum
 from django.db import models, transaction
 from django.utils.crypto import get_random_string
 from django.utils import timezone

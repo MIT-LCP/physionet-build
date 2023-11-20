@@ -19,7 +19,8 @@
         <td>{{ participant.user.is_credentialed }}</td>
         <td>
           {% if not event.has_ended %}
-          <form class="manage-cohost" action="{% url 'manage_co_hosts' event.slug %}">
+          <form class="manage-cohost" action="{% url 'manage_co_hosts' event.slug %}"
+            data-cohost-status="{{ participant.is_cohost }}">
             {% csrf_token %}
             <input type="text" name="event" value="{{ event.slug }}" hidden>
             <input type="text" name="participant" value="{{ participant.id }}" hidden>
@@ -36,3 +37,52 @@
     </tbody>
   </table>
 </div>
+
+{% block local_js_bottom %}
+<script>
+  $(document).ready(function () {
+    $('.manage-cohost').submit(function (e) {
+      e.preventDefault();
+      let $form = $(this);
+      $form.find('input[type="submit"]').prop('disabled', true);
+
+      let participant_id = e.target.participant.value;
+      let event_slug = e.target.event.value;
+      let submit_value = $form.find('input[type="submit"]').val();
+      let csrftoken = e.target.csrfmiddlewaretoken.value;
+      let url = e.target.action;
+
+      var cohostStatus = $form.attr('data-cohost-status');
+      console.log(cohostStatus);
+
+      $.ajax({
+        url: url,
+        type: 'POST',
+        data: {
+          'participant_id': participant_id,
+          'event_slug': event_slug,
+          'csrfmiddlewaretoken': csrftoken,
+          'submit': submit_value
+        },
+        success: function (data) {
+
+          $form.find('input[type="submit"]').prop('disabled', false);
+
+          if (submit_value == 'Make cohost') {
+            $form.find('input[type="submit"]').val('Remove cohost');
+            $form.find('input[type="submit"]').removeClass('btn-primary');
+            $form.find('input[type="submit"]').addClass('btn-danger');
+          } else if (submit_value == 'Remove cohost') {
+            $form.find('input[type="submit"]').val('Make cohost');
+            $form.find('input[type="submit"]').removeClass('btn-danger');
+            $form.find('input[type="submit"]').addClass('btn-success');
+          }
+        },
+        error: function (data) {
+          $form.find('input[type="submit"]').prop('disabled', false);
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

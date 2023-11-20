@@ -322,8 +322,6 @@ def manage_co_hosts(request, event_slug):
     user = request.user
     error_message = None
 
-    print(request.method)
-
     if request.method == 'POST':
         participant_id = request.POST.get('participant_id')
 
@@ -340,6 +338,8 @@ def manage_co_hosts(request, event_slug):
             return JsonResponse({'error': error_message}, status=403)
 
         participant = event.participants.get(id=participant_id)
+
+        # some variable/enum that will be assigned. 
 
         if request.POST.get('submit') == 'Remove cohost':
             if not participant.is_cohost:
