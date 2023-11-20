@@ -210,6 +210,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             ('can_assign_editor', 'Can assign editor'),
             ('can_edit_activeprojects', 'Can edit ActiveProjects')
         ]
+        ordering = ('title', 'creation_datetime')
 
     def storage_used(self):
         """
