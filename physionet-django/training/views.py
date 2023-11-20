@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from project.validators import validate_version
+from project.validators import validate_version, is_version_greater
 
 from rest_framework.parsers import JSONParser
 
@@ -69,11 +69,10 @@ def courses(request):
             existing_course_version = existing_course.order_by('-version').first().version
             new_course_version = file_data['courses'][0]['version']
             # checking if the new course file has a valid version
-            if not validate_version(file_data['courses'][0]['version']):
+            if validate_version(new_course_version) is not None:
                 messages.error(request, 'Version number is not valid.')
             # checking if the version number is greater than the existing version
-            elif float(file_data['courses'][0]['version']
-                       ) <= float(existing_course.order_by('-version').first().version):
+            elif not is_version_greater(new_course_version, existing_course_version):
                 messages.error(request, 'Version number should be greater than the existing version.')
             else:
                 serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
