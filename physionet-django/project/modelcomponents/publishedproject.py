@@ -77,6 +77,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             ('can_view_project_guidelines', 'Can view project guidelines'),
             ('can_view_stats', 'Can view stats')
         ]
+        ordering = ('title', 'version_order')
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
