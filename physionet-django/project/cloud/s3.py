@@ -31,7 +31,7 @@ def has_s3_credentials():
     """
     return all([
         settings.AWS_PROFILE,
-        settings.S3_BUCKET_OWNER_ID,
+        settings.AWS_ACCOUNT_ID,
         settings.S3_OPEN_ACCESS_BUCKET,
         settings.S3_SERVER_ACCESS_LOG_BUCKET,
     ])
@@ -382,8 +382,8 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
 
     # If project has a ZIP file, upload it as well
     if project.compressed_storage_size:
-        zip_name = project.zip_name()
-        zip_file_path = os.path.join(project.project_file_root(), zip_name)
+        zip_name = project.zip_name(legacy=False)
+        zip_file_path = project.zip_name(full=True)
         if project.access_policy == AccessPolicy.OPEN:
             s3_key = os.path.join(f"{project.slug}/", zip_name)
         else:
@@ -622,12 +622,6 @@ def update_bucket_policy(project, bucket_name):
         set_bucket_policy(bucket_name, bucket_policy)
 
 
-def get_bucket_owner(s3_client, bucket_name):
-    response = s3_client.get_bucket_acl(Bucket=bucket_name)
-    owner_id = response['Owner']['ID']
-    return owner_id
-
-
 def upload_project_to_S3(project):
     """
     Upload project-related files to an AWS S3 bucket
@@ -658,39 +652,32 @@ def upload_project_to_S3(project):
     access policy, providing an optional prefix within the
     S3 bucket.
     """
-    bucket_owner_id = None
     bucket_name = get_bucket_name(project)
     # create bucket if it does not exist
     s3 = create_s3_client()
     if s3 is None or bucket_name is None:
         return
 
-    if check_s3_bucket_exists(project):
-        # Check bucket ownership
-        bucket_owner_id = get_bucket_owner(s3, bucket_name)
-        if bucket_owner_id != settings.S3_BUCKET_OWNER_ID:
-            raise Exception("Bucket is owned by another AWS account.")
-    if bucket_owner_id is None or bucket_owner_id == settings.S3_BUCKET_OWNER_ID:
-        try:
-            create_s3_bucket(s3, bucket_name)
-        except s3.exceptions.BucketAlreadyOwnedByYou:
-            pass
-
-        put_bucket_logging(
-            s3, bucket_name, settings.S3_SERVER_ACCESS_LOG_BUCKET, bucket_name + "/logs/"
-        )
-        # upload files to bucket
-        folder_path = project.file_root()
-        # set the prefix only for the projects
-        # in the open data bucket
-        if project.access_policy == AccessPolicy.OPEN:
-            s3_prefix = f"{project.slug}/{project.version}/"
-        else:
-            s3_prefix = f"{project.version}/"
-        send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
-
-        # update bucket's policy for projects
-        update_bucket_policy(project, bucket_name)
+    try:
+        create_s3_bucket(s3, bucket_name)
+    except s3.exceptions.BucketAlreadyExists:
+        raise Exception(f"A bucket named {bucket_name} already exists.")
+    except s3.exceptions.BucketAlreadyOwnedByYou:
+        pass
+    put_bucket_logging(
+        s3, bucket_name, settings.S3_SERVER_ACCESS_LOG_BUCKET, bucket_name + "/logs/"
+    )
+    # upload files to bucket
+    folder_path = project.file_root()
+    # set the prefix only for the projects
+    # in the open data bucket
+    if project.access_policy == AccessPolicy.OPEN:
+        s3_prefix = f"{project.slug}/{project.version}/"
+    else:
+        s3_prefix = f"{project.version}/"
+    send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
+    # update bucket's policy for projects
+    update_bucket_policy(project, bucket_name)
 
 
 def upload_list_of_projects(projects):

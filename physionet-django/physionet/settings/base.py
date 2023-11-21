@@ -233,15 +233,15 @@ if config('AWS_SHARED_CREDENTIALS_FILE', default=None):
 else:
     AWS_SHARED_CREDENTIALS_FILE = None
 
-AWS_PROFILE = config('AWS_PROFILE', default=False)
+AWS_PROFILE = config('AWS_PROFILE', default=None)
 
-S3_BUCKET_OWNER_ID = config('S3_BUCKET_OWNER_ID', default=False)
+AWS_ACCOUNT_ID = config('AWS_ACCOUNT_ID', default=None)
 
 # Bucket name for the S3 bucket containing the open access data
-S3_OPEN_ACCESS_BUCKET = config('S3_OPEN_ACCESS_BUCKET', default=False)
+S3_OPEN_ACCESS_BUCKET = config('S3_OPEN_ACCESS_BUCKET', default=None)
 
 # Bucket name to store logs and metrics related to project usage.
-S3_SERVER_ACCESS_LOG_BUCKET = config('S3_SERVER_ACCESS_LOG_BUCKET', default=False)
+S3_SERVER_ACCESS_LOG_BUCKET = config('S3_SERVER_ACCESS_LOG_BUCKET', default=None)
 
 # Header tags for the AWS lambda function that grants access to S3 storage
 AWS_HEADER_KEY = config('AWS_KEY', default=False)
