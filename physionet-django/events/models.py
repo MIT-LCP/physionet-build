@@ -11,6 +11,11 @@ from project.modelcomponents.fields import SafeHTMLField
 from project.validators import validate_version, validate_slug
 
 
+class cohostStatus(IntEnum):
+    MAKE_COHOST = 0
+    REMOVE_COHOST = 1
+
+
 class Event(models.Model):
     """
     Captures information on events such as datathons, workshops and classes.

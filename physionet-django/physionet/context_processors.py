@@ -5,11 +5,21 @@ from project.models import (
     SubmissionStatus,
 )
 
+from events.models import (
+    cohostStatus,
+)
+
 
 def project_enums(request):
     return {
         'AccessPolicy': AccessPolicy,
         'SubmissionStatus': SubmissionStatus,
+    }
+
+
+def event_enums(request):
+    return {
+        'cohostStatus': cohostStatus,
     }
 
 

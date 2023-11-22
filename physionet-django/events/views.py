@@ -13,7 +13,7 @@ from django.urls import reverse
 
 import notification.utility as notification
 from events.forms import AddEventForm, EventApplicationResponseForm
-from events.models import Event, EventApplication, EventParticipant
+from events.models import Event, EventApplication, EventParticipant, cohostStatus
 from events.utility import notify_host_cohosts_new_registration
 
 
@@ -341,7 +341,11 @@ def manage_co_hosts(request, event_slug):
 
         # some variable/enum that will be assigned. 
 
-        if request.POST.get('submit') == 'Remove cohost':
+        action = request.POST.get('action')
+
+        print(request.POST)
+
+        if action == cohostStatus.REMOVE_COHOST:
             if not participant.is_cohost:
                 return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
             participant.is_cohost = False
@@ -352,7 +356,7 @@ def manage_co_hosts(request, event_slug):
                                                                 status=participant.is_cohost)
 
             return JsonResponse({'success': 'Cohost removed successfully'})
-        elif request.POST.get('submit') == 'Make cohost':
+        elif action == cohostStatus.MAKE_COHOST:
             if participant.is_cohost:
                 return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
             participant.is_cohost = True
