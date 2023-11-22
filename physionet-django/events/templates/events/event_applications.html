@@ -62,17 +62,20 @@
           'participant_id': participant_id,
           'event_slug': event_slug,
           'csrfmiddlewaretoken': csrftoken,
-          'action': action
+          'action': action,
+          'submit': submit_value
         },
         success: function (data) {
 
           $form.find('input[type="submit"]').prop('disabled', false);
 
           if ($form.attr('data-action') == 'MAKE_COHOST') {
+            $form.attr('data-action', 'REMOVE_COHOST');
             $form.find('input[type="submit"]').val('Remove cohost');
             $form.find('input[type="submit"]').removeClass('btn-primary');
             $form.find('input[type="submit"]').addClass('btn-danger');
           } else if ($form.attr('data-action') == 'REMOVE_COHOST') {
+            $form.attr('data-action', 'MAKE_COHOST');
             $form.find('input[type="submit"]').val('Make cohost');
             $form.find('input[type="submit"]').removeClass('btn-danger');
             $form.find('input[type="submit"]').addClass('btn-success');

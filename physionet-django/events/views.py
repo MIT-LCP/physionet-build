@@ -220,6 +220,7 @@ def event_home(request):
     participation_response_formset = EventApplicationResponseFormSet(
         queryset=participation_requests
     )
+    cohost_status = {member: value.value for member, value in cohostStatus.__members__.items()}
     return render(
         request,
         "events/event_home.html",
@@ -232,6 +233,7 @@ def event_home(request):
             "form_error": form_error,
             "participation_response_formset": participation_response_formset,
             "event_details": event_details,
+            "cohost_status": cohost_status,
         },
     )
 
@@ -341,11 +343,11 @@ def manage_co_hosts(request, event_slug):
 
         # some variable/enum that will be assigned. 
 
-        action = request.POST.get('action')
+        action = request.POST.get('action')[0]
 
-        print(request.POST)
+        print(action)
 
-        if action == cohostStatus.REMOVE_COHOST:
+        if action == str(cohostStatus.REMOVE_COHOST.value):
             if not participant.is_cohost:
                 return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
             participant.is_cohost = False
@@ -356,7 +358,7 @@ def manage_co_hosts(request, event_slug):
                                                                 status=participant.is_cohost)
 
             return JsonResponse({'success': 'Cohost removed successfully'})
-        elif action == cohostStatus.MAKE_COHOST:
+        elif action == str(cohostStatus.MAKE_COHOST.value):
             if participant.is_cohost:
                 return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
             participant.is_cohost = True

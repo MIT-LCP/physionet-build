@@ -117,7 +117,6 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'physionet.context_processors.project_enums',
-                'physionet.context_processors.event_enums',
                 'physionet.context_processors.storage_type',
                 'physionet.context_processors.platform_config',
                 'sso.context_processors.sso_enabled',
