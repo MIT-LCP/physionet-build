@@ -20,7 +20,7 @@ from user.enums import TrainingStatus
 
 from training.models import Course, Quiz, QuizChoice, ContentBlock
 from training.models import CourseProgress, ModuleProgress, CompletedContent, CompletedQuiz
-from training.serializers import TrainingTypeSerializer
+from training.serializers import TrainingTypeSerializer, CourseSerializer
 
 
 # Utility Functions
@@ -110,13 +110,16 @@ def download_course(request, pk, version):
     and returns a JSON response containing information about the
     training course with the specified primary key and version number.
     """
-    training_type = get_object_or_404(TrainingType, pk=pk)
-    version = float(version)
+    course = Course.objects.filter(training_type__pk=pk, version=version).first()
+    if not course:
+        messages.error(request, 'Course not found')
+        return redirect('courses')
+    training_type = course.training_type
     if training_type.required_field != RequiredField.PLATFORM:
         messages.error(request, 'Only onplatform course can be downloaded')
         return redirect('courses')
 
-    serializer = TrainingTypeSerializer(training_type)
+    serializer = CourseSerializer(course)
     response_data = serializer.data
     response = JsonResponse(response_data, safe=False, json_dumps_params={'indent': 2})
     response['Content-Disposition'] = f'attachment; filename={training_type.name}--version-{version}.json'
