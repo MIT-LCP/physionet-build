@@ -69,13 +69,19 @@
 
           $form.find('input[type="submit"]').prop('disabled', false);
 
-          if ($form.attr('data-action') == 'MAKE_COHOST') {
-            $form.attr('data-action', 'REMOVE_COHOST');
+          current_action = $form.find('input[type="submit"]').attr('data-action');
+          make_cohost_action = '{{ cohostStatus.MAKE_COHOST }}';
+          remove_cohost_action = '{{ cohostStatus.REMOVE_COHOST }}';
+
+          console.log(current_action, make_cohost_action, remove_cohost_action);
+
+          if (current_action == make_cohost_action) {
+            $form.find('input[type="submit"]').attr('data-action', remove_cohost_action);
             $form.find('input[type="submit"]').val('Remove cohost');
             $form.find('input[type="submit"]').removeClass('btn-primary');
             $form.find('input[type="submit"]').addClass('btn-danger');
-          } else if ($form.attr('data-action') == 'REMOVE_COHOST') {
-            $form.attr('data-action', 'MAKE_COHOST');
+          } else if (current_action == remove_cohost_action) {
+            $form.find('input[type="submit"]').attr('data-action', make_cohost_action);
             $form.find('input[type="submit"]').val('Make cohost');
             $form.find('input[type="submit"]').removeClass('btn-danger');
             $form.find('input[type="submit"]').addClass('btn-success');
