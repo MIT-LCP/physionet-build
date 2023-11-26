@@ -1,3 +1,4 @@
+from token import NUMBER
 from django.db import models
 from django.utils import timezone
 
@@ -5,8 +6,8 @@ from project.modelcomponents.fields import SafeHTMLField
 from user.models import Training
 from project.validators import validate_version
 
-NUMBER_OF_DAYS_SET_TO_EXPIRE = 30
 
+NUMBER_OF_DAYS_TO_EXPIRE = 30
 
 class Course(models.Model):
     """
@@ -23,6 +24,7 @@ class Course(models.Model):
     version = models.CharField(
         max_length=15, default="", blank=True, validators=[validate_version]
     )
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         default_permissions = ("change",)
@@ -35,7 +37,7 @@ class Course(models.Model):
             ("can_view_course_guidelines", "Can view course guidelines"),
         ]
 
-    def update_course_for_major_version_change(self, instance):
+    def update_course_for_version_change(self, instance):
         """
         If it is a major version change, it sets all former user trainings
         to a reduced date, and informs them all.
@@ -50,10 +52,18 @@ class Course(models.Model):
                 timezone.now()
                 - (
                     instance.valid_duration
-                    - timezone.timedelta(days=NUMBER_OF_DAYS_SET_TO_EXPIRE)
+                    - timezone.timedelta(days=NUMBER_OF_DAYS_TO_EXPIRE)
                 )
             )
         )
+
+    def expire_course_version(self, instance):
+        """
+        This method expires the course by setting the is_active field to False and expires all the trainings associated with it.
+        """
+        self.is_active = False
+        self.update_course_for_version_change(instance)
+        self.save()
 
     def __str__(self):
         return f"{self.training_type} v{self.version}"

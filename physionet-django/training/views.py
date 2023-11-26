@@ -1,3 +1,4 @@
+from calendar import c
 from hmac import new
 import json
 import operator
@@ -77,10 +78,6 @@ def courses(request):
             else:
                 serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
                 if serializer.is_valid(raise_exception=False):
-                    if is_major_change(new_course_version,
-                                       existing_course_version):
-                        # calling the update_course_for_major_version_change method to update the course
-                        existing_course[0].update_course_for_major_version_change(training_type)
                     serializer.save()
                     messages.success(request, 'Course updated successfully.')
         else:
@@ -102,6 +99,41 @@ def courses(request):
             'training_type_nav': True,
         })
 
+
+@permission_required('training.change_course', raise_exception=True)
+def course_details(request, pk):
+    """
+    View function for managing courses.
+    Allows managing the version of the courses for a given training type.
+    Allows expiring the specific version of the course.
+    """
+    training_type = get_object_or_404(TrainingType, pk=pk)
+    active_course_versions = Course.objects.filter(training_type=training_type, is_active=True).order_by('-version')
+    inactive_course_versions = Course.objects.filter(training_type=training_type, is_active=False).order_by('-version')
+    return render(
+        request,
+        'console/training_type/course_details.html',
+        {
+            'training_type': training_type,
+            'active_course_versions': active_course_versions,
+            'inactive_course_versions': inactive_course_versions,
+            'training_type_nav': True,
+        })
+
+
+@permission_required('training.change_course', raise_exception=True)
+def expire_course(request, pk, version):
+    """
+    This view takes a primary key and a version number as input parameters,
+    and expires the course with the specified primary key and version number.
+    """
+    course = Course.objects.filter(training_type__pk=pk, version=version).first()
+    if not course:
+        messages.error(request, 'Course not found')
+        return redirect('courses')
+    course.expire_course_version(course.training_type)
+    messages.success(request, 'Course expired successfully.')
+    return redirect('course_details', pk=pk)
 
 @permission_required('training.change_course', raise_exception=True)
 def download_course(request, pk, version):

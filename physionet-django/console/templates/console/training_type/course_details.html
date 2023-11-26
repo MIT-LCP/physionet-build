@@ -1,0 +1,67 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ training_type }}{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+    <div class="card-header">
+        {{ training_type }} <span class="badge badge-pill badge-info"></span>
+    </div>
+    <br>
+    <h3 class="card-title text-center">Active Versions</h3>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in active_course_versions %}
+
+                <tr>
+                    <td>{{ training_type.name|title }}</td>
+                    <td>{{ course.version }}</td>
+                    <td>
+                        <a href="{% url 'download_course_version' training_type.pk course.version %}"><i
+                                class="fa fa-download"></i> Download</a>
+                        <br>
+                        <a href="{% url 'expire_course_version' training_type.pk course.version %}"><i
+                                class="fa fa-trash"></i> Expire</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <h3 class="card-title text-center">Archived Versions</h3>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in inactive_course_versions %}
+
+                <tr>
+                    <td>{{ training_type.name|title }}</td>
+                    <td>{{ course.version }}</td>
+                    <td>
+                        <a href="{% url 'download_course_version' training_type.pk course.version %}"><i
+                                class="fa fa-download"></i> Download</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

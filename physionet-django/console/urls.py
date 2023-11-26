@@ -160,7 +160,9 @@ urlpatterns = [
 
     # Courses/On Platform Training
     path('courses/', training_views.courses, name='courses'),
-    path('courses/<int:pk>/download/<str:version>', training_views.download_course, name='download_course'),
+    path('courses/<int:pk>/', training_views.course_details, name='course_details'),
+    path('courses/<int:pk>/download/<str:version>', training_views.download_course, name='download_course_version'),
+    path('courses/<int:pk>/expire/<str:version>', training_views.expire_course, name='expire_course_version'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)
