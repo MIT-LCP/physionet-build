@@ -3,6 +3,7 @@ from hmac import new
 import json
 import operator
 from itertools import chain
+import re
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
@@ -22,20 +23,6 @@ from user.enums import TrainingStatus
 from training.models import Course, Quiz, QuizChoice, ContentBlock
 from training.models import CourseProgress, ModuleProgress, CompletedContent, CompletedQuiz
 from training.serializers import TrainingTypeSerializer, CourseSerializer
-
-
-# Utility Functions
-def is_major_change(version1, version2):
-    """
-    This function takes two version numbers as input parameters,
-    and returns True if the first digit of the version number is changed,
-    else returns False.
-    """
-    version1_first_digit = int(str(version1).split('.', maxsplit=1)[0])
-    version2_first_digit = int(str(version2).split('.', maxsplit=1)[0])
-    if version1_first_digit != version2_first_digit:
-        return True
-    return False
 
 
 @permission_required('training.change_course', raise_exception=True)
@@ -128,10 +115,14 @@ def expire_course(request, pk, version):
     and expires the course with the specified primary key and version number.
     """
     course = Course.objects.filter(training_type__pk=pk, version=version).first()
+    number_of_days = request.POST.get('number_of_days')
     if not course:
         messages.error(request, 'Course not found')
         return redirect('courses')
-    course.expire_course_version(course.training_type)
+    if not number_of_days:
+        messages.error(request, 'Number of days is required')
+        return redirect('course_details', pk=pk)
+    course.expire_course_version(course.training_type, int(number_of_days))
     messages.success(request, 'Course expired successfully.')
     return redirect('course_details', pk=pk)
 

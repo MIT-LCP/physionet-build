@@ -9,6 +9,7 @@
     <div class="card-header">
         {{ training_type }} <span class="badge badge-pill badge-info"></span>
     </div>
+
     <br>
     <h3 class="card-title text-center">Active Versions</h3>
     <div class="card-body">
@@ -17,7 +18,8 @@
                 <tr>
                     <th>Name</th>
                     <th>Version</th>
-                    <th>Action</th>
+                    <th>Download</th>
+                    <th>Expire</th>
                 </tr>
             </thead>
             <tbody>
@@ -29,9 +31,13 @@
                     <td>
                         <a href="{% url 'download_course_version' training_type.pk course.version %}"><i
                                 class="fa fa-download"></i> Download</a>
-                        <br>
-                        <a href="{% url 'expire_course_version' training_type.pk course.version %}"><i
-                                class="fa fa-trash"></i> Expire</a>
+                    </td>
+                    <td>
+                        <form action="{% url 'expire_course_version' training_type.pk course.version %}" method="POST">
+                            {% csrf_token %}
+                            <input type="number" name="number_of_days" value="30">
+                            <button class="btn btn-sm btn-danger" type="submit"> Expire</button>
+                        </form>
                     </td>
                 </tr>
                 {% endfor %}

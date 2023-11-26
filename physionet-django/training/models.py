@@ -7,8 +7,6 @@ from user.models import Training
 from project.validators import validate_version
 
 
-NUMBER_OF_DAYS_TO_EXPIRE = 30
-
 class Course(models.Model):
     """
     A model representing a course for a specific training type.
@@ -37,7 +35,7 @@ class Course(models.Model):
             ("can_view_course_guidelines", "Can view course guidelines"),
         ]
 
-    def update_course_for_version_change(self, instance):
+    def update_course_for_version_change(self, instance, number_of_days):
         """
         If it is a major version change, it sets all former user trainings
         to a reduced date, and informs them all.
@@ -52,17 +50,17 @@ class Course(models.Model):
                 timezone.now()
                 - (
                     instance.valid_duration
-                    - timezone.timedelta(days=NUMBER_OF_DAYS_TO_EXPIRE)
+                    - timezone.timedelta(days=number_of_days)
                 )
             )
         )
 
-    def expire_course_version(self, instance):
+    def expire_course_version(self, instance, number_of_days):
         """
         This method expires the course by setting the is_active field to False and expires all the trainings associated with it.
         """
         self.is_active = False
-        self.update_course_for_version_change(instance)
+        self.update_course_for_version_change(instance, number_of_days)
         self.save()
 
     def __str__(self):
