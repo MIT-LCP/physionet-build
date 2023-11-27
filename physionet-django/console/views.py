@@ -3116,7 +3116,7 @@ def event_agreement_delete(request, pk):
     return redirect("event_agreement_list")
 
 
-@permission_required('user.view_all_events', raise_exception=True)
+@permission_required('user.invite_event_host', raise_exception=True)
 def event_invite_host(request, username):
     """
     Gives the user permissions to be an event host
