@@ -12,8 +12,12 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='event',
-            options={'permissions': [('view_all_events', 'Can view all events in the console'), 
-                                     ('invite_event_host', 'Can grant event host status to a user'), 
-                                     ('view_event_menu', 'Can view event menu in the navbar')]},
+            options={
+                'permissions': [
+                    ('view_all_events', 'Can view all events in the console'),
+                    ('invite_event_host', 'Can grant event host status to a user'),
+                    ('view_event_menu', 'Can view event menu in the navbar'),
+                ]
+            },
         ),
     ]
