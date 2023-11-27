@@ -126,6 +126,7 @@ def expire_course(request, pk, version):
     messages.success(request, 'Course expired successfully.')
     return redirect('course_details', pk=pk)
 
+
 @permission_required('training.change_course', raise_exception=True)
 def download_course(request, pk, version):
     """

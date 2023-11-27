@@ -57,7 +57,8 @@ class Course(models.Model):
 
     def expire_course_version(self, instance, number_of_days):
         """
-        This method expires the course by setting the is_active field to False and expires all the trainings associated with it.
+        This method expires the course by setting the is_active field to False and expires all
+        the trainings associated with it.
         """
         self.is_active = False
         self.update_course_for_version_change(instance, number_of_days)
