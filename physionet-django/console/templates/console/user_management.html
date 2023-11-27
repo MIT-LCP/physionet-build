@@ -2,15 +2,21 @@
 
 {% load static %}
 
+{% load user_templatetags %}
+
 {% block title %}User management{% endblock %}
 
 {% block content %}
 
 <div class="col-md-9 no-pd">
-  <form action="{% url 'event_invite_host' subject.username %}" method="post" class="form-signin" onsubmit="return confirm('Are you sure you would like to add this user as an event host?')">
-    {% csrf_token %}
-    <button class="btn btn-success btn-fixed" type="submit">Invite event host</button>
-  </form>  
+  {% if perms.self.invite_event_host%}
+    {% if user|has_group:'Event Host' %}
+      <form action="{% url 'event_invite_host' subject.username %}" method="post" class="form-signin" onsubmit="return confirm('Are you sure you would like to add this user as an event host?')">
+      {% csrf_token %}
+      <button class="btn btn-success btn-fixed" id="invite_host_button">Invite event host</button>
+      </form>
+    {% endif %}
+  {% endif %}
   <h1>{{ subject.get_full_name }} ({{ subject.username }})</h1>
   <br />
   <h3>Profile</h3>
@@ -211,6 +217,5 @@
     <li>No applications found.</li>
   {% endfor %}
   </ul>
-  
 </div>
 {% endblock %}
