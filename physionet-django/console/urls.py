@@ -177,6 +177,7 @@ TEST_DEFAULTS = {
     'news_id': 1,
     'username': 'rgmark',
     'news_slug': 'cloud-migration',
+    'version': '1.0',
 }
 TEST_CASES = {
     'manage_published_project': {
