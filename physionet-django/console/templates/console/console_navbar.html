@@ -317,7 +317,7 @@
       {% endif %}
 
       <!-- Pages -->
-      {% if perms.user.change_staticpage or perms.user.change_frontpagebutton or perms.redirect.view_redirect %}
+      {% if perms.physionet.change_staticpage or perms.physionet.change_frontpagebutton or perms.redirect.view_redirect %}
       <li class="nav-item" data-toggle="tooltip" data-placement="right">
         {% if frontpage_buttons_nav or static_pages_nav %}
           <a id="nav_pages_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#pagesComponent" data-parent="#sideAccordion" aria-expanded="true">

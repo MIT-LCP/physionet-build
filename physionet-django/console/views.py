@@ -2487,7 +2487,7 @@ def known_references(request):
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
 
 
-@permission_required('physionet.view_redirect', raise_exception=True)
+@permission_required('redirects.view_redirect', raise_exception=True)
 def view_redirects(request):
     """
     Display a list of redirected URLs.
