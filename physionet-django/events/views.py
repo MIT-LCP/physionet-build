@@ -341,12 +341,10 @@ def manage_co_hosts(request, event_slug):
 
         participant = event.participants.get(id=participant_id)
 
-        # some variable/enum that will be assigned. 
-
+        # some variable/enum that will be assigned.
+        # 0 - remove cohost
+        # 1 - make cohost
         action = request.POST.get('action')[0]
-
-        print(action)
-
         if action == str(cohostStatus.REMOVE_COHOST.value):
             if not participant.is_cohost:
                 return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
