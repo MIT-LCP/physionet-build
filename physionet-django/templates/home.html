@@ -23,7 +23,7 @@
     <ul class="list-unstyled front-page-banner">
     {% for news in front_page_banner %}
     <li>
-      <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
+      <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
     </li>
     {% endfor %}
     </ul>
@@ -70,7 +70,7 @@
       <br>
       {% for news in news_pieces %}
         <h3>
-          <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
+          <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
         </h3>
         {% include "notification/news_content.html" %}
         <hr>
