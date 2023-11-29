@@ -41,3 +41,21 @@ class GCP(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+class AWS(models.Model):
+    """
+    Store all of the AWS information with a relation to a project.
+    """
+    project = models.OneToOneField(
+        "project.PublishedProject", related_name="aws", on_delete=models.CASCADE
+    )
+    bucket_name = models.CharField(max_length=150, null=True)
+    is_private = models.BooleanField(default=False)
+    sent_zip = models.BooleanField(default=False)
+    sent_files = models.BooleanField(default=False)
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+    finished_datetime = models.DateTimeField(null=True)
+
+    class Meta:
+        default_permissions = ()

@@ -13,7 +13,6 @@ from google.cloud import storage
 from django.contrib.sites.models import Site
 from django.conf import settings
 from django.urls import reverse
-
 from project.validators import validate_doi
 
 import logging
@@ -31,6 +30,7 @@ class DOIExistsError(Exception):
 class DOICreationError(Exception):
     pass
 
+# Manage GCP buckets
 
 def check_bucket_exists(project, version):
     """
@@ -41,7 +41,6 @@ def check_bucket_exists(project, version):
     if storage_client.lookup_bucket(bucket_name):
         return True
     return False
-
 
 def create_bucket(project, version, title, protected=True):
     """

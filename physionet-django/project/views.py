@@ -56,7 +56,10 @@ from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
-
+from project.cloud.s3 import (
+    has_s3_credentials,
+    files_sent_to_S3,
+)
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
@@ -1884,6 +1887,7 @@ def published_project(request, project_slug, version, subdir=''):
         'platform_citations': platform_citations,
         'is_lightwave_supported': project.files.is_lightwave_supported(),
         'is_wget_supported': project.files.is_wget_supported(),
+        'has_s3_credentials': has_s3_credentials(),
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
     }
@@ -1940,6 +1944,7 @@ def sign_dua(request, project_slug, version):
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
+    from console.views import update_aws_bucket_policy
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
@@ -1964,6 +1969,8 @@ def sign_dua(request, project_slug, version):
 
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
+        if has_s3_credentials() and files_sent_to_S3(project) is not None:
+            update_aws_bucket_policy(project.id)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 

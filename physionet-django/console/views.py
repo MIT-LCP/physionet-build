@@ -38,6 +38,7 @@ from project import forms as project_forms
 from project.models import (
     GCP,
     GCPLog,
+    AWS,
     AccessLog,
     AccessPolicy,
     ActiveProject,
@@ -75,7 +76,14 @@ from user.models import (
 from physionet.enums import LogCategory
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
-
+from project.cloud.s3 import (
+    create_s3_bucket,
+    upload_project_to_S3,
+    get_bucket_name,
+    check_s3_bucket_exists,
+    update_bucket_policy,
+    has_s3_credentials,
+)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -764,6 +772,73 @@ def send_files_to_gcp(pid):
         project.gcp.save()
 
 
+@associated_task(PublishedProject, "pid", read_only=True)
+@background()
+def send_files_to_aws(pid):
+    """
+    Upload project files to AWS S3 buckets.
+
+    This function retrieves the project identified by 'pid' and uploads
+    its files to the appropriate AWS S3 bucket. It utilizes the
+    'upload_project_to_S3' function from the 'utility' module.
+
+    Args:
+        pid (int): The unique identifier (ID) of the project to upload.
+
+    Returns:
+        None
+
+    Note:
+    - Verify that AWS credentials and configurations are correctly set
+    up for the S3 client.
+    """
+    project = PublishedProject.objects.get(id=pid)
+    upload_project_to_S3(project)
+    project.aws.sent_files = True
+    project.aws.finished_datetime = timezone.now()
+    if project.compressed_storage_size:
+        project.aws.sent_zip = True
+    project.aws.save()
+
+
+@associated_task(PublishedProject, "pid", read_only=True)
+@background()
+def update_aws_bucket_policy(pid):
+    """
+    Update the AWS S3 bucket's access policy based on the
+    project's access policy.
+
+    This function determines the access policy of the project identified
+    by 'pid' and updates the AWS S3 bucket's access policy accordingly.
+    It checks if the bucket exists, retrieves its name, and uses the
+    'utility.update_bucket_policy' function for the update.
+
+    Args:
+        pid (int): The unique identifier (ID) of the project for which to
+        update the bucket policy.
+
+    Returns:
+        bool: True if the bucket policy was updated successfully,
+        False otherwise.
+
+    Note:
+    - Verify that AWS credentials and configurations are correctly set up
+    for the S3 client.
+    - The 'updated_policy' variable indicates whether the policy was
+    updated successfully.
+    """
+    updated_policy = False
+    project = PublishedProject.objects.get(id=pid)
+    exists = check_s3_bucket_exists(project)
+    if exists:
+        bucket_name = get_bucket_name(project)
+        update_bucket_policy(project, bucket_name)
+        updated_policy = True
+    else:
+        updated_policy = False
+    return updated_policy
+
+
 @permission_required('project.change_publishedproject', raise_exception=True)
 def manage_doi_request(request, project):
     """
@@ -892,6 +967,11 @@ def manage_published_project(request, project_slug, version):
                 messages.error(request, 'Project has tasks pending.')
             else:
                 gcp_bucket_management(request, project, user)
+        elif 'aws-bucket' in request.POST and has_s3_credentials():
+            if any(get_associated_tasks(project, read_only=False)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                aws_bucket_management(request, project, user)
         elif 'platform' in request.POST:
             data_access_form = forms.DataAccessForm(project=project, data=request.POST)
             if data_access_form.is_valid():
@@ -953,6 +1033,9 @@ def manage_published_project(request, project_slug, version):
             'topic_form': topic_form,
             'deprecate_form': deprecate_form,
             'has_credentials': has_credentials,
+            'has_s3_credentials': has_s3_credentials(),
+            # 'aws_bucket_exists': s3_bucket_exists,
+            # 's3_bucket_name': s3_bucket_name,
             'data_access_form': data_access_form,
             'data_access': data_access,
             'rw_tasks': rw_tasks,
@@ -1011,6 +1094,41 @@ def gcp_bucket_management(request, project, user):
                 successfully added.".format(project))
 
     send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
+
+
+@permission_required("project.change_publishedproject", raise_exception=True)
+def aws_bucket_management(request, project, user):
+    """
+    Manage AWS S3 bucket for a project.
+
+    This function is responsible for sending the project's files
+    to that bucket. It orchestrates the necessary steps to set up
+    the bucket and populate it with the project's data.
+
+    Args:
+        project (PublishedProject): The project for which to create and
+        populate the AWS S3 bucket.
+
+    Returns:
+        None
+
+    Note:
+    - Ensure that AWS credentials and configurations are correctly set
+    up for the S3 client.
+    """
+    is_private = True
+
+    if project.access_policy == AccessPolicy.OPEN:
+        is_private = False
+
+    bucket_name = get_bucket_name(project)
+
+    if not AWS.objects.filter(project=project).exists():
+        AWS.objects.create(
+            project=project, bucket_name=bucket_name, is_private=is_private
+        )
+
+    send_files_to_aws(project.id, verbose_name='AWS - {}'.format(project), creator=user)
 
 
 @permission_required('project.change_archivedproject', raise_exception=True)
