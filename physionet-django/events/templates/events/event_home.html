@@ -235,8 +235,9 @@
           'submit': submit_value
         },
         success: function (data) {
-
           $form.find('input[type="submit"]').prop('disabled', false);
+
+          console.log(data);
 
           current_action = $form.find('input[type="submit"]').attr('data-action');
           make_cohost_action = '{{ cohostStatus.MAKE_COHOST }}';

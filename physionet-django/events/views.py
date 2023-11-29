@@ -233,7 +233,7 @@ def event_home(request):
             "form_error": form_error,
             "participation_response_formset": participation_response_formset,
             "event_details": event_details,
-            "cohost_status": cohost_status,
+            "cohostStatus": cohost_status,
         },
     )
 
