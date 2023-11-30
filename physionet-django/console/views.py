@@ -153,7 +153,7 @@ def console_permission_required(perm):
 def console_home(request):
     if not request.user.is_authenticated or not request.user.has_access_to_admin_console():
         raise PermissionDenied
-    return render(request, 'console/console_home.html', {'console_home_nav': True})
+    return render(request, 'console/console_home.html')
 
 
 @console_permission_required('project.change_activeproject')
@@ -222,7 +222,6 @@ def submitted_projects(request):
                    'copyedit_projects': copyedit_projects,
                    'approval_projects': approval_projects,
                    'publish_projects': publish_projects,
-                   'submitted_projects_nav': True,
                    'yesterday': yesterday})
 
 
@@ -326,8 +325,7 @@ def submission_info(request, project_slug):
                    'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
                    'reassign_editor_form': reassign_editor_form,
-                   'embargo_form': embargo_form,
-                   'project_info_nav': True})
+                   'embargo_form': embargo_form})
 
 
 @handling_editor
@@ -745,8 +743,7 @@ def storage_requests(request):
         queryset=StorageRequest.objects.filter(is_active=True))
 
     return render(request, 'console/storage_requests.html',
-                  {'storage_response_formset': storage_response_formset,
-                   'storage_requests_nav': True})
+                  {'storage_response_formset': storage_response_formset})
 
 
 @console_permission_required('project.change_activeproject')
@@ -758,7 +755,7 @@ def unsubmitted_projects(request):
         'creation_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/unsubmitted_projects.html',
-                  {'projects': projects, 'unsubmitted_projects_nav': True})
+                  {'projects': projects})
 
 
 @console_permission_required('project.change_publishedproject')
@@ -769,7 +766,7 @@ def published_projects(request):
     projects = PublishedProject.objects.all().order_by('-publish_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/published_projects.html',
-                  {'projects': projects, 'published_projects_nav': True})
+                  {'projects': projects})
 
 
 @associated_task(PublishedProject, 'pid', read_only=True)
@@ -1061,7 +1058,6 @@ def manage_published_project(request, project_slug, version):
             'ro_tasks': ro_tasks,
             'anonymous_url': anonymous_url,
             'passphrase': passphrase,
-            'published_projects_nav': True,
             'url_prefix': url_prefix,
             'bulk_url_prefix': bulk_url_prefix,
             'contact_form': contact_form,
@@ -1159,7 +1155,7 @@ def archived_submissions(request):
                                             ).order_by('creation_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/archived_submissions.html',
-                  {'projects': projects, 'archived_projects_nav': True})
+                  {'projects': projects})
 
 
 @console_permission_required('user.view_user')
@@ -1175,7 +1171,6 @@ def users(request, group='all'):
         return render(request, 'console/users_admin.html', {
             'admin_users': admin_users,
             'group': group,
-            'user_nav': True,
         })
     elif group == 'active':
         user_list = user_list.filter(is_active=True)
@@ -1184,7 +1179,7 @@ def users(request, group='all'):
 
     users = paginate(request, user_list, 50)
 
-    return render(request, 'console/users.html', {'users': users, 'group': group, 'user_nav': True})
+    return render(request, 'console/users.html', {'users': users, 'group': group})
 
 
 @console_permission_required('user.view_user')
@@ -1195,7 +1190,7 @@ def user_groups(request):
     groups = Group.objects.all().order_by('name')
     for group in groups:
         group.user_count = User.objects.filter(groups=group).count()
-    return render(request, 'console/user_groups.html', {'groups': groups, 'user_nav': True, 'user_groups_nav': True})
+    return render(request, 'console/user_groups.html', {'groups': groups})
 
 
 @console_permission_required('user.view_user')
@@ -1209,7 +1204,7 @@ def user_group(request, group):
     return render(
         request,
         'console/user_group.html',
-        {'group': group, 'users': users, 'permissions': permissions, 'user_nav': True, 'user_groups_nav': True}
+        {'group': group, 'users': users, 'permissions': permissions}
     )
 
 
@@ -1526,7 +1521,7 @@ def process_credential_application(request, application_slug):
                   {'application': application, 'app_user': application.user,
                    'intermediate_credential_form': intermediate_credential_form,
                    'credential_review_form': credential_review_form,
-                   'processing_credentials_nav': True, 'page_title': page_title,
+                   'page_title': page_title,
                    'contact_cred_ref_form': contact_cred_ref_form,
                    'training_list': training})
 
@@ -1575,8 +1570,7 @@ def credential_processing(request):
                    'personal_applications': personal_applications,
                    'reference_applications': reference_applications,
                    'response_applications': response_applications,
-                   'final_applications': final_applications,
-                   'processing_credentials_nav': True})
+                   'final_applications': final_applications})
 
 
 @console_permission_required('user.change_credentialapplication')
@@ -1599,7 +1593,7 @@ def view_credential_application(request, application_slug):
 
     return render(request, 'console/view_credential_application.html',
                   {'application': application, 'app_user': application.user,
-                   'form': form, 'past_credentials_nav': True, 'CredentialApplication': CredentialApplication})
+                   'form': form, 'CredentialApplication': CredentialApplication})
 
 
 @console_permission_required('user.change_credentialapplication')
@@ -1676,7 +1670,7 @@ def credential_applications(request, status):
     pending_apps = paginate(request, pending_apps, 50)
 
     return render(request, 'console/credential_applications.html',
-                  {'applications': all_successful_apps, 'past_credentials_nav': True,
+                  {'applications': all_successful_apps,
                    'u_applications': unsuccessful_apps,
                    'p_applications': pending_apps})
 
@@ -1797,7 +1791,6 @@ def training_list(request, status):
             'valid_count': valid_training.count(),
             'expired_count': expired_training.count(),
             'rejected_count': rejected_training.count(),
-            'training_nav': True,
         },
     )
 
@@ -1916,7 +1909,7 @@ def news_console(request):
     news_items = News.objects.all().order_by('-publish_datetime')
     news_items = paginate(request, news_items, 50)
     return render(request, 'console/news_console.html',
-                  {'news_items': news_items, 'news_nav': True})
+                  {'news_items': news_items})
 
 
 @console_permission_required('notification.change_news')
@@ -1931,8 +1924,7 @@ def news_add(request):
     else:
         form = forms.NewsForm()
 
-    return render(request, 'console/news_add.html', {'form': form,
-                                                     'news_nav': True})
+    return render(request, 'console/news_add.html', {'form': form})
 
 
 @console_permission_required('notification.change_news')
@@ -1972,7 +1964,7 @@ def news_edit(request, news_slug):
         form = forms.NewsForm(instance=news)
 
     response = render(request, 'console/news_edit.html', {'news': news,
-                                                          'form': form, 'news_nav': True})
+                                                          'form': form})
     if saved:
         set_saved_fields_cookie(form, request.path, response)
     return response
@@ -2022,7 +2014,7 @@ def featured_content(request):
     ).order_by('featured')
 
     return render(request, 'console/featured_content.html',
-                  {'featured_content': featured_content, 'featured_content_nav': True})
+                  {'featured_content': featured_content})
 
 
 @console_permission_required('project.can_edit_featured_content')
@@ -2054,8 +2046,7 @@ def add_featured(request):
     return render(request, 'console/add_featured.html', {'title': title,
                                                          'projects': projects,
                                                          'form': form,
-                                                         'valid_search': valid_search,
-                                                         'featured_content_nav': True})
+                                                         'valid_search': valid_search})
 
 
 @console_permission_required('project.can_view_project_guidelines')
@@ -2063,8 +2054,7 @@ def guidelines_review(request):
     """
     Guidelines for reviewers.
     """
-    return render(request, 'console/guidelines_review.html',
-                  {'guidelines_review_nav': True})
+    return render(request, 'console/guidelines_review.html')
 
 
 @console_permission_required('project.can_view_stats')
@@ -2106,7 +2096,7 @@ def editorial_stats(request):
         except StatisticsError:
             stats[y].append(None)
 
-    return render(request, 'console/editorial_stats.html', {'stats_nav': True,
+    return render(request, 'console/editorial_stats.html', {
                   'submenu': 'editorial', 'stats': stats})
 
 
@@ -2173,7 +2163,7 @@ def credentialing_stats(request):
             stats[y]['time_to_decision'] = None
 
     return render(request, 'console/credentialing_stats.html',
-                  {'stats_nav': True, 'submenu': 'credential',
+                  {'submenu': 'credential',
                    'stats': stats})
 
 
@@ -2227,7 +2217,7 @@ def submission_stats(request):
                 pass
 
     return render(request, 'console/submission_stats.html',
-                  {'stats_nav': True, 'submenu': 'submission', 'stats': stats})
+                  {'submenu': 'submission', 'stats': stats})
 
 
 @console_permission_required('project.can_view_access_logs')
@@ -2299,7 +2289,7 @@ def project_access_manage(request, pid):
 
     return render(request, 'console/project_access_manage.html', {
         'c_project': c_project, 'project_members': c_project.duasignature_set.all(),
-        'project_access_logs_nav': True})
+    })
 
 
 @console_permission_required('project.can_view_access_logs')
@@ -2315,7 +2305,7 @@ def project_access_requests_list(request):
     projects = paginate(request, projects, 50)
 
     return render(request, 'console/project_access_requests_list.html', {
-        'access_requests_nav': True, 'projects': projects
+        'projects': projects
     })
 
 
@@ -2332,7 +2322,7 @@ def project_access_requests_detail(request, pk):
     access_requests = paginate(request, access_requests, 50)
 
     return render(request, 'console/project_access_requests_detail.html', {
-        'access_requests_nav': True, 'project': project, 'access_requests': access_requests
+        'project': project, 'access_requests': access_requests
     })
 
 
@@ -2359,7 +2349,7 @@ def project_access_logs(request):
     c_projects = paginate(request, c_projects, 50)
 
     return render(request, 'console/project_access_logs.html', {
-        'c_projects': c_projects, 'project_access_logs_nav': True,
+        'c_projects': c_projects,
     })
 
 
@@ -2388,7 +2378,7 @@ def project_access_logs_detail(request, pid):
 
     return render(request, 'console/project_access_logs_detail.html', {
         'c_project': c_project, 'logs': logs,
-        'project_access_logs_nav': True, 'user_filter_form': user_filter_form
+        'user_filter_form': user_filter_form
     })
 
 
@@ -2443,7 +2433,7 @@ def user_access_logs(request):
     users = paginate(request, users, 50)
 
     return render(request, 'console/user_access_logs.html', {
-        'users': users, 'user_access_logs_nav': True,
+        'users': users,
     })
 
 
@@ -2471,7 +2461,7 @@ def user_access_logs_detail(request, pid):
     project_filter_form = ProjectFilterForm()
 
     return render(request, 'console/user_access_logs_detail.html', {
-        'user': user, 'logs': logs, 'user_access_logs_nav': True,
+        'user': user, 'logs': logs,
         'project_filter_form': project_filter_form
     })
 
@@ -2515,7 +2505,7 @@ def gcp_signed_urls_logs(request):
     projects = paginate(request, projects, 50)
 
     return render(request, 'console/gcp_logs.html', {
-        'projects': projects, 'gcp_logs_nav': True,
+        'projects': projects,
     })
 
 
@@ -2529,7 +2519,6 @@ def gcp_signed_urls_logs_detail(request, pk):
 
     return render(request, 'console/gcp_logs_detail.html', {
         'project': project, 'logs': logs,
-        'gcp_logs_nav': True,
     })
 
 
@@ -2623,7 +2612,8 @@ def known_references(request):
     all_known_ref = paginate(request, all_known_ref, 50)
 
     return render(request, 'console/known_references.html', {
-        'all_known_ref': all_known_ref, 'known_ref_nav': True})
+        'all_known_ref': all_known_ref,
+    })
 
 
 @console_permission_required('redirects.view_redirect')
@@ -2635,7 +2625,7 @@ def view_redirects(request):
     return render(
         request,
         'console/redirects.html',
-        {'redirects': redirects, 'redirects_nav': True})
+        {'redirects': redirects})
 
 
 @console_permission_required('physionet.change_frontpagebutton')
@@ -2657,7 +2647,7 @@ def frontpage_buttons(request):
     return render(
         request,
         'console/frontpage_button/index.html',
-        {'frontpage_buttons': frontpage_buttons, 'frontpage_buttons_nav': True})
+        {'frontpage_buttons': frontpage_buttons})
 
 
 @console_permission_required('physionet.change_frontpagebutton')
@@ -2729,7 +2719,7 @@ def static_pages(request):
     return render(
         request,
         'console/static_page/index.html',
-        {'pages': pages, 'static_pages_nav': True})
+        {'pages': pages})
 
 
 @console_permission_required('physionet.change_staticpage')
@@ -2805,7 +2795,7 @@ def static_page_sections(request, page_pk):
     return render(
         request,
         'console/static_page_sections.html',
-        {'sections': sections, 'page': static_page, 'section_form': section_form, 'static_pages_nav': True},
+        {'sections': sections, 'page': static_page, 'section_form': section_form},
     )
 
 
@@ -2835,7 +2825,7 @@ def static_page_sections_edit(request, page_pk, section_pk):
     return render(
         request,
         'console/static_page_sections_edit.html',
-        {'section_form': section_form, 'static_pages_nav': True, 'page': static_page, 'section': section},
+        {'section_form': section_form, 'page': static_page, 'section': section},
     )
 
 
@@ -2858,7 +2848,7 @@ def license_list(request):
     return render(
         request,
         'console/license_list.html',
-        {'license_nav': True, 'licenses': licenses, 'license_form': license_form}
+        {'licenses': licenses, 'license_form': license_form}
     )
 
 
@@ -2880,7 +2870,7 @@ def license_detail(request, pk):
     return render(
         request,
         'console/license_detail.html',
-        {'license_nav': True, 'license': license, 'license_form': license_form}
+        {'license': license, 'license_form': license_form}
     )
 
 
@@ -2914,7 +2904,7 @@ def license_new_version(request, pk):
     return render(
         request,
         'console/license_new_version.html',
-        {'license_nav': True, 'license': license, 'license_form': license_form}
+        {'license': license, 'license_form': license_form}
     )
 
 
@@ -2934,7 +2924,7 @@ def dua_list(request):
     duas = DUA.objects.order_by('access_policy', 'name')
     duas = paginate(request, duas, 20)
 
-    return render(request, 'console/dua_list.html', {'dua_nav': True, 'duas': duas, 'dua_form': dua_form})
+    return render(request, 'console/dua_list.html', {'duas': duas, 'dua_form': dua_form})
 
 
 @console_permission_required('project.add_dua')
@@ -2952,7 +2942,7 @@ def dua_detail(request, pk):
     else:
         dua_form = forms.DUAForm(instance=dua)
 
-    return render(request, 'console/dua_detail.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
+    return render(request, 'console/dua_detail.html', {'dua': dua, 'dua_form': dua_form})
 
 
 @console_permission_required('project.add_dua')
@@ -2982,7 +2972,7 @@ def dua_new_version(request, pk):
         dua_data['version'] = None
         dua_form = forms.DUAForm(initial=dua_data)
 
-    return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
+    return render(request, 'console/dua_new_version.html', {'dua': dua, 'dua_form': dua_form})
 
 
 @console_permission_required('project.add_codeofconduct')
@@ -3005,7 +2995,6 @@ def code_of_conduct_list(request):
         request,
         'console/code_of_conduct_list.html',
         {
-            'code_of_conduct_nav': True,
             'code_of_conducts': code_of_conducts,
             'code_of_conduct_form': code_of_conduct_form,
         },
@@ -3030,7 +3019,6 @@ def code_of_conduct_detail(request, pk):
         request,
         'console/code_of_conduct_detail.html',
         {
-            'code_of_conduct_nav': True,
             'code_of_conduct': code_of_conduct,
             'code_of_conduct_form': code_of_conduct_form,
         },
@@ -3067,7 +3055,6 @@ def code_of_conduct_new_version(request, pk):
         request,
         'console/code_of_conduct_new_version.html',
         {
-            'code_of_conduct_nav': True,
             'code_of_conduct': code_of_conduct,
             'code_of_conduct_form': code_of_conduct_form,
         },
@@ -3228,7 +3215,6 @@ def event_agreement_list(request):
         request,
         'console/event_agreement_list.html',
         {
-            'event_agreement_nav': True,
             'event_agreements': event_agreements,
             'event_agreement_form': event_agreement_form
         }
@@ -3258,7 +3244,6 @@ def event_agreement_new_version(request, pk):
         request,
         'console/event_agreement_new_version.html',
         {
-            'event_agreement_nav': True,
             'event_agreement': event_agreement,
             'event_agreement_form': event_agreement_form
         }
@@ -3284,7 +3269,6 @@ def event_agreement_detail(request, pk):
         request,
         'console/event_agreement_detail.html',
         {
-            'event_agreement_nav': True,
             'event_agreement': event_agreement,
             'event_agreement_form': event_agreement_form
         }
