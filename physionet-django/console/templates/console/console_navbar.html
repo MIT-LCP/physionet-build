@@ -12,7 +12,7 @@
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
 
       <!-- console home page -->
-      <li class="nav-item {% if console_home_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+      <li class="nav-item {% if console_home_nav %}active{% endif %}">
         <a id="nav_console_home" class="nav-link" href="{% url 'console_home' %}">
           <i class="fa fa-fw fa-book-open"></i>
           <span class="nav-link-text">Home</span>
@@ -21,7 +21,7 @@
 
       <!-- editor home -->
       {% if perms.project.change_activeproject or perms.project.change_publishedproject %}
-        <li class="nav-item {% if editor_home %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item {% if editor_home %}active{% endif %}">
           <a id="nav_editor_home" class="nav-link" href="{% url 'editor_home' %}">
             <i class="fa fa-fw fa-book-open"></i>
             <span class="nav-link-text">Editor Home</span>
@@ -31,7 +31,7 @@
 
       <!-- projects -->
       {% if perms.project.change_publishedproject %}
-        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item">
         {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or archived_projects_nav %}
           <a id="nav_projects_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_projects_components" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
@@ -63,7 +63,7 @@
       {% endif %}
       <!-- storage requests -->
       {% if perms.project.change_storagerequest %}
-        <li class="nav-item {% if storage_requests_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item {% if storage_requests_nav %}active{% endif %}">
           <a id="nav_storage_requests" class="nav-link" href="{% url 'storage_requests' %}">
             <i class="fa fa-fw fa-cube"></i>
             <span class="nav-link-text">Storage</span>
@@ -73,7 +73,7 @@
 
       <!-- credentialing -->
       {% if perms.user.change_credentialapplication %}
-        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item">
         {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
           <a id="nav_identity_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_identity_components" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
@@ -103,7 +103,7 @@
 
       {% if perms.user.can_review_training %}
         <!-- training -->
-        <li class="nav-item {% if training_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item {% if training_nav %}active{% endif %}">
           <a id="nav_training_list__review" class="nav-link" href="{% url 'training_list' 'review' %}">
             <i class="fa fa-fw fa-school"></i>
             <span class="nav-link-text">Training check</span>
@@ -113,7 +113,7 @@
 
       <!-- events -->
       {% if perms.user.view_all_events %}
-        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item">
           {% if events_nav %}
             <a id="nav_events_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_events_components" data-parent="#sideAccordion" aria-expanded="true">
           {% else %}
@@ -140,7 +140,7 @@
 
       <!-- legal -->
       {% if perms.project.add_dua or perms.project.add_codeofconduct or perms.project.add_license or perms.events.add_eventagreement %}
-        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item">
           {% if license_nav or dua_nav or code_of_conduct_nav %}
             <a id="nav_legal_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_legal_components" data-parent="#sideAccordion" aria-expanded="true">
           {% else %}
@@ -181,7 +181,7 @@
       
       <!-- logs -->
       {% if perms.project.can_view_access_logs %}
-        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item">
         {% if project_access_logs_nav or user_access_logs_nav or gcp_logs_nav or access_requests_nav %}
           <a id="nav_logs_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_logs_components" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
@@ -217,7 +217,7 @@
 
       <!-- users -->
       {% if perms.user.view_user %}
-        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item">
         {% if user_nav %}
           <a id="nav_users_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_users_components" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
@@ -253,7 +253,7 @@
 
       <!-- featured content -->
       {% if perms.project.can_edit_featured_content %}
-        <li class="nav-item {% if featured_content_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item {% if featured_content_nav %}active{% endif %}">
           <a id="nav_featured_content" class="nav-link" href="{% url 'featured_content' %}">
             <i class="fa fa-fw fa-star"></i>
             <span class="nav-link-text">Featured Content</span>
@@ -263,7 +263,7 @@
 
       <!-- guidelines and documentation -->
       {% if perms.project.can_view_project_guidelines %}
-        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item">
         {% if guidelines_review_nav %}
           <a id="nav_guidelines_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_guidelines_components" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
@@ -287,7 +287,7 @@
 
       <!-- usage stats -->
       {% if perms.project.can_view_stats %}
-        <li class="nav-item" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item">
         {% if stats_nav %}
           <a id="nav_stats_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#nav_stats_components" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
@@ -318,7 +318,7 @@
 
       <!-- Pages -->
       {% if perms.physionet.change_staticpage or perms.physionet.change_frontpagebutton or perms.redirect.view_redirect %}
-      <li class="nav-item" data-toggle="tooltip" data-placement="right">
+      <li class="nav-item">
         {% if frontpage_buttons_nav or static_pages_nav %}
           <a id="nav_pages_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_pages_components" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
@@ -348,7 +348,7 @@
 
       <!-- news -->
       {% if perms.notification.change_news %}
-        <li class="nav-item {% if news_nav %}active{% endif %}" data-toggle="tooltip" data-placement="right">
+        <li class="nav-item {% if news_nav %}active{% endif %}">
           <a id="nav_news_console" class="nav-link" href="{% url 'news_console' %}">
             <i class="fa fa-fw fa-newspaper"></i>
             <span class="nav-link-text">News</span>
