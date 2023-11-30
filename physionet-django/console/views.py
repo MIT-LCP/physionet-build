@@ -128,6 +128,24 @@ def handling_editor(base_view):
         raise Http404('Unable to access page')
     return handling_view
 
+
+def console_permission_required(perm):
+    """
+    Decorator for a view that requires user permissions.
+
+    If the client is not logged in, or the user doesn't have the
+    specified permission, the view raises PermissionDenied.
+
+    The required permission name is also stored as an attribute for
+    introspection purposes.
+    """
+    def wrapper(view):
+        view = permission_required(perm, raise_exception=True)(view)
+        view.required_permission = perm
+        return view
+    return wrapper
+
+
 # ------------------------- Views begin ------------------------- #
 
 
@@ -137,7 +155,7 @@ def console_home(request):
     return render(request, 'console/console_home.html', {'console_home_nav': True})
 
 
-@permission_required('project.change_activeproject', raise_exception=True)
+@console_permission_required('project.change_activeproject')
 def submitted_projects(request):
     """
     List of active submissions. Editors are assigned here.
@@ -207,7 +225,7 @@ def submitted_projects(request):
                    'yesterday': yesterday})
 
 
-@permission_required('project.change_activeproject', raise_exception=True)
+@console_permission_required('project.change_activeproject')
 def editor_home(request):
     """
     List of submissions the editor is responsible for
@@ -253,7 +271,7 @@ def submission_info_redirect(request, project_slug):
     return redirect('submission_info', project_slug=project_slug)
 
 
-@permission_required('project.change_activeproject', raise_exception=True)
+@console_permission_required('project.change_activeproject')
 def submission_info(request, project_slug):
     """
     View information about a project under submission
@@ -678,7 +696,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
                    'embargo_form': embargo_form})
 
 
-@permission_required('project.change_storagerequest', raise_exception=True)
+@console_permission_required('project.change_storagerequest')
 def process_storage_response(request, storage_response_formset):
     """
     Implement the response to a storage request.
@@ -707,7 +725,7 @@ def process_storage_response(request, storage_response_formset):
                                   f"{notification.RESPONSE_ACTIONS[storage_request.response]}"))
 
 
-@permission_required('project.change_storagerequest', raise_exception=True)
+@console_permission_required('project.change_storagerequest')
 def storage_requests(request):
     """
     Page for listing and responding to project storage requests
@@ -730,7 +748,7 @@ def storage_requests(request):
                    'storage_requests_nav': True})
 
 
-@permission_required('project.change_activeproject', raise_exception=True)
+@console_permission_required('project.change_activeproject')
 def unsubmitted_projects(request):
     """
     List of unsubmitted projects
@@ -742,7 +760,7 @@ def unsubmitted_projects(request):
                   {'projects': projects, 'unsubmitted_projects_nav': True})
 
 
-@permission_required('project.change_publishedproject', raise_exception=True)
+@console_permission_required('project.change_publishedproject')
 def published_projects(request):
     """
     List of published projects
@@ -839,7 +857,7 @@ def update_aws_bucket_policy(pid):
     return updated_policy
 
 
-@permission_required('project.change_publishedproject', raise_exception=True)
+@console_permission_required('project.change_publishedproject')
 def manage_doi_request(request, project):
     """
     Manage a request to register or update a Digital Object Identifier (DOI).
@@ -884,7 +902,7 @@ def manage_doi_request(request, project):
     return message
 
 
-@permission_required('project.change_publishedproject', raise_exception=True)
+@console_permission_required('project.change_publishedproject')
 def manage_published_project(request, project_slug, version):
     """
     Manage a published project
@@ -1054,7 +1072,7 @@ def manage_published_project(request, project_slug, version):
     )
 
 
-@permission_required('project.change_publishedproject', raise_exception=True)
+@console_permission_required('project.change_publishedproject')
 def gcp_bucket_management(request, project, user):
     """
     Create the database object and cloud bucket if they do not exist, and send
@@ -1096,7 +1114,7 @@ def gcp_bucket_management(request, project, user):
     send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
 
 
-@permission_required("project.change_publishedproject", raise_exception=True)
+@console_permission_required('project.change_publishedproject')
 def aws_bucket_management(request, project, user):
     """
     Manage AWS S3 bucket for a project.
@@ -1131,7 +1149,7 @@ def aws_bucket_management(request, project, user):
     send_files_to_aws(project.id, verbose_name='AWS - {}'.format(project), creator=user)
 
 
-@permission_required('project.change_activeproject', raise_exception=True)
+@console_permission_required('project.change_activeproject')
 def archived_submissions(request):
     """
     List of archived submissions
@@ -1143,7 +1161,7 @@ def archived_submissions(request):
                   {'projects': projects, 'archived_projects_nav': True})
 
 
-@permission_required('user.view_user', raise_exception=True)
+@console_permission_required('user.view_user')
 def users(request, group='all'):
     """
     List of users
@@ -1168,7 +1186,7 @@ def users(request, group='all'):
     return render(request, 'console/users.html', {'users': users, 'group': group, 'user_nav': True})
 
 
-@permission_required('user.view_user', raise_exception=True)
+@console_permission_required('user.view_user')
 def user_groups(request):
     """
     List of all user groups
@@ -1179,7 +1197,7 @@ def user_groups(request):
     return render(request, 'console/user_groups.html', {'groups': groups, 'user_nav': True, 'user_groups_nav': True})
 
 
-@permission_required('user.view_user', raise_exception=True)
+@console_permission_required('user.view_user')
 def user_group(request, group):
     """
     Shows details of a user group, lists users in the group, lists permissions for the group
@@ -1194,7 +1212,7 @@ def user_group(request, group):
     )
 
 
-@permission_required('user.view_user', raise_exception=True)
+@console_permission_required('user.view_user')
 def user_management(request, username):
     """
     Admin page for managing an individual user account.
@@ -1254,7 +1272,7 @@ def user_management(request, username):
                                                             'gcp_info': gcp_info})
 
 
-@permission_required('user.view_user', raise_exception=True)
+@console_permission_required('user.view_user')
 def users_search(request, group):
     """
     Search user list.
@@ -1290,7 +1308,7 @@ def users_search(request, group):
     raise Http404()
 
 
-@permission_required('user.view_user', raise_exception=True)
+@console_permission_required('user.view_user')
 def users_aws_access_list_json(request):
     """
     Generate JSON list of currently authorized AWS accounts.
@@ -1322,7 +1340,7 @@ def users_aws_access_list_json(request):
     return JsonResponse(datasets)
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def known_references_search(request):
     """
     Search credential applications and user list.
@@ -1350,7 +1368,7 @@ def known_references_search(request):
     raise Http404()
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def complete_credential_applications(request):
     """
     Legacy page for processing credentialing applications.
@@ -1358,7 +1376,7 @@ def complete_credential_applications(request):
     return redirect(credential_processing)
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def complete_list_credentialed_people(request):
     """
     Legacy page that displayed a list of all approved MIMIC users.
@@ -1366,7 +1384,7 @@ def complete_list_credentialed_people(request):
     return redirect(credential_applications, "successful")
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def process_credential_application(request, application_slug):
     """
     Process a credential application. View details, advance to next stage,
@@ -1512,7 +1530,7 @@ def process_credential_application(request, application_slug):
                    'training_list': training})
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def credential_processing(request):
     """
     Process applications for credentialed access.
@@ -1560,7 +1578,7 @@ def credential_processing(request):
                    'processing_credentials_nav': True})
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def view_credential_application(request, application_slug):
     """
     View a credential application in any status.
@@ -1583,7 +1601,7 @@ def view_credential_application(request, application_slug):
                    'form': form, 'past_credentials_nav': True, 'CredentialApplication': CredentialApplication})
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def credential_applications(request, status):
     """
     Inactive credential applications. Split into successful and
@@ -1662,7 +1680,7 @@ def credential_applications(request, status):
                    'p_applications': pending_apps})
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def search_credential_applications(request):
     """
     Search past credentialing applications.
@@ -1714,7 +1732,7 @@ def search_credential_applications(request):
         return all_successful_apps, unsuccessful_apps, pending_apps
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def credentialed_user_info(request, username):
     try:
         c_user = User.objects.get(username__iexact=username)
@@ -1726,7 +1744,7 @@ def credentialed_user_info(request, username):
                                                                    'CredentialApplication': CredentialApplication})
 
 
-@permission_required('user.can_review_training', raise_exception=True)
+@console_permission_required('user.can_review_training')
 def training_list(request, status):
     """
     List all training applications.
@@ -1806,7 +1824,7 @@ def search_training_applications(request, display_training):
     return display_training
 
 
-@permission_required('user.can_review_training', raise_exception=True)
+@console_permission_required('user.can_review_training')
 def training_process(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
 
@@ -1882,14 +1900,14 @@ def training_process(request, pk):
     )
 
 
-@permission_required('user.can_review_training', raise_exception=True)
+@console_permission_required('user.can_review_training')
 def training_detail(request, pk):
     training = get_object_or_404(Training.objects.prefetch_related('training_type'), pk=pk)
 
     return render(request, 'console/training_detail.html', {'training': training})
 
 
-@permission_required('notification.change_news', raise_exception=True)
+@console_permission_required('notification.change_news')
 def news_console(request):
     """
     List of news items
@@ -1900,7 +1918,7 @@ def news_console(request):
                   {'news_items': news_items, 'news_nav': True})
 
 
-@permission_required('notification.change_news', raise_exception=True)
+@console_permission_required('notification.change_news')
 def news_add(request):
     if request.method == 'POST':
         form = forms.NewsForm(data=request.POST)
@@ -1916,7 +1934,7 @@ def news_add(request):
                                                      'news_nav': True})
 
 
-@permission_required('notification.change_news', raise_exception=True)
+@console_permission_required('notification.change_news')
 def news_search(request):
     """
     Filtered list of news items
@@ -1931,7 +1949,7 @@ def news_search(request):
     raise Http404()
 
 
-@permission_required('notification.change_news', raise_exception=True)
+@console_permission_required('notification.change_news')
 def news_edit(request, news_slug):
     try:
         news = News.objects.get(slug=news_slug)
@@ -1959,7 +1977,7 @@ def news_edit(request, news_slug):
     return response
 
 
-@permission_required('project.can_edit_featured_content', raise_exception=True)
+@console_permission_required('project.can_edit_featured_content')
 def featured_content(request):
     """
     List of news items
@@ -2006,7 +2024,7 @@ def featured_content(request):
                   {'featured_content': featured_content, 'featured_content_nav': True})
 
 
-@permission_required('project.can_edit_featured_content', raise_exception=True)
+@console_permission_required('project.can_edit_featured_content')
 def add_featured(request):
     """
     List of news items
@@ -2039,7 +2057,7 @@ def add_featured(request):
                                                          'featured_content_nav': True})
 
 
-@permission_required('project.can_view_project_guidelines', raise_exception=True)
+@console_permission_required('project.can_view_project_guidelines')
 def guidelines_review(request):
     """
     Guidelines for reviewers.
@@ -2048,7 +2066,7 @@ def guidelines_review(request):
                   {'guidelines_review_nav': True})
 
 
-@permission_required('project.can_view_stats', raise_exception=True)
+@console_permission_required('project.can_view_stats')
 def editorial_stats(request):
     """
     Editorial stats for reviewers.
@@ -2091,7 +2109,7 @@ def editorial_stats(request):
                   'submenu': 'editorial', 'stats': stats})
 
 
-@permission_required('project.can_view_stats', raise_exception=True)
+@console_permission_required('project.can_view_stats')
 def credentialing_stats(request):
     """
     Credentialing metrics.
@@ -2158,7 +2176,7 @@ def credentialing_stats(request):
                    'stats': stats})
 
 
-@permission_required('project.can_view_stats', raise_exception=True)
+@console_permission_required('project.can_view_stats')
 def submission_stats(request):
     stats = OrderedDict()
     todays_date = datetime.today()
@@ -2211,7 +2229,7 @@ def submission_stats(request):
                   {'stats_nav': True, 'submenu': 'submission', 'stats': stats})
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def download_credentialed_users(request):
     """
     CSV create and download for database access.
@@ -2273,7 +2291,7 @@ def download_credentialed_users(request):
     return response
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def project_access_manage(request, pid):
     projects = PublishedProject.objects.prefetch_related('duasignature_set__user__profile')
     c_project = get_object_or_404(projects, id=pid, access_policy=AccessPolicy.CREDENTIALED)
@@ -2283,7 +2301,7 @@ def project_access_manage(request, pid):
         'project_access_logs_nav': True})
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def project_access_requests_list(request):
     projects = PublishedProject.objects.filter(access_policy=AccessPolicy.CONTRIBUTOR_REVIEW).annotate(
         access_requests_count=Count('data_access_requests')
@@ -2300,7 +2318,7 @@ def project_access_requests_list(request):
     })
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def project_access_requests_detail(request, pk):
     project = get_object_or_404(PublishedProject, access_policy=AccessPolicy.CONTRIBUTOR_REVIEW, pk=pk)
     access_requests = DataAccessRequest.objects.filter(project=project)
@@ -2317,14 +2335,14 @@ def project_access_requests_detail(request, pk):
     })
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def access_request(request, pk):
     access_request = get_object_or_404(DataAccessRequest, pk=pk)
 
     return render(request, 'console/access_request.html', {'access_request': access_request})
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def project_access_logs(request):
     c_projects = PublishedProject.objects.annotate(
         log_count=Count('logs', filter=Q(logs__category=LogCategory.ACCESS)))
@@ -2344,7 +2362,7 @@ def project_access_logs(request):
     })
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def project_access_logs_detail(request, pid):
     c_project = get_object_or_404(PublishedProject, id=pid)
     logs = (
@@ -2373,7 +2391,7 @@ def project_access_logs_detail(request, pid):
     })
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def download_project_accesses(request, pk):
     headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Count']
 
@@ -2404,7 +2422,7 @@ def download_project_accesses(request, pk):
     return response
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def user_access_logs(request):
     users = (
         User.objects.filter(is_active=True)
@@ -2428,7 +2446,7 @@ def user_access_logs(request):
     })
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def user_access_logs_detail(request, pid):
     user = get_object_or_404(User, id=pid, is_active=True)
     logs = (
@@ -2457,7 +2475,7 @@ def user_access_logs_detail(request, pid):
     })
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def download_user_accesses(request, pk):
     headers = ['Project name', 'First access', 'Last access', 'Duration', 'Count']
 
@@ -2484,7 +2502,7 @@ def download_user_accesses(request, pk):
     return response
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def gcp_signed_urls_logs(request):
     projects = ActiveProject.objects.annotate(
         log_count=Count('logs', filter=Q(logs__category=LogCategory.GCP)))
@@ -2500,7 +2518,7 @@ def gcp_signed_urls_logs(request):
     })
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def gcp_signed_urls_logs_detail(request, pk):
     project = get_object_or_404(ActiveProject, pk=pk)
     logs = project.logs.order_by('-creation_datetime').prefetch_related('project').annotate(
@@ -2514,7 +2532,7 @@ def gcp_signed_urls_logs_detail(request, pk):
     })
 
 
-@permission_required('project.can_view_access_logs', raise_exception=True)
+@console_permission_required('project.can_view_access_logs')
 def download_signed_urls_logs(request, pk):
     headers = ['User', 'Email address', 'First access', 'Last access', 'Duration', 'Data', 'Count']
 
@@ -2578,7 +2596,7 @@ class ProjectAutocomplete(autocomplete.Select2QuerySetView):
         return qs
 
 
-@permission_required('user.change_credentialapplication', raise_exception=True)
+@console_permission_required('user.change_credentialapplication')
 def known_references(request):
     """
     List all known references witht he option of removing the contact date
@@ -2607,7 +2625,7 @@ def known_references(request):
         'all_known_ref': all_known_ref, 'known_ref_nav': True})
 
 
-@permission_required('redirects.view_redirect', raise_exception=True)
+@console_permission_required('redirects.view_redirect')
 def view_redirects(request):
     """
     Display a list of redirected URLs.
@@ -2619,7 +2637,7 @@ def view_redirects(request):
         {'redirects': redirects, 'redirects_nav': True})
 
 
-@permission_required('physionet.change_frontpagebutton', raise_exception=True)
+@console_permission_required('physionet.change_frontpagebutton')
 def frontpage_buttons(request):
 
     if request.method == 'POST':
@@ -2641,7 +2659,7 @@ def frontpage_buttons(request):
         {'frontpage_buttons': frontpage_buttons, 'frontpage_buttons_nav': True})
 
 
-@permission_required('physionet.change_frontpagebutton', raise_exception=True)
+@console_permission_required('physionet.change_frontpagebutton')
 def frontpage_button_add(request):
     if request.method == 'POST':
         frontpage_button_form = forms.FrontPageButtonForm(data=request.POST)
@@ -2659,7 +2677,7 @@ def frontpage_button_add(request):
     )
 
 
-@permission_required('physionet.change_frontpagebutton', raise_exception=True)
+@console_permission_required('physionet.change_frontpagebutton')
 def frontpage_button_edit(request, button_pk):
 
     frontpage_button = get_object_or_404(FrontPageButton, pk=button_pk)
@@ -2682,7 +2700,7 @@ def frontpage_button_edit(request, button_pk):
     )
 
 
-@permission_required('physionet.change_frontpagebutton', raise_exception=True)
+@console_permission_required('physionet.change_frontpagebutton')
 def frontpage_button_delete(request, button_pk):
     frontpage_button = get_object_or_404(FrontPageButton, pk=button_pk)
     if request.method == 'POST':
@@ -2692,7 +2710,7 @@ def frontpage_button_delete(request, button_pk):
     return HttpResponseRedirect(reverse('frontpage_buttons'))
 
 
-@permission_required('physionet.change_staticpage', raise_exception=True)
+@console_permission_required('physionet.change_staticpage')
 def static_pages(request):
     if request.method == 'POST':
         up = request.POST.get('up')
@@ -2713,7 +2731,7 @@ def static_pages(request):
         {'pages': pages, 'static_pages_nav': True})
 
 
-@permission_required('physionet.change_staticpage', raise_exception=True)
+@console_permission_required('physionet.change_staticpage')
 def static_page_add(request):
     if request.method == 'POST':
         static_page_form = forms.StaticPageForm(data=request.POST)
@@ -2731,7 +2749,7 @@ def static_page_add(request):
     )
 
 
-@permission_required('physionet.change_staticpage', raise_exception=True)
+@console_permission_required('physionet.change_staticpage')
 def static_page_edit(request, page_pk):
 
     static_page = get_object_or_404(StaticPage, pk=page_pk)
@@ -2751,7 +2769,7 @@ def static_page_edit(request, page_pk):
     )
 
 
-@permission_required('physionet.change_staticpage', raise_exception=True)
+@console_permission_required('physionet.change_staticpage')
 def static_page_delete(request, page_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
@@ -2761,7 +2779,7 @@ def static_page_delete(request, page_pk):
     return HttpResponseRedirect(reverse('static_pages'))
 
 
-@permission_required('physionet.change_staticpage', raise_exception=True)
+@console_permission_required('physionet.change_staticpage')
 def static_page_sections(request, page_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
@@ -2790,7 +2808,7 @@ def static_page_sections(request, page_pk):
     )
 
 
-@permission_required('physionet.change_staticpage', raise_exception=True)
+@console_permission_required('physionet.change_staticpage')
 def static_page_sections_delete(request, page_pk, section_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     if request.method == 'POST':
@@ -2801,7 +2819,7 @@ def static_page_sections_delete(request, page_pk, section_pk):
     return redirect('static_page_sections', page_pk=static_page.pk)
 
 
-@permission_required('physionet.change_staticpage', raise_exception=True)
+@console_permission_required('physionet.change_staticpage')
 def static_page_sections_edit(request, page_pk, section_pk):
     static_page = get_object_or_404(StaticPage, pk=page_pk)
     section = get_object_or_404(Section, static_page=static_page, pk=section_pk)
@@ -2820,7 +2838,7 @@ def static_page_sections_edit(request, page_pk, section_pk):
     )
 
 
-@permission_required('project.add_license', raise_exception=True)
+@console_permission_required('project.add_license')
 def license_list(request):
     if request.method == 'POST':
         license_form = forms.LicenseForm(data=request.POST)
@@ -2843,7 +2861,7 @@ def license_list(request):
     )
 
 
-@permission_required('project.add_license', raise_exception=True)
+@console_permission_required('project.add_license')
 def license_detail(request, pk):
     license = get_object_or_404(License, pk=pk)
 
@@ -2865,7 +2883,7 @@ def license_detail(request, pk):
     )
 
 
-@permission_required('project.add_license', raise_exception=True)
+@console_permission_required('project.add_license')
 def license_delete(request, pk):
     if request.method == 'POST':
         license = get_object_or_404(License, pk=pk)
@@ -2874,7 +2892,7 @@ def license_delete(request, pk):
     return redirect('license_list')
 
 
-@permission_required('project.add_license', raise_exception=True)
+@console_permission_required('project.add_license')
 def license_new_version(request, pk):
     license = get_object_or_404(License, pk=pk)
 
@@ -2899,7 +2917,7 @@ def license_new_version(request, pk):
     )
 
 
-@permission_required('project.add_dua', raise_exception=True)
+@console_permission_required('project.add_dua')
 def dua_list(request):
     if request.method == 'POST':
         dua_form = forms.DUAForm(data=request.POST)
@@ -2918,7 +2936,7 @@ def dua_list(request):
     return render(request, 'console/dua_list.html', {'dua_nav': True, 'duas': duas, 'dua_form': dua_form})
 
 
-@permission_required('project.add_dua', raise_exception=True)
+@console_permission_required('project.add_dua')
 def dua_detail(request, pk):
     dua = get_object_or_404(DUA, pk=pk)
 
@@ -2936,7 +2954,7 @@ def dua_detail(request, pk):
     return render(request, 'console/dua_detail.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
 
 
-@permission_required('project.add_dua', raise_exception=True)
+@console_permission_required('project.add_dua')
 def dua_delete(request, pk):
     if request.method == 'POST':
         dua = get_object_or_404(DUA, pk=pk)
@@ -2945,7 +2963,7 @@ def dua_delete(request, pk):
     return redirect("dua_list")
 
 
-@permission_required('project.add_dua', raise_exception=True)
+@console_permission_required('project.add_dua')
 def dua_new_version(request, pk):
     dua = get_object_or_404(DUA, pk=pk)
 
@@ -2966,7 +2984,7 @@ def dua_new_version(request, pk):
     return render(request, 'console/dua_new_version.html', {'dua_nav': True, 'dua': dua, 'dua_form': dua_form})
 
 
-@permission_required('project.add_codeofconduct', raise_exception=True)
+@console_permission_required('project.add_codeofconduct')
 def code_of_conduct_list(request):
     if request.method == 'POST':
         code_of_conduct_form = forms.CodeOfConductForm(data=request.POST)
@@ -2993,7 +3011,7 @@ def code_of_conduct_list(request):
     )
 
 
-@permission_required('project.add_codeofconduct', raise_exception=True)
+@console_permission_required('project.add_codeofconduct')
 def code_of_conduct_detail(request, pk):
     code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
     if request.method == 'POST':
@@ -3018,7 +3036,7 @@ def code_of_conduct_detail(request, pk):
     )
 
 
-@permission_required('project.add_codeofconduct', raise_exception=True)
+@console_permission_required('project.add_codeofconduct')
 def code_of_conduct_delete(request, pk):
     if request.method == 'POST':
         code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
@@ -3027,7 +3045,7 @@ def code_of_conduct_delete(request, pk):
     return redirect("code_of_conduct_list")
 
 
-@permission_required('project.add_codeofconduct', raise_exception=True)
+@console_permission_required('project.add_codeofconduct')
 def code_of_conduct_new_version(request, pk):
     code_of_conduct = get_object_or_404(CodeOfConduct, pk=pk)
     if request.method == 'POST':
@@ -3055,7 +3073,7 @@ def code_of_conduct_new_version(request, pk):
     )
 
 
-@permission_required('project.add_codeofconduct', raise_exception=True)
+@console_permission_required('project.add_codeofconduct')
 def code_of_conduct_activate(request, pk):
     CodeOfConduct.objects.filter(is_active=True).update(is_active=False)
 
@@ -3068,7 +3086,7 @@ def code_of_conduct_activate(request, pk):
     return redirect("code_of_conduct_list")
 
 
-@permission_required('user.view_all_events', raise_exception=True)
+@console_permission_required('user.view_all_events')
 def event_active(request):
     """
     List of events
@@ -3082,7 +3100,7 @@ def event_active(request):
                    })
 
 
-@permission_required('user.view_all_events', raise_exception=True)
+@console_permission_required('user.view_all_events')
 def event_archive(request):
     """
     List of archived events
@@ -3096,7 +3114,7 @@ def event_archive(request):
                    })
 
 
-@permission_required("user.view_all_events", raise_exception=True)
+@console_permission_required('user.view_all_events')
 def event_management(request, event_slug):
     """
     Admin page for managing an individual Event.
@@ -3188,8 +3206,7 @@ def event_management(request, event_slug):
     )
 
 
-
-@permission_required('events.add_eventagreement', raise_exception=True)
+@console_permission_required('events.add_eventagreement')
 def event_agreement_list(request):
     if request.method == 'POST':
         event_agreement_form = EventAgreementForm(data=request.POST)
@@ -3217,7 +3234,7 @@ def event_agreement_list(request):
     )
 
 
-@permission_required('events.add_eventagreement', raise_exception=True)
+@console_permission_required('events.add_eventagreement')
 def event_agreement_new_version(request, pk):
     event_agreement = get_object_or_404(EventAgreement, pk=pk)
 
@@ -3247,7 +3264,7 @@ def event_agreement_new_version(request, pk):
     )
 
 
-@permission_required('events.add_eventagreement', raise_exception=True)
+@console_permission_required('events.add_eventagreement')
 def event_agreement_detail(request, pk):
     event_agreement = get_object_or_404(EventAgreement, pk=pk)
 
@@ -3273,7 +3290,7 @@ def event_agreement_detail(request, pk):
     )
 
 
-@permission_required('events.add_eventagreement', raise_exception=True)
+@console_permission_required('events.add_eventagreement')
 def event_agreement_delete(request, pk):
     if request.method == 'POST':
         event_agreement = get_object_or_404(EventAgreement, pk=pk)
