@@ -149,6 +149,7 @@ def console_permission_required(perm):
 # ------------------------- Views begin ------------------------- #
 
 
+@console_permission_required('user.can_view_admin_console')
 def console_home(request):
     if not request.user.is_authenticated or not request.user.has_access_to_admin_console():
         raise PermissionDenied
