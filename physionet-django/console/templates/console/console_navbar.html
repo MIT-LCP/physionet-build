@@ -89,13 +89,13 @@
           <ul class="sidenav-second-level collapse" id="nav_identity_components">
         {% endif %}
             <li class="nav-item {% if processing_credentials_nav %}active{% endif %}">
-              <a id="nav_credential_processing" href="{% url 'credential_processing' %}">Processing</a>
+              <a id="nav_credential_processing" class="nav-link" href="{% url 'credential_processing' %}">Processing</a>
             </li>
             <li class="nav-item {% if past_credentials_nav %}active{% endif %} ">
-              <a id="nav_credential_applications__successful" href="{% url 'credential_applications' 'successful' %}">All Applications</a>
+              <a id="nav_credential_applications__successful" class="nav-link" href="{% url 'credential_applications' 'successful' %}">All Applications</a>
             </li>
             <li class="nav-item {% if known_ref_nav %}active{% endif %} ">
-              <a id="nav_known_references" href="{% url 'known_references' %}">Known References</a>
+              <a id="nav_known_references" class="nav-link" href="{% url 'known_references' %}">Known References</a>
             </li>
           </ul>
         </li>
@@ -279,7 +279,7 @@
           <ul class="sidenav-second-level collapse" id="nav_guidelines_components">
         {% endif %}
             <li class="nav-item {% if guidelines_review_nav %}active{% endif %}">
-              <a id="nav_guidelines_review" href="{% url 'guidelines_review' %}">Project review</a>
+              <a id="nav_guidelines_review" class="nav-link" href="{% url 'guidelines_review' %}">Project review</a>
             </li>
           </ul>
         </li>
@@ -304,13 +304,13 @@
           {% endif %}
             <li>
             <li class="nav-item {% if submenu == 'editorial' %}active{% endif %}">
-              <a id="nav_editorial_stats" href="{% url 'editorial_stats' %}">Editorial</a>
+              <a id="nav_editorial_stats" class="nav-link" href="{% url 'editorial_stats' %}">Editorial</a>
             </li>
             <li class="nav-item {% if submenu == 'credential' %}active{% endif %}">
-              <a id="nav_credentialing_stats" href="{% url 'credentialing_stats' %}">Credentialing</a>
+              <a id="nav_credentialing_stats" class="nav-link" href="{% url 'credentialing_stats' %}">Credentialing</a>
             </li>
             <li class="nav-item {% if submenu == 'submissions' %}active{% endif %}">
-              <a id="nav_submission_stats" href="{% url 'submission_stats' %}">Submissions</a>
+              <a id="nav_submission_stats" class="nav-link" href="{% url 'submission_stats' %}">Submissions</a>
             </li>
           </ul>
         </li>
