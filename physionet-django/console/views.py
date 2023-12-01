@@ -42,7 +42,6 @@ from project.models import (
     AccessLog,
     AccessPolicy,
     ActiveProject,
-    ArchivedProject,
     DataAccess,
     DUA,
     DataAccessRequest,
@@ -155,7 +154,7 @@ def submitted_projects(request):
             messages.success(request, 'The editor has been assigned')
 
     # Submitted projects
-    projects = ActiveProject.objects.filter(submission_status__gt=SubmissionStatus.UNSUBMITTED).order_by(
+    projects = ActiveProject.objects.filter(submission_status__gt=SubmissionStatus.ARCHIVED).order_by(
         'submission_datetime')
     # Separate projects by submission status
     # Awaiting editor assignment
@@ -342,7 +341,8 @@ def edit_submission(request, project_slug, *args, **kwargs):
             edit_log.set_quality_assurance_results()
             # The original object will be deleted if the decision is reject
             if edit_log.decision == 0:
-                project = ArchivedProject.objects.get(slug=project_slug)
+                project = ActiveProject.objects.get(slug=project_slug,
+                                                    submission_status=SubmissionStatus.ARCHIVED)
             # Notify the authors
             notification.edit_decision_notify(request, project, edit_log)
             return render(request, 'console/edit_complete.html',
@@ -1131,12 +1131,13 @@ def aws_bucket_management(request, project, user):
     send_files_to_aws(project.id, verbose_name='AWS - {}'.format(project), creator=user)
 
 
-@permission_required('project.change_archivedproject', raise_exception=True)
+@permission_required('project.change_activeproject', raise_exception=True)
 def archived_submissions(request):
     """
     List of archived submissions
     """
-    projects = ArchivedProject.objects.all().order_by('archive_datetime')
+    projects = ActiveProject.objects.filter(submission_status=SubmissionStatus.ARCHIVED
+                                            ).order_by('creation_datetime')
     projects = paginate(request, projects, 50)
     return render(request, 'console/archived_submissions.html',
                   {'projects': projects, 'archived_projects_nav': True})
@@ -1231,9 +1232,11 @@ def user_management(request, username):
         authors__user=user, submission_status=SubmissionStatus.UNSUBMITTED
     ).order_by("-creation_datetime")
     projects["Submitted"] = ActiveProject.objects.filter(
-        authors__user=user, submission_status__gt=SubmissionStatus.UNSUBMITTED
+        authors__user=user, submission_status__gt=SubmissionStatus.ARCHIVED
     ).order_by("-submission_datetime")
-    projects['Archived'] = ArchivedProject.objects.filter(authors__user=user).order_by('-archive_datetime')
+    projects['Archived'] = ActiveProject.objects.filter(authors__user=user,
+                                                        submission_status=SubmissionStatus.ARCHIVED
+                                                        ).order_by('-creation_datetime')
     projects['Published'] = PublishedProject.objects.filter(authors__user=user).order_by('-publish_datetime')
 
     credentialing_app = CredentialApplication.objects.filter(user=user).order_by("application_datetime")
@@ -2159,8 +2162,7 @@ def credentialing_stats(request):
 def submission_stats(request):
     stats = OrderedDict()
     todays_date = datetime.today()
-    all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all(),
-                    ArchivedProject.objects.all()]
+    all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all()]
     cur_year = todays_date.year
     cur_month = todays_date.month
 

@@ -33,7 +33,6 @@ from project.models import (
     ActiveProject,
     Affiliation,
     AnonymousAccess,
-    ArchivedProject,
     Author,
     AuthorInvitation,
     DataAccess,
@@ -221,19 +220,15 @@ def project_home(request):
     InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
         form=forms.InvitationResponseForm, extra=0)
 
-    active_authors = Author.objects.filter(user=user,
-        content_type=ContentType.objects.get_for_model(ActiveProject))
-    archived_authors = Author.objects.filter(user=user,
-        content_type=ContentType.objects.get_for_model(ArchivedProject))
-    published_authors = PublishedAuthor.objects.filter(user=user,
-        project__is_latest_version=True)
     request_reviewers = DataAccessRequestReviewer.objects.filter(reviewer=user,
                                                                  is_revoked=False,
                                                                  project__is_latest_version=True)
 
+    published_projects = PublishedProject.objects.filter(authors__user=user,
+                                                         is_latest_version=True).order_by("-publish_datetime")
+
     # Get the various projects.
-    projects = [a.project for a in active_authors]
-    published_projects = [a.project for a in published_authors] + [ a.project for a in request_reviewers]
+    published_projects = [a for a in published_projects] + [a.project for a in request_reviewers]
     for p in published_projects:
         p.new_button = p.can_publish_new(user)
         p.requests_button = p.can_approve_requests(user)
@@ -251,7 +246,11 @@ def project_home(request):
     pending_author_approvals = []
     missing_affiliations = []
     pending_revisions = []
-    for p in projects:
+
+    active_projects = ActiveProject.objects.filter(authors__user=user).exclude(
+        submission_status=SubmissionStatus.ARCHIVED).order_by("-creation_datetime")
+
+    for p in active_projects:
         if (p.submission_status == SubmissionStatus.NEEDS_APPROVAL
                 and not p.all_authors_approved()):
             if p.authors.get(user=user).is_submitting:
@@ -263,7 +262,9 @@ def project_home(request):
             pending_revisions.append(p)
         if p.submission_status == SubmissionStatus.UNSUBMITTED and p.authors.get(user=user).affiliations.count() == 0:
             missing_affiliations.append([p, p.authors.get(user=user).creation_date])
-    archived_projects = [a.project for a in archived_authors]
+
+    archived_projects = ActiveProject.objects.filter(
+        authors__user=user, submission_status=SubmissionStatus.ARCHIVED).order_by("-creation_datetime")
 
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
@@ -279,7 +280,7 @@ def project_home(request):
         request,
         'project/project_home.html',
         {
-            'projects': projects,
+            'projects': active_projects,
             'published_projects': published_projects,
             'archived_projects': archived_projects,
             'missing_affiliations': missing_affiliations,
@@ -370,7 +371,7 @@ def project_overview(request, project_slug, **kwargs):
     under_submission = project.under_submission()
 
     if request.method == 'POST' and 'delete_project' in request.POST and is_submitting and not under_submission:
-        project.fake_delete()
+        project.archive(archive_reason=1)
         return redirect('delete_project_success')
 
     return render(request, 'project/project_overview.html',
@@ -1509,10 +1510,14 @@ def archived_submission_history(request, project_slug):
     user = request.user
     try:
         # Checks if the user is an author
-        project = ArchivedProject.objects.get(slug=project_slug, authors__user=user)
-    except ArchivedProject.DoesNotExist:
-        if user.has_perm('project.change_archivedproject'):
-            project = get_object_or_404(ArchivedProject, slug=project_slug)
+        project = ActiveProject.objects.get(slug=project_slug,
+                                            submission_status=SubmissionStatus.ARCHIVED,
+                                            authors__user=user)
+    except ActiveProject.DoesNotExist:
+        if user.has_perm('project.change_activeproject'):
+            project = get_object_or_404(ActiveProject,
+                                        slug=project_slug,
+                                        submission_status=SubmissionStatus.ARCHIVED)
         else:
             raise Http404()
 

@@ -25,9 +25,9 @@ class Metadata(models.Model):
     """
     Visible content of a published or unpublished project.
 
-    Every project (ActiveProject, PublishedProject, and
-    ArchivedProject) inherits from this class as well as
-    SubmissionInfo.  The difference is that the fields of this class
+    Every project (ActiveProject, PublishedProject) inherits
+    from this class as well as SubmissionInfo.
+    The difference is that the fields of this class
     contain public information that will be shown on the published
     project pages; SubmissionInfo contains internal information about
     the publication process.
@@ -534,7 +534,7 @@ class Metadata(models.Model):
 
 class Topic(models.Model):
     """
-    Topic information to tag ActiveProject/ArchivedProject
+    Topic information to tag ActiveProject
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -576,7 +576,7 @@ class PublishedTopic(models.Model):
 
 class Reference(models.Model):
     """
-    Reference field for ActiveProject/ArchivedProject
+    Reference field for ActiveProject
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -643,7 +643,7 @@ class BasePublication(models.Model):
 
 class Publication(BasePublication):
     """
-    Publication for ArchivedProject/ActiveProject
+    Publication for ActiveProject
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
