@@ -18,9 +18,10 @@
             <a id="nav_{{ item.name }}_dropdown"
                class="nav-link nav-link-collapse drop {{ item.active|yesno:',collapsed' }}"
                data-toggle="collapse"
-               href="#nav_{{ item.name }}_components"
+               data-target="#nav_{{ item.name }}_components"
                data-parent="#sideAccordion"
-               aria-expanded="{{ item.active|yesno:'true,false' }}">
+               aria-expanded="{{ item.active|yesno:'true,false' }}"
+               href="#">
               {% if item.icon %}
                 <span class="nav-link-icon fa fa-fw fa-{{ item.icon }}"></span>
               {% endif %}
