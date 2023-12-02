@@ -1388,11 +1388,20 @@ def project_submission(request, project_slug, **kwargs):
     else:
         edit_logs, copyedit_logs = None, None
 
-    return render(request, 'project/project_submission.html', {
-        'project':project, 'authors':authors,
-        'is_submitting':is_submitting, 'author_comments_form':author_comments_form,
-        'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
-        'awaiting_user_approval':awaiting_user_approval})
+    return render(
+        request,
+        "project/project_submission.html",
+        {
+            "project": project,
+            "authors": authors,
+            "is_submitting": is_submitting,
+            "author_comments_form": author_comments_form,
+            "edit_logs": edit_logs,
+            "copyedit_logs": copyedit_logs,
+            "awaiting_user_approval": awaiting_user_approval,
+            "contact_email": settings.CONTACT_EMAIL,
+        },
+    )
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
