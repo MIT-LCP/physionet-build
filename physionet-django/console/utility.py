@@ -488,6 +488,7 @@ def generate_doi_payload(project, core_project=False, event="draft"):
             author_metadata = {"givenName": author.first_names,
                                "familyName": author.last_name,
                                "name": author.get_full_name(reverse=True)}
+            author_metadata["affiliation"] = [{"name": a.name} for a in author.affiliations.all()]
             if author.user.has_orcid():
                 author_metadata["nameIdentifiers"] = [{
                     "nameIdentifier": f'https://orcid.org/{author.user.get_orcid_id()}',
