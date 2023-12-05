@@ -59,3 +59,9 @@ class AWS(models.Model):
 
     class Meta:
         default_permissions = ()
+
+    def s3_uri(self):
+        if self.is_private:
+            return f's3://{self.bucket_name}/{self.project.version}/'
+        else:
+            return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
