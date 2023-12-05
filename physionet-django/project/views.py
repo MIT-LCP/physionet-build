@@ -119,6 +119,13 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             else:
                 allow = False
 
+            # Authors cannot view archived projects
+            if (
+                project.submission_status == SubmissionStatus.ARCHIVED
+                and not user.has_perm("project.change_activeproject")
+            ):
+                allow = False
+
             # Post authentication
             if request.method == 'POST':
                 if post_auth_mode == 1:
