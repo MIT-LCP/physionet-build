@@ -1,6 +1,4 @@
-from asyncio import events
 from datetime import datetime
-import re
 
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -13,7 +11,7 @@ from django.urls import reverse
 
 import notification.utility as notification
 from events.forms import AddEventForm, EventApplicationResponseForm
-from events.models import Event, EventApplication, EventParticipant, cohostStatus
+from events.models import Event, EventApplication, EventParticipant, CohostStatus
 from events.utility import notify_host_cohosts_new_registration
 
 
@@ -220,7 +218,7 @@ def event_home(request):
     participation_response_formset = EventApplicationResponseFormSet(
         queryset=participation_requests
     )
-    cohost_status = {member: value.value for member, value in cohostStatus.__members__.items()}
+    cohost_status = {member: value.value for member, value in CohostStatus.__members__.items()}
     return render(
         request,
         "events/event_home.html",
@@ -345,7 +343,7 @@ def manage_co_hosts(request, event_slug):
         # 0 - remove cohost
         # 1 - make cohost
         action = request.POST.get('action')[0]
-        if action == str(cohostStatus.REMOVE_COHOST.value):
+        if action == str(CohostStatus.REMOVE_COHOST.value):
             if not participant.is_cohost:
                 return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
             participant.is_cohost = False
@@ -356,7 +354,7 @@ def manage_co_hosts(request, event_slug):
                                                                 status=participant.is_cohost)
 
             return JsonResponse({'success': 'Cohost removed successfully'})
-        elif action == str(cohostStatus.MAKE_COHOST.value):
+        elif action == str(CohostStatus.MAKE_COHOST.value):
             if participant.is_cohost:
                 return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
             participant.is_cohost = True

@@ -88,52 +88,79 @@
     $('.manage-cohost').submit(function (e) {
       e.preventDefault();
       let $form = $(this);
-      $form.find('input[type="submit"]').prop('disabled', true);
+      disableSubmitButton($form);
 
-      let participant_id = e.target.participant.value;
-      let event_slug = e.target.event.value;
-      let submit_value = $form.find('input[type="submit"]').val();
-      let action = $form.find('input[type="submit"]').attr('data-action');
-      let csrftoken = e.target.csrfmiddlewaretoken.value;
-      let url = e.target.action;
+      const formData = getFormData(e, $form);
+      const url = e.target.action;
 
       $.ajax({
         url: url,
         type: 'POST',
-        data: {
-          'participant_id': participant_id,
-          'event_slug': event_slug,
-          'csrfmiddlewaretoken': csrftoken,
-          'action': action,
-          'submit': submit_value
-        },
+        data: formData,
         success: function (data) {
-
-          $form.find('input[type="submit"]').prop('disabled', false);
-
-          current_action = $form.find('input[type="submit"]').attr('data-action');
-          make_cohost_action = '{{ cohostStatus.MAKE_COHOST }}';
-          remove_cohost_action = '{{ cohostStatus.REMOVE_COHOST }}';
-
-          console.log(current_action, make_cohost_action, remove_cohost_action);
-
-          if (current_action == make_cohost_action) {
-            $form.find('input[type="submit"]').attr('data-action', remove_cohost_action);
-            $form.find('input[type="submit"]').val('Remove cohost');
-            $form.find('input[type="submit"]').removeClass('btn-primary');
-            $form.find('input[type="submit"]').addClass('btn-danger');
-          } else if (current_action == remove_cohost_action) {
-            $form.find('input[type="submit"]').attr('data-action', make_cohost_action);
-            $form.find('input[type="submit"]').val('Make cohost');
-            $form.find('input[type="submit"]').removeClass('btn-danger');
-            $form.find('input[type="submit"]').addClass('btn-success');
-          }
+          handleSuccess($form, data);
         },
         error: function (data) {
-          $form.find('input[type="submit"]').prop('disabled', false);
+          handleError($form, data);
         }
       });
     });
   });
+
+  function disableSubmitButton($form) {
+    $form.find('input[type="submit"]').prop('disabled', true);
+  }
+
+  function enableSubmitButton($form) {
+    $form.find('input[type="submit"]').prop('disabled', false);
+  }
+
+  function getFormData(e, $form) {
+    const participantId = e.target.participant.value;
+    const eventSlug = e.target.event.value;
+    const submitValue = $form.find('input[type="submit"]').val();
+    const action = $form.find('input[type="submit"]').attr('data-action');
+    const csrftoken = e.target.csrfmiddlewaretoken.value;
+
+    return {
+      'participant_id': participantId,
+      'event_slug': eventSlug,
+      'csrfmiddlewaretoken': csrftoken,
+      'action': action,
+      'submit': submitValue
+    };
+  }
+
+  function handleSuccess($form, data) {
+    enableSubmitButton($form);
+
+    let current_action = $form.find('input[type="submit"]').attr('data-action');
+    const make_cohost_action = '{{ cohostStatus.MAKE_COHOST }}';
+    const remove_cohost_action = '{{ cohostStatus.REMOVE_COHOST }}';
+
+    if (current_action == make_cohost_action) {
+      updateButtonForRemoveCohost($form, remove_cohost_action);
+    } else if (current_action == remove_cohost_action) {
+      updateButtonForMakeCohost($form, make_cohost_action);
+    }
+  }
+
+  function handleError($form, data) {
+    enableSubmitButton($form);
+  }
+
+  function updateButtonForRemoveCohost($form, remove_cohost_action) {
+    $form.find('input[type="submit"]').attr('data-action', remove_cohost_action);
+    $form.find('input[type="submit"]').val('Remove cohost');
+    $form.find('input[type="submit"]').removeClass('btn-primary');
+    $form.find('input[type="submit"]').addClass('btn-danger');
+  }
+
+  function updateButtonForMakeCohost($form, make_cohost_action) {
+    $form.find('input[type="submit"]').attr('data-action', make_cohost_action);
+    $form.find('input[type="submit"]').val('Make cohost');
+    $form.find('input[type="submit"]').removeClass('btn-danger');
+    $form.find('input[type="submit"]').addClass('btn-success');
+  }
 </script>
 {% endblock %}

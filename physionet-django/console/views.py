@@ -28,7 +28,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
-from events.models import Event, EventAgreement, EventDataset, EventApplication, cohostStatus
+from events.models import Event, EventAgreement, EventDataset, EventApplication, CohostStatus
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -3016,7 +3016,7 @@ def event_management(request, event_slug):
     else:
         event_dataset_form = EventDatasetForm()
 
-    cohost_status = {member: value.value for member, value in cohostStatus.__members__.items()}
+    cohost_status = {member: value.value for member, value in CohostStatus.__members__.items()}
     participants = selected_event.participants.all()
     pending_applications = selected_event.applications.filter(
         status=EventApplication.EventApplicationStatus.WAITLISTED

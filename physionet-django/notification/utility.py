@@ -3,7 +3,6 @@ Module for generating notifications
 """
 from email.utils import formataddr
 from functools import cache
-import re
 from urllib import parse
 
 from django.conf import settings

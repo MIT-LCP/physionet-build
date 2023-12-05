@@ -11,7 +11,7 @@ from project.modelcomponents.fields import SafeHTMLField
 from project.validators import validate_version, validate_slug
 
 
-class cohostStatus(IntEnum):
+class CohostStatus(IntEnum):
     MAKE_COHOST = 0
     REMOVE_COHOST = 1
 
