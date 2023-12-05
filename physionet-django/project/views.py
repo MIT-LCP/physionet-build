@@ -378,7 +378,7 @@ def project_overview(request, project_slug, **kwargs):
     under_submission = project.under_submission()
 
     if request.method == 'POST' and 'delete_project' in request.POST and is_submitting and not under_submission:
-        project.archive(archive_reason=1)
+        project.archive(archive_reason=1, clear_files=True)
         return redirect('delete_project_success')
 
     return render(request, 'project/project_overview.html',
