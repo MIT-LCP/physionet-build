@@ -628,6 +628,7 @@ MAX_TRAINING_REPORT_UPLOAD_SIZE = config('MAX_TRAINING_REPORT_UPLOAD_SIZE', cast
 
 # User model configurable settings
 MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)
+MAX_SUBMITTABLE_PROJECTS = config('MAX_SUBMITTABLE_PROJECTS', cast=int, default=10)
 
 # Updating to Django to 3.2 requires DEFAULT_AUTO_FIELD to be specified
 # Starting at 3.2, new projects are generated with DEFAULT_AUTO_FIELD set to BigAutoField

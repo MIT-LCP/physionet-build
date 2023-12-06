@@ -308,9 +308,13 @@ def create_project(request):
 
     n_submitting = Author.objects.filter(user=user, is_submitting=True,
         content_type=ContentType.objects.get_for_model(ActiveProject)).count()
-    if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
-        return render(request, 'project/project_limit_reached.html',
-            {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
+
+    if n_submitting >= settings.MAX_SUBMITTABLE_PROJECTS:
+        return render(
+            request,
+            "project/project_limit_reached.html",
+            {"max_projects": settings.MAX_SUBMITTABLE_PROJECTS},
+        )
 
     if request.method == 'POST':
         form = forms.CreateProjectForm(user=user, data=request.POST)
@@ -337,9 +341,13 @@ def new_project_version(request, project_slug):
 
     n_submitting = Author.objects.filter(user=user, is_submitting=True,
         content_type=ContentType.objects.get_for_model(ActiveProject)).count()
-    if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
-        return render(request, 'project/project_limit_reached.html',
-            {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
+
+    if n_submitting >= settings.MAX_SUBMITTABLE_PROJECTS:
+        return render(
+            request,
+            "project/project_limit_reached.html",
+            {"max_projects": settings.MAX_SUBMITTABLE_PROJECTS},
+        )
 
     previous_projects = PublishedProject.objects.filter(
         slug=project_slug).order_by('-version_order')

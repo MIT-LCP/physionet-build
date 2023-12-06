@@ -155,7 +155,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     submission_status = models.PositiveSmallIntegerField(default=0)
 
     # Max number of active submitting projects a user is allowed to have
-    MAX_SUBMITTING_PROJECTS = 10
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
 
     # Subdirectory (under self.files.file_root) where files are stored
