@@ -1929,9 +1929,9 @@ def news_search(request):
 
 
 @permission_required('notification.change_news', raise_exception=True)
-def news_edit(request, news_id):
+def news_edit(request, news_slug):
     try:
-        news = News.objects.get(id=news_id)
+        news = News.objects.get(slug=news_slug)
     except News.DoesNotExist:
         raise Http404()
     saved = False

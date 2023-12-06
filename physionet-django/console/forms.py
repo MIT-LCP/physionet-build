@@ -635,7 +635,7 @@ class NewsForm(forms.ModelForm):
 
     class Meta:
         model = News
-        fields = ('title', 'content', 'url', 'project', 'front_page_banner')
+        fields = ('slug', 'title', 'content', 'url', 'project', 'front_page_banner')
 
 
 class FeaturedForm(forms.Form):

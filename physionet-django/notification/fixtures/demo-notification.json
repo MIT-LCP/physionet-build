@@ -6,7 +6,8 @@
     "title": "New Platform Nearing Completion",
     "content": "<p>We&#39;ve been working very hard on the PhysioNet rebuild. The staging site is available at <a href=\"https://staging.physionet.org/\">https://staging.physionet.org/</a>. We hope to release the beta version of the new site by November 2018.</p>",
     "publish_datetime": "2018-07-05T19:47:15.285Z",
-    "url": "https://github.com/MIT-LCP/physionet-build/"
+    "url": "https://github.com/MIT-LCP/physionet-build/",
+    "slug": "new-platform"
   }
 },
 {
@@ -16,7 +17,8 @@
     "title": "Cloud Migration",
     "content": "<p>PhysioNet may potentially partner with Google and host its data on Google Cloud Platform.</p>",
     "publish_datetime": "2018-08-10T19:50:31.362Z",
-    "url": ""
+    "url": "",
+    "slug": "cloud-migration"
   }
 },
 {
@@ -26,7 +28,8 @@
     "title": "Preparing New Challenges",
     "content": "<p>We are considering hosting challenges on Kaggle. This would free up users to use their own computing resources and choice of programming systems. Because submissions will not have their code run automatically, we will be vigilant in ensuring the quality of submissions. Unusable code will see their submissions penalized and/or disqualified.</p>",
     "publish_datetime": "2018-08-17T19:53:33.258Z",
-    "url": "https://www.kaggle.com/"
+    "url": "https://www.kaggle.com/",
+    "slug": "new-challenges"
   }
 }
 ]

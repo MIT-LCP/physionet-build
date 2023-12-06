@@ -44,12 +44,13 @@ def news_year(request, year):
                   {'year': year, 'news_pieces': news_pieces,
                    'news_years': news_years})
 
-def news_by_id(request, news_id, max_items=20):
+
+def news_by_slug(request, news_slug, max_items=20):
     """
     Get a specific news item
     """
     try:
-        news = News.objects.get(id=news_id)
+        news = News.objects.get(slug=news_slug)
         # The year range of all the PN news in existence.
         minmax = News.objects.all().aggregate(min=Min('publish_datetime'),
                                               max=Max('publish_datetime'))
@@ -59,6 +60,7 @@ def news_by_id(request, news_id, max_items=20):
           'news_years': news_years})
     except News.DoesNotExist:
         raise Http404()
+
 
 def news_rss(request, max_items=100):
     news_pieces = News.objects.order_by('-publish_datetime')[:max_items]

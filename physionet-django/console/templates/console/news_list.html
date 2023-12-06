@@ -4,6 +4,6 @@
     <td>{{ news.publish_datetime }}</td>
 	<td>{% if news.url %}<a href='{{ news.url }}'>{{ news.url }}</a>{% else %}None{% endif %}</td>
     <td>{% if news.front_page_banner %}<span class="fa fa-check"><span class="visually-hidden">&#10004;</span></span>{% endif %}</td>
-    <td><a href="{% url 'news_edit' news.id %}" class="btn btn-sm btn-primary" role="button">Edit</a></td>
+    <td><a href="{% url 'news_edit' news.slug %}" class="btn btn-sm btn-primary" role="button">Edit</a></td>
   </tr>
 {% endfor %}
