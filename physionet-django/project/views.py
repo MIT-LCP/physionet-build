@@ -306,8 +306,15 @@ def create_project(request):
 
     user = request.user
 
-    n_submitting = Author.objects.filter(user=user, is_submitting=True,
-        content_type=ContentType.objects.get_for_model(ActiveProject)).count()
+    # Filter ActiveProject instances (excluding ARCHIVED)
+    # Get Author objects related to these ActiveProjects
+    active_projects = ActiveProject.objects.exclude(submission_status=SubmissionStatus.ARCHIVED)
+    n_submitting = Author.objects.filter(
+        user=user,
+        is_submitting=True,
+        content_type=ContentType.objects.get_for_model(ActiveProject),
+        object_id__in=active_projects.values_list('id', flat=True)
+    ).count()
 
     if n_submitting >= settings.MAX_SUBMITTABLE_PROJECTS:
         return render(
@@ -339,8 +346,15 @@ def new_project_version(request, project_slug):
 
     user = request.user
 
-    n_submitting = Author.objects.filter(user=user, is_submitting=True,
-        content_type=ContentType.objects.get_for_model(ActiveProject)).count()
+    # Filter ActiveProject instances (excluding ARCHIVED)
+    # Get Author objects related to these ActiveProjects
+    active_projects = ActiveProject.objects.exclude(submission_status=SubmissionStatus.ARCHIVED)
+    n_submitting = Author.objects.filter(
+        user=user,
+        is_submitting=True,
+        content_type=ContentType.objects.get_for_model(ActiveProject),
+        object_id__in=active_projects.values_list('id', flat=True)
+    ).count()
 
     if n_submitting >= settings.MAX_SUBMITTABLE_PROJECTS:
         return render(
