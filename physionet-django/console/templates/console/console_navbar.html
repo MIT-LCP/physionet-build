@@ -22,7 +22,7 @@
                data-parent="#sideAccordion"
                aria-expanded="{{ item.active|yesno:'true,false' }}">
               {% if item.icon %}
-                <i class="fa fa-fw fa-{{ item.icon }}"></i>
+                <span class="nav-link-icon fa fa-fw fa-{{ item.icon }}"></span>
               {% endif %}
               <span class="nav-link-text">{{ item.title }}</span>
             </a>
@@ -40,7 +40,7 @@
           <li class="nav-item {{ item.active|yesno:'active,' }}">
             <a id="nav_{{ item.name }}" class="nav-link" href="{{ item.url }}">
               {% if item.icon %}
-                <i class="fa fa-fw fa-{{ item.icon }}"></i>
+                <span class="nav-link-icon fa fa-fw fa-{{ item.icon }}"></span>
               {% endif %}
               <span class="nav-link-text">{{ item.title }}</span>
             </a>
