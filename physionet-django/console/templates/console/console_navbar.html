@@ -38,7 +38,7 @@
             <span class="nav-link-text">Projects</span>
           </a>
         {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or archived_projects_nav %}
-          <ul class="sidenav-second-level collapse show" id="nav_projects_components" style="">
+          <ul class="sidenav-second-level collapse show" id="nav_projects_components">
         {% else %}
           <ul class="sidenav-second-level collapse" id="nav_projects_components">
         {% endif %}
@@ -85,10 +85,10 @@
             <li class="nav-item {% if processing_credentials_nav %}active{% endif %}">
               <a id="nav_credential_processing" class="nav-link" href="{% url 'credential_processing' %}">Processing</a>
             </li>
-            <li class="nav-item {% if past_credentials_nav %}active{% endif %} ">
+            <li class="nav-item {% if past_credentials_nav %}active{% endif %}">
               <a id="nav_credential_applications__successful" class="nav-link" href="{% url 'credential_applications' 'successful' %}">All Applications</a>
             </li>
-            <li class="nav-item {% if known_ref_nav %}active{% endif %} ">
+            <li class="nav-item {% if known_ref_nav %}active{% endif %}">
               <a id="nav_known_references" class="nav-link" href="{% url 'known_references' %}">Known References</a>
             </li>
           </ul>
@@ -179,7 +179,7 @@
             <span class="nav-link-text">Logs</span>
           </a>
         {% if project_access_logs_nav or user_access_logs_nav or gcp_logs_nav or access_requests_nav %}
-          <ul class="sidenav-second-level collapse show" id="nav_logs_components" style="">
+          <ul class="sidenav-second-level collapse show" id="nav_logs_components">
         {% else %}
           <ul class="sidenav-second-level collapse" id="nav_logs_components">
         {% endif %}
@@ -271,7 +271,7 @@
         {% if stats_nav %}
           <a id="nav_stats_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_stats_components" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
-          <a id="nav_stats_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#nav_stats_components" data-parent="#sideAccordion" aria-expanded="False">
+          <a id="nav_stats_dropdown" class="nav-link nav-link-collapse drop collapsed" data-toggle="collapse" href="#nav_stats_components" data-parent="#sideAccordion" aria-expanded="false">
         {% endif %}
             <i class="fa fa-fw fa-chart-area"></i>
             <span class="nav-link-text">Usage Stats</span>
@@ -305,7 +305,7 @@
             <span class="nav-link-text">Pages</span>
           </a>
         {% if frontpage_buttons_nav or static_pages_nav or redirects_nav %}
-          <ul class="sidenav-second-level collapse show" id="nav_pages_components" style="">
+          <ul class="sidenav-second-level collapse show" id="nav_pages_components">
         {% else %}
           <ul class="sidenav-second-level collapse" id="nav_pages_components">
         {% endif %}
