@@ -11,7 +11,6 @@
   <div class="collapse navbar-collapse" id="navbarResponsive">
     <ul class="navbar-nav navbar-sidenav" id="sideAccordion">
 
-      <!-- console home page -->
       <li class="nav-item {% if console_home_nav %}active{% endif %}">
         <a id="nav_console_home" class="nav-link" href="{% url 'console_home' %}">
           <i class="fa fa-fw fa-book-open"></i>
@@ -19,7 +18,6 @@
         </a>
       </li>
 
-      <!-- editor home -->
       {% if perms.project.change_activeproject or perms.project.change_publishedproject %}
         <li class="nav-item {% if editor_home %}active{% endif %}">
           <a id="nav_editor_home" class="nav-link" href="{% url 'editor_home' %}">
@@ -29,7 +27,6 @@
         </li>
       {% endif %}
 
-      <!-- projects -->
       {% if perms.project.change_publishedproject %}
         <li class="nav-item">
         {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or archived_projects_nav %}
@@ -40,7 +37,6 @@
             <i class="fa fa-fw fa-clipboard-list"></i>
             <span class="nav-link-text">Projects</span>
           </a>
-          <!-- submenu -->
         {% if project_info_nav or submitted_projects_nav or unsubmitted_projects_nav or published_projects_nav or archived_projects_nav %}
           <ul class="sidenav-second-level collapse show" id="nav_projects_components" style="">
         {% else %}
@@ -61,7 +57,7 @@
           </ul>
         </li>
       {% endif %}
-      <!-- storage requests -->
+
       {% if perms.project.change_storagerequest %}
         <li class="nav-item {% if storage_requests_nav %}active{% endif %}">
           <a id="nav_storage_requests" class="nav-link" href="{% url 'storage_requests' %}">
@@ -71,7 +67,6 @@
         </li>
       {% endif %}
 
-      <!-- credentialing -->
       {% if perms.user.change_credentialapplication %}
         <li class="nav-item">
         {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
@@ -82,7 +77,6 @@
             <i class="fa fa-fw fa-hand-paper"></i>
             <span class="nav-link-text">Identity check</span>
           </a>
-          <!-- submenu -->
         {% if credentials_nav or past_credentials_nav or known_ref_nav or processing_credentials_nav %}
           <ul class="sidenav-second-level collapse show" id="nav_identity_components">
         {% else %}
@@ -102,7 +96,6 @@
       {% endif %}
 
       {% if perms.user.can_review_training %}
-        <!-- training -->
         <li class="nav-item {% if training_nav %}active{% endif %}">
           <a id="nav_training_list__review" class="nav-link" href="{% url 'training_list' 'review' %}">
             <i class="fa fa-fw fa-school"></i>
@@ -111,7 +104,6 @@
         </li>
       {% endif %}
 
-      <!-- events -->
       {% if perms.user.view_all_events %}
         <li class="nav-item">
           {% if events_nav %}
@@ -122,7 +114,6 @@
               <i class="fa fa-fw fa-clipboard-list"></i>
               <span class="nav-link-text">Events</span>
             </a>
-            <!-- submenu -->
           {% if nav_event_active or nav_event_archive %}
             <ul class="sidenav-second-level collapse show" id="nav_events_components">
           {% else  %}
@@ -138,7 +129,6 @@
         </li>
       {% endif %}
 
-      <!-- legal -->
       {% if perms.project.add_dua or perms.project.add_codeofconduct or perms.project.add_license or perms.events.add_eventagreement %}
         <li class="nav-item">
           {% if license_nav or dua_nav or code_of_conduct_nav %}
@@ -149,7 +139,6 @@
               <i class="fa fa-fw fa-handshake"></i>
               <span class="nav-link-text">Legal</span>
             </a>
-            <!-- submenu -->
           {% if license_nav or dua_nav or code_of_conduct_nav or event_agreement_nav %}
             <ul class="sidenav-second-level collapse show" id="nav_legal_components">
           {% else  %}
@@ -179,7 +168,6 @@
         </li>
       {% endif %}
       
-      <!-- logs -->
       {% if perms.project.can_view_access_logs %}
         <li class="nav-item">
         {% if project_access_logs_nav or user_access_logs_nav or gcp_logs_nav or access_requests_nav %}
@@ -190,7 +178,6 @@
             <i class="fa fa-fw fa-fingerprint"></i>
             <span class="nav-link-text">Logs</span>
           </a>
-          <!-- submenu -->
         {% if project_access_logs_nav or user_access_logs_nav or gcp_logs_nav or access_requests_nav %}
           <ul class="sidenav-second-level collapse show" id="nav_logs_components" style="">
         {% else %}
@@ -213,9 +200,7 @@
           </ul>
         </li>
       {% endif %}
-      
 
-      <!-- users -->
       {% if perms.user.view_user %}
         <li class="nav-item">
         {% if user_nav %}
@@ -226,7 +211,6 @@
             <i class="fa fa-fw fa-user-check"></i>
             <span class="nav-link-text">Users</span>
           </a>
-          <!-- submenu -->
         {% if user_nav %}
           <ul class="sidenav-second-level collapse show" id="nav_users_components">
         {% else  %}
@@ -251,7 +235,6 @@
         </li>
       {% endif %}
 
-      <!-- featured content -->
       {% if perms.project.can_edit_featured_content %}
         <li class="nav-item {% if featured_content_nav %}active{% endif %}">
           <a id="nav_featured_content" class="nav-link" href="{% url 'featured_content' %}">
@@ -261,7 +244,6 @@
         </li>
       {% endif %}
 
-      <!-- guidelines and documentation -->
       {% if perms.project.can_view_project_guidelines %}
         <li class="nav-item">
         {% if guidelines_review_nav %}
@@ -272,7 +254,6 @@
             <i class="fa fa-fw fa-book"></i>
             <span class="nav-link-text">Guidelines</span>
           </a>
-          <!-- submenu -->
         {% if guidelines_review_nav %}
           <ul class="sidenav-second-level collapse show" id="nav_guidelines_components">
         {% else  %}
@@ -285,7 +266,6 @@
         </li>
       {% endif %}
 
-      <!-- usage stats -->
       {% if perms.project.can_view_stats %}
         <li class="nav-item">
         {% if stats_nav %}
@@ -296,7 +276,6 @@
             <i class="fa fa-fw fa-chart-area"></i>
             <span class="nav-link-text">Usage Stats</span>
           </a>
-          <!-- submenu -->
           {% if stats_nav %}
           <ul class="sidenav-second-level collapse show" id="nav_stats_components">
           {% else  %}
@@ -315,7 +294,6 @@
         </li>
       {% endif %}
 
-      <!-- Pages -->
       {% if perms.physionet.change_staticpage or perms.physionet.change_frontpagebutton or perms.redirect.view_redirect %}
       <li class="nav-item">
         {% if frontpage_buttons_nav or static_pages_nav %}
@@ -326,7 +304,6 @@
             <i class="fa fa-fw fa-window-maximize"></i>
             <span class="nav-link-text">Pages</span>
           </a>
-          <!-- submenu -->
         {% if frontpage_buttons_nav or static_pages_nav or redirects_nav %}
           <ul class="sidenav-second-level collapse show" id="nav_pages_components" style="">
         {% else %}
@@ -345,7 +322,6 @@
       </li>
       {% endif %}
 
-      <!-- news -->
       {% if perms.notification.change_news %}
         <li class="nav-item {% if news_nav %}active{% endif %}">
           <a id="nav_news_console" class="nav-link" href="{% url 'news_console' %}">
