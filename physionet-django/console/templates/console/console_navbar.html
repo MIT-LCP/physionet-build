@@ -15,14 +15,23 @@
       {% for item in nav_menu_items %}
         {% if item.subitems %}
           <li class="nav-item">
-            <a id="nav_{{ item.name }}_dropdown" class="nav-link nav-link-collapse drop{{ item.active|yesno:', collapsed' }}" data-toggle="collapse" href="#nav_{{ item.name }}_components" data-parent="#sideAccordion" aria-expanded="{{ item.active|yesno:'true,false' }}">
-              {% if item.icon %}<i class="fa fa-fw fa-{{ item.icon }}"></i>{% endif %}
+            <a id="nav_{{ item.name }}_dropdown"
+               class="nav-link nav-link-collapse drop {{ item.active|yesno:',collapsed' }}"
+               data-toggle="collapse"
+               href="#nav_{{ item.name }}_components"
+               data-parent="#sideAccordion"
+               aria-expanded="{{ item.active|yesno:'true,false' }}">
+              {% if item.icon %}
+                <i class="fa fa-fw fa-{{ item.icon }}"></i>
+              {% endif %}
               <span class="nav-link-text">{{ item.title }}</span>
             </a>
-            <ul class="sidenav-second-level collapse{{ item.active|yesno:' show,' }}" id="nav_{{ item.name }}_components">
+            <ul class="sidenav-second-level collapse {{ item.active|yesno:'show,' }}"
+                id="nav_{{ item.name }}_components">
               {% for subitem in item.subitems %}
                 <li class="nav-item {{ subitem.active|yesno:'active,' }}">
-                  <a id="nav_{{ subitem.name }}" class="nav-link" href="{{ subitem.url }}">{{ subitem.title }}</a>
+                  <a id="nav_{{ subitem.name }}" class="nav-link"
+                     href="{{ subitem.url }}">{{ subitem.title }}</a>
                 </li>
               {% endfor %}
             </ul>
@@ -30,7 +39,9 @@
         {% else %}
           <li class="nav-item {{ item.active|yesno:'active,' }}">
             <a id="nav_{{ item.name }}" class="nav-link" href="{{ item.url }}">
-              {% if item.icon %}<i class="fa fa-fw fa-{{ item.icon }}"></i>{% endif %}
+              {% if item.icon %}
+                <i class="fa fa-fw fa-{{ item.icon }}"></i>
+              {% endif %}
               <span class="nav-link-text">{{ item.title }}</span>
             </a>
           </li>
