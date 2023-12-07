@@ -289,7 +289,7 @@
       {% if perms.project.can_view_stats %}
         <li class="nav-item">
         {% if stats_nav %}
-          <a id="nav_stats_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#nav_stats_components" data-parent="#sideAccordion" aria-expanded="true">
+          <a id="nav_stats_dropdown" class="nav-link nav-link-collapse drop" data-toggle="collapse" href="#nav_stats_components" data-parent="#sideAccordion" aria-expanded="true">
         {% else %}
           <a id="nav_stats_dropdown" class="nav-link nav-link-collapse collapsed drop" data-toggle="collapse" href="#nav_stats_components" data-parent="#sideAccordion" aria-expanded="False">
         {% endif %}
@@ -302,7 +302,6 @@
           {% else  %}
           <ul class="sidenav-second-level collapse" id="nav_stats_components">
           {% endif %}
-            <li>
             <li class="nav-item {% if submenu == 'editorial' %}active{% endif %}">
               <a id="nav_editorial_stats" class="nav-link" href="{% url 'editorial_stats' %}">Editorial</a>
             </li>
