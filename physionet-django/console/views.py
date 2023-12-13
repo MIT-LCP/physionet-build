@@ -3121,14 +3121,19 @@ def event_invite_host(request, username):
     """
     Gives the user permissions to be an event host
     """
-    if request.method == 'POST':
-        try:
-            user = get_object_or_404(User, username=username)
-            group = Group.objects.get(name='Event Host')
+    try:
+        user = get_object_or_404(User, username=username)
+        group = Group.objects.get(name='Event Host')
+        is_event_host = user.groups.filter(name='Event Host').exists()
+
+        if not is_event_host and request.method == 'POST':
             user.groups.add(group)
             user.save()
             messages.success(request, f"{user} has been added to the Event Host group.")
-        except User.DoesNotExist:
-            messages.error(request, "User not found.")
+        elif is_event_host:
+            messages.error(request, f"{user} is already an Event Host.")
+
+    except User.DoesNotExist:
+        messages.error(request, "User not found.")
 
     return redirect(reverse('user_management', args=[username]))
