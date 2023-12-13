@@ -5,7 +5,7 @@ from django.db.models import Q
 from events.models import Event, EventDataset
 from project.authorization.events import has_access_to_event_dataset
 from project.models import AccessPolicy, DUASignature, DataAccessRequest, PublishedProject
-from user.models import Training, TrainingType
+from user.models import Training, Course
 
 
 def get_public_projects_query():
@@ -29,7 +29,7 @@ def get_credentialed_projects_query(user):
         .filter(user=user)
         .values_list("training_type")
     )
-    not_completed_training = TrainingType.objects.exclude(pk__in=completed_training)
+    not_completed_training = Course.objects.exclude(pk__in=completed_training)
     required_training_complete = ~Q(required_trainings__in=not_completed_training)
 
     accepted_data_access_requests = DataAccessRequest.objects.filter(

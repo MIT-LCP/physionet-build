@@ -40,7 +40,7 @@ from project.models import (
     exists_project_slug,
     UploadedDocument,
 )
-from user.models import User, TrainingType
+from user.models import User, Course
 from user.validators import validate_affiliation
 
 INVITATION_CHOICES = (

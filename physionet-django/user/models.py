@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import timedelta
+from sys import version
 
 from django.utils.crypto import get_random_string
 from django.conf import settings
@@ -1100,13 +1101,15 @@ class Question(models.Model):
         return self.content
 
 
-class TrainingType(models.Model):
+class Course(models.Model):
     name = models.CharField(max_length=128)
     description = SafeHTMLField()
     valid_duration = models.DurationField(null=True)
     questions = models.ManyToManyField(Question, related_name='training_types')
     required_field = models.PositiveSmallIntegerField(choices=RequiredField.choices(), default=RequiredField.DOCUMENT)
     home_page = models.URLField(blank=True)
+    version = models.CharField(max_length=15, default='', validators=[validate_version])
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         default_permissions = ()
@@ -1122,7 +1125,7 @@ class TrainingRegex(models.Model):
     name = models.CharField(max_length=48)
     regex = models.CharField(max_length=128)
     display_order = models.PositiveSmallIntegerField()
-    training_type = models.ForeignKey(TrainingType, related_name='certificate_regexes', on_delete=models.CASCADE)
+    training_type = models.ForeignKey(Course, related_name='certificate_regexes', on_delete=models.CASCADE)
 
     class Meta:
         default_permissions = ()
@@ -1134,7 +1137,7 @@ class TrainingRegex(models.Model):
 
 class Training(models.Model):
     slug = models.SlugField(max_length=20, unique=True)
-    training_type = models.ForeignKey(TrainingType, on_delete=models.CASCADE)
+    training_type = models.ForeignKey(Course, on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='trainings', on_delete=models.CASCADE)
     status = models.PositiveSmallIntegerField(choices=TrainingStatus.choices(), default=TrainingStatus.REVIEW)
     completion_report = models.FileField(

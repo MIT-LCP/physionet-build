@@ -84,7 +84,7 @@ class Metadata(models.Model):
     embargo_files_days = models.SmallIntegerField(default=None, null=True, blank=True)
 
     ethics_statement = SafeHTMLField(blank=True)
-    required_trainings = models.ManyToManyField('user.TrainingType', related_name='%(class)s')
+    required_trainings = models.ManyToManyField('user.Course', related_name='%(class)s')
 
     class Meta:
         abstract = True

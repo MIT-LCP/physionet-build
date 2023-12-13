@@ -1,6 +1,6 @@
 [
     {
-        "model": "user.trainingtype",
+        "model": "user.course",
         "pk": 1,
         "fields": {
             "name": "CITI Data or Specimens Only Research",

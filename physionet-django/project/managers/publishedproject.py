@@ -4,7 +4,7 @@ from django.db.models import Manager, Q
 from events.models import Event, EventDataset
 from project.authorization.events import has_access_to_event_dataset
 from project.models import AccessPolicy, DUASignature, DataAccessRequest
-from user.models import Training, TrainingType
+from user.models import Training, Course
 
 
 class PublishedProjectManager(Manager):
@@ -30,7 +30,7 @@ class PublishedProjectManager(Manager):
                 .filter(user=user)
                 .values_list("training_type")
             )
-            not_completed_training = TrainingType.objects.exclude(
+            not_completed_training = Course.objects.exclude(
                 pk__in=completed_training
             )
             required_training_complete = ~Q(

@@ -100,7 +100,7 @@ admin.site.register(models.AssociatedEmail)
 admin.site.register(models.LegacyCredential)
 admin.site.register(models.CredentialApplication)
 
-admin.site.register(models.TrainingType)
+admin.site.register(models.Course)
 admin.site.register(models.Training)
 admin.site.register(models.Question)
 admin.site.register(models.TrainingQuestion)

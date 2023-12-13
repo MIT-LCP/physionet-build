@@ -21,7 +21,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from user.enums import TrainingStatus
-from user.models import AssociatedEmail, Profile, User, Training, TrainingType, Question, TrainingQuestion
+from user.models import AssociatedEmail, Profile, User, Training, Course, Question, TrainingQuestion
 from user.views import (activate_user, edit_emails, edit_profile,
     edit_password_complete, public_profile, register, user_settings,
     verify_email)
@@ -510,8 +510,8 @@ class TrainingTestCase(TestCase):
         cls.profile = Profile.objects.create(user=cls.user, first_names="Rafał", last_name="F")
 
         cls.question = Question.objects.create(content='Is it okay?')
-        cls.training_type_1 = TrainingType.objects.create(name='Example', valid_duration=datetime.timedelta(days=10))
-        cls.training_type_2 = TrainingType.objects.create(name='Another', valid_duration=datetime.timedelta(days=10))
+        cls.training_type_1 = Course.objects.create(name='Example', valid_duration=datetime.timedelta(days=10))
+        cls.training_type_2 = Course.objects.create(name='Another', valid_duration=datetime.timedelta(days=10))
         cls.training_type_1.questions.add(cls.question)
         cls.training_type_2.questions.add(cls.question)
 

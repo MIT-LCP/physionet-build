@@ -17,7 +17,7 @@ from django.core.management.base import BaseCommand
 from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
 from physionet.utility import get_project_apps
 
-from user.models import Training, TrainingType, TrainingQuestion, CredentialApplication
+from user.models import Training, Course, TrainingQuestion, CredentialApplication
 from user.enums import TrainingStatus
 
 
@@ -156,7 +156,7 @@ def pre_load_data():
     call_command('loaddata', os.path.join(settings.BASE_DIR, 'user',
                                           'fixtures', 'demo-training-type.json'))
 
-    training_type = TrainingType.objects.first()
+    training_type = Course.objects.first()
 
     status_mapping = {
         0: TrainingStatus.REVIEW,

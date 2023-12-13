@@ -67,7 +67,7 @@ from user.models import (
     LegacyCredential,
     User,
     Training,
-    TrainingType,
+    Course,
     TrainingQuestion,
     CodeOfConduct,
     CloudInformation
@@ -1613,7 +1613,7 @@ def training_list(request, status):
     trainings = Training.objects.select_related(
         'user__profile', 'training_type').order_by('-user__is_credentialed', 'application_datetime')
 
-    training_types = TrainingType.objects.values_list("name", flat=True)
+    training_types = Course.objects.values_list("name", flat=True)
 
     # Allow filtering by event.
     if 'event' in request.GET:

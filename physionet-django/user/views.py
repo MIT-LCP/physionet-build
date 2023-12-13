@@ -56,7 +56,7 @@ from user.models import (
     Orcid,
     User,
     Training,
-    TrainingType,
+    Course,
 )
 from user.userfiles import UserFiles
 from physionet.models import StaticPage
