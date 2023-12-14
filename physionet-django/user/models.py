@@ -1119,7 +1119,6 @@ class Course(models.Model):
         default_permissions = ()
         permissions = [
             ("can_review_training", "Can Review Training"),
-            ("can_view_course_guidelines", "Can view course guidelines"),
         ]
 
     def __str__(self):
