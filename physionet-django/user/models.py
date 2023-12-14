@@ -1,7 +1,6 @@
 import logging
 import os
 from datetime import timedelta
-from sys import version
 
 from django.utils.crypto import get_random_string
 from django.conf import settings
@@ -1102,6 +1101,11 @@ class Question(models.Model):
 
 
 class Course(models.Model):
+    """
+    This model represents a course that a user can take to get credentialed/certified.
+    The course can be taken on-platform or off-platform depending on the course.
+    The course can have multiple versions and can be active or inactive.
+    """
     name = models.CharField(max_length=128)
     description = SafeHTMLField()
     valid_duration = models.DurationField(null=True)
@@ -1115,6 +1119,7 @@ class Course(models.Model):
         default_permissions = ()
         permissions = [
             ("can_review_training", "Can Review Training"),
+            ("can_view_course_guidelines", "Can view course guidelines"),
         ]
 
     def __str__(self):
