@@ -130,6 +130,17 @@
       {% endfor %}
     {% endif %}
 
+  {% if project.archive_datetime %}
+    <li class="list-group-item">
+      <div class="row">
+        <div class="col-md-2">{{ project.archive_datetime|date }}</div>
+        <div class="col-md-10">
+          The project was archived.
+        </div>
+      </div>
+    </li>
+  {% endif %}
+
   <!-- resubmissions -->
   {# At this point, there may have been any number of submissions #}
   {% for e in edit_logs reversed %}
@@ -139,7 +150,7 @@
         <div class="col-md-2">{{ e.decision_datetime|date }}</div>
         <div class="col-md-10">
           {% if e.decision == 0 %}
-            <p>: The editor rejected the submission.</p>
+            <p>The editor rejected the submission.</p>
           {% elif e.decision == 1 %}
             <p>The editor requested a resubmission with revisions.</p>
           {% elif e.decision == 2 %}

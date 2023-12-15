@@ -13,7 +13,6 @@ from project.forms import ContentForm
 from project.models import (
     AccessPolicy,
     ActiveProject,
-    ArchivedProject,
     Author,
     AuthorInvitation,
     DataAccessRequest,
@@ -22,6 +21,7 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
     StorageRequest,
+    SubmissionStatus
 )
 from user.models import User
 from user.test_views import TestMixin, prevent_request_warnings
@@ -898,15 +898,20 @@ class TestState(TestMixin):
         """
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.assertTrue(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database',
+                                                     submission_status=SubmissionStatus.UNSUBMITTED))
         author_id = project.authors.all().first().id
         abstract = project.abstract
+
         # 'Delete' (archive) the project
         response = self.client.post(reverse('project_overview',
             args=(project.slug,)), data={'delete_project':''})
-        # The ActiveProject model should be replaced, and all its
-        # related objects should point to the new ArchivedProject
-        self.assertFalse(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database'))
-        project = ArchivedProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        # The ActiveProject model should be set to "Archived" status
+        self.assertFalse(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database',
+                                                      submission_status=SubmissionStatus.UNSUBMITTED))
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database',
+                                            submission_status=SubmissionStatus.ARCHIVED)
         self.assertTrue(Author.objects.get(id=author_id).project == project)
         self.assertEqual(project.abstract, abstract)
 

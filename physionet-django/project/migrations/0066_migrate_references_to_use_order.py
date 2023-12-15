@@ -1,8 +1,10 @@
 from django.db import migrations, models
-from project.models import PublishedProject, ActiveProject, ArchivedProject, LegacyProject
 
 
 def migrate_forward(apps, schema_editor):
+    PublishedProject = apps.get_model("project", "PublishedProject")
+    ActiveProject = apps.get_model("project", "ActiveProject")
+    ArchivedProject = apps.get_model("project", "ArchivedProject")
 
     for project in PublishedProject.objects.all():
         refs = project.references.all().order_by('id')

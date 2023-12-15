@@ -21,9 +21,9 @@ from django.utils import timezone
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext as _
 
-from project.validators import validate_version
 from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.fields import SafeHTMLField
+from project.validators import validate_version
 from user import validators
 from user.userfiles import UserFiles
 from user.enums import TrainingStatus, RequiredField

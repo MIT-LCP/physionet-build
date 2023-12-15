@@ -188,8 +188,8 @@ class SubmissionInfo(models.Model):
     """
     Submission information, inherited by all projects.
 
-    Every project (ActiveProject, PublishedProject, and
-    ArchivedProject) inherits from this class as well as Metadata.
+    Every project (ActiveProject, PublishedProject) inherits
+    from this class as well as Metadata.
     The difference is that the fields of this class contain internal
     information about the publication process; Metadata contains the
     public information that will be shown on the published project
