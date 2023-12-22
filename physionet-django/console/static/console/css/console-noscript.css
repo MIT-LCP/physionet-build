@@ -1,0 +1,8 @@
+.navbar-sidenav .nav-item:focus-within .collapse,
+.navbar-sidenav .nav-link-collapse:focus + .collapse {
+  display: block;
+}
+
+#mainNav .navbar-collapse .navbar-sidenav .nav-item:focus-within .nav-link-collapse.collapsed::after {
+  content: "\f107"; /* angle-down */
+}

@@ -7,6 +7,7 @@
     {% include "base_css.html" %}
     <link rel="stylesheet" type="text/css" href="{% static 'console/css/console.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}"/>
+    <noscript><link rel="stylesheet" type="text/css" href="{% static 'console/css/console-noscript.css' %}"/></noscript>
     {% block local_css %}{% endblock %}
     {% include "base_js_top.html" %}
     {% block local_js_top %}{% endblock %}
