@@ -79,8 +79,6 @@ urlpatterns = [
     path('users/groups/', views.user_groups, name='user_groups'),
     path('users/groups/<group>/', views.user_group, name='user_group'),
     path('users/<group>/', views.users, name='users'),
-    path('users/aws-access-list.json', views.users_aws_access_list_json,
-         name='users_aws_access_list_json'),
     path('user/manage/<username>/', views.user_management,
         name='user_management'),
 

@@ -1,7 +1,6 @@
 import csv
 import logging
 import os
-import re
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
@@ -1302,38 +1301,6 @@ def users_search(request, group):
                                                            'group': group})
 
     raise Http404()
-
-
-@console_permission_required('user.view_user')
-def users_aws_access_list_json(request):
-    """
-    Generate JSON list of currently authorized AWS accounts.
-
-    This is a temporary kludge to support an upcoming event (November
-    2022).  Don't rely on this function; it will go away.
-    """
-    projects_datathon = [
-        "mimiciv-2.2"
-    ]
-    published_projects = PublishedProject.objects.all()
-    users_with_awsid = User.objects.filter(cloud_information__aws_id__isnull=False)
-    datasets = {}
-    datasets['datasets'] = []
-    aws_id_pattern = r"\b\d{12}\b"
-
-    for project in published_projects:
-        dataset = {}
-        project_name = project.slug + "-" + project.version
-        if project_name in projects_datathon:
-            dataset['name'] = project_name
-            dataset['accounts'] = []
-            for user in users_with_awsid:
-                if can_view_project_files(project, user):
-                    if re.search(aws_id_pattern, user.cloud_information.aws_id):
-                        dataset['accounts'].append(user.cloud_information.aws_id)
-            datasets['datasets'].append(dataset)
-
-    return JsonResponse(datasets)
 
 
 @console_permission_required('user.change_credentialapplication')
