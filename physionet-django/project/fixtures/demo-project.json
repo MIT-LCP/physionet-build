@@ -340,6 +340,26 @@
   }
 },
 {
+  "model": "project.author",
+  "pk": 14,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "display_order": 1,
+    "is_submitting": true,
+    "is_corresponding": true,
+    "approval_datetime": null,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 9,
+    "corresponding_email": 209,
+    "creation_date": "2020-04-10T16:08:49.337Z"
+  }
+},
+{
   "model": "project.publishedauthor",
   "pk": 1,
   "fields": {
