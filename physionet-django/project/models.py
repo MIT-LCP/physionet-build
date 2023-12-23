@@ -1,6 +1,5 @@
 from project.modelcomponents.access import *
 from project.modelcomponents.activeproject import *
-from project.modelcomponents.archivedproject import *
 from project.modelcomponents.authors import *
 from project.modelcomponents.coreproject import *
 from project.modelcomponents.fields import *
