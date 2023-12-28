@@ -327,8 +327,8 @@ jinja2==3.1.2 ; python_version >= "3.9" and python_version < "4.0" \
 jmespath==1.0.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980 \
     --hash=sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe
-jwcrypto==1.4.2 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:80a35e9ed1b3b2c43ce03d92c5d48e6d0b6647e2aa2618e4963448923d78a37b
+jwcrypto==1.5.1 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:48bb9bf433777136253579e52b75ffe0f9a4a721d133d01f45a0b91ed5f4f1ae
 libsass==0.21.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:06c8776417fe930714bdc930a3d7e795ae3d72be6ac883ff72a1b8f7c49e5ffb \
     --hash=sha256:12f39712de38689a8b785b7db41d3ba2ea1d46f9379d81ea4595802d91fa6529 \
