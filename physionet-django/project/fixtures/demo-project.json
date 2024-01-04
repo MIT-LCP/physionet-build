@@ -1631,7 +1631,7 @@
   "model": "project.programminglanguage",
   "pk": 9,
   "fields": {
-    "name": "Javascript"
+    "name": "JavaScript"
   }
 },
 {
