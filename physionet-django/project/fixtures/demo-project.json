@@ -1705,6 +1705,13 @@
   }
 },
 {
+  "model": "project.programminglanguage",
+  "pk": 20,
+  "fields": {
+    "name": "AWK"
+  }
+},
+{
     "model": "project.dua",
     "pk": 1,
     "fields": {

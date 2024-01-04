@@ -274,6 +274,13 @@
   }
 },
 {
+  "model": "project.programminglanguage",
+  "pk": 20,
+  "fields": {
+    "name": "AWK"
+  }
+},
+{
   "model": "project.documenttype",
   "pk": 1,
   "fields": {
