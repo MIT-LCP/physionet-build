@@ -9,7 +9,6 @@
               <th>Full name</th>
               <th>Email</th>
               <th>Credentialed</th>
-              <th>Cohost</th>
             </tr>
           </thead>
           <tbody>
@@ -18,15 +17,7 @@
                   <td>{{ application.user.username }}</td>
                   <td>{{ application.user.get_full_name }}</td>
                   <td>{{ application.user.email }}</td>
-                  <td>{{ application.comment_to_applicant }}</td>
-                  <td>{{ application.decision_datetime | date }}</td>
-                  <td>
-                    {% if application.is_cohost %}
-                        <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ object.id }}" disabled checked>
-                    {% else %}
-                        <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ object.id }}" disabled>
-                    {% endif %}
-                </td>
+                  <td>{{ application.user.is_credentialed }}</td>
                 </tr>
               {% endfor %}
             </tbody>
