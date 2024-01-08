@@ -13,15 +13,15 @@
             </tr>
           </thead>
           <tbody>
-              {% for object in info.objects %}
+              {% for application in info.objects %}
                 <tr>
-                  <td>{{ object.user.username }}</td>
-                  <td>{{ object.user.get_full_name }}</td>
-                  <td>{{ object.user.email }}</td>
-                  <td>{{ object.comment_to_applicant }}</td>
-                  <td>{{ object.decision_datetime | date }}</td>
+                  <td>{{ application.user.username }}</td>
+                  <td>{{ application.user.get_full_name }}</td>
+                  <td>{{ application.user.email }}</td>
+                  <td>{{ application.comment_to_applicant }}</td>
+                  <td>{{ application.decision_datetime | date }}</td>
                   <td>
-                    {% if object.is_cohost %}
+                    {% if application.is_cohost %}
                         <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ object.id }}" disabled checked>
                     {% else %}
                         <input type="checkbox" name="toggle-cohost-status"  event-slug="{{ event.slug }}" value="{{ object.id }}" disabled>
