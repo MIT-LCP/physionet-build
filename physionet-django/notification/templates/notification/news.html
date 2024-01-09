@@ -40,7 +40,7 @@
 
       {% for news in news_pieces %}
         <h2>
-            <a href="{% url 'news_by_id' news.id %}">{{ news.title }}</a>
+            <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
         </h2>
         {% include "notification/news_content.html" %}
         <hr>

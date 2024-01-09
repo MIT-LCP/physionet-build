@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 
 class UnpublishedProject(models.Model):
     """
-    Abstract model inherited by ArchivedProject/ActiveProject
+    Abstract model inherited by ActiveProject
     """
 
     # Date and time that the project's content was modified.
@@ -32,7 +32,7 @@ class UnpublishedProject(models.Model):
     references = GenericRelation('project.Reference')
     publications = GenericRelation('project.Publication')
     topics = GenericRelation('project.Topic')
-
+    archive_datetime = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         abstract = True

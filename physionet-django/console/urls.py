@@ -79,15 +79,13 @@ urlpatterns = [
     path('users/groups/', views.user_groups, name='user_groups'),
     path('users/groups/<group>/', views.user_group, name='user_group'),
     path('users/<group>/', views.users, name='users'),
-    path('users/aws-access-list.json', views.users_aws_access_list_json,
-         name='users_aws_access_list_json'),
     path('user/manage/<username>/', views.user_management,
         name='user_management'),
 
     path('news/', views.news_console, name='news_console'),
     path('news/add/', views.news_add, name='news_add'),
     path('news/search/', views.news_search, name='news_search'),
-    path('news/edit/<news_id>/', views.news_edit, name='news_edit'),
+    path('news/edit/<news_slug>/', views.news_edit, name='news_edit'),
 
     path('featured/', views.featured_content, name='featured_content'),
     path('featured/add', views.add_featured, name='add_featured'),
@@ -169,6 +167,7 @@ TEST_DEFAULTS = {
     'section_pk': 1,
     'news_id': 1,
     'username': 'rgmark',
+    'news_slug': 'cloud-migration',
 }
 TEST_CASES = {
     'manage_published_project': {

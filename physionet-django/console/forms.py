@@ -223,9 +223,6 @@ class EditSubmissionForm(forms.ModelForm):
             # Reject
             if edit_log.decision == 0:
                 project.reject()
-                # Have to reload this object which is changed by the reject
-                # function
-                edit_log = EditLog.objects.get(id=edit_log.id)
             # Resubmit with revisions
             elif edit_log.decision == 1:
                 project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
@@ -635,7 +632,7 @@ class NewsForm(forms.ModelForm):
 
     class Meta:
         model = News
-        fields = ('title', 'content', 'url', 'project', 'front_page_banner')
+        fields = ('slug', 'title', 'content', 'url', 'project', 'front_page_banner')
 
 
 class FeaturedForm(forms.Form):

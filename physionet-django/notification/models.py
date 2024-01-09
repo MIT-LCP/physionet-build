@@ -7,6 +7,7 @@ from project.models import SafeHTMLField
 
 class News(models.Model):
     """
+    Model to record news and announcements.
     """
     title = models.CharField(max_length=100)
     content = SafeHTMLField()
@@ -16,6 +17,7 @@ class News(models.Model):
         on_delete=models.SET_NULL, related_name='news')
     guid = models.CharField(max_length=64, default=uuid.uuid4)
     front_page_banner = models.BooleanField(default=False)
+    slug = models.SlugField(max_length=100, unique=True)
 
     class Meta:
         default_permissions = ('change',)

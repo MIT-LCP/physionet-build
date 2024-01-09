@@ -109,7 +109,6 @@
     </ul>
   </div>
   <br>
-  {% if events_active %}
   {% for event in events_active %}
   {% for info in event_details|get_applicant_info:event.id %}
   <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog"
@@ -129,7 +128,6 @@
   {% endfor %}
   {% endfor %}
   {% endif %}
-
 
   <!-- Past events -->
 

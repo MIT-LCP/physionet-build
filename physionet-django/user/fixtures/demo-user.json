@@ -14390,11 +14390,6 @@
         "activeproject"
       ],
       [
-        "change_archivedproject",
-        "project",
-        "archivedproject"
-      ],
-      [
         "add_dua",
         "project",
         "dua"
@@ -14481,11 +14476,6 @@
         "change_activeproject",
         "project",
         "activeproject"
-      ],
-      [
-        "change_archivedproject",
-        "project",
-        "archivedproject"
       ],
       [
         "can_view_access_logs",

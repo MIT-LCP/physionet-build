@@ -542,7 +542,7 @@ class ReferenceCAF(forms.ModelForm):
     def clean_reference_email(self):
         reference_email = self.cleaned_data.get('reference_email')
         if reference_email:
-            if reference_email in self.user.get_emails():
+            if reference_email.lower() in [email.lower() for email in self.user.get_emails()]:
                 raise forms.ValidationError("""You can not put yourself
                     as a reference.""")
             else:

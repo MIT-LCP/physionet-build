@@ -915,51 +915,6 @@
   }
 },
 {
-  "model": "project.archivedproject",
-  "pk": 6,
-  "fields": {
-    "resource_type": 1,
-    "title": "Failed demo software for parsing clinical notes",
-    "abstract": "<p>Demo abstract</p>",
-    "background": "<p>Demo background</p>",
-    "methods": "<p>Demo methods</p>",
-    "content_description": "<p>Demo content description</p>",
-    "usage_notes": "<p>Demo usage notes</p>",
-    "installation": "<p>Demo installation</p>",
-    "acknowledgements": "<p>Demo acknowledgements</p>",
-    "conflicts_of_interest": "<p>Demo conflicts of interest</p>",
-    "version": "1.0",
-    "release_notes": "<p>Demo release notes</p>",
-    "short_description": "",
-    "access_policy": 0,
-    "license": null,
-    "dua": null,
-    "project_home_page": "",
-    "core_project": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-    "editor": null,
-    "submission_datetime": "2020-04-07T15:54:54.860Z",
-    "author_comments": "",
-    "editor_assignment_datetime": "2020-04-13T16:06:22.892Z",
-    "revision_request_datetime": null,
-    "resubmission_datetime": null,
-    "editor_accept_datetime": "2020-04-20T16:06:55.526Z",
-    "copyedit_completion_datetime": "2020-04-21T16:07:36.681Z",
-    "author_approval_datetime": "2020-04-22T16:08:02Z",
-    "creation_datetime": "2020-04-10T15:54:54.860Z",
-    "modified_datetime": "2020-05-11T16:07:36.681Z",
-    "is_new_version": false,
-    "slug": "t2ASGLbIBoWaTJvPrM2A",
-    "latest_reminder": null,
-    "doi": null,
-    "archive_datetime": "2020-05-21T16:07:36.681Z",
-    "archive_reason": 3,
-    "parent_projects": [],
-    "programming_languages": [],
-    "allow_file_downloads": true,
-    "ethics_statement": "The authors declare no ethics concerns."
-  }
-},
-{
   "model": "project.activeproject",
   "pk": 1,
   "fields": {
@@ -1226,6 +1181,51 @@
     "latest_reminder": null,
     "doi": null,
     "submission_status": 20,
+    "parent_projects": [],
+    "programming_languages": [],
+    "allow_file_downloads": true,
+    "ethics_statement": "The authors declare no ethics concerns.",
+    "required_trainings": [1]
+  }
+},
+{
+  "model": "project.activeproject",
+  "pk": 9,
+  "fields": {
+    "resource_type": 1,
+    "title": "Failed demo software for parsing clinical notes",
+    "abstract": "<p>Demo abstract</p>",
+    "background": "<p>Demo background</p>",
+    "methods": "<p>Demo methods</p>",
+    "content_description": "<p>Demo content description</p>",
+    "usage_notes": "<p>Demo usage notes</p>",
+    "installation": "<p>Demo installation</p>",
+    "acknowledgements": "<p>Demo acknowledgements</p>",
+    "conflicts_of_interest": "<p>Demo conflicts of interest</p>",
+    "version": "2.0",
+    "release_notes": "<p>This is version 2.0</p>",
+    "short_description": "Demo short description",
+    "access_policy": 0,
+    "license": 9,
+    "dua": null,
+    "project_home_page": "",
+    "core_project": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+    "editor": null,
+    "submission_datetime": "2020-04-10T16:08:53.263Z",
+    "author_comments": "",
+    "editor_assignment_datetime": "2020-04-10T16:09:06.581Z",
+    "revision_request_datetime": null,
+    "resubmission_datetime": null,
+    "editor_accept_datetime": null,
+    "copyedit_completion_datetime": null,
+    "author_approval_datetime": null,
+    "creation_datetime": "2020-04-10T16:08:49.323Z",
+    "modified_datetime": "2020-04-10T16:08:49.323Z",
+    "is_new_version": false,
+    "slug": "t2ASGLbIBoWaTJvPrM2A",
+    "latest_reminder": null,
+    "doi": null,
+    "submission_status": 5,
     "parent_projects": [],
     "programming_languages": [],
     "allow_file_downloads": true,
@@ -1631,7 +1631,7 @@
   "model": "project.programminglanguage",
   "pk": 9,
   "fields": {
-    "name": "Javascript"
+    "name": "JavaScript"
   }
 },
 {
@@ -1702,6 +1702,20 @@
   "pk": 19,
   "fields": {
     "name": "Swift"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 20,
+  "fields": {
+    "name": "AWK"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 21,
+  "fields": {
+    "name": "Fortran"
   }
 },
 {

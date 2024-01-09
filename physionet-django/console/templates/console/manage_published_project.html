@@ -408,6 +408,32 @@
           <p>If this message is here for a long time, check the Django "process_tasks"</p>
         {% endif %}
       </li>
+      <li class="list-group-item">
+        <h5 class="card-title mt-3 mb-1">AWS</h5>
+        {% if not has_s3_credentials %}
+          <p>
+            Support for Amazon S3 is not enabled.  (Check that
+            <code>AWS_PROFILE</code> and <code>S3_OPEN_ACCESS_BUCKET</code>
+            are set.)
+          </p>
+        {% elif not project.aws.bucket_name %}
+          <p>Create a bucket on AWS to store the files associated with this project.</p>
+          <form action="" method="post">
+            {% csrf_token %}
+            <button class="btn btn-primary" name="aws-bucket" value='{{project.slug}}'
+                    {% if rw_tasks %} disabled="disabled" {% endif %}
+                    type="submit">Create AWS bucket and send files</button><br><br>
+            </form>
+        {% elif project.aws.sent_files and project.aws.bucket_name %}
+          <p>The files have been sent to AWS. The bucket name is: {{project.aws.bucket_name}}.</p>
+          <form action="" method="post">
+          {% csrf_token %}
+          <button class="btn btn-primary" name="aws-bucket" value='{{project.slug}}'
+                  {% if rw_tasks %} disabled="disabled" {% endif %}
+                  type="submit">Resend files to AWS</button><br><br>
+        </form>
+        {% endif %} 
+      </li>
     </ul>
 
   </div>

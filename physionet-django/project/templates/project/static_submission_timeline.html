@@ -51,26 +51,23 @@
     {% endfor %}
   {% endif %}
 
-  <!-- resubmissions -->
-  {# There may have been any number of submissions #}
-  {% for e in edit_logs %}
-    {% if e.is_resubmission %}
-      <li class="list-group-item">
-        <div class="row">
-          <div class="col-md-2">{{ e.submission_datetime|date }}</div>
-          <div class="col-md-10">
-            <p>The project was resubmitted for review.</p>
-            {% if e.author_comments %}
-              <p>The submitting author included the following comments:</p>
-              <a class="editor-comments">{{ e.author_comments|linebreaks }}</a>
-            {% endif %}
-          </div>
-        </div>
-      </li>
-    {% endif %}
-
+  {% if project.archive_datetime %}
     <li class="list-group-item">
       <div class="row">
+        <div class="col-md-2">{{ project.archive_datetime|date }}</div>
+        <div class="col-md-10">
+          The project was archived.
+        </div>
+      </div>
+    </li>
+  {% endif %}
+
+  <!-- resubmissions -->
+  {# At this point, there may have been any number of submissions #}
+  {% for e in edit_logs reversed %}
+    <li class="list-group-item">
+      <div class="row">
+      {% if e.decision_datetime %}
         <div class="col-md-2">{{ e.decision_datetime|date }}</div>
         <div class="col-md-10">
           {% if e.decision == 0 %}
@@ -86,12 +83,31 @@
               <li>{{ result }}</li>
             {% endfor %}
           </ul>
-          <br>
-          <p>The editor comments regarding the submission are as follows:</p>
-          <a class="editor-comments" style="text:muted">{{ e.editor_comments|linebreaks }}</a>
-        </div>
+        <br>
+        <p>The editor comments regarding the submission are as follows:</p>
+        <a class="editor-comments">{{ e.editor_comments|linebreaks }}</a>
       </div>
-    </li>
+    {# No decision yet #}
+    {% else %}
+      <div class="col-md-2">Currently</div>
+      <div class="col-md-10"><i class="far fa-clock"></i> Waiting for editor decision</div>
+    {% endif %}
+    </div>
+  </li>
+    {% if e.is_resubmission %}
+      <li class="list-group-item">
+        <div class="row">
+          <div class="col-md-2">{{ e.submission_datetime|date }}</div>
+            <div class="col-md-10">
+              <p>The project was resubmitted for review.</p>
+              {% if e.author_comments %}
+                <p>The submitting author included the following comments:</p>
+                <a class="editor-comments">{{ e.author_comments|linebreaks }}</a>
+              {% endif %}
+          </div>
+        </div>
+      </li>
+    {% endif %}
   {% endfor %}
 
   <!-- editor assigned -->

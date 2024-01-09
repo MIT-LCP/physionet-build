@@ -226,6 +226,23 @@ GCP_DOMAIN = config('GCP_DOMAIN', default='')
 # Alternate hostname to be used in example download commands
 BULK_DOWNLOAD_HOSTNAME = config('BULK_DOWNLOAD_HOSTNAME', default=None)
 
+# AWS credentials to access to S3 storage
+if config('AWS_SHARED_CREDENTIALS_FILE', default=None):
+    AWS_SHARED_CREDENTIALS_FILE = os.path.expanduser(config('AWS_SHARED_CREDENTIALS_FILE'))
+    os.environ['AWS_SHARED_CREDENTIALS_FILE'] = AWS_SHARED_CREDENTIALS_FILE
+else:
+    AWS_SHARED_CREDENTIALS_FILE = None
+
+AWS_PROFILE = config('AWS_PROFILE', default=None)
+
+AWS_ACCOUNT_ID = config('AWS_ACCOUNT_ID', default=None)
+
+# Bucket name for the S3 bucket containing the open access data
+S3_OPEN_ACCESS_BUCKET = config('S3_OPEN_ACCESS_BUCKET', default=None)
+
+# Bucket name to store logs and metrics related to project usage.
+S3_SERVER_ACCESS_LOG_BUCKET = config('S3_SERVER_ACCESS_LOG_BUCKET', default=None)
+
 # Header tags for the AWS lambda function that grants access to S3 storage
 AWS_HEADER_KEY = config('AWS_KEY', default=False)
 AWS_HEADER_VALUE = config('AWS_VALUE', default=False)
@@ -611,6 +628,7 @@ MAX_TRAINING_REPORT_UPLOAD_SIZE = config('MAX_TRAINING_REPORT_UPLOAD_SIZE', cast
 
 # User model configurable settings
 MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)
+MAX_SUBMITTABLE_PROJECTS = config('MAX_SUBMITTABLE_PROJECTS', cast=int, default=10)
 
 # Updating to Django to 3.2 requires DEFAULT_AUTO_FIELD to be specified
 # Starting at 3.2, new projects are generated with DEFAULT_AUTO_FIELD set to BigAutoField
