@@ -1145,6 +1145,61 @@ def aws_bucket_management(request, project, user):
     send_files_to_aws(project.id, verbose_name='AWS - {}'.format(project), creator=user)
 
 
+@console_permission_required('project.change_publishedproject')
+def cloud_mirrors(request):
+    """
+    Page for viewing the status of cloud mirrors.
+    """
+    projects = PublishedProject.objects.order_by('-publish_datetime')
+
+    group = request.GET.get('group', 'open')
+    if group == 'open':
+        projects = projects.filter(access_policy=AccessPolicy.OPEN)
+    else:
+        projects = projects.exclude(access_policy=AccessPolicy.OPEN)
+
+    cloud_platforms = []
+    if settings.GOOGLE_APPLICATION_CREDENTIALS:
+        cloud_platforms.append({
+            'field_name': 'gcp',
+            'name': 'GCP',
+            'long_name': 'Google Cloud Platform',
+        })
+    if has_s3_credentials():
+        cloud_platforms.append({
+            'field_name': 'aws',
+            'name': 'AWS',
+            'long_name': 'Amazon Web Services',
+        })
+
+    # Relevant fields for the status table (see
+    # templates/console/cloud_mirrors.html)
+    field_names = [platform['field_name'] for platform in cloud_platforms]
+    projects = projects.select_related(*field_names).only(
+        'slug',
+        'title',
+        'version',
+        'access_policy',
+        'allow_file_downloads',
+        'deprecated_files',
+        'embargo_files_days',
+        *(f'{field}__is_private' for field in field_names),
+        *(f'{field}__sent_files' for field in field_names),
+    )
+
+    project_mirrors = {
+        project: [
+            getattr(project, field, None) for field in field_names
+        ] for project in projects
+    }
+
+    return render(request, 'console/cloud_mirrors.html', {
+        'group': group,
+        'cloud_platforms': cloud_platforms,
+        'project_mirrors': project_mirrors,
+    })
+
+
 @console_permission_required('project.change_activeproject')
 def archived_submissions(request):
     """

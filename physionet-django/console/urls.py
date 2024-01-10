@@ -19,6 +19,8 @@ urlpatterns = [
     path('published-projects/<project_slug>/<version>/',
         views.manage_published_project, name='manage_published_project'),
     path('data-access-request/<int:pk>/', views.access_request, name='access_request'),
+    path('cloud/mirrors/', views.cloud_mirrors,
+         name='cloud_mirrors'),
 
     # Logs
     path('data-access-logs/', views.project_access_requests_list, name='project_access_requests_list'),

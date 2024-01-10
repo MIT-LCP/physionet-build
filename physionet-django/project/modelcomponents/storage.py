@@ -42,6 +42,9 @@ class GCP(models.Model):
     class Meta:
         default_permissions = ()
 
+    def __str__(self):
+        return self.bucket_name
+
 
 class AWS(models.Model):
     """
@@ -65,3 +68,6 @@ class AWS(models.Model):
             return f's3://{self.bucket_name}/{self.project.version}/'
         else:
             return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
+
+    def __str__(self):
+        return self.s3_uri()

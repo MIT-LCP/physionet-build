@@ -1,0 +1,91 @@
+.table-cloud-status {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.table-cloud-status .col-project-version {
+    width: 7rem;
+}
+.table-cloud-status .col-project-site-status,
+.table-cloud-status .col-project-cloud-status {
+    width: 3rem;
+    text-align: center;
+    overflow-x: hidden;
+}
+
+.project-site-status-title,
+.project-cloud-status-title {
+    font-size: 0;
+}
+.project-site-status-title::before,
+.project-cloud-status-title::before {
+    font-size: 1rem;
+    display: inline-block;
+    width: 1.25em;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+.project-site-status-title::before {
+    content: "\f019";           /* download */
+}
+.project-cloud-status-title::before {
+    content: "\f381";           /* cloud-download-alt */
+}
+.col-gcp .project-cloud-status-title::before {
+    font-family: "Font Awesome 5 Brands";
+    font-weight: 400;
+    content: "\f1a0";           /* google */
+}
+.col-aws .project-cloud-status-title::before {
+    font-family: "Font Awesome 5 Brands";
+    font-weight: 400;
+    content: "\f375";           /* aws */
+}
+
+.project-site-status-open,
+.project-site-status-restricted,
+.project-site-status-embargo,
+.project-site-status-forbidden,
+.project-cloud-status-public,
+.project-cloud-status-private,
+.project-cloud-status-pending,
+.project-cloud-status-none {
+    font-size: 0;
+}
+.project-site-status-open::before,
+.project-site-status-restricted::before,
+.project-site-status-embargo::before,
+.project-site-status-forbidden::before,
+.project-cloud-status-public::before,
+.project-cloud-status-private::before,
+.project-cloud-status-pending::before,
+.project-cloud-status-none::before {
+    font-size: 1rem;
+    display: inline-block;
+    width: 1.25em;
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+.project-site-status-open::before,
+.project-cloud-status-public::before {
+    content: "\f058";           /* check-circle */
+    color: #0a0;
+}
+.project-site-status-restricted::before,
+.project-cloud-status-private::before {
+    content: "\f2bd";           /* user-circle */
+    color: #50f;
+}
+.project-site-status-embargo::before {
+    content: "\f28b";           /* pause-circle */
+    color: #fa0;
+}
+.project-site-status-forbidden::before {
+    content: "\f057";           /* times-circle */
+    color: #c00;
+}
+.project-cloud-status-pending::before {
+    content: "\f017";           /* clock */
+    font-weight: 400;
+    color: #888;
+}

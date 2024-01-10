@@ -154,6 +154,10 @@ CONSOLE_NAV_MENU = NavMenu([
 
     NavLink(_('Storage'), 'storage_requests', 'cube'),
 
+    NavSubmenu(_('Cloud'), 'cloud', 'cloud', [
+        NavLink(_('Mirrors'), 'cloud_mirrors'),
+    ]),
+
     NavSubmenu(_('Identity check'), 'identity', 'hand-paper', [
         NavLink(_('Processing'), 'credential_processing'),
         NavLink(_('All Applications'), 'credential_applications',
