@@ -203,7 +203,7 @@
   <li class="list-group-item">
     <div class="row">
       <div class="col-md-2">{{ project.editor_assignment_datetime|date }}</div>
-      <div class="col-md-10">The project was assigned to an editor: {{ project.editor.disp_name_email }}
+      <div class="col-md-10">The project was assigned to an editor. To contact the editor, email:<br />{{ contact_email }}
     </div>
   </li>
   {% endif %}
