@@ -640,3 +640,6 @@ MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING = config('MIN_WORDS_RESEARCH_SUMMARY_CR
 # Django configuration for file upload (see https://docs.djangoproject.com/en/4.2/ref/settings/)
 DATA_UPLOAD_MAX_NUMBER_FILES = config('DATA_UPLOAD_MAX_NUMBER_FILES', cast=int, default=1000)
 DATA_UPLOAD_MAX_MEMORY_SIZE = config('DATA_UPLOAD_MAX_MEMORY_SIZE', cast=int, default=2621440)
+
+# Emails
+PROJECT_EDITOR_EMAIL = config('PROJECT_EDITOR_EMAIL', default='')

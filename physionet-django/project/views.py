@@ -1388,6 +1388,12 @@ def project_submission(request, project_slug, **kwargs):
     else:
         edit_logs, copyedit_logs = None, None
 
+    if settings.PROJECT_EDITOR_EMAIL:
+        contact_email = settings.PROJECT_EDITOR_EMAIL.replace('PROJECT-SLUG',
+                                                              project.slug)
+    else:
+        contact_email = project.editor.email
+
     return render(
         request,
         "project/project_submission.html",
@@ -1399,7 +1405,7 @@ def project_submission(request, project_slug, **kwargs):
             "edit_logs": edit_logs,
             "copyedit_logs": copyedit_logs,
             "awaiting_user_approval": awaiting_user_approval,
-            "contact_email": settings.CONTACT_EMAIL,
+            "contact_email": contact_email,
         },
     )
 
