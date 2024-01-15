@@ -1,12 +1,13 @@
 from datetime import datetime
 
-from django.http import JsonResponse
+from django.http import JsonResponse, QueryDict
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 
 
 import notification.utility as notification
@@ -314,7 +315,7 @@ def event_detail(request, event_slug):
          })
 
 
-@login_required
+@require_http_methods(["PUT", "DELETE"])
 def manage_co_hosts(request, event_slug):
     """
     Manage co-hosts of an event
@@ -322,50 +323,38 @@ def manage_co_hosts(request, event_slug):
     user = request.user
     error_message = None
 
-    if request.method == 'POST':
-        participant_id = request.POST.get('participant_id')
+    body_unicode = request.body.decode('utf-8')
+    body_data = QueryDict(body_unicode)
+    participant_id = body_data.get('participant_id')
 
-        event = get_object_or_404(Event, slug=event_slug)
+    event = get_object_or_404(Event, slug=event_slug)
 
-        if not event.host == user:
-            error_message = 'You are not the host of this event'
-        if event.end_date < datetime.now().date():
-            error_message = 'You cannot manage co-hosts of an event that has ended'
-        if not event.participants.filter(id=participant_id).exists():
-            error_message = 'User is not a participant of this event'
+    if not event.host == user:
+        error_message = 'You are not the host of this event'
+    if event.end_date < datetime.now().date():
+        error_message = 'You cannot manage co-hosts of an event that has ended'
+    if not event.participants.filter(id=participant_id).exists():
+        error_message = 'User is not a participant of this event'
 
-        if error_message is not None:
-            return JsonResponse({'error': error_message}, status=403)
+    if error_message is not None:
+        return JsonResponse({'error': error_message}, status=403)
 
-        participant = event.participants.get(id=participant_id)
+    participant = event.participants.get(id=participant_id)
 
-        # some variable/enum that will be assigned.
-        # 0 - remove cohost
-        # 1 - make cohost
-        action = request.POST.get('action')[0]
-        if action == str(CohostStatus.REMOVE_COHOST.value):
-            if not participant.is_cohost:
-                return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
-            participant.is_cohost = False
-            participant.save()
-            notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
-                                                                  event=event, status=participant.is_cohost)
-            notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
-                                                                status=participant.is_cohost)
 
-            return JsonResponse({'success': 'Cohost removed successfully'})
-        elif action == str(CohostStatus.MAKE_COHOST.value):
-            if participant.is_cohost:
-                return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
-            participant.is_cohost = True
-            participant.save()
-            notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
-                                                                  event=event, status=participant.is_cohost)
-            notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
-                                                                status=participant.is_cohost)
+    if request.method == 'PUT':
+        if participant.is_cohost:
+            return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
+        participant.is_cohost = True
+    elif request.method == 'DELETE':
+        if not participant.is_cohost:
+            return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
+        participant.is_cohost = False
 
-            return JsonResponse({'success': 'Cohost added successfully'})
-        else:
-            return JsonResponse({'error': 'Invalid request'}, status=403)
+    participant.save()
+    notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
+                                                          event=event, status=participant.is_cohost)
+    notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
+                                                        status=participant.is_cohost)
 
-    return redirect(event_home)
+    return JsonResponse({'success': 'Cohost status updated successfully'})
