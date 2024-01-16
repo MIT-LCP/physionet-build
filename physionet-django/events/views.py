@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 
 from django.http import JsonResponse, QueryDict
@@ -323,9 +324,8 @@ def manage_co_hosts(request, event_slug):
     user = request.user
     error_message = None
 
-    body_unicode = request.body.decode('utf-8')
-    body_data = QueryDict(body_unicode)
-    participant_id = body_data.get('participant_id')
+    body = json.loads(request.body)
+    participant_id = body.get('participant_id')
 
     event = get_object_or_404(Event, slug=event_slug)
 
