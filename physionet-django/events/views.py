@@ -315,7 +315,7 @@ def event_detail(request, event_slug):
          })
 
 
-@require_http_methods(["PUT", "DELETE"])
+@require_http_methods(["PUT", "DELETE", "GET", "POST"])
 def manage_co_hosts(request, event_slug):
     """
     Manage co-hosts of an event
@@ -340,7 +340,6 @@ def manage_co_hosts(request, event_slug):
         return JsonResponse({'error': error_message}, status=403)
 
     participant = event.participants.get(id=participant_id)
-
 
     if request.method == 'PUT':
         if participant.is_cohost:
