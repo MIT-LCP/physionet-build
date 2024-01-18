@@ -103,6 +103,29 @@ class UnpublishedProject(models.Model):
         """
         return self.files.has_wfdb_files(self)
 
+    @property
+    def editor_contact_email(self):
+        """
+        Email address for contacting the project editor.
+
+        If a site-wide contact address is configured, that address
+        will be used for all projects.  The string PROJECT-SLUG can be
+        included and will be replaced by the active project slug (for
+        example, PROJECT_EDITOR_EMAIL can be set to
+        'editor+PROJECT-SLUG@example.org', if the mail server
+        understands how to handle it.)
+
+        If there is no site-wide contact address, the primary email
+        address of the assigned editor is used.
+        """
+        if not self.editor:
+            return None
+        elif settings.PROJECT_EDITOR_EMAIL:
+            return settings.PROJECT_EDITOR_EMAIL.replace('PROJECT-SLUG',
+                                                         self.slug)
+        else:
+            return self.editor.email
+
     def content_modified(self):
         """
         Update the project's modification timestamp.
