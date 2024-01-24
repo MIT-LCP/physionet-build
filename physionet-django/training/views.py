@@ -71,6 +71,7 @@ def courses(request):
             'training_type_nav': True,
         })
 
+
 @permission_required('training.change_course', raise_exception=True)
 @console_permission_required('training.change_course')
 def course_details(request, pk):
