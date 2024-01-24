@@ -23,15 +23,20 @@
         <td>{{ object.decision_datetime | date }}</td>
         <td>
           {% if not event.has_ended %}
-          <form class="manage-cohost-{{ info.id }}" action="{% url 'manage_co_hosts' event.slug %}"
+          {% if object.is_cohost %}          
+          <form class="manage-cohost-{{ info.id }}" action="{% url 'remove_co_host' event.slug %}"
             data-cohost-status="{{ object.is_cohost }}">
             {% csrf_token %}
             <input type="text" name="event" value="{{ event.slug }}" hidden>
             <input type="text" name="participant" value="{{ object.id }}" hidden>
-            {% if object.is_cohost %}
             <input type="submit" value="Remove cohost" data-action="{{ cohostStatus.REMOVE_COHOST }}"
               class="btn btn-sm btn-danger">
             {% else %}
+            <form class="manage-cohost-{{ info.id }}" action="{% url 'add_co_host' event.slug %}"
+            data-cohost-status="{{ object.is_cohost }}">
+            {% csrf_token %}
+            <input type="text" name="event" value="{{ event.slug }}" hidden>
+            <input type="text" name="participant" value="{{ object.id }}" hidden>            
             <input type="submit" value="Make cohost" data-action="{{ cohostStatus.MAKE_COHOST }}"
               class="btn btn-sm btn-success">
             {% endif %}
@@ -53,16 +58,9 @@
       const formData = getFormData(e, $form);
       const url = e.target.action;
 
-      if (formData['action'] == '{{ cohostStatus.MAKE_COHOST }}') {
-        var method = 'PUT';
-      } else if (formData['action'] == '{{ cohostStatus.REMOVE_COHOST }}') {
-        var method = 'DELETE';
-      }
-
-
       $.ajax({
         url: url,
-        type: method,
+        type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(formData),
         beforeSend: function(xhr) {
@@ -73,7 +71,6 @@
         },
         error: function (data) {
           handleError($form, data);
-          console.log(data);
         }
       });
     });
@@ -112,8 +109,12 @@
 
     if (current_action == make_cohost_action) {
       updateButtonForRemoveCohost($form, remove_cohost_action);
+      // update the form url to remove cohost
+      $form.attr('action', '{% url "remove_co_host" event.slug %}');
     } else if (current_action == remove_cohost_action) {
       updateButtonForMakeCohost($form, make_cohost_action);
+      // update the form url to make cohost
+      $form.attr('action', '{% url "add_co_host" event.slug %}');
     }
   }
 

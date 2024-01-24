@@ -6,7 +6,8 @@ from events import views
 urlpatterns = [
     path('', views.event_home, name='event_home'),
     path('create/', views.create_event, name='create_event'),
-    path('<slug:event_slug>/manage_co_hosts/', views.manage_co_hosts, name='manage_co_hosts'),
+    path('<slug:event_slug>/add_co_host/', views.add_co_host, name='add_co_host'),
+    path('<slug:event_slug>/remove_co_host/', views.remove_co_host, name='remove_co_host'),
     path('<slug:event_slug>/', views.event_detail, name='event_detail'),
     path('<slug:event_slug>/edit_event/', views.update_event, name='update_event'),
     path('<slug:event_slug>/details/', views.get_event_details, name='get_event_details'),

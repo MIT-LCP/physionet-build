@@ -17,6 +17,17 @@ from events.models import Event, EventApplication, EventParticipant, CohostStatu
 from events.utility import notify_host_cohosts_new_registration
 
 
+# Defining utility function that run checks for a participant to be made event co-host
+def check_participant_cohost_eligibility(event, user, participant):
+    if not event.host == user:
+        return False, 'You are not the host of this event'
+    if event.end_date < datetime.now().date():
+        return False, 'You cannot manage co-hosts of an event that has ended'
+    if not event.participants.filter(id=participant.id).exists():
+        return False, 'User is not a participant of this event'
+    return True, None
+
+
 @login_required
 def update_event(request, event_slug, **kwargs):
     user = request.user
@@ -316,43 +327,70 @@ def event_detail(request, event_slug):
          })
 
 
-@require_http_methods(["PUT", "DELETE", "GET", "POST"])
-def manage_co_hosts(request, event_slug):
+def add_co_host(request, event_slug):
     """
-    Manage co-hosts of an event
+    Add a co-host to an event
     """
     user = request.user
     error_message = None
+
+    if request.method == 'GET':
+        return redirect('event_home')
 
     body = json.loads(request.body)
     participant_id = body.get('participant_id')
 
     event = get_object_or_404(Event, slug=event_slug)
 
-    if not event.host == user:
-        error_message = 'You are not the host of this event'
-    if event.end_date < datetime.now().date():
-        error_message = 'You cannot manage co-hosts of an event that has ended'
-    if not event.participants.filter(id=participant_id).exists():
-        error_message = 'User is not a participant of this event'
-
-    if error_message is not None:
-        return JsonResponse({'error': error_message}, status=403)
-
     participant = event.participants.get(id=participant_id)
 
-    if request.method == 'PUT':
-        if participant.is_cohost:
-            return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
-        participant.is_cohost = True
-    elif request.method == 'DELETE':
-        if not participant.is_cohost:
-            return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
-        participant.is_cohost = False
+    eligibility_check = check_participant_cohost_eligibility(event, user, participant)
+
+    if eligibility_check[0] is False:
+        error_message = eligibility_check[1]
+        return JsonResponse({'error': error_message}, status=403)
+
+    if participant.is_cohost:
+        return JsonResponse({'error': 'User is already a cohost of this event'}, status=403)
+    participant.is_cohost = True
 
     participant.save()
     notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
                                                           event=event, status=participant.is_cohost)
+    notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
+                                                        status=participant.is_cohost)
+
+    return JsonResponse({'success': 'Cohost status updated successfully'})
+
+
+def remove_co_host(request, event_slug):
+    """
+    Remove a co-host from an event
+    """
+    user = request.user
+    error_message = None
+
+    if request.method == 'GET':
+        return redirect('event_home')
+
+    body = json.loads(request.body)
+    participant_id = body.get('participant_id')
+
+    event = get_object_or_404(Event, slug=event_slug)
+    participant = event.participants.get(id=participant_id)
+
+    eligibility_check = check_participant_cohost_eligibility(event, user, participant)
+    if eligibility_check[0] is False:
+        error_message = eligibility_check[1]
+        return JsonResponse({'error': error_message}, status=403)
+
+    if not participant.is_cohost:
+        return JsonResponse({'error': 'User is not a cohost of this event'}, status=403)
+    participant.is_cohost = False
+
+    participant.save()
+    notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
+                                                        event=event, status=participant.is_cohost)
     notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
                                                         status=participant.is_cohost)
 
