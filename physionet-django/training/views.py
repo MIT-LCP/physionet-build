@@ -23,9 +23,11 @@ from user.enums import TrainingStatus
 from training.models import Course, Quiz, QuizChoice, ContentBlock
 from training.models import CourseProgress, ModuleProgress, CompletedContent, CompletedQuiz
 from training.serializers import TrainingTypeSerializer, CourseSerializer
+from console.views import console_permission_required
 
 
 @permission_required('training.change_course', raise_exception=True)
+@console_permission_required('training.change_course')
 def courses(request):
     """
     View function for managing courses.
@@ -38,6 +40,47 @@ def courses(request):
         else:
             training_type = None
 
+        json_file = request.FILES.get("json_file", "")
+
+        if not json_file.name.endswith('.json'):
+            messages.warning(request, 'File is not of JSON type')
+            return redirect("courses")
+
+        # Checking if the content of the JSON file is properly formatted and according to the schema
+        try:
+            file_data = JSONParser().parse(json_file.file)
+        except json.decoder.JSONDecodeError:
+            messages.error(request, 'JSON file is not properly formatted.')
+            return redirect("courses")
+
+        serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
+        if serializer.is_valid(raise_exception=False):
+            serializer.save()
+            messages.success(request, 'Training Type created successfully.')
+        else:
+            messages.error(request, serializer.errors)
+
+        return redirect("courses")
+
+    training_types = TrainingType.objects.filter(required_field=RequiredField.PLATFORM)
+    return render(
+        request,
+        'console/training_type/index.html',
+        {
+            'training_types': training_types,
+            'training_type_nav': True,
+        })
+
+@permission_required('training.change_course', raise_exception=True)
+@console_permission_required('training.change_course')
+def course_details(request, pk):
+    """
+    View function for managing courses.
+    Allows managing the version of the courses for a given training type.
+    Allows expiring the specific version of the course.
+    """
+    if request.POST:
+        training_type = get_object_or_404(TrainingType, pk=pk)
         json_file = request.FILES.get("json_file", "")
 
         if not json_file.name.endswith('.json'):
@@ -67,33 +110,9 @@ def courses(request):
                 if serializer.is_valid(raise_exception=False):
                     serializer.save()
                     messages.success(request, 'Course updated successfully.')
-        else:
-            serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
-            if serializer.is_valid(raise_exception=False):
-                serializer.save()
-                messages.success(request, 'Course created successfully.')
-            else:
-                messages.error(request, serializer.errors)
 
-        return redirect("courses")
+        return redirect("course_details", pk=pk)
 
-    training_types = TrainingType.objects.filter(required_field=RequiredField.PLATFORM)
-    return render(
-        request,
-        'console/training_type/index.html',
-        {
-            'training_types': training_types,
-            'training_type_nav': True,
-        })
-
-
-@permission_required('training.change_course', raise_exception=True)
-def course_details(request, pk):
-    """
-    View function for managing courses.
-    Allows managing the version of the courses for a given training type.
-    Allows expiring the specific version of the course.
-    """
     training_type = get_object_or_404(TrainingType, pk=pk)
     active_course_versions = Course.objects.filter(training_type=training_type, is_active=True).order_by('-version')
     inactive_course_versions = Course.objects.filter(training_type=training_type, is_active=False).order_by('-version')
@@ -109,6 +128,7 @@ def course_details(request, pk):
 
 
 @permission_required('training.change_course', raise_exception=True)
+@console_permission_required('training.change_course')
 def expire_course(request, pk, version):
     """
     This view takes a primary key and a version number as input parameters,
@@ -128,13 +148,16 @@ def expire_course(request, pk, version):
 
 
 @permission_required('training.change_course', raise_exception=True)
+@console_permission_required('training.change_course')
 def download_course(request, pk, version):
     """
     This view takes a primary key and a version number as input parameters,
     and returns a JSON response containing information about the
     training course with the specified primary key and version number.
     """
-    course = Course.objects.filter(training_type__pk=pk, version=version).first()
+    # course = Course.objects.filter(training_type__pk=pk, version=version).first()
+    training_type = get_object_or_404(TrainingType, pk=pk)
+    course = training_type.courses.filter(version=version).first()
     if not course:
         messages.error(request, 'Course not found')
         return redirect('courses')
@@ -143,7 +166,16 @@ def download_course(request, pk, version):
         messages.error(request, 'Only onplatform course can be downloaded')
         return redirect('courses')
 
-    serializer = CourseSerializer(course)
+    # Creating the training_type_course object that contains on the specific version of the course
+    current_course_training_type = {
+        "name": training_type.name,
+        "description": training_type.description,
+        "valid_duration": training_type.valid_duration,
+        "courses": [course]
+    }
+
+    # serializer = CourseSerializer(course)
+    serializer = TrainingTypeSerializer(current_course_training_type)
     response_data = serializer.data
     response = JsonResponse(response_data, safe=False, json_dumps_params={'indent': 2})
     response['Content-Disposition'] = f'attachment; filename={training_type.name}--version-{version}.json'

@@ -163,6 +163,8 @@ CONSOLE_NAV_MENU = NavMenu([
 
     NavLink(_('Training check'), 'training_list', 'school',
             view_args=['review']),
+    
+    NavLink(_('courses'), 'courses', 'school'),
 
     NavSubmenu(_('Events'), 'events', 'clipboard-list', [
         NavLink(_('Active'), 'event_active'),
