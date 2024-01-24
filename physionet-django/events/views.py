@@ -327,6 +327,7 @@ def event_detail(request, event_slug):
          })
 
 
+@login_required
 def add_co_host(request, event_slug):
     """
     Add a co-host to an event
@@ -363,6 +364,7 @@ def add_co_host(request, event_slug):
     return JsonResponse({'success': 'Cohost status updated successfully'})
 
 
+@login_required
 def remove_co_host(request, event_slug):
     """
     Remove a co-host from an event
@@ -390,7 +392,7 @@ def remove_co_host(request, event_slug):
 
     participant.save()
     notification.notify_event_cohost_cohost_status_change(request=request, cohost=participant.user,
-                                                        event=event, status=participant.is_cohost)
+                                                          event=event, status=participant.is_cohost)
     notification.notify_event_host_cohost_status_change(request=request, cohost=participant.user, event=event,
                                                         status=participant.is_cohost)
 
