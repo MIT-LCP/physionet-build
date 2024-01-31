@@ -8,6 +8,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+
+from notification.models import News
 from project.managers.publishedproject import PublishedProjectManager
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
@@ -377,3 +379,19 @@ class PublishedProject(Metadata, SubmissionInfo):
             return True
         else:
             return False
+
+    def get_all_news(self):
+        """
+        Return all news items associated with this project. If any news item has
+        'link_all_versions' set to True, include those news too.
+        """
+        # Fetch news items directly related to this PublishedProject
+        direct_news = self.news.all()
+
+        # Fetch news items related to other PublishedProjects where the
+        # link_all_versions flag is set to True
+        linked_news = News.objects.filter(
+            project__core_project=self.core_project,
+            link_all_versions=True).exclude(project=self)
+
+        return direct_news | linked_news

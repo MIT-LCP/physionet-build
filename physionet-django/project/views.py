@@ -1863,7 +1863,7 @@ def published_project(request, project_slug, version, subdir=''):
     topics = project.topics.all()
     languages = project.programming_languages.all()
     contact = project.contact
-    news = project.news.all().order_by('-publish_datetime')
+    news = project.get_all_news().order_by('-publish_datetime')
     parent_projects = project.parent_projects.all()
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
