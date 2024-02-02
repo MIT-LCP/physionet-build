@@ -43,7 +43,7 @@ from physionet.models import Section
 from physionet.settings.base import StorageTypes
 from project.models import Author, DUASignature, DUA, PublishedProject
 from requests_oauthlib import OAuth2Session
-from user import forms
+from user import forms, validators
 from user.models import (
     AssociatedEmail,
     CodeOfConduct,
