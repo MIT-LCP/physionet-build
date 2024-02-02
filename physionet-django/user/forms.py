@@ -624,7 +624,7 @@ class CredentialApplicationForm(forms.ModelForm):
         if (not self.instance and CredentialApplication.objects
                 .filter(user=self.user, status=CredentialApplication.Status.PENDING)):
             raise forms.ValidationError('Outstanding application exists.')
-        
+
         # If the user is a student, postdoc, or academic researcher, an associated email should be provided
         if category in [0, 1, 2, 7]:
             has_institutional_email = False
