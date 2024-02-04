@@ -25,6 +25,7 @@ class Event(models.Model):
     slug = models.SlugField(unique=True)
     allowed_domains = models.CharField(blank=True, null=True, validators=[
                                        validators.validate_domain_list], max_length=100)
+    event_agreement = models.ForeignKey('events.EventAgreement', null=True, blank=True, on_delete=models.SET_NULL)
 
     class Meta:
         unique_together = ('title', 'host')
@@ -171,7 +172,7 @@ class EventAgreement(models.Model):
         unique_together = (('name', 'version'),)
 
     def __str__(self):
-        return self.name
+        return self.name + ' ' + self.version
 
 
 class EventAgreementSignature(models.Model):
@@ -231,13 +232,17 @@ class EventDataset(models.Model):
         if not self.is_accessible():
             return False
 
+        if self.event.host == user:
+            return True
         # check if the user is a participant of the event or the host of the event
         # In addition to participants, host should also have access to the dataset of their own event
         # we dont need to worry about cohosts here as they are already participants
-        if not self.event.participants.filter(user=user).exists() and not self.event.host == user:
+        if not self.event.participants.filter(user=user).exists():
             return False
 
-        # TODO once Event Agreement/DUA is merged, check if the user has accepted the agreement
+        if self.event.event_agreement and \
+                not EventAgreementSignature.objects.filter(event=self.event, user=user).exists():
+            return False
 
         return True
 

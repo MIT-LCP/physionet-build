@@ -11,7 +11,7 @@ from django.urls import reverse
 
 import notification.utility as notification
 from events.forms import AddEventForm, EventApplicationResponseForm
-from events.models import Event, EventApplication, EventParticipant
+from events.models import Event, EventApplication, EventParticipant, EventAgreementSignature
 from events.utility import notify_host_cohosts_new_registration
 
 
@@ -246,6 +246,13 @@ def event_detail(request, event_slug):
 
     registration_allowed = True
     is_waitlisted = False
+    is_participant = False
+    if event.event_agreement:
+        has_signed_event_agreement = EventAgreementSignature.objects.filter(
+            event=event, user=user, event_agreement=event.event_agreement).exists()
+    else:
+        has_signed_event_agreement = True
+
     registration_error_message = ''
 
     # if the event has ended, registration is not allowed, so we can skip the rest of the checks
@@ -257,6 +264,7 @@ def event_detail(request, event_slug):
         registration_error_message = 'You are the host of this event'
     elif event.participants.filter(user=user).exists():
         registration_allowed = False
+        is_participant = True
         registration_error_message = 'You are registered for this event'
     else:  # we don't need to check for waitlisted / other stuff if the user is already registered
         event_participation_request = EventApplication.objects.filter(
@@ -308,5 +316,36 @@ def event_detail(request, event_slug):
          'registration_allowed': registration_allowed,
          'registration_error_message': registration_error_message,
          'is_waitlisted': is_waitlisted,
+         'is_participant': is_participant,
+         'has_signed_event_agreement': has_signed_event_agreement,
          'event_datasets': event_datasets,
          })
+
+
+@login_required
+def sign_event_agreement(request, event_slug):
+    """
+    Page to sign the event agreement for participants of an event
+    """
+    user = request.user
+
+    event = get_object_or_404(Event, slug=event_slug)
+
+    if not event.event_agreement:
+        messages.error(request, "Event does not have an event agreement.")
+        return redirect('event_detail', event_slug=event.slug)
+
+    if not event.participants.filter(user=user).exists():
+        messages.error(request, "You are not a participant of this event.")
+        return redirect('event_detail', event_slug=event.slug)
+
+    if EventAgreementSignature.objects.filter(event=event, user=user, event_agreement=event.event_agreement).exists():
+        messages.error(request, "You have already signed the event agreement.")
+        return redirect('event_detail', event_slug=event.slug)
+
+    if request.method == 'POST' and 'agree' in request.POST:
+        EventAgreementSignature.objects.create(event=event, user=user, event_agreement=event.event_agreement)
+        messages.success(request, "You have successfully signed the event agreement.")
+        return redirect('event_detail', event_slug=event.slug)
+
+    return render(request, 'events/sign_event_agreement.html', {'event': event})

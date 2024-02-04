@@ -53,10 +53,12 @@
 
     {% include  "events/event_participation.html" %}
      <hr>
+    {% include  "events/event_agreement.html" %}
+    <hr>
     {% if event_datasets|length != 0 %}
       {% include  "events/event_datasets.html" %}
     {% endif %}
-    
+
 </div>
 {% endif %}
 {% endblock %}

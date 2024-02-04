@@ -3,7 +3,7 @@ import logging
 
 from django.urls import reverse
 
-from events.models import Event, EventApplication
+from events.models import Event, EventApplication, EventAgreementSignature
 from user.test_views import TestMixin
 
 
@@ -35,6 +35,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
+                'event_agreement': ['1'],
                 'allowed_domains': '',
                 'add-event': ''
             })
@@ -57,6 +58,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
+                'event_agreement': ['1'],
                 'allowed_domains': '',
                 'add-event': ''
             })
@@ -81,6 +83,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
+                'event_agreement': ['1'],
                 'allowed_domains': ''
             })
 
@@ -105,6 +108,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Course',
+                'event_agreement': ['1'],
                 'allowed_domains': '',
                 'add-event': ''
             })
@@ -122,6 +126,7 @@ class TestEvents(TestMixin):
                 'start_date': self.new_event_start_date_str,
                 'end_date': self.new_event_end_date_str,
                 'category': 'Workshop',
+                'event_agreement': ['1'],
                 'allowed_domains': ''
             })
 
@@ -259,3 +264,53 @@ class TestEvents(TestMixin):
         # check the status on the event application
         event_application.refresh_from_db()
         self.assertEqual(event_application.status, EventApplication.EventApplicationStatus.NOT_APPROVED)
+
+    def test_event_edit_change_event_agreement(self):
+        """tests the view that edits an event and changes the event agreement"""
+
+        # create an event
+        self.test_add_event_valid()
+
+        event = Event.objects.get(title=self.new_event_name)
+        slug = event.slug
+
+        # login as the host and edit the event
+        self.client.login(username='admin', password='Tester11!')
+
+        response = self.client.post(
+            reverse('update_event', kwargs={'event_slug': slug}),
+            data={
+                'title': event.title,
+                'description': event.description,
+                'start_date': event.start_date,
+                'end_date': event.end_date,
+                'category': event.category,
+                'event_agreement': ['2'],
+                'allowed_domains': '',
+            })
+        self.assertEqual(response.status_code, 302)
+        event = Event.objects.get(slug=slug)
+        self.assertEqual(event.event_agreement.pk, 2)
+
+    def test_sign_event_agreement(self):
+        """tests the view that signs an event agreement"""
+
+        # create an event, login as participant, join the event, and login as host and approve the user
+        self.test_event_participation_approved()
+
+        event = Event.objects.get(title=self.new_event_name)
+
+        # login as the participant
+        self.client.login(username='amitupreti', password='Tester11!')
+
+        # sign the event agreement
+        response = self.client.post(
+            reverse('sign_event_agreement', kwargs={'event_slug': event.slug}),
+            data={
+                'agree': ''
+            })
+        self.assertEqual(response.status_code, 302)
+
+        # check if the user signed the event agreement
+        EventAgreementSignature.objects.filter(event=event, user__username='amitupreti',
+                                               event_agreement=event.event_agreement).exists()

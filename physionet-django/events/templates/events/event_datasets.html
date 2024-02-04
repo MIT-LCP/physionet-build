@@ -24,9 +24,11 @@
                 <td>{{ dataset.get_access_type_display }}</td>
                 <td>
                     {% if not dataset.is_accessible %}
-                      <a class="btn btn-success" href="#">Access Archieved</a>
-                    {% elif is_waitlisted%}
+                      <a class="btn btn-success" href="#">Access Archived</a>
+                    {% elif is_waitlisted %}
                       <a class="btn btn-secondary" href="#">On waiting list</a>
+                    {% elif not has_signed_event_agreement and is_participant %}
+                        <a class="btn btn-secondary" href="{% url 'sign_event_agreement' event.slug %}">Sign the event agreement</a>
                     {% elif user|has_access_to_event_dataset:dataset %}
                       <a class="btn btn-success" href="/environments/">Access here</a>
                     {% else %}

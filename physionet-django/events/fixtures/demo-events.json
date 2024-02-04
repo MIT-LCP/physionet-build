@@ -32,5 +32,31 @@
         "slug": "PsenZXNhPluI",
         "allowed_domains": null
     }
+  },
+  {
+    "model": "events.eventagreement",
+    "pk": 1,
+    "fields": {
+        "name": "PhysioNet Restricted Health Data Use Agreement",
+        "slug": "sdadadsadsaa",
+        "version": "1.1",
+        "is_active": true,
+        "html_content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Tincidunt lobortis feugiat vivamus at augue eget.</p>",
+        "access_template": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Tincidunt lobortis feugiat vivamus at augue eget.</p>",
+        "creator": 1
+    }
+  },
+  {
+    "model": "events.eventagreement",
+    "pk": 2,
+    "fields": {
+        "name": "PhysioNet Restricted Health Data Use Agreement",
+        "slug": "vafgtyathsgh",
+        "version": "1.2",
+        "is_active": true,
+        "html_content": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Tincidunt lobortis feugiat vivamus at augue eget.</p>",
+        "access_template": "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Tincidunt lobortis feugiat vivamus at augue eget.</p>",
+        "creator": 1
+    }
   }
 ]
