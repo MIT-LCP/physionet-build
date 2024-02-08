@@ -551,6 +551,8 @@ class LinkFilter:
     >>> f = LinkFilter(my_hostnames=['example.com'])
     >>> f.convert('<img src="https://example.com/foo.jpg">')
     '<img src="/foo.jpg">'
+    >>> f.convert('<img src="/foo.jpg">')
+    '<img src="/foo.jpg">'
     >>> f.convert('<img src="https://unsafe.example.org/bar.jpg">')
     '<img>'
 
