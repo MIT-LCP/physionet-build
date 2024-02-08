@@ -667,7 +667,7 @@ class LinkFilter:
         if scheme in ('http', 'https') and self.my_netloc_re.fullmatch(netloc):
             url = urllib.parse.urlunparse(('', '', path, params,
                                            query, fragment))
-        elif attr_name == 'src':
+        elif (scheme or netloc) and attr_name == 'src':
             # Discard cross-domain subresources
             return None
 
