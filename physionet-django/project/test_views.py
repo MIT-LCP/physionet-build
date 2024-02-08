@@ -520,7 +520,10 @@ class TestProjectEditing(TestCase):
         <mfrac><mn>22</mn><mn>7</mn></mfrac></math>,
         some ambiguous characters & < >,
         <form>invalid tags</form>,
-        <span onclick="evil()">invalid attributes</span>
+        <span onclick="evil()">invalid attributes</span>,
+        <img src="http://testserver/foo.jpg" alt="full URL to image">,
+        <img src="/foo.jpg" alt="partial URL to image">,
+        <img src="https://example.com/foo.jpg" alt="cross-domain">
         </p>
         """
 
@@ -532,7 +535,10 @@ class TestProjectEditing(TestCase):
         <mfrac><mn>22</mn><mn>7</mn></mfrac></math>,
         some ambiguous characters &amp; &lt; &gt;,
         &lt;form&gt;invalid tags&lt;/form&gt;,
-        <span>invalid attributes</span>
+        <span>invalid attributes</span>,
+        <img src="/foo.jpg" alt="full URL to image">,
+        <img src="/foo.jpg" alt="partial URL to image">,
+        <img alt="cross-domain">
         </p>
         """
 
