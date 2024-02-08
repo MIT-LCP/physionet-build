@@ -10,7 +10,7 @@ from django.urls import reverse
 
 
 import notification.utility as notification
-from events.forms import AddEventForm, EventApplicationResponseForm
+from events.forms import AddEventForm, EventApplicationResponseForm, InviteCohostForm
 from events.models import Event, EventApplication, EventParticipant
 from events.utility import notify_host_cohosts_new_registration
 
@@ -286,6 +286,14 @@ def event_detail(request, event_slug):
             notify_host_cohosts_new_registration(request=request, registered_user=user, event=event)
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
+        elif 'invite_cohost' in request.POST:
+            invite_cohost_form = InviteCohostForm(event=event, data=request.POST)
+            if invite_cohost_form.is_valid():
+                invite_cohost_form.save()
+                messages.success(request, "You have successfully invited a cohost")
+                invite_cohost_form = InviteCohostForm(event=event)
+            else:
+                messages.error(request, "Submission failed. Please check the form for errors.")
         elif 'confirm_withdraw' in request.POST.keys():
             event_participation_request = EventApplication.objects.filter(
                 event=event,

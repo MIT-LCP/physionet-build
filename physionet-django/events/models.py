@@ -7,6 +7,7 @@ from django.contrib.auth.models import Permission
 from events.enums import EventCategory
 from events import validators
 from project.modelcomponents.fields import SafeHTMLField
+from project.modelcomponents.generic import BaseInvitation
 from project.validators import validate_version, validate_slug
 
 
@@ -247,3 +248,18 @@ class EventDataset(models.Model):
         """
         self.is_active = False
         self.save()
+
+
+class CohostInvitation(models.Model):
+    """
+    Invitation for becoming a cohost of an event
+    """
+    email = models.EmailField(max_length=255)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    request_datetime = models.DateTimeField(auto_now_add=True)
+    response_datetime = models.DateTimeField(null=True)
+    response = models.BooleanField(null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        default_permissions = ()
