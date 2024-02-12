@@ -4,6 +4,11 @@ from events.widgets import DatePickerInput
 from events.models import Event, EventApplication, EventAgreement, EventDataset, CohostInvitation
 from project.models import PublishedProject
 
+INVITATION_CHOICES = (
+    (1, 'Accept'),
+    (0, 'Decline')
+)
+
 
 class AddEventForm(forms.ModelForm):
     """
@@ -110,7 +115,7 @@ class EventAgreementForm(forms.ModelForm):
         return cleaned_data
 
 
-class InviteCohostForm(forms.Form):
+class InviteCohostForm(forms.ModelForm):
     """
     Form to invite a cohost to an event.
     Field to fill in: email.
@@ -124,6 +129,7 @@ class InviteCohostForm(forms.Form):
 
     class Meta:
         model = CohostInvitation
+        fields = ('email',)
 
     def clean_email(self):
         "Get the cleaned email and check if it is already a cohost."
@@ -147,3 +153,22 @@ class InviteCohostForm(forms.Form):
         invitation.event = self.event
         invitation.save()
         return invitation
+
+
+class CohostInvitationResponseForm(forms.ModelForm):
+    """
+    Form to respond to an invitation to be a cohost.
+    """
+    class Meta:
+        model = CohostInvitation
+        fields = ('response',)
+        widgets = {
+            'response': forms.Select(choices=INVITATION_CHOICES)
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.instance.is_active:
+            raise forms.ValidationError("This invitation is no longer active.")
+
+        return cleaned_data

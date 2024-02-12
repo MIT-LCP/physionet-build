@@ -7,12 +7,17 @@ from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.forms import modelformset_factory
 from django.urls import reverse
+from django.db import transaction
+from django.utils import timezone
 
 
 import notification.utility as notification
-from events.forms import AddEventForm, EventApplicationResponseForm, InviteCohostForm
-from events.models import Event, EventApplication, EventParticipant
+from project import utility
+from events.forms import AddEventForm, EventApplicationResponseForm, InviteCohostForm, CohostInvitationResponseForm
+from events.models import Event, EventApplication, EventParticipant, CohostInvitation
 from events.utility import notify_host_cohosts_new_registration
+from project.forms import InvitationResponseForm
+from django.http import Http404
 
 
 @login_required
@@ -234,6 +239,70 @@ def event_home(request):
     )
 
 
+def cancel_invitation(request, invitation_id, event):
+    """
+    Cancel an invitation to become a cohost
+    """
+    user = request.user
+    invitation = CohostInvitation.objects.get(id=invitation_id)
+
+    if invitation.event == event:
+        if user == event.host:
+            invitation.delete()
+            messages.success(request, "Invitation has been successfully cancelled")
+        else:
+            messages.error(request, "You don't have permission to cancel this invitation")
+    else:
+        messages.error(request, "Invalid invitation")
+
+
+def process_invitation_response(request, invitation_response_formset):
+    """
+    Process an invitation response
+    Helper function for event_detail
+
+    if an invitation is accepted, the user is added as a cohost
+    otherwise, return None
+    """
+    user = request.user
+    invitation_id = int(request.POST["invitation_response"])
+    for invitation_response_form in invitation_response_formset:
+        # only process the response that was submitted
+        if invitation_response_form.instance.id == invitation_id:
+            break
+        else:
+            return None
+
+    if invitation_response_form.is_valid():
+        with transaction.atomic():
+            invitation = invitation_response_form.instance
+            event = invitation.event
+            invitations = CohostInvitation.objects.filter(
+                is_active=True, email__in=user.get_emails(), event=event)
+            affected_emails = [i.email for i in invitations]
+            invitations.update(
+                response=invitation.response,
+                response_datetime=timezone.now(),
+                is_active=False,
+            )
+            if invitation.response:
+                participant = EventParticipant.objects.get(event=event, user=user)
+                participant.is_cohost = True
+                participant.save()
+
+            notification.cohost_response_notify(invitation, affected_emails)
+
+            messages.success(request, "The invitation has been {0}".format(
+                notification.RESPONSE_ACTIONS[invitation.response]))
+
+            if invitation.response:
+                return True
+            else:
+                return None
+    else:
+        messages.error(request, utility.get_form_errors(invitation_response_form))
+        return None
+
 
 @login_required
 def event_detail(request, event_slug):
@@ -247,6 +316,12 @@ def event_detail(request, event_slug):
     registration_allowed = True
     is_waitlisted = False
     registration_error_message = ''
+    invite_cohost_form = None
+    invitation_response_formset = None
+
+    InvitationResponseFormSet = modelformset_factory(CohostInvitation,
+                                                     form=CohostInvitationResponseForm,
+                                                     extra=0)
 
     # if the event has ended, registration is not allowed, so we can skip the rest of the checks
     if event.end_date < datetime.now().date():
@@ -255,9 +330,12 @@ def event_detail(request, event_slug):
     elif event.host == user:
         registration_allowed = False
         registration_error_message = 'You are the host of this event'
+        invite_cohost_form = InviteCohostForm(event=event)
     elif event.participants.filter(user=user).exists():
         registration_allowed = False
         registration_error_message = 'You are registered for this event'
+        invitation_response_formset = InvitationResponseFormSet(
+            queryset=CohostInvitation.get_user_invitations(user))
     else:  # we don't need to check for waitlisted / other stuff if the user is already registered
         event_participation_request = EventApplication.objects.filter(
             event=event,
@@ -268,7 +346,6 @@ def event_detail(request, event_slug):
             registration_allowed = False
             is_waitlisted = True
             registration_error_message = 'Your request to join this event is pending'
-
         if event.allowed_domains:
             domains = event.allowed_domains.split(',')
             emails = user.get_emails()
@@ -291,9 +368,24 @@ def event_detail(request, event_slug):
             if invite_cohost_form.is_valid():
                 invite_cohost_form.save()
                 messages.success(request, "You have successfully invited a cohost")
+                target_email = invite_cohost_form.cleaned_data['email']
+                notification.cohost_invitation_notify(request, invite_cohost_form,
+                                                      target_email)
+                messages.success(request, 'An invitation has been sent to: {0}'.format(target_email))
                 invite_cohost_form = InviteCohostForm(event=event)
             else:
                 messages.error(request, "Submission failed. Please check the form for errors.")
+        elif 'cancel_invitation' in request.POST:
+            invitation_id = int(request.POST['cancel_invitation'])
+            cancel_invitation(request, invitation_id, event)
+        elif 'invitation_response' in request.POST.keys():
+            host_qs = CohostInvitation.get_user_invitations(user)
+            invitation_response_formset = InvitationResponseFormSet(
+                request.POST,
+                queryset=host_qs,
+            )
+            if process_invitation_response(request, invitation_response_formset):
+                return redirect('event_detail', event_slug=event.slug)
         elif 'confirm_withdraw' in request.POST.keys():
             event_participation_request = EventApplication.objects.filter(
                 event=event,
@@ -308,6 +400,8 @@ def event_detail(request, event_slug):
                 return redirect(event_home)
 
     event_datasets = event.datasets.filter(is_active=True)
+    invitations = CohostInvitation.objects.filter(event=event, is_active=True)
+    cohosts = event.participants.filter(is_cohost=True)
 
     return render(
         request,
@@ -315,6 +409,10 @@ def event_detail(request, event_slug):
         {'event': event,
          'registration_allowed': registration_allowed,
          'registration_error_message': registration_error_message,
+         'invite_cohost_form': invite_cohost_form,
          'is_waitlisted': is_waitlisted,
          'event_datasets': event_datasets,
+         'invitations': invitations,
+         'cohosts': cohosts,
+         'invitation_response_formset': invitation_response_formset,
          })

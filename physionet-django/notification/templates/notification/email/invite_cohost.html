@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ event_info }}
+
+Dear Colleague,
+
+You have been invited by {{ inviter_name }} ({{ inviter_email }}) to co-author an event entitled "{{ event.title }}" on {{ domain }}. Please accept or decline this request as appropriate.
+
+You may respond to the invitation from your event page ({{ url_prefix }}{% url "event_home" %}). If the email address {{ target_email }} is not associated with your {{ domain }} account, please add it to your profile.
+
+If you do not have an account, please register here: {{ url_prefix }}{% if sso_enabled %}{% url "login" %}{% else %}{% url "register" %}{% endif %}. Once you have registered, you will find the pending invitation on the particular event's page.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

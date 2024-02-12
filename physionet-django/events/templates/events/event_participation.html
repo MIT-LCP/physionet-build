@@ -2,13 +2,53 @@
   <h5>Event Registration</h5>
   {% if registration_allowed %}
     <strong><p>Click the button below to register for the event. You will receive a notification when your registration is confirmed.</p></strong>
-
-    <form  method="post">
-      {% csrf_token %}    
-      <button type="submit" class="btn btn-sm btn-primary" name="confirm_registration" value="confirm" role="button">Join waitlist</button>
-    </form>
+      <form  method="post">
+        {% csrf_token %}    
+        <button type="submit" class="btn btn-sm btn-primary" name="confirm_registration" value="confirm" role="button">Join waitlist</button>
+      </form>
   {% else %}
     <p>{{ registration_error_message }}</p>
+    {% if invitation_response_formset|length %}
+      <form action="" method="post">
+        {{ invitation_response_formset.management_form }}
+        {% csrf_token %}
+        {% for invitation_response_form in invitation_response_formset %}
+          <li class="list-group-item">
+            <div class="row">
+              <div class="col-md-5">{{ invitation_response_form.instance.event  }}</div>
+              <div class="col-md-3">Event Co-Host invitation</div>
+              <div class="col-md-2">{{ invitation_response_form.instance.request_datetime|date }}</div>
+              <div class="col-md-2"><button id="respond_button_{{ invitation_response_form.instance.project.id }}" type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#invitation-response-modal-{{ invitation_response_form.instance.id }}">
+                <i class="fa fa-reply"></i> Respond</button>
+              </div>
+            </div>
+          </li>
+          {# The modal for the response #}
+          <div class="modal fade" id="invitation-response-modal-{{ invitation_response_form.instance.id }}" tabindex="-1" role="dialog" aria-labelledby="invitation-response-modal-{{ invitation_response_form.invitation_id.value }}" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Respond to invitation</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+
+                <div class="modal-body author_invitation_response_form">
+                  <p>You have been invited to co-host "{{ invitation_response_form.instance.event }}".</p>
+                  {{ invitation_response_form }}
+                </div>
+
+                <div class="modal-footer">
+                  <button class="btn btn-primary" name="invitation_response" value="{{ invitation_response_form.instance.id }}" type="submit"><i class="fa fa-reply"></i> Submit Response</button>
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </form>
+    {% endif %}       
     {% if is_waitlisted %}
     <form  method="post">
       <strong><p>Click the button below to withdraw your request.</p></strong>
