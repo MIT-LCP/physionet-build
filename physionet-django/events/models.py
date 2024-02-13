@@ -266,15 +266,14 @@ class CohostInvitation(models.Model):
 
     def __str__(self):
         return 'Event: {0} Email: {1}'.format(self.event, self.email)
-    
+
     @staticmethod
     def get_user_invitations(user, exclude_duplicates=True):
         """
         Get all active cohost invitations to a user
         """
         emails = user.get_emails()
-        invitations = CohostInvitation.objects.filter(email__in=emails,
-            is_active=True).order_by('-request_datetime')
+        invitations = CohostInvitation.objects.filter(email__in=emails, is_active=True).order_by('-request_datetime')
 
         # Remove duplicate invitations to the same project
         if exclude_duplicates:
