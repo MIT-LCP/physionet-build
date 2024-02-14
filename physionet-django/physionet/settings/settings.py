@@ -45,7 +45,7 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='PhysioNet Automated S
 CONTACT_EMAIL = config('CONTACT_EMAIL', default='PhysioNet Contact <contact@physionet.org>')
 SERVER_EMAIL = config('SERVER_EMAIL', default='PhysioNet System <root@physionet.org>')
 CREDENTIAL_EMAIL = config('CREDENTIAL_EMAIL', default='PhysioNet Credentialing <credentialing@physionet.org>')
-ERROR_EMAIL = config('ERROR_EMAIL', default='contact@physionet.org')
+ERROR_EMAIL = config('ERROR_EMAIL', default='contact@healthdatanexus.ai')
 
 
 ADMINS = [(config('ADMINS_NAME', default='PhysioNet Technical'),

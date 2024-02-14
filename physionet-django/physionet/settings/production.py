@@ -34,7 +34,7 @@ DEFAULT_FROM_EMAIL = 'PhysioNet Automated System <noreply@physionet.org>'
 CONTACT_EMAIL = 'PhysioNet Contact <contact@physionet.org>'
 SERVER_EMAIL = 'PhysioNet System <root@physionet.org>'
 CREDENTIAL_EMAIL = 'PhysioNet Credentialing <credentialing@physionet.org>'
-ERROR_EMAIL = 'contact@physionet.org'
+ERROR_EMAIL = 'contact@healthdatanexus.ai'
 
 ADMINS = [('PhysioNet Technical', 'technical@physionet.org')]
 
