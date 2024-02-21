@@ -22,7 +22,7 @@ from user.enums import TrainingStatus
 
 from training.models import Course, Quiz, QuizChoice, ContentBlock
 from training.models import CourseProgress, ModuleProgress, CompletedContent, CompletedQuiz
-from training.serializers import TrainingTypeSerializer, CourseSerializer
+from training.serializers import CourseSerializer
 from console.views import console_permission_required
 
 
@@ -34,11 +34,6 @@ def courses(request):
     Allows creation and updating of courses for a given training type.
     """
     if request.POST:
-
-        if request.POST.get('training_id') != "-1":
-            training_type = get_object_or_404(TrainingType, pk=request.POST.get('training_id'))
-        else:
-            training_type = None
 
         json_file = request.FILES.get("json_file", "")
 
@@ -53,10 +48,11 @@ def courses(request):
             messages.error(request, 'JSON file is not properly formatted.')
             return redirect("courses")
 
-        serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
+        serializer = CourseSerializer(data=file_data, partial=True)
+
         if serializer.is_valid(raise_exception=False):
             serializer.save()
-            messages.success(request, 'Training Type created successfully.')
+            messages.success(request, 'Course created successfully.')
         else:
             messages.error(request, serializer.errors)
 
@@ -98,16 +94,17 @@ def course_details(request, pk):
         # Checking if the Training type with the same version already exists
         existing_course = Course.objects.filter(training_type=training_type)
         if existing_course.exists():
-            existing_course_version = existing_course.order_by('-version').first().version
-            new_course_version = file_data['courses'][0]['version']
+            latest_course = existing_course.order_by('-version').first()
+            latest_course_version = existing_course.order_by('-version').first().version
+            new_course_version = file_data['version']
             # checking if the new course file has a valid version
             if validate_version(new_course_version) is not None:
                 messages.error(request, 'Version number is not valid.')
             # checking if the version number is greater than the existing version
-            elif not is_version_greater(new_course_version, existing_course_version):
+            elif not is_version_greater(new_course_version, latest_course_version):
                 messages.error(request, 'Version number should be greater than the existing version.')
             else:
-                serializer = TrainingTypeSerializer(training_type, data=file_data, partial=True)
+                serializer = CourseSerializer(latest_course, data=file_data, partial=True)
                 if serializer.is_valid(raise_exception=False):
                     serializer.save()
                     messages.success(request, 'Course updated successfully.')
@@ -136,13 +133,20 @@ def expire_course(request, pk, version):
     and expires the course with the specified primary key and version number.
     """
     course = Course.objects.filter(training_type__pk=pk, version=version).first()
-    number_of_days = request.POST.get('number_of_days')
+    expiry_date = request.POST.get('expiry_date')
     if not course:
         messages.error(request, 'Course not found')
         return redirect('courses')
-    if not number_of_days:
-        messages.error(request, 'Number of days is required')
+    if not expiry_date:
+        messages.error(request, 'Expiry Date is required')
         return redirect('course_details', pk=pk)
+    # Checking if the expiry date is greater than the current date
+    expiry_date_tz = timezone.make_aware(timezone.datetime.strptime(expiry_date, '%Y-%m-%d'))
+    if expiry_date_tz < timezone.now():
+        messages.error(request, 'Expiry Date should be greater than the current date')
+        return redirect('course_details', pk=pk)
+    # Calculating the number of days between the current date and the expiry date
+    number_of_days = (expiry_date_tz - timezone.now()).days
     course.expire_course_version(course.training_type, int(number_of_days))
     messages.success(request, 'Course expired successfully.')
     return redirect('course_details', pk=pk)
@@ -156,7 +160,6 @@ def download_course(request, pk, version):
     and returns a JSON response containing information about the
     training course with the specified primary key and version number.
     """
-    # course = Course.objects.filter(training_type__pk=pk, version=version).first()
     training_type = get_object_or_404(TrainingType, pk=pk)
     course = training_type.courses.filter(version=version).first()
     if not course:
@@ -167,16 +170,7 @@ def download_course(request, pk, version):
         messages.error(request, 'Only onplatform course can be downloaded')
         return redirect('courses')
 
-    # Creating the training_type_course object that contains on the specific version of the course
-    current_course_training_type = {
-        "name": training_type.name,
-        "description": training_type.description,
-        "valid_duration": training_type.valid_duration,
-        "courses": [course]
-    }
-
-    # serializer = CourseSerializer(course)
-    serializer = TrainingTypeSerializer(current_course_training_type)
+    serializer = CourseSerializer(course)
     response_data = serializer.data
     response = JsonResponse(response_data, safe=False, json_dumps_params={'indent': 2})
     response['Content-Disposition'] = f'attachment; filename={training_type.name}--version-{version}.json'

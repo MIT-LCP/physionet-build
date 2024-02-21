@@ -1101,6 +1101,14 @@ class Question(models.Model):
 
 
 class TrainingType(models.Model):
+    """This is the
+
+    Args:
+        models (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     name = models.CharField(max_length=128)
     description = SafeHTMLField()
     valid_duration = models.DurationField(null=True)

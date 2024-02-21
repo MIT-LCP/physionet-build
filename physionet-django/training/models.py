@@ -16,6 +16,9 @@ class Course(models.Model):
         version (CharField): The version of the course.
     """
 
+    title = models.CharField(max_length=128, null=True, blank=True)
+    description = SafeHTMLField(null=True, blank=True)
+    valid_duration = models.DurationField(null=True)
     training_type = models.ForeignKey(
         "user.TrainingType", on_delete=models.CASCADE, related_name="courses"
     )

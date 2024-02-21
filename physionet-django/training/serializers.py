@@ -42,15 +42,6 @@ class ModuleSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'course']
 
 
-class CourseSerializer(serializers.ModelSerializer):
-    modules = ModuleSerializer(many=True)
-
-    class Meta:
-        model = Course
-        fields = ['version', 'modules']
-        read_only_fields = ['id', 'training_type']
-
-
 def create_quizzes(module_instance, quizzes_data):
     choice_bulk = []
     for quiz in quizzes_data:
@@ -87,37 +78,44 @@ def create_modules(course_instance, modules_data):
         create_contentblocks(module_instance, contents)
 
 
-class TrainingTypeSerializer(serializers.ModelSerializer):
-    courses = CourseSerializer(many=True)
+class CourseSerializer(serializers.ModelSerializer):
+    modules = ModuleSerializer(many=True)
 
     class Meta:
-        model = TrainingType
-        fields = ['name', 'description', 'valid_duration', 'courses']
-        read_only_fields = ['id']
+        model = Course
+        fields = ['title', 'description', 'valid_duration', 'version', 'modules']
+        read_only_fields = ['id', 'training_type']
 
     def update(self, instance, validated_data):
         with transaction.atomic():
-            course = validated_data.pop('courses')[0]
+            course = validated_data
             modules = course.pop('modules')
+            course['training_type'] = instance.training_type
 
-            course['training_type'] = instance
             course_instance = Course.objects.create(**course)
             create_modules(course_instance, modules)
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
 
         return course_instance
 
     def create(self, validated_data):
         with transaction.atomic():
-            course = validated_data.pop('courses')[0]
+            course = validated_data
             modules = course.pop('modules')
+            training_type_name = validated_data['title']
+            training_type_description = validated_data['description']
+            training_type_valid_duration = validated_data['valid_duration']
+            training_type_required_field = RequiredField.PLATFORM
 
-            validated_data['required_field'] = RequiredField.PLATFORM
-            course['training_type'] = instance = TrainingType.objects.create(**validated_data)
+            training_type_instance = TrainingType.objects.create(
+                name=training_type_name,
+                description=training_type_description,
+                valid_duration=training_type_valid_duration,
+                required_field=training_type_required_field
+            )
+
+            course['training_type'] = training_type_instance
             course_instance = Course.objects.create(**course)
 
             create_modules(course_instance, modules)
 
-        return instance
+        return course_instance

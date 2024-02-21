@@ -81,7 +81,7 @@
                     <td>
                         <form action="{% url 'expire_course_version' training_type.pk course.version %}" method="POST">
                             {% csrf_token %}
-                            <input type="number" name="number_of_days" value="30">
+                            <input type="date" name="expiry_date">
                             <button class="btn btn-sm btn-danger" type="submit"> Expire</button>
                         </form>
                     </td>
@@ -120,3 +120,7 @@
     </div>
 </div>
 {% endblock %}
+
+<script>
+  document.getElementById('expiry_date').valueAsDate = new Date();
+</script>

@@ -1,43 +1,39 @@
 {
-  "name": "Course 1 Updated",
+  "title": "Course 1 Updated",
   "description": "<p>Test content description Updated</div>",
   "valid_duration": "1095 00:00:00",
-  "courses": [
+  "version": "1.5.1",
+  "modules": [
     {
-      "version": "1.2.0",
-      "modules": [
+      "name": "Module 1 Updated",
+      "description": "<p>Test content description Updated</div>",
+      "order": 0,
+      "contents": [
         {
-          "name": "Module 1 Updated",
-          "description": "<p>Test content description Updated</div>",
-          "order": 0,
-          "contents": [
+          "body": "<p>Hello This is a test</p><div><p>Test content1 updated</p></div>",
+          "order": 0
+        }
+      ],
+      "quizzes": [
+        {
+          "question": "What is the correct answer(choice2)?",
+          "order": 1,
+          "choices": [
             {
-              "body": "<p>Hello This is a test</p><div><p>Test content1 updated</p></div>",
-              "order": 0
-            }
-          ],
-          "quizzes": [
+              "body": "I am a choice1",
+              "is_correct": false
+            },
             {
-              "question": "What is the correct answer(choice2)?",
-              "order": 1,
-              "choices": [
-                {
-                  "body": "I am a choice1",
-                  "is_correct": false
-                },
-                {
-                  "body": "I am a choice2",
-                  "is_correct": true
-                },
-                {
-                  "body": "I am a choice3",
-                  "is_correct": false
-                },
-                {
-                  "body": "I am a choice4",
-                  "is_correct": false
-                }
-              ]
+              "body": "I am a choice2",
+              "is_correct": true
+            },
+            {
+              "body": "I am a choice3",
+              "is_correct": false
+            },
+            {
+              "body": "I am a choice4",
+              "is_correct": false
             }
           ]
         }
