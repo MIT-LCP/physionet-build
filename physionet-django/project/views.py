@@ -23,6 +23,7 @@ from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
+from physionet.models import Step, StepDetails
 from physionet.storage import generate_signed_url_helper
 from physionet.utility import serve_file
 from project import forms, utility
@@ -403,10 +404,14 @@ def project_overview(request, project_slug, **kwargs):
         project.archive(archive_reason=1, clear_files=True)
         return redirect('delete_project_success')
 
+    project_overview_step = Step.objects.get(process_name='Create Project', title="Overview")
+    project_overview_step_details = StepDetails.objects.filter(step=project_overview_step)
+
     return render(request, 'project/project_overview.html',
         {'project':project, 'is_submitting':is_submitting,
          'under_submission':under_submission,
-         'submitting_author':kwargs['authors'].get(is_submitting=True)})
+         'submitting_author':kwargs['authors'].get(is_submitting=True),
+         'steps_details': project_overview_step_details})
 
 
 @login_required
@@ -640,6 +645,8 @@ def project_authors(request, project_slug, **kwargs):
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
+    project_authors_step = Step.objects.get(process_name='Create Project', title="Authors")
+    project_authors_step_details = StepDetails.objects.filter(step=project_authors_step)
     return render(
         request,
         "project/project_authors.html",
@@ -655,6 +662,7 @@ def project_authors(request, project_slug, **kwargs):
             "add_item_url": edit_affiliations_url,
             "remove_item_url": edit_affiliations_url,
             "is_submitting": is_submitting,
+            "step_details": project_authors_step_details
         },
     )
 

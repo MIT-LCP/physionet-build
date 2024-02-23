@@ -59,18 +59,24 @@ class StaticPage(models.Model):
                 page.save()
 
 
-class Section(models.Model):
-    """
-    Holds sections of content for StaticPage.
-    """
-    static_page = models.ForeignKey(StaticPage, on_delete=models.CASCADE)
+class AbstractSection(models.Model):
     title = models.CharField(max_length=64)
     content = SafeHTMLField(blank=True)
     order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
-        default_permissions = ()
+        abstract = True
         ordering = ('order',)
+
+
+class Section(AbstractSection):
+    """
+    Holds sections of content for StaticPage.
+    """
+    static_page = models.ForeignKey(StaticPage, on_delete=models.CASCADE)
+
+    class Meta:
+        default_permissions = ()
         unique_together = (('static_page', 'order'),)
 
     def __str__(self):
@@ -147,3 +153,32 @@ class FrontPageButton(models.Model):
 
         self.order = order + 1
         self.save()
+
+class Step(models.Model):
+    """
+    Holds sections of content for StaticPage.
+    """
+    title = models.CharField(max_length=64)
+    process_name = models.CharField(max_length=64)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        default_permissions = ()
+        ordering = ('order',)
+
+    def __str__(self):
+        return f"{self.process_name}: {self.title}"
+
+class StepDetails(AbstractSection):
+    """
+    Holds sections of content for StaticPage.
+    """
+    step = models.ForeignKey(Step, on_delete=models.CASCADE)
+    tip = models.BooleanField(default=False)
+
+    class Meta:
+        default_permissions = ()
+        unique_together = (('step', 'order'),)
+
+    def __str__(self):
+        return self.title

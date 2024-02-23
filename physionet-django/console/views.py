@@ -32,7 +32,7 @@ from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
-from physionet.models import FrontPageButton, Section, StaticPage
+from physionet.models import FrontPageButton, Section, StaticPage, Step, StepDetails
 from project import forms as project_forms
 from project.models import (
     GCP,
@@ -2850,6 +2850,61 @@ def static_page_sections_edit(request, page_pk, section_pk):
         {'section_form': section_form, 'page': static_page, 'section': section},
     )
 
+@console_permission_required('physionet.change_staticpage')
+def process_pages(request):
+    """
+    Display a list of redirected URLs.
+    """
+    processes_name = Step.objects.all().distinct('process_name').order_by('process_name')
+    return render(
+        request,
+        'console/process_pages/index.html',
+        {'processes': processes_name})
+
+@console_permission_required('physionet.change_staticpage')
+def process_pages_show(request, step_pk):
+    """
+    Display a list of redirected URLs.
+    """
+    step = get_object_or_404(Step, pk=step_pk)
+    steps = Step.objects.filter(process_name=step.process_name)
+    return render(
+        request,
+        'console/process_pages/show.html',
+        {'steps': steps, 'process_name': step.process_name})
+
+@console_permission_required('physionet.change_staticpage')
+def step_details_show(request, step_pk):
+    """
+    Display a list of redirected URLs.
+    """
+    step = get_object_or_404(Step, pk=step_pk)
+    step_details = StepDetails.objects.filter(step=step)
+    print(step_details)
+    return render(
+        request,
+        'console/process_pages/step_details/index.html',
+        {'step': step, 'step_details': step_details})
+
+@console_permission_required('physionet.change_staticpage')
+def step_details_edit(request, step_details_pk):
+    """
+    Display a list of redirected URLs.
+    """
+    step_detail = get_object_or_404(StepDetails, pk=step_details_pk)
+    if request.method == 'POST':
+        step_details_form = forms.StepDetailsForm(instance=step_detail, data=request.POST)
+        if step_details_form.is_valid():
+            step_details_form.save()
+            messages.success(request, "The static page was successfully edited.")
+            return HttpResponseRedirect(reverse('static_pages'))
+    else:
+        step_details_form = forms.StepDetailsForm(instance=step_detail)
+
+    return render(
+        request,
+        'console/process_pages/step_details/edit.html',
+        {'step_detail': step_detail, 'step_details_form': step_details_form})
 
 @console_permission_required('project.add_license')
 def license_list(request):

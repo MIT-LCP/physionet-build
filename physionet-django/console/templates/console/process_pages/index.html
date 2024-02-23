@@ -1,0 +1,42 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}Create Project Pages{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Create Project Pages <span class="badge badge-pill badge-info">{{ pages|length }}</span>
+  </div>
+  <div class="card-body">
+
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th class="text-center" colspan=3>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for process in processes %}
+            <tr>
+                <td>{{ process.process_name|title }}</td>
+                <td class="text-center">
+                  <a href="{% url 'process_pages_show' process.pk %}" class="btn btn-sm btn-primary" role="button">Manage</a>
+                </td>
+                <td class="text-center">
+                  <form method="post" action="{% url 'static_page_delete' process.pk %}" onsubmit="return confirm ('Are you sure? ')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger" role="button">Remove</button>
+                  </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

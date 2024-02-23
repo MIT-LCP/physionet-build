@@ -1,0 +1,160 @@
+[
+{
+  "model": "physionet.step",
+  "pk": 1,
+  "fields": {
+    "title": "Overview",
+    "process_name": "Create Project",
+    "order": 1
+  }
+},
+{
+  "model": "physionet.step",
+  "pk": 2,
+  "fields": {
+    "title": "Authors",
+    "process_name": "Create Project",
+    "order": 2
+  }
+},
+{
+  "model": "physionet.step",
+  "pk": 3,
+  "fields": {
+    "title": "Content",
+    "process_name": "Create Project",
+    "order": 3
+  }
+},
+{
+  "model": "physionet.step",
+  "pk": 4,
+  "fields": {
+    "title": "Access",
+    "process_name": "Create Project",
+    "order": 4
+  }
+},
+{
+  "model": "physionet.step",
+  "pk": 5,
+  "fields": {
+    "title": "Discovery",
+    "process_name": "Create Project",
+    "order": 5
+  }
+},
+{
+  "model": "physionet.step",
+  "pk": 6,
+  "fields": {
+    "title": "Ethics",
+    "process_name": "Create Project",
+    "order": 6
+  }
+},
+{
+  "model": "physionet.step",
+  "pk": 7,
+  "fields": {
+    "title": "Files",
+    "process_name": "Create Project",
+    "order": 7
+  }
+},
+{
+  "model": "physionet.step",
+  "pk": 8,
+  "fields": {
+    "title": "Proofread",
+    "process_name": "Create Project",
+    "order": 8
+  }
+},
+{
+  "model": "physionet.step",
+  "pk": 9,
+  "fields": {
+    "title": "Submission",
+    "process_name": "Create Project",
+    "order": 9
+  }
+},
+{
+  "model": "physionet.stepdetails",
+  "pk": 1,
+  "fields": {
+    "step": 1,
+    "title": "Preparing for Submission",
+    "content": "<p>To prepare the project for submission, go through the following steps using the side panel:</p>\n <ol>\n  <li>Invite authors to be credited for creating the resource.</li>\n  <li>Fill in the descriptive metadata.</li>\n  <li>Set the access policy and license.</li>\n  <li>Add discovery information.</li>\n  <li>Upload the files.</li>\n  <li>Proofread the project and make sure it is ready for submission.</li>\n</ol> <p>The full publishing process is described in the\n   <a href=\"{% url 'static_view' static_url='publish' %}#author_guidelines\"> author\nguidelines</a>.</p>",
+    "order": 1,
+    "tip": false
+  }
+},
+{
+  "model": "physionet.stepdetails",
+  "pk": 2,
+  "fields": {
+    "step": 2,
+    "title": "1. Project Authors",
+    "content": "<p>The submitting author is responsible for managing co-authors and handling the project\n   submission. Co-authors can be invited using the form below. Once the co-author is registered on {{ SITE_NAME }}, \n   the invitation will appear on their <a href=\"{% url 'project_home' %}\" target=\"_blank\">project home</a> page. Authors must provide their affiliation on a project-by-project basis.</p>\n",
+    "order": 1,
+    "tip": false
+  }
+},
+{
+  "model": "physionet.stepdetails",
+  "pk": 3,
+  "fields": {
+    "step": 2,
+    "title": "Corresponding Author",
+    "content": "<p>The corresponding author is responsible for responding to inquiries from users post publication.</p>",
+    "order": 2,
+    "tip": false
+  }
+},
+{
+  "model": "physionet.stepdetails",
+  "pk": 4,
+  "fields": {
+    "step": 2,
+    "title": "Corresponding Email",
+    "content": "<p>You are the the selected corresponding author. Choose one of your emails to be listed for correspondence.</p>\n",
+    "order": 3,
+    "tip": false
+  }
+},
+{
+  "model": "physionet.stepdetails",
+  "pk": 5,
+  "fields": {
+    "step": 2,
+    "title": "Your Affiliations",
+    "content": "<p>Set up to three affiliations for your author profile. Note: these fields are not tied to your user profile.</p>\n",
+    "order": 4,
+    "tip": false
+  }
+},
+{
+  "model": "physionet.stepdetails",
+  "pk": 6,
+  "fields": {
+    "step": 2,
+    "title": "Your Affiliations",
+    "content": "Institutions you are affiliated with. Maximum of 3.",
+    "order": 5,
+    "tip": true
+  }
+},
+{
+  "model": "physionet.stepdetails",
+  "pk": 7,
+  "fields": {
+    "step": 2,
+    "title": "Submitting Author",
+    "content": "<p>Only the submitting author of a project is able to edit content.\n     You may transfer the role of submitting author to a co-author.\n     Choose one of the co-authors below to make them the submitting author for this project.\n     Transferring authorship will remove your ability to edit content!</p>",
+    "order": 6,
+    "tip": false
+  }
+}
+]

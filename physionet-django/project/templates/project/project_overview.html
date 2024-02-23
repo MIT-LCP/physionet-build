@@ -28,14 +28,14 @@
 </p>
 <hr>
 
-<h3>Preparing for Submission</h3>
-
-<p>To prepare the project for submission, go through the following steps using the side panel:</p>
-
-{% include "about/preparation_checklist.html" %}
-<p>The full publishing process is described in the
-   <a href="{% url 'static_view' static_url='publish' %}#author_guidelines"> author
-guidelines</a>.</p>
+{% for step in steps_details %}
+  <section id="{{ section.order }}">
+      <h3>{{ step.title }}</h3>
+      <div>
+        {{ step.content|safe }}
+      </div>
+  </section>
+{% endfor %}
 <hr>
 {% if is_submitting %}
   <div class="btn-container-rsp btn-left">

@@ -128,6 +128,13 @@ urlpatterns = [
         views.static_page_sections_edit,
         name='static_page_sections_edit',
     ),
+
+    # create project pages
+    path('process_pages/', views.process_pages, name='process_pages'),
+    path('process_pages/<int:step_pk>/show/', views.process_pages_show, name='process_pages_show'),
+    path('process_pages/step_details/<int:step_pk>/show/', views.step_details_show, name='step_details_show'),
+    path('process_pages/step_details/<int:step_details_pk>/edit/', views.step_details_edit, name='step_details_edit'),
+
     path('licenses/', views.license_list, name='license_list'),
     path('licenses/<int:pk>/', views.license_detail, name='license_detail'),
     path('licenses/<int:pk>/delete/', views.license_delete, name='license_delete'),
