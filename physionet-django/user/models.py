@@ -1101,13 +1101,26 @@ class Question(models.Model):
 
 
 class TrainingType(models.Model):
-    """This is the
+    """Represents a type of training. For example, CITI training -  which can be on-platform or off-platform.
+    The training type if off-platform, will have a set of questions that the admin uses to make sure 
+    that the training was properly validated. If the training type is on-platform, there will be attached
+    courses. Each Course is a version of the training type, and has modules, which the user can complete
+    to get the accredition (Training) for the particular training type.
 
-    Args:
-        models (_type_): _description_
+    Attributes:
+        name (str): The name of the training type.
+        description (SafeHTMLField): The description of the training type.
+        valid_duration (DurationField, optional): The valid duration of the training type.
+        questions (ManyToManyField): The questions associated with the training type.
+        required_field (PositiveSmallIntegerField): The required field for the training type.
+        home_page (URLField, optional): The home page URL for the training type.
 
-    Returns:
-        _type_: _description_
+    Meta:
+        default_permissions (tuple): The default permissions for the training type.
+        permissions (list): The additional permissions for the training type.
+
+    Methods:
+        __str__(): Returns a string representation of the training type.
     """
     name = models.CharField(max_length=128)
     description = SafeHTMLField()
