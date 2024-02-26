@@ -58,6 +58,7 @@ from user.models import CloudInformation, CredentialApplication, LegacyCredentia
 from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
+    get_presigned_url,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
@@ -1931,6 +1932,7 @@ def published_project(request, project_slug, version, subdir=''):
         'is_lightwave_supported': project.files.is_lightwave_supported(),
         'is_wget_supported': project.files.is_wget_supported(),
         'has_s3_credentials': has_s3_credentials(),
+        'presigned_url': get_presigned_url(project),
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
     }

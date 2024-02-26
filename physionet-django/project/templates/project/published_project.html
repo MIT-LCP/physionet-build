@@ -435,6 +435,9 @@
               Download the files using AWS command line tools:
               <pre class="shell-command">aws s3 sync {{ project.aws.s3_uri }} DESTINATION</pre>
             </li>
+            <li>
+              <a href="{{ presigned_url }}" target="_blank">Download the ZIP file from AWS S3 bucket</a>({{ compressed_size }})
+            </li>
           {% endif %}  
 
         </ul>

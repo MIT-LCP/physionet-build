@@ -7,7 +7,7 @@ from django.conf import settings
 from project.models import PublishedProject, AccessPolicy, AWS
 from user.models import User
 from project.authorization.access import can_view_project_files
-
+from botocore.exceptions import ClientError
 
 # Manage AWS buckets and objects
 def has_S3_open_data_bucket_name():
@@ -730,6 +730,80 @@ def upload_all_projects():
     for project in published_projects:
         upload_project_to_S3(project)
 
+
+def generate_presigned_url(s3_client, client_method, method_parameters, expires_in):
+    """
+    Generate a presigned Amazon S3 URL that can be used to perform an action.
+
+    :param s3_client: A Boto3 Amazon S3 client.
+    :param client_method: The name of the client method that the URL performs.
+    :param method_parameters: The parameters of the specified client method.
+    :param expires_in: The number of seconds the presigned URL is valid for.
+    :return: The presigned URL.
+    """
+    try:
+        url = s3_client.generate_presigned_url(
+            ClientMethod=client_method, Params=method_parameters, ExpiresIn=expires_in
+        )    
+    except ClientError:
+        raise Exception(f"Couldn't get a presigned URL for client method '%s'.", client_method)
+    return url
+
+
+def find_zip_file_object_key(bucket_name, zip_name):
+    """
+    Search for a specific zip file by its name in an Amazon S3 bucket and return its key.
+
+    This function iterates over all objects in the specified S3 bucket using pagination
+    to efficiently handle buckets with a large number of objects. It compares each object's
+    key with the specified zip file name and returns the key if a match is found.
+
+    :param bucket_name: The name of the S3 bucket to search.
+    :param zip_name: The name of the zip file to find.
+    :return: The key of the zip file if found, otherwise None.
+    """
+    s3_client = boto3.client('s3')
+    paginator = s3_client.get_paginator('list_objects_v2')
+    page_iterator = paginator.paginate(Bucket=bucket_name)
+
+    for page in page_iterator:
+        if "Contents" in page:
+            for obj in page['Contents']:
+                if obj['Key'] == zip_name:
+                    return obj['Key']
+    return None
+
+
+def get_presigned_url(project):
+    """
+    Generate a presigned URL for a project's zip file stored in Amazon S3, allowing secure,
+    temporary access to the file without requiring AWS credentials.
+
+    This function checks for necessary S3 credentials before proceeding to generate a presigned
+    URL using the specified project's zip file name. It utilizes several helper functions
+    to determine the S3 client, bucket name, and the specific file key in S3. The presigned URL
+    is generated for the 'get_object' action, allowing the file to be downloaded directly from the URL.
+
+    :param project: The project object containing information about the zip file.
+    :return: A presigned URL string that can be used to download the zip file, or None if
+             the URL could not be generated.
+    :raises ValueError: If AWS S3 credentials are not properly configured.
+    """
+    if not has_s3_credentials():
+        raise ValueError("AWS_PROFILE is undefined. Please set it in your settings.")
+
+    s3_client = create_s3_client()
+    if s3_client is None:
+        return
+    bucket_name = get_bucket_name(project)
+    client_action = "get_object" 
+    zip_name = project.zip_name(legacy=False)
+    zip_file_key = find_zip_file_object_key(bucket_name, zip_name)
+    if zip_file_key is not None:
+        url = generate_presigned_url(
+            s3_client, client_action, {"Bucket": bucket_name, "Key": zip_file_key}, 24 * 3600 
+        )
+        return url
 
 def create_s3_server_access_log_bucket():
     """
