@@ -4,6 +4,7 @@
   "pk": 1,
   "fields": {
     "title": "Overview",
+    "slug": "create_project_overview",
     "process_name": "Create Project",
     "order": 1
   }
@@ -13,6 +14,7 @@
   "pk": 2,
   "fields": {
     "title": "Authors",
+    "slug": "create_project_authors",
     "process_name": "Create Project",
     "order": 2
   }
@@ -22,6 +24,7 @@
   "pk": 3,
   "fields": {
     "title": "Content",
+    "slug": "create_project_content",
     "process_name": "Create Project",
     "order": 3
   }
@@ -31,6 +34,7 @@
   "pk": 4,
   "fields": {
     "title": "Access",
+    "slug": "create_project_access",
     "process_name": "Create Project",
     "order": 4
   }
@@ -40,6 +44,7 @@
   "pk": 5,
   "fields": {
     "title": "Discovery",
+    "slug": "create_project_discovery",
     "process_name": "Create Project",
     "order": 5
   }
@@ -49,6 +54,7 @@
   "pk": 6,
   "fields": {
     "title": "Ethics",
+    "slug": "create_project_ethics",
     "process_name": "Create Project",
     "order": 6
   }
@@ -58,6 +64,7 @@
   "pk": 7,
   "fields": {
     "title": "Files",
+    "slug": "create_project_files",
     "process_name": "Create Project",
     "order": 7
   }
@@ -67,6 +74,7 @@
   "pk": 8,
   "fields": {
     "title": "Proofread",
+    "slug": "create_project_proofread",
     "process_name": "Create Project",
     "order": 8
   }
@@ -76,6 +84,7 @@
   "pk": 9,
   "fields": {
     "title": "Submission",
+    "slug": "create_project_submission",
     "process_name": "Create Project",
     "order": 9
   }
@@ -86,6 +95,7 @@
   "fields": {
     "step": 1,
     "title": "Preparing for Submission",
+    "slug": "preparing_for_submission",
     "content": "<p>To prepare the project for submission, go through the following steps using the side panel:</p>\n <ol>\n  <li>Invite authors to be credited for creating the resource.</li>\n  <li>Fill in the descriptive metadata.</li>\n  <li>Set the access policy and license.</li>\n  <li>Add discovery information.</li>\n  <li>Upload the files.</li>\n  <li>Proofread the project and make sure it is ready for submission.</li>\n</ol> <p>The full publishing process is described in the\n   <a href=\"{% url 'static_view' static_url='publish' %}#author_guidelines\"> author\nguidelines</a>.</p>",
     "order": 1,
     "tip": false
@@ -97,6 +107,7 @@
   "fields": {
     "step": 2,
     "title": "1. Project Authors",
+    "slug": "project_authors",
     "content": "<p>The submitting author is responsible for managing co-authors and handling the project\n   submission. Co-authors can be invited using the form below. Once the co-author is registered on {{ SITE_NAME }}, \n   the invitation will appear on their <a href=\"{% url 'project_home' %}\" target=\"_blank\">project home</a> page. Authors must provide their affiliation on a project-by-project basis.</p>\n",
     "order": 1,
     "tip": false
@@ -108,6 +119,7 @@
   "fields": {
     "step": 2,
     "title": "Corresponding Author",
+    "slug": "corresponding_author",
     "content": "<p>The corresponding author is responsible for responding to inquiries from users post publication.</p>",
     "order": 2,
     "tip": false
@@ -119,7 +131,8 @@
   "fields": {
     "step": 2,
     "title": "Corresponding Email",
-    "content": "<p>You are the the selected corresponding author. Choose one of your emails to be listed for correspondence.</p>\n",
+    "slug": "corresponding_email",
+    "content": "<p>You are the selected corresponding author. Choose one of your emails to be listed for correspondence.</p>\n",
     "order": 3,
     "tip": false
   }
@@ -130,6 +143,7 @@
   "fields": {
     "step": 2,
     "title": "Your Affiliations",
+    "slug": "your_affiliations",
     "content": "<p>Set up to three affiliations for your author profile. Note: these fields are not tied to your user profile.</p>\n",
     "order": 4,
     "tip": false
@@ -141,6 +155,7 @@
   "fields": {
     "step": 2,
     "title": "Your Affiliations",
+    "slug": "your_affiliations_tip",
     "content": "Institutions you are affiliated with. Maximum of 3.",
     "order": 5,
     "tip": true
@@ -152,6 +167,7 @@
   "fields": {
     "step": 2,
     "title": "Submitting Author",
+    "slug": "submitting_author",
     "content": "<p>Only the submitting author of a project is able to edit content.\n     You may transfer the role of submitting author to a co-author.\n     Choose one of the co-authors below to make them the submitting author for this project.\n     Transferring authorship will remove your ability to edit content!</p>",
     "order": 6,
     "tip": false

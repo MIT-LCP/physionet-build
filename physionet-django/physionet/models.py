@@ -160,6 +160,7 @@ class Step(models.Model):
     """
     title = models.CharField(max_length=64)
     process_name = models.CharField(max_length=64)
+    slug = models.CharField(max_length=64)
     order = models.PositiveSmallIntegerField(default=0)
 
     class Meta:
@@ -174,6 +175,7 @@ class StepDetails(AbstractSection):
     Holds sections of content for StaticPage.
     """
     step = models.ForeignKey(Step, on_delete=models.CASCADE)
+    slug = models.CharField(max_length=64)
     tip = models.BooleanField(default=False)
 
     class Meta:

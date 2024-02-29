@@ -404,14 +404,15 @@ def project_overview(request, project_slug, **kwargs):
         project.archive(archive_reason=1, clear_files=True)
         return redirect('delete_project_success')
 
-    project_overview_step = Step.objects.get(process_name='Create Project', title="Overview")
+    project_overview_step = Step.objects.get(slug='create_project_overview')
     project_overview_step_details = StepDetails.objects.filter(step=project_overview_step)
+    step_details_dict = { step_detail.slug: step_detail for step_detail in project_overview_step_details }
 
     return render(request, 'project/project_overview.html',
         {'project':project, 'is_submitting':is_submitting,
          'under_submission':under_submission,
          'submitting_author':kwargs['authors'].get(is_submitting=True),
-         'steps_details': project_overview_step_details})
+         'step_details_dict': step_details_dict})
 
 
 @login_required
@@ -645,8 +646,11 @@ def project_authors(request, project_slug, **kwargs):
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
-    project_authors_step = Step.objects.get(process_name='Create Project', title="Authors")
+    project_authors_step = Step.objects.get(slug='create_project_authors')
     project_authors_step_details = StepDetails.objects.filter(step=project_authors_step)
+    step_details_dict = { step_detail.slug: step_detail for step_detail in project_authors_step_details }
+
+
     return render(
         request,
         "project/project_authors.html",
@@ -662,7 +666,7 @@ def project_authors(request, project_slug, **kwargs):
             "add_item_url": edit_affiliations_url,
             "remove_item_url": edit_affiliations_url,
             "is_submitting": is_submitting,
-            "step_details": project_authors_step_details
+            "step_details_dict": step_details_dict
         },
     )
 

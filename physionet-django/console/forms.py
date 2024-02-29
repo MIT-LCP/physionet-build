@@ -1004,4 +1004,4 @@ class StepDetailsForm(forms.ModelForm):
 
     class Meta:
         model = StepDetails
-        fields = ("title", "content", "tip")
+        fields = ("title", "content", "slug", "tip")
