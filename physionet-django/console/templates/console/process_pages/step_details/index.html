@@ -7,7 +7,7 @@
 {% block content %}
  <div class="card mb-3">
   <div class="card-header">
-    Static Pages <span class="badge badge-pill badge-info">{{ pages|length }}</span>
+    {{ step }} <span class="badge badge-pill badge-info">{{ pages|length }}</span>
   </div>
   <div class="card-body">
 
@@ -27,7 +27,7 @@
                   <a href="{% url 'step_details_edit' detail.pk %}" class="btn btn-sm btn-primary" role="button">Manage</a>
                 </td>
                 <td class="text-center">
-                  <form method="post" action="{% url 'static_page_delete' detail.pk %}" onsubmit="return confirm ('Are you sure? ')">
+                  <form method="post" action="{% url 'step_details_delete' detail.pk %}" onsubmit="return confirm ('Are you sure? ')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-danger" role="button">Remove</button>
                   </form>

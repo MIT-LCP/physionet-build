@@ -2896,8 +2896,8 @@ def step_details_edit(request, step_details_pk):
         step_details_form = forms.StepDetailsForm(instance=step_detail, data=request.POST)
         if step_details_form.is_valid():
             step_details_form.save()
-            messages.success(request, "The static page was successfully edited.")
-            return HttpResponseRedirect(reverse('static_pages'))
+            messages.success(request, f'The {step_detail} section was successfully edited.')
+            return HttpResponseRedirect(reverse('process_pages'))
     else:
         step_details_form = forms.StepDetailsForm(instance=step_detail)
 
@@ -2905,6 +2905,15 @@ def step_details_edit(request, step_details_pk):
         request,
         'console/process_pages/step_details/edit.html',
         {'step_detail': step_detail, 'step_details_form': step_details_form})
+
+@console_permission_required('physionet.change_staticpage')
+def step_details_delete(request, step_details_pk):
+    step_detail = get_object_or_404(StepDetails, pk=step_details_pk)
+    if request.method == 'POST':
+        step_detail.delete()
+        messages.success(request, f'The {step_detail} section was successfully deleted.')
+
+    return HttpResponseRedirect(reverse('process_pages'))
 
 @console_permission_required('project.add_license')
 def license_list(request):
