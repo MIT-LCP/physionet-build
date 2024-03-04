@@ -109,7 +109,7 @@ def course_details(request, training_slug):
                     serializer.save()
                     messages.success(request, 'Course updated successfully.')
 
-        return redirect("course_details", slug=training_slug)
+        return redirect("course_details", training_slug)
 
     training_type = get_object_or_404(TrainingType, slug=training_slug)
     active_course_versions = Course.objects.filter(training_type=training_type, is_active=True).order_by('-version')
@@ -139,17 +139,17 @@ def expire_course(request, training_slug, version):
         return redirect('courses')
     if not expiry_date:
         messages.error(request, 'Expiry Date is required')
-        return redirect('course_details', slug=training_slug)
+        return redirect('course_details', training_slug)
     # Checking if the expiry date is greater than the current date
     expiry_date_tz = timezone.make_aware(timezone.datetime.strptime(expiry_date, '%Y-%m-%d'))
     if expiry_date_tz < timezone.now():
         messages.error(request, 'Expiry Date should be greater than the current date')
-        return redirect('course_details', slug=training_slug)
+        return redirect('course_details', training_slug)
     # Calculating the number of days between the current date and the expiry date
     number_of_days = (expiry_date_tz - timezone.now()).days
     course.expire_course_version(course.training_type, int(number_of_days))
     messages.success(request, 'Course expired successfully.')
-    return redirect('course_details', slug=training_slug)
+    return redirect('course_details', training_slug)
 
 
 @permission_required('training.change_course', raise_exception=True)

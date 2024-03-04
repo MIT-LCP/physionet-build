@@ -18,6 +18,7 @@ from django.db.models.functions import Lower
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.text import slugify
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext as _
 
@@ -1141,6 +1142,17 @@ class TrainingType(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            slug = slugify(self.name)
+            unique_slug = slug
+            num = 1
+            while TrainingType.objects.filter(slug=unique_slug).exists():
+                unique_slug = f'{slug}-{num}'
+                num += 1
+            self.slug = unique_slug
+        return super().save(*args, **kwargs)
 
 
 class TrainingRegex(models.Model):
