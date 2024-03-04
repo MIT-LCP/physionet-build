@@ -1101,11 +1101,14 @@ class Question(models.Model):
 
 
 class TrainingType(models.Model):
-    """Represents a type of training. For example, CITI training -  which can be on-platform or off-platform.
-    The training type if off-platform, will have a set of questions that the admin uses to make sure 
-    that the training was properly validated. If the training type is on-platform, there will be attached
-    courses. Each Course is a version of the training type, and has modules, which the user can complete
-    to get the accredition (Training) for the particular training type.
+    """Represents a type of training. For example, CITI training -
+    which can be on-platform or off-platform.
+    The training type if off-platform, will have a set of questions that
+    the admin uses to make sure that the training was properly validated.
+    If the training type is on-platform, there will be attached
+    courses. Each Course is a version of the training type, and has modules,
+    which the user can complete to get the accredition (Training) for
+    the particular training type.
 
     Attributes:
         name (str): The name of the training type.
@@ -1126,6 +1129,7 @@ class TrainingType(models.Model):
     description = SafeHTMLField()
     valid_duration = models.DurationField(null=True)
     questions = models.ManyToManyField(Question, related_name='training_types')
+    slug = models.SlugField(max_length=128, unique=True, blank=True)
     required_field = models.PositiveSmallIntegerField(choices=RequiredField.choices(), default=RequiredField.DOCUMENT)
     home_page = models.URLField(blank=True)
 

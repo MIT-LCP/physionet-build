@@ -28,7 +28,7 @@
               data-target="#create-course">Update</button></div>
           <div class="modal fade" id="create-course" tabindex="-1">
             <div class="modal-dialog">
-              <form action="{% url 'course_details' training_type.id %}" method="POST" enctype="multipart/form-data" class="">
+              <form action="{% url 'course_details' training_type.slug %}" method="POST" enctype="multipart/form-data" class="">
                 <div class="modal-content">
                   <div class="modal-body">
                     <p>Learn how to create a course <a href="{% url 'guidelines_course' %}">here</a> or see sample files to <a
@@ -37,7 +37,7 @@
                       {% csrf_token %}
                       <div class="form-group">
                         <label>Training Type: </label>
-                        <option value="{{ training_type.id }}">{{ training_type.name|title }}</option>
+                        <option value="{{ training_type.slug }}">{{ training_type.name|title }}</option>
                       </div>
                       <div class="form-group">
                         <label>File: </label>
@@ -75,11 +75,11 @@
                     <td>{{ training_type.name|title }}</td>
                     <td>{{ course.version }}</td>
                     <td>
-                        <a href="{% url 'download_course_version' training_type.pk course.version %}"><i
+                        <a href="{% url 'download_course_version' training_type.slug course.version %}"><i
                                 class="fa fa-download"></i> Download</a>
                     </td>
                     <td>
-                        <form action="{% url 'expire_course_version' training_type.pk course.version %}" method="POST">
+                        <form action="{% url 'expire_course_version' training_type.slug course.version %}" method="POST">
                             {% csrf_token %}
                             <input type="date" name="expiry_date">
                             <button class="btn btn-sm btn-danger" type="submit"> Expire</button>
@@ -110,7 +110,7 @@
                     <td>{{ training_type.name|title }}</td>
                     <td>{{ course.version }}</td>
                     <td>
-                        <a href="{% url 'download_course_version' training_type.pk course.version %}"><i
+                        <a href="{% url 'download_course_version' training_type.slug course.version %}"><i
                                 class="fa fa-download"></i> Download</a>
                     </td>
                 </tr>

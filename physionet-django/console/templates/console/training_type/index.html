@@ -38,7 +38,7 @@
           {% for training in training_types %}
 
           <tr>
-            <td><a href="{% url 'course_details' training.pk %}">{{ training.name|title }}</a></td>
+            <td><a href="{% url 'course_details' training.slug %}">{{ training.name|title }}</a></td>
             <td>{{ training.valid_duration.days }} days</td>
             <td>{{ training.courses.last.version }}</td>
           </tr>

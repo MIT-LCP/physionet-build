@@ -70,14 +70,14 @@ def courses(request):
 
 @permission_required('training.change_course', raise_exception=True)
 @console_permission_required('training.change_course')
-def course_details(request, pk):
+def course_details(request, training_slug):
     """
     View function for managing courses.
     Allows managing the version of the courses for a given training type.
     Allows expiring the specific version of the course.
     """
     if request.POST:
-        training_type = get_object_or_404(TrainingType, pk=pk)
+        training_type = get_object_or_404(TrainingType, slug=training_slug)
         json_file = request.FILES.get("json_file", "")
 
         if not json_file.name.endswith('.json'):
@@ -109,9 +109,9 @@ def course_details(request, pk):
                     serializer.save()
                     messages.success(request, 'Course updated successfully.')
 
-        return redirect("course_details", pk=pk)
+        return redirect("course_details", slug=training_slug)
 
-    training_type = get_object_or_404(TrainingType, pk=pk)
+    training_type = get_object_or_404(TrainingType, slug=training_slug)
     active_course_versions = Course.objects.filter(training_type=training_type, is_active=True).order_by('-version')
     inactive_course_versions = Course.objects.filter(training_type=training_type, is_active=False).order_by('-version')
     return render(
@@ -127,40 +127,40 @@ def course_details(request, pk):
 
 @permission_required('training.change_course', raise_exception=True)
 @console_permission_required('training.change_course')
-def expire_course(request, pk, version):
+def expire_course(request, training_slug, version):
     """
     This view takes a primary key and a version number as input parameters,
     and expires the course with the specified primary key and version number.
     """
-    course = Course.objects.filter(training_type__pk=pk, version=version).first()
+    course = Course.objects.filter(training_type__slug=training_slug, version=version).first()
     expiry_date = request.POST.get('expiry_date')
     if not course:
         messages.error(request, 'Course not found')
         return redirect('courses')
     if not expiry_date:
         messages.error(request, 'Expiry Date is required')
-        return redirect('course_details', pk=pk)
+        return redirect('course_details', slug=training_slug)
     # Checking if the expiry date is greater than the current date
     expiry_date_tz = timezone.make_aware(timezone.datetime.strptime(expiry_date, '%Y-%m-%d'))
     if expiry_date_tz < timezone.now():
         messages.error(request, 'Expiry Date should be greater than the current date')
-        return redirect('course_details', pk=pk)
+        return redirect('course_details', slug=training_slug)
     # Calculating the number of days between the current date and the expiry date
     number_of_days = (expiry_date_tz - timezone.now()).days
     course.expire_course_version(course.training_type, int(number_of_days))
     messages.success(request, 'Course expired successfully.')
-    return redirect('course_details', pk=pk)
+    return redirect('course_details', slug=training_slug)
 
 
 @permission_required('training.change_course', raise_exception=True)
 @console_permission_required('training.change_course')
-def download_course(request, pk, version):
+def download_course(request, training_slug, version):
     """
     This view takes a primary key and a version number as input parameters,
     and returns a JSON response containing information about the
     training course with the specified primary key and version number.
     """
-    training_type = get_object_or_404(TrainingType, pk=pk)
+    training_type = get_object_or_404(TrainingType, slug=training_slug)
     course = training_type.courses.filter(version=version).first()
     if not course:
         messages.error(request, 'Course not found')
