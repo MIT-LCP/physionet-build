@@ -8,8 +8,13 @@ def generate_slugs(apps, schema_editor):
     TrainingType = apps.get_model("user", "TrainingType")
     for training_type in TrainingType.objects.all():
         if not training_type.slug:
-            slug_base = '{}-{}'.format(training_type.name, training_type.id)
-            training_type.slug = slugify(slug_base)
+            slug = slugify(training_type.name)
+            unique_slug = slug
+            number = 1
+            while TrainingType.objects.filter(slug=unique_slug).exists():
+                unique_slug = f"{slug}-{number}"
+                number += 1
+            training_type.slug = unique_slug
             training_type.save()
 
 
