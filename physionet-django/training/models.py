@@ -3,7 +3,6 @@ from django.db import models
 from django.utils import timezone
 
 from project.modelcomponents.fields import SafeHTMLField
-from user.models import Training
 from project.validators import validate_version
 
 
@@ -22,6 +21,7 @@ class Course(models.Model):
     training_type = models.ForeignKey(
         "user.TrainingType", on_delete=models.CASCADE, related_name="courses"
     )
+    trainings = models.ManyToManyField("user.Training")
     version = models.CharField(
         max_length=15, default="", blank=True, validators=[validate_version]
     )
@@ -38,33 +38,14 @@ class Course(models.Model):
             ("can_view_course_guidelines", "Can view course guidelines"),
         ]
 
-    def update_course_for_version_change(self, instance, number_of_days):
-        """
-        If it is a major version change, it sets all former user trainings
-        to a reduced date, and informs them all.
-        """
-
-        trainings = Training.objects.filter(
-            training_type=instance,
-            process_datetime__gte=timezone.now() - instance.valid_duration,
-        )
-        _ = trainings.update(
-            process_datetime=(
-                timezone.now()
-                - (
-                    instance.valid_duration
-                    - timezone.timedelta(days=number_of_days)
-                )
-            )
-        )
-
     def expire_course_version(self, instance, number_of_days):
         """
         This method expires the course by setting the is_active field to False and expires all
         the trainings associated with it.
         """
         self.is_active = False
-        self.update_course_for_version_change(instance, number_of_days)
+        # reset the valid_duration to the number of days
+        self.valid_duration = timezone.timedelta(days=number_of_days)
         self.save()
 
     def __str__(self):

@@ -13,6 +13,10 @@ def generate_slugs(apps, schema_editor):
             training_type.save()
 
 
+def migrate_backward(apps, schema_editor):
+    pass
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -20,5 +24,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(generate_slugs),
+        migrations.RunPython(generate_slugs, migrate_backward),
     ]
