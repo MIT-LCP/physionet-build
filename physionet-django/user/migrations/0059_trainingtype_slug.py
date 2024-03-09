@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="trainingtype",
             name="slug",
-            field=models.SlugField(blank=True, max_length=128, unique=True),
+            field=models.SlugField(max_length=128, null=True, unique=True),
         ),
     ]

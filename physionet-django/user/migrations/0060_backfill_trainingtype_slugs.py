@@ -10,10 +10,10 @@ def generate_slugs(apps, schema_editor):
         if not training_type.slug:
             slug = slugify(training_type.name)
             unique_slug = slug
-            number = 1
+            num = 1
             while TrainingType.objects.filter(slug=unique_slug).exists():
-                unique_slug = f"{slug}-{number}"
-                number += 1
+                unique_slug = '{}-{}'.format(slug, num)
+                num += 1
             training_type.slug = unique_slug
             training_type.save()
 

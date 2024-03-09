@@ -1131,7 +1131,7 @@ class TrainingType(models.Model):
     description = SafeHTMLField()
     valid_duration = models.DurationField(null=True)
     questions = models.ManyToManyField(Question, related_name='training_types')
-    slug = models.SlugField(max_length=128, unique=True, blank=True)
+    slug = models.SlugField(max_length=128, null=True, unique=True)
     required_field = models.PositiveSmallIntegerField(choices=RequiredField.choices(), default=RequiredField.DOCUMENT)
     home_page = models.URLField(blank=True)
 
