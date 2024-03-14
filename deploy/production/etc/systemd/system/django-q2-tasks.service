@@ -4,7 +4,7 @@ After=emperor.uwsgi.service
 
 [Service]
 Environment=DJANGO_SETTINGS_MODULE=physionet.settings.production
-ExecStart=/physionet/python-env/physionet/bin/python /physionet/physionet-build/physionet-django/manage.py qcluster --log-std
+ExecStart=/physionet/python-env/physionet/bin/python /physionet/physionet-build/physionet-django/manage.py qcluster
 StandardError=syslog
 SyslogIdentifier=django-q2-tasks
 Restart=always
