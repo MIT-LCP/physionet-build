@@ -234,8 +234,13 @@ systemctl daemon-reload
 systemctl enable emperor.uwsgi
 systemctl restart emperor.uwsgi
 systemctl restart nginx
+
+# django-background-tasks will be replaced with Django Q2 soon
 systemctl enable django-background-tasks
 systemctl restart django-background-tasks
+
+systemctl enable django-q2-tasks
+systemctl restart django-q2-tasks
 
 su pn -c '
    cd /physionet/physionet-build.git
