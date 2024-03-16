@@ -277,8 +277,33 @@ def validate_aws_id(value):
     """"
     Validate an AWS ID.
     """
-    aws_id_pattern = r"\b\d{12}\b"
-    if value is not None and not re.search(aws_id_pattern, value):
+    if not re.fullmatch(r"\d{12}", value):
         raise ValidationError(
             "Invalid AWS ID. Please provide a valid AWS ID, which should be a 12-digit number."
         )
+
+
+def validate_aws_userid(value):
+    """
+    Validate an AWS user ID.
+    """
+    # Officially, "minimum length of 16, maximum length of 128", but
+    # that includes all types of unique IDs, not just IAM user IDs.
+    # Some examples in AWS documentation show 16-character user IDs,
+    # while others show 21-character IDs.  The size matters since we
+    # need to store a fixed number of IDs in a fixed-size JSON file.
+    if not re.fullmatch('AIDA[A-Z0-9]{12,17}', value):
+        raise ValidationError(
+            'Invalid AWS user ID.  Your user ID should be 16 to 21 '
+            'characters long, beginning with "AIDA".'
+        )
+
+
+def validate_aws_user_arn(value):
+    """
+    Validate an AWS IAM ARN, a string that identifies a user in AWS.
+    """
+    # https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html
+    if not re.fullmatch(r'arn:aws:iam::\d+:[\w\-]+(?:/[\x21-\x7e]*)?',
+                        value, re.ASCII):
+        raise ValidationError('Invalid ARN.')

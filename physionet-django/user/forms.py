@@ -1,4 +1,5 @@
 import datetime
+import json
 import time
 
 from django import forms
@@ -14,6 +15,12 @@ from django.utils.crypto import get_random_string
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy
 from physionet.utility import validate_pdf_file_type
+from user.awsverification import (
+    AWSVerificationFailed,
+    get_aws_verification_command,
+    check_aws_verification_url,
+    parse_aws_user_arn,
+)
 from user.models import (
     AssociatedEmail,
     CloudInformation,
@@ -28,8 +35,15 @@ from user.models import (
 )
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
-from user.validators import UsernameValidator, validate_name, validate_training_file_size
-from user.validators import validate_institutional_email
+from user.validators import (
+    UsernameValidator,
+    validate_aws_id,
+    validate_aws_user_arn,
+    validate_aws_userid,
+    validate_institutional_email,
+    validate_name,
+    validate_training_file_size,
+)
 from user.widgets import ProfilePhotoInput
 
 from django.db.models import OuterRef, Exists
@@ -671,14 +685,13 @@ class CredentialReferenceForm(forms.ModelForm):
 
 class CloudForm(forms.ModelForm):
     """
-    Form to store the AWS ID, and point to the google GCP email.
+    Form to store the email address used for Google Cloud authentication.
     """
     class Meta:
         model = CloudInformation
-        fields = ('gcp_email','aws_id',)
+        fields = ('gcp_email',)
         labels = {
             'gcp_email': 'Google (Email)',
-            'aws_id': 'Amazon (ID)',
         }
     def __init__(self, *args, **kwargs):
         # Email choices are those belonging to a user
@@ -686,6 +699,113 @@ class CloudForm(forms.ModelForm):
         associated_emails = self.instance.user.associated_emails.filter(is_verified=True)
         self.fields['gcp_email'].queryset = associated_emails
         self.fields['gcp_email'].required = False
+
+
+class AWSIdentityForm(forms.Form):
+    """
+    Form to request the identity information for Amazon Web Services.
+
+    Verifying a user's AWS identity is a two-step process.  In the
+    first step, the user is asked to run the 'get-caller-identity'
+    command.  We do this because it's the easiest way for them to find
+    out exactly what identity they're currently using.
+
+    The information submitted here will be passed along to the
+    AWSVerificationForm.
+    """
+    aws_identity = forms.CharField(
+        label="Caller identity", max_length=2000,
+        widget=forms.Textarea(attrs={
+            'rows': 5,
+            'placeholder': json.dumps({
+                "UserId": "...",
+                "Account": "...",
+                "Arn": "...",
+            }, indent=4)
+        })
+    )
+
+    def clean(self):
+        try:
+            identity = super().clean()['aws_identity']
+            data = json.loads(identity)
+            aws_account = data['Account']
+            aws_userid = data['UserId']
+            aws_user_arn = data['Arn']
+        except (TypeError, KeyError, ValueError):
+            raise forms.ValidationError(
+                mark_safe("Copy and paste the output of the "
+                          "<code>aws sts get-caller-identity</code> command."))
+        parse_aws_user_arn(aws_user_arn, aws_account)
+        validate_aws_id(aws_account)
+        validate_aws_userid(aws_userid)
+        validate_aws_user_arn(aws_user_arn)
+        return {
+            'aws_account': aws_account,
+            'aws_userid': aws_userid,
+            'aws_user_arn': aws_user_arn,
+        }
+
+
+class AWSVerificationForm(forms.Form):
+    """
+    Form to verify the identity information for Amazon Web Services.
+
+    Verifying a user's AWS identity is a two-step process.  In the
+    second step, the user is asked to generate a signed URL that
+    proves they have the credentials for the identity they submitted
+    in the first step (the AWSIdentityForm).
+
+    Once this information is validated, it is stored in the
+    CloudInformation model.
+    """
+    signed_url = forms.CharField(
+        label="Signed URL", max_length=2000,
+        widget=forms.Textarea(attrs={
+            'rows': 8,
+            'placeholder': (f'https://{settings.AWS_VERIFICATION_BUCKET_NAME}'
+                            '.s3.amazonaws.com/...')
+        })
+    )
+
+    def __init__(self, user, site_domain, aws_account, aws_userid,
+                 aws_user_arn, **kwargs):
+        super().__init__(**kwargs)
+        self.user = user
+        self.site_domain = site_domain
+        self.aws_account = aws_account
+        self.aws_userid = aws_userid
+        self.aws_user_arn = aws_user_arn
+
+    def aws_verification_command(self):
+        return get_aws_verification_command(site_domain=self.site_domain,
+                                            user_email=self.user.email,
+                                            aws_account=self.aws_account,
+                                            aws_userid=self.aws_userid,
+                                            aws_user_arn=self.aws_user_arn)
+
+    def clean(self):
+        data = super().clean()
+        signed_url = data['signed_url'].strip()
+        validate_aws_id(self.aws_account)
+        validate_aws_userid(self.aws_userid)
+        validate_aws_user_arn(self.aws_user_arn)
+        info = check_aws_verification_url(site_domain=self.site_domain,
+                                          user_email=self.user.email,
+                                          aws_account=self.aws_account,
+                                          aws_userid=self.aws_userid,
+                                          aws_user_arn=self.aws_user_arn,
+                                          signed_url=signed_url)
+        data.update(info)
+        return data
+
+    def save(self):
+        cloud_info = CloudInformation.objects.get_or_create(user=self.user)[0]
+        cloud_info.aws_id = self.cleaned_data['account']
+        cloud_info.aws_userid = self.cleaned_data['userid']
+        cloud_info.aws_user_arn = self.cleaned_data['arn']
+        cloud_info.aws_verification_datetime = timezone.now()
+        cloud_info.save()
 
 
 # class ActivationForm(forms.ModelForm):

@@ -1218,6 +1218,10 @@ class CloudInformation(models.Model):
                                 on_delete=models.CASCADE)
     gcp_email = models.OneToOneField('user.AssociatedEmail', related_name='gcp_email',
                                      on_delete=models.SET_NULL, null=True)
+
+    # AWS account ID.  For historical reasons this field may be
+    # non-null even if the account is not verified.  This field is
+    # mainly informational and should not generally be used.
     aws_id = models.CharField(
         max_length=60,
         null=True,
@@ -1225,6 +1229,25 @@ class CloudInformation(models.Model):
         default=None,
         validators=[validators.validate_aws_id],
     )
+    # AWS unique user ID.  This is a (typically) 21-character string
+    # starting with AIDA and uniquely identifies the user.  Not to be
+    # confused with access key ID (one user may have multiple access
+    # keys.)  This field is verified and should be used for
+    # authentication.
+    aws_userid = models.CharField(
+        max_length=30, null=True, blank=True, unique=True,
+        validators=[validators.validate_aws_userid],
+    )
+    # Structured, readable name (ARN) for the user in AWS.  This field
+    # is not necessarily stable (users can be renamed, for example.)
+    # Note that only the account and username are verified.
+    aws_user_arn = models.CharField(
+        max_length=2048, null=True, blank=True, unique=True,
+        validators=[validators.validate_aws_user_arn],
+    )
+    # Date and time that the 'aws_id', 'aws_userid', and
+    # 'aws_user_arn' values were verified.
+    aws_verification_datetime = models.DateTimeField(null=True)
 
     class Meta:
         default_permissions = ()
