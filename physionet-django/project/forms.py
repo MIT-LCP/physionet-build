@@ -876,12 +876,11 @@ class AccessMetadataForm(forms.ModelForm):
         if not settings.ENABLE_FILE_DOWNLOADS_OPTION:
             del self.fields['allow_file_downloads']
 
-        allowed_policies = []
-        for policy in AccessPolicy:
-            if policy.name in settings.ALLOWED_ACCESS_POLICIES:
-                allowed_policies.append((policy.value, policy.name.replace("_", " ").title()))
-
-        self.fields['access_policy'].choices = tuple(allowed_policies)
+        if settings.ALLOWED_ACCESS_POLICIES:
+            self.fields['access_policy'].choices = [
+                (value, label) for (value, label) in AccessPolicy.choices()
+                if AccessPolicy(value).name in settings.ALLOWED_ACCESS_POLICIES
+            ]
 
         if self.access_policy is None:
             self.access_policy = self.instance.access_policy
