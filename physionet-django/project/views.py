@@ -54,7 +54,7 @@ from project.authorization.access import can_view_project_files, can_access_proj
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
-from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
+from user.models import AssociatedEmail, CloudInformation, CredentialApplication, LegacyCredential, Training
 from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
@@ -62,6 +62,7 @@ from project.cloud.s3 import (
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
+
 
 def project_auth(auth_mode=0, post_auth_mode=0):
     """
@@ -2177,6 +2178,7 @@ def data_access_request_view(request, project_slug, version, pk):
     """
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
     access_request = get_object_or_404(DataAccessRequest, pk=pk, project=project)
+    requester = access_request.requester
 
     if project.access_policy != AccessPolicy.CONTRIBUTOR_REVIEW:
         return redirect('published_project', project_slug=project_slug, version=version)
@@ -2184,6 +2186,7 @@ def data_access_request_view(request, project_slug, version, pk):
     if not project.can_approve_requests(request.user):
         raise Http404("You don't have access to the project requests overview")
 
+    # Process form submission
     if request.method == 'POST':
         response_form = forms.DataAccessResponseForm(
             responder=request.user, prefix="proj", data=request.POST, instance=access_request
@@ -2198,21 +2201,31 @@ def data_access_request_view(request, project_slug, version, pk):
     else:
         response_form = forms.DataAccessResponseForm(responder=request.user, prefix="proj")
 
-    credentialing_data = CredentialApplication.objects.filter(
-        user=request.user
-    ).order_by("-application_datetime").first()
+    # Get requester emails
+    emails = {}
+    emails['primary'] = AssociatedEmail.objects.filter(user=requester,
+                                                       is_primary_email=True,
+                                                       is_verified=True)
+    emails['other'] = AssociatedEmail.objects.filter(user=requester,
+                                                     is_primary_email=False,
+                                                     is_verified=True)
 
-    legacy_credentialing_data = None
-    if credentialing_data is None:
-        try:
-            legacy_credentialing_data = LegacyCredential.objects.filter(
-                migrated_user_id=access_request.requester
-            ).order_by("-mimic_approval_date").first()
-        except LegacyCredential.DoesNotExist:
-            pass
+    # Get requester training
+    _training = Training.objects.select_related('training_type').filter(user=requester).order_by('-status')
+
+    training = {}
+    training['Active'] = _training.get_valid()
+    training['Expired'] = _training.get_expired()
+
+    # Get credentialing data
+    # Only list approved training
+    credentialing_data = CredentialApplication.objects.filter(
+        user=requester,
+        status=2,
+    ).order_by("-application_datetime")
 
     other_access_requests = DataAccessRequest.objects.exclude(pk=pk).filter(
-        requester=access_request.requester, project=project
+        requester=requester, project=project
     ).order_by('-request_datetime')
 
     return render(request, 'project/data_access_request_view.html', {
@@ -2220,7 +2233,9 @@ def data_access_request_view(request, project_slug, version, pk):
         'other_access_requests': other_access_requests,
         'response_form': response_form,
         'credentialing_data': credentialing_data,
-        'legacy_credentialing_data': legacy_credentialing_data,
+        'requester': requester,
+        'emails': emails,
+        'training': training
     })
 
 @login_required
