@@ -102,7 +102,7 @@ class BaseAuthor(models.Model):
 
 class Author(BaseAuthor):
     """
-    The author model for ArchivedProject/ActiveProject
+    The author model for ActiveProject
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()

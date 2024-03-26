@@ -18,16 +18,18 @@ from django.db.models.functions import Lower
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.text import slugify
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext as _
 
-from project.validators import validate_version
 from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.fields import SafeHTMLField
+from project.validators import validate_version
 from user import validators
 from user.userfiles import UserFiles
 from user.enums import TrainingStatus, RequiredField
 from user.managers import TrainingQuerySet
+from training.models import Course
 
 logger = logging.getLogger(__name__)
 
@@ -1101,10 +1103,35 @@ class Question(models.Model):
 
 
 class TrainingType(models.Model):
+    """Represents a type of training. For example, CITI training -
+    which can be on-platform or off-platform.
+    The training type if off-platform, will have a set of questions that
+    the admin uses to make sure that the training was properly validated.
+    If the training type is on-platform, there will be attached
+    courses. Each Course is a version of the training type, and has modules,
+    which the user can complete to get the accredition (Training) for
+    the particular training type.
+
+    Attributes:
+        name (str): The name of the training type.
+        description (SafeHTMLField): The description of the training type.
+        valid_duration (DurationField, optional): The valid duration of the training type.
+        questions (ManyToManyField): The questions associated with the training type.
+        required_field (PositiveSmallIntegerField): The required field for the training type.
+        home_page (URLField, optional): The home page URL for the training type.
+
+    Meta:
+        default_permissions (tuple): The default permissions for the training type.
+        permissions (list): The additional permissions for the training type.
+
+    Methods:
+        __str__(): Returns a string representation of the training type.
+    """
     name = models.CharField(max_length=128)
     description = SafeHTMLField()
     valid_duration = models.DurationField(null=True)
     questions = models.ManyToManyField(Question, related_name='training_types')
+    slug = models.SlugField(max_length=128, null=True, unique=True)
     required_field = models.PositiveSmallIntegerField(choices=RequiredField.choices(), default=RequiredField.DOCUMENT)
     home_page = models.URLField(blank=True)
 
@@ -1116,6 +1143,17 @@ class TrainingType(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            slug = slugify(self.name)
+            unique_slug = slug
+            num = 1
+            while TrainingType.objects.filter(slug=unique_slug).exists():
+                unique_slug = f'{slug}-{num}'
+                num += 1
+            self.slug = unique_slug
+        return super().save(*args, **kwargs)
 
 
 class TrainingRegex(models.Model):
@@ -1179,20 +1217,28 @@ class Training(models.Model):
 
     def is_valid(self):
         if self.status == TrainingStatus.ACCEPTED:
-            if not self.training_type.valid_duration:
-                return True
+            if self.training_type.required_field == RequiredField.PLATFORM:
+                associated_course = Course.objects.filter(training=self).first()
+                return self.process_datetime + associated_course.valid_duration >= timezone.now()
             else:
-                return self.process_datetime + self.training_type.valid_duration >= timezone.now()
+                if not self.training_type.valid_duration:
+                    return False
+                else:
+                    return self.process_datetime + self.training_type.valid_duration >= timezone.now()
 
     def is_expired(self):
         """checks if it has exceeded the valid period (process_time + duration)
         if no valid duration, its not expired.
         """
         if self.status == TrainingStatus.ACCEPTED:
-            if not self.training_type.valid_duration:
-                return False
+            if self.training_type.required_field == RequiredField.PLATFORM:
+                associated_course = Course.objects.filter(training=self).first()
+                return self.process_datetime + associated_course.valid_duration < timezone.now()
             else:
-                return self.process_datetime + self.training_type.valid_duration < timezone.now()
+                if not self.training_type.valid_duration:
+                    return False
+                else:
+                    return self.process_datetime + self.training_type.valid_duration < timezone.now()
 
     def is_rejected(self):
         return self.status == TrainingStatus.REJECTED

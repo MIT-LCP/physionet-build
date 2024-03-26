@@ -1,0 +1,8 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+You are receiving this email because you requested a password reset for your account at {{ SITE_NAME }}.
+
+Only your primary email address can be used for resetting your password. Your primary email address is {{ primary_email }}.
+
+Regards
+The {{ SITE_NAME }} Team
+{% endfilter %}{% endautoescape %}

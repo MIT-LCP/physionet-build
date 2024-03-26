@@ -41,3 +41,33 @@ class GCP(models.Model):
 
     class Meta:
         default_permissions = ()
+
+    def __str__(self):
+        return self.bucket_name
+
+
+class AWS(models.Model):
+    """
+    Store all of the AWS information with a relation to a project.
+    """
+    project = models.OneToOneField(
+        "project.PublishedProject", related_name="aws", on_delete=models.CASCADE
+    )
+    bucket_name = models.CharField(max_length=150, null=True)
+    is_private = models.BooleanField(default=False)
+    sent_zip = models.BooleanField(default=False)
+    sent_files = models.BooleanField(default=False)
+    creation_datetime = models.DateTimeField(auto_now_add=True)
+    finished_datetime = models.DateTimeField(null=True)
+
+    class Meta:
+        default_permissions = ()
+
+    def s3_uri(self):
+        if self.is_private:
+            return f's3://{self.bucket_name}/{self.project.version}/'
+        else:
+            return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
+
+    def __str__(self):
+        return self.s3_uri()

@@ -1,8 +1,31 @@
 from django import template
 
+from console.navbar import CONSOLE_NAV_MENU
 import notification.utility as notification
 
 register = template.Library()
+
+
+@register.simple_tag
+def console_nav_menu_items(request):
+    """
+    Get a list of menu items to be shown in the navigation bar.
+
+    Each menu item is a dictionary, representing either a link or a
+    submenu that contains one or more links.  The argument should be
+    the original HTTP request object; request.user determines which
+    menu items are visible, and request.path determines which menu
+    items are marked as "active".
+
+    Typically the return value of this tag will be assigned to a
+    template variable, e.g.:
+
+        {% console_nav_menu_items request as nav_menu_items %}
+        {% for item in nav_menu_items %}
+            ...
+        {% endfor %}
+    """
+    return CONSOLE_NAV_MENU.get_menu_items(request)
 
 
 @register.filter(name='task_count_badge')

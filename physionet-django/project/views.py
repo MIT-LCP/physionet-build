@@ -33,7 +33,6 @@ from project.models import (
     ActiveProject,
     Affiliation,
     AnonymousAccess,
-    ArchivedProject,
     Author,
     AuthorInvitation,
     DataAccess,
@@ -56,7 +55,10 @@ from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
 from user.models import CloudInformation, CredentialApplication, LegacyCredential, User, Training
-
+from project.cloud.s3 import (
+    has_s3_credentials,
+    files_sent_to_S3,
+)
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
@@ -115,6 +117,13 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             elif auth_mode == 3:
                 allow = has_passphrase or is_author or user.has_perm('project.change_activeproject')
             else:
+                allow = False
+
+            # Authors cannot view archived projects
+            if (
+                project.submission_status == SubmissionStatus.ARCHIVED
+                and not user.has_perm("project.change_activeproject")
+            ):
                 allow = False
 
             # Post authentication
@@ -218,19 +227,15 @@ def project_home(request):
     InvitationResponseFormSet = modelformset_factory(AuthorInvitation,
         form=forms.InvitationResponseForm, extra=0)
 
-    active_authors = Author.objects.filter(user=user,
-        content_type=ContentType.objects.get_for_model(ActiveProject))
-    archived_authors = Author.objects.filter(user=user,
-        content_type=ContentType.objects.get_for_model(ArchivedProject))
-    published_authors = PublishedAuthor.objects.filter(user=user,
-        project__is_latest_version=True)
     request_reviewers = DataAccessRequestReviewer.objects.filter(reviewer=user,
                                                                  is_revoked=False,
                                                                  project__is_latest_version=True)
 
+    published_projects = PublishedProject.objects.filter(authors__user=user,
+                                                         is_latest_version=True).order_by("-publish_datetime")
+
     # Get the various projects.
-    projects = [a.project for a in active_authors]
-    published_projects = [a.project for a in published_authors] + [ a.project for a in request_reviewers]
+    published_projects = [a for a in published_projects] + [a.project for a in request_reviewers]
     for p in published_projects:
         p.new_button = p.can_publish_new(user)
         p.requests_button = p.can_approve_requests(user)
@@ -248,7 +253,11 @@ def project_home(request):
     pending_author_approvals = []
     missing_affiliations = []
     pending_revisions = []
-    for p in projects:
+
+    active_projects = ActiveProject.objects.filter(authors__user=user).exclude(
+        submission_status=SubmissionStatus.ARCHIVED).order_by("-creation_datetime")
+
+    for p in active_projects:
         if (p.submission_status == SubmissionStatus.NEEDS_APPROVAL
                 and not p.all_authors_approved()):
             if p.authors.get(user=user).is_submitting:
@@ -260,7 +269,9 @@ def project_home(request):
             pending_revisions.append(p)
         if p.submission_status == SubmissionStatus.UNSUBMITTED and p.authors.get(user=user).affiliations.count() == 0:
             missing_affiliations.append([p, p.authors.get(user=user).creation_date])
-    archived_projects = [a.project for a in archived_authors]
+
+    archived_projects = ActiveProject.objects.filter(
+        authors__user=user, submission_status=SubmissionStatus.ARCHIVED).order_by("-creation_datetime")
 
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
@@ -276,7 +287,7 @@ def project_home(request):
         request,
         'project/project_home.html',
         {
-            'projects': projects,
+            'projects': active_projects,
             'published_projects': published_projects,
             'archived_projects': archived_projects,
             'missing_affiliations': missing_affiliations,
@@ -295,11 +306,22 @@ def create_project(request):
 
     user = request.user
 
-    n_submitting = Author.objects.filter(user=user, is_submitting=True,
-        content_type=ContentType.objects.get_for_model(ActiveProject)).count()
-    if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
-        return render(request, 'project/project_limit_reached.html',
-            {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
+    # Filter ActiveProject instances (excluding ARCHIVED)
+    # Get Author objects related to these ActiveProjects
+    active_projects = ActiveProject.objects.exclude(submission_status=SubmissionStatus.ARCHIVED)
+    n_submitting = Author.objects.filter(
+        user=user,
+        is_submitting=True,
+        content_type=ContentType.objects.get_for_model(ActiveProject),
+        object_id__in=active_projects.values_list('id', flat=True)
+    ).count()
+
+    if n_submitting >= settings.MAX_SUBMITTABLE_PROJECTS:
+        return render(
+            request,
+            "project/project_limit_reached.html",
+            {"max_projects": settings.MAX_SUBMITTABLE_PROJECTS},
+        )
 
     if request.method == 'POST':
         form = forms.CreateProjectForm(user=user, data=request.POST)
@@ -324,11 +346,22 @@ def new_project_version(request, project_slug):
 
     user = request.user
 
-    n_submitting = Author.objects.filter(user=user, is_submitting=True,
-        content_type=ContentType.objects.get_for_model(ActiveProject)).count()
-    if n_submitting >= ActiveProject.MAX_SUBMITTING_PROJECTS:
-        return render(request, 'project/project_limit_reached.html',
-            {'max_projects':ActiveProject.MAX_SUBMITTING_PROJECTS})
+    # Filter ActiveProject instances (excluding ARCHIVED)
+    # Get Author objects related to these ActiveProjects
+    active_projects = ActiveProject.objects.exclude(submission_status=SubmissionStatus.ARCHIVED)
+    n_submitting = Author.objects.filter(
+        user=user,
+        is_submitting=True,
+        content_type=ContentType.objects.get_for_model(ActiveProject),
+        object_id__in=active_projects.values_list('id', flat=True)
+    ).count()
+
+    if n_submitting >= settings.MAX_SUBMITTABLE_PROJECTS:
+        return render(
+            request,
+            "project/project_limit_reached.html",
+            {"max_projects": settings.MAX_SUBMITTABLE_PROJECTS},
+        )
 
     previous_projects = PublishedProject.objects.filter(
         slug=project_slug).order_by('-version_order')
@@ -367,7 +400,7 @@ def project_overview(request, project_slug, **kwargs):
     under_submission = project.under_submission()
 
     if request.method == 'POST' and 'delete_project' in request.POST and is_submitting and not under_submission:
-        project.fake_delete()
+        project.archive(archive_reason=1, clear_files=True)
         return redirect('delete_project_success')
 
     return render(request, 'project/project_overview.html',
@@ -536,8 +569,10 @@ def project_authors(request, project_slug, **kwargs):
             inviter=user)
         corresponding_author_form = forms.CorrespondingAuthorForm(
             project=project)
+        transfer_author_form = forms.TransferAuthorForm(
+            project=project)
     else:
-        invite_author_form, corresponding_author_form = None, None
+        invite_author_form, corresponding_author_form, transfer_author_form = None, None, None
 
     if author.is_corresponding:
         corresponding_email_form = AssociatedEmailChoiceForm(
@@ -591,18 +626,37 @@ def project_authors(request, project_slug, **kwargs):
                 messages.success(request, 'Your corresponding email has been updated.')
             else:
                 messages.error(request, 'Submission unsuccessful. See form for errors.')
+        elif 'transfer_author' in request.POST and is_submitting:
+            transfer_author_form = forms.TransferAuthorForm(
+                project=project, data=request.POST)
+            if transfer_author_form.is_valid():
+                transfer_author_form.transfer()
+                notification.notify_submitting_author(request, project)
+                messages.success(request, 'The submitting author has been updated.')
+                return redirect('project_authors', project_slug=project.slug)
+            else:
+                messages.error(request, 'Submission unsuccessful. See form for errors.')
 
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
-    return render(request, 'project/project_authors.html', {'project':project,
-        'authors':authors, 'invitations':invitations,
-        'affiliation_formset':affiliation_formset,
-        'invite_author_form':invite_author_form,
-        'corresponding_author_form':corresponding_author_form,
-        'corresponding_email_form':corresponding_email_form,
-        'add_item_url':edit_affiliations_url, 'remove_item_url':edit_affiliations_url,
-        'is_submitting':is_submitting})
+    return render(
+        request,
+        "project/project_authors.html",
+        {
+            "project": project,
+            "authors": authors,
+            "invitations": invitations,
+            "affiliation_formset": affiliation_formset,
+            "invite_author_form": invite_author_form,
+            "corresponding_author_form": corresponding_author_form,
+            "corresponding_email_form": corresponding_email_form,
+            "transfer_author_form": transfer_author_form,
+            "add_item_url": edit_affiliations_url,
+            "remove_item_url": edit_affiliations_url,
+            "is_submitting": is_submitting,
+        },
+    )
 
 
 def edit_content_item(request, project_slug):
@@ -1364,11 +1418,20 @@ def project_submission(request, project_slug, **kwargs):
     else:
         edit_logs, copyedit_logs = None, None
 
-    return render(request, 'project/project_submission.html', {
-        'project':project, 'authors':authors,
-        'is_submitting':is_submitting, 'author_comments_form':author_comments_form,
-        'edit_logs':edit_logs, 'copyedit_logs':copyedit_logs,
-        'awaiting_user_approval':awaiting_user_approval})
+    return render(
+        request,
+        "project/project_submission.html",
+        {
+            "project": project,
+            "authors": authors,
+            "is_submitting": is_submitting,
+            "author_comments_form": author_comments_form,
+            "edit_logs": edit_logs,
+            "copyedit_logs": copyedit_logs,
+            "awaiting_user_approval": awaiting_user_approval,
+            "contact_email": project.editor_contact_email,
+        },
+    )
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
@@ -1485,10 +1548,14 @@ def archived_submission_history(request, project_slug):
     user = request.user
     try:
         # Checks if the user is an author
-        project = ArchivedProject.objects.get(slug=project_slug, authors__user=user)
-    except ArchivedProject.DoesNotExist:
-        if user.has_perm('project.change_archivedproject'):
-            project = get_object_or_404(ArchivedProject, slug=project_slug)
+        project = ActiveProject.objects.get(slug=project_slug,
+                                            submission_status=SubmissionStatus.ARCHIVED,
+                                            authors__user=user)
+    except ActiveProject.DoesNotExist:
+        if user.has_perm('project.change_activeproject'):
+            project = get_object_or_404(ActiveProject,
+                                        slug=project_slug,
+                                        submission_status=SubmissionStatus.ARCHIVED)
         else:
             raise Http404()
 
@@ -1796,7 +1863,7 @@ def published_project(request, project_slug, version, subdir=''):
     topics = project.topics.all()
     languages = project.programming_languages.all()
     contact = project.contact
-    news = project.news.all().order_by('-publish_datetime')
+    news = project.get_all_news().order_by('-publish_datetime')
     parent_projects = project.parent_projects.all()
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
@@ -1863,6 +1930,7 @@ def published_project(request, project_slug, version, subdir=''):
         'platform_citations': platform_citations,
         'is_lightwave_supported': project.files.is_lightwave_supported(),
         'is_wget_supported': project.files.is_wget_supported(),
+        'has_s3_credentials': has_s3_credentials(),
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
     }
@@ -1919,6 +1987,7 @@ def sign_dua(request, project_slug, version):
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
+    from console.views import update_aws_bucket_policy
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
@@ -1943,6 +2012,8 @@ def sign_dua(request, project_slug, version):
 
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
+        if has_s3_credentials() and files_sent_to_S3(project) is not None:
+            update_aws_bucket_policy(project.id)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 

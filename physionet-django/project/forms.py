@@ -73,6 +73,31 @@ class CorrespondingAuthorForm(forms.Form):
             new_c.save()
 
 
+class TransferAuthorForm(forms.Form):
+    """
+    Transfer submitting author.
+    """
+    transfer_author = forms.ModelChoiceField(queryset=None, required=True,
+                                             widget=forms.Select(attrs={'onchange': 'set_transfer_author()',
+                                                                        'id': 'transfer_author_id'}),
+                                             empty_label="Select an author")
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+        # Exclude the current submitting author from the queryset
+        authors = project.authors.exclude(is_submitting=True).order_by('display_order')
+        self.fields['transfer_author'].queryset = authors
+
+    def transfer(self):
+        new_author = self.cleaned_data['transfer_author']
+
+        # Assign the new submitting author
+        self.project.authors.update(is_submitting=False)
+        new_author.is_submitting = True
+        new_author.save()
+
+
 class ActiveProjectFilesForm(forms.Form):
     """
     Inherited form for manipulating project files/directories. Upload
@@ -850,6 +875,12 @@ class AccessMetadataForm(forms.ModelForm):
 
         if not settings.ENABLE_FILE_DOWNLOADS_OPTION:
             del self.fields['allow_file_downloads']
+
+        if settings.ALLOWED_ACCESS_POLICIES:
+            self.fields['access_policy'].choices = [
+                (value, label) for (value, label) in AccessPolicy.choices()
+                if AccessPolicy(value).name in settings.ALLOWED_ACCESS_POLICIES
+            ]
 
         if self.access_policy is None:
             self.access_policy = self.instance.access_policy

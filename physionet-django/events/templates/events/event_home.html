@@ -85,7 +85,10 @@
             {% if event.host == user %}
               <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
               </p>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#participants-modal-{{ event.id }}">View participants</button>
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#pending_applications-modal-{{ event.id }}">Pending Applications</button>
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#rejected_applications-modal-{{ event.id }}">Rejected Applications</button>
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#withdrawn_applications-modal-{{ event.id }}">Withdrawn Applications</button>              
               <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
             {% endif %}
 
@@ -99,23 +102,24 @@
     </ul>
   </div>
   <br>
-  {% if events_active %}
-    {% for event in events_active %}
-      <div class="modal fade" id="add-participant-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="add-participant-modal" aria-hidden="true">
+  {% for event in events_active %}
+    {% for info in event_details|get_applicant_info:event.id %}
+      <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ info.id }}-modal" aria-hidden="true">
         <div class="modal-dialog modal-lg"  role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Participants</h5>
+              <h5 class="modal-title">{{ info.title }}</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-              {% include 'events/event_entries.html' %}
+              {% include 'events/event_applications.html' %}
             </div>
           </div>
         </div>
     {% endfor %}
-  {% endif %}
+  {% endfor %}
+   
 
 <!-- Past events -->
 
@@ -153,7 +157,7 @@
             {% if event.host == user %}
               <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
               </p>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#add-participant-modal-{{ event.id }}">View participants</button>
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#participants-modal-{{ event.id }}">View participants</button>
               <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
             {% endif %}
 
@@ -169,19 +173,21 @@
   <br>
   {% if events_past %}
     {% for event in events_past %}
-      <div class="modal fade" id="add-participant-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="add-participant-modal" aria-hidden="true">
+    {% for info in event_details|get_applicant_info:event.id %}
+      <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ info.id }}-modal" aria-hidden="true">
         <div class="modal-dialog modal-lg"  role="document">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Participants</h5>
+              <h5 class="modal-title">{{ info.title }}</h5>
               <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-              {% include 'events/event_entries.html' %}
+              {% include 'events/event_applications.html' %}
             </div>
           </div>
         </div>
+    {% endfor %}
     {% endfor %}
   {% endif %}
   </div>

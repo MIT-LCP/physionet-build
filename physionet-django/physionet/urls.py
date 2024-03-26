@@ -24,6 +24,8 @@ urlpatterns = [
     path('console/', include('console.urls')),
     # user app
     path('', include('user.urls')),
+    # training app
+    path('', include('training.urls')),
     # project app
     path('projects/', include('project.urls')),
     # events
@@ -108,7 +110,8 @@ TEST_DEFAULTS = {
     'dua_slug': 'physionet-credentialed-health-data-dua',
     'event_slug': 'iLII4L9jSDFh',
     'license_slug': 'open-data-commons-attribution-license-v10',
-    'static_url': 'publish'
+    'static_url': 'publish',
+    'news_slug': 'cloud-migration',
 }
 TEST_CASES = {
     'lightwave_server_compat': {

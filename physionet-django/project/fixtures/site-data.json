@@ -200,7 +200,7 @@
   "model": "project.programminglanguage",
   "pk": 9,
   "fields": {
-    "name": "Javascript"
+    "name": "JavaScript"
   }
 },
 {
@@ -271,6 +271,20 @@
   "pk": 19,
   "fields": {
     "name": "Swift"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 20,
+  "fields": {
+    "name": "AWK"
+  }
+},
+{
+  "model": "project.programminglanguage",
+  "pk": 21,
+  "fields": {
+    "name": "Fortran"
   }
 },
 {

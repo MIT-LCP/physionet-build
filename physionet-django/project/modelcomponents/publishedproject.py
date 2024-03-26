@@ -8,6 +8,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
+
+from notification.models import News
 from project.managers.publishedproject import PublishedProjectManager
 from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
 from project.modelcomponents.fields import SafeHTMLField
@@ -77,6 +79,7 @@ class PublishedProject(Metadata, SubmissionInfo):
             ('can_view_project_guidelines', 'Can view project guidelines'),
             ('can_view_stats', 'Can view stats')
         ]
+        ordering = ('title', 'version_order')
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
@@ -123,11 +126,21 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         return '-'.join((slugify(self.title), self.version.replace(' ', '-')))
 
-    def zip_name(self, full=False):
+    def zip_name(self, full=False, legacy=True):
         """
         Name of the zip file. Either base name or full path name.
+
+        If legacy is true, use the project title to generate the file
+        name (e.g. "demo-ecg-signal-toolbox-10.5.24.zip").
+
+        If false, use the project slug (e.g. "demoecg-10.5.24.zip").
+
+        Eventually the old style will be replaced with the new style.
         """
-        name = '{}.zip'.format(self.slugged_label())
+        if legacy:
+            name = '{}.zip'.format(self.slugged_label())
+        else:
+            name = '{}-{}.zip'.format(self.slug, self.version)
         if full:
             name = os.path.join(self.project_file_root(), name)
         return name
@@ -366,3 +379,19 @@ class PublishedProject(Metadata, SubmissionInfo):
             return True
         else:
             return False
+
+    def get_all_news(self):
+        """
+        Return all news items associated with this project. If any news item has
+        'link_all_versions' set to True, include those news too.
+        """
+        # Fetch news items directly related to this PublishedProject
+        direct_news = self.news.all()
+
+        # Fetch news items related to other PublishedProjects where the
+        # link_all_versions flag is set to True
+        linked_news = News.objects.filter(
+            project__core_project=self.core_project,
+            link_all_versions=True).exclude(project=self)
+
+        return direct_news | linked_news

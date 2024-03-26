@@ -2,6 +2,7 @@ import re
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
+from packaging.version import Version
 
 MAX_FILENAME_LENGTH = 100
 MAX_PROJECT_SLUG_LENGTH = 30
@@ -93,6 +94,16 @@ def validate_version(value):
     if re.search(r'\b0[0-9]', value):
         raise ValidationError('Version must not contain leading zeroes. '
                               'For example, write "1.0.1" instead of "1.00.01".')
+
+
+def is_version_greater(version1, version2):
+    """
+    Return True if version1 is greater than version2, False otherwise.
+    """
+    try:
+        return Version(version1) > Version(version2)
+    except ValueError:
+        return ValueError('Invalid version number.')
 
 
 def validate_slug(value):

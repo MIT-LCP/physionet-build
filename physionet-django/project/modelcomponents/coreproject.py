@@ -4,7 +4,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from project.modelcomponents.activeproject import ActiveProject
-from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.publishedproject import PublishedProject
 
 
@@ -87,6 +86,4 @@ def exists_project_slug(slug):
     Whether the slug has been taken by an existing project of any
     kind.
     """
-    return bool(ActiveProject.objects.filter(slug=slug)
-            or ArchivedProject.objects.filter(slug=slug)
-            or PublishedProject.objects.filter(slug=slug))
+    return bool(ActiveProject.objects.filter(slug=slug) or PublishedProject.objects.filter(slug=slug))

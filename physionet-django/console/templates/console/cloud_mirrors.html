@@ -1,0 +1,96 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Cloud Mirrors{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'console/css/cloud-mirrors.css' %}"/>
+{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <ul class="nav nav-tabs card-header-tabs">
+        <li class="nav-item">
+          <a class="nav-link {% if group == 'open' %}active{% endif %}"
+             href="?group=open">Open</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if group == 'restricted' %}active{% endif %}"
+             href="?group=restricted">Restricted</a>
+        </li>
+      </ul>
+    </div>
+    <div class="card-body">
+      <table class="table table-cloud-status table-bordered">
+        <thead>
+          <tr>
+            <th class="col-project-title">Project</th>
+            <th class="col-project-version">Version</th>
+            <th class="col-project-site-status">
+              <span class="project-site-status-title"
+                    title="File acccess via {{ SITE_NAME }}">
+                {{ SITE_NAME }}
+              </span>
+            </th>
+            {% for platform in cloud_platforms %}
+              <th class="col-project-cloud-status col-{{ platform.id }}">
+                <span class="project-cloud-status-title"
+                      title="File access via {{ platform.long_name }}">
+                  {{ platform.name }}
+                </span>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for project, mirrors in project_mirrors.items %}
+            <tr>
+              <td class="col-project-title">
+                <a href="{% url 'manage_published_project' project.slug project.version %}">
+                  {{ project.title }}
+                </a>
+              </td>
+              <td class="col-project-version">{{ project.version }}</td>
+              <td class="col-project-site-status">
+                {% if project.deprecated_files %}
+                  <span class="project-site-status-forbidden"
+                        title="Access is deprecated">Deprecated</span>
+                {% elif not project.allow_file_downloads %}
+                  <span class="project-site-status-forbidden"
+                        title="Access is forbidden">Forbidden</span>
+                {% elif project.embargo_active %}
+                  <span class="project-site-status-embargo"
+                        title="Under embargo">Embargo</span>
+                {% elif project.access_policy != AccessPolicy.OPEN %}
+                  <span class="project-site-status-restricted"
+                        title="Restricted by access policy">Restricted</span>
+                {% else %}
+                  <span class="project-site-status-open"
+                        title="Open to the public">Open</span>
+                {% endif %}
+              </td>
+              {% for platform_mirror in mirrors %}
+                <td class="col-project-cloud-status">
+                  {% if not platform_mirror %}
+                    <span class="project-cloud-status-none"></span>
+                  {% elif not platform_mirror.sent_files %}
+                    <span class="project-cloud-status-pending"
+                          title="Upload pending">Pending</span>
+                  {% elif platform_mirror.is_private %}
+                    <span class="project-cloud-status-private"
+                          title="Private">Private</span>
+                  {% else %}
+                    <span class="project-cloud-status-public"
+                          title="Public">Public</span>
+                  {% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

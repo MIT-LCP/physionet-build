@@ -13,7 +13,6 @@ from project.forms import ContentForm
 from project.models import (
     AccessPolicy,
     ActiveProject,
-    ArchivedProject,
     Author,
     AuthorInvitation,
     DataAccessRequest,
@@ -22,6 +21,7 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
     StorageRequest,
+    SubmissionStatus
 )
 from user.models import User
 from user.test_views import TestMixin, prevent_request_warnings
@@ -520,7 +520,10 @@ class TestProjectEditing(TestCase):
         <mfrac><mn>22</mn><mn>7</mn></mfrac></math>,
         some ambiguous characters & < >,
         <form>invalid tags</form>,
-        <span onclick="evil()">invalid attributes</span>
+        <span onclick="evil()">invalid attributes</span>,
+        <img src="http://testserver/foo.jpg" alt="full URL to image">,
+        <img src="/foo.jpg" alt="partial URL to image">,
+        <img src="https://example.com/foo.jpg" alt="cross-domain">
         </p>
         """
 
@@ -532,7 +535,10 @@ class TestProjectEditing(TestCase):
         <mfrac><mn>22</mn><mn>7</mn></mfrac></math>,
         some ambiguous characters &amp; &lt; &gt;,
         &lt;form&gt;invalid tags&lt;/form&gt;,
-        <span>invalid attributes</span>
+        <span>invalid attributes</span>,
+        <img src="/foo.jpg" alt="full URL to image">,
+        <img src="/foo.jpg" alt="partial URL to image">,
+        <img alt="cross-domain">
         </p>
         """
 
@@ -551,6 +557,45 @@ class TestProjectEditing(TestCase):
         self.assertEqual(response.status_code, 200)
         project.refresh_from_db()
         self.assertFalse(project.is_submittable())
+
+
+class TestProjectTransfer(TestCase):
+    """
+    Tests that submitting author status can be transferred to a co-author
+    """
+    AUTHOR_EMAIL = 'rgmark@mit.edu'
+    COAUTHOR_EMAIL = 'aewj@mit.edu'
+    PASSWORD = 'Tester11!'
+    PROJECT_SLUG = 'T108xFtYkRAxiRiuOLEJ'
+
+    def setUp(self):
+        self.client.login(username=self.AUTHOR_EMAIL, password=self.PASSWORD)
+        self.project = ActiveProject.objects.get(slug=self.PROJECT_SLUG)
+        self.submitting_author = self.project.authors.filter(is_submitting=True).first()
+        self.coauthor = self.project.authors.filter(is_submitting=False).first()
+
+    def test_transfer_author(self):
+        """
+        Test that an activate project can be transferred to a co-author.
+        """
+        self.assertEqual(self.submitting_author.user.email, self.AUTHOR_EMAIL)
+        self.assertEqual(self.coauthor.user.email, self.COAUTHOR_EMAIL)
+
+        response = self.client.post(
+            reverse('project_authors', args=(self.project.slug,)),
+            data={
+                'transfer_author': self.coauthor.user.id,
+            })
+
+        # Check if redirect happens, implying successful transfer
+        self.assertEqual(response.status_code, 302)
+
+        # Fetch the updated project data
+        updated_project = ActiveProject.objects.get(slug=self.PROJECT_SLUG)
+
+        # Verify that the author has been transferred
+        self.assertFalse(updated_project.authors.get(user=self.submitting_author.user).is_submitting)
+        self.assertTrue(updated_project.authors.get(user=self.coauthor.user).is_submitting)
 
 
 class TestAccessPublished(TestMixin):
@@ -859,15 +904,20 @@ class TestState(TestMixin):
         """
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.assertTrue(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database',
+                                                     submission_status=SubmissionStatus.UNSUBMITTED))
         author_id = project.authors.all().first().id
         abstract = project.abstract
+
         # 'Delete' (archive) the project
         response = self.client.post(reverse('project_overview',
             args=(project.slug,)), data={'delete_project':''})
-        # The ActiveProject model should be replaced, and all its
-        # related objects should point to the new ArchivedProject
-        self.assertFalse(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database'))
-        project = ArchivedProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        # The ActiveProject model should be set to "Archived" status
+        self.assertFalse(ActiveProject.objects.filter(title='MIT-BIH Arrhythmia Database',
+                                                      submission_status=SubmissionStatus.UNSUBMITTED))
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database',
+                                            submission_status=SubmissionStatus.ARCHIVED)
         self.assertTrue(Author.objects.get(id=author_id).project == project)
         self.assertEqual(project.abstract, abstract)
 

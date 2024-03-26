@@ -11,7 +11,6 @@ from django.urls import reverse
 from events.models import EventAgreement
 from project.models import (
     ActiveProject,
-    ArchivedProject,
     Author,
     AuthorInvitation,
     License,
@@ -97,8 +96,10 @@ class TestState(TestMixin):
             'data_machine_readable':0, 'reusable':1, 'no_phi':0,
             'pn_suitable':1, 'editor_comments':'Just bad.', 'decision':0
             })
-        self.assertTrue(ArchivedProject.objects.filter(slug=project.slug))
-        self.assertFalse(ActiveProject.objects.filter(slug=project.slug))
+        self.assertTrue(ActiveProject.objects.filter(slug=project.slug,
+                                                     submission_status=SubmissionStatus.ARCHIVED))
+        self.assertFalse(ActiveProject.objects.filter(slug=project.slug,
+                                                      submission_status=SubmissionStatus.NEEDS_DECISION))
 
     def test_edit(self):
         """

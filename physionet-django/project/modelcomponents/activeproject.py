@@ -19,7 +19,6 @@ from django.utils.html import strip_tags
 from console.tasks import associated_task
 from physionet.settings.base import StorageTypes
 from project.modelcomponents.access import AccessPolicy
-from project.modelcomponents.archivedproject import ArchivedProject
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
 from project.modelcomponents.metadata import (
     Contact,
@@ -88,6 +87,11 @@ class SubmissionStatus(IntEnum):
     ready, the submitting author may submit the project, which moves
     it to NEEDS_ASSIGNMENT.
 
+    5: ARCHIVED
+    --------------
+    The project has been archived.  In this stage, the project cannot be
+    edited. To recover the project, it must be returned to UNSUBMITTED status.
+
     10: NEEDS_ASSIGNMENT ("Awaiting Editor Assignment")
     ---------------------------------------------------
     The project has been submitted, but has no editor assigned.  A
@@ -99,8 +103,8 @@ class SubmissionStatus(IntEnum):
     An editor has been assigned and needs to review the project.  The
     editor may accept the project, which moves it to NEEDS_COPYEDIT;
     may request resubmission, which moves the project to
-    NEEDS_RESUBMISSION; or may reject the project, which deletes the
-    ActiveProject and transfers its content to an ArchivedProject.
+    NEEDS_RESUBMISSION; or may reject the project, which sets the
+    status of the ActiveProject to "Archived".
 
     30: NEEDS_RESUBMISSION ("Awaiting Author Revisions")
     -------------------------------------------------
@@ -130,6 +134,7 @@ class SubmissionStatus(IntEnum):
     to a PublishedProject.
     """
     UNSUBMITTED = 0
+    ARCHIVED = 5
     NEEDS_ASSIGNMENT = 10
     NEEDS_DECISION = 20
     NEEDS_RESUBMISSION = 30
@@ -150,7 +155,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     submission_status = models.PositiveSmallIntegerField(default=0)
 
     # Max number of active submitting projects a user is allowed to have
-    MAX_SUBMITTING_PROJECTS = 10
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
 
     # Subdirectory (under self.files.file_root) where files are stored
@@ -196,6 +200,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     SUBMISSION_STATUS_LABELS = {
         SubmissionStatus.UNSUBMITTED: 'Not submitted.',
+        SubmissionStatus.ARCHIVED: 'Archived.',
         SubmissionStatus.NEEDS_ASSIGNMENT: 'Awaiting editor assignment.',
         SubmissionStatus.NEEDS_DECISION: 'Awaiting editor decision.',
         SubmissionStatus.NEEDS_RESUBMISSION: 'Revisions requested.',
@@ -210,6 +215,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             ('can_assign_editor', 'Can assign editor'),
             ('can_edit_activeprojects', 'Can edit ActiveProjects')
         ]
+        ordering = ('title', 'creation_datetime')
 
     def storage_used(self):
         """
@@ -289,73 +295,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if self.submission_status == SubmissionStatus.NEEDS_COPYEDIT:
             return True
 
-    def archive(self, archive_reason):
+    def archive(self, archive_reason, clear_files=False):
         """
-        Archive the project. Create an ArchivedProject object, copy over
-        the fields, and delete this object
+        Archive the project. Sets the status of the project to "Archived" object.
         """
-        archived_project = ArchivedProject(archive_reason=archive_reason,
-            slug=self.slug)
+        self.submission_status = SubmissionStatus.ARCHIVED
+        self.archive_datetime = timezone.now()
+        self.save()
 
-        modified_datetime = self.modified_datetime
-
-        # Direct copy over fields
-        for attr in [f.name for f in Metadata._meta.fields] + [f.name for f in SubmissionInfo._meta.fields]:
-            setattr(archived_project, attr, getattr(self, attr))
-
-        archived_project.save()
-
-        # Redirect the related objects
-        for reference in self.references.all():
-            reference.project = archived_project
-            reference.save()
-        for publication in self.publications.all():
-            publication.project = archived_project
-            publication.save()
-        for topic in self.topics.all():
-            topic.project = archived_project
-            topic.save()
-        for author in self.authors.all():
-            author.project = archived_project
-            author.save()
-        for edit_log in self.edit_logs.all():
-            edit_log.project = archived_project
-            edit_log.save()
-        for copyedit_log in self.copyedit_logs.all():
-            copyedit_log.project = archived_project
-            copyedit_log.save()
-        for parent_project in self.parent_projects.all():
-            archived_project.parent_projects.add(parent_project)
-
-        UploadedDocument.objects.filter(
-            object_id=self.pk, content_type=ContentType.objects.get_for_model(ActiveProject)
-        ).update(object_id=archived_project.pk, content_type=ContentType.objects.get_for_model(ArchivedProject))
-
-        if self.resource_type.id == 1:
-            languages = self.programming_languages.all()
-            if languages:
-                archived_project.programming_languages.add(*list(languages))
-
-        # Voluntary delete
-        if archive_reason == 1:
+        if clear_files:
             self.clear_files()
-        else:
-            # Move over files
-            self.files.rename(self.file_root(), archived_project.file_root())
-
-        # Copy the ActiveProject timestamp to the ArchivedProject.
-        # Since this is an auto_now field, save() doesn't allow
-        # setting an arbitrary value.
-        queryset = ArchivedProject.objects.filter(id=archived_project.id)
-        queryset.update(modified_datetime=modified_datetime)
-
-        return self.delete()
-
-    def fake_delete(self):
-        """
-        Appear to delete this project. Actually archive it.
-        """
-        self.archive(archive_reason=1)
 
     def check_integrity(self):
         """
@@ -468,7 +417,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Reject a project under submission
         """
-        self.archive(archive_reason=3)
+        self.archive(archive_reason=0)
 
     def is_resubmittable(self):
         """

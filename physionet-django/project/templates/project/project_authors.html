@@ -170,6 +170,46 @@
   <button class="btn btn-primary btn-rsp" name="edit_affiliations" type="submit">Set Affiliations</button>
 </form>
 <hr>
+<br>
+
+{# Transfer project to a new submitting author #}
+{% if is_submitting %}
+  <h3>Submitting Author</h3>
+  <p>Only the submitting author of a project is able to edit content.
+     You may transfer the role of submitting author to a co-author.
+     Choose one of the co-authors below to make them the submitting author for this project.
+     Transferring authorship will remove your ability to edit content!</p>
+
+  <form id="authorTransferForm" action="{% url 'project_authors' project.slug %}" method="post" class="no-pd">
+    {% csrf_token %}
+    {% include "inline_form_snippet.html" with form=transfer_author_form %}
+    <button class="btn btn-primary btn-rsp" name="transfer_author" type="submit">Transfer</button>
+  </form>
+  <hr>
+{% endif %}
+
+<!-- Modal for confirming author transfer -->
+<div class="modal fade" id="transfer_author_modal" tabindex="-1" role="dialog" aria-labelledby="transferAuthorshipModalTitle" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="transferAuthorshipModalTitle">Transfer Authorship</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmationText">Please confirm that you would like to assign '<span id="project_author"></span>' as the new submitting author.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="confirmAuthorTransfer">Transfer</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- End Modal -->
+
 {% endblock %}
 
 {% block local_js_bottom %}
@@ -177,8 +217,14 @@
 <script>
   disableAddButtons();
 </script>
+
 {# Disable submission if not currently editable #}
 {% if not project.author_editable %}
   <script src="{% static 'custom/js/disable-input.js' %}"></script>
 {% endif %}
+
+{% if is_submitting %}
+  <script src="{% static 'project/js/transfer-author.js' %}"></script>
+{% endif %}
+
 {% endblock %}

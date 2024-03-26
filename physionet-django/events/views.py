@@ -79,16 +79,19 @@ def event_home(request):
     List of events
     """
     user = request.user
-    can_change_event = user.has_perm('events.add_event')
+    can_change_event = user.has_perm("events.add_event")
 
-    EventApplicationResponseFormSet = modelformset_factory(EventApplication,
-                                                           form=EventApplicationResponseForm, extra=0)
+    EventApplicationResponseFormSet = modelformset_factory(
+        EventApplication, form=EventApplicationResponseForm, extra=0
+    )
 
     # sqlite doesn't support the distinct() method
     events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
     # concatenate the events where the user is the host,participant and the events where the user is on the waitlist
     events_all = events_all | Event.objects.filter(
-        applications__user=user, applications__status=EventApplication.EventApplicationStatus.WAITLISTED)
+        applications__user=user,
+        applications__status=EventApplication.EventApplicationStatus.WAITLISTED,
+    )
 
     events_active = set(events_all.filter(end_date__gte=datetime.now()))
     events_past = set(events_all.filter(end_date__lt=datetime.now()))
@@ -99,12 +102,11 @@ def event_home(request):
     form_error = False
 
     # handle notifications to join an event
-    if request.method == 'POST' and 'participation_response' in request.POST.keys():
-
+    if request.method == "POST" and "participation_response" in request.POST.keys():
         formset = EventApplicationResponseFormSet(request.POST)
         # only process the form that was submitted
         for form in formset:
-            if form.instance.id != int(request.POST['participation_response']):
+            if form.instance.id != int(request.POST["participation_response"]):
                 continue
 
             if not form.is_valid():
@@ -114,53 +116,123 @@ def event_home(request):
             event_application = form.save(commit=False)
             event = event_application.event
             if event.host != user:
-                messages.error(request, "You don't have permission to accept/reject this application")
+                messages.error(
+                    request,
+                    "You don't have permission to accept/reject this application",
+                )
                 return redirect(event_home)
-            elif event_application.status == EventApplication.EventApplicationStatus.APPROVED:
-                if EventParticipant.objects.filter(event=event, user=event_application.user).exists():
+            elif (
+                event_application.status
+                == EventApplication.EventApplicationStatus.APPROVED
+            ):
+                if EventParticipant.objects.filter(
+                    event=event, user=event_application.user
+                ).exists():
                     messages.error(request, "Application was already approved")
                     return redirect(event_home)
                 event_application.accept(
-                    comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                    comment_to_applicant=form.cleaned_data.get("comment_to_applicant")
                 )
                 notification.notify_participant_event_decision(
                     request=request,
                     user=event_application.user,
                     event=event_application.event,
                     decision=EventApplication.EventApplicationStatus.APPROVED.label,
-                    comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                    comment_to_applicant=form.cleaned_data.get("comment_to_applicant"),
                 )
-            elif event_application.status == EventApplication.EventApplicationStatus.NOT_APPROVED:
+            elif (
+                event_application.status
+                == EventApplication.EventApplicationStatus.NOT_APPROVED
+            ):
                 event_application.reject(
-                    comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                    comment_to_applicant=form.cleaned_data.get("comment_to_applicant")
                 )
                 notification.notify_participant_event_decision(
                     request=request,
                     user=event_application.user,
                     event=event_application.event,
                     decision=EventApplication.EventApplicationStatus.NOT_APPROVED.label,
-                    comment_to_applicant=form.cleaned_data.get('comment_to_applicant')
+                    comment_to_applicant=form.cleaned_data.get("comment_to_applicant"),
                 )
 
             return redirect(event_home)
         else:
             form_error = True
 
+    events = Event.objects.all().prefetch_related(
+        "participants",
+        "applications",
+    )
+
+    event_details = {}
+    for event in events:
+        applications = event.applications.all()
+        pending_applications = [
+            application
+            for application in applications
+            if application.status == EventApplication.EventApplicationStatus.WAITLISTED
+        ]
+        rejected_applications = [
+            application
+            for application in applications
+            if application.status == EventApplication.EventApplicationStatus.NOT_APPROVED
+        ]
+        withdrawn_applications = [
+            application
+            for application in applications
+            if application.status == EventApplication.EventApplicationStatus.WITHDRAWN
+        ]
+
+        event_details[event.id] = [
+            {
+                "id": "participants",
+                "title": "Total participants:",
+                "count": len(event.participants.all()),
+                "objects": event.participants.all(),
+            },
+            {
+                "id": "pending_applications",
+                "title": "Pending applications:",
+                "count": len(pending_applications),
+                "objects": pending_applications,
+            },
+            {
+                "id": "rejected_applications",
+                "title": "Rejected applications:",
+                "count": len(rejected_applications),
+                "objects": rejected_applications,
+            },
+            {
+                "id": "withdrawn_applications",
+                "title": "Withdrawn applications:",
+                "count": len(withdrawn_applications),
+                "objects": withdrawn_applications,
+            },
+        ]
+
     # get all participation requests for Active events where the current user is the host and the participants are
     # waiting for a response
     participation_requests = EventApplication.objects.filter(
-        status=EventApplication.EventApplicationStatus.WAITLISTED).filter(event__host=user,
-                                                                          event__end_date__gte=datetime.now())
-    participation_response_formset = EventApplicationResponseFormSet(queryset=participation_requests)
-    return render(request, 'events/event_home.html',
-                  {'events_active': events_active,
-                   'events_past': events_past,
-                   'event_form': event_form,
-                   'url_prefix': url_prefix,
-                   'can_change_event': can_change_event,
-                   'form_error': form_error,
-                   'participation_response_formset': participation_response_formset,
-                   })
+        status=EventApplication.EventApplicationStatus.WAITLISTED
+    ).filter(event__host=user, event__end_date__gte=datetime.now())
+    participation_response_formset = EventApplicationResponseFormSet(
+        queryset=participation_requests
+    )
+    return render(
+        request,
+        "events/event_home.html",
+        {
+            "events_active": events_active,
+            "events_past": events_past,
+            "event_form": event_form,
+            "url_prefix": url_prefix,
+            "can_change_event": can_change_event,
+            "form_error": form_error,
+            "participation_response_formset": participation_response_formset,
+            "event_details": event_details,
+        },
+    )
+
 
 
 @login_required

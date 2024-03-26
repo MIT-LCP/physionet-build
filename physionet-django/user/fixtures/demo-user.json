@@ -14390,11 +14390,6 @@
         "activeproject"
       ],
       [
-        "change_archivedproject",
-        "project",
-        "archivedproject"
-      ],
-      [
         "add_dua",
         "project",
         "dua"
@@ -14463,6 +14458,16 @@
         "view_redirect",
         "redirects",
         "redirect"
+      ],
+      [
+        "change_course",
+        "training",
+        "course"
+      ],
+      [
+        "can_view_course_guidelines",
+        "training",
+        "course"
       ]
     ]
   }
@@ -14481,11 +14486,6 @@
         "change_activeproject",
         "project",
         "activeproject"
-      ],
-      [
-        "change_archivedproject",
-        "project",
-        "archivedproject"
       ],
       [
         "can_view_access_logs",
@@ -14580,6 +14580,11 @@
         "can_view_admin_console",
         "user",
         "user"
+      ],
+      [
+        "can_view_course_guidelines",
+        "training",
+        "course"
       ]
     ]
   }

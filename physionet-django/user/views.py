@@ -1,7 +1,7 @@
 import logging
 import os
 import pdb
-from datetime import datetime
+from datetime import datetime, date, timedelta
 
 import django.contrib.auth.views as auth_views
 import pytz
@@ -9,6 +9,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
@@ -29,6 +30,7 @@ from notification.utility import (
     credential_application_request,
     get_url_prefix,
     notify_account_registration,
+    notify_primary_email,
     process_credential_complete,
     training_application_request,
 )
@@ -58,7 +60,7 @@ from user.models import (
 )
 from user.userfiles import UserFiles
 from physionet.models import StaticPage
-
+from django.db.models import F
 
 logger = logging.getLogger(__name__)
 
@@ -95,13 +97,27 @@ class LogoutView(auth_views.LogoutView):
     pass
 
 
+class CustomPasswordResetForm(PasswordResetForm):
+    def clean_email(self):
+        """
+        Override the clean_email method to allow for secondary email checks.
+        """
+        email = self.cleaned_data['email']
+        secondary_email = AssociatedEmail.objects.filter(is_verified=True, is_primary_email=False, email=email).first()
+
+        if secondary_email:
+            notify_primary_email(secondary_email)
+
+        return email
+
+
 # Request password reset
 class PasswordResetView(auth_views.PasswordResetView):
     template_name = 'user/reset_password_request.html'
     success_url = reverse_lazy('reset_password_sent')
     email_template_name = 'user/email/reset_password_email.html'
     extra_email_context = {'SITE_NAME': settings.SITE_NAME}
-
+    form_class = CustomPasswordResetForm
 
 # Page shown after reset email has been sent
 class PasswordResetDoneView(auth_views.PasswordResetDoneView):
@@ -753,6 +769,19 @@ def edit_training(request):
             )
         else:
             training_form = forms.TrainingForm(user=request.user)
+
+        expiring_trainings = Training.objects.filter(
+            user=request.user,
+            process_datetime__lte=date.today() - F('training_type__valid_duration') + timedelta(days=30),
+            process_datetime__gt=date.today() - F('training_type__valid_duration')
+        )
+        if expiring_trainings:
+            for training in expiring_trainings:
+                days_until_expiry = (
+                    training.process_datetime.date() + training.training_type.valid_duration - date.today()
+                ).days
+                message = f"Your {training.training_type.name} training will expire in {days_until_expiry} days."
+                messages.warning(request, message)
 
     return render(
         request,

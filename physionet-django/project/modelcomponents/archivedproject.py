@@ -10,6 +10,9 @@ from project.modelcomponents.submission import SubmissionInfo
 
 class ArchivedProject(Metadata, UnpublishedProject, SubmissionInfo):
     """
+    THIS MODEL WILL BE DEPRECATED. INSTEAD, USE ACTIVEPROJECT
+    WITH SUBMISSIONSTATUS=ARCHIVED.
+
     An archived project. Created when (maps to archive_reason):
     1. A user chooses to 'delete' their ActiveProject.
     2. An ActiveProject is not submitted for too long.

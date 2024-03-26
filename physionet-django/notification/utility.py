@@ -1023,3 +1023,38 @@ def notify_event_participant_application(request, user, registered_user, event):
     body = loader.render_to_string('events/email/event_registration.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+
+def notify_primary_email(associated_email):
+    """
+    Inform a user of the primary email address linked to their account.
+    Must only be used when the email address is verified.
+    """
+    if associated_email.is_verified:
+        subject = f"Primary email address on {settings.SITE_NAME}"
+        context = {
+            'name': associated_email.user.get_full_name(),
+            'primary_email': associated_email.user.email,
+            'SITE_NAME': settings.SITE_NAME,
+        }
+        body = loader.render_to_string('user/email/notify_primary_email.html', context)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [associated_email.email], fail_silently=False)
+
+
+def notify_submitting_author(request, project):
+    """
+    Notify a user that they have been made submitting author for a project.
+    """
+    author = project.authors.get(is_submitting=True)
+    subject = f"{settings.SITE_NAME}: You are now a submitting author"
+    context = {
+        'name': author.get_full_name(),
+        'project': project,
+        'url_prefix': get_url_prefix(request),
+        'SITE_NAME': settings.SITE_NAME,
+        'signature': settings.EMAIL_SIGNATURE,
+        'footer': email_footer()
+    }
+    body = loader.render_to_string('notification/email/notify_submitting_author.html', context)
+    # Not resend the email if there was an integrity error
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [author.user.email], fail_silently=False)

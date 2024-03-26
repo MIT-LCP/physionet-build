@@ -1,4 +1,5 @@
 from console import views
+from training import views as training_views
 from django.urls import path
 
 urlpatterns = [
@@ -19,6 +20,8 @@ urlpatterns = [
     path('published-projects/<project_slug>/<version>/',
         views.manage_published_project, name='manage_published_project'),
     path('data-access-request/<int:pk>/', views.access_request, name='access_request'),
+    path('cloud/mirrors/', views.cloud_mirrors,
+         name='cloud_mirrors'),
 
     # Logs
     path('data-access-logs/', views.project_access_requests_list, name='project_access_requests_list'),
@@ -79,21 +82,21 @@ urlpatterns = [
     path('users/groups/', views.user_groups, name='user_groups'),
     path('users/groups/<group>/', views.user_group, name='user_group'),
     path('users/<group>/', views.users, name='users'),
-    path('users/aws-access-list.json', views.users_aws_access_list_json,
-         name='users_aws_access_list_json'),
     path('user/manage/<username>/', views.user_management,
         name='user_management'),
 
     path('news/', views.news_console, name='news_console'),
     path('news/add/', views.news_add, name='news_add'),
     path('news/search/', views.news_search, name='news_search'),
-    path('news/edit/<news_id>/', views.news_edit, name='news_edit'),
+    path('news/edit/<news_slug>/', views.news_edit, name='news_edit'),
 
     path('featured/', views.featured_content, name='featured_content'),
     path('featured/add', views.add_featured, name='add_featured'),
 
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
+    path('guidelines/course/', views.guidelines_course, name='guidelines_course'),
+
 
     path('user-autocomplete/', views.UserAutocomplete.as_view(), name='user-autocomplete'),
     path('project-autocomplete/', views.ProjectAutocomplete.as_view(), name='project-autocomplete'),
@@ -157,6 +160,14 @@ urlpatterns = [
     path('event_agreements/<int:pk>/new-version/', views.event_agreement_new_version,
          name='event_agreement_new_version'),
     path('console/user/manage/<username>/', views.event_invite_host, name='event_invite_host'),
+
+    # Courses/On Platform Training
+    path('courses/', training_views.courses, name='courses'),
+    path('courses/<training_slug>/', training_views.course_details, name='course_details'),
+    path('courses/<training_slug>/download/<str:version>',
+         training_views.download_course, name='download_course_version'),
+    path('courses/<training_slug>/expire/<str:version>',
+         training_views.expire_course, name='expire_course_version'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)
@@ -170,6 +181,9 @@ TEST_DEFAULTS = {
     'section_pk': 1,
     'news_id': 1,
     'username': 'rgmark',
+    'news_slug': 'cloud-migration',
+    'version': '1.0',
+    'training_slug': 'world-101-introduction-to-continents-and-countries',
 }
 TEST_CASES = {
     'manage_published_project': {

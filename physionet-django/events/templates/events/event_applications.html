@@ -1,0 +1,27 @@
+{% load participation_status %}
+<div class="tab-content" id="nav-tabContent">
+  <div class="tab-pane fade show active" id="{{ info.id }}" role="tabpanel" aria-labelledby="{{ option.id }}-tab">
+    <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Full name</th>
+              <th>Email</th>
+              <th>Credentialed</th>
+            </tr>
+          </thead>
+          <tbody>
+              {% for application in info.objects %}
+                <tr>
+                  <td>{{ application.user.username }}</td>
+                  <td>{{ application.user.get_full_name }}</td>
+                  <td>{{ application.user.email }}</td>
+                  <td>{{ application.user.is_credentialed }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+        </table>
+    </div>
+  </div>
+</div>
