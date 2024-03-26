@@ -216,5 +216,7 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('Redirects'), 'redirects'),
     ]),
 
+    NavLink(_('Process Pages'), 'process_pages', 'window-minimize'),
+
     NavLink(_('News'), 'news_console', 'newspaper'),
 ])

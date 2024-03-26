@@ -7,11 +7,11 @@
 {% block content %}
  <div class="card mb-3">
     <div class="card-header">
-        {{ page.title }} - edit
+        {{ step_detail.title }} - edit
     </div>
     <div class="card-body">
-        <form method="post" action="{% url 'static_page_edit' page.pk %}">
-            {% include "inline_form_snippet.html" with form=static_page_form %}
+        <form method="post" action="{% url 'step_details_edit' step_detail.pk %}">
+            {% include "inline_form_snippet.html" with form=step_details_form %}
             <button class="btn btn-primary btn-fixed" type="submit">Save</button>
         </form>
     </div>
