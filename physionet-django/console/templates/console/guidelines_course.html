@@ -1,0 +1,162 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+{% block title %}Guidelines for Courses{% endblock %}
+
+{% block content %}
+  <div class="card mb-3">
+    <div class="card-header">
+      Guidelines for creating and updating courses
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <p>To create a new course or update a course, you will need to organize all the course content in a json file
+          and upload via the
+          <a href="{% url 'courses' %}">Courses</a> page.</p>
+        <p>Here is the <a href="{% static 'sample/create-course-schema.json' %}">course schema</a> with typing info that you can
+          follow to create a new course or update a course. Similarly, here is an example json file to <a
+              href="{% static 'sample/example-course-create.json' %}">create a new course</a> or to <a
+              href="{% static 'sample/example-course-update.json' %}">update a course</a></p>
+
+        <h4>General Schema Explanation</h4>
+        <pre>
+{
+  "name": "string",
+  "description": "string",
+  "valid_duration": "string",
+  "courses": [{
+    "version": "string",
+    "modules": [
+      {
+        "contents": [
+          {
+            "body": "string",
+            "order": "integer"
+          }
+        ],
+        "quizzes": [
+          {
+            "question": "string",
+            "order": "integer",
+            "choices": [
+              {
+                "body": "string",
+                "is_correct": "boolean"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }]
+}
+      </pre>
+        <ol start="1">
+          <li><strong>Course Information:</strong> Fill out all fields in the JSON file with the appropriate information
+            about your course, including:
+          </li>
+          <ul>
+            <li>The name of the course</li>
+            <li>A description of the course in html</li>
+            <li>The valid duration of the course</li>
+            <li>The version of the course</li>
+          </ul>
+          <small><strong>Note the importance of versioning:</strong> It's essential to keep track of the version number
+            of your course.
+            Please make sure the version number is unique for each course update. Even minor changes, such as a spelling
+            correction,
+            require an update to the version number in the new JSON file (refer to the create and update JSON examples
+            above).
+            Please use the Semantic Versioning system (Major.Minor) for version numbers.
+            If you update a course's major version (e.g., from 1.5 to 2.0), all existing training certificates provided
+            to
+            users will expire after a month. To regain access to resources, users must retake the new version of the
+            training.</small>
+
+        </ol>
+        <ol start="2">
+          <li><strong>Modules:</strong> A course may have one or more modules. Each module contains the course content and quizzes.
+          Modules must include:
+            section of the course. Each module should include:
+          </li>
+          <ul>
+            <li>A name for the module</li>
+            <li>A description of the module in html</li>
+            <li>An order for the module</li>
+            <li>One or more content items in the module</li>
+            <li>One or more quizzes in the module</li>
+          </ul>
+        </ol>
+        <ol start="3">
+          <li><strong>Content:</strong> A module may have one or more content blocks. Each content block should include:</li>
+          <ul>
+            <li>A body for the content in html</li>
+            <li>An order for the content</li>
+          </ul>
+        </ol>
+        <ol start="4">
+          <li><strong>Quizzes:</strong> A module may have one or more quiz. Each Quiz should include:</li>
+          <ul>
+            <li>A question for the quiz</li>
+            <li>An order for the quiz</li>
+            <li>One or more choices for the quiz, including the correct answer</li>
+            <small><strong>Order:</strong> Note that the order is used to determine which content or quiz comes first,
+              so please
+              make sure you order the content and quiz properly. <br> For example, here the user will see the content
+              and quiz in the following order
+              content1, quiz 1, content 2, quiz 2.
+              <pre><code>
+"contents": [
+    {
+      "body": "This content will display first for the given module.",
+      "order": 1
+    },
+    {
+      "body": "This content will appear third (order = 3), after the quiz below.",
+      "order": 3
+    }
+],
+"quizzes": [
+  {
+    "question": "This quiz will appear after the first content block (order = 2).",
+    "order": 2,
+    "choices": [
+      {
+        "body": "This answer is correct. The user will proceed to the next block if they answer it.",
+        "is_correct": true
+      },
+      {
+        "body": "This choice is incorrect. The user will return to the beginning of the module if they answer it.",
+        "is_correct": false
+      }
+    ]
+  },
+  {
+    "question": "This quiz will appear last, after the final content block (order = 4).",
+    "order": 4,
+    "choices": [
+      {
+        "body": "choice 1",
+        "is_correct": true
+      },
+      {
+        "body": "choice 2",
+        "is_correct": false
+      }
+    ]
+  }
+]
+          </code></pre>
+            </small>
+          </ul>
+        </ol>
+        <ol start="5">
+          <li><strong>Choices:</strong> A quiz may have one or more choices. Each choice should include:</li>
+          <ul>
+            <li>A body for the choice</li>
+            <li>A boolean value of true for the correct answer</li>
+          </ul>
+        </ol>
+      </div>
+    </div>
+  </div>
+{% endblock %}

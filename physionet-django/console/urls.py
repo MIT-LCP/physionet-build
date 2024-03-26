@@ -1,4 +1,5 @@
 from console import views
+from training import views as training_views
 from django.urls import path
 
 urlpatterns = [
@@ -94,6 +95,8 @@ urlpatterns = [
 
     # guidelines
     path('guidelines/review/', views.guidelines_review, name='guidelines_review'),
+    path('guidelines/course/', views.guidelines_course, name='guidelines_course'),
+
 
     path('user-autocomplete/', views.UserAutocomplete.as_view(), name='user-autocomplete'),
     path('project-autocomplete/', views.ProjectAutocomplete.as_view(), name='project-autocomplete'),
@@ -156,6 +159,14 @@ urlpatterns = [
     path('event_agreements/<int:pk>/delete/', views.event_agreement_delete, name='event_agreement_delete'),
     path('event_agreements/<int:pk>/new-version/', views.event_agreement_new_version,
          name='event_agreement_new_version'),
+
+    # Courses/On Platform Training
+    path('courses/', training_views.courses, name='courses'),
+    path('courses/<training_slug>/', training_views.course_details, name='course_details'),
+    path('courses/<training_slug>/download/<str:version>',
+         training_views.download_course, name='download_course_version'),
+    path('courses/<training_slug>/expire/<str:version>',
+         training_views.expire_course, name='expire_course_version'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)
@@ -170,6 +181,8 @@ TEST_DEFAULTS = {
     'news_id': 1,
     'username': 'rgmark',
     'news_slug': 'cloud-migration',
+    'version': '1.0',
+    'training_slug': 'world-101-introduction-to-continents-and-countries',
 }
 TEST_CASES = {
     'manage_published_project': {

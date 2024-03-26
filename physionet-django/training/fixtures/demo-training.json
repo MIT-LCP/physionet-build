@@ -1,0 +1,435 @@
+[
+  {
+    "model": "training.course",
+    "pk": 1,
+    "fields": {
+      "training_type": 2,
+      "version": 1.0
+    }
+  },
+  {
+    "model": "training.module",
+    "pk": 1,
+    "fields": {
+      "name": "The Americas",
+      "description": "Learn about the Americas, including North and South America, Asia and Africa.",
+      "course": 1,
+      "order": 1
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 1,
+    "fields": {
+      "module": 1,
+      "body": "<p>The Americas are comprised of two continents: North America and South America. These continents are connected by a narrow strip of land called the Isthmus of Panama. Together, North and South America span from the Arctic Circle in the north to Cape Horn in the south.</p>\n\n<p>North America is home to three large countries: Canada, the United States, and Mexico. It also includes several smaller countries in Central America and the Caribbean. The continent is known for its diverse landscapes, ranging from frozen tundras in the north to tropical rainforests in the south.</p>\n\n<p>South America is made up of twelve countries, including Brazil, Argentina, and Colombia. It is known for its stunning natural beauty, including the Amazon rainforest and the Andes mountain range. The continent also has a rich cultural heritage, with vibrant cities and ancient ruins.</p>",
+      "order": 1
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 2,
+    "fields": {
+      "module": 1,
+      "body": "<p>(Copied content)The Americas are comprised of two continents: North America and South America. These continents are connected by a narrow strip of land called the Isthmus of Panama. Together, North and South America span from the Arctic Circle in the north to Cape Horn in the south.</p>\n\n<p>North America is home to three large countries: Canada, the United States, and Mexico. It also includes several smaller countries in Central America and the Caribbean. The continent is known for its diverse landscapes, ranging from frozen tundras in the north to tropical rainforests in the south.</p>\n\n<p>South America is made up of twelve countries, including Brazil, Argentina, and Colombia. It is known for its stunning natural beauty, including the Amazon rainforest and the Andes mountain range. The continent also has a rich cultural heritage, with vibrant cities and ancient ruins.</p>",
+      "order": 2
+    }
+  },
+  {
+    "model": "training.quiz",
+    "pk": 1,
+    "fields": {
+      "module": 1,
+      "question": "Which two continents make up the Americas?(Answer : North America and South America)",
+      "order": 3
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 1,
+    "fields": {
+      "quiz": 1,
+      "body": "Europe and Asia",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 2,
+    "fields": {
+      "quiz": 1,
+      "body": "Africa and Australia",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 3,
+    "fields": {
+      "quiz": 1,
+      "body": "North America and South America",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 4,
+    "fields": {
+      "quiz": 1,
+      "body": "Antarctica and South America",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quiz",
+    "pk": 2,
+    "fields": {
+      "module": 1,
+      "question": "What connects North America and South America?(Answer : The Isthmus of Panama)",
+      "order": 4
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 5,
+    "fields": {
+      "quiz": 2,
+      "body": "The Isthmus of Panama",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 6,
+    "fields": {
+      "quiz": 2,
+      "body": "The Strait of Gibraltar",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 7,
+    "fields": {
+      "quiz": 2,
+      "body": "The Suez Canal",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 8,
+    "fields": {
+      "quiz": 2,
+      "body": "The Bering Strait",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quiz",
+    "pk": 3,
+    "fields": {
+      "module": 1,
+      "question": "Which is NOT a large country in North America?(Answer : Cuba)",
+      "order": 5
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 9,
+    "fields": {
+      "quiz": 3,
+      "body": "Canada",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 10,
+    "fields": {
+      "quiz": 3,
+      "body": "United States",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 11,
+    "fields": {
+      "quiz": 3,
+      "body": "Mexico",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 12,
+    "fields": {
+      "quiz": 3,
+      "body": "Cuba",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 3,
+    "fields": {
+      "module": 1,
+      "body": "<p>The Americas, also known as America, are lands of the Western Hemisphere composed of numerous entities and regions variably defined by geography, politics, and culture<sup>1</sup>.&nbsp;The Americas are recognized in the English-speaking world to include two separate continents: North America and South America<sup>1</sup>.</p>\n\n<p>The Americas have more than 1.014 billion inhabitants and boast an area of over 16.43 million square miles<sup>2</sup>.&nbsp;The Americas comprise 35 countries, including some of the world&rsquo;s largest countries as well as several dependent territories<sup>2</sup>.</p>\n",
+      "order": 6
+    }
+  },
+  {
+    "model": "training.quiz",
+    "pk": 4,
+    "fields": {
+      "module": 1,
+      "question": "Which of the following is NOT a country in the Americas? (Answer : India)",
+      "order": 7
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 13,
+    "fields": {
+      "quiz": 4,
+      "body": "Canada",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 14,
+    "fields": {
+      "quiz": 4,
+      "body": "Mexico",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 15,
+    "fields": {
+      "quiz": 4,
+      "body": "Brazil",
+      "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 16,
+    "fields": {
+      "quiz": 4,
+      "body": "India",
+      "is_correct": true
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 4,
+    "fields": {
+      "module": 1,
+      "body": "<p>The Americas are a group of countries in the Western Hemisphere. They are also known as America.</p>\n\n<p>There are two continents in the Americas: North America and South America. They are connected by the Isthmus of Panama.</p>",
+      "order": 8
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 5,
+    "fields": {
+      "module": 1,
+      "body": "<p>North America is home to three large countries: Canada, the United States, and Mexico. It also includes several smaller countries in Central America and the Caribbean. The continent is known for its diverse landscapes, ranging from frozen tundras in the north to tropical rainforests in the south.</p>",
+      "order": 9
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 6,
+    "fields": {
+      "module": 1,
+      "body": "<p>South America is made up of twelve countries, including Brazil, Argentina, and Colombia. It is known for its stunning natural beauty, including the Amazon rainforest and the Andes mountain range. The continent also has a rich cultural heritage, with vibrant cities and ancient ruins.</p>",
+      "order": 10
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 7,
+    "fields": {
+      "module": 1,
+      "body": "<p>As our course on World 101: Introduction to Continents and Countries comes to an end, I would like to take this opportunity to thank each and every one of you for your participation and engagement throughout the course.</p>\n\n<p>It has been a pleasure to share this journey with you and I hope that the knowledge and insights gained during our time together will serve you well in your future endeavors.</p>\n\n<p>Thank you for making this course a success. I wish you all the best in your future studies and pursuits.</p>\n",
+      "order": 11
+    }
+  },
+  {
+    "model": "training.module",
+    "pk": 2,
+    "fields": {
+      "course": 1,
+      "name": "Wondering about Europe?",
+      "description": "Europe is a continent located in the Northern Hemisphere. It is bordered by the Arctic Ocean to the north, the Atlantic Ocean to the west, and the Mediterranean Sea to the south. It is also connected to Asia by the Ural Mountains and the Caspian Sea.",
+      "order": 2
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 8,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is a continent located in the Northern Hemisphere. It is bordered by the Arctic Ocean to the north, the Atlantic Ocean to the west, and the Mediterranean Sea to the south. It is also connected to Asia by the Ural Mountains and the Caspian Sea.</p>\n\n<p>Europe is home to a diverse range of cultures, landscapes, and languages. It is also the second-smallest continent in the world, with a total area of 3.93 million square miles (10.2 million square kilometers).</p>\n",
+      "order": 1
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 9,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is made up of 50 countries. The largest by area is Russia, while the smallest is Monaco. The continent is also home to many important cities, including London, Paris, and Istanbul.</p>\n",
+      "order": 2
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 10,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is the second most populous continent in the world, with a population of 741 million. It is also home to many of the world&rsquo;s most well-known historical sites, including Stonehenge, the Parthenon, and the Colosseum.</p>\n",
+      "order": 3
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 11,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is also known for its diverse landscapes. It is home to the highest mountain in the world, Mount Everest, as well as the lowest point on land, the Dead Sea. It is also home to the world&rsquo;s largest ice sheet, the Greenland ice sheet.</p>\n",
+      "order": 4
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 12,
+    "fields": {
+      "module": 2,
+      "body": "<p>The continent is also home to some of the world&rsquo;s largest lakes, including Lake Superior and Lake Baikal. It is also home to the world&rsquo;s largest river, the Amazon.</p>\n",
+      "order": 5
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 13,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is also home to many of the world&rsquo;s most well-known cities. London, Paris, and Rome are some of the most famous cities in the world. They are also home to many of the world&rsquo;s most famous landmarks, including the Eiffel Tower, the Colosseum, and the Parthenon.</p>\n",
+      "order": 6
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 14,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is also home to many of the world&rsquo;s most famous museums. The Louvre in Paris is one of the most famous museums in the world. It is also home to many of the world&rsquo;s most famous works of art, including the Mona Lisa and the Venus de Milo.</p>\n",
+      "order": 7
+    }
+  },
+  {
+    "model": "training.contentblock",
+    "pk": 15,
+    "fields": {
+      "module": 2,
+      "body": "<p>Europe is also home to many of the world&rsquo;s most famous landmarks. The Eiffel Tower in Paris is one of the most famous landmarks in the world. It is also home to many of the world&rsquo;s most famous works of art, including the Mona Lisa and the Venus de Milo.</p>\n",
+      "order": 8
+    }
+  },
+  {
+    "model": "training.quiz",
+    "pk": 5,
+    "fields": {
+      "module": 2,
+      "question": "Which of the following countries is NOT located in Europe? (Answer: Nepal)",
+      "order": 9
+    }
+  },
+    {
+    "model": "training.quizchoice",
+    "pk": 17,
+    "fields": {
+      "quiz": 5,
+        "body": "France",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 18,
+    "fields": {
+      "quiz": 5,
+        "body": "Nepal",
+        "is_correct": true
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 19,
+    "fields": {
+      "quiz": 5,
+        "body": "Spain",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 20,
+    "fields": {
+      "quiz": 5,
+        "body": "Germany",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quiz",
+    "pk": 6,
+    "fields": {
+      "module": 2,
+      "question": "Which of the following countries is NOT located in Africa?(Answer: Nepal)",
+      "order": 10
+    }
+  },
+    {
+    "model": "training.quizchoice",
+    "pk": 21,
+    "fields": {
+      "quiz": 6,
+        "body": "Egypt",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 22,
+    "fields": {
+      "quiz": 6,
+        "body": "Nepal",
+        "is_correct": true
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 23,
+    "fields": {
+      "quiz": 6,
+        "body": "Zimbabwe",
+        "is_correct": false
+    }
+  },
+  {
+    "model": "training.quizchoice",
+    "pk": 24,
+    "fields": {
+      "quiz": 6,
+        "body": "Cameroon",
+        "is_correct": false
+    }
+  }
+]

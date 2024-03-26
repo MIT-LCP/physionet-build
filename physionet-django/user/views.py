@@ -1,7 +1,7 @@
 import logging
 import os
 import pdb
-from datetime import datetime
+from datetime import datetime, date, timedelta
 
 import django.contrib.auth.views as auth_views
 import pytz
@@ -60,7 +60,7 @@ from user.models import (
 )
 from user.userfiles import UserFiles
 from physionet.models import StaticPage
-
+from django.db.models import F
 
 logger = logging.getLogger(__name__)
 
@@ -769,6 +769,19 @@ def edit_training(request):
             )
         else:
             training_form = forms.TrainingForm(user=request.user)
+
+        expiring_trainings = Training.objects.filter(
+            user=request.user,
+            process_datetime__lte=date.today() - F('training_type__valid_duration') + timedelta(days=30),
+            process_datetime__gt=date.today() - F('training_type__valid_duration')
+        )
+        if expiring_trainings:
+            for training in expiring_trainings:
+                days_until_expiry = (
+                    training.process_datetime.date() + training.training_type.valid_duration - date.today()
+                ).days
+                message = f"Your {training.training_type.name} training will expire in {days_until_expiry} days."
+                messages.warning(request, message)
 
     return render(
         request,

@@ -2076,7 +2076,17 @@ def guidelines_review(request):
     """
     Guidelines for reviewers.
     """
-    return render(request, 'console/guidelines_review.html')
+    return render(request, 'console/guidelines_review.html',
+                  {'guidelines_review_nav': True})
+
+
+@permission_required('training.can_view_course_guidelines', raise_exception=True)
+def guidelines_course(request):
+    """
+    Guidelines for course creators.
+    """
+    return render(request, 'console/guidelines_course.html',
+                  {'guidelines_course_nav': True})
 
 
 @console_permission_required('project.can_view_stats')

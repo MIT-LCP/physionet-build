@@ -14458,6 +14458,16 @@
         "view_redirect",
         "redirects",
         "redirect"
+      ],
+      [
+        "change_course",
+        "training",
+        "course"
+      ],
+      [
+        "can_view_course_guidelines",
+        "training",
+        "course"
       ]
     ]
   }
@@ -14570,6 +14580,11 @@
         "can_view_admin_console",
         "user",
         "user"
+      ],
+      [
+        "can_view_course_guidelines",
+        "training",
+        "course"
       ]
     ]
   }
