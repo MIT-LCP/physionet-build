@@ -1,147 +1,225 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}View Data Access Request{% endblock %}
+{% block title %}Access Request{% endblock %}
 {% block content %}
-    <div class="container col-md-8">
-        <h1>Data Access Request</h1>
-        <form action="" method="post">
-            {% csrf_token %}
-            <div class="modal-body">
-                <p>
-                    The user
-                    <a href="{% url 'public_profile' access_request.requester.username %}">
-                        {{ access_request.requester.profile.first_names }}
-                    {{ access_request.requester.profile.lastname }}</a>
-                    requested access to {{ access_request.project.title }} on
-                    {{ access_request.request_datetime|date }}.
-                </p>
-                <p>
-                    {% if credentialing_data %}
-                        <div>
-                            <p>
-                                Credentialing Application Date: {{ credentialing_data.application_datetime|date }}
-                            </p>
-                            <p>
-                                Organization: {{ credentialing_data.organization_name }}
-                            </p>
-                            <p>
-                                Location: {{ credentialing_data.city }}
-                                {{ credentialing_data.country }}
-                            </p>
-                            <p>
-                                Job Title: {{ credentialing_data.job_title }}
-                            </p>
-                            {% if credentialing_data.webpage %}
-                                <p>
-                                    <a href="{{ credentialing_data.webpage }}">Webpage</a>
-                                </p>
-                            {% endif %}
-                        </div>
-                    {% elif legacy_credentialing_data %}
-                        <div>
-                            <p>
-                                Country: {{ legacy_credentialing_data.country }}
-                            </p>
-                            <p>
-                                MIMIC Approval Date: {{ legacy_credentialing_data.mimic_approval_date }}
-                            </p>
-                        </div>
-                    {% else %}
-                        {#  should not happen #}
-                        No credentialing information found for this user.
-                    {% endif %}
-                </p>
-                <p>
-                    The purpose of the data use was stated as
-                    follows:
-                </p>
-                <div class="alert alert-secondary">
-                    <h4>{{ access_request.data_use_title }}</h4>
-                    <div style="height: 300px; overflow: scroll">{{ access_request.data_use_purpose|safe }}</div>
-                </div>
-                {% if access_request.is_pending %}
-                    {{ response_form.media }}
-                    {% include "descriptive_inline_form_snippet.html" with form=response_form %}
-                    <button class="btn btn-primary"
-                            name="data_access_response"
-                            type="button"
-                            data-toggle="modal"
-                            data-target="#check-modal"
-                            onclick="setCheckButtonText('{{ response_form.status.auto_id }}');">
-                        <i class="fa fa-reply"></i>
-                        Submit
-                        Decision
-                    </button>
-                {% elif access_request.is_accepted or access_request.is_rejected or access_request.is_revoked %}
-                    {{ access_request.responder }} decided
-                    {{ access_request.decision_datetime|date }}
-                    to
-                    {% if access_request.is_accepted or access_request.is_revoked %}
-                        accept
-                    {% else %}
-                        not grant
-                    {% endif %}
-                    this request.<br>
-                    {% if access_request.is_revoked %}
-                        <strong>The access request was revoked.</strong>
-                    {% endif %}
-                    {% if access_request.responder_comments %}
-                        The response was:
-                        <hr />
-                        <p>
-                            {{ access_request.responder_comments|safe }}
-                        </p>
-                        <hr />
-                    {% endif %}
-                {% elif access_request.is_withdrawn %}
-                    The requester withdrew the request on the
-                    {{ access_request.decision_datetime|date }}
+
+<div class="container col-md-8">
+  <h1>Access Request</h1>
+
+  <p>You have received an access request for: {{ access_request.project.title }}.</p>
+
+  <h3>User Profile</h3>
+  <hr>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Name:
+    </div>
+    <div class="col-md-9">
+        {{ requester.profile.get_full_name }}
+    </div>
+  </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Account activated:
+    </div>
+    <div class="col-md-9">
+      {{ requester.is_active }}
+    </div>
+  </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Credentialed:
+    </div>
+    <div class="col-md-9">
+      {{ requester.is_credentialed }}
+    </div>
+  </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+        Date of request:
+    </div>
+    <div class="col-md-9">
+      {{ access_request.request_datetime|date }}
+    </div>
+  </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Affiliation:
+    </div>
+    <div class="col-md-9">
+      {% if requester.profile.affiliation %}
+        {{ requester.profile.affiliation }}
+      {% else %}
+        Not provided.
+      {% endif %}
+    </div>
+  </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Personal Website:
+    </div>
+    <div class="col-md-9">
+      {% if requester.profile.website %}
+      <a href="{{ profile.website }}" rel="nofollow">{{ requester.profile.website }}</a>
+      {% else %}
+       Not provided.
+      {% endif %}
+    </div>
+  </div>
+  {% for status, group in emails.items %}
+    <div class="row mb-1">
+        <div class="col-md-3">
+          Email ({{ status }}):
+        </div>
+        <div class="col-md-9">
+          {% for email in group %}
+            {{ email|join:", " }}
+          {% empty %}
+            N/A
+          {% endfor %}
+        </div>
+    </div>
+  {% endfor %}
+
+  <br>
+  <h3>Project Description</h3>
+  <hr>
+  <div class="alert alert-secondary">
+    <h4>{{ access_request.data_use_title }}</h4>
+    {{ access_request.data_use_purpose|safe }}
+  </div>
+
+  <br>
+  <h3>Training</h3>
+  <hr>
+    {% for status, course in training.items %}
+    <h4>{{ status }}</h4>
+      <ul>
+        {% for train in course %}
+          <li>
+            {{ train.training_type.name }}
+          </li>
+        {% empty %}
+          <li> N/A </li>
+        {% endfor %}
+      </ul>
+    {% endfor %}
+
+    <br />
+    <h3>Credentialing history</h3>
+    <hr>
+    <ul>
+    {% for cred_app in credentialing_data %}
+      <li><strong>Submitted on: {{ cred_app.application_datetime }}</strong><br />
+        Status: {{ cred_app.get_status_display }}
+      <br />
+      Reviewer:
+        {% if cred_app.responder %}
+          {{ cred_app.responder }}
+        {% else %}
+          N/A
+        {% endif %}
+      </li>
+    {% empty %}
+      <li>No applications found.</li>
+    {% endfor %}
+    </ul>
+
+    <br>
+    <h3>Approve or deny request</h3>
+    <hr>
+
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+
+            {% if access_request.is_pending %}
+                {{ response_form.media }}
+                {% include "descriptive_inline_form_snippet.html" with form=response_form %}
+                <button class="btn btn-primary"
+                        name="data_access_response"
+                        type="button"
+                        data-toggle="modal"
+                        data-target="#check-modal"
+                        onclick="setCheckButtonText('{{ response_form.status.auto_id }}');">
+                    <i class="fa fa-reply"></i>
+                    Submit
+                    Decision
+                </button>
+            {% elif access_request.is_accepted or access_request.is_rejected or access_request.is_revoked %}
+                {{ access_request.responder }} decided
+                {{ access_request.decision_datetime|date }}
+                to
+                {% if access_request.is_accepted or access_request.is_revoked %}
+                    accept
+                {% else %}
+                    not grant
                 {% endif %}
-                <div class="modal fade"
-                     id="check-modal"
-                     tabindex="-1"
-                     role="dialog"
-                     aria-labelledby="check-modal"
-                     aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Are you sure?</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-footer">
-                                <button id="check-button-submit"
-                                        class="btn btn-danger"
-                                        name="data_access_response"
-                                        value="{{ access_request.id }}"
-                                        type="submit">
-                                    Yes
-                                </button>
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
-                            </div>
+                this request.<br>
+                {% if access_request.is_revoked %}
+                    <strong>The access request was revoked.</strong>
+                {% endif %}
+                {% if access_request.responder_comments %}
+                    The response was:
+                    <hr />
+                    <p>
+                        {{ access_request.responder_comments|safe }}
+                    </p>
+                    <hr />
+                {% endif %}
+            {% elif access_request.is_withdrawn %}
+                The requester withdrew the request on the
+                {{ access_request.decision_datetime|date }}
+            {% endif %}
+
+            <div class="modal fade"
+                    id="check-modal"
+                    tabindex="-1"
+                    role="dialog"
+                    aria-labelledby="check-modal"
+                    aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Are you sure?</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-footer">
+                            <button id="check-button-submit"
+                                    class="btn btn-danger"
+                                    name="data_access_response"
+                                    value="{{ access_request.id }}"
+                                    type="submit">
+                                Yes
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
                         </div>
                     </div>
                 </div>
-                <script type="application/javascript">
-                function setCheckButtonText(selector_id) {
-                    var selector = document.querySelector("#" + selector_id);
-                    var buttonText = "Yes, " + selector.options[selector
-                            .selectedIndex]
-                            .text;
+            </div>
 
-                    document.querySelector('#check-button-submit').innerHTML =
-                            buttonText;
-                }
-                </script>
-            </form>
-            <hr />
-            {% include "project/data_access_request_table_snippet.html" %}
-            <a href="{% url 'data_access_requests_overview' access_request.project.slug access_request.project.version %}">Requests overview</a>
-        </div>
-    {% endblock %}
-    {% block local_js_bottom %}
-        <script src="{% static 'custom/js/enable-tooltip.js' %}"></script>
-        <script src="{% static 'custom/js/resize-ck.js' %}"></script>
-    {% endblock %}
+            <script type="application/javascript">
+            function setCheckButtonText(selector_id) {
+                var selector = document.querySelector("#" + selector_id);
+                var buttonText = "Yes, " + selector.options[selector
+                        .selectedIndex]
+                        .text;
+
+                document.querySelector('#check-button-submit').innerHTML =
+                        buttonText;
+            }
+            </script>
+        </form>
+
+        <hr />
+        {% include "project/data_access_request_table_snippet.html" %}
+        <a href="{% url 'data_access_requests_overview' access_request.project.slug access_request.project.version %}">Requests overview</a>
+    </div>
+
+{% endblock %}
+{% block local_js_bottom %}
+    <script src="{% static 'custom/js/enable-tooltip.js' %}"></script>
+    <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}
