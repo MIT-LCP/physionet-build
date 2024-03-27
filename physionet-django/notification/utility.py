@@ -80,7 +80,8 @@ def email_project_info(project):
 
 def email_event_info(event):
     """
-    Header for the email. e.g. Event title, Event host, etc.
+    Header for the emails sending out events related information.
+    e.g. Event title, Event host, etc.
     """
     header = ("Event title: {}\n"
               "Event ID: {}\n"

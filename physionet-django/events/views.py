@@ -12,7 +12,7 @@ from django.utils import timezone
 
 
 import notification.utility as notification
-from project import utility
+from project.utility import get_form_errors
 from events.forms import AddEventForm, EventApplicationResponseForm, InviteCohostForm, CohostInvitationResponseForm
 from events.models import Event, EventApplication, EventParticipant, CohostInvitation
 from events.utility import notify_host_cohosts_new_registration
@@ -300,7 +300,7 @@ def process_invitation_response(request, invitation_response_formset):
             else:
                 return None
     else:
-        messages.error(request, utility.get_form_errors(invitation_response_form))
+        messages.error(request, get_form_errors(invitation_response_form))
         return None
 
 
