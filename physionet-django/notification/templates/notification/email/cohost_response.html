@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ event_info }}
+
+Dear {{ name }},
+
+Your invitation to {{ cohost_email }} to co-host your event entitled "{{ event.title }}", has been {{ response }}.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

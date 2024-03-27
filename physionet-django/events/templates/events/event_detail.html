@@ -6,14 +6,15 @@
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}">
-{% endblock %} 
+{% endblock %}
 
 {% block content %}
 <div class="container">
-{% if event %}
+    {% include "message_snippet.html" %}
+    {% if event %}
     <h2 class="form-signin-heading">{{ event.title }}</h2>
     <div class="col-md-9 no-pd">
-        <br/>
+        <br />
         <h4>Event Details</h4>
         <hr>
         <div class="row mb-1">
@@ -48,15 +49,90 @@
                 {{ event.description | safe }}
             </div>
         </div>
+        {% if cohosts|length != 0 %}
+        <div class="row mb-1">
+            <div class="col-md-3">
+                Cohosts:
+            </div>
+            <div class="col-md-9">
+                    {% for cohost in cohosts %}
+                    <a href="{% url 'public_profile' cohost.user.username %}">{{ cohost.user.username }}</a>
+                    {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
     <hr>
 
-    {% include  "events/event_participation.html" %}
-     <hr>
+    {% include "events/event_participation.html" %}
+    <hr>
     {% if event_datasets|length != 0 %}
-      {% include  "events/event_datasets.html" %}
+    {% include "events/event_datasets.html" %}
     {% endif %}
-    
+
+    {% if invite_cohost_form != None %}
+    <div class="card">
+        <div class="card card-header">
+            <h3>Outstanding Cohost Invitations</h3>
+        </div>
+        {% if invitations %}
+        <ul class="list-group list-group-flush">
+            {% for invitation in invitations %}
+            <li class="list-group-item">
+                <strong>Email</strong>: {{ invitation.email }}<br>
+                <a class="float-right">
+                    <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal"
+                        data-target="#cancel-{{ invitation.id }}-modal"><i class="fas fa-user-times"
+                            style="color:#cb2431"></i></button>
+                </a>
+                <strong>Sent</strong>: {{ invitation.request_datetime|date }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="card-body text-center">
+            <p class="card-text">No outstanding invitations.</p>
+        </div>
+        {% endif %}
+    </div>
+    <hr>
+
+    <br>
+    <h3>Invite Cohost</h3>
+        <form action="{% url 'event_detail' event.slug %}" method="post" class="form-signin no-pd">
+            {% csrf_token %}
+            {% include "inline_form_snippet.html" with form=invite_cohost_form %}
+            <button class="btn btn-success btn-rsp" name="invite_cohost" type="submit">Invite Co-Host</button>
+        </form>
+    <hr>
+    {% endif %}
+
+    {# Modals for removing authors and invitations #}
+    {% for invitation in invitations %}
+    <div class="modal fade" id="cancel-{{ invitation.id }}-modal" tabindex="-1" role="dialog"
+        aria-labelledby="cancel-{{ invitation.id }}-modal-label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cancel-{{ invitation.id }}-modal-label">Cancel Invitation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to cancel the invitation to <strong>{{ invitation.email }}</strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <form action="" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-danger" name="cancel_invitation" value="{{ invitation.id }}" type="submit">Cancel Invitation</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 {% endif %}
 {% endblock %}

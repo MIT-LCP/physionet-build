@@ -77,6 +77,20 @@ def email_project_info(project):
 
     return header
 
+
+def email_event_info(event):
+    """
+    Header for the emails sending out events related information.
+    e.g. Event title, Event host, etc.
+    """
+    header = ("Event title: {}\n"
+              "Event ID: {}\n"
+              "Event host: {}"
+              ).format(event.title, event.slug, event.host.get_full_name())
+
+    return header
+
+
 def email_footer():
     """
     Footer for the email. e.g. for privacy policy, link to update profile, etc.
@@ -84,6 +98,35 @@ def email_footer():
     footer = ""
 
     return footer
+
+
+def cohost_invitation_notify(request, invite_cohost_form, target_email):
+    """
+    Notify someone when they are invited to become a cohost of an event
+    """
+    inviter = request.user
+    event = invite_cohost_form.event
+    subject = 'Invitation to cohost event: {}'.format(event.title)
+    email_context = {
+        'inviter_name': inviter.get_full_name(),
+        'inviter_email': inviter.email,
+        'event': event,
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+        'signature': settings.EMAIL_SIGNATURE,
+        'event_info': email_event_info(event),
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+        'target_email': target_email,
+        'sso_enabled': settings.ENABLE_SSO,
+    }
+
+    body = loader.render_to_string('notification/email/invite_cohost.html',
+                                   email_context)
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [target_email], fail_silently=False)
+
 
 def invitation_notify(request, invite_author_form, target_email):
     """
@@ -111,6 +154,37 @@ def invitation_notify(request, invite_author_form, target_email):
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [target_email], fail_silently=False)
+
+
+def cohost_response_notify(invitation, affected_emails):
+    """
+    Notify the host when an invitation to cohost an event is processed.
+    """
+    response = RESPONSE_ACTIONS[invitation.response]
+    event = invitation.event
+    subject = 'Cohost invitation {} for event: {}'.format(response,
+                                                          event.title)
+    name = event.host.get_full_name()
+    email = event.host.email
+    email_context = {
+        'name': name,
+        'event': event,
+        'response': response,
+        'signature': settings.EMAIL_SIGNATURE,
+        'event_info': email_event_info(event),
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+    }
+
+    # Send an email for each email belonging to the accepting user
+    for cohost_email in affected_emails:
+        email_context['cohost_email'] = cohost_email
+        body = loader.render_to_string(
+            'notification/email/cohost_response.html', email_context)
+
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
 
 def invitation_response_notify(invitation, affected_emails):
     """
