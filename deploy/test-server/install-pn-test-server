@@ -49,6 +49,8 @@ apt-get install -y \
         virtualenv python3-dev libpq-dev libffi-dev \
         `# Requirements for building LightWAVE` \
         build-essential libcap-dev libflac-dev libseccomp-dev \
+        `# Logging system` \
+        rsyslog \
         `# Other tools required by PhysioNet` \
         zip unzip xfsprogs \
         `# Development and administration tools` \
@@ -229,6 +231,9 @@ systemctl restart postfix
 # Disable network time so that we can play with the clock
 systemctl disable systemd-timesyncd
 systemctl stop systemd-timesyncd
+
+systemctl enable rsyslog
+systemctl restart rsyslog
 
 systemctl daemon-reload
 systemctl enable emperor.uwsgi
