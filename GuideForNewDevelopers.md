@@ -1110,7 +1110,39 @@ Now that you have completed your setup and have familiarized yourself with the c
 4. Once your changes are final and ready to be submitted, push the changes and open a Merge Request. Someone will review your changes ASAP.
 
 
+## Checklist for submitting a Merge Request
 
+1. Make sure you have tested your changes locally.
+2. Make sure you have added the necessary test cases for your changes.
+3. Make sure you have added the necessary documentation for your changes.
+   - Added one-liner crisp comments describing the logic flow.
+   - Added Docstrings to any new functions written.
+   - Updated the README.md file with the necessary information.
+5. Updated the Requirements.txt for any new dependencies added. (Auto-generated from Poetry using poetry export command)
+6. Make sure you have added the necessary changes to the .env.example file.
+
+## Checklist for adding information to the PRs and Issues
+
+### Pull Requests
+
+1. Add three sections to the PRs:
+  - **What** : What changes are made in the PR.
+  - **Why** : Why are these changes made.
+  - **Testing** : How to test the changes made in the PR.
+  - **Screenshots** : If any UI changes are made, add the screenshots.
+2. Add the necessary labels to the PRs
+3. Request a review from the maintainers.
+
+### Issues
+
+1. Add three sections to the Issues:
+  - **Current Behavior** : What is happening currently.
+  - **Expected behavior** : What is the expected behavior.
+  - **How to reproduce** : How to reproduce the bug.
+  - **Screenshots** : If any UI elements are affected, add the screenshots.
+  - **Possible solution** : If you have any possible solution, add it.
+3. Labels : Add the necessary labels to the issue.
+2. Request a review from the maintainers.
 
 Here are some good resources to read about contributing to OpenSource projects, Python and Django.
 1. [Making your first Open Source Pull Request | Github](https://www.geeksforgeeks.org/making-first-open-source-pull-request/)
