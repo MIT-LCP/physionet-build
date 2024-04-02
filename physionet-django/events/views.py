@@ -89,6 +89,9 @@ def event_home(request):
     EventApplicationResponseFormSet = modelformset_factory(
         EventApplication, form=EventApplicationResponseForm, extra=0
     )
+    InvitationResponseFormSet = modelformset_factory(
+        CohostInvitation, form=CohostInvitationResponseForm, extra=0
+    )
 
     # sqlite doesn't support the distinct() method
     events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
@@ -163,6 +166,14 @@ def event_home(request):
             return redirect(event_home)
         else:
             form_error = True
+    elif request.method == "POST" and 'invitation_response' in request.POST.keys():
+        host_qs = CohostInvitation.get_user_invitations(user)
+        invitation_response_formset = InvitationResponseFormSet(
+            request.POST,
+            queryset=host_qs,
+        )
+        if process_invitation_response(request, invitation_response_formset):
+            return redirect('event_home')
 
     events = Event.objects.all().prefetch_related(
         "participants",
@@ -223,6 +234,8 @@ def event_home(request):
     participation_response_formset = EventApplicationResponseFormSet(
         queryset=participation_requests
     )
+    invitation_response_formset = InvitationResponseFormSet(
+        queryset=CohostInvitation.get_user_invitations(user))
     return render(
         request,
         "events/event_home.html",
@@ -234,6 +247,7 @@ def event_home(request):
             "can_change_event": can_change_event,
             "form_error": form_error,
             "participation_response_formset": participation_response_formset,
+            "invitation_response_formset": invitation_response_formset,
             "event_details": event_details,
         },
     )

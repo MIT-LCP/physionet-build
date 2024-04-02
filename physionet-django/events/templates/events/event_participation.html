@@ -1,6 +1,6 @@
 <div class="container">
-  <h5>Event Registration</h5>
   {% if registration_allowed %}
+  <h5>Event Registration</h5>
     <strong><p>Click the button below to register for the event. You will receive a notification when your registration is confirmed.</p></strong>
       <form  method="post">
         {% csrf_token %}    

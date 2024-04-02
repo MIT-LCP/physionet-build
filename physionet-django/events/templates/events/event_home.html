@@ -49,13 +49,15 @@
 
 {% include 'events/event_notifications.html' %}
 
+{% include "events/event_participation.html" %}
+
 <!-- Active events -->
 
   <div class="card" >
     <div class="card-header">
       <h2>Active Events</h2>
     </div>
-    
+
     <ul class="list-group list-group-flush">
       {% for event in events_active %}
           <li class="list-group-item">
