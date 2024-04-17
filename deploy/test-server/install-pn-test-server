@@ -132,9 +132,9 @@ su pn -c '
    cp -p /physionet/physionet-build/deploy/post-receive hooks/post-receive
 
    cd /physionet/physionet-build
-   grep -v ^SECRET_KEY= < .env.example > .env
+   grep -v -e ^SECRET_KEY= -e ^DB_PASSWORD= < .env.example > .env
    printf SECRET_KEY=%s\\n "$SECRET_KEY" >> .env
-   printf DATABASES_PASSWORD=%s\\n "$DBPASSWORD" >> .env
+   printf DB_PASSWORD=%s\\n "$DBPASSWORD" >> .env
    chgrp www-data .env
    chmod 640 .env
 
