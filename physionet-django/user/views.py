@@ -795,31 +795,6 @@ def edit_certification(request):
     """
     Certifications page.
     """
-
-    if request.method == "POST":
-        training_form = forms.TrainingForm(
-            user=request.user,
-            data=request.POST,
-            files=request.FILES,
-            training_type=request.POST.get("training_type"),
-        )
-        if training_form.is_valid():
-            training_form.save()
-            messages.success(request, "The training has been submitted successfully.")
-            training_application_request(request, training_form)
-            training_form = forms.TrainingForm(user=request.user)
-        else:
-            messages.error(request, "Invalid submission. Check the errors below.")
-
-    else:
-        training_type = request.GET.get("trainingType")
-        if training_type:
-            training_form = forms.TrainingForm(
-                user=request.user, training_type=training_type
-            )
-        else:
-            training_form = forms.TrainingForm(user=request.user)
-
     training = (
         Training.objects.select_related("training_type")
         .filter(user=request.user)
