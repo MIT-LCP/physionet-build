@@ -538,6 +538,8 @@ def edit_affiliation(request, project_slug, **kwargs):
             affiliation.delete()
         else:
             raise Http404()
+    else:
+        raise Http404()
 
     AffiliationFormSet = inlineformset_factory(parent_model=Author,
         model=Affiliation, fields=('name',), extra=extra_forms,
