@@ -367,6 +367,8 @@ def new_project_version(request, project_slug):
     previous_projects = PublishedProject.objects.filter(
         slug=project_slug).order_by('-version_order')
     latest_project = previous_projects.first()
+    if latest_project is None:
+        raise Http404()
 
     # Only submitting author can make new. Also can only have one new version
     # of this project out at a time.
