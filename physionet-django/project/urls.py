@@ -95,10 +95,57 @@ urlpatterns = [
     ),
 ]
 
+# Parameters for testing URLs (see physionet/test_urls.py)
+TEST_DEFAULTS = {
+    '_user_': 'rgmark',
+    'project_slug': 'T108xFtYkRAxiRiuOLEJ',
+    'subdir': 'notes',
+    'file_name': 'notes/notes.txt',
+    'full_file_name': 'notes/notes.txt',
+}
 TEST_CASES = {
-    'project_files': {
-        '_user_': 'rgmark',
-        'project_slug': 'T108xFtYkRAxiRiuOLEJ',
-        'subdir': 'notes',
-    }
+    'new_project_version': {
+        'project_slug': 'demoeicu',
+    },
+    'archived_submission_history': {
+        '_user_': 'admin',
+        'project_slug': 't2ASGLbIBoWaTJvPrM2A',
+    },
+    'published_submission_history': {
+        'project_slug': 'demoeicu',
+        'version': '2.0.0',
+    },
+    'edit_affiliation': {
+        '_query_': {'add_first': 1},
+    },
+    'edit_content_item': [
+        {'_query_': {'add_first': 1, 'item': 'reference'}},
+        {'_query_': {'add_first': 1, 'item': 'publication'}},
+        {'_query_': {'add_first': 1, 'item': 'topic'}},
+    ],
+    'edit_ethics': {
+        '_query_': {'add_first': 1},
+    },
+    'project_files_panel': {
+        '_query_': {'subdir': 'notes'},
+    },
+    'preview_files_panel': {
+        '_query_': {'subdir': 'notes'},
+    },
+    'serve_document': {
+        # missing UploadedDocument in demo
+        '_skip_': True,
+        'file_name': 'Ethics_Approval_57e9ba85-eb58-4da5-a86f-2b653ba17cf4.pdf',
+    },
+    'published_project_request_access': {
+        # missing DataAccess in demo
+        '_skip_': True,
+        'project_slug': 'demoeicu',
+        'version': '2.0.0',
+        'access_type': '3',
+    },
+
+    # these views accept only POST
+    'generate_signed_url': {'_skip_': True},
+    'move_author': {'_skip_': True},
 }
