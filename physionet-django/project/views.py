@@ -1213,7 +1213,10 @@ def preview_files_panel(request, project_slug, **kwargs):
     manipulate them. Called via ajax to navigate directories.
     """
     project = kwargs['project']
-    subdir = request.GET['subdir']
+    try:
+        subdir = request.GET['subdir']
+    except KeyError:
+        raise Http404()
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
