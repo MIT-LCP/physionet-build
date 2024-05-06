@@ -982,7 +982,10 @@ def project_files_panel(request, project_slug, **kwargs):
     """
     project, is_submitting = (kwargs[k] for k in ('project', 'is_submitting'))
     is_editor = request.user == project.editor
-    subdir = request.GET['subdir']
+    try:
+        subdir = request.GET['subdir']
+    except KeyError:
+        raise Http404()
 
     if is_submitting and project.author_editable():
         files_editable = True
