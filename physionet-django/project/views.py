@@ -705,16 +705,24 @@ def edit_content_item(request, project_slug):
 
     # Reload the formset with the first empty form
     if request.method == 'GET' and 'add_first' in request.GET:
-        item = request.GET['item']
-        model = model_dict[item]
+        try:
+            item = request.GET['item']
+            model = model_dict[item]
+        except KeyError:
+            raise Http404()
         extra_forms = 1
     # Remove an object
     elif request.method == 'POST' and 'remove_id' in request.POST:
-        item = request.POST['item']
-        model = model_dict[item]
+        try:
+            item = request.POST['item']
+            model = model_dict[item]
+            item_id = int(request.POST['remove_id'])
+        except (KeyError, ValueError):
+            raise Http404()
         extra_forms = 0
-        item_id = int(request.POST['remove_id'])
         model.objects.filter(id=item_id).delete()
+    else:
+        raise Http404()
 
     # Create the formset
     if is_generic_relation[item]:
