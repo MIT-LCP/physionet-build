@@ -1518,6 +1518,8 @@ def edit_ethics(request, project_slug, **kwargs):
     elif request.method == 'POST' and 'remove_id' in request.POST:
         extra_forms = 0
         UploadedDocument.objects.get(id=int(request.POST['remove_id'])).delete()
+    else:
+        raise Http404()
 
     UploadedSupportingDocumentFormSet = generic_inlineformset_factory(
         UploadedDocument,
