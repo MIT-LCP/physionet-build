@@ -574,23 +574,31 @@ class PublishedTopic(models.Model):
         return self.description
 
 
-class Reference(models.Model):
+class BaseReference(models.Model):
+    """
+    Abstract base class for a bibliographic reference.
+    """
+    class Meta:
+        abstract = True
+
+    order = models.PositiveIntegerField(null=True)
+    description = models.CharField(max_length=1000)
+
+    def __str__(self):
+        return self.description
+
+
+class Reference(BaseReference):
     """
     Reference field for ActiveProject
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
-    order = models.PositiveIntegerField(null=True)
-
-    description = models.CharField(max_length=1000)
 
     class Meta:
         default_permissions = ()
         unique_together = (('description', 'object_id', 'order'),)
-
-    def __str__(self):
-        return self.description
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -601,14 +609,12 @@ class Reference(models.Model):
         self.project.content_modified()
 
 
-class PublishedReference(models.Model):
+class PublishedReference(BaseReference):
     """
     Reference field for PublishedProject
     """
-    description = models.CharField(max_length=1000)
     project = models.ForeignKey('project.PublishedProject',
         related_name='references', on_delete=models.CASCADE)
-    order = models.PositiveIntegerField(null=True)
 
     class Meta:
         default_permissions = ()
