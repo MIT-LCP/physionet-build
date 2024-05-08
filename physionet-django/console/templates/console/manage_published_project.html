@@ -183,11 +183,13 @@
     <form action="{% url 'manage_published_project' project.slug project.version %}" method="POST" id="manage_doi_form">
       {% csrf_token %}
       {% if project.core_project.doi %}
-        <button class="btn btn-primary btn-rsp" type="submit" name="update_doi_core">
+        <button class="btn btn-primary btn-rsp" type="submit" name="update_doi_core"
+                {% if not project.is_latest_version %} disabled="disabled" {% endif %}>
           Update metadata (core)
         </button>
       {% else %}
-        <button class="btn btn-primary btn-rsp" type="submit" name="create_doi_core">
+        <button class="btn btn-primary btn-rsp" type="submit" name="create_doi_core"
+                {% if not project.is_latest_version %} disabled="disabled" {% endif %}>
           Create DOI (core)
         </button>  
       {% endif %}
