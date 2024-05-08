@@ -32,7 +32,7 @@ from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
-from physionet.models import FrontPageButton, Section, StaticPage, Step, StepDetails
+from physionet.models import FrontPageButton, Section, StaticPage, Process, Step, StepDetails
 from project import forms as project_forms
 from project.models import (
     GCP,
@@ -2855,23 +2855,24 @@ def process_pages(request):
     """
     Display a list of redirected URLs.
     """
-    processes_name = Step.objects.all().distinct('process_name').order_by('process_name')
+    # Get the list of all the available process_names
+    processes = Process.objects.all()
     return render(
         request,
         'console/process_pages/index.html',
-        {'processes': processes_name})
+        {'processes': processes})
 
 @console_permission_required('physionet.change_staticpage')
-def process_pages_show(request, step_pk):
+def process_pages_show(request, process_slug):
     """
     Display a list of redirected URLs.
     """
-    step = get_object_or_404(Step, pk=step_pk)
-    steps = Step.objects.filter(process_name=step.process_name)
+    process = Process.objects.get(slug=process_slug)
+    steps = Step.objects.filter(process=process).order_by('order')
     return render(
         request,
         'console/process_pages/show.html',
-        {'steps': steps, 'process_name': step.process_name})
+        {'steps': steps, 'process_name': process.title})
 
 @console_permission_required('physionet.change_staticpage')
 def step_details_show(request, step_pk):

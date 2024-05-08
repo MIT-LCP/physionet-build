@@ -3,13 +3,17 @@
 {% block title %}Project Proofread - {{ project }}{% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">7. Project Proofread</h2>
-<hr>
-{% include "about/proofread.html" %}
+    {% with step_detail=step_details_dict.project_proofread %}
+    <h2 class="form-signin-heading">{{ step_detail.title }}</h2>
+    <hr>
+    <div>
+    {{ step_detail.content|safe }}
+    </div>
+    {% endwith %}
 
-<hr>
-<div class="btn-container-rsp">
-	<a id="view_preview" class="btn btn-primary btn-rsp" href="{% url 'project_preview' project.slug %}" role="button">View Project Preview</a>
-</div>
+    <hr>
+    <div class="btn-container-rsp">
+        <a id="view_preview" class="btn btn-primary btn-rsp" href="{% url 'project_preview' project.slug %}" role="button">View Project Preview</a>
+    </div>
 
 {% endblock %}

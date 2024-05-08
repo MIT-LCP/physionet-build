@@ -32,17 +32,10 @@
 {% block main_content %}
 
 {% with step_detail=step_details_dict.project_authors %}
-  {% if step_detail %}
     <h2 class="form-signin-heading">{{ step_detail.title }}</h2>
     <hr>
     {{ step_detail.content|safe }}
     <hr>
-  {% else %}
-    <h2 class="form-signin-heading">1. Project Authors default</h2>
-    <hr>
-      {% include "about/authors.html" %}
-    <hr>
-  {% endif %}
 {% endwith %}
 
 {% if not project.author_editable %}
@@ -84,11 +77,7 @@
 {% if is_submitting %}
   <br>
   {% with step_detail=step_details_dict.invite_author %}
-    {% if step_detail %}
       <h3>{{ step_detail.title }}</h3>
-    {% else %}
-      <h3>Invite Author</h3>
-    {% endif %}
     <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd">
       {% csrf_token %}
       {% include "inline_form_snippet.html" with form=invite_author_form %}
@@ -99,13 +88,8 @@
 
   <br>
   {% with step_detail=step_details_dict.corresponding_author %}
-    {% if step_detail %}
       <h3>{{ step_detail.title }}</h3>
       {{ step_detail.content|safe }}
-    {% else %}
-      <h3>Corresponding Author</h3>
-      <p>The corresponding author is responsible for responding to inquiries from users post publication.</p>
-    {% endif %}
   {% endwith %}
   <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd">
     {% csrf_token %}
@@ -118,13 +102,8 @@
 {% if corresponding_email_form %}
   <br>
   {% with step_detail=step_details_dict.corresponding_email %}
-    {% if step_detail %}
       <h3>{{ step_detail.title }}</h3>
       {{ step_detail.content|safe }}
-    {% else %}
-      <h3>Corresponding Email</h3>
-      <p>You are the selected corresponding author. Choose one of your emails to be listed for correspondence</p>
-    {% endif %}
   {% endwith %}
   <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd">
     {% csrf_token %}
@@ -191,13 +170,8 @@
 <br>
 
 {% with step_detail=step_details_dict.your_affiliations %}
-  {% if step_detail %}
     <h3>{{ step_detail.title }}</h3>
     {{ step_detail.content|safe }}
-  {% else %}
-    <h3>Your Affiliations</h3>
-    <p>Set up to three affiliations for your author profile. Note: these fields are not tied to your user profile.</p>
-  {% endif %}
 {% endwith %}
 <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd" onsubmit="return validateItems('affiliation-list', 'name', 'Affiliations')">
   {% csrf_token %}
@@ -210,16 +184,8 @@
 {# Transfer project to a new submitting author #}
 {% if is_submitting %}
   {% with step_detail=step_details_dict.submitting_author %}
-    {% if step_detail %}
       <h3>{{ step_detail.title }}</h3>
       {{ step_detail.content|safe }}
-    {% else %}
-      <h3>Submitting Author</h3>
-      <p>Only the submitting author of a project is able to edit content.
-       You may transfer the role of submitting author to a co-author.
-       Choose one of the co-authors below to make them the submitting author for this project.
-       Transferring authorship will remove your ability to edit content!</p>
-    {% endif %}
   {% endwith %}
 
   <form id="authorTransferForm" action="{% url 'project_authors' project.slug %}" method="post" class="no-pd">

@@ -22,9 +22,9 @@
         <tbody>
         {% for process in processes %}
             <tr>
-                <td>{{ process.process_name|title }}</td>
+                <td>{{ process.title }}</td>
                 <td class="text-center">
-                  <a href="{% url 'process_pages_show' process.pk %}" class="btn btn-sm btn-primary" role="button">Manage</a>
+                  <a href="{% url 'process_pages_show' process.slug %}" class="btn btn-sm btn-primary" role="button">Manage</a>
                 </td>
             </tr>
         {% endfor %}
