@@ -472,6 +472,8 @@ def generate_doi_payload(project, core_project=False, event="draft"):
     current_site = Site.objects.get_current()
 
     if event == "publish" and core_project:
+        if not project.is_latest_version:
+            raise Exception("core_project=True requires the latest version")
         project_url = "https://{0}{1}".format(current_site, reverse(
             'published_project_latest', args=(project.slug,)))
     elif event == "publish":
