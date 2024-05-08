@@ -456,6 +456,10 @@ def generate_doi_payload(project, core_project=False, event="draft"):
     """
     Generate a payload for registering or updating a DOI.
 
+    If event is "publish", project must be a PublishedProject object.
+    If event is "draft", project may be either a PublishedProject or
+    an ActiveProject.
+
     Args:
         project (obj): Project object.
         core_project (bool): If the metadata relates to the core project
@@ -480,6 +484,13 @@ def generate_doi_payload(project, core_project=False, event="draft"):
         version = "latest"
     else:
         version = project.version
+
+    if event == "publish":
+        publish_datetime = project.publish_datetime
+    elif event == "draft":
+        publish_datetime = timezone.now()
+    else:
+        raise Exception("event must be 'publish' or 'draft'")
 
     authors = []
     if event == "publish":
@@ -548,7 +559,7 @@ def generate_doi_payload(project, core_project=False, event="draft"):
                     "title": project.title
                 }],
                 "publisher": current_site.name,
-                "publicationYear": timezone.now().year,
+                "publicationYear": publish_datetime.year,
                 "types": {
                     "resourceTypeGeneral": resource_type
                 },
