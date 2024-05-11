@@ -192,6 +192,8 @@ TEST_DEFAULTS = {
     'process_slug': 'create_project',
     'version': '1.0',
     'training_slug': 'world-101-introduction-to-continents-and-countries',
+    'step_pk': 1,
+    'step_details_pk': 1,
 }
 TEST_CASES = {
     'manage_published_project': {
