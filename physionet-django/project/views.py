@@ -407,12 +407,12 @@ def project_overview(request, project_slug, **kwargs):
 
     project_overview_step = Step.objects.get(slug='create_project_overview')
     project_overview_step_details = StepDetails.objects.filter(step=project_overview_step)
-    step_details_dict = { step_detail.slug: step_detail for step_detail in project_overview_step_details }
+    step_details_dict = {step_detail.slug: step_detail for step_detail in project_overview_step_details}
 
     return render(request, 'project/project_overview.html',
         {'project':project, 'is_submitting':is_submitting,
-         'under_submission':under_submission,
-         'submitting_author':kwargs['authors'].get(is_submitting=True),
+         'under_submission': under_submission,
+         'submitting_author': kwargs['authors'].get(is_submitting=True),
          'step_details_dict': step_details_dict})
 
 
@@ -649,7 +649,7 @@ def project_authors(request, project_slug, **kwargs):
     edit_affiliations_url = reverse('edit_affiliation', args=[project.slug])
     project_authors_step = Step.objects.get(slug='create_project_authors')
     project_authors_step_details = StepDetails.objects.filter(step=project_authors_step)
-    step_details_dict = { step_detail.slug: step_detail for step_detail in project_authors_step_details }
+    step_details_dict = {step_detail.slug: step_detail for step_detail in project_authors_step_details}
 
 
     return render(
@@ -787,7 +787,7 @@ def project_content(request, project_slug, **kwargs):
 
     project_content_step = Step.objects.get(slug='create_project_content')
     project_content_step_details = StepDetails.objects.filter(step=project_content_step)
-    step_details_dict = { step_detail.slug: step_detail for step_detail in project_content_step_details }
+    step_details_dict = {step_detail.slug: step_detail for step_detail in project_content_step_details}
 
     response = render(request, 'project/project_content.html', {'project':project,
         'description_form':description_form, 'reference_formset':reference_formset,
@@ -893,11 +893,14 @@ def project_discovery(request, project_slug, **kwargs):
     step_details_dict = {step_detail.slug: step_detail for step_detail in project_discovery_step_details}
 
     return render(request, 'project/project_discovery.html',
-        {'project': project, 'discovery_form': discovery_form,
-         'publication_formset': publication_formset,
-         'step_details_dict': step_details_dict,
-         'topic_formset': topic_formset, 'add_item_url': edit_url,
-         'remove_item_url': edit_url, 'is_submitting': is_submitting})
+                  {'project': project,
+                   'discovery_form': discovery_form,
+                   'publication_formset': publication_formset,
+                   'step_details_dict': step_details_dict,
+                   'topic_formset': topic_formset,
+                   'add_item_url': edit_url,
+                   'remove_item_url': edit_url,
+                   'is_submitting': is_submitting})
 
 
 class ProjectAutocomplete(autocomplete.Select2QuerySetView):
@@ -1372,7 +1375,7 @@ def project_proofread(request, project_slug, **kwargs):
     step_details_dict = {step_detail.slug: step_detail for step_detail in project_proofread_step_details}
 
     return render(request, 'project/project_proofread.html',
-        {'project':kwargs['project'], 'step_details_dict': step_details_dict})
+                  {'project': kwargs['project'], 'step_details_dict': step_details_dict})
 
 
 @project_auth(auth_mode=0)

@@ -137,7 +137,8 @@ urlpatterns = [
     path('process_pages/<process_slug>/show/', views.process_pages_show, name='process_pages_show'),
     path('process_pages/step_details/<int:step_pk>/show/', views.step_details_show, name='step_details_show'),
     path('process_pages/step_details/<int:step_details_pk>/edit/', views.step_details_edit, name='step_details_edit'),
-    path('process_pages/step_details/<int:step_details_pk>/delete/', views.step_details_delete, name='step_details_delete'),
+    path('process_pages/step_details/<int:step_details_pk>/delete/',
+         views.step_details_delete, name='step_details_delete'),
 
     path('licenses/', views.license_list, name='license_list'),
     path('licenses/<int:pk>/', views.license_detail, name='license_detail'),
@@ -195,6 +196,7 @@ TEST_DEFAULTS = {
     'step_pk': 1,
     'step_details_pk': 1,
 }
+
 TEST_CASES = {
     'manage_published_project': {
         'project_slug': 'demoeicu',

@@ -2860,6 +2860,7 @@ def static_page_sections_edit(request, page_pk, section_pk):
         {'section_form': section_form, 'page': static_page, 'section': section},
     )
 
+
 @console_permission_required('physionet.change_staticpage')
 def process_pages(request):
     """
@@ -2871,6 +2872,7 @@ def process_pages(request):
         request,
         'console/process_pages/index.html',
         {'processes': processes})
+
 
 @console_permission_required('physionet.change_staticpage')
 def process_pages_show(request, process_slug):
@@ -2884,6 +2886,7 @@ def process_pages_show(request, process_slug):
         'console/process_pages/show.html',
         {'steps': steps, 'process_name': process.title})
 
+
 @console_permission_required('physionet.change_staticpage')
 def step_details_show(request, step_pk):
     """
@@ -2896,6 +2899,7 @@ def step_details_show(request, step_pk):
         request,
         'console/process_pages/step_details/index.html',
         {'step': step, 'step_details': step_details})
+
 
 @console_permission_required('physionet.change_staticpage')
 def step_details_edit(request, step_details_pk):
@@ -2916,6 +2920,7 @@ def step_details_edit(request, step_details_pk):
         request,
         'console/process_pages/step_details/edit.html',
         {'step_detail': step_detail, 'step_details_form': step_details_form})
+
 
 @console_permission_required('physionet.change_staticpage')
 def step_details_delete(request, step_details_pk):

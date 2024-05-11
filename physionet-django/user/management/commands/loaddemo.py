@@ -55,7 +55,7 @@ class Command(BaseCommand):
 
         # load Copy for create project process
         project_copy_fixtures = os.path.join(settings.BASE_DIR, 'physionet',
-                                     'fixtures', 'project_copy.json')
+                                             'fixtures', 'project_copy.json')
         call_command('loaddata', project_copy_fixtures, verbosity=1)
 
         # Load SSO login instruction static page
