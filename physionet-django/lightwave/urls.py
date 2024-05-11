@@ -1,3 +1,5 @@
+import shutil
+
 from django.urls import path
 
 from lightwave import views
@@ -16,4 +18,12 @@ urlpatterns = [
 TEST_DEFAULTS = {
     'project_slug': 'SHuKI1APLrwWCqxSQnSk',
     '_user_': 'rgmark',
+}
+TEST_CASES = {
+    'lightwave_server': {
+        '_skip_': lambda: (shutil.which('sandboxed-lightwave') is None),
+    },
+    'lightwave_project_server': {
+        '_skip_': lambda: (shutil.which('sandboxed-lightwave') is None),
+    },
 }

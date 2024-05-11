@@ -41,6 +41,12 @@ The code should dynamically reload in development, however, if there are any iss
 
 Docker-compose uses volumes to persist the database contents and data directories (media and static files). To clean up the created containers, networks and volumes stop `docker-compose up` and run `docker-compose down -v`. Do not run `docker-compose down -v` if you want to retain current database contents.
 
+## Background tasks
+
+Background tasks are managed by [Django Q2](https://django-q2.readthedocs.io/en/master/), "a native Django task queue, scheduler and worker application using Python multiprocessing".
+
+If you would like to run background tasks on your development server, you will need to start the task manager with `python manage.py qcluster`
+
 ## Using a debugger with Docker
 
 To access a debug prompt raised using `breakpoint()`:

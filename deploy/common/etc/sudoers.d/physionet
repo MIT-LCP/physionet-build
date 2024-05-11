@@ -16,3 +16,7 @@ pn ALL=(root:root) NOPASSWD: \
 # Restart django-background-tasks.service (if it is running)
 pn ALL=(root:root) NOPASSWD: \
     /bin/systemctl try-restart django-background-tasks.service
+
+# Restart django-q2-tasks.service (if it is running)
+pn ALL=(root:root) NOPASSWD: \
+    /bin/systemctl try-restart django-q2-tasks.service

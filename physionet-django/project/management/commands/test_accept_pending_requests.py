@@ -24,11 +24,14 @@ class TestAcceptPendingRequests(TestMixin):
                 days=days_delta)
             old_req.save()
 
+        # Create two access requests
+        # Args are (username, n) where n is
+        # the number of days granted access.
         get_req('rgmark', 1)
-        get_req('aewj', 30)
+        get_req('aewj', 370)
 
-        # there are two access requests created above, plus one
-        # predefined in demo-project.json
+        # There should be 3 access requests in total
+        # (2 above, plus 1 in the fixtures)
         self.assertEqual(DataAccessRequest.objects.count(), 3)
         self.assertEqual(DataAccessRequest.objects.filter(
             status=DataAccessRequest.PENDING_VALUE).count(), 3)
@@ -42,6 +45,5 @@ class TestAcceptPendingRequests(TestMixin):
             requester=User.objects.get(username='aewj')).status,
                          DataAccessRequest.ACCEPT_REQUEST_VALUE)
 
-        # one of the two access requests above should be approved,
-        # plus one from demo-project.json
+        # There should be two users with access.
         self.assertEqual(len(mail.outbox), 2)

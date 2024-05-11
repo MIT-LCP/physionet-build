@@ -49,6 +49,8 @@ apt-get install -y \
         virtualenv python3-dev libpq-dev libffi-dev \
         `# Requirements for building LightWAVE` \
         build-essential libcap-dev libflac-dev libseccomp-dev \
+        `# Logging system` \
+        rsyslog \
         `# Other tools required by PhysioNet` \
         zip unzip xfsprogs \
         `# Development and administration tools` \
@@ -130,9 +132,9 @@ su pn -c '
    cp -p /physionet/physionet-build/deploy/post-receive hooks/post-receive
 
    cd /physionet/physionet-build
-   grep -v ^SECRET_KEY= < .env.example > .env
+   grep -v -e ^SECRET_KEY= -e ^DB_PASSWORD= < .env.example > .env
    printf SECRET_KEY=%s\\n "$SECRET_KEY" >> .env
-   printf DATABASES_PASSWORD=%s\\n "$DBPASSWORD" >> .env
+   printf DB_PASSWORD=%s\\n "$DBPASSWORD" >> .env
    chgrp www-data .env
    chmod 640 .env
 
@@ -230,12 +232,20 @@ systemctl restart postfix
 systemctl disable systemd-timesyncd
 systemctl stop systemd-timesyncd
 
+systemctl enable rsyslog
+systemctl restart rsyslog
+
 systemctl daemon-reload
 systemctl enable emperor.uwsgi
 systemctl restart emperor.uwsgi
 systemctl restart nginx
+
+# django-background-tasks will be replaced with Django Q2 soon
 systemctl enable django-background-tasks
 systemctl restart django-background-tasks
+
+systemctl enable django-q2-tasks
+systemctl restart django-q2-tasks
 
 su pn -c '
    cd /physionet/physionet-build.git

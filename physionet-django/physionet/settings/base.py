@@ -51,11 +51,13 @@ INSTALLED_APPS = [
 
     'ckeditor',
     # 'django_cron',
+    'django_q',
     'background_task',
     'rest_framework',
     'oauth2_provider',
     'corsheaders',
 
+    'training',
     'user',
     'project',
     'console',
@@ -173,6 +175,23 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+# Configuration for Django Q2 (django_q2)
+# Django Q2 is a task queue, scheduler, worker application
+# Django ORM is the simplest backend for the message broker,
+# but it "is not best for a high-traffic setup".
+# https://django-q2.readthedocs.io/en/master/configure.html
+Q_CLUSTER = {
+    'name': 'Django_ORM',
+    'workers': 4,
+    'timeout': 120,
+    'retry': 600,
+    'max_attempts': 5,
+    'queue_limit': 100,
+    'bulk': 10,
+    'orm': 'default',
+    'label': 'Django Q2',
+}
 
 # Django background tasks max attempts
 MAX_ATTEMPTS = 5
@@ -644,3 +663,8 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = config('DATA_UPLOAD_MAX_MEMORY_SIZE', cast=int, de
 
 # Emails
 PROJECT_EDITOR_EMAIL = config('PROJECT_EDITOR_EMAIL', default='')
+
+ALLOWED_ACCESS_POLICIES = config(
+    'ALLOWED_ACCESS_POLICIES',
+    default='OPEN,RESTRICTED,CREDENTIALED,CONTRIBUTOR_REVIEW'
+).split(',')

@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+Your {{ training }} training on {{ domain }} will be expiring in {{ expiry }} days. After the expiry date, you may lose
+access to certain resources. To retain access, please submit a new training certificate via the training page in your
+user profile.
+
+
+Regards
+The {{ SITE_NAME }} Team
+{% endfilter %}{% endautoescape %}

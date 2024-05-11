@@ -63,7 +63,7 @@ class DataAccessRequest(models.Model):
         REVOKED_VALUE: "revoked",
     }
 
-    DATA_ACCESS_REQUESTS_DAY_LIMIT = 14
+    DATA_ACCESS_REQUESTS_DAY_LIMIT = 365
 
     request_datetime = models.DateTimeField(auto_now_add=True)
 

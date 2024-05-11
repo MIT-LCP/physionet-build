@@ -551,6 +551,8 @@ class LinkFilter:
     >>> f = LinkFilter(my_hostnames=['example.com'])
     >>> f.convert('<img src="https://example.com/foo.jpg">')
     '<img src="/foo.jpg">'
+    >>> f.convert('<img src="/foo.jpg">')
+    '<img src="/foo.jpg">'
     >>> f.convert('<img src="https://unsafe.example.org/bar.jpg">')
     '<img>'
 
@@ -667,7 +669,7 @@ class LinkFilter:
         if scheme in ('http', 'https') and self.my_netloc_re.fullmatch(netloc):
             url = urllib.parse.urlunparse(('', '', path, params,
                                            query, fragment))
-        elif attr_name == 'src':
+        elif (scheme or netloc) and attr_name == 'src':
             # Discard cross-domain subresources
             return None
 

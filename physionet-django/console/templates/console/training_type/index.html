@@ -1,0 +1,80 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ SITE_NAME }} Courses{% endblock %}
+
+{% block content %}
+
+<script>
+  console.log('update-course event listener triggered');
+  $('#update-course').on('show.bs.modal', function (event) {
+    console.log("modal opened");
+    var button = $(event.relatedTarget); // Button that triggered the modal
+    var trainingType = button.data('training-type'); // Extract info from data-* attributes
+    var modal = $(this);
+    modal.find('.modal-body input#training-type').val(trainingType);
+    console.log(trainingType);
+  });
+</script>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Courses <span class="badge badge-pill badge-info">{{ training_types|length }}</span>
+  </div>
+  <div class="card-body">
+    <div><button type="button" class="btn btn-sm btn-success" data-toggle="modal"
+        data-target="#create-course">Create</button></div>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Valid Duration</th>
+            <th>Latest Version</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for training in training_types %}
+
+          <tr>
+            <td><a href="{% url 'course_details' training.slug %}">{{ training.name|title }}</a></td>
+            <td>{{ training.valid_duration.days }} days</td>
+            <td>{{ training.courses.last.version }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="modal fade" id="create-course" tabindex="-1">
+      <div class="modal-dialog">
+        <form action="{% url 'courses' %}" method="POST" enctype="multipart/form-data" class="">
+          <div class="modal-content">
+            <div class="modal-body">
+              <p>Learn how to create a course <a href="{% url 'guidelines_course' %}">here</a> or see sample files to <a
+                  href="{% static 'sample/example-course-create.json' %}">create a new course</a></p>
+              <div>
+                {% csrf_token %}
+                <div class="form-group">
+                  <label>Training Type: </label>
+                  <select name="training_id" class="form-control" required>
+                    <option value="-1">Create new course</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>File: </label>
+                  <input type="file" name="json_file" id="json_file" required="True" class="form-control">
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <input type="submit" name="create" class="btn btn-primary">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

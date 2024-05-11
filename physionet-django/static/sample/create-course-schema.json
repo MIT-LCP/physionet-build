@@ -1,0 +1,28 @@
+{
+  "title": "string",
+  "description": "string",
+  "valid_duration": "string",
+  "version": "string",
+  "modules": [
+    {
+      "contents": [
+        {
+          "body": "string",
+          "order": "integer"
+        }
+      ],
+      "quizzes": [
+        {
+          "question": "string",
+          "order": "integer",
+          "choices": [
+            {
+              "body": "string",
+              "is_correct": "boolean"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
