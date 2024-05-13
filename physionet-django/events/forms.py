@@ -1,8 +1,13 @@
 from django import forms
 
 from events.widgets import DatePickerInput
-from events.models import Event, EventApplication, EventAgreement, EventDataset
+from events.models import Event, EventApplication, EventAgreement, EventDataset, CohostInvitation
 from project.models import PublishedProject
+
+INVITATION_CHOICES = (
+    (1, 'Accept'),
+    (0, 'Decline')
+)
 
 
 class AddEventForm(forms.ModelForm):
@@ -107,4 +112,63 @@ class EventAgreementForm(forms.ModelForm):
                 {"name": ["An agreement with this name and version already exists."],
                  "version": ["An agreement with this name and version already exists."]
                  })
+        return cleaned_data
+
+
+class InviteCohostForm(forms.ModelForm):
+    """
+    Form to invite a cohost to an event.
+    Field to fill in: email.
+    """
+
+    def __init__(self, event, *args, **kwargs):
+        super(InviteCohostForm, self).__init__(*args, **kwargs)
+        self.event = event
+
+    email = forms.EmailField(label='Email', max_length=100)
+
+    class Meta:
+        model = CohostInvitation
+        fields = ('email',)
+
+    def clean_email(self):
+        "Get the cleaned email and check if it is already a cohost."
+        email = self.cleaned_data['email']
+        if email not in self.event.participants.values_list('user__email', flat=True):
+            raise forms.ValidationError("This user is not a participant in the event.")
+
+        if self.event.participants.filter(user__email=email, is_cohost=True).exists():
+            raise forms.ValidationError("This user is already a cohost.")
+
+        if CohostInvitation.objects.filter(event=self.event, email=email, is_active=True).exists():
+            raise forms.ValidationError("This user has already been invited.")
+
+        return email
+
+    def save(self):
+        """
+        Save the form data to the database.
+        """
+        invitation = super(InviteCohostForm, self).save(commit=False)
+        invitation.event = self.event
+        invitation.save()
+        return invitation
+
+
+class CohostInvitationResponseForm(forms.ModelForm):
+    """
+    Form to respond to an invitation to be a cohost.
+    """
+    class Meta:
+        model = CohostInvitation
+        fields = ('response',)
+        widgets = {
+            'response': forms.Select(choices=INVITATION_CHOICES)
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.instance.is_active:
+            raise forms.ValidationError("This invitation is no longer active.")
+
         return cleaned_data
