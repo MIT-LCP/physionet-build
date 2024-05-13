@@ -615,6 +615,7 @@ class PublishedReference(BaseReference):
     """
     project = models.ForeignKey('project.PublishedProject',
         related_name='references', on_delete=models.CASCADE)
+    url = models.URLField(blank=True, null=True)
 
     class Meta:
         default_permissions = ()
