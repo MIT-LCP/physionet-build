@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 
 from django.conf import settings
@@ -596,9 +597,17 @@ class Reference(BaseReference):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
+    URL_PATTERN = re.compile(r'\bhttps?://[^\s<>"\']+', re.IGNORECASE)
+
     class Meta:
         default_permissions = ()
         unique_together = (('description', 'object_id', 'order'),)
+
+    @property
+    def url(self):
+        m = self.URL_PATTERN.search(self.description)
+        if m:
+            return m.group()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
