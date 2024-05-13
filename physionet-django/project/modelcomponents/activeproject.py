@@ -550,6 +550,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 for reference in self.references.all().order_by('order'):
                     published_reference = PublishedReference.objects.create(
                         description=reference.description,
+                        url=reference.url,
                         order=reference.order,
                         project=published_project)
 

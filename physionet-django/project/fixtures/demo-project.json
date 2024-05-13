@@ -672,6 +672,7 @@
   "pk": 1,
   "fields": {
     "description": "https://eicu-crd.mit.edu/eicutables/admissiondrug/",
+    "url": "https://eicu-crd.mit.edu/eicutables/admissiondrug/",
     "project": 1
   }
 },
@@ -680,6 +681,7 @@
   "pk": 2,
   "fields": {
     "description": "https://eicu-crd.mit.edu/eicutables/apachepatientresult/",
+    "url": "https://eicu-crd.mit.edu/eicutables/apachepatientresult/",
     "project": 1
   }
 },
@@ -688,6 +690,7 @@
   "pk": 3,
   "fields": {
     "description": "https://physionet.org/physiotools/wag/",
+    "url": "https://physionet.org/physiotools/wag/",
     "project": 2
   }
 },
@@ -696,6 +699,7 @@
   "pk": 4,
   "fields": {
     "description": "https://physionet.org/physiotools/wpg/",
+    "url": "https://physionet.org/physiotools/wpg/",
     "project": 2
   }
 },

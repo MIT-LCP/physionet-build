@@ -1,4 +1,5 @@
 import os
+import re
 import uuid
 
 from django.conf import settings
@@ -6,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
-from django.utils.html import format_html
+from django.utils.html import escape, format_html, mark_safe
 from html2text import html2text
 from project.modelcomponents.access import AccessPolicy, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
@@ -574,23 +575,50 @@ class PublishedTopic(models.Model):
         return self.description
 
 
-class Reference(models.Model):
+class BaseReference(models.Model):
+    """
+    Abstract base class for a bibliographic reference.
+    """
+    class Meta:
+        abstract = True
+
+    order = models.PositiveIntegerField(null=True)
+    description = models.CharField(max_length=1000)
+
+    def __str__(self):
+        return self.description
+
+    @property
+    def html_description(self):
+        description = escape(self.description)
+        url = self.url
+        if url:
+            escaped_url = escape(url)
+            link = format_html('<a href="{0}">{0}</a>', url)
+            description = description.replace(escaped_url, link)
+            description = mark_safe(description)
+        return description
+
+
+class Reference(BaseReference):
     """
     Reference field for ActiveProject
     """
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
-    order = models.PositiveIntegerField(null=True)
 
-    description = models.CharField(max_length=1000)
+    URL_PATTERN = re.compile(r'\bhttps?://[^\s<>"\']+', re.IGNORECASE)
 
     class Meta:
         default_permissions = ()
         unique_together = (('description', 'object_id', 'order'),)
 
-    def __str__(self):
-        return self.description
+    @property
+    def url(self):
+        m = self.URL_PATTERN.search(self.description)
+        if m:
+            return m.group()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -601,14 +629,13 @@ class Reference(models.Model):
         self.project.content_modified()
 
 
-class PublishedReference(models.Model):
+class PublishedReference(BaseReference):
     """
     Reference field for PublishedProject
     """
-    description = models.CharField(max_length=1000)
     project = models.ForeignKey('project.PublishedProject',
         related_name='references', on_delete=models.CASCADE)
-    order = models.PositiveIntegerField(null=True)
+    url = models.URLField(blank=True, null=True)
 
     class Meta:
         default_permissions = ()
