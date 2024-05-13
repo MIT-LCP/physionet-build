@@ -42,10 +42,6 @@
 
 {% if references %}
   <h2 id="references">References</h2>
-  <ol>
-  {% for reference in references %}
-    <li>{{ reference.description }}</li>
-  {% endfor %}
-  </ol>
+  {% include "project/reference_list.html" %}
   <hr>
 {% endif %}
