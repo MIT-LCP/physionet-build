@@ -7,7 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
-from django.utils.html import format_html
+from django.utils.html import escape, format_html, mark_safe
 from html2text import html2text
 from project.modelcomponents.access import AccessPolicy, AnonymousAccess
 from project.modelcomponents.fields import SafeHTMLField
@@ -587,6 +587,17 @@ class BaseReference(models.Model):
 
     def __str__(self):
         return self.description
+
+    @property
+    def html_description(self):
+        description = escape(self.description)
+        url = self.url
+        if url:
+            escaped_url = escape(url)
+            link = format_html('<a href="{0}">{0}</a>', url)
+            description = description.replace(escaped_url, link)
+            description = mark_safe(description)
+        return description
 
 
 class Reference(BaseReference):
