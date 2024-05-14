@@ -179,7 +179,8 @@ class EditSubmissionForm(forms.ModelForm):
             self.initial['auto_doi'] = False
 
         # This will be used in clean
-        self.quality_assurance_fields = EditLog.QUALITY_ASSURANCE_FIELDS[resource_type.id]
+        self.quality_assurance_fields = [*EditLog.QUALITY_ASSURANCE_FIELDS[resource_type.id],
+                                         *EditLog.INTERNAL_QUALITY_ASSURANCE_FIELDS]
 
         rm_fields = set(self.base_fields) - set(self.quality_assurance_fields) - set(EditLog.EDITOR_FIELDS)
         for f in rm_fields:

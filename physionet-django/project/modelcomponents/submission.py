@@ -23,7 +23,6 @@ class EditLog(models.Model):
             'open_format',
             'data_machine_readable',
             'reusable',
-            'no_phi',
             'pn_suitable',
             'ethics_included',
         ),
@@ -32,7 +31,6 @@ class EditLog(models.Model):
             'soundly_produced',
             'well_described',
             'open_format',
-            'no_phi',
             'reusable',
             'pn_suitable',
             'ethics_included',
@@ -44,7 +42,6 @@ class EditLog(models.Model):
             'open_format',
             'data_machine_readable',
             'reusable',
-            'no_phi',
             'pn_suitable',
             'ethics_included',
         ),
@@ -55,11 +52,14 @@ class EditLog(models.Model):
             'open_format',
             'data_machine_readable',
             'reusable',
-            'no_phi',
             'pn_suitable',
             'ethics_included',
         ),
     )
+    # Internal quality assurance fields (required but not displayed)
+    INTERNAL_QUALITY_ASSURANCE_FIELDS = [
+        'no_phi',
+    ]
     # The editor's free input fields
     EDITOR_FIELDS = ('editor_comments', 'decision', 'auto_doi')
 
