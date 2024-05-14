@@ -367,6 +367,8 @@ def new_project_version(request, project_slug):
     previous_projects = PublishedProject.objects.filter(
         slug=project_slug).order_by('-version_order')
     latest_project = previous_projects.first()
+    if latest_project is None:
+        raise Http404()
 
     # Only submitting author can make new. Also can only have one new version
     # of this project out at a time.
@@ -536,6 +538,8 @@ def edit_affiliation(request, project_slug, **kwargs):
             affiliation.delete()
         else:
             raise Http404()
+    else:
+        raise Http404()
 
     AffiliationFormSet = inlineformset_factory(parent_model=Author,
         model=Affiliation, fields=('name',), extra=extra_forms,
@@ -701,16 +705,24 @@ def edit_content_item(request, project_slug):
 
     # Reload the formset with the first empty form
     if request.method == 'GET' and 'add_first' in request.GET:
-        item = request.GET['item']
-        model = model_dict[item]
+        try:
+            item = request.GET['item']
+            model = model_dict[item]
+        except KeyError:
+            raise Http404()
         extra_forms = 1
     # Remove an object
     elif request.method == 'POST' and 'remove_id' in request.POST:
-        item = request.POST['item']
-        model = model_dict[item]
+        try:
+            item = request.POST['item']
+            model = model_dict[item]
+            item_id = int(request.POST['remove_id'])
+        except (KeyError, ValueError):
+            raise Http404()
         extra_forms = 0
-        item_id = int(request.POST['remove_id'])
         model.objects.filter(id=item_id).delete()
+    else:
+        raise Http404()
 
     # Create the formset
     if is_generic_relation[item]:
@@ -970,7 +982,10 @@ def project_files_panel(request, project_slug, **kwargs):
     """
     project, is_submitting = (kwargs[k] for k in ('project', 'is_submitting'))
     is_editor = request.user == project.editor
-    subdir = request.GET['subdir']
+    try:
+        subdir = request.GET['subdir']
+    except KeyError:
+        raise Http404()
 
     if is_submitting and project.author_editable():
         files_editable = True
@@ -1198,7 +1213,10 @@ def preview_files_panel(request, project_slug, **kwargs):
     manipulate them. Called via ajax to navigate directories.
     """
     project = kwargs['project']
-    subdir = request.GET['subdir']
+    try:
+        subdir = request.GET['subdir']
+    except KeyError:
+        raise Http404()
 
     (display_files, display_dirs, dir_breadcrumbs, parent_dir,
      file_error) = get_project_file_info(project=project, subdir=subdir)
@@ -1500,6 +1518,8 @@ def edit_ethics(request, project_slug, **kwargs):
     elif request.method == 'POST' and 'remove_id' in request.POST:
         extra_forms = 0
         UploadedDocument.objects.get(id=int(request.POST['remove_id'])).delete()
+    else:
+        raise Http404()
 
     UploadedSupportingDocumentFormSet = generic_inlineformset_factory(
         UploadedDocument,
