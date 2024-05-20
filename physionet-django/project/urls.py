@@ -133,9 +133,7 @@ TEST_CASES = {
         '_query_': {'subdir': 'notes'},
     },
     'serve_document': {
-        # missing UploadedDocument in demo
-        '_skip_': True,
-        'file_name': 'Ethics_Approval_57e9ba85-eb58-4da5-a86f-2b653ba17cf4.pdf',
+        'file_name': 'ethics/Ethics_Approval_567b029d-9ea6-41b8-b738-bf45675b24ce.txt',
     },
     'published_project_request_access': {
         # missing DataAccess in demo
