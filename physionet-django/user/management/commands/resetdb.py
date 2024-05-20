@@ -94,13 +94,15 @@ def clear_media_files():
         media_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
         subdir_items = [os.path.join(media_subdir, item) for item in os.listdir(media_subdir) if item != '.gitkeep']
         for item in subdir_items:
-            for root, dirs, files in os.walk(item):
-                for d in dirs:
-                    os.chmod(os.path.join(root, d), 0o755)
-                for f in files:
-                    os.chmod(os.path.join(root, f), 0o755)
-
-            shutil.rmtree(item)
+            if os.path.isdir(item):
+                for root, dirs, files in os.walk(item):
+                    for d in dirs:
+                        os.chmod(os.path.join(root, d), 0o755)
+                    for f in files:
+                        os.chmod(os.path.join(root, f), 0o755)
+                shutil.rmtree(item)
+            else:
+                os.remove(item)
 
 def clear_created_static_files():
     """
