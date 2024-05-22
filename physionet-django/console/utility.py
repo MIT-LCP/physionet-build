@@ -1,27 +1,26 @@
-from requests.auth import HTTPBasicAuth
-from requests import post, put, get
 import json
+import logging
 
-from django.utils import timezone
-from django.contrib.sites.models import Site
 from django.conf import settings
+from django.contrib.sites.models import Site
 from django.urls import reverse
+from django.utils import timezone
+from requests import get, post, put
+from requests.auth import HTTPBasicAuth
 
 from project.cloud.gcp import (
-    check_bucket_exists,
-    create_bucket,
+    add_email_bucket_access,
     bucket_info,
+    check_bucket_exists,
+    create_access_group,
+    create_bucket,
+    create_directory_service,
     make_bucket_public,
     remove_bucket_permissions,
-    create_access_group,
     update_access_group,
-    add_email_bucket_access,
     upload_files,
-    create_directory_service,
 )
 from project.validators import validate_doi
-
-import logging
 
 LOGGER = logging.getLogger(__name__)
 
