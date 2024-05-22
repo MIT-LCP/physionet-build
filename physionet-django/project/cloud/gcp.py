@@ -14,7 +14,6 @@ ROLES = ['roles/storage.legacyBucketReader',
          'roles/storage.legacyObjectReader',
          'roles/storage.objectViewer']
 
-# Manage GCP buckets
 
 def check_bucket_exists(project, version):
     """
@@ -25,6 +24,7 @@ def check_bucket_exists(project, version):
     if storage_client.lookup_bucket(bucket_name):
         return True
     return False
+
 
 def create_bucket(project, version, title, protected=True):
     """
@@ -131,7 +131,8 @@ def create_access_group(bucket, project, version, title):
         else:
             LOGGER.info("Access group {0} already exists.".format(email))
     except HttpError as e:
-        if json.loads(e.content)['error']['message'] != 'Member already exists.':
+        if (json.loads(e.content)['error']['message']
+                != 'Member already exists.'):
             LOGGER.info("Error {0} creating the access group {1} for "
                         "{2}.".format(e.content, email, project))
             raise e
@@ -177,10 +178,10 @@ def add_email_bucket_access(project, email, group=False):
 
     if group:
         for role in ROLES:
-            policy[role].add('group:'+email)
+            policy[role].add('group:' + email)
     else:
         for role in ROLES:
-            policy[role].add('user:'+email)
+            policy[role].add('user:' + email)
 
     try:
         bucket.set_iam_policy(policy)
@@ -234,8 +235,9 @@ def create_directory_service(user_email, group=False):
     Returns:
         Admin SDK Directory Service object.
     """
-    logging.getLogger('googleapiclient.discovery_cache').setLevel(logging.ERROR)
-    credentials, _  = google.auth.default(scopes=[
+    logging.getLogger('googleapiclient.discovery_cache') \
+           .setLevel(logging.ERROR)
+    credentials, _ = google.auth.default(scopes=[
         'https://www.googleapis.com/auth/admin.directory.group',
         'https://www.googleapis.com/auth/apps.groups.settings',
     ])
