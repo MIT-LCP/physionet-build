@@ -133,7 +133,7 @@ def create_access_group(bucket, project, version, title):
     except HttpError as e:
         if json.loads(e.content)['error']['message'] != 'Member already exists.':
             LOGGER.info("Error {0} creating the access group {1} for "
-                        "{1}.".format(e.content, email, project))
+                        "{2}.".format(e.content, email, project))
             raise e
         else:
             LOGGER.info("Access group {0} already exists.".format(email))
