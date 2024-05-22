@@ -1,14 +1,13 @@
-from os import walk, chdir, listdir, path
 import json
+import logging
+from os import chdir, listdir, path, walk
 
 import google.auth
-from google.api_core.exceptions import BadRequest
-from googleapiclient.errors import HttpError
-from googleapiclient.discovery import build
-from google.cloud import storage
 from django.conf import settings
-
-import logging
+from google.api_core.exceptions import BadRequest
+from google.cloud import storage
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 LOGGER = logging.getLogger(__name__)
 ROLES = ['roles/storage.legacyBucketReader',
