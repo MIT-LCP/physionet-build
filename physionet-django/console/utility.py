@@ -1,15 +1,8 @@
-from os import walk, chdir, listdir, path
 from requests.auth import HTTPBasicAuth
 from requests import post, put, get
 import json
 
-import google.auth
-import google.auth.impersonated_credentials
-from google.api_core.exceptions import BadRequest
-from googleapiclient.errors import HttpError
-from googleapiclient.discovery import build
 from django.utils import timezone
-from google.cloud import storage
 from django.contrib.sites.models import Site
 from django.conf import settings
 from django.urls import reverse
