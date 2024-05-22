@@ -278,9 +278,9 @@ def generate_doi_payload(project, core_project=False, event="draft"):
     elif event == "publish":
         # add parent if not core project
         relation = [{
-          "relationType": "IsVersionOf",
-          "relatedIdentifier": project.core_project.doi,
-          "relatedIdentifierType": "DOI"
+            "relationType": "IsVersionOf",
+            "relatedIdentifier": project.core_project.doi,
+            "relatedIdentifierType": "DOI",
         }]
     else:
         relation = []
