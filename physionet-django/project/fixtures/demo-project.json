@@ -2280,5 +2280,18 @@
     "responder": null,
     "responder_comments": ""
   }
+},
+{
+  "model": "project.uploadeddocument",
+  "pk": 1,
+  "fields": {
+    "document_type": 1,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 1,
+    "document": "ethics/Ethics_Approval_567b029d-9ea6-41b8-b738-bf45675b24ce.txt"
+  }
 }
 ]
