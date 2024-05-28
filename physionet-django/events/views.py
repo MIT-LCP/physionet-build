@@ -235,9 +235,6 @@ def event_home(request):
             },
         ]
 
-    # get all participation requests for Active events where the current user is the host and the participants are
-    # waiting for a response
-
     # making the query to get all the participation requests for the events
     # where the user is the host or an event participant with cohort status
     participation_requests = EventApplication.objects.filter(
