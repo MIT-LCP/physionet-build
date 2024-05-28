@@ -59,6 +59,12 @@ class Event(models.Model):
         """
         return self.participants.filter(is_cohost=True)
 
+    def get_cohost_ids(self):
+        """
+        Returns a list of cohost ids for the event.
+        """
+        return self.participants.filter(is_cohost=True).values_list('user', flat=True)
+
 
 class EventParticipant(models.Model):
     """
