@@ -3134,6 +3134,7 @@ def event_archive(request):
                    })
 
 
+@console_permission_required('user.add_event_dataset')
 @console_permission_required('user.view_all_events')
 def event_management(request, event_slug):
     """

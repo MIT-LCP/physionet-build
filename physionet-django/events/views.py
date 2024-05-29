@@ -22,9 +22,16 @@ from django.http import Http404
 
 @login_required
 def update_event(request, event_slug, **kwargs):
+
     user = request.user
     can_change_event = user.has_perm('events.add_event')
     event = Event.objects.get(slug=event_slug)
+
+    # if the event has dataset added to it, it cannot be edited
+    if event.datasets.exists():
+        messages.error(request, "Event with datasets cannot be edited")
+        return redirect(reverse('event_detail', args=[event_slug]))
+
     if request.method == 'POST':
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
         if event_form.is_valid():

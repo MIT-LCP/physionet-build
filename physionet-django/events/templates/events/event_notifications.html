@@ -53,6 +53,22 @@
                                     <div class="modal-body author_participation-response_form">
                                         <p>{{ participation_response_form.instance.user.get_full_name }} is requesting
                                             to join Event {{ participation_response_form.instance.event.title }}.</p>
+
+                                        <p>If a participant is approved to join this event, the participant will be
+                                            allowed to access the following datasets for the duration of the
+                                            event ({{ participation_response_form.instance.event.start_date }}
+                                            to {{ participation_response_form.instance.event.end_date }}):</p>
+
+                                        <ul>
+
+                                            {% for dataset in participation_response_form.instance.event.datasets.all %}
+                                                <li>{{ dataset.dataset.title }}</li>
+                                            {% endfor %}
+
+                                        </ul>
+
+                                        <br>
+
                                         {{ participation_response_form }}
                                     </div>
 
