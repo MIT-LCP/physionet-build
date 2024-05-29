@@ -30,7 +30,7 @@ class Event(models.Model):
         unique_together = ('title', 'host')
         permissions = [('view_all_events', 'Can view all events in the console'),
                        ('view_event_menu', 'Can view event menu in the navbar'),
-                       ('add_event_dataset', 'Can add a dataset to an event'),]
+                       ('add_event_dataset', 'Can add a dataset to an event')]
 
     def save(self, *args, **kwargs):
         if not self.slug:
