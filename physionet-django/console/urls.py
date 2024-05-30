@@ -159,6 +159,7 @@ urlpatterns = [
     path('event_agreements/<int:pk>/delete/', views.event_agreement_delete, name='event_agreement_delete'),
     path('event_agreements/<int:pk>/new-version/', views.event_agreement_new_version,
          name='event_agreement_new_version'),
+    path('console/user/manage/<username>/', views.event_invite_host, name='event_invite_host'),
 
     # Courses/On Platform Training
     path('courses/', training_views.courses, name='courses'),
