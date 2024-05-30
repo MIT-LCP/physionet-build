@@ -3173,7 +3173,7 @@ def event_management(request, event_slug):
 
             return redirect("event_management", event_slug=event_slug)
     else:
-        event_dataset_form = EventDatasetForm()
+        event_dataset_form = EventDatasetForm(user=request.user)
 
     participants = selected_event.participants.all()
     pending_applications = selected_event.applications.filter(
