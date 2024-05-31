@@ -54,6 +54,8 @@
                                         <p>{{ participation_response_form.instance.user.get_full_name }} is requesting
                                             to join Event {{ participation_response_form.instance.event.title }}.</p>
 
+                                        {% if participation_response_form.instance.event.datasets.exists %}
+
                                         <p>If a participant is approved to join this event, the participant will be
                                             allowed to access the following datasets for the duration of the
                                             event ({{ participation_response_form.instance.event.start_date }}
@@ -66,6 +68,8 @@
                                             {% endfor %}
 
                                         </ul>
+
+                                        {% endif %}
 
                                         <br>
 
