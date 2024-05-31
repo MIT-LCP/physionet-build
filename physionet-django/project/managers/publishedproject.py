@@ -8,7 +8,7 @@ from user.models import Training, TrainingType
 
 
 class PublishedProjectManager(Manager):
-    def accessible_by(self, user):
+    def accessible_by(self, user, include_event_datatsets=True):
         """
         Return all published projects accessible by a specified user
         Part of the `hdn-research-environment` app contract
@@ -52,14 +52,15 @@ class PublishedProjectManager(Manager):
                 contributor_review_with_access | credentialed_with_dua_signed
             )
 
-        # add projects that are accessible through events
-        events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
-        active_events = set(events_all.filter(end_date__gte=datetime.now()))
-        accessible_datasets = EventDataset.objects.filter(event__in=active_events, is_active=True)
-        accessible_projects_ids = []
-        for event_dataset in accessible_datasets:
-            if has_access_to_event_dataset(user, event_dataset):
-                accessible_projects_ids.append(event_dataset.dataset.id)
-        query |= Q(id__in=accessible_projects_ids)
+        if include_event_datatsets:
+            # add projects that are accessible through events
+            events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
+            active_events = set(events_all.filter(end_date__gte=datetime.now()))
+            accessible_datasets = EventDataset.objects.filter(event__in=active_events, is_active=True)
+            accessible_projects_ids = []
+            for event_dataset in accessible_datasets:
+                if has_access_to_event_dataset(user, event_dataset):
+                    accessible_projects_ids.append(event_dataset.dataset.id)
+            query |= Q(id__in=accessible_projects_ids)
 
         return self.filter(query).distinct()

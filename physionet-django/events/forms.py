@@ -79,7 +79,7 @@ class EventDatasetForm(forms.ModelForm):
         super(EventDatasetForm, self).__init__(*args, **kwargs)
 
         # Get the projects that the user is credentialed to access
-        projects = PublishedProject.objects.accessible_by(user)
+        projects = PublishedProject.objects.accessible_by(user, include_event_datatsets=False)
 
         # Update the queryset of the 'dataset' field
         self.fields['dataset'].queryset = projects

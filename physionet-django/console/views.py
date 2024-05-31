@@ -3134,8 +3134,8 @@ def event_archive(request):
                    })
 
 
-@console_permission_required('user.add_event_dataset')
-@console_permission_required('user.view_all_events')
+@console_permission_required('event.add_event_dataset')
+@console_permission_required('event.view_all_events')
 def event_management(request, event_slug):
     """
     Admin page for managing an individual Event.
