@@ -30,3 +30,11 @@ def has_access_to_event_dataset(user, dataset):
 @register.filter(name="get_applicant_info")
 def get_applicant_info(event_details, event_id):
     return event_details[event_id]
+
+
+@register.filter(name="can_view_participants")
+def can_view_participants(user, event):
+    # check if the user is a host or an event participant with is_cohost flag set to True
+    return event.host == user or event.participants.filter(
+        user=user, is_cohost=True
+    ).exists()
