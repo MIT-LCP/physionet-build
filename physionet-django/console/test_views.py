@@ -49,13 +49,31 @@ class TestState(TestMixin):
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
         editor = User.objects.get(username='amitupreti')
 
+        # Add editor as a project author
+        temp_author = project.authors.create(
+            user=editor,
+            display_order=project.authors.count() + 1,
+        )
+        temp_author.affiliations.create(name='MIT')
+
         # Submit project
         self.assertTrue(project.is_submittable())
         project.submit(author_comments='')
         self.assertIsNone(project.editor)
         self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_ASSIGNMENT)
 
-        # Assign editor
+        # Try to assign editor; this should fail
+        self.client.login(username='admin', password='Tester11!')
+        self.client.post(reverse('submitted_projects'), data={
+            'project': project.id,
+            'editor': editor.id,
+        })
+        project.refresh_from_db()
+        self.assertIsNone(project.editor)
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_ASSIGNMENT)
+
+        # Remove author and try to assign again
+        temp_author.delete()
         self.client.login(username='admin', password='Tester11!')
         self.client.post(reverse('submitted_projects'), data={
             'project': project.id,
@@ -73,13 +91,21 @@ class TestState(TestMixin):
         editor1 = User.objects.get(username='cindyehlert')
         editor2 = User.objects.get(username='amitupreti')
 
+        # Add editor2 as a project author
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        temp_author = project.authors.create(
+            user=editor2,
+            display_order=project.authors.count() + 1,
+        )
+        temp_author.affiliations.create(name='MIT')
+
         # Submit project
         self.assertTrue(project.is_submittable())
         project.submit(author_comments='')
         self.assertIsNone(project.editor)
         self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_ASSIGNMENT)
 
-        # Assign editor
+        # Assign editor1 as initial editor
         self.client.login(username='admin', password='Tester11!')
         self.client.post(reverse('submitted_projects'), data={
             'project': project.id,
@@ -89,7 +115,20 @@ class TestState(TestMixin):
         self.assertEqual(project.editor, editor1)
         self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
 
-        # Reassign editor
+        # Try to reassign to editor2; this should fail
+        self.client.login(username=editor1.username, password='Tester11!')
+        self.client.post(
+            reverse('submission_info', args=(project.slug,)),
+            data={
+                'reassign_editor': '',
+                'editor': editor2.id,
+            },
+        )
+        project.refresh_from_db()
+        self.assertEqual(project.editor, editor1)
+
+        # Remove author and try to reassign again
+        temp_author.delete()
         self.client.login(username=editor1.username, password='Tester11!')
         self.client.post(
             reverse('submission_info', args=(project.slug,)),
