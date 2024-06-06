@@ -126,14 +126,17 @@ class ReassignEditorForm(forms.Form):
     """
     editor = forms.ModelChoiceField(queryset=None, widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
 
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, *args, project, **kwargs):
         """
         Set the appropriate queryset
         """
         super().__init__(*args, **kwargs)
         users = User.get_users_with_permission('project', 'can_edit_activeprojects') \
                     .order_by('username')
-        users = users.exclude(username=user.username)
+        if project.editor:
+            users = users.exclude(id=project.editor.id)
+        author_ids = project.authors.values_list('user__id', flat=True)
+        users = users.exclude(id__in=author_ids)
         self.fields['editor'].queryset = users
 
 

@@ -322,7 +322,7 @@ def submission_info(request, project_slug):
     copyedit_logs = project.copyedit_log_history()
 
     data = request.POST or None
-    reassign_editor_form = forms.ReassignEditorForm(user, data=data)
+    reassign_editor_form = forms.ReassignEditorForm(project=project, data=data)
     internal_note_form = forms.InternalNoteForm(data)
     embargo_form = forms.EmbargoFilesDaysForm()
     passphrase = ''
@@ -405,7 +405,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
     except EditLog.DoesNotExist:
         return redirect('editor_home')
 
-    reassign_editor_form = forms.ReassignEditorForm(request.user)
+    reassign_editor_form = forms.ReassignEditorForm(project=project)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
 
@@ -466,7 +466,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
-    reassign_editor_form = forms.ReassignEditorForm(request.user)
+    reassign_editor_form = forms.ReassignEditorForm(project=project)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
 
@@ -646,7 +646,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
 
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
-    reassign_editor_form = forms.ReassignEditorForm(request.user)
+    reassign_editor_form = forms.ReassignEditorForm(project=project)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
 
@@ -713,7 +713,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         raise ServiceUnavailable()
 
-    reassign_editor_form = forms.ReassignEditorForm(request.user)
+    reassign_editor_form = forms.ReassignEditorForm(project=project)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
 
