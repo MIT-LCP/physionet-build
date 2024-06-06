@@ -46,41 +46,60 @@ class TestState(TestMixin):
         """
         Assign an editor
         """
-        # Submit project
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        editor = User.objects.get(username='amitupreti')
+
+        # Submit project
+        self.assertTrue(project.is_submittable())
         project.submit(author_comments='')
+        self.assertIsNone(project.editor)
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_ASSIGNMENT)
+
         # Assign editor
         self.client.login(username='admin', password='Tester11!')
-        editor = User.objects.get(username='amitupreti')
-        response = self.client.post(reverse(
-            'submitted_projects'), data={'project':project.id,
-            'editor':editor.id})
-        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
-        self.assertTrue(project.editor, editor)
+        self.client.post(reverse('submitted_projects'), data={
+            'project': project.id,
+            'editor': editor.id,
+        })
+        project.refresh_from_db()
+        self.assertEqual(project.editor, editor)
         self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
 
     def test_reassign_editor(self):
         """
         Assign an editor, then reassign it
         """
-        # Submit project
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        editor1 = User.objects.get(username='cindyehlert')
+        editor2 = User.objects.get(username='amitupreti')
+
+        # Submit project
+        self.assertTrue(project.is_submittable())
         project.submit(author_comments='')
+        self.assertIsNone(project.editor)
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_ASSIGNMENT)
+
         # Assign editor
         self.client.login(username='admin', password='Tester11!')
-        editor = User.objects.get(username='cindyehlert')
-        response = self.client.post(reverse('submitted_projects'), data={
-            'project': project.id, 'editor': editor.id})
-        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
-        self.assertTrue(project.editor, editor)
+        self.client.post(reverse('submitted_projects'), data={
+            'project': project.id,
+            'editor': editor1.id,
+        })
+        project.refresh_from_db()
+        self.assertEqual(project.editor, editor1)
         self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
 
         # Reassign editor
-        editor = User.objects.get(username='amitupreti')
-        response = self.client.post(reverse('submission_info',
-            args=(project.slug,)), data={'editor': editor.id})
-        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
-        self.assertTrue(project.editor, editor)
+        self.client.login(username=editor1.username, password='Tester11!')
+        self.client.post(
+            reverse('submission_info', args=(project.slug,)),
+            data={
+                'reassign_editor': '',
+                'editor': editor2.id,
+            },
+        )
+        project.refresh_from_db()
+        self.assertEqual(project.editor, editor2)
 
     def test_edit_reject(self):
         """
