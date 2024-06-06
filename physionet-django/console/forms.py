@@ -105,6 +105,20 @@ class AssignEditorForm(forms.Form):
             raise forms.ValidationError("Incorrect project selected.")
         return pid
 
+    def clean(self):
+        project = ActiveProject.objects.get(id=self.cleaned_data["project"])
+        editor = self.cleaned_data["editor"]
+        if project.authors.filter(user=editor).exists():
+            raise forms.ValidationError(
+                '%(name)s is an author of "%(project)s". '
+                'Select an editor who is not one of the project authors.',
+                code='assign_own_project',
+                params={
+                    'name': editor.get_full_name(),
+                    'project': project.title,
+                },
+            )
+
 
 class ReassignEditorForm(forms.Form):
     """
