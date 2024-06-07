@@ -173,6 +173,10 @@ def submitted_projects(request):
             notification.assign_editor_notify(project)
             notification.editor_notify_new_project(project, user)
             messages.success(request, 'The editor has been assigned')
+        else:
+            for _, errors in assign_editor_form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
 
     # Submitted projects
     projects = ActiveProject.objects.filter(submission_status__gt=SubmissionStatus.ARCHIVED).order_by(
