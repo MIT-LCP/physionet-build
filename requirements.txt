@@ -651,9 +651,9 @@ tzdata==2022.7 ; python_version >= "3.9" and python_version < "4.0" and sys_plat
 uritemplate==3.0.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:07620c3f3f8eed1f12600845892b0e036a2420acf513c53f7de0abd911a5894f \
     --hash=sha256:5af8ad10cec94f215e3f48112de2022e1d5a37ed427fbd88652fa908f2ab7cae
-urllib3==1.26.18 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:34b97092d7e0a3a8cf7cd10e386f401b3737364026c45e622aa02903dffe0f07 \
-    --hash=sha256:f8ecc1bba5667413457c529ab955bf8c67b45db799d159066261719e328580a0
+urllib3==1.26.19 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:37a0344459b199fce0e80b0d3569837ec6b6937435c5244e7fd73fa6006830f3 \
+    --hash=sha256:3e3d753a8618b86d7de333b4223005f68720bcd6a7d2bcb9fbd2229ec7c1e429
 uwsgi==2.0.22 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:4cc4727258671ac5fa17ab422155e9aaef8a2008ebb86e4404b66deaae965db2
 webencodings==0.5.1 ; python_version >= "3.9" and python_version < "4.0" \
