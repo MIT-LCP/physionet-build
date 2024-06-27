@@ -8,7 +8,7 @@ from user.models import Training, TrainingType
 
 
 class PublishedProjectManager(Manager):
-    def accessible_by(self, user, include_event_datatsets=True):
+    def accessible_by(self, user, include_event_datasets=True):
         """
         Return all published projects accessible by a specified user
         Part of the `hdn-research-environment` app contract
@@ -52,7 +52,7 @@ class PublishedProjectManager(Manager):
                 contributor_review_with_access | credentialed_with_dua_signed
             )
 
-        if include_event_datatsets:
+        if include_event_datasets:
             # add projects that are accessible through events
             events_all = Event.objects.filter(Q(host=user) | Q(participants__user=user))
             active_events = set(events_all.filter(end_date__gte=datetime.now()))
