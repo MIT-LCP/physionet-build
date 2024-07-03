@@ -22,9 +22,16 @@ from django.http import Http404
 
 @login_required
 def update_event(request, event_slug, **kwargs):
+
     user = request.user
     can_change_event = user.has_perm('events.add_event')
     event = Event.objects.get(slug=event_slug)
+
+    # if the event has dataset added to it, it cannot be edited
+    if event.datasets.exists():
+        messages.error(request, "Event with datasets cannot be edited")
+        return redirect(reverse('event_detail', args=[event_slug]))
+
     if request.method == 'POST':
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
         if event_form.is_valid():
@@ -109,6 +116,9 @@ def event_home(request):
 
     form_error = False
 
+    cohost_ids = EventParticipant.objects.filter(
+        user=user, is_cohost=True).values_list("event__id", flat=True)
+
     # handle notifications to join an event
     if request.method == "POST" and "participation_response" in request.POST.keys():
         formset = EventApplicationResponseFormSet(request.POST)
@@ -123,7 +133,13 @@ def event_home(request):
 
             event_application = form.save(commit=False)
             event = event_application.event
-            if event.host != user:
+            # if user is not a host or a participant with cohort status, they don't have permission to accept/reject
+            if not (
+                event.host == user
+                or EventParticipant.objects.filter(
+                    event=event, user=user, is_cohost=True
+                ).exists()
+            ):
                 messages.error(
                     request,
                     "You don't have permission to accept/reject this application",
@@ -226,16 +242,20 @@ def event_home(request):
             },
         ]
 
-    # get all participation requests for Active events where the current user is the host and the participants are
-    # waiting for a response
+    # making the query to get all the participation requests for the events
+    # where the user is the host or an event participant with cohort status
     participation_requests = EventApplication.objects.filter(
-        status=EventApplication.EventApplicationStatus.WAITLISTED
-    ).filter(event__host=user, event__end_date__gte=datetime.now())
+        Q(event__host=user) | Q(event__id__in=cohost_ids),
+        status=EventApplication.EventApplicationStatus.WAITLISTED,
+        event__end_date__gte=datetime.now(),
+    )
+
     participation_response_formset = EventApplicationResponseFormSet(
         queryset=participation_requests
     )
     invitation_response_formset = InvitationResponseFormSet(
         queryset=CohostInvitation.get_user_invitations(user))
+
     return render(
         request,
         "events/event_home.html",

@@ -4,6 +4,9 @@
     <ul class="list-group list-group-flush">
       <li class="list-group-item">
         <h5>Add a dataset to the event</h5>
+          <p>By adding a dataset, all participants (approved by {{ event.host.username }} or their cohosts) will be allowed to access this
+              dataset for the duration of the event (from {{ event.start_date }} to {{ event.end_date }}). There are currently {{ event.participants.count }} approved
+              participants in this event. Note that once a dataset is added to the event, the dates of the event cannot be changed.</p>
         <form action="" method="post" class="form-event-dataset">
           {% csrf_token %}
           {% include 'form_snippet.html' with form=event_dataset_form %}

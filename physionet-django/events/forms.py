@@ -3,6 +3,7 @@ from django import forms
 from events.widgets import DatePickerInput
 from events.models import Event, EventApplication, EventAgreement, EventDataset, CohostInvitation
 from project.models import PublishedProject
+from user.models import CredentialApplication
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -72,7 +73,18 @@ class EventDatasetForm(forms.ModelForm):
     """
     A form for adding datasets to an event.
     """
-    dataset = forms.ModelChoiceField(queryset=PublishedProject.objects.all(),
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super(EventDatasetForm, self).__init__(*args, **kwargs)
+
+        # Get the projects that the user is credentialed to access
+        projects = PublishedProject.objects.accessible_by(user, include_event_datasets=False)
+
+        # Update the queryset of the 'dataset' field
+        self.fields['dataset'].queryset = projects
+
+    dataset = forms.ModelChoiceField(queryset=PublishedProject.objects.none(),
                                      widget=forms.Select(attrs={'class': 'form-control'}))
 
     class Meta:

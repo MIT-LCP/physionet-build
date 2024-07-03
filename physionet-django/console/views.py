@@ -3134,7 +3134,8 @@ def event_archive(request):
                    })
 
 
-@console_permission_required('user.view_all_events')
+@console_permission_required('event.add_event_dataset')
+@console_permission_required('event.view_all_events')
 def event_management(request, event_slug):
     """
     Admin page for managing an individual Event.
@@ -3172,7 +3173,7 @@ def event_management(request, event_slug):
 
             return redirect("event_management", event_slug=event_slug)
     else:
-        event_dataset_form = EventDatasetForm()
+        event_dataset_form = EventDatasetForm(user=request.user)
 
     participants = selected_event.participants.all()
     pending_applications = selected_event.applications.filter(

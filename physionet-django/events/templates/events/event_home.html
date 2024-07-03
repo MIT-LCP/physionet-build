@@ -82,13 +82,15 @@
                 <small>Registration status: On waiting list</small><br>
             {% endif %}
 
-            {% if event.host == user %}
+            {% if user|can_view_participants:event %}
               <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
               </p>
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#participants-modal-{{ event.id }}">View participants</button>
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#pending_applications-modal-{{ event.id }}">Pending Applications</button>
               <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#rejected_applications-modal-{{ event.id }}">Rejected Applications</button>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#withdrawn_applications-modal-{{ event.id }}">Withdrawn Applications</button>              
+              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#withdrawn_applications-modal-{{ event.id }}">Withdrawn Applications</button>
+            {% endif %}
+            {% if user == event.host %}
               <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
             {% endif %}
 

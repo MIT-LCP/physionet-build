@@ -29,7 +29,8 @@ class Event(models.Model):
     class Meta:
         unique_together = ('title', 'host')
         permissions = [('view_all_events', 'Can view all events in the console'),
-                       ('view_event_menu', 'Can view event menu in the navbar')]
+                       ('view_event_menu', 'Can view event menu in the navbar'),
+                       ('add_event_dataset', 'Can add a dataset to an event')]
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -218,7 +219,8 @@ class EventDataset(models.Model):
         if not self.is_active:
             return False
 
-        if timezone.now().date() > self.event.end_date:
+        if ((timezone.now().date() > self.event.end_date)
+                or (timezone.now().date() < self.event.start_date)):
             return False
         return True
 
