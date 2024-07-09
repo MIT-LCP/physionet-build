@@ -7,7 +7,7 @@ import user.validators
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("user", "0057_alter_cloudinformation_aws_id"),
+        ("user", "0060_backfill_trainingtype_slugs"),
     ]
 
     operations = [
