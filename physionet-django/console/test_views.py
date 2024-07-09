@@ -6,6 +6,8 @@ import pdb
 
 import requests_mock
 from background_task.tasks import tasks
+from django.contrib.sites.models import Site
+from django.test import TestCase
 from django.test.utils import get_runner
 from django.urls import reverse
 from events.models import EventAgreement
@@ -456,6 +458,157 @@ class TestState(TestMixin):
             self.assertEqual(project.core_project.doi, '10.0000/bbb')
 
         self.assertEqual(mocker.call_count, 4)
+
+
+class TestPublished(TestCase):
+    """
+    Test functions for managing published projects.
+    """
+
+    @requests_mock.Mocker()
+    def test_register_doi(self, mocker):
+        """
+        Test registering new DOIs for a published project.
+        """
+        self.client.login(username='admin', password='Tester11!')
+
+        project = PublishedProject.objects.get(slug='demowave',
+                                               version='1.0.0')
+        self.assertIsNone(project.doi)
+        self.assertIsNone(project.core_project.doi)
+        self.assertTrue(project.is_latest_version)
+
+        site = Site.objects.get_current()
+        site_url = 'https://' + site.domain
+        published_url = site_url + reverse('published_project',
+                                           args=(project.slug,
+                                                 project.version))
+        core_url = site_url + reverse('published_project_latest',
+                                      args=(project.slug,))
+
+        management_url = reverse('manage_published_project',
+                                 args=(project.slug, project.version))
+
+        with self.settings(
+                DATACITE_API_URL='https://api.datacite.example/dois',
+                DATACITE_USER='admin',
+                DATACITE_PASSWORD='letmein',
+                DATACITE_PREFIX='10.0000'):
+
+            # Create new versioned DOI
+            mocker.post('https://api.datacite.example/dois', [
+                {'text': json.dumps(
+                    {'data': {'attributes': {'doi': '10.0000/ccc'}}})},
+            ])
+            response = self.client.post(management_url, data={
+                'create_doi_version': ''
+            })
+            self.assertEqual(response.status_code, 200)
+
+            project.refresh_from_db()
+            self.assertEqual(project.doi, '10.0000/ccc')
+
+            payload = mocker.last_request.json()
+            self.assertEqual(payload['data']['type'], 'dois')
+
+            attributes = payload['data']['attributes']
+            self.assertEqual(attributes['event'], 'publish')
+            self.assertEqual(attributes['publicationYear'],
+                             project.publish_datetime.year)
+            self.assertEqual(attributes['url'], published_url)
+
+            # Create new core DOI
+            mocker.post('https://api.datacite.example/dois', [
+                {'text': json.dumps(
+                    {'data': {'attributes': {'doi': '10.0000/ddd'}}})},
+            ])
+            response = self.client.post(management_url, data={
+                'create_doi_core': ''
+            })
+            self.assertEqual(response.status_code, 200)
+
+            project.core_project.refresh_from_db()
+            self.assertEqual(project.core_project.doi, '10.0000/ddd')
+
+            payload = mocker.last_request.json()
+            self.assertEqual(payload['data']['type'], 'dois')
+
+            attributes = payload['data']['attributes']
+            self.assertEqual(attributes['event'], 'publish')
+            self.assertEqual(attributes['publicationYear'],
+                             project.publish_datetime.year)
+            self.assertEqual(attributes['url'], core_url)
+
+    @requests_mock.Mocker()
+    def test_update_doi(self, mocker):
+        """
+        Test updating existing DOIs for a published project.
+        """
+        self.client.login(username='admin', password='Tester11!')
+
+        project = PublishedProject.objects.get(slug='demopsn',
+                                               version='1.0')
+        self.assertIsNotNone(project.doi)
+        self.assertIsNotNone(project.core_project.doi)
+        self.assertTrue(project.is_latest_version)
+
+        doi = project.doi
+        core_doi = project.core_project.doi
+
+        site = Site.objects.get_current()
+        site_url = 'https://' + site.domain
+        published_url = site_url + reverse('published_project',
+                                           args=(project.slug,
+                                                 project.version))
+        core_url = site_url + reverse('published_project_latest',
+                                      args=(project.slug,))
+
+        management_url = reverse('manage_published_project',
+                                 args=(project.slug, project.version))
+
+        with self.settings(
+                DATACITE_API_URL='https://api.datacite.example/dois',
+                DATACITE_USER='admin',
+                DATACITE_PASSWORD='letmein',
+                DATACITE_PREFIX='10.0000'):
+
+            # Update versioned DOI
+            mocker.put('https://api.datacite.example/dois/' + doi)
+            response = self.client.post(management_url, data={
+                'update_doi_version': ''
+            })
+            self.assertEqual(response.status_code, 200)
+
+            project.refresh_from_db()
+            self.assertEqual(project.doi, doi)
+
+            payload = mocker.last_request.json()
+            self.assertEqual(payload['data']['type'], 'dois')
+
+            attributes = payload['data']['attributes']
+            self.assertEqual(attributes['event'], 'publish')
+            self.assertEqual(attributes['publicationYear'],
+                             project.publish_datetime.year)
+            self.assertEqual(attributes['url'], published_url)
+
+            # Update core DOI
+            mocker.put('https://api.datacite.example/dois/' + core_doi)
+            response = self.client.post(management_url, data={
+                'update_doi_core': ''
+            })
+            self.assertEqual(response.status_code, 200)
+
+            project.core_project.refresh_from_db()
+            self.assertEqual(project.core_project.doi, core_doi)
+
+            payload = mocker.last_request.json()
+            self.assertEqual(payload['data']['type'], 'dois')
+
+            attributes = payload['data']['attributes']
+            self.assertEqual(attributes['event'], 'publish')
+            self.assertEqual(attributes['publicationYear'],
+                             project.publish_datetime.year)
+            self.assertEqual(attributes['url'], core_url)
 
 
 class TestStaticPage(TestMixin):

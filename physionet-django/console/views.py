@@ -878,11 +878,15 @@ def manage_doi_request(request, project):
         return "The DOI was created."
 
     if 'create_doi_core' in request.POST:
+        if not project.is_latest_version:
+            return "This is not the latest project version."
         payload = utility.generate_doi_payload(project, core_project=True,
                                                event="publish")
         utility.register_doi(payload, project.core_project)
         message = "The DOI was created."
     elif 'update_doi_core' in request.POST:
+        if not project.is_latest_version:
+            return "This is not the latest project version."
         payload = utility.generate_doi_payload(project, core_project=True,
                                                event="publish")
         utility.update_doi(project.core_project.doi, payload)
