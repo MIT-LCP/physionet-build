@@ -9,7 +9,7 @@
         <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline" role="tab" aria-controls="timeline" aria-selected="false">Submission Timeline</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="ethics-tab" data-toggle="tab" href="#ethics" role="tab" aria-controls="timeline" aria-selected="false">Ethics</a>
+        <a class="nav-link" id="ethics-tab" data-toggle="tab" href="#ethics" role="tab" aria-controls="ethics" aria-selected="false">Ethics</a>
       </li>
       <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="anonymous-tab" data-toggle="tab" href="#anonymous" role="tab" aria-controls="anonymous" aria-selected="false">Anonymous Access</a>
@@ -24,9 +24,12 @@
       {% endif %}
       {% if project.submission_status >= SubmissionStatus.NEEDS_COPYEDIT %}
       <li class="nav-item">
-        <a class="nav-link" id="doi-tab" data-toggle="tab" href="#doi" role="tab" aria-controls="timeline" aria-selected="false">DOIs</a>
+        <a class="nav-link" id="doi-tab" data-toggle="tab" href="#doi" role="tab" aria-controls="doi" aria-selected="false">DOIs</a>
       </li>
       {% endif %}
+      <li class="nav-item">
+        <a class="nav-link" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="false">Internal notes</a>
+      </li>
     </ul>
   </div>
   <div class="card-body">
@@ -69,7 +72,7 @@
         {% include "project/active_submission_timeline.html" %}
       </div>
       {# Ethics #}
-      <div class="tab-pane fade" id="ethics" role="tabpanel" aria-labelledby="timeline-tab">
+      <div class="tab-pane fade" id="ethics" role="tabpanel" aria-labelledby="ethics-tab">
         <h5 class="card-title">Ethics statement</h5>
         <p class="card-text">{{ project.ethics_statement|safe }}</p>
         <h5>Uploaded Documents</h5>
@@ -115,6 +118,40 @@
             Revoke access
           </button>
           {% endif %}
+        </form>
+      </div>
+
+      {# Notes #}
+      <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
+        <p>Notes posted here are visible only to the editorial team. They are not visible to authors.</p>
+        <ul class="list-group">
+          {% for note in notes %}
+            <li class="list-group-item">
+              <p>{{ note.content|linebreaks }}</p>
+              <p class="small text-muted">Created by {{ note.created_by }} on {{ note.created_at }}</p>
+              {% if note.created_by == user %}
+                <form action="{% url 'submission_info' project.slug %}" method="POST" id="internal_note_form">
+                  {% csrf_token %}
+                  <input type="hidden" name="note_id" value="{{ note.id }}">
+                  <button class="btn btn-danger btn-rsp" type="submit" name="delete_internal_note" onclick="return confirm('Are you sure you want to delete this note?');">
+                    Delete
+                  </button>
+                </form>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+
+        <br />
+
+        <form action="{% url 'submission_info' project.slug %}" method="POST" id="internal_note_form">
+          {% csrf_token %}
+          <div class="form-group">
+            {{ internal_note_form.content }}
+          </div>
+          <button class="btn btn-primary" type="submit" name="add_internal_note">
+            Add Note
+          </button>
         </form>
       </div>
 

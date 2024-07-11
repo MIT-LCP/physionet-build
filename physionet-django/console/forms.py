@@ -25,6 +25,7 @@ from project.models import (
     PublishedPublication,
     SubmissionStatus,
     exists_project_slug,
+    InternalNote,
 )
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
@@ -71,6 +72,15 @@ YES_NO_NA_UNDETERMINED = (
     (0, 'No'),
     (None, 'N/A or Undetermined')
 )
+
+
+class InternalNoteForm(forms.ModelForm):
+    class Meta:
+        widgets = {
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+        }
+        model = InternalNote
+        fields = ['content']
 
 
 class AssignEditorForm(forms.Form):

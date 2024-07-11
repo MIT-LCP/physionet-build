@@ -641,3 +641,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         editor_copyediting = self.copyeditable() and user == self.editor
 
         return author_submitting or editor_copyediting
+
+
+class InternalNote(models.Model):
+    """
+    Allow notes to be created for active projects. These notes should only be viewable by people with editor status.
+    """
+    project = models.ForeignKey('project.ActiveProject', on_delete=models.CASCADE, related_name='internal_notes')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    content = models.TextField()
+
+    def __str__(self):
+        return f"Note by {self.created_by} on {self.created_at}"
