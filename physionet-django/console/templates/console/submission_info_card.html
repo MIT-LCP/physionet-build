@@ -128,13 +128,15 @@
         <li class="list-group-item">
           <p>{{ note.content }}</p>
           <p class="small text-muted">Created by {{ note.created_by }} on {{ note.created_at }}</p>
-          <form action="{% url 'submission_info' project.slug %}" method="POST" id="internal_note_form">
-            {% csrf_token %}
-            <input type="hidden" name="note_id" value="{{ note.id }}">
-            <button class="btn btn-danger btn-rsp" type="submit" name="delete_internal_note" onclick="return confirm('Are you sure you want to delete this note?');">
-              Delete
-            </button>
-          </form>
+          {% if note.created_by == user %}
+            <form action="{% url 'submission_info' project.slug %}" method="POST" id="internal_note_form">
+              {% csrf_token %}
+              <input type="hidden" name="note_id" value="{{ note.id }}">
+              <button class="btn btn-danger btn-rsp" type="submit" name="delete_internal_note" onclick="return confirm('Are you sure you want to delete this note?');">
+                Delete
+              </button>
+            </form>
+          {% endif %}
         </li>
         {% endfor %}
 

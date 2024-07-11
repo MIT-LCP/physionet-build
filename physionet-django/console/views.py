@@ -325,8 +325,11 @@ def submission_info(request, project_slug):
     if 'delete_internal_note' in request.POST:
         note_id = request.POST['note_id']
         note = get_object_or_404(InternalNote, pk=note_id, project=project)
-        note.delete()
-        messages.success(request, "Note deleted.")
+        if note.created_by == request.user:
+            note.delete()
+            messages.success(request, "Note deleted.")
+        else:
+            messages.error(request, "You are not authorized to delete this note.")
         return redirect(f'{request.path}?tab=notes')
 
     url_prefix = notification.get_url_prefix(request)
