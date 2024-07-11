@@ -277,7 +277,7 @@ def submission_info(request, project_slug):
     View information about a project under submission
     """
     project = get_object_or_404(ActiveProject, slug=project_slug)
-    notes = project.internal_notes.all()
+    notes = project.internal_notes.all().order_by('-created_at')
 
     user = request.user
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
