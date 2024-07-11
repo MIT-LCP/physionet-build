@@ -54,6 +54,7 @@ from project.models import (
     SubmissionStatus,
     Topic,
     exists_project_slug,
+    InternalNote
 )
 from project.authorization.access import can_view_project_files
 from project.utility import readable_size
@@ -275,16 +276,15 @@ def submission_info(request, project_slug):
     """
     View information about a project under submission
     """
-    try:
-        project = ActiveProject.objects.get(slug=project_slug)
-    except ActiveProject.DoesNotExist:
-        raise Http404()
+    project = get_object_or_404(ActiveProject, slug=project_slug)
+    notes = project.internal_notes.all()
 
     user = request.user
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
 
     data = request.POST or None
     reassign_editor_form = forms.ReassignEditorForm(user, data=data)
+    internal_note_form = forms.InternalNoteForm(data)
     embargo_form = forms.EmbargoFilesDaysForm()
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
@@ -313,6 +313,21 @@ def submission_info(request, project_slug):
                 project.embargo_files_days = days
             project.save()
             messages.success(request, f"An embargo was set for {project.embargo_files_days} day(s)")
+    if 'add_internal_note' in request.POST:
+        if internal_note_form.is_valid():
+            note = internal_note_form.save(commit=False)
+            note.project = project
+            note.created_by = request.user
+            note.save()
+            messages.success(request, "Note added.")
+            internal_note_form = forms.InternalNoteForm()
+            return redirect(f'{request.path}?tab=notes')
+    if 'delete_internal_note' in request.POST:
+        note_id = request.POST['note_id']
+        note = get_object_or_404(InternalNote, pk=note_id, project=project)
+        note.delete()
+        messages.success(request, "Note deleted.")
+        return redirect(f'{request.path}?tab=notes')
 
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
@@ -324,8 +339,9 @@ def submission_info(request, project_slug):
                    'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
                    'reassign_editor_form': reassign_editor_form,
-                   'embargo_form': embargo_form})
-
+                   'embargo_form': embargo_form,
+                   'notes': notes,
+                   'internal_note_form': internal_note_form})
 
 @handling_editor
 def edit_submission(request, project_slug, *args, **kwargs):
