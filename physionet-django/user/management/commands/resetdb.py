@@ -87,22 +87,19 @@ def clear_media_files():
     """
     Remove all media files.
 
-    Removes all content in the media root, excluding the immediate
-    subfolders themselves and the .gitkeep files.
+    Remove all content in the media root, except that if a file called
+    ".gitkeep" is found, preserve that file and the subdirectory
+    containing it.
     """
-    for subdir in os.listdir(settings.MEDIA_ROOT):
-        media_subdir = os.path.join(settings.MEDIA_ROOT, subdir)
-        subdir_items = [os.path.join(media_subdir, item) for item in os.listdir(media_subdir) if item != '.gitkeep']
-        for item in subdir_items:
-            if os.path.isdir(item):
-                for root, dirs, files in os.walk(item):
-                    for d in dirs:
-                        os.chmod(os.path.join(root, d), 0o755)
-                    for f in files:
-                        os.chmod(os.path.join(root, f), 0o755)
-                shutil.rmtree(item)
-            else:
-                os.remove(item)
+    for path, subdirs, files in os.walk(settings.MEDIA_ROOT, topdown=False):
+        os.chmod(path, 0o755)
+        for name in files:
+            if name != '.gitkeep':
+                os.remove(os.path.join(path, name))
+        for name in subdirs:
+            if not os.listdir(os.path.join(path, name)):
+                os.rmdir(os.path.join(path, name))
+
 
 def clear_created_static_files():
     """
