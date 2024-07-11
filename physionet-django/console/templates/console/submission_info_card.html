@@ -124,21 +124,23 @@
       {# Notes #}
       <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">
         <p>Notes posted here are visible only to the editorial team. They are not visible to authors.</p>
-        {% for note in notes %}
-        <li class="list-group-item">
-          <p>{{ note.content }}</p>
-          <p class="small text-muted">Created by {{ note.created_by }} on {{ note.created_at }}</p>
-          {% if note.created_by == user %}
-            <form action="{% url 'submission_info' project.slug %}" method="POST" id="internal_note_form">
-              {% csrf_token %}
-              <input type="hidden" name="note_id" value="{{ note.id }}">
-              <button class="btn btn-danger btn-rsp" type="submit" name="delete_internal_note" onclick="return confirm('Are you sure you want to delete this note?');">
-                Delete
-              </button>
-            </form>
-          {% endif %}
-        </li>
-        {% endfor %}
+        <ul class="list-group">
+          {% for note in notes %}
+            <li class="list-group-item">
+              <p>{{ note.content|linebreaks }}</p>
+              <p class="small text-muted">Created by {{ note.created_by }} on {{ note.created_at }}</p>
+              {% if note.created_by == user %}
+                <form action="{% url 'submission_info' project.slug %}" method="POST" id="internal_note_form">
+                  {% csrf_token %}
+                  <input type="hidden" name="note_id" value="{{ note.id }}">
+                  <button class="btn btn-danger btn-rsp" type="submit" name="delete_internal_note" onclick="return confirm('Are you sure you want to delete this note?');">
+                    Delete
+                  </button>
+                </form>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
 
         <br />
 
