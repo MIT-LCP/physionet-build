@@ -1,4 +1,5 @@
 {% load project_templatetags %}
+{% load console_templatetags %}
 <div class="card mb-3">
   <div class="card-header">
     <ul class="nav nav-tabs card-header-tabs">
@@ -28,7 +29,9 @@
       </li>
       {% endif %}
       <li class="nav-item">
-        <a class="nav-link" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="false">Internal notes</a>
+        <a class="nav-link" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="false">Internal notes
+          {{ notes|task_count_badge|safe }}
+        </a>
       </li>
     </ul>
   </div>
