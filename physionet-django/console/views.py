@@ -337,15 +337,16 @@ def submission_info(request, project_slug):
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
         anonymous_url, passphrase = '', 'revoked'
-    elif ('reassign_editor' in request.POST
-              and user == project.editor
-              and reassign_editor_form.is_valid()):
-        project.reassign_editor(reassign_editor_form.cleaned_data['editor'])
-        notification.editor_notify_new_project(project, user, reassigned=True)
-        messages.success(request, 'The editor has been reassigned')
-        LOGGER.info("The editor for the project {0} has been reassigned from "
-                    "{1} to {2}".format(project, user,
-                                        reassign_editor_form.cleaned_data['editor']))
+    elif 'reassign_editor' in request.POST and user == project.editor:
+        if reassign_editor_form.is_valid():
+            project.reassign_editor(reassign_editor_form.cleaned_data['editor'])
+            notification.editor_notify_new_project(project, user, reassigned=True)
+            messages.success(request, 'The editor has been reassigned')
+            LOGGER.info("The editor for the project {0} has been reassigned from "
+                        "{1} to {2}".format(project, user,
+                                            reassign_editor_form.cleaned_data['editor']))
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
     elif 'embargo_files' in request.POST:
         embargo_form = forms.EmbargoFilesDaysForm(data=request.POST)
         if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
