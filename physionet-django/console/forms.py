@@ -26,6 +26,7 @@ from project.models import (
     SubmissionStatus,
     exists_project_slug,
     InternalNote,
+    PeerReview,
 )
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
@@ -80,6 +81,15 @@ class InternalNoteForm(forms.ModelForm):
             'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
         model = InternalNote
+        fields = ['content']
+
+
+class PeerReviewForm(forms.ModelForm):
+    class Meta:
+        widgets = {
+            'content': forms.Textarea(attrs={'class': 'form-control', 'rows': 6}),
+        }
+        model = PeerReview
         fields = ['content']
 
 
