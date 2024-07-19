@@ -54,7 +54,8 @@ from project.models import (
     SubmissionStatus,
     Topic,
     exists_project_slug,
-    InternalNote
+    InternalNote,
+    PeerReview
 )
 from project.authorization.access import can_view_project_files
 from project.utility import readable_size
@@ -278,6 +279,7 @@ def submission_info(request, project_slug):
     """
     project = get_object_or_404(ActiveProject, slug=project_slug)
     notes = project.internal_notes.all().order_by('-created_at')
+    reviews = project.peer_reviews.all().order_by('-created_at')
 
     user = request.user
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
@@ -285,6 +287,7 @@ def submission_info(request, project_slug):
     data = request.POST or None
     reassign_editor_form = forms.ReassignEditorForm(user, data=data)
     internal_note_form = forms.InternalNoteForm(data)
+    peer_review_form = forms.PeerReviewForm(data)
     embargo_form = forms.EmbargoFilesDaysForm()
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
@@ -331,6 +334,24 @@ def submission_info(request, project_slug):
         else:
             messages.error(request, "You are not authorized to delete this note.")
         return redirect(f'{request.path}?tab=notes')
+    if 'add_peer_review' in request.POST:
+        if peer_review_form.is_valid():
+            review = peer_review_form.save(commit=False)
+            review.project = project
+            review.created_by = request.user
+            review.save()
+            messages.success(request, "Review added.")
+            peer_review_form = forms.PeerReviewForm()
+            return redirect(f'{request.path}?tab=reviews')
+    if 'delete_peer_review' in request.POST:
+        review_id = request.POST['review_id']
+        review = get_object_or_404(PeerReview, pk=review_id, project=project)
+        if review.created_by == request.user:
+            review.delete()
+            messages.success(request, "Review deleted.")
+        else:
+            messages.error(request, "You are not authorized to delete this review.")
+        return redirect(f'{request.path}?tab=reviews')
 
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
@@ -344,7 +365,10 @@ def submission_info(request, project_slug):
                    'reassign_editor_form': reassign_editor_form,
                    'embargo_form': embargo_form,
                    'notes': notes,
-                   'internal_note_form': internal_note_form})
+                   'internal_note_form': internal_note_form,
+                   'reviews': reviews,
+                   'peer_review_form': peer_review_form})
+
 
 @handling_editor
 def edit_submission(request, project_slug, *args, **kwargs):
