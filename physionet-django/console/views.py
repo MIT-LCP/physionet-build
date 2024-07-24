@@ -271,6 +271,43 @@ def submission_info_redirect(request, project_slug):
     return redirect('submission_info', project_slug=project_slug)
 
 
+def submission_info_card_params(project,
+                                authors,
+                                author_emails,
+                                storage_info,
+                                edit_logs,
+                                latest_version,
+                                url_prefix,
+                                bulk_url_prefix,
+                                reassign_editor_form,
+                                embargo_form,
+                                notes,
+                                internal_note_form):
+    """
+    Parameters used across submission_info_card.html pages, including:
+
+    awaiting_authors.html
+    copyedit_submission.html
+    edit_submission.html
+    publish_submission.html
+    submission_info.html
+    """
+    return {
+        'project': project,
+        'authors': authors,
+        'author_emails': author_emails,
+        'storage_info': storage_info,
+        'edit_logs': edit_logs,
+        'latest_version': latest_version,
+        'url_prefix': url_prefix,
+        'bulk_url_prefix': bulk_url_prefix,
+        'reassign_editor_form': reassign_editor_form,
+        'embargo_form': embargo_form,
+        'notes': notes,
+        'internal_note_form': internal_note_form,
+    }
+
+
 @console_permission_required('project.change_activeproject')
 def submission_info(request, project_slug):
     """
@@ -335,16 +372,24 @@ def submission_info(request, project_slug):
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     return render(request, 'console/submission_info.html',
-                  {'project': project, 'authors': authors,
-                   'author_emails': author_emails, 'storage_info': storage_info,
-                   'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
-                   'latest_version': latest_version, 'passphrase': passphrase,
-                   'anonymous_url': anonymous_url, 'url_prefix': url_prefix,
-                   'bulk_url_prefix': bulk_url_prefix,
-                   'reassign_editor_form': reassign_editor_form,
-                   'embargo_form': embargo_form,
-                   'notes': notes,
-                   'internal_note_form': internal_note_form})
+                  {**submission_info_card_params(
+                      project,
+                      authors,
+                      author_emails,
+                      storage_info,
+                      edit_logs,
+                      latest_version,
+                      url_prefix,
+                      bulk_url_prefix,
+                      reassign_editor_form,
+                      embargo_form,
+                      notes,
+                      internal_note_form),
+                      'copyedit_logs': copyedit_logs,
+                      'passphrase': passphrase,
+                      'anonymous_url': anonymous_url,
+                   }
+                  )
 
 
 @handling_editor
@@ -398,16 +443,26 @@ def edit_submission(request, project_slug, *args, **kwargs):
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
 
-    return render(request, 'console/edit_submission.html',
-                  {'project': project, 'edit_submission_form': edit_submission_form,
-                   'authors': authors, 'author_emails': author_emails,
-                   'storage_info': storage_info, 'edit_logs': edit_logs,
-                   'latest_version': latest_version, 'url_prefix': url_prefix,
-                   'bulk_url_prefix': bulk_url_prefix,
-                   'editor_home': True, 'reassign_editor_form': reassign_editor_form,
-                   'embargo_form': embargo_form,
-                   'notes': notes,
-                   'internal_note_form': internal_note_form})
+    return render(request,
+                  'console/edit_submission.html',
+                  {**submission_info_card_params(
+                   project,
+                   authors,
+                   author_emails,
+                   storage_info,
+                   edit_logs,
+                   latest_version,
+                   url_prefix,
+                   bulk_url_prefix,
+                   reassign_editor_form,
+                   embargo_form,
+                   notes,
+                   internal_note_form,
+                   ),
+                   'edit_submission_form': edit_submission_form,
+                   'editor_home': True,
+                   }
+                  )
 
 
 @handling_editor
@@ -554,46 +609,47 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     response = render(
         request,
         'console/copyedit_submission.html',
-        {
-            'project': project,
-            'description_form': description_form,
-            'ethics_form': ethics_form,
-            'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
-            'access_form': access_form,
-            'reference_formset': reference_formset,
-            'publication_formset': publication_formset,
-            'topic_formset': topic_formset,
-            'storage_type': settings.STORAGE_TYPE,
-            'storage_info': storage_info,
-            'upload_files_form': upload_files_form,
-            'create_folder_form': create_folder_form,
-            'rename_item_form': rename_item_form,
-            'move_items_form': move_items_form,
-            'delete_items_form': delete_items_form,
-            'subdir': subdir,
-            'display_files': display_files,
-            'display_dirs': display_dirs,
-            'dir_breadcrumbs': dir_breadcrumbs,
-            'file_error': file_error,
-            'editor_home': True,
-            'is_editor': True,
-            'files_editable': True,
-            'copyedit_form': copyedit_form,
-            'authors': authors,
-            'author_emails': author_emails,
-            'edit_logs': edit_logs,
-            'copyedit_logs': copyedit_logs,
-            'latest_version': latest_version,
-            'add_item_url': edit_url,
-            'remove_item_url': edit_url,
-            'discovery_form': discovery_form,
-            'url_prefix': url_prefix,
-            'bulk_url_prefix': bulk_url_prefix,
-            'reassign_editor_form': reassign_editor_form,
-            'embargo_form': embargo_form,
-            'notes': notes,
-            'internal_note_form': internal_note_form
-        },
+        {**submission_info_card_params(
+         project,
+         authors,
+         author_emails,
+         storage_info,
+         edit_logs,
+         latest_version,
+         url_prefix,
+         bulk_url_prefix,
+         reassign_editor_form,
+         embargo_form,
+         notes,
+         internal_note_form
+         ),
+         'description_form': description_form,
+         'ethics_form': ethics_form,
+         'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
+         'access_form': access_form,
+         'reference_formset': reference_formset,
+         'publication_formset': publication_formset,
+         'topic_formset': topic_formset,
+         'storage_type': settings.STORAGE_TYPE,
+         'upload_files_form': upload_files_form,
+         'create_folder_form': create_folder_form,
+         'rename_item_form': rename_item_form,
+         'move_items_form': move_items_form,
+         'delete_items_form': delete_items_form,
+         'subdir': subdir,
+         'display_files': display_files,
+         'display_dirs': display_dirs,
+         'dir_breadcrumbs': dir_breadcrumbs,
+         'file_error': file_error,
+         'editor_home': True,
+         'is_editor': True,
+         'files_editable': True,
+         'copyedit_form': copyedit_form,
+         'copyedit_logs': copyedit_logs,
+         'add_item_url': edit_url,
+         'remove_item_url': edit_url,
+         'discovery_form': discovery_form,
+         },
     )
     if description_form_saved:
         set_saved_fields_cookie(description_form, request.path, response)
@@ -609,6 +665,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     Also the page to reopen the project for copyediting.
     """
     project = kwargs['project']
+    notes = project.internal_notes.all().order_by('-created_at')
 
     if project.submission_status != SubmissionStatus.NEEDS_APPROVAL:
         return redirect('editor_home')
@@ -618,6 +675,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
         approval_datetime=None)])
     reassign_editor_form = forms.ReassignEditorForm(request.user)
     embargo_form = forms.EmbargoFilesDaysForm()
+    internal_note_form = forms.InternalNoteForm()
 
     if request.method == 'POST':
         if 'reopen_copyedit' in request.POST:
@@ -636,15 +694,27 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     yesterday = timezone.now() + timezone.timedelta(days=-1)
 
-    return render(request, 'console/awaiting_authors.html',
-                  {'project': project, 'authors': authors, 'author_emails': author_emails,
-                   'storage_info': storage_info, 'edit_logs': edit_logs,
-                   'copyedit_logs': copyedit_logs, 'latest_version': latest_version,
-                   'outstanding_emails': outstanding_emails, 'url_prefix': url_prefix,
-                   'bulk_url_prefix': bulk_url_prefix,
-                   'yesterday': yesterday, 'editor_home': True,
-                   'reassign_editor_form': reassign_editor_form,
-                   'embargo_form': embargo_form})
+    return render(request,
+                  'console/awaiting_authors.html',
+                  {**submission_info_card_params(
+                   project,
+                   authors,
+                   author_emails,
+                   storage_info,
+                   edit_logs,
+                   latest_version,
+                   url_prefix,
+                   bulk_url_prefix,
+                   reassign_editor_form,
+                   embargo_form,
+                   notes,
+                   internal_note_form,
+                   ),
+                   'copyedit_logs': copyedit_logs,
+                   'outstanding_emails': outstanding_emails,
+                   'yesterday': yesterday,
+                   'editor_home': True,
+                   'reassign_editor_form': reassign_editor_form})
 
 
 @handling_editor
@@ -671,6 +741,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
     Page to publish the submission
     """
     project = kwargs['project']
+    notes = project.internal_notes.all().order_by('-created_at')
 
     if project.submission_status != SubmissionStatus.NEEDS_PUBLICATION:
         return redirect('editor_home')
@@ -679,7 +750,10 @@ def publish_submission(request, project_slug, *args, **kwargs):
 
     reassign_editor_form = forms.ReassignEditorForm(request.user)
     embargo_form = forms.EmbargoFilesDaysForm()
+    internal_note_form = forms.InternalNoteForm()
+
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
@@ -718,15 +792,29 @@ def publish_submission(request, project_slug, *args, **kwargs):
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     publish_form = forms.PublishForm(project=project)
 
-    return render(request, 'console/publish_submission.html',
-                  {'project': project, 'publishable': publishable, 'authors': authors,
-                   'author_emails': author_emails, 'storage_info': storage_info,
-                   'edit_logs': edit_logs, 'copyedit_logs': copyedit_logs,
-                   'latest_version': latest_version, 'publish_form': publish_form,
-                   'max_slug_length': MAX_PROJECT_SLUG_LENGTH, 'url_prefix': url_prefix,
-                   'bulk_url_prefix': bulk_url_prefix,
-                   'reassign_editor_form': reassign_editor_form, 'editor_home': True,
-                   'embargo_form': embargo_form})
+    return render(request,
+                  'console/publish_submission.html',
+                  {**submission_info_card_params(
+                   project,
+                   authors,
+                   author_emails,
+                   storage_info,
+                   edit_logs,
+                   latest_version,
+                   url_prefix,
+                   bulk_url_prefix,
+                   reassign_editor_form,
+                   embargo_form,
+                   notes,
+                   internal_note_form,
+                   ),
+                   'publishable': publishable,
+                   'copyedit_logs': copyedit_logs,
+                   'publish_form': publish_form,
+                   'max_slug_length': MAX_PROJECT_SLUG_LENGTH,
+                   'editor_home': True,
+                   }
+                  )
 
 
 @console_permission_required('project.change_storagerequest')
