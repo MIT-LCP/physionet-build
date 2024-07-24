@@ -18,7 +18,7 @@ from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db.models import Count, DurationField, F, Q
-from django.db.models.functions import Cast
+from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory
 from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
@@ -1790,7 +1790,10 @@ def training_list(request, status):
     List all training applications.
     """
     trainings = Training.objects.select_related(
-        'user__profile', 'training_type').order_by('application_datetime', '-user__is_credentialed')
+            'user__profile', 'training_type'
+    ).annotate(
+            application_date = TruncDate('application_datetime')
+    ).order_by('application_date', '-user__is_credentialed', 'application_datetime')
 
     training_types = TrainingType.objects.values_list("name", flat=True)
 
