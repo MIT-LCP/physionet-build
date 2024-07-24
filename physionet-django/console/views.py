@@ -271,18 +271,18 @@ def submission_info_redirect(request, project_slug):
     return redirect('submission_info', project_slug=project_slug)
 
 
-def submission_info_card_params(project,
+def submission_info_card_params(request,
+                                project,
                                 authors,
                                 author_emails,
                                 storage_info,
                                 edit_logs,
                                 latest_version,
-                                url_prefix,
-                                bulk_url_prefix,
                                 reassign_editor_form,
                                 embargo_form,
                                 notes,
-                                internal_note_form):
+                                internal_note_form,
+                                bulk_download):
     """
     Parameters used across submission_info_card.html pages, including:
 
@@ -292,6 +292,9 @@ def submission_info_card_params(project,
     publish_submission.html
     submission_info.html
     """
+    url_prefix = notification.get_url_prefix(request)
+    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=bulk_download)
+
     return {
         'project': project,
         'authors': authors,
@@ -369,22 +372,20 @@ def submission_info(request, project_slug):
             messages.error(request, "You are not authorized to delete this note.")
         return redirect(f'{request.path}?tab=notes')
 
-    url_prefix = notification.get_url_prefix(request)
-    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     return render(request, 'console/submission_info.html',
                   {**submission_info_card_params(
+                      request,
                       project,
                       authors,
                       author_emails,
                       storage_info,
                       edit_logs,
                       latest_version,
-                      url_prefix,
-                      bulk_url_prefix,
                       reassign_editor_form,
                       embargo_form,
                       notes,
-                      internal_note_form),
+                      internal_note_form,
+                      bulk_download=True),
                       'copyedit_logs': copyedit_logs,
                       'passphrase': passphrase,
                       'anonymous_url': anonymous_url,
@@ -440,24 +441,22 @@ def edit_submission(request, project_slug, *args, **kwargs):
             resource_type=project.resource_type, instance=edit_log)
 
     authors, author_emails, storage_info, edit_logs, _, latest_version = project.info_card()
-    url_prefix = notification.get_url_prefix(request)
-    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
 
     return render(request,
                   'console/edit_submission.html',
                   {**submission_info_card_params(
+                   request,
                    project,
                    authors,
                    author_emails,
                    storage_info,
                    edit_logs,
                    latest_version,
-                   url_prefix,
-                   bulk_url_prefix,
                    reassign_editor_form,
                    embargo_form,
                    notes,
                    internal_note_form,
+                   bulk_download=True
                    ),
                    'edit_submission_form': edit_submission_form,
                    'editor_home': True,
@@ -603,25 +602,23 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
          project=project, subdir=subdir, display_dirs=display_dirs)
 
     edit_url = reverse('edit_content_item', args=[project.slug])
-    url_prefix = notification.get_url_prefix(request)
-    bulk_url_prefix = notification.get_url_prefix(request)
 
     response = render(
         request,
         'console/copyedit_submission.html',
         {**submission_info_card_params(
+         request,
          project,
          authors,
          author_emails,
          storage_info,
          edit_logs,
          latest_version,
-         url_prefix,
-         bulk_url_prefix,
          reassign_editor_form,
          embargo_form,
          notes,
-         internal_note_form
+         internal_note_form,
+         bulk_download=False,
          ),
          'description_form': description_form,
          'ethics_form': ethics_form,
@@ -690,25 +687,23 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
             project.latest_reminder = timezone.now()
             project.save()
 
-    url_prefix = notification.get_url_prefix(request)
-    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     yesterday = timezone.now() + timezone.timedelta(days=-1)
 
     return render(request,
                   'console/awaiting_authors.html',
                   {**submission_info_card_params(
+                   request,
                    project,
                    authors,
                    author_emails,
                    storage_info,
                    edit_logs,
                    latest_version,
-                   url_prefix,
-                   bulk_url_prefix,
                    reassign_editor_form,
                    embargo_form,
                    notes,
                    internal_note_form,
+                   bulk_download=True,
                    ),
                    'copyedit_logs': copyedit_logs,
                    'outstanding_emails': outstanding_emails,
@@ -788,25 +783,23 @@ def publish_submission(request, project_slug, *args, **kwargs):
             )
 
     publishable = project.is_publishable()
-    url_prefix = notification.get_url_prefix(request)
-    bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     publish_form = forms.PublishForm(project=project)
 
     return render(request,
                   'console/publish_submission.html',
                   {**submission_info_card_params(
+                   request,
                    project,
                    authors,
                    author_emails,
                    storage_info,
                    edit_logs,
                    latest_version,
-                   url_prefix,
-                   bulk_url_prefix,
                    reassign_editor_form,
                    embargo_form,
                    notes,
                    internal_note_form,
+                   bulk_download=True
                    ),
                    'publishable': publishable,
                    'copyedit_logs': copyedit_logs,
