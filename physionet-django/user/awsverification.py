@@ -273,7 +273,7 @@ def configure_aws_verification_bucket(bucket_name):
 
     # This must match the set of allowed principals
     # (see parse_aws_user_arn above).
-    principal = "arn:aws:iam::*:user/*"
+    principal = "*"
 
     # This must match the required verification key
     # (see get_aws_verification_key above).
