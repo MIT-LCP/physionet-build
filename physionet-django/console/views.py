@@ -273,16 +273,11 @@ def submission_info_redirect(request, project_slug):
 
 def submission_info_card_params(request,
                                 project,
-                                authors,
-                                author_emails,
-                                storage_info,
-                                edit_logs,
-                                latest_version,
                                 reassign_editor_form,
                                 embargo_form,
-                                notes,
                                 internal_note_form,
-                                bulk_download):
+                                bulk_download,
+                                force_calculate):
     """
     Parameters used across submission_info_card.html pages, including:
 
@@ -292,15 +287,18 @@ def submission_info_card_params(request,
     publish_submission.html
     submission_info.html
     """
+    authors, author_emails = project.get_author_info(include_emails=True)
+    latest_version = project.core_project.publishedprojects.all().last()
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=bulk_download)
+    notes = project.internal_notes.all().order_by('-created_at')
 
     return {
         'project': project,
         'authors': authors,
         'author_emails': author_emails,
-        'storage_info': storage_info,
-        'edit_logs': edit_logs,
+        'storage_info': project.get_storage_info(force_calculate=force_calculate),
+        'edit_logs': project.edit_log_history(),
         'latest_version': latest_version,
         'url_prefix': url_prefix,
         'bulk_url_prefix': bulk_url_prefix,
@@ -317,10 +315,9 @@ def submission_info(request, project_slug):
     View information about a project under submission
     """
     project = get_object_or_404(ActiveProject, slug=project_slug)
-    notes = project.internal_notes.all().order_by('-created_at')
 
     user = request.user
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+    copyedit_logs = project.copyedit_log_history()
 
     data = request.POST or None
     reassign_editor_form = forms.ReassignEditorForm(user, data=data)
@@ -374,21 +371,17 @@ def submission_info(request, project_slug):
 
     return render(request, 'console/submission_info.html',
                   {**submission_info_card_params(
-                      request,
-                      project,
-                      authors,
-                      author_emails,
-                      storage_info,
-                      edit_logs,
-                      latest_version,
-                      reassign_editor_form,
-                      embargo_form,
-                      notes,
-                      internal_note_form,
-                      bulk_download=True),
-                      'copyedit_logs': copyedit_logs,
-                      'passphrase': passphrase,
-                      'anonymous_url': anonymous_url,
+                   request,
+                   project,
+                   reassign_editor_form,
+                   embargo_form,
+                   internal_note_form,
+                   bulk_download=True,
+                   force_calculate=False
+                   ),
+                   'copyedit_logs': copyedit_logs,
+                   'passphrase': passphrase,
+                   'anonymous_url': anonymous_url,
                    }
                   )
 
@@ -402,7 +395,6 @@ def edit_submission(request, project_slug, *args, **kwargs):
     Submitting forms returns the user to /info/
     """
     project = kwargs['project']
-    notes = project.internal_notes.all().order_by('-created_at')
 
     try:
         edit_log = project.edit_logs.get(decision_datetime__isnull=True)
@@ -440,23 +432,16 @@ def edit_submission(request, project_slug, *args, **kwargs):
         edit_submission_form = forms.EditSubmissionForm(
             resource_type=project.resource_type, instance=edit_log)
 
-    authors, author_emails, storage_info, edit_logs, _, latest_version = project.info_card()
-
     return render(request,
                   'console/edit_submission.html',
                   {**submission_info_card_params(
                    request,
                    project,
-                   authors,
-                   author_emails,
-                   storage_info,
-                   edit_logs,
-                   latest_version,
                    reassign_editor_form,
                    embargo_form,
-                   notes,
                    internal_note_form,
-                   bulk_download=True
+                   bulk_download=True,
+                   force_calculate=False
                    ),
                    'edit_submission_form': edit_submission_form,
                    'editor_home': True,
@@ -480,8 +465,6 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     reassign_editor_form = forms.ReassignEditorForm(request.user)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
-
-    notes = project.internal_notes.all().order_by('-created_at')
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -580,14 +563,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if 'subdir' not in vars():
         subdir = ''
 
-    (
-        authors,
-        author_emails,
-        storage_info,
-        edit_logs,
-        copyedit_logs,
-        latest_version,
-    ) = project.info_card(force_calculate=True)
+    copyedit_logs = project.copyedit_log_history()
 
     (
         display_files,
@@ -609,16 +585,11 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         {**submission_info_card_params(
          request,
          project,
-         authors,
-         author_emails,
-         storage_info,
-         edit_logs,
-         latest_version,
          reassign_editor_form,
          embargo_form,
-         notes,
          internal_note_form,
          bulk_download=False,
+         force_calculate=True,
          ),
          'description_form': description_form,
          'ethics_form': ethics_form,
@@ -662,12 +633,13 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     Also the page to reopen the project for copyediting.
     """
     project = kwargs['project']
-    notes = project.internal_notes.all().order_by('-created_at')
 
     if project.submission_status != SubmissionStatus.NEEDS_APPROVAL:
         return redirect('editor_home')
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+    copyedit_logs = project.copyedit_log_history()
+    authors = project.authors.all().order_by('display_order')
+
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
     reassign_editor_form = forms.ReassignEditorForm(request.user)
@@ -694,16 +666,11 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
                   {**submission_info_card_params(
                    request,
                    project,
-                   authors,
-                   author_emails,
-                   storage_info,
-                   edit_logs,
-                   latest_version,
                    reassign_editor_form,
                    embargo_form,
-                   notes,
                    internal_note_form,
                    bulk_download=True,
+                   force_calculate=False,
                    ),
                    'copyedit_logs': copyedit_logs,
                    'outstanding_emails': outstanding_emails,
@@ -736,7 +703,6 @@ def publish_submission(request, project_slug, *args, **kwargs):
     Page to publish the submission
     """
     project = kwargs['project']
-    notes = project.internal_notes.all().order_by('-created_at')
 
     if project.submission_status != SubmissionStatus.NEEDS_PUBLICATION:
         return redirect('editor_home')
@@ -747,7 +713,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
 
-    authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+    copyedit_logs = project.copyedit_log_history()
 
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
@@ -790,16 +756,11 @@ def publish_submission(request, project_slug, *args, **kwargs):
                   {**submission_info_card_params(
                    request,
                    project,
-                   authors,
-                   author_emails,
-                   storage_info,
-                   edit_logs,
-                   latest_version,
                    reassign_editor_form,
                    embargo_form,
-                   notes,
                    internal_note_form,
-                   bulk_download=True
+                   bulk_download=True,
+                   force_calculate=True
                    ),
                    'publishable': publishable,
                    'copyedit_logs': copyedit_logs,
