@@ -346,12 +346,17 @@ def submission_info(request, project_slug):
                    'notes': notes,
                    'internal_note_form': internal_note_form})
 
+
 @handling_editor
 def edit_submission(request, project_slug, *args, **kwargs):
     """
-    Page to respond to a particular submission, as an editor
+    Page to respond to a particular submission, as an editor.
+
+    TODO: the way this page is implemented is muddled. fix it.
+    Submitting forms returns the user to /info/
     """
     project = kwargs['project']
+    notes = project.internal_notes.all().order_by('-created_at')
 
     try:
         edit_log = project.edit_logs.get(decision_datetime__isnull=True)
@@ -360,6 +365,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
 
     reassign_editor_form = forms.ReassignEditorForm(request.user)
     embargo_form = forms.EmbargoFilesDaysForm()
+    internal_note_form = forms.InternalNoteForm()
 
     # The user must be the editor
     if project.submission_status not in [SubmissionStatus.NEEDS_DECISION, SubmissionStatus.NEEDS_RESUBMISSION]:
@@ -399,13 +405,18 @@ def edit_submission(request, project_slug, *args, **kwargs):
                    'latest_version': latest_version, 'url_prefix': url_prefix,
                    'bulk_url_prefix': bulk_url_prefix,
                    'editor_home': True, 'reassign_editor_form': reassign_editor_form,
-                   'embargo_form': embargo_form})
+                   'embargo_form': embargo_form,
+                   'notes': notes,
+                   'internal_note_form': internal_note_form})
 
 
 @handling_editor
 def copyedit_submission(request, project_slug, *args, **kwargs):
     """
     Page to copyedit the submission
+
+    TODO: the way this page is implemented is muddled. fix it.
+    Submitting forms returns the user to /info/
     """
     project = kwargs['project']
     if project.submission_status != SubmissionStatus.NEEDS_COPYEDIT:
@@ -414,6 +425,9 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
     reassign_editor_form = forms.ReassignEditorForm(request.user)
     embargo_form = forms.EmbargoFilesDaysForm()
+    internal_note_form = forms.InternalNoteForm()
+
+    notes = project.internal_notes.all().order_by('-created_at')
 
     # Metadata forms and formsets
     ReferenceFormSet = generic_inlineformset_factory(Reference,
@@ -577,6 +591,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             'bulk_url_prefix': bulk_url_prefix,
             'reassign_editor_form': reassign_editor_form,
             'embargo_form': embargo_form,
+            'notes': notes,
+            'internal_note_form': internal_note_form
         },
     )
     if description_form_saved:
