@@ -1790,7 +1790,7 @@ def training_list(request, status):
     List all training applications.
     """
     trainings = Training.objects.select_related(
-        'user__profile', 'training_type').order_by('-user__is_credentialed', 'application_datetime')
+        'user__profile', 'training_type').order_by('application_datetime', '-user__is_credentialed')
 
     training_types = TrainingType.objects.values_list("name", flat=True)
 
