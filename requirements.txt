@@ -630,9 +630,9 @@ s3transfer==0.6.2 ; python_version >= "3.9" and python_version < "4.0" \
 selenium==3.141.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:2d7131d7bc5a5b99a2d9b04aaf2612c411b03b8ca1b1ee8d3de5845a9be2cb3c \
     --hash=sha256:deaf32b60ad91a4611b98d8002757f29e6f2c2d5fcaf202e1c9ad06d6772300d
-sentry-sdk==1.14.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:273fe05adf052b40fd19f6d4b9a5556316807246bd817e5e3482930730726bb0 \
-    --hash=sha256:72c00322217d813cf493fe76590b23a757e063ff62fec59299f4af7201dd4448
+sentry-sdk==2.8.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:6051562d2cfa8087bb8b4b8b79dc44690f8a054762a29c07e22588b1f619bfb5 \
+    --hash=sha256:aa4314f877d9cd9add5a0c9ba18e3f27f99f7de835ce36bd150e48a41c7c646f
 setuptools==70.0.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:54faa7f2e8d2d11bcd2c07bed282eef1046b5c080d1c32add737d7b5817b1ad4 \
     --hash=sha256:f211a66637b8fa059bb28183da127d4e86396c991a942b028c6650d4319c3fd0
