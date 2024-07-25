@@ -58,6 +58,9 @@ from user.models import AssociatedEmail, CloudInformation, CredentialApplication
 from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
+    update_data_access_point_policy,
+    s3_bucket_has_access_point,
+    s3_bucket_has_credentialed_users,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
@@ -1927,6 +1930,16 @@ def published_project(request, project_slug, version, subdir=''):
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
+    aws_id = user.cloud_information.aws_id if user.is_authenticated else None
+
+    # Check if AWS instance exists for the project
+    s3_uri = None
+    aws_id = user.cloud_information.aws_id if user.is_authenticated else None
+    if hasattr(project, 'aws'):
+        if aws_id and project.aws.is_private:
+            s3_uri = project.aws.s3_uri(aws_id)
+        else:
+            s3_uri = project.aws.s3_uri(aws_id)
     context = {
         'project': project,
         'authors': authors,
@@ -1954,6 +1967,7 @@ def published_project(request, project_slug, version, subdir=''):
         'is_lightwave_supported': project.files.is_lightwave_supported(),
         'is_wget_supported': project.files.is_wget_supported(),
         'has_s3_credentials': has_s3_credentials(),
+        's3_uri': s3_uri,
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
     }
@@ -2010,7 +2024,7 @@ def sign_dua(request, project_slug, version):
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
-    from console.views import update_aws_bucket_policy
+    # from console.views import update_data_access_point_policy
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
@@ -2035,8 +2049,8 @@ def sign_dua(request, project_slug, version):
 
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
-        if has_s3_credentials() and files_sent_to_S3(project) is not None:
-            update_aws_bucket_policy(project.id)
+        if has_s3_credentials() and files_sent_to_S3(project) is not None and s3_bucket_has_credentialed_users(project):
+            update_data_access_point_policy(project)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 
