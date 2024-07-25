@@ -4,40 +4,56 @@ import re
 import os
 import json
 from django.conf import settings
-from project.models import PublishedProject, AccessPolicy, AWS
+from project.models import PublishedProject, AccessPolicy, AccessPoint, AccessPointUser
 from user.models import User
 from project.authorization.access import can_view_project_files
-
+from botocore.exceptions import ClientError
+from math import ceil
 
 # Manage AWS buckets and objects
 def has_S3_open_data_bucket_name():
     """
-    Check if AWS credentials (AWS_PROFILE) have been set in
-    the project's settings.
+    Check if the S3_OPEN_ACCESS_BUCKET setting has a value set in the project's settings.
+
+    This method verifies whether an open data bucket name has been specified for S3 storage.
 
     Returns:
-        bool: True if AWS_PROFILE is set, False otherwise.
+        bool: Returns True if the S3_OPEN_ACCESS_BUCKET setting is set (i.e., truthy), False otherwise.
     """
     return bool(settings.S3_OPEN_ACCESS_BUCKET)
 
 
+def has_S3_controlled_data_bucket_name():
+    """
+    Check if the S3_CONTROLLED_ACCESS_BUCKET setting has a value set in the project's settings.
+
+    This method verifies whether a controlled-access data bucket name has been specified for S3 storage.
+
+    Returns:
+        bool: Returns True if the S3_CONTROLLED_ACCESS_BUCKET setting is set, False otherwise.
+    """
+    return bool(settings.S3_CONTROLLED_ACCESS_BUCKET)
+
+
 def has_s3_credentials():
     """
-    Check if AWS credentials (AWS_PROFILE) have been set in
+    Check if AWS credentials have been set in
     the project's settings.
 
     Returns:
-        bool: True if AWS_PROFILE is set, False otherwise.
+        bool: True if AWS credentials are set, False otherwise.
     """
     return all([
         settings.AWS_PROFILE,
         settings.AWS_ACCOUNT_ID,
         settings.S3_OPEN_ACCESS_BUCKET,
         settings.S3_SERVER_ACCESS_LOG_BUCKET,
+        settings.S3_CONTROLLED_ACCESS_BUCKET,
     ])
 
 
 def files_sent_to_S3(project):
+    from project.models import AWS
     """
     Get information about project files sent to Amazon S3
     for a project.
@@ -104,6 +120,26 @@ def create_s3_resource():
     raise botocore.exceptions.NoCredentialsError("S3 credentials are undefined.")
 
 
+def create_s3_control_client():
+    """
+    Create and return an S3 Control client.
+
+    Returns:
+        An S3 Control client if credentials are valid.
+
+    Raises:
+        botocore.exceptions.NoCredentialsError: If S3 credentials are undefined.
+
+    """
+    if has_s3_credentials():
+        session = boto3.Session(
+            profile_name=settings.AWS_PROFILE
+        )
+        s3 = session.client('s3control', region_name="us-east-1")
+        return s3
+    raise botocore.exceptions.NoCredentialsError("S3 credentials are undefined.")
+
+
 def get_bucket_name(project):
     """
     Determine and return the S3 bucket name associated with
@@ -116,7 +152,8 @@ def get_bucket_name(project):
     an 'OPEN' access policy, the default bucket name is specified
     in settings.S3_OPEN_ACCESS_BUCKET. For other access
     policies ('RESTRICTED', 'CREDENTIALED', 'CONTRIBUTOR_REVIEW'),
-    the bucket name is constructed using the project's slug and version.
+    the default bucket name is specified in
+    settings.S3_CONTROLLED_ACCESS_BUCKET.
 
     Args:
         project (project.models.Project): The project for which
@@ -134,8 +171,8 @@ def get_bucket_name(project):
 
     if project.access_policy == AccessPolicy.OPEN and has_S3_open_data_bucket_name():
         bucket_name = settings.S3_OPEN_ACCESS_BUCKET
-    else:
-        bucket_name = project.slug
+    elif project.access_policy != AccessPolicy.OPEN and has_S3_controlled_data_bucket_name():
+        bucket_name = settings.S3_CONTROLLED_ACCESS_BUCKET
     return bucket_name
 
 
@@ -145,9 +182,9 @@ def get_all_prefixes(project):
     the S3 bucket associated with the given project.
 
     This function checks if the S3 bucket for the project exists,
-    and if so, it initializes an S3 client,specifies the bucket name,
+    and if so, it initializes an S3 client, specifies the bucket name,
     and lists the common prefixes (directories) within the bucket.
-    The retrievedprefixes are returned as a list.
+    The retrieved prefixes are returned as a list.
 
     Args:
         project (project.models.Project): The project for which to
@@ -192,7 +229,7 @@ def get_prefix_open_project(project):
     This function checks if the project's access policy is 'OPEN'.
     If it is, the function constructsthe target prefix based on
     the project's slug and version, and then finds the matching
-    prefixwithin the S3 bucket's list of prefixes (directories).
+    prefix within the S3 bucket's list of prefixes (directories).
 
     Args:
         project (project.models.Project): The open project for which
@@ -387,7 +424,7 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
         if project.access_policy == AccessPolicy.OPEN:
             s3_key = os.path.join(f"{project.slug}/", zip_name)
         else:
-            s3_key = zip_name
+            s3_key = os.path.join(f"{project.slug}/", zip_name)
 
         s3.upload_file(
             Filename=zip_file_path,
@@ -421,7 +458,6 @@ def get_aws_accounts_for_dataset(dataset_name):
     are included in the result list.
     """
     aws_accounts = []
-
     published_projects = PublishedProject.objects.all()
     users_with_awsid = User.objects.filter(cloud_information__aws_id__isnull=False)
     aws_id_pattern = r"\b\d{12}\b"
@@ -438,7 +474,7 @@ def get_aws_accounts_for_dataset(dataset_name):
     return aws_accounts
 
 
-def create_bucket_policy(bucket_name, aws_ids, public):
+def create_open_bucket_policy(bucket_name):
     """
     Generate an initial AWS S3 bucket policy that restricts
     access.
@@ -467,27 +503,13 @@ def create_bucket_policy(bucket_name, aws_ids, public):
     bucket. If 'public' is False, it restricts access to the specified
     AWS accounts and users.
     """
-    user = None
-    principal_value = (
-        "*"
-        if public
-        else {
-            "AWS": [
-                f"arn:aws:iam::{aws_id}:root"
-                if user is None or user == ""
-                else f"arn:aws:iam::{aws_id}:user/{user}"
-                for aws_id in aws_ids
-            ]
-        }
-    )
-
     bucket_policy = {
         "Version": "2012-10-17",
         "Statement": [
             {
                 "Sid": "AllowReadOnlyAccess",
                 "Effect": "Allow",
-                "Principal": principal_value,
+                "Principal": "*",
                 "Action": ["s3:GetObject", "s3:ListBucket"],
                 "Resource": [
                     f"arn:aws:s3:::{bucket_name}",
@@ -503,7 +525,7 @@ def create_bucket_policy(bucket_name, aws_ids, public):
     return bucket_policy_str
 
 
-def set_bucket_policy(bucket_name, bucket_policy):
+def set_open_bucket_policy(bucket_name, bucket_policy):
     """
     Apply a custom AWS S3 bucket policy to a specified bucket.
 
@@ -529,7 +551,6 @@ def set_bucket_policy(bucket_name, bucket_policy):
     to AWS S3 policy syntax.
     """
     s3 = create_s3_client()
-    # Check if s3 is None
     if s3 is None:
         return
     s3.put_bucket_policy(Bucket=bucket_name, Policy=bucket_policy)
@@ -572,7 +593,7 @@ def put_public_access_block(client, bucket_name, configuration):
     )
 
 
-def update_bucket_policy(project, bucket_name):
+def update_open_bucket_policy(project, bucket_name):
     """
     Update the AWS S3 bucket's access policy based on the
     project's access policy.
@@ -583,10 +604,6 @@ def update_bucket_policy(project, bucket_name):
     - For projects with an 'OPEN' access policy, it allows public
     access by removing any public access blocks and applying
     a policy allowing public reads.
-    - For projects with other access policies (e.g., 'CREDENTIALED',
-    'RESTRICTED', 'CONTRIBUTOR_REVIEW'), it sets a policy
-    that limits access to specific AWS accounts belonging to
-    users authorized to access the specified project.
 
     Args:
         project (project.models.Project): The project for which
@@ -602,58 +619,559 @@ def update_bucket_policy(project, bucket_name):
     are properly configured for the S3 client used in this function.
     """
     bucket_policy = ""
-    project_name = project.slug + "-" + project.version
-    aws_ids = get_aws_accounts_for_dataset(project_name)
     if project.access_policy == AccessPolicy.OPEN:
         s3 = create_s3_client()
         if s3 is None:
             return
         put_public_access_block(s3, bucket_name, False)
-        bucket_policy = create_bucket_policy(bucket_name, aws_ids, True)
-    elif (
-        project.access_policy == AccessPolicy.CREDENTIALED
-        or project.access_policy == AccessPolicy.RESTRICTED
-        or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW
-    ):
-        if aws_ids != []:
-            bucket_policy = create_bucket_policy(bucket_name, aws_ids, False)
+        bucket_policy = create_open_bucket_policy(bucket_name)
 
     if bucket_policy not in [None, ""]:
-        set_bucket_policy(bucket_name, bucket_policy)
+        set_open_bucket_policy(bucket_name, bucket_policy)
 
 
-def upload_project_to_S3(project):
+def create_controlled_bucket_policy(bucket_name):
     """
-    Upload project-related files to an AWS S3 bucket
-    associated with the project.
+    Create a controlled bucket policy for an S3 bucket.
 
-    This function orchestrates the process of uploading project
-    files to an AWS S3 bucket.
-    It performs the following steps:
-    1. Creates the S3 bucket if it doesn't exist.
-    2. Uploads project files from the local directory to the S3 bucket.
-    3. Updates the bucket's access policy to align with the
-    project's requirements.
+    This function generates a controlled bucket policy that restricts
+    access to specific actions and resources within the given S3
+    bucket.
 
     Args:
-        project (project.models.Project): The project for which
-        to upload files to S3.
+        bucket_name (str): The name of the S3 bucket for which
+        to create the policy.
+
+    Returns:
+        str: A JSON string representing the controlled bucket policy.
+
+    Note:
+    - Ensure that AWS credentials (Access Key and Secret Key)
+    are properly configured for the S3 client used in this function.
+    """
+    controlled_bucket_policy = {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Sid": "DelegateToAccessPoints",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": [
+                    "s3:GetBucket*",
+                    "s3:GetObject*",
+                    "s3:List*"
+                ],
+                "Resource": [
+                    f"arn:aws:s3:::{bucket_name}",
+                    f"arn:aws:s3:::{bucket_name}/*"
+                ],
+                "Condition": {
+                    "StringEquals": {
+                        f"s3:DataAccessPointAccount": "{settings.AWS_ACCOUNT_ID}"
+                    }
+                }
+            }
+        ]
+    }
+
+    # Convert the policy from JSON dict to string
+    controlled_bucket_policy_str = json.dumps(controlled_bucket_policy)
+
+    return controlled_bucket_policy_str
+
+
+def get_access_point_name_for_user_and_project(aws_id, project_slug, project_version):
+    """
+    Retrieve the access point name associated with a specific user
+    and project.
+
+    This function fetches the access point name linked to a given
+    user and project, based on the user's AWS ID and the project's
+    slug and version.
+
+    Args:
+        aws_id (str): The AWS ID of the user.
+        project_slug (str): The slug of the project.
+        project_version (str): The version of the project.
+
+    Returns:
+        str: The name of the access point or an error message if
+        the user or project is not found.
+
+    Note:
+    - Ensure that the user and project exist in the database.
+    """
+    try:
+        # Retrieve the user by AWS ID
+        user = AccessPointUser.objects.get(aws_id=aws_id)
+    except AccessPointUser.DoesNotExist:
+        return "No user found with that AWS ID"
+
+    try:
+        # Retrieve the project based on slug and version
+        project = PublishedProject.objects.get(slug=project_slug, version=project_version)
+    except PublishedProject.DoesNotExist:
+        return "Project not found"
+
+    # Retrieve the access point linked to this user and specific project
+    access_point = AccessPoint.objects.filter(
+        users=user,
+        aws__project=project
+    ).first()
+
+    if access_point:
+        return access_point.name
+    else:
+        return "No access point found for this user with the specified project details"
+
+
+def get_access_point_name(project):
+    """
+    Get the name of the access point for a given project.
+
+    This function retrieves the name of the access point associated
+    with the specified project. It handles scenarios where there are
+    multiple access points, only one access point, or none.
+
+    Args:
+        project (object): The project object containing AWS and
+        version information.
+
+    Returns:
+        str: The name of the access point.
+
+    Note:
+    - Ensure that the project object contains valid AWS and
+    version information.
+    """
+    access_points = project.aws.access_points.all()
+
+    if access_points is None:
+        print("No access points found for project.")
+        access_point_name = f"{project.slug}-v{project.version.replace('.', '-')}-01"
+
+    elif access_points.count() == 1:
+        access_point_name = project.aws.access_points.first().name
+        print("Only one access point found for project: ", access_point_name)
+
+    else:
+        access_point_name = get_latest_access_point(project)
+
+    return access_point_name
+
+
+def get_latest_access_point(project):
+    """
+    Get the name of the access point for a given project.
+
+    This function retrieves the name of the access point associated
+    with the specified project. It handles scenarios where there are
+    multiple access points, only one access point, or none.
+
+    Args:
+        project (object): The project object containing AWS and
+        version information.
+
+    Returns:
+        str: The name of the access point.
+
+    Note:
+    - Ensure that the project object contains valid AWS and
+    version information.
+
+    """
+    # Generate the base name for the access point from the project slug and version
+    base_name = f"{project.slug}-v{project.version.replace('.', '-')}"
+
+    # Pattern to extract the numeric version part from names
+    pattern = re.compile(r'(\d+)$')
+
+    # Filter access points starting with the base name and ending with a version number
+    access_points = AccessPoint.objects.filter(name__startswith=base_name)
+
+    # Check if any access points exist
+    if access_points.exists():
+        # Get the highest version number
+        latest = access_points.order_by('-name').first().name
+        version = int(pattern.search(latest).group(1))
+        version = str(version).zfill(2)  # Pad the version number with zeros
+    else:
+        # If no access points exist, start numbering from '01'
+        version = "01"
+
+    data_access_point_name = f"{project.slug}-v{project.version.replace('.', '-')}-{version}"
+    return data_access_point_name
+
+
+def get_next_access_point_version(project):
+    """
+    Generate the name of the next access point version for a
+    given project.
+
+    This function constructs the name version for the specified
+    project by incrementing the latest version number.
+
+    Args:
+        project (object): The project object containing AWS and
+        version information.
+
+    Returns:
+        str: The name of the next access point version.
+
+    Note:
+    - Ensure that the project object contains valid AWS and
+    version information.
+    """
+    # Call the existing function to get the latest access point name
+    current_access_point_name = get_latest_access_point(project)
+
+    # Use a regular expression to extract the version number from the access point name
+    pattern = re.compile(r'(\d+)$')
+    match = pattern.search(current_access_point_name)
+
+    if match:
+        # Extract the current version number and increment it
+        current_version = int(match.group(1))
+        next_version = str(current_version + 1).zfill(2)  # Increment and pad the version number
+    else:
+        # If no version number is found, start from '01'
+        next_version = "01"
+
+    # Construct the next access point name using the project details and the new version number
+    next_access_point_name = f"{project.slug}-v{project.version.replace('.', '-')}-{next_version}"
+    return next_access_point_name
+
+
+def create_data_access_point_policy(access_point_name, project_slug, project_version, aws_ids):
+    """
+    Create a data access point policy for an S3 access point.
+
+    This function generates a data access point policy that grants
+    specific AWS users access to project data stored in an S3
+    bucket.
+
+    Args:
+        access_point_name (str): The name of the access point.
+        project_slug (str): The slug of the project.
+        project_version (str): The version of the project.
+        aws_ids (list): A list of AWS IDs to be included in the policy.
+
+    Returns:
+        str: A JSON string representing the data access point policy.
+
+    Note:
+    - Ensure that AWS credentials (Access Key and Secret Key)
+    are properly configured for the S3 client used in this function.
+    """
+    user = None
+    principal_value = (
+        {
+            "AWS": [
+                f"arn:aws:iam::{aws_id}:root"
+                if user is None or user == ""
+                else f"arn:aws:iam::{aws_id}:user/{user}"
+                for aws_id in aws_ids
+            ]
+        }
+    )
+    policy = {
+    "Version": "2012-10-17",
+    "Statement": [
+         {
+                "Sid": "AllowGetObject",
+                "Effect": "Allow",
+                "Principal": principal_value,
+                "Action": [
+                    "s3:GetBucket*",
+                    "s3:GetObject*",
+                    "s3:List*"
+                ],
+                "Resource": [
+                    f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}/object/{project_slug}/{project_version}/*",
+                    f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}"
+                ],
+                "Condition": {
+                    "StringLike": {
+                        "s3:prefix": f"{project_slug}/*"
+                    }
+                }
+        }
+    ]
+    }
+    policy_str = json.dumps(policy)
+    return policy_str
+
+
+def set_data_access_point_policy(data_access_point_name, data_access_point_policy):
+    """
+    Apply a custom policy to an AWS S3 data access point.
+
+    This function sets a custom access policy for the specified
+    S3 data access point.
+
+    Args:
+        data_access_point_name (str): The name of the data access point.
+        data_access_point_policy (str): The policy to be applied, in JSON string format.
+
+    Returns:
+        bool: True if the policy was successfully applied, False otherwise.
+
+    Note:
+    - Ensure that AWS credentials (Access Key and Secret Key)
+    are properly configured for the S3 client used in this function.
+    """
+    s3_control = create_s3_control_client()
+    # Check if s3 is None
+    if s3_control is None:
+        return
+    try:
+        response = s3_control.put_access_point_policy(
+            AccountId=settings.AWS_ACCOUNT_ID,
+            Name=data_access_point_name,
+            Policy=data_access_point_policy
+        )
+        return True
+    except Exception as e:
+        print(f"Failed to apply policy: {e}")
+        return False
+
+
+def s3_bucket_has_access_point(project):
+    """
+    Check if an S3 bucket has an access point associated with the given project.
+
+    This function determines whether an access point exists for the
+    specified project within an S3 bucket.
+
+    Args:
+        project (object): The project object containing AWS and version information.
+
+    Returns:
+        bool: True if an access point exists, False otherwise.
+
+    Note:
+    - Ensure that the project object contains valid AWS and version information.
+    """
+    access_point_name = get_access_point_name(project)
+    exists = AccessPoint.objects.filter(name=access_point_name).exists()
+    return exists
+
+
+def s3_bucket_has_credentialed_users(project):
+    """
+    Check if an S3 bucket has credentialed users associated with the given project.
+
+    This function checks if there are credentialed users for the specified project.
+
+    Args:
+        project (object): The project object containing AWS and version information.
+
+    Returns:
+        bool: True if credentialed users exist, False otherwise.
+
+    Note:
+    - Ensure that the project object contains valid AWS and version information.
+    """
+    project_name = project.slug + "-" + project.version
+    aws_ids = get_aws_accounts_for_dataset(project_name)
+    return aws_ids != []
+
+
+def create_first_data_access_point_policy(project):
+    """
+    Create the first data access point policy for a given project.
+
+    This function generates and applies the initial data access point
+    policy for the specified project.
+
+    Args:
+        project: The project containing AWS and
+        version information.
 
     Returns:
         None
 
     Note:
     - Ensure that AWS credentials (Access Key and Secret Key)
-    are properly configured for the S3 client used in
-    this function.
-    - The 'project_name' variable is created by concatenating
-    the project's slug and version.
-    - The 's3_prefix' is set only for projects with an 'OPEN'
-    access policy, providing an optional prefix within the
-    S3 bucket.
+    are properly configured for the S3 client used in this function.
     """
     bucket_name = get_bucket_name(project)
-    # create bucket if it does not exist
+    data_access_point_name = f"{project.slug}-v{project.version.replace('.', '-')}-01"
+    try:
+        create_s3_access_point(project, data_access_point_name, bucket_name, settings.AWS_ACCOUNT_ID)
+    except Exception as e:
+        print(f"Error while creating/accessing the access point {data_access_point_name}: {str(e)}")
+
+
+def update_data_access_point_policy(project):
+    """
+    Update the data access point policy for a given project.
+
+    This function updates the data access point policy for the specified project,
+    potentially creating multiple access points if necessary.
+
+    Args:
+        project: The project containing AWS and
+        version information.
+
+    Returns:
+        None
+
+    Note:
+    - Ensure that AWS credentials (Access Key and Secret Key)
+    are properly configured for the S3 client used in this function.
+    - Ensure that the project object contains valid AWS and
+    version information.
+    """
+    MAX_PRINCIPALS_PER_AP_POLICY = 250
+    project_name = project.slug + "-" + project.version
+    aws_ids = get_aws_accounts_for_dataset(project_name)
+    number_of_access_points_needed = ceil(len(aws_ids) / MAX_PRINCIPALS_PER_AP_POLICY)
+    bucket_name = get_bucket_name(project)
+    for i in range(number_of_access_points_needed):
+        data_access_point_version = str(i + 1).zfill(2)
+        data_access_point_name = f"{project.slug}-v{project.version.replace('.', '-')}-{data_access_point_version}"
+        subset_aws_ids = aws_ids[i * MAX_PRINCIPALS_PER_AP_POLICY: (i + 1) * MAX_PRINCIPALS_PER_AP_POLICY]
+
+        access_point = AccessPoint.objects.filter(name=data_access_point_name, aws__project=project).first()
+        if not access_point:
+            print("Access point doesn't exist, try to creat it:", access_point)
+            try:
+                access_point = create_s3_access_point(project, data_access_point_name, bucket_name, settings.AWS_ACCOUNT_ID)
+            except Exception as e:
+                print(f"Error while creating/accessing the access point {data_access_point_name}: {str(e)}")
+                if not access_point:
+                    print(f"Failed to retrieve the existing access point: {data_access_point_name}")
+                    continue
+
+        if not access_point or aws_ids is None:
+            print("Access point or AWS IDs not found.")
+            continue
+
+        # Set policies and associate users for the newly created access point
+        access_point_policy = create_data_access_point_policy(data_access_point_name, project.slug, project.version, subset_aws_ids)
+        valid_ap_policy = set_data_access_point_policy(data_access_point_name, access_point_policy)
+        if valid_ap_policy:
+            associate_aws_users_with_data_access_point(access_point, subset_aws_ids)
+
+
+def associate_aws_users_with_data_access_point(access_point, aws_ids):
+    """
+    Associate AWS users with a specified data access point.
+
+    This function links AWS users to the specified data access point,
+    creating new user entries if necessary.
+
+    Args:
+        access_point (object): The access point object.
+        aws_ids (list): A list of AWS IDs to be associated with the access point.
+
+    Returns:
+        None
+
+    Note:
+    - Ensure that the access point and AWS IDs are valid.
+
+    """
+    existing_user_ids = set(access_point.users.values_list('aws_id', flat=True))
+    new_user_ids = set(aws_ids) - existing_user_ids
+    for aws_id in new_user_ids:
+        user, created = AccessPointUser.objects.get_or_create(aws_id=aws_id)
+        access_point.users.add(user)
+    access_point.save()
+
+
+def create_s3_access_point(project, access_point_name, bucket_name, account_id):
+    """
+    Create an S3 access point for a specified bucket and project.
+
+    This function creates an S3 access point for the given bucket
+    and project, applying necessary public access block configurations.
+
+    Args:
+        project (object): The project object containing AWS and version information.
+        access_point_name (str): The name of the access point.
+        bucket_name (str): The name of the S3 bucket.
+        account_id (str): The AWS account ID.
+
+    Returns:
+        object: The created access point object, or None if an error occurred.
+
+    Note:
+    - Ensure that AWS credentials (Access Key and Secret Key)
+    are properly configured for the S3 client used in this function.
+    - Ensure that the bucket name and account ID are valid.
+
+    """
+    s3 = create_s3_control_client()
+    try:
+        response = s3.create_access_point(
+            AccountId=account_id,
+            Bucket=bucket_name,
+            Name=access_point_name,
+            PublicAccessBlockConfiguration={
+                'BlockPublicAcls': True,
+                'IgnorePublicAcls': True,
+                'BlockPublicPolicy': True,
+                'RestrictPublicBuckets': True
+            }
+        )
+        # Create and save AccessPoint model instance
+        access_point, created = AccessPoint.objects.get_or_create(
+            aws=project.aws,
+            name=access_point_name
+        )
+        return access_point
+    except Exception as e:
+        print("Error creating Access Point:", e)
+        return None
+
+
+def list_access_points(s3_control, account_id):
+    """
+    List all access points for the AWS account.
+
+    This function retrieves a list of all access points associated
+    with the specified AWS account.
+
+    Args:
+        s3_control (object): The S3 control client.
+        account_id (str): The AWS account ID.
+
+    Returns:
+        list: A list of access points for the AWS account.
+
+    Note:
+    - Ensure that AWS credentials (Access Key and Secret Key)
+    are properly configured for the S3 client used in this function.
+    """
+    try:
+        response = s3_control.list_access_points(AccountId=account_id)
+        return response['AccessPointList']
+    except ClientError as e:
+        print("Error listing Access Points:", e)
+        return []
+
+
+def upload_project_to_S3(project):
+    """
+        Upload project files to an S3 bucket and configure access policies.
+
+    This function manages the upload of project files to a specified S3 bucket
+    and configures the necessary access policies based on the project's access policy.
+
+    Args:
+        project (object): The project object containing AWS and version information.
+
+    Returns:
+        None
+
+    Note:
+    - Ensure that AWS credentials (Access Key and Secret Key)
+    are properly configured for the S3 client used in this function.
+    - Ensure that the project object contains valid AWS and version information.
+    """
+    bucket_name = get_bucket_name(project)
     s3 = create_s3_client()
     if s3 is None or bucket_name is None:
         return
@@ -664,20 +1182,16 @@ def upload_project_to_S3(project):
         raise Exception(f"A bucket named {bucket_name} already exists.")
     except s3.exceptions.BucketAlreadyOwnedByYou:
         pass
-    put_bucket_logging(
-        s3, bucket_name, settings.S3_SERVER_ACCESS_LOG_BUCKET, bucket_name + "/logs/"
-    )
-    # upload files to bucket
+    put_bucket_logging(s3, bucket_name, settings.S3_SERVER_ACCESS_LOG_BUCKET, bucket_name + "/logs/")
     folder_path = project.file_root()
-    # set the prefix only for the projects
-    # in the open data bucket
-    if project.access_policy == AccessPolicy.OPEN:
-        s3_prefix = f"{project.slug}/{project.version}/"
-    else:
-        s3_prefix = f"{project.version}/"
+    s3_prefix = f"{project.slug}/{project.version}/"
     send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
-    # update bucket's policy for projects
-    update_bucket_policy(project, bucket_name)
+    if project.access_policy == AccessPolicy.OPEN:
+        update_open_bucket_policy(project, bucket_name)
+
+    else:
+        if s3_bucket_has_credentialed_users(project):
+            update_data_access_point_policy(project)
 
 
 def upload_list_of_projects(projects):
@@ -751,8 +1265,6 @@ def create_s3_server_access_log_bucket():
 
     put_public_access_block(s3, bucket_name, True)
 
-    # Policy for logging - see:
-    # https://docs.aws.amazon.com/AmazonS3/latest/userguide/enable-server-access-logging.html
     s3.put_bucket_policy(Bucket=bucket_name, Policy=json.dumps({
         "Version": "2012-10-17",
         "Statement": [
@@ -776,3 +1288,8 @@ def create_s3_server_access_log_bucket():
             },
         ],
     }))
+
+
+def validade_aws_id(data_access_point_name, project_slug, project_version, aws_id):
+    access_point_policy = create_data_access_point_policy(data_access_point_name, project_slug, project_version, aws_id)
+    return set_data_access_point_policy(data_access_point_name, access_point_policy)
