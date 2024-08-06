@@ -766,7 +766,7 @@ cp .env.example .env
 ##### 3.1.6.3 Build the physionet image
     
 ```sh
-docker-compose build 
+docker compose build 
 ```
 
 That should take care of all the setup for you, now let's go ahead start our server and load the demo data on our database.
@@ -776,7 +776,7 @@ That should take care of all the setup for you, now let's go ahead start our ser
 To start our server, we can do it with a single command.
 
 ```sh
-docker-compose up
+docker compose up
 ```
 
 This will start our development server on [http://localhost:8000](http://localhost:8000), run the postgres database, development and test containers. Before you go ahead and play around with the project, we need to load the demo data on our test and development database (Note: we only need to load the demo data when doing the setup for the first time). 
@@ -793,7 +793,7 @@ cd physionet-build
 Enter the development container shell and navigate inside `physionet-django` directory.
 
 ```sh
-docker-compose exec dev /bin/bash
+docker compose exec dev /bin/bash
 ```
 ```sh
 cd physionet-django
@@ -811,7 +811,7 @@ Run the following commands to set up the database
 In a new Terminal, enter the test container shell and navigate inside `physionet-django` directory.
 
 ```sh
-docker-compose exec test /bin/bash
+docker compose exec test /bin/bash
 ```
 ```sh
 cd physionet-django
@@ -895,7 +895,7 @@ copy .env.example .env
 ##### 3.2.5.3 Build the physionet image
     
 ```cmd
-docker-compose build
+docker compose build
 ```
 
 That should take care of all the setup for you, now let's go ahead start our server and load the demo data on our database.
@@ -905,7 +905,7 @@ That should take care of all the setup for you, now let's go ahead start our ser
 To start our server, we can do it with a single command.
 
 ```cmd
-docker-compose up
+docker compose up
 ```
 
 This will start our development server on [http://localhost:8000](http://localhost:8000), run the postgres database, development and test containers. Before you go ahead and play around with the project, we need to load the demo data on our test and development database (Note: we only need to load the demo data when doing the setup for the first time). 
@@ -922,7 +922,7 @@ cd physionet-build
 Enter the development container shell and navigate inside `physionet-django` directory.
 
 ```cmd
-docker-compose exec dev /bin/bash
+docker compose exec dev /bin/bash
 ```
 
 ```sh
@@ -941,7 +941,7 @@ Run the following commands to set up the database
 In a new CMD, enter the test container shell and navigate inside `physionet-django` directory.
 
 ```cmd
-docker-compose exec test /bin/bash
+docker compose exec test /bin/bash
 ```
 ```sh
 cd physionet-django
@@ -1036,7 +1036,7 @@ cp .env.example .env
 ##### 3.3.5.3 Build the physionet image
     
 ```sh
-docker-compose build 
+docker compose build 
 ```
 
 That should take care of all the setup for you, now let's go ahead start our server and load the demo data on our database.
@@ -1046,7 +1046,7 @@ That should take care of all the setup for you, now let's go ahead start our ser
 To start our server, we can do it with a single command.
 
 ```sh
-docker-compose up
+docker compose up
 ```
 
 This will start our development server on [http://localhost:8000](http://localhost:8000), run the postgres database, development and test containers. Before you go ahead and play around with the project, we need to load the demo data on our test and development database (Note: we only need to load the demo data when doing the setup for the first time). 
@@ -1063,7 +1063,7 @@ cd physionet-build
 Enter the development container shell and navigate inside `physionet-django` directory.
 
 ```sh
-docker-compose exec dev /bin/bash
+docker compose exec dev /bin/bash
 ```
 ```sh
 cd physionet-django
@@ -1081,7 +1081,7 @@ Run the following commands to set up the database
 In a new terminal, enter the test container shell and navigate inside `physionet-django` directory.
 
 ```sh
-docker-compose exec test /bin/bash
+docker compose exec test /bin/bash
 ```
 ```sh
 cd physionet-django

@@ -20,14 +20,14 @@ The local development server will be available at [http://localhost:8000](http:/
 
 - Install docker: [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/).
 - Copy the example config: `cp .env.example .env`.
-- Build the physionet image: `docker-compose build`.
-- Run `docker-compose up` to run the postgres database, development and test containers.
+- Build the physionet image: `docker compose build`.
+- Run `docker compose up` to run the postgres database, development and test containers.
 - In a separate shell:
-  - Run: `docker-compose exec dev /bin/bash` to enter the development container shell.
+  - Run: `docker compose exec dev /bin/bash` to enter the development container shell.
   - Within the `physionet-django` directory:
     - Run: `python manage.py resetdb` to reset the database.
     - Run: `python manage.py loaddemo` to load the demo fixtures set up example files.
-  - Run: `docker-compose exec test /bin/bash` to enter the test container shell.
+  - Run: `docker compose exec test /bin/bash` to enter the test container shell.
   - Within the `physionet-django` directory:
     - Run: `python manage.py resetdb` to reset the database.
     - Run: `python manage.py loaddemo` to load the demo fixtures set up example files.
@@ -35,11 +35,11 @@ The local development server will be available at [http://localhost:8000](http:/
 
 The local development server will be available at [http://localhost:8000](http://localhost:8000).
 
-All the management commands should be executed inside the desired container (with `docker-compose exec dev /bin/bash/` or `docker-compose exec test /bin/bash`).
+All the management commands should be executed inside the desired container (with `docker compose exec dev /bin/bash/` or `docker compose exec test /bin/bash`).
 
-The code should dynamically reload in development, however, if there are any issues you can stop the `docker-compose up` command and run `docker-compose up --build` which will rebuild the physionet image.
+The code should dynamically reload in development, however, if there are any issues you can stop the `docker compose up` command and run `docker compose up --build` which will rebuild the physionet image.
 
-Docker-compose uses volumes to persist the database contents and data directories (media and static files). To clean up the created containers, networks and volumes stop `docker-compose up` and run `docker-compose down -v`. Do not run `docker-compose down -v` if you want to retain current database contents.
+Docker compose uses volumes to persist the database contents and data directories (media and static files). To clean up the created containers, networks and volumes stop `docker compose up` and run `docker compose down -v`. Do not run `docker compose down -v` if you want to retain current database contents.
 
 ## Background tasks
 
@@ -69,7 +69,7 @@ The debugger should now be available in the new shell.
 
 ## Testing
 
-If using docker, all of the commands should run inside the test container (`docker-compose exec test /bin/bash`). You may need to `pip install coverage` beforehand if not using docker.
+If using docker, all of the commands should run inside the test container (`docker compose exec test /bin/bash`). You may need to `pip install coverage` beforehand if not using docker.
 
 - Unit tests for each app are kept in their `test*.py` files.
 - To run the unit tests, change to the `physionet-django` directory and run `python manage.py test`.
