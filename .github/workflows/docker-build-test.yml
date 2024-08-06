@@ -4,9 +4,9 @@
 # All published images are also tagged with corresponding git commit sha.
 #
 # To run the tests locally in a similar environment to GitHub Actions you can use:
-# $ docker-compose -f docker/docker-compose.test.yml build
-# $ docker-compose -f docker/docker-compose.test.yml run --rm test
-# $ docker-compose -f docker/docker-compose.test.yml down
+# $ docker compose -f docker/docker-compose.test.yml build
+# $ docker compose -f docker/docker-compose.test.yml run --rm test
+# $ docker compose -f docker/docker-compose.test.yml down
 
 name: Docker / Build, Test and Publish
 
@@ -42,10 +42,10 @@ jobs:
           load: true
 
       - name: Run tests
-        run: docker-compose -f docker/docker-compose.test.yml run --rm test
+        run: docker compose -f docker/docker-compose.test.yml run --rm test
 
       - name: Stop and remove containers
-        run: docker-compose -f docker/docker-compose.test.yml down
+        run: docker compose -f docker/docker-compose.test.yml down
 
       - name: Save physionet image
         if: github.ref == 'refs/heads/dev' || github.event.inputs.publish_tag
