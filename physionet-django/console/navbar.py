@@ -204,7 +204,7 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('Project review'), 'guidelines_review'),
     ]),
 
-    NavSubmenu(_('Usage Stats'), 'stats', 'chart-area', [
+    NavSubmenu(_('Metrics'), 'stats', 'chart-area', [
         NavLink(_('Editorial'), 'editorial_stats'),
         NavLink(_('Credentialing'), 'credentialing_stats'),
         NavLink(_('Submissions'), 'submission_stats'),
