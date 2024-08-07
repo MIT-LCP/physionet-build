@@ -4,7 +4,7 @@
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-    Project statistics over previous 18 months
+    New projects (past 18 months)
   </div>
   <div class="card-body">
     <div class="table-responsive">
@@ -13,10 +13,10 @@
         <tr>
           <th>Year</th>
           <th>Month</th>
-          <th>Projects Created</th>
-          <th>New Submissions</th>
-          <th>Resubmissions</th>
-          <th>Publications</th>
+          <th>Created</th>
+          <th>Submitted</th>
+          <th>Resubmitted</th>
+          <th>Published</th>
         </tr>
         {% for year, month_list in stats.items%}
           {% for month, val in month_list.items%}

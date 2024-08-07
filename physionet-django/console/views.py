@@ -17,17 +17,18 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
-from django.db.models import Count, DurationField, F, Q
+from django.db.models import Count, DurationField, F, Q, Prefetch
 from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory
 from django.forms.models import model_to_dict
-from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
+from html2text import html2text
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -2334,6 +2335,209 @@ def submission_stats(request):
 
     return render(request, 'console/submission_stats.html',
                   {'submenu': 'submission', 'stats': stats})
+
+
+@console_permission_required('project.can_view_stats')
+def downloads(request):
+    """
+    Display page in the console with a list of downloadable CSVs.
+    """
+    return render(request, 'console/downloads.html',
+                  {'submenu': 'submission'})
+
+
+class Echo:
+    """
+    Used in StreamingHttpResponse to deliver large CSVs without timeout.
+    """
+    def write(self, value):
+        """
+        Write the value by returning it, instead of storing in a buffer.
+        """
+        return value
+
+
+@console_permission_required('user.change_credentialapplication')
+def download_users(request):
+    """
+    Delivers a CSV file containing data on users.
+    """
+    users = User.objects.select_related('profile').prefetch_related(
+        Prefetch('credential_applications',
+                 queryset=CredentialApplication.objects.filter(
+                     status=CredentialApplication.Status.ACCEPTED
+                 ).order_by('decision_datetime'),
+                 to_attr='accepted_credentials'))
+
+    # Use StreamingHttpResponse to stream data
+    response = StreamingHttpResponse(
+        (csv.writer(Echo(), quoting=csv.QUOTE_ALL).writerow(row) for row in generate_user_csv_data(users)),
+        content_type='text/csv'
+    )
+
+    response['Content-Disposition'] = 'attachment; filename="users.csv"'
+    return response
+
+
+def generate_user_csv_data(users):
+    """
+    Generates user data for download
+    """
+    csv_header = ["user_id",
+                  "username",
+                  "join_date",
+                  "last_login",
+                  "registration_ip",
+                  "is_active_user",
+                  "primary_email",
+                  "all_emails",
+                  "first_names",
+                  "last_name",
+                  "full_name",
+                  "affiliation",
+                  "location",
+                  "website",
+                  "orcid_id",
+                  "credentialing_status",
+                  "credentialing_organization_name",
+                  "credentialing_job_title",
+                  "credentialing_city",
+                  "credentialing_state_or_province",
+                  "credentialing_country",
+                  "credentialing_webpage",
+                  "credentialing_reference_name",
+                  "credentialing_reference_email",
+                  "credentialing_reference_org",
+                  "credentialing_reference_response",
+                  "credentialing_research_summary"]
+
+    yield csv_header
+
+    for user in users:
+        credentials = user.credential_applications.filter(
+            status=CredentialApplication.Status.ACCEPTED).order_by('decision_datetime').last()
+
+        yield [user.id,
+               user.username,
+               user.join_date,
+               user.last_login,
+               user.registration_ip,
+               user.is_active,
+               user.email,
+               ', '.join(user.get_emails()),
+               user.profile.first_names,
+               user.profile.last_name,
+               user.profile.get_full_name(),
+               user.profile.affiliation,
+               user.profile.location,
+               user.profile.website,
+               user.get_orcid_id(),
+               user.get_credentialing_status(),
+               credentials.organization_name if credentials else None,
+               credentials.job_title if credentials else None,
+               credentials.city if credentials else None,
+               credentials.state_province if credentials else None,
+               credentials.country if credentials else None,
+               credentials.webpage if credentials else None,
+               credentials.reference_name if credentials else None,
+               credentials.reference_email if credentials else None,
+               credentials.reference_organization if credentials else None,
+               credentials.reference_response_text if credentials else None,
+               credentials.research_summary if credentials else None,
+               ]
+
+
+@console_permission_required('user.change_credentialapplication')
+def download_projects(request):
+    """
+    Delivers a CSV file containing data on published projects.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="projects.csv"'
+
+    writer = csv.writer(response, quoting=csv.QUOTE_ALL)
+    writer.writerow(["project_id",
+                     "core_project_id",
+                     "project_slug",
+                     "version",
+                     "publish_date",
+                     "has_other_versions",
+                     "version_order",
+                     "is_latest_version",
+                     "project_doi",
+                     "core_project_doi",
+                     "full_description",
+                     "submitting_author_id",
+                     "title",
+                     "abstract",
+                     "background",
+                     "methods",
+                     "content_description",
+                     "usage_notes",
+                     "installation",
+                     "acknowledgements",
+                     "conflicts_of_interest",
+                     "release_notes",
+                     "short_description",
+                     "access_policy",
+                     "license",
+                     "data_use_agreement",
+                     "project_home_page",
+                     "ethics_statement",
+                     "corresponding_author_id",
+                     "author_ids",
+                     "associated_paper",
+                     "associated_paper_url",
+                     ])
+
+    projects = PublishedProject.objects.all()
+
+    # Function to process and sanitize HTML content
+    def clean_html(html_content):
+        text = html2text(html_content)
+        text = text.replace('\n', ' ').replace('"', '""')
+        return text.strip()
+
+    for project in projects:
+        authors = project.authors.all().order_by('display_order')
+        publication = project.publications.first()
+
+        project_data = [project.id,
+                        project.core_project.id,
+                        project.slug,
+                        project.version,
+                        project.publish_datetime,
+                        project.has_other_versions,
+                        project.version_order,
+                        project.is_latest_version,
+                        project.doi,
+                        project.core_project.doi,
+                        clean_html(project.full_description),
+                        ', '.join(str(author.id) for author in authors if author.is_submitting),
+                        project.title,
+                        clean_html(project.abstract),
+                        clean_html(project.background),
+                        clean_html(project.methods),
+                        clean_html(project.content_description),
+                        clean_html(project.usage_notes),
+                        clean_html(project.installation),
+                        clean_html(project.acknowledgements),
+                        clean_html(project.conflicts_of_interest),
+                        clean_html(project.release_notes),
+                        project.short_description,
+                        project.access_policy,
+                        project.license,
+                        project.dua,
+                        project.project_home_page,
+                        clean_html(project.ethics_statement),
+                        ', '.join(str(author.id) for author in authors if author.is_corresponding),
+                        ', '.join(str(author.id) for author in authors),
+                        publication.citation if publication else None,
+                        publication.url if publication else None,
+                        ]
+
+        writer.writerow(project_data)
+    return response
 
 
 @console_permission_required('project.can_view_access_logs')
