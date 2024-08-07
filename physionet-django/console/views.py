@@ -2363,7 +2363,7 @@ def download_users(request):
     Delivers a CSV file containing data on users.
     """
     users = User.objects.select_related('profile').prefetch_related(
-        Prefetch('credential_applications', 
+        Prefetch('credential_applications',
                  queryset=CredentialApplication.objects.filter(
                      status=CredentialApplication.Status.ACCEPTED
                  ).order_by('decision_datetime'),
@@ -2445,6 +2445,7 @@ def generate_user_csv_data(users):
                credentials.reference_response_text if credentials else None,
                credentials.research_summary if credentials else None,
                ]
+
 
 @console_permission_required('project.can_view_stats')
 def download_projects(request):
