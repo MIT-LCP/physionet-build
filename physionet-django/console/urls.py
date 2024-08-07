@@ -105,6 +105,9 @@ urlpatterns = [
     path('usage/editorial/stats/', views.editorial_stats, name='editorial_stats'),
     path('usage/credentialing/stats/', views.credentialing_stats, name='credentialing_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
+    path('downloads/', views.downloads, name='downloads'),
+    path('download/users/', views.download_users, name='download_users'),
+    path('download/projects/', views.download_projects, name='download_projects'),
 
     # redirects
     path('redirects/', views.view_redirects, name='redirects'),

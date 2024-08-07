@@ -2336,6 +2336,179 @@ def submission_stats(request):
                   {'submenu': 'submission', 'stats': stats})
 
 
+@console_permission_required('project.can_view_stats')
+def downloads(request):
+    """
+    Display page in the console with a list of downloadable CSVs.
+    """
+    return render(request, 'console/downloads.html',
+                  {'submenu': 'submission'})
+
+
+@console_permission_required('project.can_view_stats')
+def download_users(request):
+    """
+    Delivers a CSV file containing data on users.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="users.csv"'
+
+    writer = csv.writer(response, quoting=csv.QUOTE_ALL)
+    csv_header = ["user_id",
+                  "username",
+                  "join_date",
+                  "last_login",
+                  "registration_ip",
+                  "is_active_user",
+                  "primary_email",
+                  "all_emails",
+                  "first_names",
+                  "last_name",
+                  "full_name",
+                  "affiliation",
+                  "location",
+                  "website",
+                  "orcid_id",
+                  "credentialing_status",
+                  "credentialing_organization_name",
+                  "credentialing_job_title",
+                  "credentialing_city",
+                  "credentialing_state_or_province",
+                  "credentialing_country",
+                  "credentialing_webpage",
+                  "credentialing_reference_name",
+                  "credentialing_reference_email",
+                  "credentialing_reference_org",
+                  "credentialing_reference_response",
+                  "credentialing_research_summary"]
+
+    writer.writerow(csv_header)
+
+    users = User.objects.all()
+    for user in users:
+        credentials = user.credential_applications.filter(
+            status=CredentialApplication.Status.ACCEPTED).order_by('decision_datetime').last()
+
+        user_data = [user.id,
+                     user.username,
+                     user.join_date,
+                     user.last_login,
+                     user.registration_ip,
+                     user.is_active,
+                     user.email,
+                     ', '.join(user.get_emails()),
+                     user.profile.first_names,
+                     user.profile.last_name,
+                     user.profile.get_full_name(),
+                     user.profile.affiliation,
+                     user.profile.location,
+                     user.profile.website,
+                     user.get_orcid_id(),
+                     user.get_credentialing_status(),
+                     credentials.organization_name if credentials else None,
+                     credentials.job_title if credentials else None,
+                     credentials.city if credentials else None,
+                     credentials.state_province if credentials else None,
+                     credentials.country if credentials else None,
+                     credentials.webpage if credentials else None,
+                     credentials.reference_name if credentials else None,
+                     credentials.reference_email if credentials else None,
+                     credentials.reference_organization if credentials else None,
+                     credentials.reference_response_text if credentials else None,
+                     credentials.research_summary if credentials else None,
+                     ]
+
+        writer.writerow(user_data)
+    return response
+
+
+@console_permission_required('project.can_view_stats')
+def download_projects(request):
+    """
+    Delivers a CSV file containing data on published projects.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="projects.csv"'
+
+    writer = csv.writer(response, quoting=csv.QUOTE_ALL)
+    writer.writerow(["project_id",
+                     "core_project_id",
+                     "project_slug",
+                     "version",
+                     "publish_date",
+                     "has_other_versions",
+                     "version_order",
+                     "is_latest_version",
+                     "project_doi",
+                     "core_project_doi",
+                     "full_description",
+                     "submitting_author_id",
+                     "title",
+                     "abstract",
+                     "background",
+                     "methods",
+                     "content_description",
+                     "usage_notes",
+                     "installation",
+                     "acknowledgements",
+                     "conflicts_of_interest",
+                     "release_notes",
+                     "short_description",
+                     "access_policy",
+                     "license",
+                     "data_use_agreement",
+                     "project_home_page",
+                     "ethics_statement",
+                     "corresponding_author_id",
+                     "author_ids",
+                     "associated_paper",
+                     "associated_paper_url",
+                     ])
+
+    projects = PublishedProject.objects.all()
+
+    for project in projects:
+        authors = project.authors.all().order_by('display_order')
+        publication = project.publications.first()
+
+        project_data = [project.id,
+                        project.core_project.id,
+                        project.slug,
+                        project.version,
+                        project.publish_datetime,
+                        project.has_other_versions,
+                        project.version_order,
+                        project.is_latest_version,
+                        project.doi,
+                        project.core_project.doi,
+                        project.full_description,
+                        ', '.join(str(author.id) for author in authors if author.is_submitting),
+                        project.title,
+                        project.abstract,
+                        project.background,
+                        project.methods,
+                        project.content_description,
+                        project.usage_notes,
+                        project.installation,
+                        project.acknowledgements,
+                        project.conflicts_of_interest,
+                        project.release_notes,
+                        project.short_description,
+                        project.access_policy,
+                        project.license,
+                        project.dua,
+                        project.project_home_page,
+                        project.ethics_statement,
+                        ', '.join(str(author.id) for author in authors if author.is_corresponding),
+                        ', '.join(str(author.id) for author in authors),
+                        publication.citation if publication else None,
+                        publication.url if publication else None,
+                        ]
+
+        writer.writerow(project_data)
+    return response
+
+
 @console_permission_required('project.can_view_access_logs')
 def download_credentialed_users(request):
     """
