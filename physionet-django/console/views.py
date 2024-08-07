@@ -2357,7 +2357,7 @@ class Echo:
         return value
 
 
-@console_permission_required('project.can_view_stats')
+@console_permission_required('user.change_credentialapplication')
 def download_users(request):
     """
     Delivers a CSV file containing data on users.
@@ -2447,7 +2447,7 @@ def generate_user_csv_data(users):
                ]
 
 
-@console_permission_required('project.can_view_stats')
+@console_permission_required('user.change_credentialapplication')
 def download_projects(request):
     """
     Delivers a CSV file containing data on published projects.
