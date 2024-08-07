@@ -17,11 +17,11 @@ from django.contrib.auth.models import Group
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
-from django.db.models import Count, DurationField, F, Q
+from django.db.models import Count, DurationField, F, Q, Prefetch
 from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory
 from django.forms.models import model_to_dict
-from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -2346,15 +2346,43 @@ def downloads(request):
                   {'submenu': 'submission'})
 
 
+class Echo:
+    """
+    Used in StreamingHttpResponse to deliver large CSVs without timeout.
+    """
+    def write(self, value):
+        """
+        Write the value by returning it, instead of storing in a buffer.
+        """
+        return value
+
+
 @console_permission_required('project.can_view_stats')
 def download_users(request):
     """
     Delivers a CSV file containing data on users.
     """
-    response = HttpResponse(content_type='text/csv')
-    response['Content-Disposition'] = 'attachment; filename="users.csv"'
+    users = User.objects.select_related('profile').prefetch_related(
+        Prefetch('credential_applications', 
+                 queryset=CredentialApplication.objects.filter(
+                     status=CredentialApplication.Status.ACCEPTED
+                 ).order_by('decision_datetime'),
+                 to_attr='accepted_credentials'))
 
-    writer = csv.writer(response, quoting=csv.QUOTE_ALL)
+    # Use StreamingHttpResponse to stream data
+    response = StreamingHttpResponse(
+        (csv.writer(Echo(), quoting=csv.QUOTE_ALL).writerow(row) for row in generate_user_csv_data(users)),
+        content_type='text/csv'
+    )
+
+    response['Content-Disposition'] = 'attachment; filename="users.csv"'
+    return response
+
+
+def generate_user_csv_data(users):
+    """
+    Generates user data for download
+    """
     csv_header = ["user_id",
                   "username",
                   "join_date",
@@ -2383,45 +2411,40 @@ def download_users(request):
                   "credentialing_reference_response",
                   "credentialing_research_summary"]
 
-    writer.writerow(csv_header)
+    yield csv_header
 
-    users = User.objects.all()
     for user in users:
         credentials = user.credential_applications.filter(
             status=CredentialApplication.Status.ACCEPTED).order_by('decision_datetime').last()
 
-        user_data = [user.id,
-                     user.username,
-                     user.join_date,
-                     user.last_login,
-                     user.registration_ip,
-                     user.is_active,
-                     user.email,
-                     ', '.join(user.get_emails()),
-                     user.profile.first_names,
-                     user.profile.last_name,
-                     user.profile.get_full_name(),
-                     user.profile.affiliation,
-                     user.profile.location,
-                     user.profile.website,
-                     user.get_orcid_id(),
-                     user.get_credentialing_status(),
-                     credentials.organization_name if credentials else None,
-                     credentials.job_title if credentials else None,
-                     credentials.city if credentials else None,
-                     credentials.state_province if credentials else None,
-                     credentials.country if credentials else None,
-                     credentials.webpage if credentials else None,
-                     credentials.reference_name if credentials else None,
-                     credentials.reference_email if credentials else None,
-                     credentials.reference_organization if credentials else None,
-                     credentials.reference_response_text if credentials else None,
-                     credentials.research_summary if credentials else None,
-                     ]
-
-        writer.writerow(user_data)
-    return response
-
+        yield [user.id,
+               user.username,
+               user.join_date,
+               user.last_login,
+               user.registration_ip,
+               user.is_active,
+               user.email,
+               ', '.join(user.get_emails()),
+               user.profile.first_names,
+               user.profile.last_name,
+               user.profile.get_full_name(),
+               user.profile.affiliation,
+               user.profile.location,
+               user.profile.website,
+               user.get_orcid_id(),
+               user.get_credentialing_status(),
+               credentials.organization_name if credentials else None,
+               credentials.job_title if credentials else None,
+               credentials.city if credentials else None,
+               credentials.state_province if credentials else None,
+               credentials.country if credentials else None,
+               credentials.webpage if credentials else None,
+               credentials.reference_name if credentials else None,
+               credentials.reference_email if credentials else None,
+               credentials.reference_organization if credentials else None,
+               credentials.reference_response_text if credentials else None,
+               credentials.research_summary if credentials else None,
+               ]
 
 @console_permission_required('project.can_view_stats')
 def download_projects(request):
