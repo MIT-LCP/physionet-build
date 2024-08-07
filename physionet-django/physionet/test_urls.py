@@ -5,6 +5,7 @@ import urllib.parse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.redirects.models import Redirect
+from django.http import StreamingHttpResponse
 from django.test import TestCase
 from django.urls import URLPattern, URLResolver, get_resolver
 from django.utils.regex_helper import normalize
@@ -204,7 +205,11 @@ class TestURLs(TestMixin):
             path = os.path.join(self._dump_dir, path)
             os.makedirs(os.path.dirname(path), exist_ok=True)
             with open(path, 'wb') as f:
-                f.write(response.content)
+                if isinstance(response, StreamingHttpResponse):
+                    for chunk in response.streaming_content:
+                        f.write(chunk)
+                else:
+                    f.write(response.content)
 
     def _output_filename(self, url, query, response):
         path = url
