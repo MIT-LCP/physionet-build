@@ -28,6 +28,7 @@ from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
+from html2text import html2text
 from notification.models import News
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -2467,6 +2468,12 @@ def download_projects(request):
 
     projects = PublishedProject.objects.all()
 
+    # Function to process and sanitize HTML content
+    def clean_html(html_content):
+        text = html2text(html_content)
+        text = text.replace('\n', ' ').replace('"', '""')
+        return text.strip()
+
     for project in projects:
         authors = project.authors.all().order_by('display_order')
         publication = project.publications.first()
@@ -2481,24 +2488,24 @@ def download_projects(request):
                         project.is_latest_version,
                         project.doi,
                         project.core_project.doi,
-                        project.full_description,
+                        clean_html(project.full_description),
                         ', '.join(str(author.id) for author in authors if author.is_submitting),
                         project.title,
-                        project.abstract,
-                        project.background,
-                        project.methods,
-                        project.content_description,
-                        project.usage_notes,
-                        project.installation,
-                        project.acknowledgements,
-                        project.conflicts_of_interest,
-                        project.release_notes,
+                        clean_html(project.abstract),
+                        clean_html(project.background),
+                        clean_html(project.methods),
+                        clean_html(project.content_description),
+                        clean_html(project.usage_notes),
+                        clean_html(project.installation),
+                        clean_html(project.acknowledgements),
+                        clean_html(project.conflicts_of_interest),
+                        clean_html(project.release_notes),
                         project.short_description,
                         project.access_policy,
                         project.license,
                         project.dua,
                         project.project_home_page,
-                        project.ethics_statement,
+                        clean_html(project.ethics_statement),
                         ', '.join(str(author.id) for author in authors if author.is_corresponding),
                         ', '.join(str(author.id) for author in authors),
                         publication.citation if publication else None,
