@@ -493,10 +493,12 @@ class NewProjectVersionForm(forms.ModelForm):
                     author=author)
 
         # Other related objects
-        for p_reference in self.latest_project.references.all():
+        for p_reference in self.latest_project.references.order_by('order'):
             reference = Reference.objects.create(
                 description=p_reference.description,
-                project=project)
+                order=p_reference.order,
+                project=project,
+            )
 
         for p_publication in self.latest_project.publications.all():
             publication = Publication.objects.create(
