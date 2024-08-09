@@ -5,40 +5,45 @@
 {% block title %}Project Discovery - {{ project }}{% endblock %}
 
 {% block local_js_top %}
-<script src="{% static 'custom/js/cookie.js' %}"></script>
-<script src="{% static 'project/js/dynamic-formset.js' %}"></script>
+    <script src="{% static 'custom/js/cookie.js' %}"></script>
+    <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
 {% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">4. Project Discovery</h2>
-<hr>
-{% include 'about/discovery.html' %}
-{% if not project.author_editable %}
-  <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>The project cannot be edited right now.</strong>
-  </div>
-{% elif not is_submitting %}
-  <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>Only the submitting author may edit these details.</strong>
-  </div>
-{% endif %}
-<form action="{% url 'project_discovery' project.slug %}" method="post" onsubmit="return validateItems('topic-list', 'description', 'Topics', 'short_description')" class="no-pd">
-  {% include "project/content_inline_form_snippet.html" with form=discovery_form %}
-  {% include 'project/item_list.html' with item="publication" item_label=publication_formset.item_label formset=publication_formset form_name=publication_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
-  {% include 'project/item_list.html' with item="topic" item_label=topic_formset.item_label formset=topic_formset form_name=topic_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
-  {% if is_submitting and project.author_editable %}
-  <hr>
-  <button class="btn btn-primary btn-rsp" type="submit" name="edit_identifiers">Save Information</button>
-  {% endif %}
-</form>
-<br>
+    {% with step_detail=step_details_dict.project_discovery %}
+
+    <h2 class="form-signin-heading">{{ step_detail.title }}</h2>
+    <hr>
+    <div>
+    {{ step_detail.content|safe }}
+    </div>
+    {% endwith %}
+    {% if not project.author_editable %}
+        <div class="alert alert-form alert-warning alert-dismissible">
+            <strong>The project cannot be edited right now.</strong>
+        </div>
+    {% elif not is_submitting %}
+        <div class="alert alert-form alert-warning alert-dismissible">
+            <strong>Only the submitting author may edit these details.</strong>
+        </div>
+    {% endif %}
+    <form action="{% url 'project_discovery' project.slug %}" method="post" onsubmit="return validateItems('topic-list', 'description', 'Topics', 'short_description')" class="no-pd">
+        {% include "project/content_inline_form_snippet.html" with form=discovery_form %}
+        {% include 'project/item_list.html' with item="publication" item_label=publication_formset.item_label formset=publication_formset form_name=publication_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+        {% include 'project/item_list.html' with item="topic" item_label=topic_formset.item_label formset=topic_formset form_name=topic_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+        {% if is_submitting and project.author_editable %}
+            <hr>
+            <button class="btn btn-primary btn-rsp" type="submit" name="edit_identifiers">Save Information</button>
+        {% endif %}
+    </form>
+    <br>
 {% endblock %}
 
 {% block local_js_bottom %}
-<script src="{% static 'custom/js/enable-popover.js' %}"></script>
-<script>disableAddButtons();</script>
-{# Disable submission if not currently editable or not submitting author #}
-{% if not is_submitting or not project.author_editable %}
-  <script src="{% static 'custom/js/disable-input.js' %}"></script>
-{% endif %}
+    <script src="{% static 'custom/js/enable-popover.js' %}"></script>
+    <script>disableAddButtons();</script>
+    {# Disable submission if not currently editable or not submitting author #}
+    {% if not is_submitting or not project.author_editable %}
+        <script src="{% static 'custom/js/disable-input.js' %}"></script>
+    {% endif %}
 {% endblock %}

@@ -1,0 +1,22 @@
+[
+{
+  "model": "physionet.staticpage",
+  "pk": 5,
+  "fields": {
+    "title": "Create Project Overview",
+    "url": "/project/:id/overview/",
+    "nav_bar": false,
+    "nav_order": 5
+  }
+},
+{
+  "model": "physionet.section",
+  "pk": 15,
+  "fields": {
+    "static_page": 5,
+    "title": "Preparing for Submission",
+    "content": "<p>To prepare the project for submission, go through the following steps using the side panel:</p>\n <ol>\n  <li>Invite authors to be credited for creating the resource.</li>\n  <li>Fill in the descriptive metadata.</li>\n  <li>Set the access policy and license.</li>\n  <li>Add discovery information.</li>\n  <li>Upload the files.</li>\n  <li>Proofread the project and make sure it is ready for submission.</li>\n</ol> <p>The full publishing process is described in the\n   <a href=\"{% url 'static_view' static_url='publish' %}#author_guidelines\"> author\nguidelines</a>.</p>",
+    "order": 1
+  }
+}
+]

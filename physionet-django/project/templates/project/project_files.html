@@ -7,106 +7,108 @@
 {% block title %}Project Files - {{ project }}{% endblock %}
 
 {% block local_js_top %}
-<script src="{% static 'custom/js/cookie.js' %}"></script>
-<script src="{% static 'dropzone/dropzone.min.js' %}"></script>
+    <script src="{% static 'custom/js/cookie.js' %}"></script>
+    <script src="{% static 'dropzone/dropzone.min.js' %}"></script>
 {% endblock %}
 
 {% block local_css %}
-  <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}"/>
-  <link rel="stylesheet" type="text/css" href="{% static 'dropzone/dropzone.min.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'dropzone/dropzone.min.css' %}">
 {% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">6. Project Files</h2>
-<hr>
-{% include "about/files.html" %}
-<br>
-
-{% if not project.author_editable %}
-  <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>The project cannot be edited right now.</strong>
-  </div>
-{% elif not is_submitting %}
-  <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>Only the submitting author may manage files and request more storage.</strong>
-  </div>
-{% elif maintenance_message %}
-  <div class="alert alert-form alert-warning alert-dismissible">
-    {{ maintenance_message }}
-  </div>
-{% endif %}
-<div class="card">
-  <div class="card-body">
-    {% include "project/project_storage_allowance.html" %}
+    {% with step_detail=step_details_dict.project_files %}
+    <h2 class="form-signin-heading">{{ step_detail.title }}</h2>
+    <hr>
+    {{ step_detail.content|safe }}
     <br>
-    {% if storage_request %}
-      <em>Storage request for {{ storage_request.request_allowance }}GB pending.</em>
-      {% if files_editable %}
-        <br><button id="cancel-storage-button" type="button" class="btn btn-danger" data-toggle="modal" data-target="#cancel-storage-modal">Cancel Request</button>
-        <div class="modal fade" id="cancel-storage-modal" tabindex="-1" role="dialog" aria-labelledby="cancel-storage-modal" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Cancel Storage Request</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <form action="" method="post">
-                <div class="modal-body">
-                  {% csrf_token %}
-                  <p>Are you sure you wish to cancel this storage request?</p>
-                </div>
-                <div class="modal-footer">
-                  <button id="cancel-storage-button-submit" class="btn btn-danger" name="cancel_request" type="submit">Cancel Storage Request</button>
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      {% endif %}
+    {% endwith %}
 
-    {% else %}
-      {% if files_editable %}
-        <button id="request-storage-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#request-storage-modal">
-          <i class="fa fa-cube"></i> Request Storage
-        </button>
-
-        <div class="modal fade" id="request-storage-modal" tabindex="-1" role="dialog" aria-labelledby="request-storage-modal" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title">Request Storage</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <form action="" method="post" enctype="multipart/form-data">
-                <div class="modal-body">
-                  {% csrf_token %}
-                  <p>We will only approve storage requests if the project and its files are adequately described.</p>
-                  {{ storage_request_form }}
-                  <em>Current allowance: {{ storage_info.readable_allowance }}</em>
-                </div>
-                <div class="modal-footer">
-                  <button id="request-storage-button-submit" class="btn btn-primary" name="request_storage" type="submit"><i class="fa fa-cube"></i> Request Storage</button>
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-              </form>
-            </div>
-          </div>
+    {% if not project.author_editable %}
+        <div class="alert alert-form alert-warning alert-dismissible">
+            <strong>The project cannot be edited right now.</strong>
         </div>
-      {% endif %}
+    {% elif not is_submitting %}
+        <div class="alert alert-form alert-warning alert-dismissible">
+            <strong>Only the submitting author may manage files and request more storage.</strong>
+        </div>
+    {% elif maintenance_message %}
+        <div class="alert alert-form alert-warning alert-dismissible">
+            {{ maintenance_message }}
+        </div>
     {% endif %}
-  </div>
-</div>
-<br>
-{% if is_lightwave_supported %}
-  {% if project.has_wfdb %}
-    <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}" target="_blank"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
-  {% endif %}
-{% endif %}
-{% include "project/edit_files_panel.html" %}
+    <div class="card">
+        <div class="card-body">
+            {% include "project/project_storage_allowance.html" %}
+            <br>
+            {% if storage_request %}
+                <em>Storage request for {{ storage_request.request_allowance }}GB pending.</em>
+                {% if files_editable %}
+                    <br><button id="cancel-storage-button" type="button" class="btn btn-danger" data-toggle="modal" data-target="#cancel-storage-modal">Cancel Request</button>
+                    <div class="modal fade" id="cancel-storage-modal" tabindex="-1" role="dialog" aria-labelledby="cancel-storage-modal" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Cancel Storage Request</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <form action="" method="post">
+                                    <div class="modal-body">
+                                        {% csrf_token %}
+                                        <p>Are you sure you wish to cancel this storage request?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button id="cancel-storage-button-submit" class="btn btn-danger" name="cancel_request" type="submit">Cancel Storage Request</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+            {% else %}
+                {% if files_editable %}
+                    <button id="request-storage-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#request-storage-modal">
+                        <i class="fa fa-cube"></i> Request Storage
+                    </button>
+
+                    <div class="modal fade" id="request-storage-modal" tabindex="-1" role="dialog" aria-labelledby="request-storage-modal" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Request Storage</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <form action="" method="post" enctype="multipart/form-data">
+                                    <div class="modal-body">
+                                        {% csrf_token %}
+                                        <p>We will only approve storage requests if the project and its files are adequately described.</p>
+                                        {{ storage_request_form }}
+                                        <em>Current allowance: {{ storage_info.readable_allowance }}</em>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button id="request-storage-button-submit" class="btn btn-primary" name="request_storage" type="submit"><i class="fa fa-cube"></i> Request Storage</button>
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+    <br>
+    {% if is_lightwave_supported %}
+        {% if project.has_wfdb %}
+            <p><a href="{% url 'lightwave_project_home' project.slug %}?db={{ project.slug }}" target="_blank"><i class="fas fa-chart-line"></i> Visualize waveforms</a></p>
+        {% endif %}
+    {% endif %}
+    {% include "project/edit_files_panel.html" %}
 
 {% endblock %}

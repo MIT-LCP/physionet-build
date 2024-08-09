@@ -5,35 +5,38 @@
 {% block title %}Project Access - {{ project }}{% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">3. Project Access</h2>
-<hr>
+    {% with step_detail=step_details_dict.project_access %}
+    <h2 class="form-signin-heading">{{ step_detail.title }}</h2>
+    <hr>
+    <div>
+        {{ step_detail.content|safe }}
+    </div>
+    {% endwith %}
 
-{% include 'about/access_policies.html'%}
+    {% if not project.author_editable %}
+        <div class="alert alert-form alert-warning alert-dismissible">
+            <strong>The project cannot be edited right now.</strong>
+        </div>
+    {% elif not is_submitting %}
+        <div class="alert alert-form alert-warning alert-dismissible">
+            <strong>Only the submitting author may edit the access information.</strong>
+        </div>
+    {% endif %}
 
-{% if not project.author_editable %}
-  <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>The project cannot be edited right now.</strong>
-  </div>
-{% elif not is_submitting %}
-  <div class="alert alert-form alert-warning alert-dismissible">
-    <strong>Only the submitting author may edit the access information.</strong>
-  </div>
-{% endif %}
-
-<form action="{% url 'project_access' project.slug %}" method="post" class="no-pd" id="access">
-  {% include "project/content_inline_form_snippet.html" with form=access_form %}
-  {% if is_submitting and project.author_editable %}
-  <hr>
-  <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Access Information</button>
-  {% endif %}
-</form>
+    <form action="{% url 'project_access' project.slug %}" method="post" class="no-pd" id="access">
+        {% include "project/content_inline_form_snippet.html" with form=access_form %}
+        {% if is_submitting and project.author_editable %}
+            <hr>
+            <button class="btn btn-primary btn-rsp" type="submit" name="edit_access">Save Access Information</button>
+        {% endif %}
+    </form>
 {% endblock %}
 
 {% block local_js_bottom %}
-<script src="{% static 'custom/js/enable-popover.js' %}"></script>
-<script>
-  $(document).on('change', '#id_access_policy', function() {
-    $("#access").load(`{% url 'project_access' project.slug %}?accessPolicy=${this.value} #access>`);
-  });
-</script>
+    <script src="{% static 'custom/js/enable-popover.js' %}"></script>
+    <script>
+        $(document).on('change', '#id_access_policy', function() {
+            $("#access").load(`{% url 'project_access' project.slug %}?accessPolicy=${this.value} #access>`);
+        });
+    </script>
 {% endblock %}

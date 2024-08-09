@@ -5,46 +5,57 @@
 {% block title %}Project Content - {{ project }}{% endblock %}
 
 {% block local_js_top %}
-<script src="{% static 'custom/js/cookie.js' %}"></script>
-<script src="{% static 'custom/js/clear-autosave.js' %}"></script>
-<script src="{% static 'project/js/dynamic-formset.js' %}"></script>
+    <script src="{% static 'custom/js/cookie.js' %}"></script>
+    <script src="{% static 'custom/js/clear-autosave.js' %}"></script>
+    <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
 {% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">2. Project Content</h2>
-<hr>
-<p>Describe the context of your resource, the organization of its files, and how it is to be reused.</p>
-<p>Please adhere to the standards specified in the helpstrings. Required fields are indicated by a <a style="color:red">*</a>.</p>
-<hr>
+    {% with step_detail=step_details_dict.project_content %}
+        <h2 class="form-signin-heading">{{ step_detail.title }}</h2>
+        <hr>
+        {{ step_detail.content|safe }}
+    {% endwith %}
+    <hr>
 
-<form action="{% url 'project_content' project.slug %}" onsubmit="return validateItems('reference-list', 'description', 'References')" method="post" class="no-pd">
-  {% if not project.author_editable %}
-    <div class="alert alert-form alert-warning alert-dismissible">
-      <strong>The project cannot be edited right now.</strong>
-    </div>
-  {% elif not is_submitting %}
-    <div class="alert alert-form alert-warning alert-dismissible">
-      <strong>Only the submitting author may edit the content.</strong>
-    </div>
-  {% endif %}
+    {% if not project.author_editable %}
+        <div class="alert alert-form alert-warning alert-dismissible">
+            <strong>The project cannot be edited right now.</strong>
+        </div>
+    {% elif not is_submitting %}
+        <div class="alert alert-form alert-warning alert-dismissible">
+            <strong>Only the submitting author may edit the content.</strong>
+        </div>
+    {% endif %}
 
-  {{ description_form.media }}
-  {% include "project/content_inline_form_snippet.html" with form=description_form %}
-  {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
-  {% if is_submitting and project.author_editable %}
-  <hr>
-  <button class="btn btn-primary btn-rsp btn-left" type="submit" name="edit_description">Save Description</button>
-  {% endif %}
-</form>
+    <form action="{% url 'project_content' project.slug %}" onsubmit="return validateItems('reference-list', 'description', 'References')" method="post" class="no-pd">
+        {% if not project.author_editable %}
+            <div class="alert alert-form alert-warning alert-dismissible">
+                <strong>The project cannot be edited right now.</strong>
+            </div>
+        {% elif not is_submitting %}
+            <div class="alert alert-form alert-warning alert-dismissible">
+                <strong>Only the submitting author may edit the content.</strong>
+            </div>
+        {% endif %}
+
+        {{ description_form.media }}
+        {% include "project/content_inline_form_snippet.html" with form=description_form %}
+        {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+        {% if is_submitting and project.author_editable %}
+            <hr>
+            <button class="btn btn-primary btn-rsp btn-left" type="submit" name="edit_description">Save Description</button>
+        {% endif %}
+    </form>
 
 {% endblock %}
 
 {% block local_js_bottom %}
-<script src="{% static 'custom/js/resize-ck.js' %}"></script>
-<script src="{% static 'custom/js/enable-popover.js' %}"></script>
-<script>disableAddButtons();</script>
-{# Disable submission if not currently editable or not submitting author #}
-{% if not is_submitting or not project.author_editable %}
-  <script src="{% static 'custom/js/disable-input.js' %}"></script>
-{% endif %}
+    <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+    <script src="{% static 'custom/js/enable-popover.js' %}"></script>
+    <script>disableAddButtons();</script>
+    {# Disable submission if not currently editable or not submitting author #}
+    {% if not is_submitting or not project.author_editable %}
+        <script src="{% static 'custom/js/disable-input.js' %}"></script>
+    {% endif %}
 {% endblock %}

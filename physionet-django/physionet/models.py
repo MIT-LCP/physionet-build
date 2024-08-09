@@ -63,10 +63,10 @@ class Section(models.Model):
     """
     Holds sections of content for StaticPage.
     """
-    static_page = models.ForeignKey(StaticPage, on_delete=models.CASCADE)
     title = models.CharField(max_length=64)
     content = SafeHTMLField(blank=True)
     order = models.PositiveSmallIntegerField(default=0)
+    static_page = models.ForeignKey(StaticPage, on_delete=models.CASCADE)
 
     class Meta:
         default_permissions = ()
@@ -147,3 +147,58 @@ class FrontPageButton(models.Model):
 
         self.order = order + 1
         self.save()
+
+
+class Process(models.Model):
+    """
+    Refers to a workflow on the platform.
+    Eg: Creating a Project, Updating a License, etc.
+    To be used along with Step and StepDetails for storing web content
+    """
+    title = models.CharField(max_length=64)
+    slug = models.CharField(max_length=64, unique=True)
+    description = models.TextField(blank=True)
+
+    class Meta:
+        default_permissions = ()
+        unique_together = (('title', 'slug'),)
+
+    def __str__(self):
+        return self.title
+
+
+class Step(models.Model):
+    """
+    Holds sections of content for StaticPage.
+    """
+    title = models.CharField(max_length=64)
+    process = models.ForeignKey(Process, on_delete=models.CASCADE, default=None, related_name='steps')
+    slug = models.CharField(max_length=64)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        default_permissions = ()
+        ordering = ('order',)
+
+    def __str__(self):
+        return f"{self.process.title}: {self.title}"
+
+
+class StepDetails(models.Model):
+    """
+    Holds sections of content for StaticPage.
+    """
+    title = models.CharField(max_length=64)
+    content = SafeHTMLField(blank=True)
+    order = models.PositiveSmallIntegerField(default=0)
+    step = models.ForeignKey(Step, on_delete=models.CASCADE)
+    slug = models.CharField(max_length=64)
+    tip = models.BooleanField(default=False)
+
+    class Meta:
+        default_permissions = ()
+        ordering = ('order',)
+        unique_together = (('step', 'order'),)
+
+    def __str__(self):
+        return self.title

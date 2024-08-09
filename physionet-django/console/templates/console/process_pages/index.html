@@ -1,0 +1,36 @@
+{% extends "console/base_console.html" %}
+
+{% load project_templatetags %}
+
+{% block title %}Process Pages{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Process Pages <span class="badge badge-pill badge-info">{{ pages|length }}</span>
+  </div>
+  <div class="card-body">
+
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Process</th>
+            <th class="text-center" colspan=3>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for process in processes %}
+            <tr>
+                <td>{{ process.title }}</td>
+                <td class="text-center">
+                  <a href="{% url 'process_pages_show' process.slug %}" class="btn btn-sm btn-primary" role="button">Manage</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

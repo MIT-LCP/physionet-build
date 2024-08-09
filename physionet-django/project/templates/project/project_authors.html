@@ -31,11 +31,12 @@
 
 {% block main_content %}
 
-
-<h2 class="form-signin-heading">1. Project Authors</h2>
-<hr>
-{% include "about/authors.html" %}
-<hr>
+{% with step_detail=step_details_dict.project_authors %}
+    <h2 class="form-signin-heading">{{ step_detail.title }}</h2>
+    <hr>
+    {{ step_detail.content|safe }}
+    <hr>
+{% endwith %}
 
 {% if not project.author_editable %}
   <div class="alert alert-form alert-warning alert-dismissible">
@@ -75,17 +76,21 @@
 
 {% if is_submitting %}
   <br>
-  <h3>Invite Author</h3>
-  <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd">
-    {% csrf_token %}
-    {% include "inline_form_snippet.html" with form=invite_author_form %}
-    <button class="btn btn-success btn-rsp" name="invite_author" type="submit">Invite Author</button>
-  </form>
+  {% with step_detail=step_details_dict.invite_author %}
+      <h3>{{ step_detail.title }}</h3>
+    <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd">
+      {% csrf_token %}
+      {% include "inline_form_snippet.html" with form=invite_author_form %}
+      <button class="btn btn-success btn-rsp" name="invite_author" type="submit">Invite Author</button>
+    </form>
+  {% endwith %}
   <hr>
 
   <br>
-  <h3>Corresponding Author</h3>
-  <p>The corresponding author is responsible for responding to inquiries from users post publication.</p>
+  {% with step_detail=step_details_dict.corresponding_author %}
+      <h3>{{ step_detail.title }}</h3>
+      {{ step_detail.content|safe }}
+  {% endwith %}
   <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd">
     {% csrf_token %}
     {% include "inline_form_snippet.html" with form=corresponding_author_form %}
@@ -96,8 +101,10 @@
 
 {% if corresponding_email_form %}
   <br>
-  <h3>Corresponding Email</h3>
-  <p>You are the the selected corresponding author. Choose one of your emails to be listed for correspondence.</p>
+  {% with step_detail=step_details_dict.corresponding_email %}
+      <h3>{{ step_detail.title }}</h3>
+      {{ step_detail.content|safe }}
+  {% endwith %}
   <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd">
     {% csrf_token %}
     {% include "inline_form_snippet.html" with form=corresponding_email_form %}
@@ -162,8 +169,10 @@
 {% endif %}
 <br>
 
-<h3>Your Affiliations</h3>
-<p>Set up to three affiliations for your author profile. Note: these fields are not tied to your user profile.</p>
+{% with step_detail=step_details_dict.your_affiliations %}
+    <h3>{{ step_detail.title }}</h3>
+    {{ step_detail.content|safe }}
+{% endwith %}
 <form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd" onsubmit="return validateItems('affiliation-list', 'name', 'Affiliations')">
   {% csrf_token %}
   {% include 'project/item_list.html' with item="affiliation" item_label=affiliation_formset.item_label formset=affiliation_formset form_name=affiliation_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
@@ -174,11 +183,10 @@
 
 {# Transfer project to a new submitting author #}
 {% if is_submitting %}
-  <h3>Submitting Author</h3>
-  <p>Only the submitting author of a project is able to edit content.
-     You may transfer the role of submitting author to a co-author.
-     Choose one of the co-authors below to make them the submitting author for this project.
-     Transferring authorship will remove your ability to edit content!</p>
+  {% with step_detail=step_details_dict.submitting_author %}
+      <h3>{{ step_detail.title }}</h3>
+      {{ step_detail.content|safe }}
+  {% endwith %}
 
   <form id="authorTransferForm" action="{% url 'project_authors' project.slug %}" method="post" class="no-pd">
     {% csrf_token %}

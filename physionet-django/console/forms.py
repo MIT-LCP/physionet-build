@@ -9,7 +9,7 @@ from django.db import transaction
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
-from physionet.models import FrontPageButton, Section, StaticPage
+from physionet.models import FrontPageButton, Section, StaticPage, StepDetails
 from project.models import (
     ActiveProject,
     AccessPolicy,
@@ -1008,3 +1008,11 @@ class CodeOfConductForm(forms.ModelForm):
         model = CodeOfConduct
         fields = ('name', 'version', 'slug', 'html_content')
         labels = {'html_content': 'Content'}
+
+
+class StepDetailsForm(forms.ModelForm):
+    """ Form for creating a dynamic static page."""
+
+    class Meta:
+        model = StepDetails
+        fields = ("title", "content", "slug", "tip")
