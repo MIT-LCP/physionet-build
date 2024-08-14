@@ -281,6 +281,9 @@ class CopyeditForm(forms.ModelForm):
     def clean(self):
         if self.errors:
             return
+        project = self.instance.project
+        if not project.check_integrity():
+            raise forms.ValidationError(project.integrity_errors)
         if self.cleaned_data['made_changes'] and not self.cleaned_data['changelog_summary']:
             raise forms.ValidationError('Describe the changes you made.')
         if not self.cleaned_data['made_changes'] and self.cleaned_data['changelog_summary']:
