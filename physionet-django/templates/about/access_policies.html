@@ -2,9 +2,20 @@
   metadata of all published projects are publically visible. The following
   access policies control access to the files:</p>
 <ol>
-  <li><strong>Open</strong>: Anyone can access the files, as long as they conform to the terms of the specified
+{% if "OPEN" in access_policy_choices %}
+    <li><strong>Open</strong>: Anyone can access the files, as long as they conform to the terms of the specified
     <a href="{% url 'static_view' static_url='publish' %}#licenses" target="_blank">license</a>.</li>
-  <li><strong>Restricted</strong>: Only logged in users who sign a data use agreement (DUA) for the project can access the files.</li>
-  <li><strong>Credentialed</strong>: Only {{ SITE_NAME }} credentialed users who sign a DUA for the project can access the files. This tier is only for sensitive databases. Please <a href="{% url 'static_view' static_url='about' %}#contact_us" target="_blank"> contact us</a> beforehand if you would like to contribute such a resource.</li>
+{% endif %}
+{% if "RESTRICTED" in access_policy_choices %}
+    <li><strong>Restricted</strong>: Only logged in users who sign a data use agreement (DUA) for the project can access the files.</li>
+{% endif %}
+{% if "CREDENTIALED" in access_policy_choices %}
+    <li><strong>Credentialed</strong>: Only {{ SITE_NAME }} credentialed users who sign a DUA for the project can access the files. This tier is only for sensitive databases. Please <a href="{% url 'static_view' static_url='about' %}#contact_us" target="_blank"> contact us</a> beforehand if you would like to contribute such a resource.</li>
+{% endif %}
+{% if "CONTRIBUTOR_REVIEW" in access_policy_choices %}
+    <li><strong>Contributor Review</strong>: Only Health Data Nexus credentials who sign a DUA and submit a project plan approved by the data holder may access the files.</li>
+{% endif %}
 </ol>
-<p>We strongly encourage selecting the <strong>open</strong> access policy.</p>
+{% if "OPEN" in access_policy_choices %}
+    <p>We strongly encourage selecting the <strong>open</strong> access policy.</p>
+{% endif %}
