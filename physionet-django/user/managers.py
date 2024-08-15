@@ -7,7 +7,17 @@ from training.models import Course
 
 class TrainingQuerySet(QuerySet):
     def get_review(self):
-        return self.filter(status=TrainingStatus.REVIEW)
+        return self.filter(
+            Q(status=TrainingStatus.REVIEW),
+            Q(training_type__required_field=RequiredField.DOCUMENT) | Q(training_type__required_field=RequiredField.URL)
+        )
+
+    # adding a query to fetch the on-platform courses that are in the status REVIEW.
+    def in_progress(self):
+        return self.filter(
+            Q(status=TrainingStatus.REVIEW),
+            Q(training_type__required_field=RequiredField.PLATFORM)
+        )
 
     def get_valid(self):
 
