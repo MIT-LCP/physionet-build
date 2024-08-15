@@ -827,7 +827,7 @@ def project_access(request, project_slug, **kwargs):
             access_form = forms.AccessMetadataForm(instance=project, editable=editable)
 
     return render(request, 'project/project_access.html', {
-        'project': project,'access_form': access_form,
+        'project': project, 'access_form': access_form,
         'is_submitting': kwargs['is_submitting'],
         'access_policy_choices': ALLOWED_ACCESS_POLICIES,
     })
