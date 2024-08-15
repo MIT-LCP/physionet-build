@@ -59,7 +59,7 @@ from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
 )
-from decouple import config
+from physionet.settings.base import ALLOWED_ACCESS_POLICIES
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
@@ -826,13 +826,10 @@ def project_access(request, project_slug, **kwargs):
         else:
             access_form = forms.AccessMetadataForm(instance=project, editable=editable)
 
-    # Fetching the list of access policies allowed from the form's choices
-    access_policy_choices = config('ALLOWED_ACCESS_POLICIES').split(',')
-
     return render(request, 'project/project_access.html', {
         'project': project,'access_form': access_form,
         'is_submitting': kwargs['is_submitting'],
-        'access_policy_choices': access_policy_choices
+        'access_policy_choices': ALLOWED_ACCESS_POLICIES,
     })
 
 
