@@ -825,9 +825,11 @@ def project_access(request, project_slug, **kwargs):
         else:
             access_form = forms.AccessMetadataForm(instance=project, editable=editable)
 
-
-    return render(request, 'project/project_access.html', {'project':project,
-        'access_form':access_form, 'is_submitting':kwargs['is_submitting']})
+    return render(request, 'project/project_access.html', {
+        'project': project, 'access_form': access_form,
+        'is_submitting': kwargs['is_submitting'],
+        'access_policy_choices': settings.ALLOWED_ACCESS_POLICIES,
+    })
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
