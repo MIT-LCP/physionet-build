@@ -17,11 +17,20 @@
         <a
           type="button"
           class="btn btn-primary center p-2 px-3"
-          href="{% url 'sso_login' %}"
+          href="{% url 'login' %}"
           aria-disabled="true"
         >
           <i class="fa fa-university fa-lg mr-3"></i>
-          <span class="h6">{{ sso_login_button_text }}</span>
+          <span class="h6">login using you institution</span>
+        </a>
+        <br>
+        <h6 class="card-subtitle mb-2 mt-3 text-muted">or using ORCID iD</h6>
+        <a id="orcid_login"
+           type="button"
+           class="btn btn-secondary center p-2 px-3"
+           href="{% url 'orcid_init_login' %}">
+          <img src="https://orcid.org/sites/default/files/images/orcid_24x24.png" />
+          <span class="h6"> Log in using ORCID iD </span>
         </a>
       </div>
     </div>

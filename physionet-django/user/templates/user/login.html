@@ -27,6 +27,18 @@
     </div>
     <button id="login" class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
   </form>
+  <div class="separator">
+    <span>or</span>
+  </div>
+  <div class="form-signin">
+    <a id="orcid_login"
+       type="button"
+       class="btn  btn-lg btn-secondary btn-block"
+       href="{% url 'orcid_init_login' %}">
+      <img src="https://orcid.org/sites/default/files/images/orcid_24x24.png" />
+      Log in using ORCID iD
+    </a>
+  </div>
   <div class="form-signin">
     <p>New user? <a id="register" href="{% url 'register' %}">Create an account</a></p>
   </div>
