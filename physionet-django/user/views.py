@@ -7,7 +7,8 @@ import django.contrib.auth.views as auth_views
 import pytz
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
@@ -459,7 +460,6 @@ def auth_orcid(request):
     """
 
     client_id = settings.ORCID_CLIENT_ID
-    client_secret = settings.ORCID_CLIENT_SECRET
     redirect_uri = settings.ORCID_REDIRECT_URI
     scope = list(settings.ORCID_SCOPE.split(","))
     oauth = OAuth2Session(client_id, redirect_uri=redirect_uri,
@@ -467,18 +467,7 @@ def auth_orcid(request):
     params = request.GET.copy()
     code = params['code']
 
-    try:
-        token = oauth.fetch_token(settings.ORCID_TOKEN_URL, code=code,
-                                  include_client_id=True, client_secret=client_secret)
-        try:
-            validators.validate_orcid_token(token['access_token'])
-            token_valid = True
-        except ValidationError:
-            messages.error(request, 'Validation Error: ORCID token validation failed.')
-            token_valid = False
-    except InvalidGrantError:
-        messages.error(request, 'Invalid Grant Error: authorization code may be expired or invalid.')
-        token_valid = False
+    token_valid, token = _fetch_and_validate_token(request, code, oauth)
 
     if token_valid:
         orcid_profile, _ = Orcid.objects.get_or_create(user=request.user)
@@ -493,6 +482,123 @@ def auth_orcid(request):
         orcid_profile.save()
 
     return redirect('edit_orcid')
+
+
+@disallow_during_maintenance
+def auth_orcid_login(request):
+    """
+    Gets a users iD and token information from an ORCID redirect URI after their authorization. Saves the iD and other
+    token information. Logs user in if the account already exists or redirects to register form. The access_token /
+    refresh_token can be used to make token exchanges for additional information in the users account.  Public
+    information can be read without access to the member API at ORCID. Limited access information requires an
+    institution account with ORCID for access to the member API. The member API can also be used to add new
+    information to a users ORCID profile (ex: a PhysioNet dataset project).  See the .env file for an example of how to
+    do token exchanges.
+    """
+
+    client_id = settings.ORCID_CLIENT_ID
+    redirect_uri = settings.ORCID_LOGIN_REDIRECT_URI
+    scope = list(settings.ORCID_SCOPE.split(","))
+    oauth = OAuth2Session(client_id, redirect_uri=redirect_uri, scope=scope)
+    params = request.GET.copy()
+    code = params['code']
+
+    token_valid, token = _fetch_and_validate_token(request, code, oauth)
+
+    if token_valid:
+        orcid_id = token.get('orcid')
+        orcid_profile = Orcid.objects.filter(orcid_id=orcid_id).first()
+
+        if orcid_profile is None:
+            request.session['orcid_token'] = token
+            return redirect('orcid_register')
+
+        user = authenticate(orcid_profile=orcid_profile)
+        if user is None:
+            return render(
+                request,
+                'user/register_done.html',
+                {'email': orcid_profile.user.email, 'sso': False},
+            )
+
+        auth_login(request, user, backend='user.backends.OrcidAuthBackend')
+
+    return redirect('home')
+
+
+def _fetch_and_validate_token(request, code, oauth_session):
+    """
+    Exchange code retrieved from ORCID for token and validate it
+    """
+    try:
+        client_secret = settings.ORCID_CLIENT_SECRET
+        token = oauth_session.fetch_token(
+            settings.ORCID_TOKEN_URL,
+            code=code,
+            include_client_id=True,
+            client_secret=client_secret,
+        )
+
+        try:
+            validators.validate_orcid_token(token['access_token'])
+            return True, token
+        except ValidationError:
+            messages.error(request, 'Validation Error: ORCID token validation failed.')
+    except InvalidGrantError:
+        messages.error(
+            request,
+            'Invalid Grant Error: authorization code may be expired or invalid.',
+        )
+
+    return False, None
+
+
+@disallow_during_maintenance
+def orcid_register(request):
+    """
+    ORCID Registration view
+    GET renders the registration form.
+    POST submits the registration form.
+    """
+    user = request.user
+    if user.is_authenticated:
+        return redirect('project_home')
+
+    if request.method == 'POST':
+        form = forms.OrcidRegistrationForm(
+            request.POST, orcid_token=request.session['orcid_token']
+        )
+
+        if form.is_valid():
+            user = form.save()
+            uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
+            token = default_token_generator.make_token(user)
+            notify_account_registration(request, user, uidb64, token, sso=False)
+
+            return render(
+                request, 'user/register_done.html', {'email': user.email, 'sso': False}
+            )
+    else:
+        form = forms.OrcidRegistrationForm()
+
+    return render(request, 'user/orcid_register.html', {'form': form})
+
+
+@disallow_during_maintenance
+def orcid_init_login(request):
+    """
+    Builds redirect url and redirects to ORCID authorization page
+    """
+    client_id = settings.ORCID_CLIENT_ID
+    redirect_uri = settings.ORCID_LOGIN_REDIRECT_URI
+    scope = settings.ORCID_SCOPE
+    auth_url = settings.ORCID_AUTH_URL
+
+    return redirect(
+        f'{auth_url}?response_type=code&redirect_uri={redirect_uri}&client_id={client_id}&scope={scope}'
+    )
+
+
 
 @login_required
 def edit_password_complete(request):

@@ -150,7 +150,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend']
+AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend', 'user.backends.OrcidAuthBackend']
 
 if ENABLE_SSO:
     AUTHENTICATION_BACKENDS += ['sso.auth.RemoteUserBackend']
@@ -281,6 +281,7 @@ DATACITE_PASS = config('DATACITE_PASS', default='')
 # Tags for the ORCID API
 ORCID_DOMAIN = config('ORCID_DOMAIN', default='https://sandbox.orcid.org')
 ORCID_REDIRECT_URI = config('ORCID_REDIRECT_URI', default='http://127.0.0.1:8000/authorcid')
+ORCID_LOGIN_REDIRECT_URI = config('ORCID_LOGIN_REDIRECT_URI', default='http://127.0.0.1:8000/authorcid_login')
 ORCID_AUTH_URL = config('ORCID_AUTH_URL', default='https://sandbox.orcid.org/oauth/authorize')
 ORCID_TOKEN_URL = config('ORCID_TOKEN_URL', default='https://sandbox.orcid.org/oauth/token')
 ORCID_CLIENT_ID = config('ORCID_CLIENT_ID', default=False)

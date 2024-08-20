@@ -18,6 +18,9 @@ urlpatterns = [
     path("settings/cloud/aws/", views.edit_cloud_aws, name="edit_cloud_aws"),
     path("settings/orcid/", views.edit_orcid, name="edit_orcid"),
     path("authorcid/", views.auth_orcid, name="auth_orcid"),
+    path("authorcid_login/", views.auth_orcid_login, name="auth_orcid_login"),
+    path("orcid_init_login", views.orcid_init_login, name="orcid_init_login"),
+    path("orcid_register/", views.orcid_register, name="orcid_register"),
     path(
         "settings/credentialing/", views.edit_credentialing, name="edit_credentialing"
     ),
