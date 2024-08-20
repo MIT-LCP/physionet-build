@@ -208,7 +208,7 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('Editorial'), 'editorial_stats'),
         NavLink(_('Credentialing'), 'credentialing_stats'),
         NavLink(_('Submissions'), 'submission_stats'),
-        NavLink(_('Download data'), 'downloads'),
+        NavLink(_('Export data'), 'downloads'),
     ]),
 
     NavSubmenu(_('Pages'), 'pages', 'window-maximize', [
