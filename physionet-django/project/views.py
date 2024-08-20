@@ -59,7 +59,6 @@ from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
 )
-from physionet.settings.base import ALLOWED_ACCESS_POLICIES
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
 LOGGER = logging.getLogger(__name__)
@@ -829,7 +828,7 @@ def project_access(request, project_slug, **kwargs):
     return render(request, 'project/project_access.html', {
         'project': project, 'access_form': access_form,
         'is_submitting': kwargs['is_submitting'],
-        'access_policy_choices': ALLOWED_ACCESS_POLICIES,
+        'access_policy_choices': settings.ALLOWED_ACCESS_POLICIES,
     })
 
 
