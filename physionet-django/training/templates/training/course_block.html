@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+{% load physionet_templatetags %}
+{% block title %}{{ course.training_type.name }}{% endblock %}
+{% block local_css %}
+    <link rel="stylesheet"
+          type="text/css"
+          href="{% static 'custom/css/quiz.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="container my-3">
+        <div class="blockContainer">
+            <div class="blockHeader">
+                <h1>
+                    <a href="{% url 'platform_training' course.training_type.slug %}">{{ course.training_type.name }}</a>
+                </h1>
+            </div>
+            <hr>
+            <h2>{{ module.name }}</h2>
+            {% include "message_snippet.html" %}
+            {% if type == 'content' %}
+                <form id="contentForm" method="post">
+                    {% csrf_token %}
+                    <div class="list-group py-4">
+                        {{ current_block.body|safe }}
+                    </div>
+                    <br>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ previous_block }}"
+                           class="btn btn-danger">Back</a>
+                        <button type="submit"
+                                formaction="{% url 'current_module_block' training_slug=course.training_type.slug module_order=module.order order=current_block.order %}"
+                                class="btn btn-primary">Next
+                        </button>
+                    </div>
+                </form>
+            {% elif type == 'quiz' %}
+                <form id="quizForm" method="post">
+                    {% csrf_token %}
+                    <div class="list-group">
+                        <div class="list-group-item py-4">{{ current_block.question|safe }}</div>
+                        {% for choice in choices %}
+                            <label class="list-group-item list-group-item-action">
+                                <input type="radio" name="choice" value="{{ choice.id }}" required>
+                                {{ choice.body|safe }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <br>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ previous_block }}"
+                           class="btn btn-danger">Back</a>
+                        <button type="submit"
+                                formaction="{% url 'current_module_block' training_slug=course.training_type.slug module_order=module.order order=current_block.order %}"
+                                class="btn btn-primary">Submit
+                        </button>
+                    </div>
+                </form>
+            {% endif %}
+            <br>
+            <div id="alert" class="alert" role="alert"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+    <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+{% endblock %}

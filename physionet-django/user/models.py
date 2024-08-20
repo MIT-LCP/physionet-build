@@ -1183,6 +1183,7 @@ class Training(models.Model):
     process_datetime = models.DateTimeField(null=True)
     reviewer = models.ForeignKey(User, related_name='reviewed_trainings', null=True, on_delete=models.SET_NULL)
     reviewer_comments = models.CharField(max_length=512)
+    course = models.ForeignKey('training.Course', related_name='trainings', null=True, on_delete=models.SET_NULL)
 
     objects = TrainingQuerySet.as_manager()
 
@@ -1218,8 +1219,10 @@ class Training(models.Model):
     def is_valid(self):
         if self.status == TrainingStatus.ACCEPTED:
             if self.training_type.required_field == RequiredField.PLATFORM:
-                associated_course = Course.objects.filter(training=self).first()
-                return self.process_datetime + associated_course.valid_duration >= timezone.now()
+                if not self.course.valid_duration:
+                    return False
+                else:
+                    return self.process_datetime + self.course.valid_duration >= timezone.now()
             else:
                 if not self.training_type.valid_duration:
                     return False
@@ -1230,10 +1233,13 @@ class Training(models.Model):
         """checks if it has exceeded the valid period (process_time + duration)
         if no valid duration, its not expired.
         """
+
         if self.status == TrainingStatus.ACCEPTED:
             if self.training_type.required_field == RequiredField.PLATFORM:
-                associated_course = Course.objects.filter(training=self).first()
-                return self.process_datetime + associated_course.valid_duration < timezone.now()
+                if not self.course.valid_duration:
+                    return False
+                else:
+                    return self.process_datetime + self.course.valid_duration < timezone.now()
             else:
                 if not self.training_type.valid_duration:
                     return False

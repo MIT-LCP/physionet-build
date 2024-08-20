@@ -4,7 +4,19 @@
     "pk": 1,
     "fields": {
       "training_type": 2,
-      "version": 1.0
+      "version": 1.2,
+      "description": "This course provides an introduction to the continents and countries of the world. It covers the major continents, including North America, South America, Europe, Asia, Africa, and Australia. The course also explores the countries within each continent, highlighting their geography, history, and culture.",
+      "valid_duration": "1095"
+    }
+  },
+  {
+    "model": "training.course",
+    "pk": 2,
+    "fields": {
+      "training_type": 2,
+      "version": 1.0,
+      "description": "This course provides an introduction to the continents and countries of the world. It covers the major continents, including North America, South America, Europe, Asia, Africa, and Australia. The course also explores the countries within each continent, highlighting their geography, history, and culture.",
+      "valid_duration": "1095"
     }
   },
   {
@@ -351,7 +363,7 @@
       "order": 9
     }
   },
-    {
+  {
     "model": "training.quizchoice",
     "pk": 17,
     "fields": {
@@ -430,6 +442,29 @@
       "quiz": 6,
         "body": "Cameroon",
         "is_correct": false
+    }
+  },
+  {
+    "model": "training.courseprogress",
+    "pk": 1,
+    "fields": {
+      "user": 206,
+      "course": 1,
+      "status": "IP",
+      "started_at": "2024-05-12T00:01:05.884Z",
+      "completed_at": null
+    }
+  },
+  {
+    "model": "training.moduleprogress",
+    "pk": 1,
+    "fields": {
+      "course_progress": 1,
+      "module": 1,
+      "status": "IP",
+      "last_completed_order": 1,
+      "started_at": null,
+      "updated_at": "2024-05-12T00:01:09.318Z"
     }
   }
 ]

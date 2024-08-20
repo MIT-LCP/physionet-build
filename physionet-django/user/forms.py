@@ -859,6 +859,8 @@ class TrainingForm(forms.ModelForm):
         training_type_id = kwargs.pop('training_type', None)
 
         super().__init__(*args, **kwargs)
+        self.fields['training_type'].queryset = self.fields['training_type'].queryset.exclude(
+            required_field=RequiredField.PLATFORM)
 
         self.training_type = TrainingType.objects.filter(id=training_type_id).first()
 

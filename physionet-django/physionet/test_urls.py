@@ -190,6 +190,7 @@ class TestURLs(TestMixin):
             self.client.force_login(user)
 
         response = self.client.get(url, _query_)
+
         self.assertGreaterEqual(response.status_code, 200)
         self.assertLess(response.status_code, 400)
 

@@ -1,4 +1,3 @@
-from token import NUMBER
 from django.db import models
 from django.utils import timezone
 
@@ -21,7 +20,6 @@ class Course(models.Model):
     training_type = models.ForeignKey(
         "user.TrainingType", on_delete=models.CASCADE, related_name="courses"
     )
-    trainings = models.ManyToManyField("user.Training")
     version = models.CharField(
         max_length=15, default="", blank=True, validators=[validate_version]
     )
@@ -38,14 +36,12 @@ class Course(models.Model):
             ("can_view_course_guidelines", "Can view course guidelines"),
         ]
 
-    def expire_course_version(self, instance, number_of_days):
+    def archive_course_version(self):
         """
-        This method expires the course by setting the is_active field to False and expires all
+        This method archives the course by setting the is_active field to False and expires all
         the trainings associated with it.
         """
         self.is_active = False
-        # reset the valid_duration to the number of days
-        self.valid_duration = timezone.timedelta(days=number_of_days)
         self.save()
 
     def __str__(self):
@@ -224,6 +220,30 @@ class ModuleProgress(models.Model):
     def __str__(self):
         return f"{self.course_progress.user.username} - {self.module}"
 
+    class Meta:
+        unique_together = ("course_progress", "module")
+
+    def get_next_content_or_quiz(self):
+        if self.status == self.Status.COMPLETED:
+            return None
+
+        next_content = self.module.contents.filter(order__gt=self.last_completed_order).order_by('order').first()
+        next_quiz = self.module.quizzes.filter(order__gt=self.last_completed_order).order_by('order').first()
+
+        if next_content and next_quiz:
+            return next_content if next_content.order < next_quiz.order else next_quiz
+        elif next_content:
+            return next_content
+        elif next_quiz:
+            return next_quiz
+        else:
+            return None
+
+    def update_last_completed_order(self, completed_content_or_quiz):
+        if completed_content_or_quiz.order > self.last_completed_order:
+            self.last_completed_order = completed_content_or_quiz.order
+            self.save()
+
 
 class CompletedContent(models.Model):
     """
@@ -249,6 +269,9 @@ class CompletedContent(models.Model):
     def __str__(self):
         return f"{self.module_progress.course_progress.user.username} - {self.content}"
 
+    class Meta:
+        unique_together = ("module_progress", "content")
+
 
 class CompletedQuiz(models.Model):
     """
@@ -273,3 +296,6 @@ class CompletedQuiz(models.Model):
 
     def __str__(self):
         return f"{self.module_progress.course_progress.user.username} - {self.quiz}"
+
+    class Meta:
+        unique_together = ("module_progress", "quiz")

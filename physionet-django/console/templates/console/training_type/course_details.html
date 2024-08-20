@@ -25,7 +25,7 @@
       <div class="card mb-3">
         <div class="card-body">
           <div><button type="button" class="btn btn-sm btn-success" data-toggle="modal"
-              data-target="#create-course">Update</button></div>
+              data-target="#create-course">Upload new version</button></div>
           <div class="modal fade" id="create-course" tabindex="-1">
             <div class="modal-dialog">
               <form action="{% url 'course_details' training_type.slug %}" method="POST" enctype="multipart/form-data" class="">
@@ -79,19 +79,16 @@
                                 class="fa fa-download"></i> Download</a>
                     </td>
                     <td>
-                        <form action="{% url 'expire_course_version' training_type.slug course.version %}" method="POST">
+                        <form action="{% url 'archive_course_version' training_type.slug course.version %}" method="POST">
                             {% csrf_token %}
-                            <input type="date" name="expiry_date">
-                            <button class="btn btn-sm btn-danger" type="submit"> Expire</button>
+                            <button class="btn btn-sm btn-danger" type="submit"> Archive</button>
                         </form>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <p><b>Note:</b> Users that have taken the particular version of the course that is getting expired,
-        will need to retake the course or else they will loose credentialing after the number of 
-        days specified above while expiring the course. </p>
+        <p><b>Note:</b> Users can no longer take the course if there are no active versions available.</p>
     </div>
     <h3 class="card-title text-center">Archived Versions</h3>
     <div class="card-body">
