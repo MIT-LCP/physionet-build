@@ -213,6 +213,27 @@ class TestState(TestMixin):
             data={'reopen_copyedit':''})
         project = ActiveProject.objects.get(id=project.id)
         self.assertTrue(project.copyeditable())
+
+        # Erase a required field
+        project.refresh_from_db()
+        project.abstract = ''
+        project.save()
+
+        # "Complete copyedit" should fail because abstract is missing
+        response = self.client.post(
+            reverse('copyedit_submission', args=(project.slug,)), data={
+                'complete_copyedit': '',
+                'made_changes': 1,
+                'changelog_summary': 'Removed abstract',
+            })
+        project.refresh_from_db()
+        self.assertTrue(project.copyeditable())
+
+        # Restore abstract
+        project.refresh_from_db()
+        project.abstract = '<p>Database of annotated ECGs</p>'
+        project.save()
+
         # Recomplete copyedit
         response = self.client.post(reverse(
             'copyedit_submission', args=(project.slug,)),
