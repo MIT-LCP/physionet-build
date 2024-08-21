@@ -2575,7 +2575,7 @@ def get_published_authors(authors):
                   "is_submitting",
                   "display_order",
                   "primary_key"
-    ]
+                  ]
     yield csv_header
 
     for author in authors:
@@ -2593,7 +2593,7 @@ def get_published_authors(authors):
                author.is_submitting,
                author.display_order,
                author.pk
-        ]
+               ]
 
 
 @console_permission_required('project.can_view_access_logs')
