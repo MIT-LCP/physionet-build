@@ -49,6 +49,7 @@ from project.models import (
     EditLog,
     License,
     Publication,
+    PublishedAuthor,
     PublishedProject,
     Reference,
     StorageRequest,
@@ -2540,6 +2541,59 @@ def download_projects(request):
 
         writer.writerow(project_data)
     return response
+
+
+@console_permission_required('user.change_credentialapplication')
+def download_published_authors(request):
+    """
+    Delivers a CSV file containing data on published authors.
+    """
+    authors = PublishedAuthor.objects.all()
+    response = StreamingHttpResponse(
+        (csv.writer(Echo(), quoting=csv.QUOTE_ALL).writerow(row) for row in get_published_authors(authors)),
+        content_type='text/csv'
+    )
+
+    response['Content-Disposition'] = 'attachment; filename="published_authors.csv"'
+    return response
+
+
+def get_published_authors(authors):
+    """
+    Generates published author data for download
+    """
+    csv_header = ["published_author_id",
+                  "project_id",
+                  "user_id",
+                  "first_names",
+                  "last_name",
+                  "corresponding_email",
+                  "all_emails",
+                  "affiliations",
+                  "approval_datetime",
+                  "is_corresponding",
+                  "is_submitting",
+                  "display_order",
+                  "primary_key"
+    ]
+    yield csv_header
+
+    for author in authors:
+
+        yield [author.id,
+               author.project.id,
+               author.user.id,
+               author.first_names,
+               author.last_name,
+               author.corresponding_email,
+               ', '.join(author.user.get_emails()),
+               ', '.join([a.name for a in author.affiliations.all()]),
+               author.approval_datetime,
+               author.is_corresponding,
+               author.is_submitting,
+               author.display_order,
+               author.pk
+        ]
 
 
 @console_permission_required('project.can_view_access_logs')
