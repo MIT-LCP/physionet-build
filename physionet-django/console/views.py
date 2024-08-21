@@ -2573,8 +2573,7 @@ def get_published_authors(authors):
                   "approval_datetime",
                   "is_corresponding",
                   "is_submitting",
-                  "display_order",
-                  "primary_key"
+                  "display_order"
                   ]
     yield csv_header
 
@@ -2591,8 +2590,7 @@ def get_published_authors(authors):
                author.approval_datetime,
                author.is_corresponding,
                author.is_submitting,
-               author.display_order,
-               author.pk
+               author.display_order
                ]
 
 
