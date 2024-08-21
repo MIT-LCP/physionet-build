@@ -2587,7 +2587,7 @@ def get_published_authors(authors):
                author.last_name,
                author.corresponding_email,
                ', '.join(author.user.get_emails()),
-               ', '.join([a.name for a in author.affiliations.all()]),
+               '; '.join([a.name for a in author.affiliations.all()]),
                author.approval_datetime,
                author.is_corresponding,
                author.is_submitting,
