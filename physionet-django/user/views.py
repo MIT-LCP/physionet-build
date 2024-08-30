@@ -470,8 +470,13 @@ def auth_orcid(request):
     token_valid, token = _fetch_and_validate_token(request, code, oauth)
 
     if token_valid:
-        orcid_profile, _ = Orcid.objects.get_or_create(user=request.user)
-        orcid_profile.orcid_id = token.get('orcid')
+        orcid_id = token.get('orcid')
+        orcid_profile = Orcid.objects.filter(orcid_id=orcid_id).first()
+        if orcid_profile.user != request.user:
+            messages.error(request, 'This ORCID account is already in use by another account!')
+            return redirect('edit_orcid')
+
+        orcid_profile.orcid_id = orcid_id
         orcid_profile.name = token.get('name')
         orcid_profile.access_token = token.get('access_token')
         orcid_profile.refresh_token = token.get('refresh_token')
