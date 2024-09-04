@@ -53,7 +53,7 @@ jobs:
 
       - name: Upload physionet image
         if: github.ref == 'refs/heads/dev' || github.event.inputs.publish_tag
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: physionet
           path: /tmp/physionet.tar.gz
