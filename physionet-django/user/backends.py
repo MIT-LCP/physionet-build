@@ -50,7 +50,6 @@ class OrcidAuthBackend(BaseBackend):
         is_active = getattr(user, 'is_active', None)
         return is_active or is_active is None
 
-
     def get_user(self, user_id):
         try:
             return User.objects.get(pk=user_id)
