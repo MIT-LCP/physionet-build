@@ -139,4 +139,5 @@ TEST_CASES = {
     "reset_password_confirm": {"uidb64": "x", "token": "x", "_skip_": True},
     # Testing auth_orcid requires a mock oauth server.  Skip this URL.
     "auth_orcid": {"_skip_": True},
+    "auth_orcid_login": {"_skip_": True},
 }
