@@ -7,7 +7,7 @@
   "version": "{{ project.version|escapejs }}",
   "license": "{{ project.license.home_page|escapejs }}",
   "datePublished" : "{{ project.publish_datetime|date|escapejs }}",
-  "url": "https://{{ current_site }}{% url 'published_project' project.slug|escapejs project.version|escapejs %}",
+  "url": "https://{{ current_site }}{% url 'published_project' project.slug project.version %}",
   {% if project.doi %}
   "identifier": "https://doi.org/{{ project.doi|escapejs }}",
   {% endif %}
@@ -28,7 +28,7 @@
   "distribution": [
     {
       "@type": "DataDownload",
-      "contentUrl": "https://{{ current_site }}{% url 'published_project' project.slug|escapejs project.version|escapejs %}#files"
+      "contentUrl": "https://{{ current_site }}{% url 'published_project' project.slug project.version %}#files"
     }
   ]
 }
