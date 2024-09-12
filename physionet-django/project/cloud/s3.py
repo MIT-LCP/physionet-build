@@ -1,12 +1,14 @@
+import json
+import os
+import re
+
 import boto3
 import botocore
-import re
-import os
-import json
 from django.conf import settings
+
 from project.models import PublishedProject, AccessPolicy, AWS
-from user.models import User
 from project.authorization.access import can_view_project_files
+from user.models import User
 
 
 # Manage AWS buckets and objects
