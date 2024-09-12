@@ -529,15 +529,26 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
 
     s3 = create_s3_client()
     for root, _, files in os.walk(folder_path):
+        if root == folder_path:
+            dir_prefix = s3_prefix
+        else:
+            dir_prefix = os.path.join(
+                s3_prefix, os.path.relpath(root, folder_path), ''
+            )
+        existing_files, existing_subdirs = list_s3_subdir_object_info(
+            s3, bucket_name, dir_prefix
+        )
+
         for file_name in files:
             local_file_path = os.path.join(root, file_name)
             s3_key = os.path.join(
                 s3_prefix, os.path.relpath(local_file_path, folder_path)
             )
-            s3.upload_file(
-                Filename=local_file_path,
-                Bucket=bucket_name,
-                Key=s3_key,
+
+            # Upload file if not already up-to-date
+            send_file_to_s3(
+                s3, bucket_name, s3_key, local_file_path,
+                existing_files.get(s3_key)
             )
 
     # If project has a ZIP file, upload it as well
@@ -549,11 +560,39 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
         else:
             s3_key = zip_name
 
-        s3.upload_file(
-            Filename=zip_file_path,
-            Bucket=bucket_name,
-            Key=s3_key,
-        )
+        # Upload file if not already up-to-date
+        try:
+            existing_file = get_s3_object_info(s3, bucket_name, s3_key)
+        except s3.exceptions.ClientError:
+            existing_file = None
+        send_file_to_s3(s3, bucket_name, s3_key, zip_file_path, existing_file)
+
+
+def send_file_to_s3(s3, bucket_name, key, file_path, existing_file=None):
+    """
+    Upload a local file to an AWS S3 bucket.
+
+    If the remote file already exists and matches the contents of the
+    local file, the remote file is not modified.
+
+    Args:
+        s3 (boto3.client.S3): An initialized AWS S3 client object.
+        bucket_name (str): Destination bucket name.
+        key (str): Destination key within the bucket.
+        file_path (str): Filesystem path of the local file.
+        existing_file (S3ObjectInfo or None): Metadata of the existing
+        object, if any.
+
+    Returns:
+        None
+    """
+    if existing_file is not None and existing_file.match_path(file_path):
+        return
+    s3.upload_file(
+        Filename=file_path,
+        Bucket=bucket_name,
+        Key=key,
+    )
 
 
 def get_aws_accounts_for_dataset(dataset_name):
