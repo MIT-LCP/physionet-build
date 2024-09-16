@@ -433,7 +433,7 @@
           {% if has_s3_credentials and project.aws.sent_files %}
             <li>
               Download the files using AWS command line tools:
-              <pre class="shell-command">aws s3 sync {{ project.aws.s3_uri }} DESTINATION</pre>
+              <pre class="shell-command">aws s3 sync --no-sign-request {{ project.aws.s3_uri }} DESTINATION</pre>
             </li>
           {% endif %}  
 
