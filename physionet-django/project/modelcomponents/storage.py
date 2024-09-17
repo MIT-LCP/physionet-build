@@ -68,7 +68,11 @@ class AWS(models.Model):
         if self.is_private:
             from project.cloud.s3 import get_access_point_name_for_user_and_project
             access_point_name = get_access_point_name_for_user_and_project(aws_id, self.project.slug, self.project.version)
-            if access_point_name is None:
+            if access_point_name is None or access_point_name in [
+                "No user found with that AWS ID",
+                "Project not found",
+                "No access point found for this user with the specified project details"
+            ]:
                 return None
             s3_uri = f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}/{self.project.slug}/{self.project.version}/'
         else:
