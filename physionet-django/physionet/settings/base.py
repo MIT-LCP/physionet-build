@@ -262,6 +262,9 @@ S3_OPEN_ACCESS_BUCKET = config('S3_OPEN_ACCESS_BUCKET', default=None)
 # Bucket name to store logs and metrics related to project usage.
 S3_SERVER_ACCESS_LOG_BUCKET = config('S3_SERVER_ACCESS_LOG_BUCKET', default=None)
 
+# Bucket name for the S3 bucket containing the controlled access data
+S3_CONTROLLED_ACCESS_BUCKET = config('S3_CONTROLLED_ACCESS_BUCKET', default=None)
+
 # Header tags for the AWS lambda function that grants access to S3 storage
 AWS_HEADER_KEY = config('AWS_KEY', default=False)
 AWS_HEADER_VALUE = config('AWS_VALUE', default=False)

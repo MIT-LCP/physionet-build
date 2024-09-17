@@ -1,6 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
+from django.conf import settings
 from project.modelcomponents.generic import BaseInvitation
 
 
@@ -63,11 +63,35 @@ class AWS(models.Model):
     class Meta:
         default_permissions = ()
 
-    def s3_uri(self):
+    def s3_uri(self, aws_id):
+        s3_uri = None
         if self.is_private:
-            return f's3://{self.bucket_name}/{self.project.version}/'
+            from project.cloud.s3 import get_access_point_name_for_user_and_project
+            access_point_name = get_access_point_name_for_user_and_project(aws_id, self.project.slug, self.project.version)
+            if access_point_name is None or access_point_name in [
+                "No user found with that AWS ID",
+                "Project not found",
+                "No access point found for this user with the specified project details"
+            ]:
+                return None
+            s3_uri = f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}/{self.project.slug}/{self.project.version}/'
         else:
-            return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
+            s3_uri = f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
+        return s3_uri
 
     def __str__(self):
         return self.s3_uri()
+
+class AccessPoint(models.Model):
+    aws = models.ForeignKey(AWS, related_name='access_points', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    users = models.ManyToManyField('AccessPointUser', related_name='access_points')
+
+    def __str__(self):
+        return self.name
+
+class AccessPointUser(models.Model):
+    aws_id = models.CharField(max_length=20)  # Assuming AWS ID is a string like '053677451470'
+
+    def __str__(self):
+        return self.aws_id
