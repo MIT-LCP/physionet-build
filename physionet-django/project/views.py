@@ -1930,16 +1930,21 @@ def published_project(request, project_slug, version, subdir=''):
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
-    aws_id = user.cloud_information.aws_id if user.is_authenticated else None
 
     # Check if AWS instance exists for the project
     s3_uri = None
-    aws_id = user.cloud_information.aws_id if user.is_authenticated else None
+
+    if user.is_authenticated and hasattr(user, 'cloud_information'):
+        aws_id = user.cloud_information.aws_id
+    else:
+        aws_id = None
+
     if hasattr(project, 'aws'):
-        if aws_id and project.aws.is_private:
+        if aws_id is not None and project.aws.is_private:
             s3_uri = project.aws.s3_uri(aws_id)
         else:
             s3_uri = project.aws.s3_uri(aws_id)
+    print('s3_uri: ', s3_uri)
     context = {
         'project': project,
         'authors': authors,

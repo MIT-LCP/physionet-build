@@ -430,7 +430,7 @@
               <pre class="shell-command">wget -r -N -c -np{% if project.access_policy %} --user {{ user }} --ask-password{% endif %} {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre>
             </li>
           {% endif %}
-          {% if has_s3_credentials and project.aws.sent_files %}
+          {% if has_s3_credentials and project.aws.sent_files and s3_uri%}
             <li>
               Download the files using AWS command line tools:
               <pre class="shell-command">aws s3 sync {{ s3_uri }} DESTINATION</pre>
