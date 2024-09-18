@@ -1940,11 +1940,10 @@ def published_project(request, project_slug, version, subdir=''):
         aws_id = None
 
     if hasattr(project, 'aws'):
-        if aws_id is not None and project.aws.is_private:
-            s3_uri = project.aws.s3_uri(aws_id)
+        if aws_id is not None and not project.aws.is_private:
+            s3_uri = '--no-sign-request ' + project.aws.s3_uri(aws_id)
         else:
             s3_uri = project.aws.s3_uri(aws_id)
-    print('s3_uri: ', s3_uri)
     context = {
         'project': project,
         'authors': authors,
