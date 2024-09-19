@@ -8,8 +8,10 @@ db.sqlite3
 media/active-projects/*
 media/archived-projects/*
 media/published-projects/*
+media/ethics/*
 media/users/*
 media/credential-applications/*
+media/training/*
 physionet-django/static/published-projects/*
 physionet-django/static/wfdbcal
 physionet-django/test.log
