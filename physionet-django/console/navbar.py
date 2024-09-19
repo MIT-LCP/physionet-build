@@ -66,11 +66,12 @@ class NavSubmenu:
     """
     A collection of links to be displayed as a submenu.
     """
-    def __init__(self, title, name, icon=None, items=[]):
+    def __init__(self, title, name, icon=None, items=[], enabled=True):
         self.title = title
         self.name = name
         self.icon = icon
         self.items = items
+        self.enabled = enabled
 
 
 class NavMenu:
@@ -105,6 +106,9 @@ class NavMenu:
 
         for item in self.items:
             if isinstance(item, NavSubmenu):
+                if not item.enabled:
+                    continue
+
                 subitems = item.items
             elif isinstance(item, NavLink):
                 subitems = [item]
@@ -218,4 +222,14 @@ CONSOLE_NAV_MENU = NavMenu([
     ]),
 
     NavLink(_('News'), 'news_console', 'newspaper'),
+
+    NavSubmenu(_('Power Users'), 'cloud_groups', 'book', [
+        NavLink(_('User Panel'), 'cloud_groups'),
+        NavLink(_('Group Management'), 'cloud_groups_management'),
+        NavLink(_('Group Creation'), 'create_cloud_group'),
+    ], enabled=settings.ENABLE_CLOUD_RESEARCH_ENVIRONMENTS),
+
+    NavSubmenu(_('Monitoring'), 'datasets_monitoring', 'chart-line', [
+        NavLink(_('Dataset Total Usage Time'), 'get_datasets_monitoring_data'),
+    ], enabled=settings.ENABLE_CLOUD_RESEARCH_ENVIRONMENTS),
 ])
