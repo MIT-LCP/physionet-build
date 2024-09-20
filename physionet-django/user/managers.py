@@ -9,7 +9,8 @@ class TrainingQuerySet(QuerySet):
     def get_review(self):
         return self.filter(
             Q(status=TrainingStatus.REVIEW),
-            Q(training_type__required_field=RequiredField.DOCUMENT) | Q(training_type__required_field=RequiredField.URL)
+            Q(training_type__required_field=RequiredField.DOCUMENT)
+            | Q(training_type__required_field=RequiredField.URL)
         )
 
     # adding a query to fetch the on-platform courses that are in the status REVIEW.
