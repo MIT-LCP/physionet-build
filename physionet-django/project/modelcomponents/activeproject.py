@@ -349,6 +349,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
 
+        # References
+        if not self.has_valid_reference_order():
+            self.integrity_errors.append('Order of references may be incorrect')
+
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
             published_versions = [p.version for p in published_projects]
@@ -369,6 +373,30 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return False
         else:
             return True
+
+    def has_valid_reference_order(self):
+        """
+        Check whether order of references is valid.
+
+        Past bugs in the project editing forms can result in
+        references having 'order' set to None, or the order of 'order'
+        not matching the order displayed in the content/copyedit page.
+        It is impractical to repair all existing projects
+        automatically since that requires guessing the author's
+        intent.
+
+        Therefore, if a project's reference order is undefined or
+        inconsistent, we want to require the author or editor to
+        address it before the project can be submitted or published.
+        """
+        references = self.references.order_by('id')
+        order_list = [r.order for r in references]
+
+        for order1, order2 in zip(order_list, order_list[1:]):
+            if order1 is None or order2 is None or order1 >= order2:
+                return False
+
+        return True
 
     def is_submittable(self):
         """
