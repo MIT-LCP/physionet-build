@@ -162,21 +162,25 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     REQUIRED_FIELDS = (
         # 0: Database
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
+        ('title', 'abstract', 'background',
+         'methods', 'content_description', 'usage_notes',
+         'ethics_statement', 'conflicts_of_interest',
+         'version', 'license', 'short_description'),
         # 1: Software
-        ('title', 'abstract', 'background', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
+        ('title', 'abstract', 'background',
+         'content_description', 'usage_notes', 'installation',
+         'ethics_statement', 'conflicts_of_interest',
+         'version', 'license', 'short_description'),
         # 2: Challenge
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'conflicts_of_interest', 'version', 'license',
-         'short_description'),
+        ('title', 'abstract', 'background',
+         'methods', 'content_description', 'usage_notes',
+         'ethics_statement', 'conflicts_of_interest',
+         'version', 'license', 'short_description'),
         # 3: Model
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'installation', 'conflicts_of_interest', 'version',
-         'license', 'short_description'),
+        ('title', 'abstract', 'background',
+         'methods', 'content_description', 'usage_notes', 'installation',
+         'ethics_statement', 'conflicts_of_interest',
+         'version', 'license', 'short_description'),
     )
 
     # Custom labels that don't match model field names
@@ -344,10 +348,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             if value is None or not text or text.isspace():
                 l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
                 self.integrity_errors.append('Missing required field: {0}'.format(l))
-
-        # Ethics
-        if not self.ethics_statement:
-            self.integrity_errors.append('Missing required field: Ethics Statement')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
