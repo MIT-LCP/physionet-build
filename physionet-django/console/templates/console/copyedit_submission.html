@@ -54,6 +54,7 @@
           {% include "project/content_inline_form_snippet.html" with form=description_form %}
           {% include "project/content_inline_form_snippet.html" with form=ethics_form %}
           {% include 'project/item_list.html' with item="reference" item_label=reference_formset.item_label formset=reference_formset form_name=reference_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
+          {% include "project/confirm_reference_order_form.html" %}
           <h3>Access</h3>
           <div id="access">
             {% include "project/content_inline_form_snippet.html" with form=access_form %}

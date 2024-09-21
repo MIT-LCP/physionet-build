@@ -732,10 +732,19 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
     item_label = 'References'
     max_forms = 50
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, data=None, *args, **kwargs):
+        super().__init__(data, *args, **kwargs)
         self.max_forms = ReferenceFormSet.max_forms
         self.help_text = 'Numbered references specified in the metadata. Article citations must be in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of {}.'.format(self.max_forms)
+
+        # If user checked the "confirm reference order" box then they
+        # are confirming the order of references (as displayed in the
+        # form) is correct.  If user did not check that box, then do
+        # not touch the existing order.
+        if data and data.get('confirm_reference_order') == '1':
+            self.confirm_reference_order = True
+        else:
+            self.confirm_reference_order = False
 
     def clean(self):
         """
@@ -760,9 +769,26 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                 descriptions.append(description)
 
     def save(self, *args, **kwargs):
-        # change the value of order. set it as index of form
-        for form in self.forms:
-            form.instance.order = self.forms.index(form) + 1
+        if self.confirm_reference_order:
+            # If "confirm reference order" was checked, set the order
+            # of all references in the formset.
+            for form in self.forms:
+                form.instance.order = self.forms.index(form) + 1
+                form.changed_data = True
+        else:
+            # If "confirm reference order" was not checked, then set
+            # the order only for newly created references, leaving
+            # existing references alone.  New references should have
+            # "order" greater than any existing reference.
+            max_order = 0
+            for form in self.forms:
+                if form.instance.order is not None:
+                    max_order = max(max_order, form.instance.order)
+            for form in self.forms:
+                if form.instance.pk is None:
+                    form.instance.order = max_order + 1
+                    max_order += 1
+
         super().save(*args, **kwargs)
 
 

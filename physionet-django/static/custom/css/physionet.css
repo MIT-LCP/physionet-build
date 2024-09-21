@@ -98,7 +98,7 @@ th, td {
   color: white;
 }
 
-.navbar-check{
+input[type=checkbox].navbar-check{
   display: none;
 }
 

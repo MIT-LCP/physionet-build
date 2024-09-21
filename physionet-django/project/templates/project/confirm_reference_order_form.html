@@ -1,0 +1,28 @@
+{% comment %}
+Past bugs in the project editing forms can result in references having
+'order' set to None, or the order of 'order' not matching the order
+displayed in the content/copyedit page.  It is impractical to repair
+all existing projects automatically since that requires guessing the
+author's intent.
+
+Therefore, if a project's reference order is undefined or
+inconsistent, the message below should be displayed on the content
+page (when the project is author-editable) or copyedit page (when the
+project is copyeditable.)
+
+The "confirm_reference_order" checkbox will be handled by
+ReferenceFormSet (see project/forms.py).
+{% endcomment %}
+{% if not project.has_valid_reference_order %}
+<div class="alert alert-form alert-warning">
+  <div>
+    The References list may be incorrect due to a server error.
+    Please verify that the list shown above corresponds to the
+    correct numbered citations in the project text.
+  </div>
+  <label>
+    <input type="checkbox" name="confirm_reference_order" value="1">
+    Order of references is correct
+  </label>
+</div>
+{% endif %}
