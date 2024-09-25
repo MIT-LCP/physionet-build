@@ -287,6 +287,7 @@ ORCID_TOKEN_URL = config('ORCID_TOKEN_URL', default='https://sandbox.orcid.org/o
 ORCID_CLIENT_ID = config('ORCID_CLIENT_ID', default=False)
 ORCID_CLIENT_SECRET = config('ORCID_CLIENT_SECRET', default=False)
 ORCID_SCOPE = config('ORCID_SCOPE', default=False)
+ORCID_LOGIN_ENABLED = "openid" in ORCID_SCOPE
 
 # Tags for the CITISOAPService API
 CITI_USERNAME = config('CITI_USERNAME', default='')

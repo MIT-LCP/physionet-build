@@ -76,6 +76,14 @@ class LoginView(auth_views.LoginView):
     authentication_form = forms.LoginForm
     redirect_authenticated_user = True
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+
+        sso_extra_context = {
+            'enable_orcid_login': settings.ORCID_LOGIN_ENABLED,
+        }
+        return {**context, **sso_extra_context}
+
 
 @method_decorator(allow_post_during_maintenance, 'dispatch')
 class SSOLoginView(auth_views.LoginView):
@@ -94,6 +102,7 @@ class SSOLoginView(auth_views.LoginView):
         sso_extra_context = {
             'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
             'login_instruction_sections': instruction_sections,
+            'enable_orcid_login': settings.ORCID_LOGIN_ENABLED,
         }
         return {**context, **sso_extra_context}
 
@@ -503,6 +512,8 @@ def auth_orcid_login(request):
     information to a users ORCID profile (ex: a PhysioNet dataset project).  See the .env file for an example of how to
     do token exchanges.
     """
+    if not settings.ORCID_LOGIN_ENABLED:
+        return redirect('home')
 
     client_id = settings.ORCID_CLIENT_ID
     redirect_uri = settings.ORCID_LOGIN_REDIRECT_URI
@@ -549,7 +560,9 @@ def _fetch_and_validate_token(request, code, oauth_session):
 
         try:
             validators.validate_orcid_token(token['access_token'])
-            validators.validate_orcid_id_token(token['id_token'])
+            if settings.ORCID_LOGIN_ENABLED:
+                validators.validate_orcid_id_token(token['id_token'])
+
             return True, token
         except ValidationError:
             messages.error(request, 'Validation Error: ORCID token validation failed.')
@@ -569,6 +582,9 @@ def orcid_register(request):
     GET renders the registration form.
     POST submits the registration form.
     """
+    if not settings.ORCID_LOGIN_ENABLED:
+        return redirect('home')
+
     user = request.user
     if user.is_authenticated:
         return redirect('project_home')
@@ -598,6 +614,9 @@ def orcid_init_login(request):
     """
     Builds redirect url and redirects to ORCID authorization page
     """
+    if not settings.ORCID_LOGIN_ENABLED:
+        return redirect('home')
+
     client_id = settings.ORCID_CLIENT_ID
     redirect_uri = settings.ORCID_LOGIN_REDIRECT_URI
     scope = settings.ORCID_SCOPE
