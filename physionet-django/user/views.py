@@ -531,7 +531,7 @@ def auth_orcid_login(request):
 
         auth_login(request, user, backend='user.backends.OrcidAuthBackend')
 
-    return redirect('home')
+    return redirect('login')
 
 
 def _fetch_and_validate_token(request, code, oauth_session):
@@ -549,6 +549,7 @@ def _fetch_and_validate_token(request, code, oauth_session):
 
         try:
             validators.validate_orcid_token(token['access_token'])
+            validators.validate_orcid_id_token(token['id_token'])
             return True, token
         except ValidationError:
             messages.error(request, 'Validation Error: ORCID token validation failed.')

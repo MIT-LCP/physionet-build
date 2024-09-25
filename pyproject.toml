@@ -44,6 +44,7 @@ hdn-research-environment = "3.2.1"
 django-oauth-toolkit = "^2.2.0"
 django-cors-headers = "^3.14.0"
 urllib3 = "^1.26.19"
+pyjwt = "^2.9.0"
 
 [tool.poetry.dev-dependencies]
 coverage = "^7.2.3"
