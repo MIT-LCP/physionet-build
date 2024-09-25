@@ -472,9 +472,12 @@ def auth_orcid(request):
     if token_valid:
         orcid_id = token.get('orcid')
         orcid_profile = Orcid.objects.filter(orcid_id=orcid_id).first()
-        if orcid_profile.user != request.user:
+        if orcid_profile and orcid_profile.user != request.user:
             messages.error(request, 'This ORCID account is already in use by another account!')
             return redirect('edit_orcid')
+
+        if orcid_profile is None:
+            orcid_profile, _ = Orcid.objects.get_or_create(user=request.user)
 
         orcid_profile.orcid_id = orcid_id
         orcid_profile.name = token.get('name')
