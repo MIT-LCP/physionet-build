@@ -140,12 +140,14 @@ class TestMixin(TestCase):
         """
         _force_delete_tree(settings.MEDIA_ROOT)
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'media')),
-            settings.MEDIA_ROOT)
+                        settings.MEDIA_ROOT,
+                        ignore=shutil.ignore_patterns('.gitkeep'))
 
         self.test_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
         _force_delete_tree(self.test_static_root)
         shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'static')),
-            self.test_static_root)
+                        self.test_static_root,
+                        ignore=shutil.ignore_patterns('.gitkeep'))
 
         if os.path.exists(ORIGINAL_DBCAL_FILE):
             os.symlink(ORIGINAL_DBCAL_FILE, DBCAL_FILE)
