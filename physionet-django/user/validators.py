@@ -225,7 +225,7 @@ def validate_orcid_id_token(token):
     access_token and signed id_token, this function validates id_token signature
     """
 
-    jwks_url = "https://sandbox.orcid.org/oauth/jwks"  # ORCID Sandbox JWKS URL
+    jwks_url = settings.ORCID_OPEN_ID_JWKS_URL
     jwks = requests.get(jwks_url).json()
     headers = jwt.get_unverified_header(token)
 
