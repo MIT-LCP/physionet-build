@@ -27,6 +27,27 @@
   <form action="" method="post">
     {% csrf_token %}
     {% if user.cloud_information.aws_verification_datetime %}
+      <hr>
+      <p>
+        To access {{ SITE_NAME }} resources via Amazon Web Services:
+      </p>
+      <ol>
+        <li>
+          <a href="https://aws.amazon.com/cli/"
+             target="_blank">
+            Install the <abbr title="Amazon Web Services">AWS</abbr>
+            Command Line Interface.
+          </a>
+        </li>
+        <li>
+          <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-user.html"
+             target="_blank">
+            Configure the <abbr title="Amazon Web Services">AWS</abbr>
+            Command Line Interface to use the identity shown below.
+          </a>
+        </li>
+      </ol>
+
       <div class="card">
         <ul class="list-group list-group-flush">
           <li class="list-group-item">
@@ -72,10 +93,35 @@
       {# modal end #}
     {% else %}
       <hr>
-      <p>To link your Amazon Web Services account using the
-        <a href="https://aws.amazon.com/cli/"><abbr title="Amazon Web Services">AWS</abbr> Command Line Interface</a>:
+      <p>
+        To access {{ SITE_NAME }} resources via Amazon Web Services:
       </p>
       <ol>
+        <li>
+          <a href="https://aws.amazon.com/resources/create-account/"
+             target="_blank">
+            Create an Amazon Web Services account.
+          </a>
+        </li>
+        <li>
+          <a href="https://aws.amazon.com/cli/"
+             target="_blank">
+            Install the <abbr title="Amazon Web Services">AWS</abbr>
+            Command Line Interface.
+          </a>
+        </li>
+        <li>
+          <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-user.html"
+             target="_blank">
+            Configure the <abbr title="Amazon Web Services">AWS</abbr>
+            Command Line Interface to use
+            <abbr title="Identity and Access Management">IAM</abbr> user credentials.
+          </a>
+          <br>
+          <strong>Note:</strong> when selecting &ldquo;Permission
+          options&rdquo; for the user, you must enable
+          the <code>AmazonS3FullAccess</code> policy.
+        </li>
         <li>
           Open a terminal and run the following command:
           <pre><code>aws sts get-caller-identity</code></pre>
