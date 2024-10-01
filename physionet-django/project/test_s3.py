@@ -116,6 +116,59 @@ class TestS3(TestMixin):
 
         self.assertEqual(bucket_files, expected_files)
 
+    def test_reupload_open_project(self):
+        """
+        Test re-uploading a project after modifying its published content.
+        """
+        create_s3_server_access_log_bucket()
+
+        project = PublishedProject.objects.get(slug='demobsn', version='1.0')
+
+        # Create files of various sizes to test multi-part uploads.
+        os.chmod(project.file_root(), 0o755)
+        for size_mb in [0, 8, 16, 17.1]:
+            path = os.path.join(project.file_root(), str(size_mb))
+            with open(path, 'wb') as f:
+                f.write(b'x' * int(size_mb * 1024 * 1024))
+
+        # Upload the project.
+        upload_project_to_S3(project)
+
+        # List the objects that were uploaded, and add a custom tag to each.
+        s3 = create_s3_client()
+        bucket = get_bucket_name(project)
+        objects = s3.list_objects_v2(Bucket=bucket)
+        custom_tagset = [{'Key': 'test-reupload', 'Value': '1'}]
+        for object_info in objects['Contents']:
+            s3.put_object_tagging(
+                Bucket=bucket, Key=object_info['Key'],
+                Tagging={'TagSet': custom_tagset},
+            )
+
+        # Modify some existing files.
+        alter_paths = ['data1.txt', 'scripts/lib.py']
+        for path in alter_paths:
+            os.chmod(os.path.join(project.file_root(), path), 0o644)
+            with open(os.path.join(project.file_root(), path), 'a') as f:
+                f.write('# additional content\n')
+
+        # Re-upload the project.  This should update only the files
+        # that were modified above.
+        project = PublishedProject.objects.get(slug='demobsn', version='1.0')
+        upload_project_to_S3(project)
+
+        # All of the objects that were not modified should still have
+        # the custom tag; modified objects should have been replaced
+        # and their tags should be empty.
+        project_prefix = project.slug + '/' + project.version + '/'
+        for object_info in objects['Contents']:
+            key = object_info['Key']
+            tags = s3.get_object_tagging(Bucket=bucket, Key=key)
+            if key.removeprefix(project_prefix) in alter_paths:
+                self.assertEqual(tags['TagSet'], [], key)
+            else:
+                self.assertEqual(tags['TagSet'], custom_tagset, key)
+
     def assert_bucket_is_public(self, bucket_name):
         """
         Check that a bucket exists and allows some form of public access.
