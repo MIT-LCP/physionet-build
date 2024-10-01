@@ -49,6 +49,8 @@ class ProjectVersionsSerializer(serializers.ModelSerializer):
 
 
 class PublishedProjectDetailSerializer(serializers.ModelSerializer):
+    license = LicenseSerializer()
+
     class Meta:
         model = PublishedProject
         fields = (
@@ -56,6 +58,7 @@ class PublishedProjectDetailSerializer(serializers.ModelSerializer):
             'title',
             'version',
             'abstract',
+            'license',
             'short_description',
             'project_home_page',
             'publish_datetime',
