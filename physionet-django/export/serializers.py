@@ -52,14 +52,14 @@ class PublishedProjectDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = PublishedProject
         fields = (
+            'slug',
             'title',
-            'abstract',
             'version',
+            'abstract',
             'short_description',
             'project_home_page',
             'publish_datetime',
             'doi',
-            'slug',
             'main_storage_size',
             'compressed_storage_size',
         )
