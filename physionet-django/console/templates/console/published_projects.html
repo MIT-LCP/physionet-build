@@ -9,12 +9,23 @@
 {% endblock %}
 
 {% block content %}
+<script src="{% static 'console/js/generic-filter.js' %}"></script>
 <div class="card mb-3">
   <div class="card-header">
     Published Projects <span class="badge badge-pill badge-info">{{ projects.paginator.count }}</span>
   </div>
   <div class="card-body">
-    <div class="table-responsive">
+    <div class="row">
+      <div class="col-sm-8">
+        <label class="font-weight-bold" for="searchbox">Search for project:</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-8">
+        <input id="searchbox" type="search" oninput="search();"  placeholder="Search...">
+      </div>
+    </div>
+    <div class="table-responsive" id="searchitems">
       <table class="table table-bordered">
         <thead>
           <tr>
@@ -47,4 +58,24 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script>
+    function search() {
+      const query = document.getElementById('searchbox').value.toLowerCase();
+      const rows = document.querySelectorAll('#searchitems tbody tr');
+
+      rows.forEach(row => {
+        const projectTitle = row.querySelector('td a').textContent.toLowerCase();
+        if (projectTitle.includes(query)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    document.getElementById('searchbox').addEventListener('input', search);
+  </script>
 {% endblock %}
