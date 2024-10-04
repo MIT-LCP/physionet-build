@@ -211,6 +211,7 @@ def validate_nan(value):
     if re.fullmatch(r'[0-9\-+()]*', value):
         raise ValidationError('Cannot be a number.')
 
+
 def validate_orcid_token(value):
     """
     Validation to verify the token returned during
@@ -218,6 +219,7 @@ def validate_orcid_token(value):
     """
     if not re.fullmatch(r'^[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}$', value):
         raise ValidationError('ORCID token is not in expected format.')
+
 
 def validate_orcid_id_token(token):
     """
@@ -246,7 +248,7 @@ def validate_orcid_id_token(token):
             audience=settings.ORCID_CLIENT_ID,
             issuer=settings.ORCID_DOMAIN
         )
-    except jwt.InvalidTokenError as e:
+    except jwt.InvalidTokenError:
         raise ValidationError('ORCID id_token is invalid.')
 
 def validate_orcid_id(value):
