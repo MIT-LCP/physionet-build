@@ -173,6 +173,10 @@ def submitted_projects(request):
             notification.assign_editor_notify(project)
             notification.editor_notify_new_project(project, user)
             messages.success(request, 'The editor has been assigned')
+        else:
+            for _, errors in assign_editor_form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
 
     # Submitted projects
     projects = ActiveProject.objects.filter(submission_status__gt=SubmissionStatus.ARCHIVED).order_by(
@@ -322,7 +326,7 @@ def submission_info(request, project_slug):
     copyedit_logs = project.copyedit_log_history()
 
     data = request.POST or None
-    reassign_editor_form = forms.ReassignEditorForm(user, data=data)
+    reassign_editor_form = forms.ReassignEditorForm(project=project, data=data)
     internal_note_form = forms.InternalNoteForm(data)
     embargo_form = forms.EmbargoFilesDaysForm()
     passphrase = ''
@@ -333,13 +337,16 @@ def submission_info(request, project_slug):
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
         anonymous_url, passphrase = '', 'revoked'
-    elif 'reassign_editor' in request.POST and reassign_editor_form.is_valid():
-        project.reassign_editor(reassign_editor_form.cleaned_data['editor'])
-        notification.editor_notify_new_project(project, user, reassigned=True)
-        messages.success(request, 'The editor has been reassigned')
-        LOGGER.info("The editor for the project {0} has been reassigned from "
-                    "{1} to {2}".format(project, user,
-                                        reassign_editor_form.cleaned_data['editor']))
+    elif 'reassign_editor' in request.POST and user == project.editor:
+        if reassign_editor_form.is_valid():
+            project.reassign_editor(reassign_editor_form.cleaned_data['editor'])
+            notification.editor_notify_new_project(project, user, reassigned=True)
+            messages.success(request, 'The editor has been reassigned')
+            LOGGER.info("The editor for the project {0} has been reassigned from "
+                        "{1} to {2}".format(project, user,
+                                            reassign_editor_form.cleaned_data['editor']))
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
     elif 'embargo_files' in request.POST:
         embargo_form = forms.EmbargoFilesDaysForm(data=request.POST)
         if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
@@ -403,7 +410,7 @@ def edit_submission(request, project_slug, *args, **kwargs):
     except EditLog.DoesNotExist:
         return redirect('editor_home')
 
-    reassign_editor_form = forms.ReassignEditorForm(request.user)
+    reassign_editor_form = forms.ReassignEditorForm(project=project)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
 
@@ -464,7 +471,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         return redirect('editor_home')
 
     copyedit_log = project.copyedit_logs.get(complete_datetime=None)
-    reassign_editor_form = forms.ReassignEditorForm(request.user)
+    reassign_editor_form = forms.ReassignEditorForm(project=project)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
 
@@ -644,7 +651,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
 
     outstanding_emails = ';'.join([a.user.email for a in authors.filter(
         approval_datetime=None)])
-    reassign_editor_form = forms.ReassignEditorForm(request.user)
+    reassign_editor_form = forms.ReassignEditorForm(project=project)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
 
@@ -711,7 +718,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         raise ServiceUnavailable()
 
-    reassign_editor_form = forms.ReassignEditorForm(request.user)
+    reassign_editor_form = forms.ReassignEditorForm(project=project)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
 
