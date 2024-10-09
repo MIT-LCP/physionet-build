@@ -16,6 +16,7 @@ from project.models import (
     Contact,
     CopyeditLog,
     DataAccess,
+    DataSource,
     DUA,
     EditLog,
     License,
@@ -696,6 +697,26 @@ class DataAccessForm(forms.ModelForm):
         data_access.project = self.project
         data_access.save()
         return data_access
+
+
+class DataSourceForm(forms.ModelForm):
+    class Meta:
+        model = DataSource
+        fields = ('data_location', 'access_mechanism', 'files_available', 'email', 'uri' )
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+        if not settings.ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
+            self.fields['access_mechanism'].choices = [
+                choice for choice in self.fields['access_mechanism'].choices if choice[0] != 'research-environment']
+
+    def save(self):
+        data_source = super(DataSourceForm, self).save(commit=False)
+        data_source.project = self.project
+        data_source.save()
+        return data_source
 
 
 class PublishedProjectContactForm(forms.ModelForm):

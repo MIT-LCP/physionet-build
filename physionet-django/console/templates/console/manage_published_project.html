@@ -385,6 +385,46 @@
         {% endif %}
       </li>
       <li class="list-group-item">
+        <h5 class="card-title mt-0 mb-1">Data Source</h5>
+        <p>Add and remove Data Source options.</p>
+{#        <div class="alert alert-danger">#}
+{#          <p class='m-0'>Note: The remove button will remove the option for requesting cloud access that appears in the files section of a project. It will not (1) delete/deactivate the bucket or (2) remove access for users who are already using the bucket.</p>#}
+{#        </div>#}
+        <form action="" method="post">
+          {% csrf_token %}
+          {% include "project/content_inline_form_snippet.html" with form=data_source_form %}
+          <button class="btn btn-primary" type="submit">Submit</button>
+        </form>
+        {% if data_sources %}
+        <table class="table table-bordered">
+            <tr>
+              <th>Location</th>
+              <th>Access Mechanism</th>
+              <th>Files Available</th>
+              <th>Email</th>
+              <th>Uri</th>
+              <th>Remove</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in data_sources %}
+            <tr>
+              <td>{{item.data_location}}</td>
+              <td>{{item.access_mechanism}}</td>
+              <td>{{item.files_available}}</td>
+              <td>{{item.email}}</td>
+              <td>{{item.uri}}</td>
+              <form action="" method="post">
+                {% csrf_token %}
+                <td><button class='btn btn-danger' name='data_source_removal' value='{{item.id}}'>Remove</button></td>
+              </form>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </li>
+      <li class="list-group-item">
         <h5 class="card-title mt-3 mb-1">Google Cloud</h5>
         {% if not has_credentials %}
           <p>You are missing the Google Cloud credentials.</p>
@@ -439,6 +479,7 @@
     </ul>
 
   </div>
+
 </div>
 
 {% endblock %}
