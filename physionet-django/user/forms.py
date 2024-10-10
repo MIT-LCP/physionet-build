@@ -6,6 +6,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
 from django.db.models import F, Q
@@ -488,7 +489,6 @@ class PersonalCAF(forms.ModelForm):
             'organization_name':self.profile.affiliation,
             'webpage':self.profile.website}
 
-
 class ResearchCAF(forms.ModelForm):
     """
     Credential application form research attributes
@@ -613,6 +613,7 @@ class CredentialApplicationForm(forms.ModelForm):
         ref_required = True
         supervisor_required = data['researcher_category'] in [0, 1, 7]
         state_required = data['country'] in ['US', 'CA']
+        category = data['researcher_category']
 
         # Students and postdocs must provide their supervisor as a reference
         if supervisor_required and data['reference_category'] != 0:
@@ -637,6 +638,21 @@ class CredentialApplicationForm(forms.ModelForm):
         if (not self.instance and CredentialApplication.objects
                 .filter(user=self.user, status=CredentialApplication.Status.PENDING)):
             raise forms.ValidationError('Outstanding application exists.')
+
+        # If the user is a student, postdoc, or academic researcher, an associated email should be provided
+        if category in [0, 1, 2, 7]:
+            has_institutional_email = False
+            for email in self.user.get_emails():
+                try:
+                    validate_institutional_email(email)
+                    has_institutional_email = True
+                except ValidationError:
+                    pass
+            if not has_institutional_email:
+                raise ValidationError(
+                    'Please provide your academic email address'
+                    ' in your email settings.'
+                )
 
     def save(self):
         credential_application = super().save(commit=False)
