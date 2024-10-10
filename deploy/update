@@ -4,7 +4,8 @@ set -e
 
 install_dir=/physionet/physionet-build
 working_dir=/physionet/physionet-build.new
-venv_dir=/physionet/python-env/physionet
+venv_prefix=/physionet/python-env
+venv_dir=$venv_prefix/physionet
 log_file=/data/log/pn/update.log
 branch=$(cat /physionet/deploy-branch) # production or staging
 
@@ -76,17 +77,27 @@ mkdir -p $working_dir
 git archive "$newrev" | tar -x -C $working_dir
 ln -s $install_dir/.env $working_dir/.env
 
-. $venv_dir/bin/activate
-
-# Install new dependencies from 'requirements.txt' into $venv_dir
+# Install new dependencies from 'requirements.txt' into $new_venv_dir
 if [ -n "$no_pip" ]; then
     echo "- SKIPPING requirements due to --push-option=no-pip"
+    new_venv_dir=$venv_dir
 else
-    echo "* Installing new requirements..."
-    pip3 install -r $working_dir/requirements.txt \
-         --quiet --require-hashes --log $log_file
-    echo >> $log_file
+    hash=$(md5sum "$working_dir/requirements.txt" | cut -d' ' -f1)
+    new_venv_dir=$venv_prefix/$hash
+    if [ -d "$new_venv_dir" ] && cmp -s "$working_dir/requirements.txt" \
+                                      "$new_venv_dir/installed.txt"; then
+        echo "- Requirements previously installed ($hash)."
+    else
+        echo "* Installing new requirements ($hash)..."
+        virtualenv -ppython3 --quiet --clear --no-download "$new_venv_dir"
+        pip_log=$new_venv_dir/pip-install.log
+        "$new_venv_dir/bin/pip3" install -r "$working_dir/requirements.txt" \
+                                 --quiet --require-hashes --log $pip_log
+        cp "$working_dir/requirements.txt" "$new_venv_dir/installed.txt"
+    fi
 fi
+
+. $new_venv_dir/bin/activate
 
 # Run 'getmigrationtargets' to check whether migrations make sense
 # (e.g. broken dependencies, ghost migrations)
@@ -97,5 +108,10 @@ echo "* Checking migrations..."
     ./manage.py getmigrationtargets --early > /dev/null
     ./manage.py getmigrationtargets > /dev/null
 )
+
+# Update $venv_dir to point to $new_venv_dir
+if [ "$venv_dir" != "$new_venv_dir" ]; then
+    ln -s -f -T "$new_venv_dir" "$venv_dir"
+fi
 
 echo "$(date '+%F %T %z'): $branch: update finished" >> $log_file
