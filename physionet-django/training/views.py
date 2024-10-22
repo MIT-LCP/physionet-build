@@ -49,7 +49,7 @@ def get_course_and_module_progress(user, course, module_order):
         slug = get_random_string(20)
         while Training.objects.filter(slug=slug).exists():
             slug = get_random_string(20)
-        training = Training.objects.create(
+        Training.objects.create(
             slug=slug,
             training_type=course.training_type,
             user=user,
