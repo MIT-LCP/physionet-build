@@ -7,21 +7,28 @@ from training.models import Course
 
 class TrainingQuerySet(QuerySet):
     def get_review(self):
+        """
+        Get the document-based or URL-based training objects for the user, that are in the status REVIEW.
+        """
         return self.filter(
             Q(status=TrainingStatus.REVIEW),
             Q(training_type__required_field=RequiredField.DOCUMENT)
             | Q(training_type__required_field=RequiredField.URL)
         )
 
-    # adding a query to fetch the on-platform courses that are in the status REVIEW.
     def in_progress(self):
+        """
+        Get the on-platform training objects for the user, that are in the status REVIEW.
+        """
         return self.filter(
             Q(status=TrainingStatus.REVIEW),
             Q(training_type__required_field=RequiredField.PLATFORM)
         )
 
     def get_valid(self):
-
+        """
+        Get all the training objects that are in the status ACCEPTED and have not expired.
+        """
         return self.filter(
             Q(status=TrainingStatus.ACCEPTED),
             Q(training_type__valid_duration__isnull=True)
@@ -39,7 +46,9 @@ class TrainingQuerySet(QuerySet):
         )
 
     def get_expired(self):
-
+        """
+        Get all the training objects that are in the status ACCEPTED and have expired
+        """
         return self.filter(
             Q(status=TrainingStatus.ACCEPTED),
             Q(process_datetime__lt=timezone.now() - Case(
@@ -56,4 +65,7 @@ class TrainingQuerySet(QuerySet):
         )
 
     def get_rejected(self):
+        """
+        Get all the training objects that are in the status REJECTED.
+        """
         return self.filter(status=TrainingStatus.REJECTED)

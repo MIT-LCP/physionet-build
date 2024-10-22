@@ -49,14 +49,15 @@ def get_course_and_module_progress(user, course, module_order):
         slug = get_random_string(20)
         while Training.objects.filter(slug=slug).exists():
             slug = get_random_string(20)
-        training = Training()
-        training.slug = slug
-        training.training_type = course.training_type
-        training.user = user
-        training.course = course
-        training.process_datetime = timezone.now()
-        training.status = TrainingStatus.REVIEW
-        training.save()
+        training = Training.objects.create(
+            slug=slug,
+            training_type=course.training_type,
+            user=user,
+            course=course,
+            process_datetime=timezone.now(),
+            status=TrainingStatus.REVIEW
+        )
+
 
     module = get_object_or_404(course.modules, order=module_order)
     module_progress, _ = ModuleProgress.objects.get_or_create(course_progress=course_progress, module=module)
