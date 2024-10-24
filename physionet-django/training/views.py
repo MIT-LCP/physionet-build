@@ -41,7 +41,24 @@ def get_course_and_module_progress(user, course, module_order):
     This function takes a user, course, and module order as input parameters,
     and returns the course progress and module progress objects associated with the user, course, and module order.
     """
-    course_progress, _ = CourseProgress.objects.get_or_create(user=user, course=course)
+    # get the course progress of the user for the course
+    course_progress = CourseProgress.objects.filter(user=user, course=course).first()
+    if not course_progress:
+        course_progress = CourseProgress.objects.create(user=user, course=course)
+        # Initiate the training and set the status to review
+        slug = get_random_string(20)
+        while Training.objects.filter(slug=slug).exists():
+            slug = get_random_string(20)
+        Training.objects.create(
+            slug=slug,
+            training_type=course.training_type,
+            user=user,
+            course=course,
+            process_datetime=timezone.now(),
+            status=TrainingStatus.REVIEW
+        )
+
+
     module = get_object_or_404(course.modules, order=module_order)
     module_progress, _ = ModuleProgress.objects.get_or_create(course_progress=course_progress, module=module)
     return course_progress, module_progress
@@ -88,16 +105,7 @@ def handle_course_completion(course, course_progress):
     with transaction.atomic():
         course_progress.status = CourseProgress.Status.COMPLETED
         course_progress.save()
-        training = Training()
-        slug = get_random_string(20)
-        while Training.objects.filter(slug=slug).exists():
-            slug = get_random_string(20)
-
-        training.slug = slug
-        training.training_type = course_progress.course.training_type
-        training.course = course_progress.course
-        training.user = course_progress.user
-        training.process_datetime = timezone.now()
+        training = Training.objects.filter(course=course, user=course_progress.user).first()
         training.status = TrainingStatus.ACCEPTED
         training.save()
 
@@ -275,8 +283,7 @@ def take_training(request, training_slug):
     if course is None:
         raise Http404()
     modules = Module.objects.filter(course=course).order_by('order')
-    # get the progress of the user for the modules, updated_date
-    course_progress, _ = CourseProgress.objects.get_or_create(user=request.user, course=course)
+    course_progress, _ = get_course_and_module_progress(request.user, course, modules.first().order)
 
     for module in modules:
         module_progress = course_progress.module_progresses.filter(module_id=module.id).last()
