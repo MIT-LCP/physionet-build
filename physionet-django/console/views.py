@@ -3495,7 +3495,7 @@ def event_management(request, event_slug):
     # handle the add dataset form(s)
     if request.method == "POST":
         if "add-event-dataset" in request.POST.keys():
-            event_dataset_form = EventDatasetForm(request.POST)
+            event_dataset_form = EventDatasetForm(request.POST, user=request.user)
             if event_dataset_form.is_valid():
                 active_datasets = selected_event.datasets.filter(
                     dataset=event_dataset_form.cleaned_data["dataset"],
