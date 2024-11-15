@@ -55,7 +55,7 @@ def get_course_and_module_progress(user, course, module_order):
             user=user,
             course=course,
             process_datetime=timezone.now(),
-            status=TrainingStatus.REVIEW
+            status=TrainingStatus.IN_PROGRESS
         )
 
 

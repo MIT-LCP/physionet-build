@@ -8,6 +8,7 @@ class TrainingStatus(IntEnum):
     WITHDRAWN = 1
     REJECTED = 2
     ACCEPTED = 3
+    IN_PROGRESS = 4
 
     @classmethod
     def choices(cls):

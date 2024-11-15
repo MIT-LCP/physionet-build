@@ -824,11 +824,13 @@ def edit_certification(request):
     )
     training_by_status = {
         "under review": training.get_review(),
-        "in progress": training.in_progress(),
+        "in progress": training.get_in_progress(),
         "active": training.get_valid(),
         "expired": training.get_expired(),
         "rejected": training.get_rejected(),
     }
+
+    print(training_by_status)
 
     return render(
         request,

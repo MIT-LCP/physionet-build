@@ -16,12 +16,12 @@ class TrainingQuerySet(QuerySet):
             | Q(training_type__required_field=RequiredField.URL)
         )
 
-    def in_progress(self):
+    def get_in_progress(self):
         """
         Get the on-platform training objects for the user, that are in the status REVIEW.
         """
         return self.filter(
-            Q(status=TrainingStatus.REVIEW),
+            Q(status=TrainingStatus.IN_PROGRESS),
             Q(training_type__required_field=RequiredField.PLATFORM)
         )
 
