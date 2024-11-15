@@ -18,7 +18,7 @@ class TrainingQuerySet(QuerySet):
 
     def get_in_progress(self):
         """
-        Get the on-platform training objects for the user, that are in the status REVIEW.
+        Get the on-platform training objects for the user, that are in the status IN-PROGRESS.
         """
         return self.filter(
             Q(status=TrainingStatus.IN_PROGRESS),

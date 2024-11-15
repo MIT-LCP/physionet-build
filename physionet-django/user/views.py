@@ -830,8 +830,6 @@ def edit_certification(request):
         "rejected": training.get_rejected(),
     }
 
-    print(training_by_status)
-
     return render(
         request,
         "user/edit_certification.html",
