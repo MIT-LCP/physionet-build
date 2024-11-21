@@ -4,8 +4,11 @@ import re
 import os
 import json
 from django.conf import settings
-from project.models import PublishedProject, AccessPolicy, AccessPoint, AccessPointUser
-from user.models import User
+from project.models import PublishedProject, AccessPolicy, AWSAccessPoint, AWSAccessPointUser
+from user.models import (
+    User,
+    CloudInformation
+)
 from project.authorization.access import can_view_project_files
 from botocore.exceptions import ClientError
 from math import ceil
@@ -674,48 +677,44 @@ def create_controlled_bucket_policy(bucket_name):
     return controlled_bucket_policy_str
 
 
-def get_access_point_name_for_user_and_project(aws_id, project_slug, project_version):
+def get_access_point_name_for_user_and_project(current_user, aws):
     """
-    Retrieve the access point name associated with a specific user
-    and project.
+    Retrieve the access point name associated with a specific
+     user and AWS project.
 
-    This function fetches the access point name linked to a given
-    user and project, based on the user's AWS ID and the project's
-    slug and version.
+    This function identifies the access point name linked to the
+    provided user and the given AWS instance. It queries the
+    `AWSAccessPoint` model to find a matching record for the user
+    and AWS project.
 
     Args:
-        aws_id (str): The AWS ID of the user.
-        project_slug (str): The slug of the project.
-        project_version (str): The version of the project.
+        current_user (User): The user making the request. This should
+        be an instance of the `User` model (or the user model used in
+        your project).
+        aws (AWS): An instance of the `AWS` model representing the AWS
+        configuration of a specific project.
 
     Returns:
-        str: The name of the access point or an error message if
-        the user or project is not found.
+        str: The name of the access point if found.
+        str: An error message if no access point is found or an
+        exception occurs.
 
     Note:
-    - Ensure that the user and project exist in the database.
+        Ensure that the `AWSAccessPoint` model has a `linked_users` field
+        set up as a ManyToMany relationship through `AWSAccessPointUser`,
+        with `user` properly defined in the through model.
     """
+    # Retrieve the access point linked to this user and project
     try:
-        # Retrieve the user by AWS ID
-        user = AccessPointUser.objects.get(aws_id=aws_id)
-    except AccessPointUser.DoesNotExist:
-        return "No user found with that AWS ID"
-
-    try:
-        # Retrieve the project based on slug and version
-        project = PublishedProject.objects.get(
-            slug=project_slug, version=project_version
-        )
-    except PublishedProject.DoesNotExist:
-        return "Project not found"
-
-    # Retrieve the access point linked to this user and specific project
-    access_point = AccessPoint.objects.filter(users=user, aws__project=project).first()
-
-    if access_point:
-        return access_point.name
-    else:
+        access_point = AWSAccessPoint.objects.filter(
+            aws=aws, linked_users__user=current_user
+        ).first()
+        if access_point:
+            return access_point.name
+    except Exception as e:
         return "No access point found for this user with the specified project details"
+
+    return "No access point found for this user with the specified project details"
 
 
 def get_access_point_name(project):
@@ -755,8 +754,6 @@ def get_access_point_name(project):
 
 def get_latest_access_point(project):
     """
-    Get the name of the access point for a given project.
-
     This function retrieves the name of the access point associated
     with the specified project. It handles scenarios where there are
     multiple access points, only one access point, or none.
@@ -780,7 +777,7 @@ def get_latest_access_point(project):
     pattern = re.compile(r"(\d+)$")
 
     # Filter access points starting with the base name and ending with a version number
-    access_points = AccessPoint.objects.filter(name__startswith=base_name)
+    access_points = AWSAccessPoint.objects.filter(name__startswith=base_name)
 
     # Check if any access points exist
     if access_points.exists():
@@ -943,7 +940,7 @@ def s3_bucket_has_access_point(project):
     - Ensure that the project object contains valid AWS and version information.
     """
     access_point_name = get_access_point_name(project)
-    exists = AccessPoint.objects.filter(name=access_point_name).exists()
+    exists = AWSAccessPoint.objects.filter(name=access_point_name).exists()
     return exists
 
 
@@ -1028,8 +1025,7 @@ def update_data_access_point_policy(project):
         subset_aws_ids = aws_ids[
             i * MAX_PRINCIPALS_PER_AP_POLICY : (i + 1) * MAX_PRINCIPALS_PER_AP_POLICY
         ]
-
-        access_point = AccessPoint.objects.filter(
+        access_point = AWSAccessPoint.objects.filter(
             name=data_access_point_name, aws__project=project
         ).first()
         if not access_point:
@@ -1068,28 +1064,37 @@ def update_data_access_point_policy(project):
 
 def associate_aws_users_with_data_access_point(access_point, aws_ids):
     """
-    Associate AWS users with a specified data access point.
-
-    This function links AWS users to the specified data access point,
-    creating new user entries if necessary.
+    Associates a list of `aws_ids` with the `AWSAccessPoint`.
 
     Args:
-        access_point (object): The access point object.
-        aws_ids (list): A list of AWS IDs to be associated with the access point.
+        access_point (AWSAccessPoint): The access point to which the IDs will
+        be associated.
+        aws_ids (list): List of AWS IDs to be associated.
 
     Returns:
-        None
-
-    Note:
-    - Ensure that the access point and AWS IDs are valid.
-
+        bool: True if the association was successfully created, False otherwise.
     """
-    existing_user_ids = set(access_point.users.values_list("aws_id", flat=True))
-    new_user_ids = set(aws_ids) - existing_user_ids
-    for aws_id in new_user_ids:
-        user, created = AccessPointUser.objects.get_or_create(aws_id=aws_id)
-        access_point.users.add(user)
-    access_point.save()
+    try:
+        # Iterates through the AWS IDs and adds the users related to the access point
+        for aws_id in aws_ids:
+            # Fetches the user related to the aws_id
+            cloud_info = CloudInformation.objects.filter(aws_id=aws_id).first()
+            if not cloud_info:
+                print(f"Usuário não encontrado para aws_id: {aws_id}")
+                continue
+
+            user = cloud_info.user
+
+            # Checks if the user is already associated with the access_point
+            if not AWSAccessPointUser.objects.filter(access_point=access_point, user=user).exists():
+                AWSAccessPointUser.objects.create(access_point=access_point, user=user)
+
+        # After iterating through all the AWS IDs, saves the access_point
+        access_point.save()
+        return True
+    except Exception as e:
+        print(f"Erro ao associar aws_ids ao access_point: {str(e)}")
+        return False
 
 
 def create_s3_access_point(project, access_point_name, bucket_name, account_id):
@@ -1112,7 +1117,6 @@ def create_s3_access_point(project, access_point_name, bucket_name, account_id):
     - Ensure that AWS credentials (Access Key and Secret Key)
     are properly configured for the S3 client used in this function.
     - Ensure that the bucket name and account ID are valid.
-
     """
     s3 = create_s3_control_client()
     try:
@@ -1128,7 +1132,7 @@ def create_s3_access_point(project, access_point_name, bucket_name, account_id):
             },
         )
         # Create and save AccessPoint model instance
-        access_point, created = AccessPoint.objects.get_or_create(
+        access_point, created = AWSAccessPoint.objects.get_or_create(
             aws=project.aws, name=access_point_name
         )
         return access_point
@@ -1200,7 +1204,6 @@ def upload_project_to_S3(project):
     send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
     if project.access_policy == AccessPolicy.OPEN:
         update_open_bucket_policy(project, bucket_name)
-
     else:
         if s3_bucket_has_credentialed_users(project):
             update_data_access_point_policy(project)
