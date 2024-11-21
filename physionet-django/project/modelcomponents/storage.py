@@ -2,6 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.conf import settings
 from project.modelcomponents.generic import BaseInvitation
+from project.modelcomponents.middleware import get_current_request
 
 
 class StorageRequest(BaseInvitation):
@@ -62,36 +63,61 @@ class AWS(models.Model):
 
     class Meta:
         default_permissions = ()
-
-    def s3_uri(self, aws_id):
-        s3_uri = None
+    
+    def s3_uri(self):
+        """
+        Construct the S3 URI for the project.
+        """
+        from project.cloud.s3 import get_access_point_name_for_user_and_project
         if self.is_private:
-            from project.cloud.s3 import get_access_point_name_for_user_and_project
-            access_point_name = get_access_point_name_for_user_and_project(aws_id, self.project.slug, self.project.version)
-            if access_point_name is None or access_point_name in [
-                "No user found with that AWS ID",
-                "Project not found",
-                "No access point found for this user with the specified project details"
-            ]:
+            # Retrieve the current request
+            request = get_current_request()
+            if not request or not hasattr(request, 'user') or not request.user.is_authenticated:
+                print("Error: No valid user in the current request.")
                 return None
-            s3_uri = f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}/{self.project.slug}/{self.project.version}/'
-        else:
-            s3_uri = f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
-        return s3_uri
+
+            # Get the current user from the request
+            current_user = request.user
+            # Fetch access point name
+            access_point_name = get_access_point_name_for_user_and_project(current_user, self)
+            if access_point_name and "No " not in access_point_name:
+                return f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}/{self.project.slug}/{self.project.version}/'
+            else:
+                print(f"Error: {access_point_name}")
+                return None
+
+        # For public projects, construct URI using bucket name
+        return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
 
     def __str__(self):
         return self.s3_uri()
 
-class AccessPoint(models.Model):
+
+class AWSAccessPoint(models.Model):
     aws = models.ForeignKey(AWS, related_name='access_points', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    users = models.ManyToManyField('AccessPointUser', related_name='access_points')
+    users = models.ManyToManyField(
+        'user.User',
+        through='AWSAccessPointUser',
+        related_name='linked_access_points'
+    )
+
+
+class AWSAccessPointUser(models.Model):
+    access_point = models.ForeignKey(
+        AWSAccessPoint, 
+        related_name='linked_users',
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        'user.User', 
+        related_name='aws_access_point_users',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = [('access_point', 'user')]
 
     def __str__(self):
-        return self.name
+        return f"User: {self.user}, Access Point: {self.access_point}"
 
-class AccessPointUser(models.Model):
-    aws_id = models.CharField(max_length=20)  # Assuming AWS ID is a string like '053677451470'
-
-    def __str__(self):
-        return self.aws_id
