@@ -1190,12 +1190,21 @@ def upload_project_to_S3(project):
     if s3 is None or bucket_name is None:
         return
 
+    bucket_created = False
+
     try:
         create_s3_bucket(s3, bucket_name)
+        bucket_created = True
     except s3.exceptions.BucketAlreadyExists:
         raise Exception(f"A bucket named {bucket_name} already exists.")
     except s3.exceptions.BucketAlreadyOwnedByYou:
-        pass
+        bucket_created = False
+    
+    # Set the bucket policy only if the bucket was newly created and has controlled access
+    if bucket_created and project.access_policy == AccessPolicy.CONTROLLED:
+        controlled_policy = create_controlled_bucket_policy(bucket_name)
+        s3.put_bucket_policy(Bucket=bucket_name, Policy=controlled_policy)
+
     put_bucket_logging(
         s3, bucket_name, settings.S3_SERVER_ACCESS_LOG_BUCKET, bucket_name + "/logs/"
     )
