@@ -664,7 +664,7 @@ def create_controlled_bucket_policy(bucket_name):
                 ],
                 "Condition": {
                     "StringEquals": {
-                        f"s3:DataAccessPointAccount": "{settings.AWS_ACCOUNT_ID}"
+                        "s3:DataAccessPointAccount": settings.AWS_ACCOUNT_ID
                     }
                 },
             }
