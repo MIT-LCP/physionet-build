@@ -711,7 +711,7 @@ def get_access_point_name_for_user_and_project(current_user, aws):
         ).first()
         if access_point:
             return access_point.name
-    except Exception as e:
+    except Exception:
         return "No access point found for this user with the specified project details"
 
     return "No access point found for this user with the specified project details"
@@ -879,7 +879,8 @@ def create_data_access_point_policy(
                 "Principal": principal_value,
                 "Action": ["s3:GetObject", "s3:ListBucket"],
                 "Resource": [
-                    f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}/object/{project_slug}/{project_version}/*",
+                    f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/"
+                    f"{access_point_name}/object/{project_slug}/{project_version}/*",
                     f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}",
                 ],
             }
@@ -912,7 +913,7 @@ def set_data_access_point_policy(data_access_point_name, data_access_point_polic
     if s3_control is None:
         return
     try:
-        response = s3_control.put_access_point_policy(
+        s3_control.put_access_point_policy(
             AccountId=settings.AWS_ACCOUNT_ID,
             Name=data_access_point_name,
             Policy=data_access_point_policy,
@@ -1023,7 +1024,7 @@ def update_data_access_point_policy(project):
         data_access_point_version = str(i + 1).zfill(2)
         data_access_point_name = f"{project.slug}-v{project.version.replace('.', '-')}-{data_access_point_version}"
         subset_aws_ids = aws_ids[
-            i * MAX_PRINCIPALS_PER_AP_POLICY : (i + 1) * MAX_PRINCIPALS_PER_AP_POLICY
+            i * MAX_PRINCIPALS_PER_AP_POLICY: (i + 1) * MAX_PRINCIPALS_PER_AP_POLICY
         ]
         access_point = AWSAccessPoint.objects.filter(
             name=data_access_point_name, aws__project=project
@@ -1120,7 +1121,7 @@ def create_s3_access_point(project, access_point_name, bucket_name, account_id):
     """
     s3 = create_s3_control_client()
     try:
-        response = s3.create_access_point(
+        s3.create_access_point(
             AccountId=account_id,
             Bucket=bucket_name,
             Name=access_point_name,
@@ -1199,9 +1200,9 @@ def upload_project_to_S3(project):
         raise Exception(f"A bucket named {bucket_name} already exists.")
     except s3.exceptions.BucketAlreadyOwnedByYou:
         bucket_created = False
-    
+
     # Set the bucket policy only if the bucket was newly created and has controlled access
-    if bucket_created and project.access_policy == AccessPolicy.CONTROLLED:
+    if bucket_created and project.access_policy == AccessPolicy.CREDENTIALED:
         controlled_policy = create_controlled_bucket_policy(bucket_name)
         s3.put_bucket_policy(Bucket=bucket_name, Policy=controlled_policy)
 

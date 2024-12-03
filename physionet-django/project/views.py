@@ -1940,7 +1940,7 @@ def published_project(request, project_slug, version, subdir=''):
             s3_uri = project.aws.s3_uri()
         else:
             s3_uri = '--no-sign-request ' + project.aws.s3_uri()
-    
+
     context = {
         'project': project,
         'authors': authors,
@@ -2050,7 +2050,11 @@ def sign_dua(request, project_slug, version):
 
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
-        if has_s3_credentials() and files_sent_to_S3(project) is not None and s3_bucket_has_credentialed_users(project):
+        if (
+            has_s3_credentials()
+            and files_sent_to_S3(project) is not None
+            and s3_bucket_has_credentialed_users(project)
+        ):
             update_data_access_point_policy(project)
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})

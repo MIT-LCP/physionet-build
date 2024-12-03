@@ -63,7 +63,7 @@ class AWS(models.Model):
 
     class Meta:
         default_permissions = ()
-    
+
     def s3_uri(self):
         """
         Construct the S3 URI for the project.
@@ -81,7 +81,10 @@ class AWS(models.Model):
             # Fetch access point name
             access_point_name = get_access_point_name_for_user_and_project(current_user, self)
             if access_point_name and "No " not in access_point_name:
-                return f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}/{self.project.slug}/{self.project.version}/'
+                return (
+                    f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/'
+                    f'{access_point_name}/{self.project.slug}/{self.project.version}/'
+                )
             else:
                 print(f"Error: {access_point_name}")
                 return None
@@ -105,12 +108,12 @@ class AWSAccessPoint(models.Model):
 
 class AWSAccessPointUser(models.Model):
     access_point = models.ForeignKey(
-        AWSAccessPoint, 
+        AWSAccessPoint,
         related_name='linked_users',
         on_delete=models.CASCADE
     )
     user = models.ForeignKey(
-        'user.User', 
+        'user.User',
         related_name='aws_access_point_users',
         on_delete=models.CASCADE
     )
@@ -120,4 +123,3 @@ class AWSAccessPointUser(models.Model):
 
     def __str__(self):
         return f"User: {self.user}, Access Point: {self.access_point}"
-

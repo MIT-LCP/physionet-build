@@ -2,9 +2,11 @@ import threading
 
 _request_local = threading.local()
 
+
 def get_current_request():
     """Retrieve the current request from thread-local storage."""
     return getattr(_request_local, 'request', None)
+
 
 class CurrentRequestMiddleware:
     """Middleware to store the current request in thread-local storage."""
