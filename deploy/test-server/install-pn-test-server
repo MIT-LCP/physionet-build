@@ -61,6 +61,9 @@ apt-get install -y \
 ################################################################
 
 if [ -n "$WFDB_REPOSITORY" ]; then
+    if [ -d "$WFDB_REPOSITORY" ]; then
+        git config --global --add safe.directory "$WFDB_REPOSITORY"
+    fi
     git clone "$WFDB_REPOSITORY" $HOME/wfdb
     (
         cd $HOME/wfdb
@@ -70,6 +73,9 @@ if [ -n "$WFDB_REPOSITORY" ]; then
         make -j$(nproc) -Cdata install
     )
     if [ -n "$LIGHTWAVE_REPOSITORY" ]; then
+        if [ -d "$LIGHTWAVE_REPOSITORY" ]; then
+            git config --global --add safe.directory "$LIGHTWAVE_REPOSITORY"
+        fi
         git clone "$LIGHTWAVE_REPOSITORY" $HOME/lightwave
         (
             cd $HOME/lightwave
@@ -119,6 +125,9 @@ su pn -c '
    virtualenv --no-download -ppython3 /physionet/python-env/physionet
    . /physionet/python-env/physionet/bin/activate
 
+   if [ -d "$REPOSITORY" ]; then
+       git config --global --add safe.directory "$REPOSITORY"
+   fi
    git clone --bare "$REPOSITORY" physionet-build.git
    cd /physionet/physionet-build.git
    GIT_WORK_TREE=/physionet/physionet-build git checkout --force "$REVISION_ID"
