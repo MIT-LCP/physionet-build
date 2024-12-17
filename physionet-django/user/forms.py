@@ -937,7 +937,7 @@ class OrcidRegistrationForm(RegistrationForm):
     """
     Form to register new user after signing in with ORCID.
     This saves user as the same way RegistrationForm but also stores
-    orcid_token and
+    Orcid profile linked with this user.
     """
 
     def __init__(self, *args, **kwargs):

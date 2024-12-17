@@ -79,10 +79,11 @@ class LoginView(auth_views.LoginView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
-        sso_extra_context = {
+        orcid_extra_context = {
             'enable_orcid_login': settings.ORCID_LOGIN_ENABLED,
+            'orcid_login_button_text': settings.ORCID_LOGIN_BUTTON_TEXT,
         }
-        return {**context, **sso_extra_context}
+        return {**context, **orcid_extra_context}
 
 
 @method_decorator(allow_post_during_maintenance, 'dispatch')
@@ -101,6 +102,7 @@ class SSOLoginView(auth_views.LoginView):
 
         sso_extra_context = {
             'sso_login_button_text': settings.SSO_LOGIN_BUTTON_TEXT,
+            'orcid_login_button_text': settings.ORCID_LOGIN_BUTTON_TEXT,
             'login_instruction_sections': instruction_sections,
             'enable_orcid_login': settings.ORCID_LOGIN_ENABLED,
         }

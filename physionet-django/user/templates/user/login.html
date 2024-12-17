@@ -36,8 +36,8 @@
          type="button"
          class="btn  btn-lg btn-secondary btn-block"
          href="{% url 'orcid_init_login' %}">
-        <img src="https://orcid.org/sites/default/files/images/orcid_24x24.png" />
-        Log in using ORCID iD
+        <img src="{% static 'images/orcid-icon-small.png' %}" />
+        {{ orcid_login_button_text }}
       </a>
     </div>
   {% endif %}
