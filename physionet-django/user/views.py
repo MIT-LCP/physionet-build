@@ -600,10 +600,10 @@ def orcid_register(request):
             user = form.save()
             uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
-            notify_account_registration(request, user, uidb64, token, sso=False)
+            notify_account_registration(request, user, uidb64, token, sso=settings.ENABLE_SSO)
 
             return render(
-                request, 'user/register_done.html', {'email': user.email, 'sso': False}
+                request, 'user/register_done.html', {'email': user.email, 'sso': settings.ENABLE_SSO}
             )
     else:
         form = forms.OrcidRegistrationForm()
