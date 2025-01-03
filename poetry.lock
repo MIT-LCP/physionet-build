@@ -525,6 +525,20 @@ libcloud = ["apache-libcloud"]
 sftp = ["paramiko"]
 
 [[package]]
+name = "django-tinymce"
+version = "4.1.0"
+description = "A Django application that contains a widget to render a"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "django_tinymce-4.1.0-py3-none-any.whl", hash = "sha256:9804836e6d2b08de3b03a27c100f8c2e9633549913eff8b323678a10cd48b94e"},
+    {file = "django_tinymce-4.1.0.tar.gz", hash = "sha256:02e3b70e940fd299f0fbef4315aee5c185664e1eb8cd396b176963954e4357c9"},
+]
+
+[package.dependencies]
+django = ">=3.2"
+
+[[package]]
 name = "djangorestframework"
 version = "3.15.2"
 description = "Web APIs for Django, made easy."
@@ -1817,4 +1831,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "14fbdfa55dffc06f63820639242e65d203708757b213135c53fda97eddc2bef0"
+content-hash = "e9f21143cb6541283ee44abc19543a37da19c678bcb4a1d3219c4faad7d71bc5"
