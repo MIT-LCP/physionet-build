@@ -1,7 +1,5 @@
 from background_task.models import Task
 from background_task.models import CompletedTask
-from ckeditor.fields import RichTextField
-from ckeditor.widgets import CKEditorWidget
 from django.contrib import admin
 from django.db.models import CharField, TextField
 from django.forms import Textarea, TextInput
