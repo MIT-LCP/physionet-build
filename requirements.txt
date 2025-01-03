@@ -168,9 +168,6 @@ django-autocomplete-light==3.9.4 ; python_version >= "3.9" and python_version < 
 django-background-tasks-updated==1.2.7 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:b8cdb115350e7c4706dd1ae8061df7d9d7827906c8563c6228abbf0867236954 \
     --hash=sha256:d137c095e174c28e85aceb9c5071af22572d41f134a85ead22eb102b33027625
-django-ckeditor==6.5.1 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:1321f24df392f30698513930ce5c9f6d899f9bd0ef734c3b64fe936d809e11b3 \
-    --hash=sha256:57cd8fb7cd150adca354cd4e5c35a743fadaab7073f957d2b7167f0d9fe1fcaf
 django-cors-headers==3.14.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:5fbd58a6fb4119d975754b2bc090f35ec160a8373f276612c675b00e8a138739 \
     --hash=sha256:684180013cc7277bdd8702b80a3c5a4b3fcae4abb2bf134dceb9f5dfe300228e
@@ -180,9 +177,6 @@ django-coverage-plugin==3.1.0 ; python_version >= "3.9" and python_version < "4.
 django-debug-toolbar==3.2.4 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:644bbd5c428d3283aa9115722471769cac1bec189edf3a0c855fd8ff870375a9 \
     --hash=sha256:6b633b6cfee24f232d73569870f19aa86c819d750e7f3e833f2344a9eb4b4409
-django-js-asset==2.0.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:86f9f300d682537ddaf0487dc2ab356581b8f50c069bdba91d334a46e449f923 \
-    --hash=sha256:adc1ee1efa853fad42054b540c02205344bb406c9bddf87c9e5377a41b7db90f
 django-oauth-toolkit==2.2.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:46890decb24a34e2a5382debeaf7752e50d90b7a11716cf2a9fd067097ec0963 \
     --hash=sha256:abd85c74af525a62365ec2049113e73a2ff8b46ef906e7104a7ba968ef02a11d
