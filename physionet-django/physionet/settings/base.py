@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'oauth2_provider',
     'corsheaders',
+    'mathjax',
 
     'training',
     'user',
@@ -468,10 +469,15 @@ TINYMCE_DEFAULT_CONFIG = {
         "searchreplace",
         "table",
     ]),
+    "external_plugins": {
+        "pnmath": "/static/tinymce-plugins/pnmath.js",
+    },
+
+    "pnmath_mathjax_url": "/static/mathjax/es5/",
 
     "toolbar": (
         "undo redo | styles | "
-        "bold italic | "
+        "bold italic math | "
         "numlist bullist table | "
         "searchreplace code restoredraft"
     ),
@@ -505,6 +511,10 @@ TINYMCE_DEFAULT_CONFIG = {
         {"start": "1. ", "cmd": "InsertOrderedList"},
         {"start": "* ", "cmd": "InsertUnorderedList"},
         {"start": "- ", "cmd": "InsertUnorderedList"},
+        {"start": "$", "end": "$", "cmd": "InlineMath"},
+        {"start": "$$", "end": "$$", "cmd": "BlockMath"},
+        {"start": r"\(", "end": r"\)", "cmd": "InlineMath"},
+        {"start": r"\[", "end": r"\]", "cmd": "BlockMath"},
     ],
 
     "formats": {
