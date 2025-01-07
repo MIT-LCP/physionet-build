@@ -471,13 +471,14 @@ TINYMCE_DEFAULT_CONFIG = {
     ]),
     "external_plugins": {
         "pnmath": "/static/tinymce-plugins/pnmath.js",
+        "codetag": "/static/tinymce-plugins/codetag.js",
     },
 
     "pnmath_mathjax_url": "/static/mathjax/es5/",
 
     "toolbar": (
         "undo redo | styles | "
-        "bold italic math | "
+        "bold italic codetag math | "
         "numlist bullist table | "
         "searchreplace code restoredraft"
     ),
