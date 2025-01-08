@@ -35,6 +35,20 @@ PRIVACY_POLICY_HTML = config('PRIVACY_POLICY_HTML', default=None)
 GCS_SIGNED_URL_LIFETIME_IN_MINUTES = config('GCS_SIGNED_URL_LIFETIME_IN_MINUTES', default=1440, cast=int)
 
 
+# Tags for the ORCID API
+ORCID_DOMAIN = config('ORCID_DOMAIN', default='https://sandbox.orcid.org')
+ORCID_REDIRECT_URI = config('ORCID_REDIRECT_URI', default='http://127.0.0.1:8000/authorcid')
+ORCID_LOGIN_REDIRECT_URI = config('ORCID_LOGIN_REDIRECT_URI', default='http://127.0.0.1:8000/authorcid_login')
+ORCID_AUTH_URL = config('ORCID_AUTH_URL', default='https://sandbox.orcid.org/oauth/authorize')
+ORCID_TOKEN_URL = config('ORCID_TOKEN_URL', default='https://sandbox.orcid.org/oauth/token')
+ORCID_CLIENT_ID = config('ORCID_CLIENT_ID', default=False)
+ORCID_CLIENT_SECRET = config('ORCID_CLIENT_SECRET', default=False)
+ORCID_SCOPE = config('ORCID_SCOPE', default=False)
+ORCID_LOGIN_ENABLED = config('ORCID_LOGIN_ENABLED', default=False)
+ORCID_OPEN_ID_JWKS_URL = config('ORCID_OPEN_ID_JWKS_URL', default="https://sandbox.orcid.org/oauth/jwks")
+ORCID_LOGIN_BUTTON_TEXT = config('ORCID_LOGIN_BUTTON_TEXT', default="Log in using ORCID iD")
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -151,6 +165,8 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend']
+if ORCID_LOGIN_ENABLED:
+    AUTHENTICATION_BACKENDS.append('user.backends.OrcidAuthBackend')
 
 if ENABLE_SSO:
     AUTHENTICATION_BACKENDS += ['sso.auth.RemoteUserBackend']
@@ -277,15 +293,6 @@ DATACITE_API_URL = config('DATACITE_API_URL', default='https://api.test.datacite
 DATACITE_PREFIX = config('DATACITE_PREFIX', default='')
 DATACITE_USER = config('DATACITE_USER', default='')
 DATACITE_PASS = config('DATACITE_PASS', default='')
-
-# Tags for the ORCID API
-ORCID_DOMAIN = config('ORCID_DOMAIN', default='https://sandbox.orcid.org')
-ORCID_REDIRECT_URI = config('ORCID_REDIRECT_URI', default='http://127.0.0.1:8000/authorcid')
-ORCID_AUTH_URL = config('ORCID_AUTH_URL', default='https://sandbox.orcid.org/oauth/authorize')
-ORCID_TOKEN_URL = config('ORCID_TOKEN_URL', default='https://sandbox.orcid.org/oauth/token')
-ORCID_CLIENT_ID = config('ORCID_CLIENT_ID', default=False)
-ORCID_CLIENT_SECRET = config('ORCID_CLIENT_SECRET', default=False)
-ORCID_SCOPE = config('ORCID_SCOPE', default=False)
 
 # Tags for the CITISOAPService API
 CITI_USERNAME = config('CITI_USERNAME', default='')

@@ -1,6 +1,6 @@
 import logging
 
-from django.contrib.auth.backends import ModelBackend
+from django.contrib.auth.backends import ModelBackend, BaseBackend
 
 from user.models import User
 
@@ -27,6 +27,28 @@ class DualAuthModelBackend(ModelBackend):
         except User.DoesNotExist:
             logger.error('Unsuccessful authentication {0}'.format(username.lower()))
             return None
+
+    def get_user(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
+
+
+class OrcidAuthBackend(BaseBackend):
+    """
+    This is a Base that allows authentication with orcid_profile.
+    """
+    def authenticate(self, request, orcid_profile=None):
+        if orcid_profile is None:
+            return None
+
+        user = orcid_profile.user
+        return user if self.user_can_authenticate(user) else None
+
+    def user_can_authenticate(self, user):
+        is_active = getattr(user, 'is_active', None)
+        return is_active or is_active is None
 
     def get_user(self, user_id):
         try:

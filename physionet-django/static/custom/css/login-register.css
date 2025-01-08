@@ -47,3 +47,32 @@ input[name="privacy_policy"] {
 label[for="id_privacy_policy"] {
   width: 90%;
 }
+
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 15px auto; /* Space around the separator */
+    max-width: 300px
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ccc; /* Light gray line */
+}
+
+.separator::before {
+    margin-right: 10px;
+}
+
+.separator::after {
+    margin-left: 10px;
+}
+
+.separator span {
+    font-size: 14px;
+    color: #666; /* Gray text color */
+    font-weight: bold;
+}

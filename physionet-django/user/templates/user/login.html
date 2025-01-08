@@ -27,6 +27,20 @@
     </div>
     <button id="login" class="btn btn-lg btn-primary btn-block" type="submit">Log In</button>
   </form>
+  {% if enable_orcid_login %}
+    <div class="separator">
+      <span>or</span>
+    </div>
+    <div class="form-signin">
+      <a id="orcid_login"
+         type="button"
+         class="btn  btn-lg btn-secondary btn-block"
+         href="{% url 'orcid_init_login' %}">
+        <img src="{% static 'images/orcid-icon-small.png' %}" />
+        {{ orcid_login_button_text }}
+      </a>
+    </div>
+  {% endif %}
   <div class="form-signin">
     <p>New user? <a id="register" href="{% url 'register' %}">Create an account</a></p>
   </div>
