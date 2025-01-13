@@ -162,6 +162,9 @@ def pre_load_data():
     call_command('loaddata', os.path.join(settings.BASE_DIR, 'user',
                                           'fixtures', 'demo-training-type.json'))
 
+    call_command('loaddata', os.path.join(settings.BASE_DIR, 'user',
+                                            'fixtures', 'demo-load-test-users.json'))
+
     training_type = TrainingType.objects.first()
 
     status_mapping = {
