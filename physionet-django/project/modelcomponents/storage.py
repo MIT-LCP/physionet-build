@@ -93,7 +93,7 @@ class AWS(models.Model):
         return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
 
     def __str__(self):
-        return self.s3_uri()
+        return f"AWS instance for project: {self.project.slug}"
 
 
 class AWSAccessPoint(models.Model):

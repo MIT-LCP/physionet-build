@@ -58,9 +58,10 @@ from user.models import AssociatedEmail, CloudInformation, CredentialApplication
 from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
-    update_data_access_point_policy,
+    add_user_to_access_point_policy,
     s3_bucket_has_access_point,
     s3_bucket_has_credentialed_users,
+    initialize_access_points,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
@@ -2025,7 +2026,6 @@ def sign_dua(request, project_slug, version):
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
-    # from console.views import update_data_access_point_policy
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
@@ -2047,7 +2047,6 @@ def sign_dua(request, project_slug, version):
 
     license = project.license
     license_content = project.license_content(fmt='html')
-
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
         if (
@@ -2055,7 +2054,9 @@ def sign_dua(request, project_slug, version):
             and files_sent_to_S3(project) is not None
             and s3_bucket_has_credentialed_users(project)
         ):
-            update_data_access_point_policy(project)
+            if user.cloud_information is not None and user.cloud_information.aws_id is not None:
+                add_user_to_access_point_policy(project, user.cloud_information.aws_id)
+
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 

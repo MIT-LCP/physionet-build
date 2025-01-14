@@ -82,7 +82,6 @@ from project.cloud.s3 import (
     upload_project_to_S3,
     get_bucket_name,
     check_s3_bucket_exists,
-    update_data_access_point_policy,
     has_s3_credentials,
 )
 
@@ -941,7 +940,7 @@ def update_aws_access_point_policy(pid):
     project = PublishedProject.objects.get(id=pid)
     exists = check_s3_bucket_exists(project)
     if exists:
-        update_data_access_point_policy(project)
+        update_aws_access_point_policy(project)
         updated_policy = True
     else:
         updated_policy = False
