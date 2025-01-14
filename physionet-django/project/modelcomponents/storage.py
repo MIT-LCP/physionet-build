@@ -2,8 +2,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.conf import settings
 from project.modelcomponents.generic import BaseInvitation
-from project.modelcomponents.middleware import get_current_request
-
 
 class StorageRequest(BaseInvitation):
     """
@@ -64,22 +62,20 @@ class AWS(models.Model):
     class Meta:
         default_permissions = ()
 
-    def s3_uri(self):
+    def s3_uri(self, user=None):
         """
         Construct the S3 URI for the project.
+        Parameters:
+            user (User): The user requesting the S3 URI
         """
         from project.cloud.s3 import get_access_point_name_for_user_and_project
         if self.is_private:
-            # Retrieve the current request
-            request = get_current_request()
-            if not request or not hasattr(request, 'user') or not request.user.is_authenticated:
-                print("Error: No valid user in the current request.")
+            if not user or not user.is_authenticated:
+                print("Error: No valid user provided")
                 return None
 
-            # Get the current user from the request
-            current_user = request.user
             # Fetch access point name
-            access_point_name = get_access_point_name_for_user_and_project(current_user, self)
+            access_point_name = get_access_point_name_for_user_and_project(user, self)
             if access_point_name and "No " not in access_point_name:
                 return (
                     f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/'

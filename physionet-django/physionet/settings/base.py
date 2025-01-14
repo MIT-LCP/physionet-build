@@ -105,7 +105,6 @@ MIDDLEWARE = [
     # RedirectFallbackMiddleware should go at end of list, according
     # to the docs: https://docs.djangoproject.com/en/4.1/ref/contrib/redirects/
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
-    'project.modelcomponents.middleware.CurrentRequestMiddleware',
 ]
 
 REST_FRAMEWORK = {

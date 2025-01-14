@@ -1936,11 +1936,12 @@ def published_project(request, project_slug, version, subdir=''):
 
     # Check if AWS instance exists for the project
     s3_uri = None
-    if has_signed_dua and hasattr(project, 'aws'):
+    if hasattr(project, 'aws'):
         if project.aws.is_private:
-            s3_uri = project.aws.s3_uri()
+            if has_signed_dua:
+                s3_uri = project.aws.s3_uri(user=request.user)
         else:
-            s3_uri = '--no-sign-request ' + project.aws.s3_uri()
+            s3_uri = '--no-sign-request ' + project.aws.s3_uri(user=None)
 
     context = {
         'project': project,
