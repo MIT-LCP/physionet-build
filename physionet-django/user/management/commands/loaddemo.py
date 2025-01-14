@@ -72,6 +72,10 @@ class Command(BaseCommand):
         if os.path.exists(ORIGINAL_DBCAL_FILE):
             os.symlink(ORIGINAL_DBCAL_FILE, DBCAL_FILE)
 
+        # Load the demo data for load testing
+        call_command('loaddata', os.path.join(settings.BASE_DIR, 'user',
+                                             'fixtures', 'load-test-users.json'))
+
 def find_demo_fixtures(project_apps):
     """
     Find non-empty demo fixtures
@@ -162,8 +166,8 @@ def pre_load_data():
     call_command('loaddata', os.path.join(settings.BASE_DIR, 'user',
                                           'fixtures', 'demo-training-type.json'))
 
-    call_command('loaddata', os.path.join(settings.BASE_DIR, 'user',
-                                            'fixtures', 'demo-load-test-users.json'))
+    # call_command('loaddata', os.path.join(settings.BASE_DIR, 'user',
+    #                                         'fixtures', 'load-test-users.json'))
 
     training_type = TrainingType.objects.first()
 
