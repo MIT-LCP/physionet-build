@@ -49,6 +49,7 @@ from project.models import (
     SubmissionStatus,
     Topic,
     UploadedDocument,
+    AWS,
 )
 from project.authorization.access import can_view_project_files, can_access_project
 from project.projectfiles import ProjectFiles
@@ -59,9 +60,8 @@ from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
     add_user_to_access_point_policy,
-    s3_bucket_has_access_point,
+    get_access_point_name_for_user_and_project,
     s3_bucket_has_credentialed_users,
-    initialize_access_points,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
@@ -1934,14 +1934,19 @@ def published_project(request, project_slug, version, subdir=''):
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
 
-    # Check if AWS instance exists for the project
     s3_uri = None
-    if hasattr(project, 'aws'):
+    try:
         if project.aws.is_private:
-            if has_signed_dua:
-                s3_uri = project.aws.s3_uri(user=request.user)
+            if has_signed_dua and request.user.is_authenticated:
+                access_point_name = get_access_point_name_for_user_and_project(
+                    request.user,
+                    project.aws
+                )
+                s3_uri = project.aws.get_private_s3_uri(access_point_name)
         else:
-            s3_uri = '--no-sign-request ' + project.aws.s3_uri(user=None)
+            s3_uri = '--no-sign-request ' + project.aws.get_public_s3_uri()
+    except AWS.DoesNotExist:
+        s3_uri = None
 
     context = {
         'project': project,

@@ -62,31 +62,23 @@ class AWS(models.Model):
     class Meta:
         default_permissions = ()
 
-    def s3_uri(self, user=None):
+    def get_public_s3_uri(self):
         """
-        Construct the S3 URI for the project.
-        Parameters:
-            user (User): The user requesting the S3 URI
+        Construct the S3 URI for public projects.
         """
-        from project.cloud.s3 import get_access_point_name_for_user_and_project
-        if self.is_private:
-            if not user or not user.is_authenticated:
-                print("Error: No valid user provided")
-                return None
-
-            # Fetch access point name
-            access_point_name = get_access_point_name_for_user_and_project(user, self)
-            if access_point_name and "No " not in access_point_name:
-                return (
-                    f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/'
-                    f'{access_point_name}/{self.project.slug}/{self.project.version}/'
-                )
-            else:
-                print(f"Error: {access_point_name}")
-                return None
-
-        # For public projects, construct URI using bucket name
         return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
+
+    def get_private_s3_uri(self, access_point_name):
+        """
+        Construct the S3 URI for private projects using an access point.
+        """
+        if not access_point_name:
+            return None
+
+        return (
+            f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/'
+            f'{access_point_name}/{self.project.slug}/{self.project.version}/'
+        )
 
     def __str__(self):
         return f"AWS instance for project: {self.project.slug}"
