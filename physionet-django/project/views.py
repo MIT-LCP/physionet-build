@@ -1938,13 +1938,11 @@ def published_project(request, project_slug, version, subdir=''):
     try:
         if project.aws.is_private:
             if has_signed_dua and request.user.is_authenticated:
-                access_point_name = get_access_point_name_for_user_and_project(
-                    request.user,
-                    project.aws
-                )
-                s3_uri = project.aws.get_private_s3_uri(access_point_name)
+                access_point = project.aws.access_points.filter(linked_users__user=request.user).first()
+                if access_point:
+                    s3_uri = access_point.private_s3_uri()
         else:
-            s3_uri = '--no-sign-request ' + project.aws.get_public_s3_uri()
+            s3_uri = '--no-sign-request ' + project.aws.public_s3_uri()
     except AWS.DoesNotExist:
         s3_uri = None
 

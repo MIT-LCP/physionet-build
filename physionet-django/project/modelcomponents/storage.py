@@ -62,23 +62,11 @@ class AWS(models.Model):
     class Meta:
         default_permissions = ()
 
-    def get_public_s3_uri(self):
+    def public_s3_uri(self):
         """
         Construct the S3 URI for public projects.
         """
         return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
-
-    def get_private_s3_uri(self, access_point_name):
-        """
-        Construct the S3 URI for private projects using an access point.
-        """
-        if not access_point_name:
-            return None
-
-        return (
-            f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/'
-            f'{access_point_name}/{self.project.slug}/{self.project.version}/'
-        )
 
     def __str__(self):
         return f"AWS instance for project: {self.project.slug}"
@@ -92,6 +80,15 @@ class AWSAccessPoint(models.Model):
         through='AWSAccessPointUser',
         related_name='linked_access_points'
     )
+
+    def private_s3_uri(self):
+        """
+        Construct the S3 URI for private projects using an access point.
+        """
+        return (
+            f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/'
+            f'{self.name}/{self.aws.project.slug}/{self.aws.project.version}/'
+        )
 
 
 class AWSAccessPointUser(models.Model):
