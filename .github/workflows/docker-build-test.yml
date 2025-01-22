@@ -17,6 +17,9 @@ on:
   pull_request:
     branches:
       - dev
+  merge_group:
+    types:
+      - checks_requested
   workflow_dispatch:
     inputs:
       publish_tag:
