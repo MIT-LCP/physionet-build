@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.tokens import default_token_generator
-from django.db import transaction
+from django.db import transaction, DatabaseError
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
@@ -35,6 +35,7 @@ class SSOLogin(auth_views.LoginView):
             return redirect(self.get_success_url())
 
         remote_sso_id = self.request.META.get(settings.SSO_REMOTE_USER_HEADER)
+        remote_user_affiliation = self.request.META.get("HTTP_REMOTE_USER_AFFILIATION")
 
         # This should not happen as the SSO_REMOTE_USER_HEADER header should be always set by Nginx
         if remote_sso_id is None:
@@ -46,6 +47,9 @@ class SSOLogin(auth_views.LoginView):
         else:
             # Remote user seen for the first time, redirect to SSO registration form
             return redirect('sso_register')
+
+        if _should_credential_user(user, remote_user_affiliation):
+            _mark_user_as_credentialed(user)
 
         return redirect(self.get_success_url())
 
@@ -71,6 +75,7 @@ def sso_register(request):
         return redirect('project_home')
 
     remote_sso_id = request.META.get(settings.SSO_REMOTE_USER_HEADER)
+    remote_user_affiliation = request.META.get("REMOTE-USER-AFFILIATION")
 
     # This should not happen as the SSO_REMOTE_USER_HEADER header should be always set by Nginx
     if not remote_sso_id:
@@ -83,6 +88,9 @@ def sso_register(request):
             user = form.save()
             uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
+            if _should_credential_user(user, remote_user_affiliation):
+                _mark_user_as_credentialed(user)
+
             notify_account_registration(request, user, uidb64, token, sso=True)
             return render(request, 'user/register_done.html', {'email': user.email, 'sso': True})
     else:
@@ -132,3 +140,21 @@ def sso_activate_user(request, uidb64, token):
         return redirect('project_home')
 
     return render(request, 'user/activate_user_complete.html', context)
+
+
+def _should_credential_user(user, remote_user_affiliation):
+    if user.is_credentialed:
+        return False
+
+    if remote_user_affiliation is None:
+        return False
+
+    return "faculty" in remote_user_affiliation
+
+
+def _mark_user_as_credentialed(user):
+    with transaction.atomic():
+        # update the user credentials
+        user.is_credentialed = True
+        user.credential_datetime = timezone.now()
+        user.save()
