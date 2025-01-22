@@ -19,6 +19,7 @@ from physionet.utility import get_project_apps
 
 from user.models import Training, TrainingType, TrainingQuestion, CredentialApplication
 from user.enums import TrainingStatus
+from physionet.settings.base import ENABLE_CLOUD_RESEARCH_ENVIRONMENTS 
 
 
 class Command(BaseCommand):
@@ -72,9 +73,15 @@ class Command(BaseCommand):
         if os.path.exists(ORIGINAL_DBCAL_FILE):
             os.symlink(ORIGINAL_DBCAL_FILE, DBCAL_FILE)
 
-        # Load the demo data for load testing
-        call_command('loaddata', os.path.join(settings.BASE_DIR, 'user',
-                                             'fixtures', 'load-test-users.json'))
+        # Loading the environment package and it's fixtures
+        if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
+            try:
+                import environment
+                env_path = os.path.dirname(environment.__file__)
+                env_fixtures = os.path.join(env_path, 'fixtures', 'demo-identities.json')
+                call_command('loaddata', env_fixtures, verbosity=1)
+            except ImportError:
+                print('Environment package is not installed. Skipping loading fixtures for it.')
 
 def find_demo_fixtures(project_apps):
     """
