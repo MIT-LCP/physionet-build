@@ -44,7 +44,7 @@ ORCID_TOKEN_URL = config('ORCID_TOKEN_URL', default='https://sandbox.orcid.org/o
 ORCID_CLIENT_ID = config('ORCID_CLIENT_ID', default=False)
 ORCID_CLIENT_SECRET = config('ORCID_CLIENT_SECRET', default=False)
 ORCID_SCOPE = config('ORCID_SCOPE', default=False)
-ORCID_LOGIN_ENABLED = config('ORCID_LOGIN_ENABLED', default=False)
+ORCID_LOGIN_ENABLED = config('ORCID_LOGIN_ENABLED', default=False, cast=bool)
 ORCID_OPEN_ID_JWKS_URL = config('ORCID_OPEN_ID_JWKS_URL', default="https://sandbox.orcid.org/oauth/jwks")
 ORCID_LOGIN_BUTTON_TEXT = config('ORCID_LOGIN_BUTTON_TEXT', default="Log in using ORCID iD")
 

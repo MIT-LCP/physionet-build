@@ -238,7 +238,7 @@ def validate_orcid_id_token(token):
 
     rsa_key = public_keys[headers['kid']]
     if rsa_key is None:
-        raise ValidationError('ORCID id_token is invalid.')
+        raise ValidationError('ORCID public RSA key is None.')
 
     try:
         jwt.decode(

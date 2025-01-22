@@ -566,7 +566,8 @@ def _fetch_and_validate_token(request, code, oauth_session):
                 validators.validate_orcid_id_token(token['id_token'])
 
             return True, token
-        except ValidationError:
+        except ValidationError as e:
+            logger.error(f'Validation Error: ORCID token validation failed. Error message: {e.message}')
             messages.error(request, 'Validation Error: ORCID token validation failed.')
     except InvalidGrantError:
         messages.error(
