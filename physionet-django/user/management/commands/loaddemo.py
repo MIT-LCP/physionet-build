@@ -19,7 +19,7 @@ from physionet.utility import get_project_apps
 
 from user.models import Training, TrainingType, TrainingQuestion, CredentialApplication
 from user.enums import TrainingStatus
-from physionet.settings.base import ENABLE_CLOUD_RESEARCH_ENVIRONMENTS 
+from physionet.settings.base import ENABLE_CLOUD_RESEARCH_ENVIRONMENTS
 
 
 class Command(BaseCommand):
