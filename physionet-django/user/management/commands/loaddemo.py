@@ -75,11 +75,18 @@ class Command(BaseCommand):
 
         # Loading the environment package and it's fixtures
         if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
+
+            # Load fixtures for loadtest users
+            loadtest_fixtures = os.path.join(settings.BASE_DIR, 'user',
+                                             'fixtures', 'loadtest-user.json')
+            call_command('loaddata', loadtest_fixtures, verbosity=1)
+
             try:
                 import environment
                 env_path = os.path.dirname(environment.__file__)
-                env_fixtures = os.path.join(env_path, 'fixtures', 'demo-identities.json')
-                call_command('loaddata', env_fixtures, verbosity=1)
+                env_fixtures = os.path.join(env_path, 'fixtures', 'loadtest-identities.json')
+                print("environment =" + str(env_fixtures))
+                call_command('loaddata', env_fixtures)
             except ImportError:
                 print('Environment package is not installed. Skipping loading fixtures for it.')
 
