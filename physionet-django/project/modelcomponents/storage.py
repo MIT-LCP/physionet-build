@@ -105,9 +105,14 @@ class AWSAccessPointUser(models.Model):
         related_name='aws_access_point_users',
         on_delete=models.CASCADE
     )
+    aws = models.ForeignKey(
+        AWS,
+        related_name='access_point_users',
+        on_delete=models.CASCADE
+    )
 
     class Meta:
-        unique_together = [('access_point', 'user')]
+        unique_together = [('user', 'aws')]
 
     def __str__(self):
         return f"User: {self.user}, Access Point: {self.access_point}"

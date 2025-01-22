@@ -1235,14 +1235,13 @@ def initialize_access_points(project):
 
 def associate_aws_users_with_data_access_point(access_point, aws_accounts):
     """
-    Associates a list of `aws_accounts` with the
-    `AWSAccessPoint`.
+    Associates a list of `aws_accounts` with the `AWSAccessPoint`.
 
     Args:
-        access_point (AWSAccessPoint): The access point to
-        which the accounts will be associated.
-        aws_accounts (list): List of dictionaries containing
-        `aws_id` and `aws_userid` to be associated.
+        access_point (AWSAccessPoint): The access point to which
+        the accounts will be associated.
+        aws_accounts (list): List of dictionaries containing `aws_id`
+        and `aws_userid` to be associated.
 
     Returns:
         bool: True if the association was successfully created,
@@ -1258,17 +1257,31 @@ def associate_aws_users_with_data_access_point(access_point, aws_accounts):
             cloud_info = CloudInformation.objects.filter(
                 Q(aws_id=aws_id) | Q(aws_userid=aws_userid)
             ).first()
+
             if not cloud_info:
                 print(f"User not found for aws_id: {aws_id} or aws_userid: {aws_userid}")
                 continue
 
             user = cloud_info.user
-            # Check if the user is already associated with the access_point
-            if not AWSAccessPointUser.objects.filter(access_point=access_point, user=user).exists():
-                AWSAccessPointUser.objects.create(access_point=access_point, user=user)
 
-        # After iterating through all the AWS accounts, save the access_point
-        access_point.save()
+            # Get the AWS instance associated with the access point
+            aws_instance = access_point.aws
+
+            # Check if the user is already associated with the access_point
+            existing_association = AWSAccessPointUser.objects.filter(
+                access_point=access_point,
+                user=user,
+                aws=aws_instance
+            ).first()
+
+            if not existing_association:
+                # Create the association with the required fields
+                AWSAccessPointUser.objects.create(
+                    access_point=access_point,
+                    user=user,
+                    aws=aws_instance
+                )
+
         return True
     except Exception as e:
         print(f"Error associating aws_accounts with access_point: {str(e)}")
