@@ -60,8 +60,6 @@ from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
     add_user_to_access_point_policy,
-    get_access_point_name_for_user_and_project,
-    s3_bucket_has_credentialed_users,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
@@ -2056,7 +2054,6 @@ def sign_dua(request, project_slug, version):
         if (
             has_s3_credentials()
             and files_sent_to_S3(project) is not None
-            and s3_bucket_has_credentialed_users(project)
         ):
             if user.cloud_information is not None and user.cloud_information.aws_id is not None:
                 add_user_to_access_point_policy(project, user.cloud_information.aws_id)
