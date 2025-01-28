@@ -18,7 +18,7 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST'),
         'PORT': config('DB_PORT', default=''),
-        'DISABLE_SERVER_SIDE_CURSORS': config('DISABLE_SERVER_SIDE_CURSORS', default=False),
+        'DISABLE_SERVER_SIDE_CURSORS': config('DISABLE_SERVER_SIDE_CURSORS', default=False, cast=bool),
     }
 }
 
