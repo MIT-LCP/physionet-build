@@ -470,6 +470,17 @@ django = "*"
 libsass = "*"
 
 [[package]]
+name = "django-static-mathjax"
+version = "3.2.2.0"
+description = "JavaScript library for displaying mathematics on the Web"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django_static_mathjax-3.2.2.0-py3-none-any.whl", hash = "sha256:edff9c79210d5f9a32ccb43fe1ac27c64b1e8bd94c0c780747d1a2837ebebfc6"},
+    {file = "django_static_mathjax-3.2.2.0.tar.gz", hash = "sha256:966dbbace2f47331624924e584045aadb7025f5c41b258d03264bdf803f09b49"},
+]
+
+[[package]]
 name = "django-storages"
 version = "1.12.3"
 description = "Support for many storage backends in Django"
@@ -1799,4 +1810,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "752df1b55f0c6d070bb7e30e480c9b21dd60eb6440dd42ee20b02006d6037438"
+content-hash = "d7640fc88e59ec2ce301b165dc0a9e0b7d60c78559c53f706012c3709a25d7c3"
