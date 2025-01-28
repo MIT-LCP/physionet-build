@@ -19,6 +19,7 @@ from physionet.utility import get_project_apps
 
 from user.models import Training, TrainingType, TrainingQuestion, CredentialApplication
 from user.enums import TrainingStatus
+from physionet.settings.base import ADD_LOADTEST_FIXTURES
 
 
 class Command(BaseCommand):
@@ -63,6 +64,21 @@ class Command(BaseCommand):
         project_apps = get_project_apps()
         demo_fixtures = find_demo_fixtures(project_apps)
         call_command('loaddata', *demo_fixtures, verbosity=1)
+
+        # Load load-test fixtures
+        if ADD_LOADTEST_FIXTURES:
+            # Load fixtures for loadtest users
+            loadtest_fixtures = os.path.join(settings.BASE_DIR, 'user',
+                                             'fixtures', 'loadtest-user.json')
+            call_command('loaddata', loadtest_fixtures, verbosity=1)
+
+            try:
+                import environment
+                env_path = os.path.dirname(environment.__file__)
+                env_fixtures = os.path.join(env_path, 'fixtures', 'demo-identities.json')
+                call_command('loaddata', env_fixtures)
+            except ImportError:
+                print('Environment package is not installed. Skipping loading fixtures for it.')
 
         # Copy the demo media and static content
         copy_demo_media()
