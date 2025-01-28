@@ -2051,10 +2051,7 @@ def sign_dua(request, project_slug, version):
     license_content = project.license_content(fmt='html')
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
-        if (
-            has_s3_credentials()
-            and files_sent_to_S3(project) is not None
-        ):
+        if has_s3_credentials() and files_sent_to_S3(project):
             if user.cloud_information is not None and user.cloud_information.aws_id is not None:
                 add_user_to_access_point_policy(project, user.cloud_information.aws_id)
 

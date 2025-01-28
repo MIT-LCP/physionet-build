@@ -65,19 +65,18 @@ def files_sent_to_S3(project):
     from project.models import AWS
 
     """
-    Get information about project files sent to Amazon S3
-    for a project.
+    Check if project files were sent to Amazon S3.
 
-    Tries to access the AWS instance associated with the
-    project to retrieve sent file information.
-    Returns the information or None if it's not available.
+    Args:
+       project: Project instance
+
+    bool: True if files were sent, False otherwise
     """
     try:
         aws_instance = project.aws
-        sent_files_info = aws_instance.sent_files
+        return bool(aws_instance.sent_files)
     except AWS.DoesNotExist:
-        sent_files_info = None
-    return sent_files_info
+        return False
 
 
 def create_s3_client():
