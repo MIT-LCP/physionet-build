@@ -601,7 +601,7 @@ def orcid_register(request):
             user = form.save()
             uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
-            notify_account_registration(request, user, uidb64, token, sso=settings.ENABLE_SSO)
+            notify_account_registration(request, user, uidb64, token, sso=False, orcid=True)
 
             return render(
                 request, 'user/register_done.html', {'email': user.email, 'sso': settings.ENABLE_SSO}
@@ -629,6 +629,42 @@ def orcid_init_login(request):
         f'{auth_url}?response_type=code&redirect_uri={redirect_uri}&client_id={client_id}&scope={scope}'
     )
 
+
+@disallow_during_maintenance
+def activate_orcid_user(request, uidb64, token):
+    """Orcid Registration view
+
+    This view activates user and initiate orcid log in flow automatically.
+    """
+    if not settings.ORCID_LOGIN_ENABLED:
+        return redirect('home')
+
+    context = {'title': 'Invalid Activation Link', 'isvalid': False}
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = None
+
+    if user and user.is_active:
+        messages.success(request, 'The account is active.')
+        return redirect('sso_login')
+
+    if default_token_generator.check_token(user, token):
+        with transaction.atomic():
+            user.is_active = True
+            user.save()
+            email = user.associated_emails.first()
+            email.verification_date = timezone.now()
+            email.is_verified = True
+            email.save()
+            logger.info('User activated - {0}'.format(user.email))
+            messages.success(request, 'The account has been activated.')
+
+        return redirect('orcid_init_login')
+
+    return render(request, 'user/activate_user_complete.html', context)
 
 
 @login_required

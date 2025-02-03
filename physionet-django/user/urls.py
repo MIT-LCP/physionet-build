@@ -122,6 +122,11 @@ if settings.ORCID_LOGIN_ENABLED:
             path("authorcid_login/", views.auth_orcid_login, name="auth_orcid_login"),
             path("orcid_init_login", views.orcid_init_login, name="orcid_init_login"),
             path("orcid_register/", views.orcid_register, name="orcid_register"),
+            re_path(
+                r"^orcid_activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})/$",
+                views.activate_orcid_user,
+                name="orcid_activate_user"
+            ),
         ]
     )
 
