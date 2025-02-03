@@ -1000,13 +1000,13 @@ def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, ta
     mail_admins(subject, body, settings.DEFAULT_FROM_EMAIL)
 
 
-def notify_account_registration(request, user, uidb64, token, sso=False, orcid=False):
+def notify_account_registration(request, user, uidb64, token, activation_type):
     """
     Send the registration email.
     """
     # Send an email with the activation link
     subject = f"{settings.SITE_NAME} Account Activation"
-    activation_link = _get_activation_link(request, uidb64, token, sso, orcid)
+    activation_link = _get_activation_link(request, uidb64, token, activation_type)
     context = {
         'name': user.get_full_name(),
         'domain': get_current_site(request),
@@ -1020,17 +1020,10 @@ def notify_account_registration(request, user, uidb64, token, sso=False, orcid=F
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
 
 
-def _get_activation_link(request, uidb64, token, sso, orcid):
+def _get_activation_link(request, uidb64, token, activation_type):
     url_prefix = get_url_prefix(request)
-    activate_user_view_name = 'activate_user'
 
-    if sso:
-        activate_user_view_name = 'sso_activate_user'
-
-    if orcid:
-        activate_user_view_name = 'orcid_activate_user'
-
-    return f"{url_prefix}{reverse(activate_user_view_name, kwargs={'uidb64': uidb64, 'token': token})}"
+    return f"{url_prefix}{reverse(activation_type.value, kwargs={'uidb64': uidb64, 'token': token})}"
 
 
 def notify_participant_event_waitlist(request, user, event):

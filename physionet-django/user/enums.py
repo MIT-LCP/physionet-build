@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, Enum
 
 from django.db import models
 
@@ -19,6 +19,16 @@ class RequiredField(IntEnum):
     DOCUMENT = 0
     URL = 1
     PLATFORM = 2
+
+    @classmethod
+    def choices(cls):
+        return tuple((option.value, option.name) for option in cls)
+
+
+class ActivateUserType(Enum):
+    DEFAULT = 'activate_user'
+    SSO = 'sso_activate_user'
+    ORCID = 'orcid_activate_user'
 
     @classmethod
     def choices(cls):

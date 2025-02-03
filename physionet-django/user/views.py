@@ -63,7 +63,7 @@ from user.models import (
     TrainingType,
 )
 from user.userfiles import UserFiles
-from user.enums import RequiredField
+from user.enums import RequiredField, ActivateUserType
 from physionet.models import StaticPage
 from django.db.models import F
 
@@ -601,7 +601,7 @@ def orcid_register(request):
             user = form.save()
             uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
-            notify_account_registration(request, user, uidb64, token, sso=False, orcid=True)
+            notify_account_registration(request, user, uidb64, token, activation_type=ActivateUserType.ORCID)
 
             return render(
                 request, 'user/register_done.html', {'email': user.email, 'sso': settings.ENABLE_SSO}
@@ -733,7 +733,7 @@ def register(request):
                 uidb64 = force_str(urlsafe_base64_encode(force_bytes(
                     user.pk)))
                 token = default_token_generator.make_token(user)
-                notify_account_registration(request, user, uidb64, token)
+                notify_account_registration(request, user, uidb64, token, activation_type=ActivateUserType.DEFAULT)
 
             return render(request, 'user/register_done.html', {
                 'email': user.email})
