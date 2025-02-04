@@ -14,6 +14,7 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from notification.utility import notify_account_registration
 from physionet.middleware.maintenance import disallow_during_maintenance
 from sso import forms
+from user.enums import ActivateUserType
 from user.models import User
 
 logger = logging.getLogger(__name__)
@@ -83,7 +84,7 @@ def sso_register(request):
             user = form.save()
             uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
-            notify_account_registration(request, user, uidb64, token, sso=True)
+            notify_account_registration(request, user, uidb64, token, activation_type=ActivateUserType.SSO)
             return render(request, 'user/register_done.html', {'email': user.email, 'sso': True})
     else:
         try:
