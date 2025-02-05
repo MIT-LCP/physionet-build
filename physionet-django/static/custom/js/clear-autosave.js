@@ -1,4 +1,4 @@
-// Remove data saved by the ckeditor autosave plugin once the server
+// Remove data saved by the TinyMCE autosave plugin once the server
 // has acknowledged that the form has been saved.
 // Requires: /static/custom/js/cookie.js
 (function() {
@@ -16,16 +16,27 @@
         a.href = saved.url;
         var form_url = a.href;
 
-        // Each field is saved under a key such as
-        // autosave_https://physionet.org/projects/create/_abstract
-        // (see /static/ckeditor/ckeditor/plugins/autosave/plugin.js)
         for (var i = 0; i < saved.fields.length; i++) {
             var field = saved.fields[i];
-            var key = 'autosave_' + form_url + '_' + field;
-            try {
-                localStorage.removeItem(key);
-            }
-            catch (e) {
+
+            // TinyMCE: Each field is saved under a key such as
+            // tinymce-autosave-/projects/create/-id_abstract-draft and
+            // tinymce-autosave-/projects/create/-id_abstract-time
+
+            // CKEditor 4 (obsolete): Each field is saved under a key such
+            // as autosave_https://physionet.org/projects/create/_id_abstract
+
+            var keys = [
+                'tinymce-autosave-' + saved.url + '-' + field + '-draft',
+                'tinymce-autosave-' + saved.url + '-' + field + '-time',
+                'autosave_' + form_url + '_' + field,
+            ];
+            for (var j = 0; j < keys.length; j++) {
+                try {
+                    localStorage.removeItem(keys[j]);
+                }
+                catch (e) {
+                }
             }
         }
     }
