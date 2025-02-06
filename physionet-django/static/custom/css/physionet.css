@@ -612,3 +612,9 @@ a, code{
 body .list-group-item:hover {
   z-index: auto;
 }
+
+/* tinymce modal dialog backdrop */
+body .tox .tox-dialog-wrap__backdrop {
+    background-color: #000; /* bootstrap: $modal-backdrop-bg */
+    opacity: 0.5;           /* bootstrap: $modal-backdrop-opacity */
+}
