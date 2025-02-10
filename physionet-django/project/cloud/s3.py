@@ -1162,7 +1162,7 @@ def upload_project_to_S3(project):
 
     # Set the bucket policy only if the bucket was newly created
     # and has controlled access
-    if bucket_created and project.access_policy == AccessPolicy.CREDENTIALED:
+    if bucket_created and project.access_policy != AccessPolicy.OPEN:
         controlled_policy = create_controlled_bucket_policy(bucket_name)
         s3.put_bucket_policy(Bucket=bucket_name, Policy=controlled_policy)
 
