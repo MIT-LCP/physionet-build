@@ -2052,8 +2052,8 @@ def sign_dua(request, project_slug, version):
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
         if has_s3_credentials() and files_sent_to_S3(project):
-            if user.cloud_information is not None and user.cloud_information.aws_id is not None:
-                add_user_to_access_point_policy(project, user.cloud_information.aws_id)
+            if user.cloud_information is not None:
+                add_user_to_access_point_policy(project, user)
 
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
@@ -2347,8 +2347,10 @@ def published_project_request_access(request, project_slug, version, access_type
 
     try:
         # check user if user has GCP or AWS info in profile
-        if (user.cloud_information.gcp_email is None and access_type in [3, 4]) or (
-            user.cloud_information.aws_id is None and access_type == 2):
+        if (
+            (user.cloud_information.gcp_email is None and access_type in [3, 4])
+            or (user.cloud_information.aws_verification_datetime is None and access_type == 2)
+        ):
             messages.error(request, 'Please set the user cloud information in your settings')
             return redirect('edit_cloud')
     except CloudInformation.DoesNotExist:
