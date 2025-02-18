@@ -105,6 +105,20 @@ class AssignEditorForm(forms.Form):
             raise forms.ValidationError("Incorrect project selected.")
         return pid
 
+    def clean(self):
+        project = ActiveProject.objects.get(id=self.cleaned_data["project"])
+        editor = self.cleaned_data["editor"]
+        if project.authors.filter(user=editor).exists():
+            raise forms.ValidationError(
+                '%(name)s is an author of "%(project)s". '
+                'Select an editor who is not one of the project authors.',
+                code='assign_own_project',
+                params={
+                    'name': editor.get_full_name(),
+                    'project': project.title,
+                },
+            )
+
 
 class ReassignEditorForm(forms.Form):
     """
@@ -112,14 +126,17 @@ class ReassignEditorForm(forms.Form):
     """
     editor = forms.ModelChoiceField(queryset=None, widget=forms.Select(attrs={'onchange': 'set_editor_text()'}))
 
-    def __init__(self, user, *args, **kwargs):
+    def __init__(self, *args, project, **kwargs):
         """
         Set the appropriate queryset
         """
         super().__init__(*args, **kwargs)
         users = User.get_users_with_permission('project', 'can_edit_activeprojects') \
                     .order_by('username')
-        users = users.exclude(username=user.username)
+        if project.editor:
+            users = users.exclude(id=project.editor.id)
+        author_ids = project.authors.values_list('user__id', flat=True)
+        users = users.exclude(id__in=author_ids)
         self.fields['editor'].queryset = users
 
 

@@ -1058,8 +1058,17 @@ class InvitationResponseForm(forms.ModelForm):
             raise forms.ValidationError(
                   'You are not invited.')
 
-        if cleaned_data['response'] and not cleaned_data.get('affiliation'):
-            raise forms.ValidationError('You must specify your affiliation.')
+        if cleaned_data['response']:
+            if self.user == self.instance.project.editor:
+                raise forms.ValidationError(
+                    'You must reassign this project to another editor '
+                    'before accepting an authorship invitation.'
+                )
+
+            if not cleaned_data.get('affiliation'):
+                raise forms.ValidationError(
+                    'You must specify your affiliation.'
+                )
 
         return cleaned_data
 
