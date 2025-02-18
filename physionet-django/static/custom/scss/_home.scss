@@ -41,7 +41,7 @@ html {
 	url("../../images/background.jpg");
 	background-size: cover;
 	background-attachment: fixed;
-	height: calc(100% - 65px);
+	height: calc(100vh - 65px);
 	position: relative;
 	.float {
 		display: inline-block;
