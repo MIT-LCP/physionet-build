@@ -649,7 +649,7 @@ def activate_orcid_user(request, uidb64, token):
 
     if user and user.is_active:
         messages.success(request, 'The account is active.')
-        return redirect('sso_login')
+        return redirect('login')
 
     if default_token_generator.check_token(user, token):
         with transaction.atomic():
