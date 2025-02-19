@@ -109,6 +109,9 @@ class EventApplication(models.Model):
     status = models.CharField(default=EventApplicationStatus.WAITLISTED, max_length=2,
                               choices=EventApplicationStatus.choices)
 
+    class Meta:
+        unique_together = ('user', 'event')
+
     def __str__(self):
         return self.user.get_full_name()
 
