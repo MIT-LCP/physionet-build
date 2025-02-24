@@ -460,9 +460,9 @@ def get_aws_accounts_for_access_point(access_point_name):
     aws_id_pattern = r"\b\d{12}\b"
 
     # Retrieve the access point object by name
-    access_point = AWSAccessPoint.objects.filter(name=access_point_name).first()
-
-    if not access_point:
+    try:
+        access_point = AWSAccessPoint.objects.get(name=access_point_name)
+    except AWSAccessPoint.DoesNotExist:
         return aws_accounts
 
     # Get the users associated with the access point
@@ -910,9 +910,7 @@ def add_user_to_access_point_policy(project, user):
         dict: A dictionary containing the access point information where the user was added.
         None: If the process failed.
     """
-    cloud_info = CloudInformation.objects.filter(
-        aws_userid=user.cloud_information.aws_userid
-    ).first()
+    cloud_info = user.cloud_information
 
     aws_account = {
         'aws_userid': cloud_info.aws_userid
@@ -1062,11 +1060,9 @@ def associate_aws_users_with_data_access_point(access_point, aws_accounts):
         aws_userid = aws_account.get("aws_userid")
 
         # Fetch the user related to the aws_userid
-        cloud_info = CloudInformation.objects.filter(
-            aws_userid=aws_userid
-        ).first()
-
-        if not cloud_info:
+        try:
+            cloud_info = CloudInformation.objects.get(aws_userid=aws_userid)
+        except CloudInformation.DoesNotExist:
             continue
 
         user = cloud_info.user
