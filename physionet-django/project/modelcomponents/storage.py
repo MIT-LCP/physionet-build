@@ -74,7 +74,9 @@ class AWS(models.Model):
 
 class AWSAccessPoint(models.Model):
     aws = models.ForeignKey(AWS, related_name='access_points', on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
+    # See https://docs.aws.amazon.com/AmazonS3/latest/userguide/
+    # access-points-restrictions-limitations-naming-rules.html
+    name = models.CharField(max_length=50, unique=True)
     users = models.ManyToManyField(
         'user.User',
         through='AWSAccessPointUser',

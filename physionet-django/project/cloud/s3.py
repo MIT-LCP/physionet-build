@@ -831,33 +831,40 @@ def create_data_access_point_policy(
     Returns:
         str: A JSON string representing the data access point policy.
     """
-    principal_value = {
-        "AWS": [
-            f"arn:aws:iam::{account['aws_id']}:user/{account['aws_userid']}"
-            for account in aws_accounts
-        ]
-    }
     policy = {
         "Version": "2012-10-17",
         "Statement": [
             {
+                "Sid": "DenyListBucketOutsideProject",
+                "Effect": "Deny",
+                "Principal": "*",
+                "Action": ["s3:ListBucket"],
+                "Resource": f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/{access_point_name}",
+                "Condition": {
+                    "StringNotLike": {
+                        "s3:prefix": f"{project_slug}/{project_version}/*"
+                    }
+                }
+            },
+            {
                 "Sid": "AllowGetObject",
                 "Effect": "Allow",
-                "Principal": principal_value,
+                "Principal": {
+                    "AWS": [account['aws_userid'] for account in aws_accounts]
+                },
                 "Action": ["s3:GetObject", "s3:ListBucket"],
                 "Resource": [
                     (
-                        f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:"
-                        f"accesspoint/{access_point_name}/object/"
-                        f"{project_slug}/{project_version}/*"
+                        f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/"
+                        f"{access_point_name}/object/{project_slug}/{project_version}/*"
                     ),
                     (
-                        f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:"
-                        f"accesspoint/{access_point_name}"
-                    ),
-                ],
+                        f"arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/"
+                        f"{access_point_name}"
+                    )
+                ]
             }
-        ],
+        ]
     }
     policy_str = json.dumps(policy)
     return policy_str
@@ -903,16 +910,13 @@ def add_user_to_access_point_policy(project, user):
         dict: A dictionary containing the access point information where the user was added.
         None: If the process failed.
     """
-
     cloud_info = CloudInformation.objects.filter(
-        aws_id=user.cloud_information.aws_id
+        aws_userid=user.cloud_information.aws_userid
     ).first()
 
     aws_account = {
-        'aws_id': cloud_info.aws_id,
         'aws_userid': cloud_info.aws_userid
     }
-
     # Check if there is an access point with capacity
     access_point_data = get_access_point_with_capacity(project)
     if access_point_data:
