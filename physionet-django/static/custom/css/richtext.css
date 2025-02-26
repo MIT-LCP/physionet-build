@@ -1,0 +1,23 @@
+/* Custom styles for content in rich-text editors */
+
+code {
+    background: none;
+    color: #e83e8c;
+    padding: 0;
+}
+pre {
+    background-color: #f7f7f7;
+    border: 1px solid #dfdfdf;
+}
+pre, pre code {
+    color: #000;
+}
+
+thead, tbody, tfoot {
+    border-top: 2px solid #bbb;
+    border-bottom: 2px solid #bbb;
+}
+caption {
+    padding: 0.25em;
+    margin-bottom: 2px;
+}

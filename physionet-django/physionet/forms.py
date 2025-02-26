@@ -1,15 +1,15 @@
 import json
 import urllib.parse
 
-import ckeditor.fields
 from django.conf import settings
+from tinymce.widgets import TinyMCE
 
 
 def set_saved_fields_cookie(form, form_url, response):
     """
     Set a cookie to indicate that rich text fields have been saved.
 
-    The ckeditor autosave plugin will attempt to automatically save
+    The TinyMCE autosave plugin will attempt to automatically save
     form fields that have been modified; once the form is actually
     saved to the server, we want to clear the autosave state so that
     the plugin won't try to restore it when the same form is loaded
@@ -33,7 +33,7 @@ def set_saved_fields_cookie(form, form_url, response):
     # Find all rich text fields in the form
     field_names = []
     for (name, field) in form.fields.items():
-        if isinstance(field, ckeditor.fields.RichTextFormField):
+        if isinstance(field.widget, TinyMCE):
             # This is a bit weird and confusing, but I think it's
             # correct: bound_field.id_for_label is the 'id' attribute
             # of the textarea element, and that is what ckeditor uses

@@ -1,0 +1,8 @@
+g[data-mml-node="merror"] > g[data-mml-node="mtext"] > text {
+    fill: red;
+    font-size: revert-layer;
+}
+g[data-mml-node="merror"] > rect[data-background] {
+    fill: yellow;
+    stroke: none;
+}

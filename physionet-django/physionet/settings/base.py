@@ -63,13 +63,14 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.redirects',
 
-    'ckeditor',
+    'tinymce',
     # 'django_cron',
     'django_q',
     'background_task',
     'rest_framework',
     'oauth2_provider',
     'corsheaders',
+    'mathjax',
 
     'training',
     'user',
@@ -427,46 +428,121 @@ _math_classes = [
     'MJX-tex-oldstyle-bold', 'MJX-tex-mathit',
 ]
 
-CKEDITOR_CONFIGS = {
+HTML_ALLOWED_CONTENT = {
     'default': {
-        'toolbar': 'Custom',
-        'toolbar_Custom': [
-            ['Format'],
-            ['Bold', 'Italic', 'Underline', 'Blockquote'],
-            ['NumberedList', 'BulletedList'],
-            ['InlineEquation', 'BlockEquation', 'CodeSnippet', 'Table'],
-            ['Link', 'Unlink'],
-            ['RemoveFormat', 'Source'],
-        ],
-        'removeDialogTabs': 'link:advanced',
-        'disableNativeSpellChecker': False,
-        'width': '100%',
-        'autosave': {'messageType': 'no'},
+        **_inline_tags,
+        **_block_tags,
+        **_math_tags,
+        'h3': True,
+        'h4': True,
+        'h5': True,
+        'h6': True,
+        'img': {'attributes': ['src', 'alt', 'width', 'height']},
+        '*': {'attributes': _generic_attributes,
+              'classes': _math_classes},
+    },
+}
 
-        # Show options "Heading 2" to "Heading 4" in the format menu,
-        # but map these to <h3>, <h4>, <h5> tags
-        'format_tags': 'p;h2;h3;h4',
-        'format_h2': {'element': 'h3'},
-        'format_h3': {'element': 'h4'},
-        'format_h4': {'element': 'h5'},
+# User interface settings for TinyMCE
 
-        'extraPlugins': 'codesnippet,pnmathml,autosave',
-        'allowedContent': {
-            **_inline_tags,
-            **_block_tags,
-            **_math_tags,
-            'h3': True,
-            'h4': True,
-            'h5': True,
-            'h6': True,
-            'img': {'attributes': ['src', 'alt', 'width', 'height']},
-            '*': {'attributes': _generic_attributes,
-                  'classes': _math_classes},
-        },
-        'mathJaxLib': ('/static/mathjax/MathJax.js'
-                       '?config=TeX-AMS-MML_HTMLorMML-full'),
-    }
+TINYMCE_DEFAULT_CONFIG = {
+    "theme": "silver",
+    "min_height": 300,
+    "menubar": False,
+    "toolbar_mode": "sliding",
+    "toolbar_sticky": True,
+    "browser_spellcheck": True,
+    "contextmenu": "table",
+    "link_context_toolbar": True,
+    "mobile": {
+        "max_height": 300,
+    },
 
+    "plugins": ",".join([
+        "autoresize",
+        "autosave",
+        "code",
+        "fullscreen",
+        "help",
+        "link",
+        "lists",
+        "searchreplace",
+        "table",
+    ]),
+    "external_plugins": {
+        "pnmath": "/static/tinymce-plugins/pnmath.js",
+        "codetag": "/static/tinymce-plugins/codetag.js",
+    },
+
+    "pnmath_mathjax_url": "/static/mathjax/es5/",
+
+    "toolbar": (
+        "undo redo | styles | "
+        "bold italic codetag math | "
+        "numlist bullist table | "
+        "searchreplace code restoredraft"
+    ),
+
+    "table_header_type": "sectionCells",
+    "table_resize_bars": False,
+    "table_appearance_options": False,
+    "table_advtab": False,
+    "table_row_advtab": False,
+    "table_cell_advtab": False,
+    "table_toolbar": (
+        "alignleft aligncenter alignright | "
+        "tablerowprops tableinsertrowbefore tableinsertrowafter "
+        "tabledeleterow | "
+        "tableinsertcolbefore tableinsertcolafter tabledeletecol | "
+        "tablecaption | tabledelete"
+    ),
+
+    "content_css": "/static/custom/css/richtext.css",
+
+    "text_patterns": [
+        {"start": "*", "end": "*", "format": "italic"},
+        {"start": "**", "end": "**", "format": "bold"},
+        {"start": "`", "end": "`", "format": "code"},
+        {"start": "#", "format": "h3"},
+        {"start": "##", "format": "h3"},
+        {"start": "###", "format": "h3"},
+        {"start": "####", "format": "h4"},
+        {"start": "#####", "format": "h5"},
+        {"start": "######", "format": "h6"},
+        {"start": "1. ", "cmd": "InsertOrderedList"},
+        {"start": "* ", "cmd": "InsertUnorderedList"},
+        {"start": "- ", "cmd": "InsertUnorderedList"},
+        {"start": "$", "end": "$", "cmd": "InlineMath"},
+        {"start": "$$", "end": "$$", "cmd": "BlockMath"},
+        {"start": r"\(", "end": r"\)", "cmd": "InlineMath"},
+        {"start": r"\[", "end": r"\]", "cmd": "BlockMath"},
+    ],
+
+    "formats": {
+        "underline": {"inline": "u"},
+    },
+
+    "style_formats": [
+        {"title": "Headings", "items": [
+            {"title": "Heading 3", "format": "h3"},
+            {"title": "Heading 4", "format": "h4"},
+            {"title": "Heading 5", "format": "h5"},
+            {"title": "Heading 6", "format": "h6"},
+        ]},
+        {"title": "Inline", "items": [
+            {"title": "Bold", "format": "bold"},
+            {"title": "Italic", "format": "italic"},
+            {"title": "Underline", "format": "underline"},
+            {"title": "Superscript", "format": "superscript"},
+            {"title": "Subscript", "format": "subscript"},
+            {"title": "Code", "format": "code"},
+        ]},
+        {"title": "Blocks", "items": [
+            {"title": "Paragraph", "format": "p"},
+            {"title": "Blockquote", "format": "blockquote"},
+            {"title": "Code Block", "format": "pre"},
+        ]},
+    ],
 }
 
 # True if the program is invoked as 'manage.py test'
