@@ -2,6 +2,36 @@
 
 from django.conf import settings
 from django.db import migrations
+from django.db.models import Count
+
+
+def remove_duplicate_applications(apps, schema_editor):
+    EventApplication = apps.get_model('events', 'EventApplication')
+
+    # Find all user-event pairs that have multiple applications
+    duplicates = EventApplication.objects.values('user', 'event').annotate(
+        count=Count('id')).filter(count__gt=1)
+
+    for duplicate in duplicates:
+        user_id = duplicate['user']
+        event_id = duplicate['event']
+
+        # Get all applications for this user-event pair
+        applications = EventApplication.objects.filter(
+            user_id=user_id, 
+            event_id=event_id
+        )
+        # First, check if there are any applications with decisions
+        applications_with_decisions = applications.exclude(decision_datetime=None)
+
+        if applications_with_decisions.exists():
+            # Keep the most recent one with a decision
+            app_to_keep = applications_with_decisions.order_by('-decision_datetime').first()
+            applications.exclude(pk=app_to_keep.pk).delete()
+        else:
+            # If no decisions, keep the most recent application by requested date
+            app_to_keep = applications.order_by('-requested_datetime').first()
+            applications.exclude(pk=app_to_keep.pk).delete()
 
 
 class Migration(migrations.Migration):
@@ -12,6 +42,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+
+        # Remove duplicate applications
+        migrations.RunPython(remove_duplicate_applications, migrations.RunPython.noop),
+
         migrations.AlterUniqueTogether(
             name="eventapplication",
             unique_together={("user", "event")},
