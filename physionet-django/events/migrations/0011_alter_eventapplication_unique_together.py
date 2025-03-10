@@ -18,7 +18,7 @@ def remove_duplicate_applications(apps, schema_editor):
 
         # Get all applications for this user-event pair
         applications = EventApplication.objects.filter(
-            user_id=user_id, 
+            user_id=user_id,
             event_id=event_id
         )
         # First, check if there are any applications with decisions
