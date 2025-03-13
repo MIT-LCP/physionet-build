@@ -8,5 +8,15 @@
         <h2>{{ access_request.data_use_title }}</h2>
         <small class="text-muted">submitted on {{ access_request.request_datetime }}{% if access_request.is_accepted %}, valid {% if access_request.valid_until %}until {{ access_request.valid_until }}{% else %}forever {% endif %}{% endif %}{% include 'project/data_access_request_badge.html' with data_access_request=access_request %}</small>
         <p>{{ access_request.data_use_purpose|safe }}</p>
+        
+        {% if access_request.publications_link %}
+        <h4 class="mt-4">Relevant Publications</h4>
+        <p><a href="{{ access_request.publications_link }}" target="_blank">{{ access_request.publications_link }}</a></p>
+        {% endif %}
+        
+        {% if access_request.collaborators %}
+        <h4 class="mt-4">Collaborators</h4>
+        <p>{{ access_request.collaborators }}</p>
+        {% endif %}
     </div>
 {% endblock %}

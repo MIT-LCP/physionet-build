@@ -10,6 +10,8 @@
                 <th>Last status update</th>
                 <th>Title</th>
                 <th>Data Use Purpose</th>
+                <th>Publications Link</th>
+                <th>Collaborators</th>
                 <th>Responder Comment</th>
             </tr>
             </thead>
@@ -21,6 +23,8 @@
                     <td>{{ req.decision_datetime|date }}</td>
                     <td>{{ req.data_use_title }}</td>
                     <td>{{ req.data_use_purpose | safe }}</td>
+                    <td>{% if req.publications_link %}<a href="{{ req.publications_link }}" target="_blank">{{ req.publications_link }}</a>{% endif %}</td>
+                    <td>{{ req.collaborators }}</td>
                     <td>{{ req.responder_comments | safe }}</td>
                 </tr>
             {% endfor %}

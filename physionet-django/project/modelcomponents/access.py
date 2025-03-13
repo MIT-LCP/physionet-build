@@ -75,6 +75,8 @@ class DataAccessRequest(models.Model):
 
     data_use_title = models.CharField(max_length=200, default='')
     data_use_purpose = SafeHTMLField(blank=False, max_length=10000)
+    publications_link = models.URLField(blank=True, null=True)
+    collaborators = models.TextField(blank=True, null=True, help_text="List of collaborators (Name, email addresses)")
 
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
 

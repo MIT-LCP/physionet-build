@@ -87,6 +87,16 @@
   <div class="alert alert-secondary">
     <h4>{{ access_request.data_use_title }}</h4>
     {{ access_request.data_use_purpose|safe }}
+    
+    {% if access_request.publications_link %}
+    <h5 class="mt-3">Relevant Publications</h5>
+    <p><a href="{{ access_request.publications_link }}" target="_blank">{{ access_request.publications_link }}</a></p>
+    {% endif %}
+    
+    {% if access_request.collaborators %}
+    <h5 class="mt-3">Collaborators</h5>
+    <p>{{ access_request.collaborators }}</p>
+    {% endif %}
   </div>
 
   <br>
