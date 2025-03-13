@@ -1094,7 +1094,8 @@ class DataAccessRequestForm(forms.ModelForm):
             'data_use_title': """Title of the project you would like to use the data for""",
             'data_use_purpose': """Detailed description of the data use.""",
             'publications_link': """Link to relevant publications related to this research project""",
-            'collaborators': """List of collaborators (Name, email addresses) who will be working with you on this project""",
+            'collaborators': """List of collaborators (Name, email addresses) who will be working """
+                             """with you on this project""",
         }
         labels = {
             'data_use_title': 'Research Project Title',
