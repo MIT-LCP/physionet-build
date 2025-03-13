@@ -1,6 +1,6 @@
 <div class="alert alert-secondary">
 
-  {% if "The PhysioNet/Computing in Cardiology Challenge" in project.title %}
+  {% if "The PhysioNet/Computing in Cardiology Challenge" in project.title or "George B. Moody PhysioNet Challenge" in project.title %}
     {% if publication %}
       <strong>When using this resource, please cite the original publication:</strong>
       {% if publication.url %}
