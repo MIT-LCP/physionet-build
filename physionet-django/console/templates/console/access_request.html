@@ -19,7 +19,8 @@
     <strong>Requester:</strong> {{ access_request.requester.get_full_name }} <br>
     <strong>Submitted:</strong> {{ access_request.request_datetime|date }} <br>
     <strong>Status:</strong> {{ access_request.status_text }} <br>
-    <strong>Data Use Purpose:</strong> {{ access_request.data_use_purpose|safe }}
+    <strong>Data Use Purpose:</strong> {{ access_request.data_use_purpose|safe }} <br>
+    <strong>Lay Summary:</strong> {{ access_request.lay_summary|safe }}
     {% if access_request.responder_comments %}
       <strong>Responder Comments:</strong> {{ access_request.responder_comments }}
     {% endif %}

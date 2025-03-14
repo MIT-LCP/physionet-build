@@ -75,6 +75,7 @@ class DataAccessRequest(models.Model):
 
     data_use_title = models.CharField(max_length=200, default='')
     data_use_purpose = SafeHTMLField(blank=False, max_length=10000)
+    lay_summary = SafeHTMLField(blank=True, null=True, max_length=5000)
 
     status = models.PositiveSmallIntegerField(default=0, choices=REJECT_ACCEPT)
 

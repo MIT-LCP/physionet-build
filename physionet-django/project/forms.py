@@ -1089,14 +1089,16 @@ class AnonymousAccessLoginForm(forms.ModelForm):
 class DataAccessRequestForm(forms.ModelForm):
     class Meta:
         model = DataAccessRequest
-        fields = ('data_use_title', 'data_use_purpose', 'agree_dua')
+        fields = ('data_use_title', 'data_use_purpose', 'agree_dua', 'lay_summary')
         help_texts = {
             'data_use_title': """Title of the project you would like to use the data for""",
             'data_use_purpose': """Detailed description of the data use.""",
+            'lay_summary': """A non-technical summary of your project for non-specialized users."""
         }
         labels = {
             'data_use_title': 'Research Project Title',
-            'data_use_purpose': 'Research Project Details'
+            'data_use_purpose': 'Scientific Abstract​',
+            'lay_summary': 'Lay Summary​'
         }
 
     agree_dua = forms.BooleanField(required=True)
