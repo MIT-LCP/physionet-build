@@ -1132,6 +1132,7 @@ class TestSelfManagedProjectWorkflows(TestMixin):
                              data={
                                  'proj-data_use_purpose': msg_purpose,
                                  'proj-data_use_title': 'example title',
+                                 'proj-lay_summary': 'example lay summary',
                                  'proj-agree_dua': ['on']})
 
             da_req = DataAccessRequest.objects.filter(
