@@ -471,13 +471,13 @@ libsass = "*"
 
 [[package]]
 name = "django-static-mathjax"
-version = "3.2.2.0"
+version = "3.2.2.1"
 description = "JavaScript library for displaying mathematics on the Web"
 optional = false
 python-versions = "*"
 files = [
-    {file = "django_static_mathjax-3.2.2.0-py3-none-any.whl", hash = "sha256:edff9c79210d5f9a32ccb43fe1ac27c64b1e8bd94c0c780747d1a2837ebebfc6"},
-    {file = "django_static_mathjax-3.2.2.0.tar.gz", hash = "sha256:966dbbace2f47331624924e584045aadb7025f5c41b258d03264bdf803f09b49"},
+    {file = "django-static-mathjax-3.2.2.1.tar.gz", hash = "sha256:9d67e5d92fc98e3b5593fadc183b2ad9a3c14cfc21f9f7caf04454f9fe32dd26"},
+    {file = "django_static_mathjax-3.2.2.1-py3-none-any.whl", hash = "sha256:05ad109fd9e5d9d380c76389689b7f523e9ccb7f7a85c1eb962c7564eac7601d"},
 ]
 
 [[package]]
@@ -1810,4 +1810,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d7640fc88e59ec2ce301b165dc0a9e0b7d60c78559c53f706012c3709a25d7c3"
+content-hash = "46d69b0303a932b6fe3403e490ffc3fc031a6ff49e9809c7828992e154ab5e77"
