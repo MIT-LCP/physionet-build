@@ -4,6 +4,7 @@ from events.widgets import DatePickerInput
 from events.models import Event, EventApplication, EventAgreement, EventDataset, CohostInvitation
 from project.models import PublishedProject
 from user.models import CredentialApplication
+from environment.services import get_billing_accounts_list
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -29,6 +30,23 @@ class AddEventForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         self.host = user
         super(AddEventForm, self).__init__(*args, **kwargs)
+        
+        # Add billing account choices if user has cloud identity
+        if user and hasattr(user, 'cloud_identity'):
+            self.fields['gcp_billing_id'] = forms.ChoiceField(
+                required=False,
+                label='Billing Account',
+                help_text='Select a billing account to associate with this event.',
+                choices=[('', 'No billing account')]
+            )
+            try:
+                billing_accounts = get_billing_accounts_list(user)
+                billing_choices = [('', 'No billing account')]
+                for account in billing_accounts:
+                    billing_choices.append((account['id'], f"{account['name']} ({account['id']})"))
+                self.fields['gcp_billing_id'].choices = billing_choices
+            except Exception:
+                pass
 
     def clean(self):
         cleaned_data = super(AddEventForm, self).clean()
