@@ -2055,12 +2055,12 @@ def request_data_access(request, project_slug, version):
         return redirect('published_project', project_slug=project_slug, version=version)
 
     if request.method == 'POST':
-        access_request_form = forms.DataAccessRequestForm(
+        project_request_form = forms.DataAccessRequestForm(
             project=project, requester=request.user, template=None, prefix="proj", data=request.POST
         )
 
-        if access_request_form.is_valid():
-            access_request = access_request_form.save()
+        if project_request_form.is_valid():
+            access_request = project_request_form.save()
 
             corresponding_author = project.corresponding_author().user
             reviewers = [reviewer.reviewer for reviewer in DataAccessRequestReviewer.objects.filter(
@@ -2073,7 +2073,7 @@ def request_data_access(request, project_slug, version):
             notification.confirm_user_data_access_request(access_request, request.scheme, request.get_host())
 
             response = render(request, 'project/data_access_request_submitted.html', {'project': project})
-            set_saved_fields_cookie(access_request_form, request.path, response)
+            set_saved_fields_cookie(project_request_form, request.path, response)
 
             return response
     else:
