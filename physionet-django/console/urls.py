@@ -14,6 +14,8 @@ urlpatterns = [
         name='submitted_projects'),
     path('published-projects/', views.published_projects,
         name='published_projects'),
+    path('published-projects/<project_slug>/', views.published_projects,
+        name='published_projects_by_slug'),
     path('archived-submissions/', views.archived_submissions, name='archived_submissions'),
     path('project-access-manage/<pid>/', views.project_access_manage,
         name='project_access_manage'),
@@ -189,6 +191,9 @@ TEST_DEFAULTS = {
     'training_slug': 'world-101-introduction-to-continents-and-countries',
 }
 TEST_CASES = {
+    'published_projects_by_slug': {
+        'project_slug': 'demoeicu',
+    },
     'manage_published_project': {
         'project_slug': 'demoeicu',
         'version': '2.0.0',
