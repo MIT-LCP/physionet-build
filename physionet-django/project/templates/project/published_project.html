@@ -372,8 +372,9 @@
     {% else %}
       {% if is_authorized %}
         {% if project.allow_file_downloads %}
-        {#  refactored code goes here            #}
-        <p>Total uncompressed size: {{ main_size }}.</p>
+          {% if project.main_storage_size %}
+            <p>Total uncompressed size: {{ main_size }}.</p>
+          {% endif %}
         {# ZIP START #}
         <h5>Access the files</h5>
         {% if project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
