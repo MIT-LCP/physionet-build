@@ -39,6 +39,10 @@ class AddEventForm(forms.ModelForm):
                 help_text='Select a billing account to associate with this event.',
                 choices=[('', 'No billing account')]
             )
+            # Set initial value if updating an existing event
+            if self.instance and self.instance.pk and self.instance.gcp_billing_id:
+                self.initial['gcp_billing_id'] = self.instance.gcp_billing_id
+
             try:
                 billing_accounts = get_billing_accounts_list(user)
                 billing_choices = [('', 'No billing account')]
@@ -62,6 +66,8 @@ class AddEventForm(forms.ModelForm):
     def save(self):
         # Handle updating the event
         if self.initial:
+            if 'gcp_billing_id' in self.cleaned_data:
+                self.instance.gcp_billing_id = self.cleaned_data['gcp_billing_id']
             self.instance.save()
         else:
             Event.objects.create(title=self.cleaned_data['title'],
@@ -71,7 +77,7 @@ class AddEventForm(forms.ModelForm):
                                  start_date=self.cleaned_data['start_date'],
                                  end_date=self.cleaned_data['end_date'],
                                  allowed_domains=self.cleaned_data['allowed_domains'],
-                                 gcp_billing_id=self.cleaned_data.get('gcp_billing_id', None)
+                                 gcp_billing_id=self.cleaned_data['gcp_billing_id']
                                  )
 
 
