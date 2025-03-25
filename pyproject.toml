@@ -33,7 +33,7 @@ sentry-sdk = "^2.8.0"
 python-json-logger = "^2.0.2"
 django-storages = { version = "^1.11.1", extras = ["google"] }
 "pdfminer.six" = "^20211012"
-requests = "2.32.0"
+requests = "2.32.3"
 cffi = "^1.15.1"
 pytz = "^2022.1"
 django-sass = "1.1.0"
