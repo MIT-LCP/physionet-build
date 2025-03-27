@@ -1098,7 +1098,7 @@ class DataAccessRequestForm(forms.ModelForm):
         labels = {
             'data_use_title': 'Research Project Title',
             'data_use_purpose': 'Scientific Abstract​',
-            'lay_summary': 'Lay Summary​'
+            'lay_summary': 'Lay Summary ​'
         }
 
     agree_dua = forms.BooleanField(required=True)
