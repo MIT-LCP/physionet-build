@@ -165,5 +165,5 @@ Here is an example of existing cronjob from `deploy/production/etc/cron.d/physio
 The process for updating packages is:
 
 1. Add the dependency to `pyproject.toml`
-2. Generate a new `poetry.lock` file with: `poetry lock --no-update`
+2. Generate a new `poetry.lock` file with: `poetry lock`
 3. Generate a new requirements.txt with: `poetry export -f requirements.txt --output requirements.txt --with dev`
