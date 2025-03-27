@@ -87,6 +87,9 @@
   <div class="alert alert-secondary">
     <h4>{{ access_request.data_use_title }}</h4>
     {{ access_request.data_use_purpose|safe }}
+    {% if access_request.lay_summary %}
+      {{ access_request.lay_summary|safe }}
+    {% endif %}
   </div>
 
   <br>
