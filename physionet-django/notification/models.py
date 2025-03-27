@@ -9,7 +9,7 @@ class News(models.Model):
     """
     Model to record news and announcements.
     """
-    title = models.CharField(max_length=100)
+    title = models.CharField(max_length=150)
     content = SafeHTMLField()
     publish_datetime = models.DateTimeField(auto_now_add=True)
     url = models.URLField(default='', blank=True)
