@@ -844,14 +844,23 @@ def unsubmitted_projects(request):
 
 
 @console_permission_required('project.change_publishedproject')
-def published_projects(request):
+def published_projects(request, project_slug=None):
     """
     List of published projects
     """
-    projects = PublishedProject.objects.all().order_by('-publish_datetime')
+    if project_slug is None:
+        projects = PublishedProject.objects.all()
+    else:
+        projects = PublishedProject.objects.filter(slug=project_slug)
+        if projects.count() == 0:
+            raise Http404
+
+    projects = projects.order_by('-publish_datetime')
     projects = paginate(request, projects, 50)
-    return render(request, 'console/published_projects.html',
-                  {'projects': projects})
+    return render(request, 'console/published_projects.html', {
+        'projects': projects,
+        'project_slug': project_slug,
+    })
 
 
 @associated_task(PublishedProject, 'pid', read_only=True)
