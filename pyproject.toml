@@ -47,7 +47,7 @@ django-cors-headers = "^3.14.0"
 urllib3 = "^1.26.19"
 pyjwt = "^2.9.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 coverage = "^7.2.3"
 django-coverage-plugin = "^3.1.0"
 django-debug-toolbar = "^3.2.4"
@@ -57,5 +57,5 @@ requests-mock = "^1.7.0"
 selenium = "^3.141.0"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
+requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
