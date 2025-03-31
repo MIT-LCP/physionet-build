@@ -16,11 +16,7 @@ from project.utility import get_form_errors
 from events.forms import AddEventForm, EventApplicationResponseForm, InviteCohostForm, CohostInvitationResponseForm
 from events.models import Event, EventApplication, EventParticipant, CohostInvitation
 from events.utility import notify_host_cohosts_new_registration
-from project.forms import InvitationResponseForm
-from django.http import Http404
 
-from environment.services import get_billing_accounts_list, share_billing_account
-from physionet.settings.base import GCP_DOMAIN
 
 @login_required
 def update_event(request, event_slug, **kwargs):
@@ -159,14 +155,6 @@ def event_home(request):
                 event_application.accept(
                     comment_to_applicant=form.cleaned_data.get("comment_to_applicant")
                 )
-
-                # if the event has a gcp_billing_id set, we need to trigger the share_billing_account function
-                if event.gcp_billing_id:
-                    share_billing_account(
-                        owner_email=f"{event.host.username}@{GCP_DOMAIN}",
-                        billing_account_id=event.gcp_billing_id,
-                        user_email=f"{event_application.user.username}@{GCP_DOMAIN}"
-                    )
 
                 notification.notify_participant_event_decision(
                     request=request,
