@@ -16,6 +16,8 @@ from project.utility import get_form_errors
 from events.forms import AddEventForm, EventApplicationResponseForm, InviteCohostForm, CohostInvitationResponseForm
 from events.models import Event, EventApplication, EventParticipant, CohostInvitation
 from events.utility import notify_host_cohosts_new_registration
+from project.forms import InvitationResponseForm
+from django.http import Http404
 
 
 @login_required
@@ -155,7 +157,6 @@ def event_home(request):
                 event_application.accept(
                     comment_to_applicant=form.cleaned_data.get("comment_to_applicant")
                 )
-
                 notification.notify_participant_event_decision(
                     request=request,
                     user=event_application.user,
