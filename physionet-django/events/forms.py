@@ -29,7 +29,7 @@ class AddEventForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         self.host = user
         super(AddEventForm, self).__init__(*args, **kwargs)
-        
+
         # Add billing account choices if user has cloud identity
         if user and hasattr(user, 'cloud_identity'):
             self.fields['gcp_billing_id'] = forms.ChoiceField(
