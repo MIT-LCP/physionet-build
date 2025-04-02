@@ -71,15 +71,16 @@ class AddEventForm(forms.ModelForm):
                 self.instance.gcp_billing_id = self.cleaned_data['gcp_billing_id']
             self.instance.save()
         else:
-            Event.objects.create(title=self.cleaned_data['title'],
+            event = Event.objects.create(title=self.cleaned_data['title'],
                                  category=self.cleaned_data['category'],
                                  host=self.host,
                                  description=self.cleaned_data['description'],
                                  start_date=self.cleaned_data['start_date'],
                                  end_date=self.cleaned_data['end_date'],
-                                 allowed_domains=self.cleaned_data['allowed_domains'],
-                                 gcp_billing_id=self.cleaned_data['gcp_billing_id']
+                                 allowed_domains=self.cleaned_data['allowed_domains']
                                  )
+            if 'gcp_billing_id' in self.cleaned_data:
+                event.gcp_billing_id = self.cleaned_data['gcp_billing_id']
 
 
 class EventApplicationResponseForm(forms.ModelForm):
