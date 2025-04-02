@@ -4,7 +4,6 @@ from events.widgets import DatePickerInput
 from events.models import Event, EventApplication, EventAgreement, EventDataset, CohostInvitation
 from project.models import PublishedProject
 from user.models import CredentialApplication
-from environment.services import get_billing_accounts_list
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -44,6 +43,8 @@ class AddEventForm(forms.ModelForm):
                 self.initial['gcp_billing_id'] = self.instance.gcp_billing_id
 
             try:
+                # making a local import only if needed to avoid import issues in testing
+                from environment.services import get_billing_accounts_list
                 billing_accounts = get_billing_accounts_list(user)
                 billing_choices = [('', 'No billing account')]
                 for account in billing_accounts:
