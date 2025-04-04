@@ -54,6 +54,9 @@
               <p>The total size of the selected files is <span id="data_size"></span>.<br>
               Your remaining storage allowance is {{ storage_info.readable_remaining }}.</p>
             </div>
+            <div id="error_too_many_files" style="display:none" class="alert alert-danger">
+              Only {{ max_files_per_upload }} files can be uploaded at once.
+            </div>
           </div>
           <div class="modal-footer">
             {% if storage_type == "GCP" %}

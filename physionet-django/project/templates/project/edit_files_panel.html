@@ -252,6 +252,8 @@
     // Check the size of the files to be uploaded and stop the form if the file
     // size exceeds the maximum allowed.
 
+    let max_files = {{ max_files_per_upload|default:0 }};
+
     // The size is calculated in bytes
     files = $('#id_file_field').get(0).files;
     let size = 0;
@@ -268,10 +270,19 @@
       $('#data_size').text(readableBytes(size))
       // Show the message
       $('#error_data_size').show();
+      $('#error_too_many_files').hide();
+    }
+    else if (files.length > max_files && max_files > 0) {
+      // Disable the submit button on the form
+      $('#upload-files-button-submit').attr("disabled", true);
+      // Show the message
+      $('#error_data_size').hide();
+      $('#error_too_many_files').show();
     }
     else{
       // Hide the message
       $('#error_data_size').hide();
+      $('#error_too_many_files').hide();
       // Enable the submit button on the form
       $('#upload-files-button-submit').attr("disabled", false);
     }
