@@ -1029,6 +1029,7 @@ def project_files_panel(request, project_slug, **kwargs):
             'is_submitting': is_submitting,
             'is_editor': is_editor,
             'files_editable': files_editable,
+            'max_files_per_upload': settings.DATA_UPLOAD_MAX_NUMBER_FILES,
             'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         },
     )
@@ -1149,6 +1150,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
         'project/project_files.html',
         {
             'project': project,
+            'max_files_per_upload': settings.DATA_UPLOAD_MAX_NUMBER_FILES,
             'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
             'subdir': subdir,
             'parent_dir': parent_dir,

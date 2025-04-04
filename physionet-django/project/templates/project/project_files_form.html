@@ -35,7 +35,13 @@
           </button>
         </div>
           <div class="modal-body">
-            <p>Individual file size limit: {{ individual_size_limit }}.</p>
+            <p>
+              {% if storage_type != "GCP" %}
+                You can select up to {{ max_files_per_upload }} files
+                to upload at once.
+              {% endif %}
+              Each file must be smaller than {{ individual_size_limit }}.
+            </p>
               {% if storage_type == "GCP" %}
                 <div id="myDropzone"></div>
               {% else %}
@@ -47,6 +53,9 @@
               You can request more space by clicking "Request Storage".</p>
               <p>The total size of the selected files is <span id="data_size"></span>.<br>
               Your remaining storage allowance is {{ storage_info.readable_remaining }}.</p>
+            </div>
+            <div id="error_too_many_files" style="display:none" class="alert alert-danger">
+              Only {{ max_files_per_upload }} files can be uploaded at once.
             </div>
           </div>
           <div class="modal-footer">
