@@ -35,7 +35,13 @@
           </button>
         </div>
           <div class="modal-body">
-            <p>Individual file size limit: {{ individual_size_limit }}.</p>
+            <p>
+              {% if storage_type != "GCP" %}
+                You can select up to {{ max_files_per_upload }} files
+                to upload at once.
+              {% endif %}
+              Each file must be smaller than {{ individual_size_limit }}.
+            </p>
               {% if storage_type == "GCP" %}
                 <div id="myDropzone"></div>
               {% else %}
