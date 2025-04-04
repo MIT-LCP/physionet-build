@@ -1,4 +1,5 @@
 from django import forms
+import logging
 
 from events.widgets import DatePickerInput
 from events.models import Event, EventApplication, EventAgreement, EventDataset, CohostInvitation
@@ -9,6 +10,8 @@ INVITATION_CHOICES = (
     (1, 'Accept'),
     (0, 'Decline')
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AddEventForm(forms.ModelForm):
@@ -51,7 +54,7 @@ class AddEventForm(forms.ModelForm):
                     billing_choices.append((account['id'], f"{account['name']} ({account['id']})"))
                 self.fields['gcp_billing_id'].choices = billing_choices
             except Exception:
-                pass
+                logger.info("Unable to get billing accounts list.")
 
     def clean(self):
         cleaned_data = super(AddEventForm, self).clean()
@@ -81,6 +84,7 @@ class AddEventForm(forms.ModelForm):
                                  )
             if 'gcp_billing_id' in self.cleaned_data:
                 event.gcp_billing_id = self.cleaned_data['gcp_billing_id']
+                event.save()
 
 
 class EventApplicationResponseForm(forms.ModelForm):
