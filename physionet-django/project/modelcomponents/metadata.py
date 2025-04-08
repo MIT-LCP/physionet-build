@@ -532,6 +532,63 @@ class Metadata(models.Model):
 
         return citation_dict
 
+    def content_sections(self):
+        """
+        Return a list of ContentSections that form the project description.
+
+        Each ContentSection contains a fixed header (defined by the
+        project type) and an author-editable body.  Some sections are
+        optional and the body is allowed to be empty, in which case
+        that section should be hidden.
+        """
+        headers = self.resource_type.content_section_headers()
+        return [ContentSection(header, self) for header in headers]
+
+
+class ContentSection:
+    """
+    Free-form HTML content that forms part of a project description.
+
+    A project description contains many sections (such as "Abstract",
+    "Background", and "Methods"), which follow a particular structure
+    that is defined for each project type.
+
+    A ContentSection object encapsulates the author-editable content
+    of the section (the "body") together with the fixed metadata (the
+    "header").  It has the following attributes:
+
+    - title: the human-readable title of the section
+
+    - html_id: the ID that may be used to link to the section
+
+    - required: True if the section is required (the project should
+      not be published if this section is missing)
+
+    - field_name: the name of the corresponding field in Metadata
+
+    - body: the author-editable content of the section
+
+    In the present implementation, every ContentSection corresponds to
+    a particular field of the ActiveProject or PublishedProject
+    instance (specifically, one of the fields defined in the Metadata
+    class.)  In the future, this structure may become dynamic and
+    site-configurable.
+    """
+    def __init__(self, header, project):
+        self.header = header
+        self.project = project
+        self.title = header.title
+        self.html_id = header.html_id
+        self.required = header.required
+        self.field_name = header.field_name
+
+    def __repr__(self):
+        return '<{}: {!r}>'.format(type(self).__name__, self.title)
+
+    @property
+    def body(self):
+        return getattr(self.project, self.field_name)
+
 
 class Topic(models.Model):
     """
