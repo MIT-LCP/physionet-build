@@ -20,6 +20,7 @@
         // PreInit: establish filters for converting input HTML
         editor.on('PreInit', function() {
             let ser = tinymce.html.Serializer();
+            let unsafeParser = new DOMParser();
 
             // Convert <math> to BLOCK_MATH_TAG / INLINE_MATH_TAG
             editor.parser.addNodeFilter('math', (nodes) => {
@@ -35,10 +36,21 @@
                                : INLINE_MATH_TAG);
 
                     let source = null;
-                    tinymce.each(node.getAll('annotation'), (ann) => {
-                        if (ann.attr('encoding') === 'application/x-tex') {
-                            ann = ser.serialize(ann);
-                            ann = editor.dom.createFragment(ann);
+
+                    // The TinyMCE parser (since TinyMCE 7.1.0) treats
+                    // math elements as opaque and doesn't provide
+                    // access to their descendants.  Instead, use a
+                    // DOMParser to parse the annotations.  (This
+                    // should be safe since we are simply extracting
+                    // the textContent and we never insert the parsed
+                    // nodes into the document.)
+                    let annotations = unsafeParser.parseFromString(
+                        mathml, 'text/html'
+                    ).getElementsByTagName('annotation');
+
+                    tinymce.each(annotations, (ann) => {
+                        let encoding = ann.getAttribute('encoding');
+                        if (encoding === 'application/x-tex') {
                             source = ann.textContent;
                         }
                     });
