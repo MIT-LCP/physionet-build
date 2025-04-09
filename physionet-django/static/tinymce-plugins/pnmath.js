@@ -222,6 +222,7 @@
 
                 let preview = document.getElementById(previewid);
                 preview.style.textAlign = 'center';
+                preview.style.minHeight = '2em';
 
                 previewPending = true;
                 MATHJAX.callSoon(editor, (MathJax) => {
