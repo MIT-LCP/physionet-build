@@ -42,6 +42,7 @@ from project.models import (
 )
 from user.models import User, TrainingType
 from user.validators import validate_affiliation
+from django.forms import ModelMultipleChoiceField
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -924,11 +925,24 @@ class AccessMetadataForm(forms.ModelForm):
             access_policy=self.access_policy
         )
 
-        if self.access_policy not in {AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW}:
+        if self.access_policy in {AccessPolicy.OPEN, AccessPolicy.RESTRICTED}:
             self.fields['required_trainings'].disabled = True
             self.fields['required_trainings'].required = False
             self.fields['required_trainings'].widget = forms.HiddenInput()
             self.initial['required_trainings'] = ''
+
+        if self.access_policy == AccessPolicy.CREDENTIALED:
+            self.fields['required_trainings'].disabled = False
+            self.fields['required_trainings'].required = True
+
+            # Replace the original field with a custom version
+            original_field = self.fields['required_trainings']
+            custom_field = CustomModelMultipleChoiceField(
+                queryset=original_field.queryset.order_by('name'),
+                required=True,
+                widget=original_field.widget
+            )
+            self.fields['required_trainings'] = custom_field
 
         if self.access_policy == AccessPolicy.OPEN:
             self.fields['dua'].disabled = True
@@ -939,6 +953,26 @@ class AccessMetadataForm(forms.ModelForm):
         if not self.editable:
             for field in self.fields.values():
                 field.disabled = True
+
+
+class CustomModelMultipleChoiceField(ModelMultipleChoiceField):
+    def clean(self, value):
+        # If 'No training required' is explicitly selected, return an empty list
+        if value == ['']:
+            return []
+
+        # If no selection is made, raise a validation error
+        if not value:
+            raise forms.ValidationError('Please select at least one training')
+
+        return super().clean(value)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add empty option to the widget
+        self.widget.choices = list(self.widget.choices)
+        if ('', 'No training required') not in self.widget.choices:
+            self.widget.choices.append(('', 'No training required'))
 
 
 class AuthorCommentsForm(forms.Form):
