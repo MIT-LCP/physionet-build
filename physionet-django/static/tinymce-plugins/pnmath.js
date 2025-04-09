@@ -117,10 +117,15 @@
             // create extra undo levels.
             if (initial) {
                 if (MATHJAX.callSync(editor, (MathJax) => {
-                    mathml = MathJax.tex2mml(source, {display: dblk});
-                    mathml = addTeXAnnotation(mathml, source);
-                    let svg = MathJax.mathml2svg(mathml);
-                    setMathSVGContent(eqn, mathml, svg);
+                    try {
+                        mathml = MathJax.tex2mml(source, {display: dblk});
+                        mathml = addTeXAnnotation(mathml, source);
+                        let svg = MathJax.mathml2svg(mathml);
+                        setMathSVGContent(eqn, mathml, svg);
+                    } catch (err) {
+                        console.log('sync tex->svg input: ' + source);
+                        console.log('sync tex->svg failed: ' + err.message);
+                    }
                 })) {
                     return;
                 }
