@@ -12,6 +12,11 @@
     let globalStyle = null;
 
     tinymce.PluginManager.add('pnmath', function(editor, pluginURL) {
+        if (!editor.options.isSet('allow_mathml_annotation_encodings')) {
+            editor.options.set('allow_mathml_annotation_encodings',
+                               ['application/x-tex']);
+        }
+
         // PreInit: establish filters for converting input HTML
         editor.on('PreInit', function() {
             let ser = tinymce.html.Serializer();
