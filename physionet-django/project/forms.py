@@ -548,28 +548,6 @@ class ContentForm(forms.ModelForm):
 
     """
 
-    FIELDS = (
-        # 0: Database
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'release_notes', 'acknowledgements',
-         'conflicts_of_interest',
-         ),
-        # 1: Software
-        ('title', 'abstract', 'background', 'content_description',
-         'methods', 'installation', 'usage_notes', 'release_notes',
-         'acknowledgements', 'conflicts_of_interest', ),
-        # 2: Challenge
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'release_notes', 'acknowledgements',
-         'conflicts_of_interest',
-         ),
-        # 3: Model
-        ('title', 'abstract', 'background', 'content_description', 'methods',
-         'installation', 'usage_notes', 'release_notes',
-         'acknowledgements', 'conflicts_of_interest',
-         ),
-    )
-
     HELP_TEXTS = (
         # 0: Database
         {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
@@ -598,11 +576,9 @@ class ContentForm(forms.ModelForm):
 
     class Meta:
         model = ActiveProject
-        # This includes fields for all resource types.
-        fields = ('title', 'abstract', 'background', 'methods',
-                  'content_description', 'installation', 'usage_notes',
-                  'acknowledgements', 'conflicts_of_interest',
-                  'release_notes',)
+
+        # Fields are chosen dynamically by __init__
+        exclude = ()
 
         help_texts = {
             'title': '* The title of the resource.',
@@ -618,7 +594,11 @@ class ContentForm(forms.ModelForm):
         super().__init__(**kwargs)
         resource_type = self.instance.resource_type.id
 
-        self.fields = OrderedDict((k, self.fields[k]) for k in self.FIELDS[resource_type])
+        fields = ['title']
+        for section in self.instance.content_sections():
+            if section.field_name != 'ethics_statement':
+                fields.append(section.field_name)
+        self.fields = OrderedDict((k, self.fields[k]) for k in fields)
 
         for l in ActiveProject.LABELS[resource_type]:
             self.fields[l].label = ActiveProject.LABELS[resource_type][l]
