@@ -17,6 +17,7 @@ urlpatterns = [
     path("settings/cloud/", views.edit_cloud, name="edit_cloud"),
     path("settings/cloud/aws/", views.edit_cloud_aws, name="edit_cloud_aws"),
     path("settings/orcid/", views.edit_orcid, name="edit_orcid"),
+    path("settings/tokens/", views.edit_tokens, name="edit_tokens"),
     path("authorcid/", views.auth_orcid, name="auth_orcid"),
     path(
         "settings/credentialing/", views.edit_credentialing, name="edit_credentialing"

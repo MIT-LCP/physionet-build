@@ -2,6 +2,7 @@ import logging
 import os
 from datetime import timedelta
 import uuid
+import secrets
 
 from django.utils.crypto import get_random_string
 from django.conf import settings
@@ -511,6 +512,35 @@ class UserLogin(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+def generate_token():
+    return secrets.token_hex(32)
+
+
+class AccessToken(models.Model):
+    """
+    A long-lived access token used for authenticating API requests.
+
+    Each token is associated with a user and can be used to access
+    protected resources (e.g., datasets, downloads) without using
+    a session or password.
+
+    Typically, users generate tokens through the web interface after
+    logging in via OAuth. Tokens should be treated like passwords and
+    kept secret. Users can create, revoke, and manage tokens at
+    /settings/tokens/.
+
+    Fields:
+        user (ForeignKey): The user who owns this token.
+        name (str): A label for the token (e.g., "Work laptop").
+        token (str): The token value (random hex string).
+        created (datetime): When the token was created.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, default="default")
+    token = models.CharField(max_length=64, unique=True, default=generate_token)
+    created = models.DateTimeField(auto_now_add=True)
 
 
 def update_user_login(sender, **kwargs):

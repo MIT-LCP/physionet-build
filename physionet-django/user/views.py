@@ -51,6 +51,7 @@ from requests_oauthlib import OAuth2Session
 from user import forms, validators
 from user.awsverification import aws_verification_available
 from user.models import (
+    AccessToken,
     AssociatedEmail,
     CodeOfConduct,
     CodeOfConductSignature,
@@ -60,7 +61,7 @@ from user.models import (
     Orcid,
     User,
     Training,
-    TrainingType,
+    TrainingType
 )
 from user.userfiles import UserFiles
 from user.enums import RequiredField, ActivateUserType
@@ -255,6 +256,7 @@ def check_legacy_credentials(user, email):
         legacy_credential.save()
         user.save()
 
+
 def remove_email(request, email_id):
     "Remove a non-primary email associated with a user"
     user = request.user
@@ -307,6 +309,7 @@ def set_public_email(request, public_email_form):
                 messages.success(request, 'Your email: {0} has been set to public.'.format(associated_email.email))
             else:
                 messages.success(request, 'Your email: {0} has been set to private.'.format(current_public_email.email))
+
 
 def add_email(request, add_email_form):
     user = request.user
@@ -423,6 +426,37 @@ def edit_profile(request):
             form = forms.ProfileForm(instance=profile)
 
     return render(request, 'user/edit_profile.html', {'form':form})
+
+
+@login_required
+def edit_tokens(request):
+    """
+    Display and manage the user's API access tokens.
+
+    This view allows authenticated users to:
+    - View a list of their existing access tokens
+    - Generate new tokens by submitting a name via POST
+    - Revoke existing tokens by passing a token ID via the 'delete' GET parameter
+
+    Tokens are used to authenticate with the PhysioNet API (e.g., for
+    downloading protected datasets) and should be kept secret.
+
+    URL: /settings/tokens/
+    Methods:
+        GET  - Show token management page
+        POST - Create a new access token
+    """
+    if request.method == "POST":
+        AccessToken.objects.create(user=request.user, name=request.POST.get("name", "Unnamed"))
+        return redirect("edit_tokens")
+
+    if request.GET.get("delete"):
+        AccessToken.objects.filter(user=request.user, id=request.GET["delete"]).delete()
+        return redirect("edit_tokens")
+
+    tokens = AccessToken.objects.filter(user=request.user)
+    return render(request, "user/edit_tokens.html", {"tokens": tokens})
+
 
 @login_required
 def edit_orcid(request):

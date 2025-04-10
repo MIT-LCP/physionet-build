@@ -3,7 +3,6 @@ import datetime
 import json
 import logging
 import os
-import pdb
 import re
 import shutil
 import time
@@ -26,6 +25,7 @@ import requests_mock
 
 from user.enums import TrainingStatus
 from user.models import (
+    AccessToken,
     AssociatedEmail,
     CloudInformation,
     Profile,
@@ -388,6 +388,26 @@ class TestAuth(TestMixin):
 
         self.assertFalse(AssociatedEmail.objects.filter(id=email1_id).exists())
         self.assertTrue(AssociatedEmail.objects.filter(id=email2_id).exists())
+
+    def test_token_generation(self):
+        self.client.login(username='admin@mit.edu', password='Tester11!')
+        user = User.objects.get(email='admin@mit.edu')
+
+        # Visit the token settings page (GET)
+        response = self.client.get(reverse('edit_tokens'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "API Access Tokens")
+
+        # Create a new token (POST)
+        response = self.client.post(reverse('edit_tokens'), data={'name': 'Test Token'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['Location'], reverse('edit_tokens'))
+
+        # Verify that token exists in DB
+        tokens = AccessToken.objects.filter(user=user)
+        self.assertEqual(tokens.count(), 1)
+        self.assertEqual(tokens.first().name, 'Test Token')
+        self.assertTrue(len(tokens.first().token) >= 32)
 
 
 class TestPublic(TestMixin):
