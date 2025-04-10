@@ -3,7 +3,10 @@ import uuid
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from project.modelcomponents.activeproject import ActiveProject
+from project.modelcomponents.activeproject import (
+    ActiveProject,
+    SubmissionStatus,
+)
 from project.modelcomponents.publishedproject import PublishedProject
 
 
@@ -27,7 +30,9 @@ class CoreProject(models.Model):
 
     def active_new_version(self):
         "Whether there is a new version being worked on"
-        return bool(self.activeprojects.filter())
+        return self.activeprojects.exclude(
+            submission_status=SubmissionStatus.ARCHIVED
+        ).exists()
 
     def get_published_versions(self):
         """
