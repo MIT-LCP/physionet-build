@@ -541,6 +541,13 @@ class AccessToken(models.Model):
     name = models.CharField(max_length=100, default="default")
     token = models.CharField(max_length=64, unique=True, default=generate_token)
     created = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+
+    def is_expired(self):
+        return self.expires_at and timezone.now() > self.expires_at
+
+    def __str__(self):
+        return f"{self.user.username}'s token ({self.name})"
 
 
 def update_user_login(sender, **kwargs):

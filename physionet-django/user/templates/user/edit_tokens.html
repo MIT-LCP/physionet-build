@@ -1,0 +1,47 @@
+{% extends "user/settings.html" %}
+{% load static %}
+
+{% block title %}Access Tokens{% endblock %}
+
+{% block main_content %}
+<h1 class="form-signin-heading">API Access Tokens</h1>
+<hr>
+
+<p>
+  Access tokens allow you to authenticate with the PhysioNet API (e.g. using our Python package) without logging in.
+  Tokens expire automatically after <strong>60 days</strong>. Keep these tokens secret — they act like passwords. You can revoke them at any time.
+</p>
+
+<form action="" method="post" class="form-inline mt-3">
+  {% csrf_token %}
+  <div class="form-group">
+    <label for="token-name">Create new token:</label>
+    <input type="text" class="form-control" id="token-name" name="name" placeholder="e.g. My Laptop" required>
+    <button class="btn btn-primary ml-2" type="submit">Generate</button>
+  </div>
+</form>
+
+{% if tokens %}
+  <h3 class="mt-4">Your Tokens</h3>
+  <ul class="list-group mt-2">
+    {% for token in tokens %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>{{ token.name }}</strong>
+          <br>
+          <code>{{ token.token }}</code>
+          <br>
+          <small>
+            Created {{ token.created|date:"Y-m-d H:i" }} —
+            Expires {{ token.expires_at|date:"Y-m-d H:i" }}
+            {% if token.is_expired %}<span class="badge badge-danger">Expired</span>{% endif %}
+          </small>
+        </div>
+        <a class="btn btn-sm btn-danger" href="?delete={{ token.id }}">Revoke</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="mt-4">You don’t have any tokens yet.</p>
+{% endif %}
+{% endblock %}

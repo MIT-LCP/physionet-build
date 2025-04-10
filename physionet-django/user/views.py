@@ -447,7 +447,9 @@ def edit_tokens(request):
         POST - Create a new access token
     """
     if request.method == "POST":
-        AccessToken.objects.create(user=request.user, name=request.POST.get("name", "Unnamed"))
+        name = request.POST.get("name", "Unnamed")
+        expires_at = timezone.now() + timedelta(days=60)
+        AccessToken.objects.create(user=request.user, name=name, expires_at=expires_at)
         return redirect("edit_tokens")
 
     if request.GET.get("delete"):
