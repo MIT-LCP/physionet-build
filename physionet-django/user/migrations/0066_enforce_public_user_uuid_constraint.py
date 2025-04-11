@@ -6,6 +6,8 @@ import uuid
 
 class Migration(migrations.Migration):
 
+    MIGRATE_AFTER_INSTALL = True
+
     dependencies = [
         ("user", "0065_backfill_public_user_uuid"),
     ]
