@@ -165,10 +165,14 @@
           {% if project.access_policy == AccessPolicy.CREDENTIALED or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
             <p>
               <strong>Required training:</strong>
-              {% for training in project.required_trainings.all %}
-                <br>
-                <a href="{% url 'project_required_trainings_preview' project.slug %}#{{ training.id }}">{{ training }}</a>
-              {% endfor%}
+              {% if project.required_trainings.all|length > 0 %}
+                {% for training in project.required_trainings.all %}
+                  <br>
+                  <a href="{% url 'project_required_trainings_preview' project.slug %}#{{ training.id }}">{{ training }}</a>
+                {% endfor %}
+              {% else %}
+                <br>No training required
+              {% endif %}
             </p>
           {% endif %}
         </div>
