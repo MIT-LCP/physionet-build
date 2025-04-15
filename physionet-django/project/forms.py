@@ -42,6 +42,7 @@ from project.models import (
 )
 from user.models import User, TrainingType
 from user.validators import validate_affiliation
+from django.forms import ModelMultipleChoiceField
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
@@ -923,12 +924,22 @@ class AccessMetadataForm(forms.ModelForm):
             project_types=self.instance.resource_type,
             access_policy=self.access_policy
         )
-
-        if self.access_policy not in {AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW}:
+        # Open and restricted projects do not require training
+        if self.access_policy in {AccessPolicy.OPEN, AccessPolicy.RESTRICTED}:
             self.fields['required_trainings'].disabled = True
             self.fields['required_trainings'].required = False
             self.fields['required_trainings'].widget = forms.HiddenInput()
             self.initial['required_trainings'] = ''
+
+        # Credentialed and Contributor Review projects may or may not require training
+        if self.access_policy in {AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW}:
+            original_field = self.fields['required_trainings']
+            custom_field = CustomModelMultipleChoiceField(
+                queryset=original_field.queryset.order_by('name'),
+                required=True,
+                widget=original_field.widget
+            )
+            self.fields['required_trainings'] = custom_field
 
         if self.access_policy == AccessPolicy.OPEN:
             self.fields['dua'].disabled = True
@@ -939,6 +950,34 @@ class AccessMetadataForm(forms.ModelForm):
         if not self.editable:
             for field in self.fields.values():
                 field.disabled = True
+
+
+class CustomModelMultipleChoiceField(ModelMultipleChoiceField):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add empty option to the widget
+        self.widget.choices = list(self.widget.choices)
+        if ('', 'No training required') not in self.widget.choices:
+            self.widget.choices.append(('', 'No training required'))
+
+    def clean(self, value):
+        # If 'No training required' is selected, return an empty list
+        if value == ['']:
+            return []
+
+        # If no selection is made or value is None, return an empty list
+        # (equivalent to 'No training required')
+        if not value:
+            return []
+
+        return super().clean(value)
+
+    def prepare_value(self, value):
+        # If the value is None or an empty list, return ['']
+        # to preselect 'No training required'
+        if value is None or value == []:
+            return ['']
+        return super().prepare_value(value)
 
 
 class AuthorCommentsForm(forms.Form):
