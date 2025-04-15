@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import timedelta
+import uuid
 
 from django.utils.crypto import get_random_string
 from django.conf import settings
@@ -350,6 +351,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     sso_id = models.CharField(max_length=256, unique=True, null=True, blank=False)
     join_date = models.DateField(auto_now_add=True)
     last_login = models.DateTimeField(null=True, blank=True)
+
+    public_user_uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        db_index=True,
+        help_text="Persistent, public identifier for user accounts.",
+    )
 
     # IP address used when account was registered
     registration_ip = models.CharField(max_length=40, db_index=True,
