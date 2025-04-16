@@ -142,6 +142,7 @@
                     }).catch((err) => {
                         console.log('tex2mml input: ' + source);
                         console.log('tex2mml failed: ' + err.message);
+                        return mathml;
                     });
                 } else {
                     mathmlPromise = Promise.resolve(mathml);
