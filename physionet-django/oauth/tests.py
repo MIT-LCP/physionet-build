@@ -46,7 +46,7 @@ class BaseTest(TestCase):
 
         self.access_token = AccessToken.objects.create(
             user=self.test_user,
-            scope="read write",
+            scope="profile:read email:read public_id:read",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -113,7 +113,7 @@ class BaseAuthorizationCodeTokenView(BaseTest):
         authcode_data = {
             "client_id": self.application.client_id,
             "state": "random_state_string",
-            "scope": "read write",
+            "scope": "profile:read email:read public_id:read",
             "redirect_uri": "http://example.org",
             "response_type": "code",
             "allow": True,
@@ -132,7 +132,7 @@ class BaseAuthorizationCodeTokenView(BaseTest):
         authcode_data = {
             "client_id": self.application.client_id,
             "state": "random_state_string",
-            "scope": "read write",
+            "scope": "profile:read email:read public_id:read",
             "redirect_uri": "http://example.org",
             "response_type": "code",
             "allow": True,
@@ -217,3 +217,29 @@ class TestAuthorizationCodeTokenView(BaseAuthorizationCodeTokenView):
         auth = self._create_authorization_header(token)
         response = self.client.get("/oauth/hello", HTTP_AUTHORIZATION=auth)
         self.assertEqual(response.status_code, 200)
+
+
+class TestOAuth2Scopes(BaseTest):
+    def test_userinfo_scopes(self):
+        auth = self._create_authorization_header(self.access_token.token)
+        response = self.client.get("/oauth/userinfo", HTTP_AUTHORIZATION=auth)
+        self.assertEqual(response.status_code, 200)
+
+        data = response.json()
+        self.assertEqual(data["username"], self.test_user.username)
+        self.assertEqual(data["full_name"], self.test_user.profile.get_full_name())
+        self.assertEqual(data["email"], self.test_user.email)
+        self.assertEqual(str(data["public_user_uuid"]), str(self.test_user.public_user_uuid))
+
+    def test_userinfo_missing_scope(self):
+        # Set only profile:read
+        self.access_token.scope = "profile:read"
+        self.access_token.save()
+
+        auth = self._create_authorization_header(self.access_token.token)
+        response = self.client.get("/oauth/userinfo", HTTP_AUTHORIZATION=auth)
+        data = response.json()
+
+        self.assertIn("username", data)
+        self.assertNotIn("email", data)
+        self.assertNotIn("public_user_uuid", data)
