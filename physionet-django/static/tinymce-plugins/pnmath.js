@@ -115,7 +115,7 @@
             // If the "initial" flag is set, equation is newly
             // added/changed.  Try to render immediately so we don't
             // create extra undo levels.
-            if (initial) {
+            if (initial && source !== null) {
                 if (MATHJAX.callSync(editor, (MathJax) => {
                     try {
                         mathml = MathJax.tex2mml(source, {display: dblk});
