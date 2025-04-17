@@ -11,6 +11,8 @@ from django.urls import reverse
 from urllib.parse import parse_qs, urlparse
 from oauth2_provider.settings import oauth2_settings
 from django.utils.crypto import get_random_string
+from oauth.views import SCOPES_MAPPING
+
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
@@ -32,6 +34,11 @@ class BaseTest(TestCase):
         self.dev_user = User.objects.create_user(
             username="oauth_dev_user", email="oauth_dev@example.com", password="123456"
         )
+
+        self.test_user.profile.first_names = "OAuth"
+        self.test_user.profile.last_name = "User"
+        self.test_user.profile.affiliation = "MIT"
+        self.test_user.profile.save()
 
         self.oauth2_settings = oauth2_settings
 
@@ -243,3 +250,23 @@ class TestOAuth2Scopes(BaseTest):
         self.assertIn("username", data)
         self.assertNotIn("email", data)
         self.assertNotIn("public_user_uuid", data)
+
+
+class TestUserInfoScopeValidation(BaseTest):
+    def test_scope_fields_are_accessible(self):
+        """
+        Check that each field defined in SCOPES_MAPPING is present in the
+        returned dictionary and corresponds to a valid attribute/method
+        on the User or related objects.
+        """
+        for scope, builder in SCOPES_MAPPING.items():
+            self.assertTrue(callable(builder), f"Scope '{scope}' does not map to a callable")
+
+            try:
+                result = builder(self.test_user)
+            except Exception as e:
+                self.fail(f"Callable for scope '{scope}' raised an exception: {e}")
+
+            self.assertIsInstance(result, dict, f"Scope '{scope}' did not return a dictionary")
+            for field, value in result.items():
+                self.assertIsNotNone(field, f"Field name in scope '{scope}' is None")

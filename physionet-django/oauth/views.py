@@ -3,54 +3,52 @@ from oauth2_provider.views.generic import ProtectedResourceView, ScopedProtected
 from oauth2_provider.oauth2_backends import get_oauthlib_core
 
 
+SCOPES_MAPPING = {
+    "profile:read": lambda user: {
+        "username": user.username,
+        "full_name": user.get_full_name(),
+    },
+    "email:read": lambda user: {
+        "email": user.get_primary_email().email if user.get_primary_email() else None,
+    },
+    "institution:read": lambda user: {
+        "affiliation": user.profile.affiliation,
+    },
+    "credentialing:read": lambda user: {
+        "credentialing_status": user.is_credentialed,
+    },
+    "orcid:read": lambda user: {
+        "orcid": user.get_orcid_id(),
+    },
+    "public_id:read": lambda user: {
+        "public_user_uuid": str(user.public_user_uuid),
+    },
+}
+
+
 class UserInfoView(ScopedProtectedResourceView):
     """
     Returns selected user profile information based on the scopes associated
     with the provided OAuth2 token.
 
-    This view supports the following scopes:
-    - 'profile:read': returns `username` and `full_name`
-    - 'email:read': returns `email`
-    - 'institution:read': returns `affiliation`
-    - 'credentialing:read': returns `credentialing_status`
-    - 'orcid:read': returns `orcid`
-    - 'public_id:read': returns `public_user_uuid`
-
-    Only fields corresponding to granted scopes are included in the response.
+    Requires at minimum the "profile:read" scope.
     """
-    required_scopes = []
+    required_scopes = ["profile:read"]
 
     def get(self, request, *args, **kwargs):
 
-        valid, r = get_oauthlib_core().verify_request(request, scopes=[])
+        valid, r = get_oauthlib_core().verify_request(request, scopes=self.required_scopes)
         if not valid:
             return JsonResponse({"error": "Invalid or missing token"}, status=403)
 
         token = r.access_token
         scopes = token.scope.split()
-
         user = token.user
         data = {}
 
-        if "profile:read" in scopes:
-            data["username"] = user.username
-            data["full_name"] = user.profile.get_full_name()
-
-        if "email:read" in scopes:
-            primary_email = user.get_primary_email()
-            data["email"] = primary_email.email
-
-        if "institution:read" in scopes:
-            data["affiliation"] = user.profile.affiliation
-
-        if "credentialing:read" in scopes:
-            data["credentialing_status"] = user.is_credentialed
-
-        if "orcid:read" in scopes:
-            data["orcid"] = user.get_orcid_id()
-
-        if "public_id:read" in scopes:
-            data["public_user_uuid"] = str(user.public_user_uuid)
+        for scope, builder in SCOPES_MAPPING.items():
+            if scope in scopes:
+                data.update(builder(user))
 
         return JsonResponse(data)
 
