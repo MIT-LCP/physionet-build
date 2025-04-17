@@ -564,7 +564,7 @@ class ContentForm(forms.ModelForm):
          'conflicts_of_interest',
          ),
         # 3: Model
-        ('title', 'abstract', 'background', 'methods', 'content_description',
+        ('title', 'abstract', 'background', 'content_description', 'methods',
          'installation', 'usage_notes', 'release_notes',
          'acknowledgements', 'conflicts_of_interest',
          ),
@@ -589,7 +589,10 @@ class ContentForm(forms.ModelForm):
          'content_description': '* Describe the model and any supporting data and software.',
          'installation': '* Instructions on how to set up a software environment for using the model.',
          'usage_notes': '* Describe how you intend others to (re)use the model.',
-         'methods': 'Details on the technical implementation. ie. the development process, and the underlying algorithms.',
+         'methods': (
+             '* Details on the technical implementation. '
+             'ie. the development process, and the underlying algorithms.'
+         ),
          'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'},
     )
 
