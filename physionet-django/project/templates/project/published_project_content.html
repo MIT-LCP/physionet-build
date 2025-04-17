@@ -1,0 +1,13 @@
+{% for section in project.content_sections %}
+  {% if section.body %}
+    <h2 id="{{ section.html_id }}">{{ section.title }}</h2>
+    {{ section.body|safe }}
+    <hr>
+  {% endif %}
+{% endfor %}
+
+{% if references %}
+  <h2 id="references">References</h2>
+  {% include "project/reference_list.html" %}
+  <hr>
+{% endif %}
