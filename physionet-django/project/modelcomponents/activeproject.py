@@ -167,25 +167,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         'short_description',
     )
 
-    # Custom labels that don't match model field names
-    LABELS = (
-        # 0: Database
-        {'content_description': 'Data Description'},
-        # 1: Software
-        {'content_description': 'Software Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-        # 2: Challenge
-        {'background': 'Objective',
-         'methods': 'Participation',
-         'content_description': 'Data Description',
-         'usage_notes': 'Evaluation'},
-        # 3: Model
-        {'content_description': 'Model Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-    )
-
     SUBMISSION_STATUS_LABELS = {
         SubmissionStatus.UNSUBMITTED: 'Not submitted.',
         SubmissionStatus.ARCHIVED: 'Archived.',

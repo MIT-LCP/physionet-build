@@ -597,11 +597,9 @@ class ContentForm(forms.ModelForm):
         fields = ['title']
         for section in self.instance.content_sections():
             if section.field_name != 'ethics_statement':
+                self.fields[section.field_name].label = section.title
                 fields.append(section.field_name)
         self.fields = OrderedDict((k, self.fields[k]) for k in fields)
-
-        for l in ActiveProject.LABELS[resource_type]:
-            self.fields[l].label = ActiveProject.LABELS[resource_type][l]
 
         for h in self.__class__.HELP_TEXTS[resource_type]:
             self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
