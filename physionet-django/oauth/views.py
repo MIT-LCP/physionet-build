@@ -11,8 +11,8 @@ class UserInfoView(ScopedProtectedResourceView):
     This view supports the following scopes:
     - 'profile:read': returns `username` and `full_name`
     - 'email:read': returns `email`
-    - 'institution:read': returns `institution`
-    - 'credentialing:read': returns `training_status` and `credentialing_status`
+    - 'institution:read': returns `affiliation`
+    - 'credentialing:read': returns `credentialing_status`
     - 'orcid:read': returns `orcid`
     - 'public_id:read': returns `public_user_uuid`
 
@@ -37,17 +37,17 @@ class UserInfoView(ScopedProtectedResourceView):
             data["full_name"] = user.profile.get_full_name()
 
         if "email:read" in scopes:
-            data["email"] = user.email
+            primary_email = user.get_primary_email()
+            data["email"] = primary_email.email
 
         if "institution:read" in scopes:
-            data["institution"] = user.institution
+            data["affiliation"] = user.profile.affiliation
 
         if "credentialing:read" in scopes:
-            data["training_status"] = user.training_status
-            data["credentialing_status"] = user.credentialing_status
+            data["credentialing_status"] = user.is_credentialed
 
         if "orcid:read" in scopes:
-            data["orcid"] = user.orcid
+            data["orcid"] = user.get_orcid_id()
 
         if "public_id:read" in scopes:
             data["public_user_uuid"] = str(user.public_user_uuid)
