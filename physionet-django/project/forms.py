@@ -589,7 +589,7 @@ class ContentForm(forms.ModelForm):
          'content_description': '* Describe the model and any supporting data and software.',
          'installation': '* Instructions on how to set up a software environment for using the model.',
          'usage_notes': '* Describe how you intend others to (re)use the model.',
-         'methods': 'Details on the technical implementation. ie. the development process, and the underlying algorithms.',
+         'methods': '* Details on the technical implementation. ie. the development process, and the underlying algorithms.',
          'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'},
     )
 
