@@ -754,3 +754,15 @@ ALLOWED_ACCESS_POLICIES = config(
     'ALLOWED_ACCESS_POLICIES',
     default='OPEN,RESTRICTED,CREDENTIALED,CONTRIBUTOR_REVIEW'
 ).split(',')
+
+# OAUTH PROVIDER SCOPES
+OAUTH2_PROVIDER = {
+    "SCOPES": {
+        "profile:read": "Read access to user's profile (username, full name)",
+        "email:read": "Read access to user's email address",
+        "institution:read": "Read access to user's institutional affiliation",
+        "credentialing:read": "Read access to user's credentialing and training status",
+        "orcid:read": "Read access to user's ORCID iD",
+        "public_id:read": "Read access to the user's persistent public ID",
+    }
+}
