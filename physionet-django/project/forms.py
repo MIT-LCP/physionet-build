@@ -564,7 +564,7 @@ class ContentForm(forms.ModelForm):
          'conflicts_of_interest',
          ),
         # 3: Model
-        ('title', 'abstract', 'background', 'methods', 'content_description',
+        ('title', 'abstract', 'background', 'content_description', 'methods',
          'installation', 'usage_notes', 'release_notes',
          'acknowledgements', 'conflicts_of_interest',
          ),
