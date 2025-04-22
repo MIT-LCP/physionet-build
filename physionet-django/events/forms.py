@@ -1,4 +1,5 @@
 from django import forms
+import logging
 
 from events.widgets import DatePickerInput
 from events.models import Event, EventApplication, EventAgreement, EventDataset, CohostInvitation
@@ -9,6 +10,8 @@ INVITATION_CHOICES = (
     (1, 'Accept'),
     (0, 'Decline')
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AddEventForm(forms.ModelForm):
@@ -30,6 +33,29 @@ class AddEventForm(forms.ModelForm):
         self.host = user
         super(AddEventForm, self).__init__(*args, **kwargs)
 
+        # Add billing account choices if user has cloud identity
+        if user and hasattr(user, 'cloud_identity'):
+            self.fields['gcp_billing_id'] = forms.ChoiceField(
+                required=False,
+                label='Billing Account',
+                help_text='Select a billing account to associate with this event.',
+                choices=[('', 'No billing account')]
+            )
+            # Set initial value if updating an existing event
+            if self.instance and self.instance.pk and self.instance.gcp_billing_id:
+                self.initial['gcp_billing_id'] = self.instance.gcp_billing_id
+
+            try:
+                # making a local import only if needed to avoid import issues in testing
+                from environment.services import get_billing_accounts_list
+                billing_accounts = get_billing_accounts_list(user)
+                billing_choices = [('', 'No billing account')]
+                for account in billing_accounts:
+                    billing_choices.append((account['id'], f"{account['name']} ({account['id']})"))
+                self.fields['gcp_billing_id'].choices = billing_choices
+            except Exception:
+                logger.info("Unable to get billing accounts list.")
+
     def clean(self):
         cleaned_data = super(AddEventForm, self).clean()
         if Event.objects.filter(title=cleaned_data['title'], host=self.host).exists():
@@ -44,9 +70,11 @@ class AddEventForm(forms.ModelForm):
     def save(self):
         # Handle updating the event
         if self.initial:
+            if 'gcp_billing_id' in self.cleaned_data:
+                self.instance.gcp_billing_id = self.cleaned_data['gcp_billing_id']
             self.instance.save()
         else:
-            Event.objects.create(title=self.cleaned_data['title'],
+            event = Event.objects.create(title=self.cleaned_data['title'],
                                  category=self.cleaned_data['category'],
                                  host=self.host,
                                  description=self.cleaned_data['description'],
@@ -54,6 +82,9 @@ class AddEventForm(forms.ModelForm):
                                  end_date=self.cleaned_data['end_date'],
                                  allowed_domains=self.cleaned_data['allowed_domains']
                                  )
+            if 'gcp_billing_id' in self.cleaned_data:
+                event.gcp_billing_id = self.cleaned_data['gcp_billing_id']
+                event.save()
 
 
 class EventApplicationResponseForm(forms.ModelForm):

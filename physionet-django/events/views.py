@@ -133,7 +133,7 @@ def event_home(request):
 
             event_application = form.save(commit=False)
             event = event_application.event
-            # if user is not a host or a participant with cohort status, they don't have permission to accept/reject
+            # if user is not a host or a participant with cohost status, they don't have permission to accept/reject
             if not (
                 event.host == user
                 or EventParticipant.objects.filter(

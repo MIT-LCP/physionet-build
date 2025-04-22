@@ -64,6 +64,10 @@
     </div>
     <hr>
 
+    {% if event.gcp_billing_id and event.host == user or user in event.get_cohosts %}
+        <p><strong>Billing Account:</strong> {{ event.gcp_billing_id }}</p>
+    {% endif %}
+
     {% include "events/event_participation.html" %}
     <hr>
     {% if event_datasets|length != 0 %}

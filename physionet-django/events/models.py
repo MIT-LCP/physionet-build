@@ -23,6 +23,7 @@ class Event(models.Model):
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(default=timezone.now)
     slug = models.SlugField(unique=True)
+    gcp_billing_id = models.CharField(max_length=100, blank=True, null=True)
     allowed_domains = models.CharField(blank=True, null=True, validators=[
                                        validators.validate_domain_list], max_length=100)
 
