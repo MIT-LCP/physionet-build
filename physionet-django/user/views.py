@@ -458,7 +458,7 @@ def edit_tokens(request):
             return redirect("edit_tokens")
 
         expires_at = timezone.now() + timedelta(days=60)
-        token = AccessToken.objects.create(
+        AccessToken.objects.create(
             user=request.user,
             application=application,
             token=get_random_string(40),
