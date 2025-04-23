@@ -36,6 +36,8 @@ from notification.utility import (
     training_application_request,
 )
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
+from oauth2_provider.models import get_application_model, AccessToken
+
 from physionet import utility
 from physionet.middleware.maintenance import (
     ServiceUnavailable,
@@ -255,6 +257,7 @@ def check_legacy_credentials(user, email):
         legacy_credential.save()
         user.save()
 
+
 def remove_email(request, email_id):
     "Remove a non-primary email associated with a user"
     user = request.user
@@ -308,6 +311,7 @@ def set_public_email(request, public_email_form):
             else:
                 messages.success(request, 'Your email: {0} has been set to private.'.format(current_public_email.email))
 
+
 def add_email(request, add_email_form):
     user = request.user
     # noinspection GrazieInspection
@@ -332,6 +336,7 @@ def add_email(request, add_email_form):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
             [add_email_form.cleaned_data['email']], fail_silently=False)
         messages.success(request, 'A verification link has been sent to: {0}'.format(associated_email.email))
+
 
 @login_required
 def edit_emails(request):
@@ -423,6 +428,52 @@ def edit_profile(request):
             form = forms.ProfileForm(instance=profile)
 
     return render(request, 'user/edit_profile.html', {'form':form})
+
+
+@login_required
+def edit_tokens(request):
+    """
+    View for users to manage their personal API access tokens.
+
+    - POST: Creates a new access token with default read scopes.
+    - GET with `?delete=<id>`: Deletes an access token.
+    - GET: Lists current active tokens.
+    """
+    Application = get_application_model()
+
+    # Creating tokens requires a local OAUTH client to exist.
+    app_name = getattr(settings, "OAUTH_CLIENT_APP_NAME", None)
+    if not app_name:
+        raise Exception("OAUTH_CLIENT_APP_NAME is not defined in settings.")
+
+    try:
+        application = Application.objects.get(name=app_name)
+    except Application.DoesNotExist:
+        raise Exception(f"OAuth application named '{app_name}' not found.")
+
+    if request.method == "POST":
+
+        if AccessToken.objects.filter(user=request.user, application=application).count() >= 3:
+            messages.error(request, "You can only have up to 3 tokens. Please delete one first.")
+            return redirect("edit_tokens")
+
+        expires_at = timezone.now() + timedelta(days=60)
+        token = AccessToken.objects.create(
+            user=request.user,
+            application=application,
+            token=get_random_string(40),
+            expires=expires_at,
+            scope="data:download",
+        )
+        return redirect("edit_tokens")
+
+    if request.GET.get("delete"):
+        AccessToken.objects.filter(user=request.user, id=request.GET["delete"]).delete()
+        return redirect("edit_tokens")
+
+    tokens = AccessToken.objects.filter(user=request.user)
+    return render(request, "user/edit_tokens.html", {"tokens": tokens})
+
 
 @login_required
 def edit_orcid(request):
