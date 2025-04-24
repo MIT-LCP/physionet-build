@@ -755,6 +755,10 @@ ALLOWED_ACCESS_POLICIES = config(
     default='OPEN,RESTRICTED,CREDENTIALED,CONTRIBUTOR_REVIEW'
 ).split(',')
 
+# OAUTH_CLIENT_APP_NAME is the name of the default OAuth application used
+# when programmatically generating access tokens (e.g., via the /settings/tokens).
+OAUTH_CLIENT_APP_NAME = config('OAUTH_CLIENT_APP_NAME', default='')
+
 # OAUTH PROVIDER SCOPES
 OAUTH2_PROVIDER = {
     "SCOPES": {
@@ -764,5 +768,6 @@ OAUTH2_PROVIDER = {
         "credentialing:read": "Read access to user's credentialing and training status",
         "orcid:read": "Read access to user's ORCID iD",
         "public_id:read": "Read access to the user's persistent public ID",
+        "data:download": "Download project data if token-holder is approved for access (training, DUA, etc).",
     }
 }
