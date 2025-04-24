@@ -614,8 +614,10 @@ class ContentForm(forms.ModelForm):
             'release_notes': 'Important notes about the current release, and changes from previous versions.'
         }
 
-    def __init__(self, resource_type, editable=True, **kwargs):
-        super(ContentForm, self).__init__(**kwargs)
+    def __init__(self, editable=True, **kwargs):
+        super().__init__(**kwargs)
+        resource_type = self.instance.resource_type.id
+
         self.fields = OrderedDict((k, self.fields[k]) for k in self.FIELDS[resource_type])
 
         for l in ActiveProject.LABELS[resource_type]:
