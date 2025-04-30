@@ -1,8 +1,7 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-
+from django.conf import settings
 from project.modelcomponents.generic import BaseInvitation
-
 
 class StorageRequest(BaseInvitation):
     """
@@ -63,11 +62,56 @@ class AWS(models.Model):
     class Meta:
         default_permissions = ()
 
-    def s3_uri(self):
-        if self.is_private:
-            return f's3://{self.bucket_name}/{self.project.version}/'
-        else:
-            return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
+    def public_s3_uri(self):
+        """
+        Construct the S3 URI for public projects.
+        """
+        return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
 
     def __str__(self):
-        return self.s3_uri()
+        return f"AWS instance for project: {self.project.slug}"
+
+
+class AWSAccessPoint(models.Model):
+    aws = models.ForeignKey(AWS, related_name='access_points', on_delete=models.CASCADE)
+    # See https://docs.aws.amazon.com/AmazonS3/latest/userguide/
+    # access-points-restrictions-limitations-naming-rules.html
+    name = models.CharField(max_length=50, unique=True)
+    users = models.ManyToManyField(
+        'user.User',
+        through='AWSAccessPointUser',
+        related_name='linked_access_points'
+    )
+
+    def private_s3_uri(self):
+        """
+        Construct the S3 URI for private projects using an access point.
+        """
+        return (
+            f's3://arn:aws:s3:us-east-1:{settings.AWS_ACCOUNT_ID}:accesspoint/'
+            f'{self.name}/{self.aws.project.slug}/{self.aws.project.version}/'
+        )
+
+
+class AWSAccessPointUser(models.Model):
+    access_point = models.ForeignKey(
+        AWSAccessPoint,
+        related_name='linked_users',
+        on_delete=models.CASCADE
+    )
+    user = models.ForeignKey(
+        'user.User',
+        related_name='aws_access_point_users',
+        on_delete=models.CASCADE
+    )
+    aws = models.ForeignKey(
+        AWS,
+        related_name='access_point_users',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        unique_together = [('user', 'aws')]
+
+    def __str__(self):
+        return f"User: {self.user}, Access Point: {self.access_point}"

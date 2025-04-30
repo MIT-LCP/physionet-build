@@ -22,6 +22,7 @@ from user.test_views import TestMixin
     AWS_ACCOUNT_ID='123456789012',
     S3_OPEN_ACCESS_BUCKET='datashare-public',
     S3_SERVER_ACCESS_LOG_BUCKET='datashare-logs',
+    S3_CONTROLLED_ACCESS_BUCKET='datashare-protected',
 )
 class TestS3(TestMixin):
     """

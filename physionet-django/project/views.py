@@ -49,6 +49,7 @@ from project.models import (
     SubmissionStatus,
     Topic,
     UploadedDocument,
+    AWS,
 )
 from project.authorization.access import can_view_project_files, can_access_project
 from project.projectfiles import ProjectFiles
@@ -58,6 +59,7 @@ from user.models import AssociatedEmail, CloudInformation, CredentialApplication
 from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
+    add_user_to_access_point_policy,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 
@@ -1929,6 +1931,19 @@ def published_project(request, project_slug, version, subdir=''):
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
+
+    s3_uri = None
+    try:
+        if project.aws.is_private:
+            if has_signed_dua and request.user.is_authenticated:
+                access_point = project.aws.access_points.filter(linked_users__user=request.user).first()
+                if access_point:
+                    s3_uri = access_point.private_s3_uri()
+        else:
+            s3_uri = '--no-sign-request ' + project.aws.public_s3_uri()
+    except AWS.DoesNotExist:
+        s3_uri = None
+
     context = {
         'project': project,
         'authors': authors,
@@ -1956,6 +1971,7 @@ def published_project(request, project_slug, version, subdir=''):
         'is_lightwave_supported': project.files.is_lightwave_supported(),
         'is_wget_supported': project.files.is_wget_supported(),
         'has_s3_credentials': has_s3_credentials(),
+        's3_uri': s3_uri,
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
     }
@@ -2012,7 +2028,6 @@ def sign_dua(request, project_slug, version):
     Page to sign the dua for a protected project.
     Both restricted and credentialed policies.
     """
-    from console.views import update_aws_bucket_policy
     user = request.user
     project = PublishedProject.objects.filter(slug=project_slug, version=version)
     if project:
@@ -2034,11 +2049,12 @@ def sign_dua(request, project_slug, version):
 
     license = project.license
     license_content = project.license_content(fmt='html')
-
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
-        if has_s3_credentials() and files_sent_to_S3(project) is not None:
-            update_aws_bucket_policy(project.id)
+        if has_s3_credentials() and files_sent_to_S3(project):
+            if user.cloud_information is not None and user.cloud_information.aws_verification_datetime is not None:
+                add_user_to_access_point_policy(project, user)
+
         return render(request, 'project/sign_dua_complete.html', {
             'project':project})
 
@@ -2331,8 +2347,10 @@ def published_project_request_access(request, project_slug, version, access_type
 
     try:
         # check user if user has GCP or AWS info in profile
-        if (user.cloud_information.gcp_email is None and access_type in [3, 4]) or (
-            user.cloud_information.aws_id is None and access_type == 2):
+        if (
+            (user.cloud_information.gcp_email is None and access_type in [3, 4])
+            or (user.cloud_information.aws_verification_datetime is None and access_type == 2)
+        ):
             messages.error(request, 'Please set the user cloud information in your settings')
             return redirect('edit_cloud')
     except CloudInformation.DoesNotExist:

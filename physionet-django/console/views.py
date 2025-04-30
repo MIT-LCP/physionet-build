@@ -82,7 +82,6 @@ from project.cloud.s3 import (
     upload_project_to_S3,
     get_bucket_name,
     check_s3_bucket_exists,
-    update_bucket_policy,
     has_s3_credentials,
 )
 
@@ -911,44 +910,6 @@ def send_files_to_aws(pid):
     project.aws.save()
 
 
-@associated_task(PublishedProject, "pid", read_only=True)
-@background()
-def update_aws_bucket_policy(pid):
-    """
-    Update the AWS S3 bucket's access policy based on the
-    project's access policy.
-
-    This function determines the access policy of the project identified
-    by 'pid' and updates the AWS S3 bucket's access policy accordingly.
-    It checks if the bucket exists, retrieves its name, and uses the
-    'utility.update_bucket_policy' function for the update.
-
-    Args:
-        pid (int): The unique identifier (ID) of the project for which to
-        update the bucket policy.
-
-    Returns:
-        bool: True if the bucket policy was updated successfully,
-        False otherwise.
-
-    Note:
-    - Verify that AWS credentials and configurations are correctly set up
-    for the S3 client.
-    - The 'updated_policy' variable indicates whether the policy was
-    updated successfully.
-    """
-    updated_policy = False
-    project = PublishedProject.objects.get(id=pid)
-    exists = check_s3_bucket_exists(project)
-    if exists:
-        bucket_name = get_bucket_name(project)
-        update_bucket_policy(project, bucket_name)
-        updated_policy = True
-    else:
-        updated_policy = False
-    return updated_policy
-
-
 @console_permission_required('project.change_publishedproject')
 def manage_doi_request(request, project):
     """
@@ -1235,7 +1196,6 @@ def aws_bucket_management(request, project, user):
         is_private = False
 
     bucket_name = get_bucket_name(project)
-
     if not AWS.objects.filter(project=project).exists():
         AWS.objects.create(
             project=project, bucket_name=bucket_name, is_private=is_private
