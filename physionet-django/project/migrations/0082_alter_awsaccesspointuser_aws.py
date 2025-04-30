@@ -6,7 +6,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("project", "0080_alter_awsaccesspointuser_unique_together_and_more"),
+        ("project", "0081_alter_awsaccesspointuser_unique_together_and_more"),
     ]
 
     operations = [

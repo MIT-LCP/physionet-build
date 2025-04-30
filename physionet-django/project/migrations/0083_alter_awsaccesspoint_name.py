@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("project", "0081_alter_awsaccesspointuser_aws"),
+        ("project", "0082_alter_awsaccesspointuser_aws"),
     ]
 
     operations = [

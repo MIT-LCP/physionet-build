@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("project", "0079_awsaccesspoint_awsaccesspointuser_and_more"),
+        ("project", "0080_awsaccesspoint_awsaccesspointuser_and_more"),
     ]
 
     operations = [
