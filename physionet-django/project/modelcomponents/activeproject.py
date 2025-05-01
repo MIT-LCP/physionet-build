@@ -160,46 +160,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Subdirectory (under self.files.file_root) where files are stored
     FILE_STORAGE_SUBDIR = 'active-projects'
 
-    REQUIRED_FIELDS = (
-        # 0: Database
-        ('title', 'abstract', 'background',
-         'methods', 'content_description', 'usage_notes',
-         'ethics_statement', 'conflicts_of_interest',
-         'version', 'license', 'short_description'),
-        # 1: Software
-        ('title', 'abstract', 'background',
-         'content_description', 'usage_notes', 'installation',
-         'ethics_statement', 'conflicts_of_interest',
-         'version', 'license', 'short_description'),
-        # 2: Challenge
-        ('title', 'abstract', 'background',
-         'methods', 'content_description', 'usage_notes',
-         'ethics_statement', 'conflicts_of_interest',
-         'version', 'license', 'short_description'),
-        # 3: Model
-        ('title', 'abstract', 'background',
-         'methods', 'content_description', 'usage_notes', 'installation',
-         'ethics_statement', 'conflicts_of_interest',
-         'version', 'license', 'short_description'),
-    )
-
-    # Custom labels that don't match model field names
-    LABELS = (
-        # 0: Database
-        {'content_description': 'Data Description'},
-        # 1: Software
-        {'content_description': 'Software Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
-        # 2: Challenge
-        {'background': 'Objective',
-         'methods': 'Participation',
-         'content_description': 'Data Description',
-         'usage_notes': 'Evaluation'},
-        # 3: Model
-        {'content_description': 'Model Description',
-         'methods': 'Technical Implementation',
-         'installation': 'Installation and Requirements'},
+    REQUIRED_META_FIELDS = (
+        'title',
+        'version',
+        'license',
+        'short_description',
     )
 
     SUBMISSION_STATUS_LABELS = {
@@ -342,12 +307,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         'has not set a corresponding email')
 
         # Metadata
-        for attr in ActiveProject.REQUIRED_FIELDS[self.resource_type.id]:
+        for attr in ActiveProject.REQUIRED_META_FIELDS:
             value = getattr(self, attr)
-            text = unescape(strip_tags(str(value)))
-            if value is None or not text or text.isspace():
-                l = self.LABELS[self.resource_type.id][attr] if attr in self.LABELS[self.resource_type.id] else attr.title().replace('_', ' ')
-                self.integrity_errors.append('Missing required field: {0}'.format(l))
+            if not value:
+                label = attr.title().replace('_', ' ')
+                self.integrity_errors.append('Missing required field: {0}'.format(label))
+
+        # Required content sections
+        for section in self.content_sections():
+            if section.required:
+                text = unescape(strip_tags(section.body))
+                if not text or text.isspace():
+                    label = section.title
+                    self.integrity_errors.append('Missing required field: {0}'.format(label))
 
         # References
         if not self.has_valid_reference_order():

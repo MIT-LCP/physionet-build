@@ -491,8 +491,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                                                        can_delete=False,
                                                        formset=project_forms.PublicationFormSet, validate_max=True)
 
-    description_form = project_forms.ContentForm(
-        resource_type=project.resource_type.id, instance=project)
+    description_form = project_forms.ContentForm(instance=project)
     ethics_form = project_forms.EthicsForm(instance=project)
 
     access_policy = request.GET.get('accessPolicy')
@@ -513,8 +512,9 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if request.method == 'POST':
         if 'edit_content' in request.POST:
             description_form = project_forms.ContentForm(
-                resource_type=project.resource_type.id, data=request.POST,
-                instance=project)
+                data=request.POST,
+                instance=project,
+            )
             ethics_form = project_forms.EthicsForm(data=request.POST, instance=project)
             access_form = project_forms.AccessMetadataForm(data=request.POST,
                                                            instance=project)

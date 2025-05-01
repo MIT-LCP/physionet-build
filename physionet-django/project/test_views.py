@@ -521,9 +521,10 @@ class TestProjectEditing(TestCase):
             'project-reference-content_type-object_id-INITIAL_FORMS': '0',
             'project-reference-content_type-object_id-MIN_NUM_FORMS': '0',
             'project-reference-content_type-object_id-MAX_NUM_FORMS': '0',
+            'title': project.title,
         }
-        for field in ContentForm.FIELDS[project.resource_type.id]:
-            data[field] = getattr(project, field)
+        for section in project.content_sections():
+            data[section.field_name] = section.body
 
         response = self.client.post(content_url, data=data)
         self.assertEqual(response.status_code, 200)

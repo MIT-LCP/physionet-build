@@ -7,6 +7,7 @@ from project.modelcomponents.activeproject import (
     ActiveProject,
     SubmissionStatus,
 )
+from project.modelcomponents.projecttype import ProjectType
 from project.modelcomponents.publishedproject import PublishedProject
 
 
@@ -56,21 +57,6 @@ class CoreProject(models.Model):
         # The sum will be None if there are no publishedprojects.  It will
         # also be None if any projects have incremental_storage_size=None.
         return result['total'] or 0
-
-
-class ProjectType(models.Model):
-    """
-    The project types available on the platform
-    """
-    id = models.PositiveSmallIntegerField(primary_key=True)
-    name = models.CharField(max_length=20)
-    description = models.TextField()
-
-    class Meta:
-        default_permissions = ()
-
-    def __str__(self):
-        return self.name
 
 
 class ProgrammingLanguage(models.Model):

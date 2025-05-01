@@ -548,28 +548,6 @@ class ContentForm(forms.ModelForm):
 
     """
 
-    FIELDS = (
-        # 0: Database
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'release_notes', 'acknowledgements',
-         'conflicts_of_interest',
-         ),
-        # 1: Software
-        ('title', 'abstract', 'background', 'content_description',
-         'methods', 'installation', 'usage_notes', 'release_notes',
-         'acknowledgements', 'conflicts_of_interest', ),
-        # 2: Challenge
-        ('title', 'abstract', 'background', 'methods', 'content_description',
-         'usage_notes', 'release_notes', 'acknowledgements',
-         'conflicts_of_interest',
-         ),
-        # 3: Model
-        ('title', 'abstract', 'background', 'content_description', 'methods',
-         'installation', 'usage_notes', 'release_notes',
-         'acknowledgements', 'conflicts_of_interest',
-         ),
-    )
-
     HELP_TEXTS = (
         # 0: Database
         {'methods': '* The methodology employed for the study or research. Describe how the data was collected.',
@@ -598,11 +576,9 @@ class ContentForm(forms.ModelForm):
 
     class Meta:
         model = ActiveProject
-        # This includes fields for all resource types.
-        fields = ('title', 'abstract', 'background', 'methods',
-                  'content_description', 'installation', 'usage_notes',
-                  'acknowledgements', 'conflicts_of_interest',
-                  'release_notes',)
+
+        # Fields are chosen dynamically by __init__
+        exclude = ()
 
         help_texts = {
             'title': '* The title of the resource.',
@@ -614,12 +590,16 @@ class ContentForm(forms.ModelForm):
             'release_notes': 'Important notes about the current release, and changes from previous versions.'
         }
 
-    def __init__(self, resource_type, editable=True, **kwargs):
-        super(ContentForm, self).__init__(**kwargs)
-        self.fields = OrderedDict((k, self.fields[k]) for k in self.FIELDS[resource_type])
+    def __init__(self, editable=True, **kwargs):
+        super().__init__(**kwargs)
+        resource_type = self.instance.resource_type.id
 
-        for l in ActiveProject.LABELS[resource_type]:
-            self.fields[l].label = ActiveProject.LABELS[resource_type][l]
+        fields = ['title']
+        for section in self.instance.content_sections():
+            if section.field_name != 'ethics_statement':
+                self.fields[section.field_name].label = section.title
+                fields.append(section.field_name)
+        self.fields = OrderedDict((k, self.fields[k]) for k in fields)
 
         for h in self.__class__.HELP_TEXTS[resource_type]:
             self.fields[h].help_text = self.__class__.HELP_TEXTS[resource_type][h]
