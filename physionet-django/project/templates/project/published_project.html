@@ -305,17 +305,12 @@
         {% endif %}
 
         <ul>
-          {% if project.access_policy %}
-            {% if project.compressed_storage_size %}
+          {% if project.compressed_storage_size %}
             <li><a href="{% url 'serve_published_project_zip' project.slug project.version %}">Download
               the ZIP file</a> ({{ compressed_size }})
             </li>
-            {% endif %}
-          {% else %}
-            {% if project.compressed_storage_size %}
-              <li><a href="{% static project.zip_url %}">Download the ZIP file</a> ({{ compressed_size }})
-              </li>
-            {% endif %}
+          {% endif %}
+          {% if not project.access_policy %}
             {% if project.gcp.sent_files %}
               <li>Access the files using the Google Cloud Storage Browser <a
                 href="https://console.cloud.google.com/storage/browser/{{ project.gcp.bucket_name }}/">here</a>.
