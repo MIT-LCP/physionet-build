@@ -4,23 +4,25 @@ import shutil
 import subprocess
 
 from django.conf import settings
-from django.http import HttpResponse
+from django.contrib.staticfiles import finders
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from project.authorization.access import can_view_project_files
 from project.models import AccessPolicy, PublishedProject
 from project.views import project_auth
 
-# PUBLIC_ROOT: chroot directory for public databases
+# PUBLIC_ROOT: chroot directory for static files
 # (note that all files located within this directory are treated as public)
-PUBLIC_ROOT = os.path.dirname(PublishedProject.PUBLIC_FILE_ROOT)
-
-# PUBLIC_DBPATH: path to main database directory within PUBLIC_ROOT
-PUBLIC_DBPATH = os.path.basename(PublishedProject.PUBLIC_FILE_ROOT)
+PUBLIC_ROOT = finders.find('lightwave')
 
 # ORIGINAL_DBCAL_FILE: absolute path to the wfdbcal file from WFDB
 ORIGINAL_DBCAL_FILE = '/usr/local/database/wfdbcal'
 # DBCAL_FILE: absolute path to the public wfdbcal symlink file
-DBCAL_FILE = os.path.join(PUBLIC_ROOT, 'wfdbcal')
+DBCAL_FILE = os.path.join(
+    settings.STATIC_ROOT or settings.STATICFILES_DIRS[0],
+    'wfdbcal',
+)
 
 
 def lightwave_home(request):
@@ -121,20 +123,79 @@ def serve_lightwave(query_string, root, dbpath='/', dblist=None, dbcal=None,
     return resp
 
 
+def lightwave_error(error_code, message, public):
+    """
+    Return an error to the LightWAVE client.
+    """
+    resp = JsonResponse({
+        'success': False,
+        'code': error_code,
+        'error': message,
+    })
+    if public:
+        resp['Access-Control-Allow-Origin'] = '*'
+        resp['Access-Control-Allow-Headers'] = 'x-requested-with'
+    return resp
+
+
 def lightwave_server(request):
     """
     Request LightWAVE data for a published database.
     """
-    if request.GET.get('action', '') == 'dblist':
-        projects = PublishedProject.objects.filter(
-            has_wfdb=True, access_policy=AccessPolicy.OPEN, deprecated_files=False
-        ).order_by('title', '-version_order')
+    # Here, we want to select only those columns that are needed for
+    # formatting the database list (action=dblist) or for checking
+    # that the chosen project is accessible.  If the behavior of
+    # can_view_project_files() and/or project.file_root() is changed
+    # in the future, this list of columns may need to be updated.
+    projects = PublishedProject.objects.filter(
+        has_wfdb=True,
+        access_policy=AccessPolicy.OPEN,
+        deprecated_files=False,
+    ).only(
+        'slug',
+        'title',
+        'version',
+        'access_policy',
+        'allow_file_downloads',
+        'deprecated_files',
+    ).order_by('title', '-version_order')
+
+    params = request.GET.copy()
+    path = params.get('db')
+    root = PUBLIC_ROOT
+    dblist = None
+
+    if path is None:
         dblist = '\n'.join('{}/{}\t{}'.format(p.slug, p.version, p) for p in projects)
+    elif '/' in path:
+        parts = path.split('/', 2)
+        project_alias = '/'.join(parts[0:2])
+        try:
+            project = projects.get(slug=parts[0], version=parts[1])
+        except PublishedProject.DoesNotExist:
+            return lightwave_error(
+                'NOT_FOUND',
+                f'Project {project_alias!r} does not exist',
+                public=True,
+            )
+        if can_view_project_files(project, request.user):
+            root = project.file_root()
+            params['db'] = ''.join(parts[2:]) or '.'
+        else:
+            return lightwave_error(
+                'FORBIDDEN',
+                f'Permission denied for project {project_alias!r}',
+                public=True,
+            )
     else:
-        dblist = None
-    return serve_lightwave(query_string=request.GET.urlencode(),
-                           root=PUBLIC_ROOT,
-                           dbpath=PUBLIC_DBPATH,
+        return lightwave_error(
+            'NOT_FOUND',
+            f'{path!r} is not a valid project name',
+            public=True,
+        )
+
+    return serve_lightwave(query_string=params.urlencode(),
+                           root=root,
                            dblist=dblist,
                            public=True)
 
