@@ -33,12 +33,18 @@ class TestPublished(TestMixin):
         for q in test_queries:
             qstr = q.format(db='demobsn/1.0', record='231')
 
-            response = self.client.get(server + '?' + qstr)
+            # Each request (both 'dblist' and non-'dblist' requests)
+            # should make exactly one database query; see
+            # views.lightwave_server.
+
+            with self.assertNumQueries(1):
+                response = self.client.get(server + '?' + qstr)
             self.assertEqual(response.status_code, 200)
             data = json.loads(response.content.decode())
             self.assertEqual(data['success'], True)
 
-            response = self.client.get(server + '?' + qstr + '&callback=X')
+            with self.assertNumQueries(1):
+                response = self.client.get(server + '?' + qstr + '&callback=X')
             self.assertEqual(response.status_code, 200)
             data = json.loads(response.content.decode()[2:-1])
             self.assertEqual(data['success'], True)
