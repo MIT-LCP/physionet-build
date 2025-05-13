@@ -186,7 +186,7 @@
                 {% if project.required_trainings.all|length > 0 %}
                   {% for training in project.required_trainings.all %}
                     <br>
-                    <a href="{% url 'project_required_trainings_preview' project.slug %}#{{ training.id }}">{{ training }}</a>
+                    <a href="{% url 'published_project_required_training' project.slug project.version %}#{{ training.id }}"{{ training }}>{{ training }}</a>
                   {% endfor %}
                 {% else %}
                   <br>No training required
