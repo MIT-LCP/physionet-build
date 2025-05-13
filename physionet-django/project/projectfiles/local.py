@@ -124,10 +124,11 @@ class LocalProjectFiles(BaseProjectFiles):
         pass
 
     def get_project_file_root(self, slug, version, access_policy, klass):
-        if access_policy:
-            return os.path.join(klass.PROTECTED_FILE_ROOT, slug)
-        else:
-            return os.path.join(klass.PUBLIC_FILE_ROOT, slug)
+        return os.path.join(
+            settings.MEDIA_ROOT,
+            'published-projects',
+            slug,
+        )
 
     def get_file_root(self, slug, version, access_policy, klass):
         return os.path.join(self.get_project_file_root(slug, version, access_policy, klass), version)
