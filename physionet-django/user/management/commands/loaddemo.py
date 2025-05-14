@@ -65,10 +65,9 @@ class Command(BaseCommand):
         demo_fixtures = find_demo_fixtures(project_apps)
         call_command('loaddata', *demo_fixtures, verbosity=1)
 
-        # Copy the demo media and static content
+        # Copy the demo media content
         copy_demo_media()
-        copy_demo_static()
-        print('Copied demo media and static files.')
+        print('Copied demo media files.')
         # Make symlink of wfdbcal for lightwave
         if os.path.exists(ORIGINAL_DBCAL_FILE):
             os.symlink(ORIGINAL_DBCAL_FILE, DBCAL_FILE)
@@ -119,37 +118,6 @@ def copy_demo_media():
     # Published project files should have been made read-only at
     # the time of publication
     ppdir = os.path.join(settings.MEDIA_ROOT, 'published-projects')
-    for dirpath, subdirs, files in os.walk(ppdir):
-        if dirpath != ppdir:
-            for f in files:
-                os.chmod(os.path.join(dirpath, f), 0o444)
-            for d in subdirs:
-                os.chmod(os.path.join(dirpath, d), 0o555)
-
-
-def copy_demo_static():
-    """
-    Copy the demo static files into the effective static root.
-
-    """
-    demo_static_root = os.path.join(settings.DEMO_FILE_ROOT, 'static')
-
-    # Either the actual static root if defined, or the staticfiles_dirs
-    effective_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
-
-    for subdir in os.listdir(demo_static_root):
-        demo_subdir = os.path.join(demo_static_root, subdir)
-        target_subdir = os.path.join(effective_static_root, subdir)
-
-        for item in [i for i in os.listdir(demo_subdir) if i != '.gitkeep']:
-            shutil.copytree(os.path.join(demo_subdir, item),
-                            os.path.join(target_subdir, item),
-                            ignore=shutil.ignore_patterns('.gitkeep'),
-                            dirs_exist_ok=True)
-
-    # Published project files should have been made read-only at
-    # the time of publication
-    ppdir = os.path.join(effective_static_root, 'published-projects')
     for dirpath, subdirs, files in os.walk(ppdir):
         if dirpath != ppdir:
             for f in files:
