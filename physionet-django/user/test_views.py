@@ -145,23 +145,20 @@ class TestMixin(TestCase):
 
         self.test_static_root = settings.STATIC_ROOT if settings.STATIC_ROOT else settings.STATICFILES_DIRS[0]
         _force_delete_tree(self.test_static_root)
-        shutil.copytree(os.path.abspath(os.path.join(settings.DEMO_FILE_ROOT, 'static')),
-                        self.test_static_root,
-                        ignore=shutil.ignore_patterns('.gitkeep'))
+        os.mkdir(self.test_static_root)
 
         if os.path.exists(ORIGINAL_DBCAL_FILE):
             os.symlink(ORIGINAL_DBCAL_FILE, DBCAL_FILE)
 
         # Published project files should have been made read-only at
         # the time of publication
-        for topdir in (settings.MEDIA_ROOT, self.test_static_root):
-            ppdir = os.path.join(topdir, 'published-projects')
-            for dirpath, subdirs, files in os.walk(ppdir):
-                if dirpath != ppdir:
-                    for f in files:
-                        os.chmod(os.path.join(dirpath, f), 0o444)
-                    for d in subdirs:
-                        os.chmod(os.path.join(dirpath, d), 0o555)
+        ppdir = os.path.join(settings.MEDIA_ROOT, 'published-projects')
+        for dirpath, subdirs, files in os.walk(ppdir):
+            if dirpath != ppdir:
+                for f in files:
+                    os.chmod(os.path.join(dirpath, f), 0o444)
+                for d in subdirs:
+                    os.chmod(os.path.join(dirpath, d), 0o555)
 
     def tearDown(self):
         """
