@@ -2053,7 +2053,11 @@ def sign_dua(request, project_slug, version):
     if request.method == 'POST' and 'agree' in request.POST:
         DUASignature.objects.create(user=user, project=project)
         if has_s3_credentials() and files_sent_to_S3(project):
-            if user.cloud_information is not None and user.cloud_information.aws_verification_datetime is not None:
+            if (
+                hasattr(user, 'cloud_information')
+                and user.cloud_information is not None
+                and user.cloud_information.aws_verification_datetime is not None
+            ):
                 add_user_to_access_point_policy(project, user)
 
         return render(request, 'project/sign_dua_complete.html', {
