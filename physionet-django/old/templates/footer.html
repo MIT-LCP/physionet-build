@@ -1,0 +1,18 @@
+<!-- This footer template is from the bootstrap 'blog' example -->
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/footer.css' %}"/>
+
+<footer class="blog-footer">
+  <div class="container">
+    <div class="row row-centered">
+      <div class="col-xs-10 center col-centered">
+        <p>{{ SITE_NAME }} is a repository of freely-available medical research data, managed by the {{ FOOTER_MANAGED_BY }}.</p>
+        <p>Supported by the {{ FOOTER_SUPPORTED_BY }}.</p>
+        {% if FOOTER_ACCESSIBILITY_PAGE %}
+          <p>For more accessibility options, see {{ FOOTER_ACCESSIBILITY_PAGE|safe }}.</p>
+        {% endif %}
+        <p><a href="#">Back to top</a></p>
+      </div>
+    </div>
+  </div>
+</footer>

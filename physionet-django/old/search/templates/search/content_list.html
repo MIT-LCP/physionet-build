@@ -1,0 +1,38 @@
+{% load project_templatetags %}
+
+{% for published_project in projects %}
+  <div class="project">
+    <p>{{ published_project.resource_type.id|resource_badge|safe }}
+       {{ published_project.access_policy|access_badge|safe }}
+    </p>
+    <{% firstof content_list_header 'h2' %}><a href="{% url 'published_project' published_project.slug published_project.version %}">{{ published_project.title }}</a></{% firstof content_list_header 'h2' %}>
+    {% if not published_project.is_legacy %}
+      <p class="text-muted">
+          {% for author in published_project.author_list %}
+          {{ author.get_full_name }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+      </p>
+    {% endif %}
+    <div style="margin-bottom: 1rem;">
+      {% if not published_project.short_description %}
+        {{ published_project.abstract|safe|truncatechars_html:250 }}
+      {% else %}
+        {{ published_project.short_description }}
+      {% endif %}
+    </div>
+    <p class="text-muted">
+      {% for topic in published_project.topics.all %}
+        {{ topic|topic_badge|safe }}
+      {% endfor %}
+    </p>
+    <p class="pub-details">Published: {{ published_project.publish_datetime|date }}.
+      Version: {{ published_project.version }}</p>
+    {% if published_project.files.is_lightwave_supported %}
+      {% can_view_project_files published_project request.user as user_can_view_project_files %}
+      {% if published_project.has_wfdb and user_can_view_project_files %}
+        <a href="{% url 'lightwave_home' %}?db={{ published_project.slug }}/{{ published_project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a>
+      {% endif %}
+    {% endif %}
+    <hr>
+  </div>
+{% endfor %}

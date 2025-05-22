@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% load project_templatetags %}
+
+{% block title %}
+{{ SITE_NAME }}
+{% endblock %}
+
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
+<link rel="alternate" type="application/rss+xml" title="{{ SITE_NAME }} News" href="{% url 'news_rss' %}"/>
+{% endblock %}
+
+{# avoid using flexbody style #}
+{% block body %}
+<body>
+  {% include "navbar.html" %}
+
+  {% if front_page_banner %}
+  <div class="alert alert-primary front-page-banner">
+    <ul class="list-unstyled front-page-banner">
+    {% for news in front_page_banner %}
+    <li>
+      <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
+    </li>
+    {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  <div class="main-header">
+    <div class="center">
+      <h1>{{ SITE_NAME }}</h1>
+      <p>
+        {{ STRAPLINE }}
+      </p>
+      <br>
+      <div>
+        {% for button in front_page_buttons %}
+            <a href="{{ button.url }}">{{ button.label|title }}</a>
+        {% endfor %}
+      </div>
+    </div>
+    <a href="#latest">
+      <div class="down-container"><div class="down"></div></div>
+    </a>
+  </div>
+  <div class="main">
+    <div class="main-content" id="latest">
+      <div class="content-box">
+        <h2>
+          Featured Resources
+        </h2>
+        <br>
+        {% include "search/content_list.html" with projects=featured content_list_header='h3' %}
+      </div><div class="content-box">
+        <h2>
+          Latest Resources
+        </h2>
+        <br>
+        {% include "search/content_list.html" with projects=latest content_list_header='h3' %}
+        <div class="more"><a class="btn btn-outline-dark" href="{% url 'content_index' %}">More resources</a></div>
+      </div>
+    </div><div class="main-side">
+      <h2>
+        News
+      </h2>
+      <br>
+      {% for news in news_pieces %}
+        <h3>
+          <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
+        </h3>
+        {% include "notification/news_content.html" %}
+        <hr>
+      {% endfor %}
+      <div class="more"><a class="btn btn-outline-dark" href="{% url 'news' %}">More news</a></div>
+    </div>
+  </div>
+
+  {% include "footer.html" %}
+  {% include "base_js_bottom.html" %}
+</body>
+{% endblock %}

@@ -1,0 +1,74 @@
+<nav class="nav">
+  <div class="container my-0 h-100 d-flex justify-content-between align-items-center">
+    <img src="/static/images/logo.png" alt="PhysioNet Logo" />
+    <div class="nav__links d-flex align-items-center">
+      <a href="/content"><button type="button" class="nav-link">Discover Data</button></a>
+      <a href="/about/publish"><button type="button" class="nav-link">Share Data</button></a>
+      <a href="/about"><button type="button" class="nav-link">About</button></a>
+      <a href="/news"><button type="button" class="nav-link">News</button></a>
+      <button type="button" class="nav-link nav-link--expandable">
+        Explore <i class="bi bi-chevron-down ml-2"></i>
+        <div class="nav-link__expand">
+          <a class="nav-sublink" href="/about/database">
+            <div class="nav-sublink__icon">
+              <img src="/static/images/icons/data.png" />
+            </div>
+            <div class="nav-sublink__text">
+              <span class="nav-sublink__title">Data</span>
+              <span class="nav-sublink__description">This page displays an alphabetical list of all the databases.</span>
+            </div>
+          </a>
+          <a class="nav-sublink" href="/about/software">
+            <div class="nav-sublink__icon">
+              <img src="/static/images/icons/data.png" />
+            </div>
+            <div class="nav-sublink__text">
+              <span class="nav-sublink__title">Software</span>
+              <span class="nav-sublink__description">This page displays an alphabetical list of all software projects.</span>
+            </div>
+          </a>
+          <a class="nav-sublink" href="/about/challenge">
+            <div class="nav-sublink__icon">
+              <img src="/static/images/icons/data.png" />
+            </div>
+            <div class="nav-sublink__text">
+              <span class="nav-sublink__title">Challenges</span>
+              <span class="nav-sublink__description">PhysioNet supports open challenges, which invite participants can tackle.</span>
+            </div>
+          </a>
+          <a class="nav-sublink" href="/about/tutorial">
+            <div class="nav-sublink__icon">
+              <img src="/static/images/icons/data.png" />
+            </div>
+            <div class="nav-sublink__text">
+              <span class="nav-sublink__title">Tutorials</span>
+              <span class="nav-sublink__description">PhysioNet tutorials are intended to provide hands-on introductions to the data and software available.</span>
+            </div>
+          </a>
+        </div>
+      </button>
+    </div>
+    <div>
+      <button type="button" class="circle-button mr-2"><i class="bi bi-search"></i></button>
+      <button type="button" class="circle-button"><i class="bi bi-person"></i></button>
+    </div>
+  </div>
+</nav>
+
+<!-- move this to the right place -->
+<script>
+const expandableLinks = document.querySelectorAll('.nav-link--expandable');
+
+expandableLinks.forEach((link) => {
+  link.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    ev.target.classList.toggle('nav-link--expanded');
+  });
+});
+
+document.addEventListener('click', (ev) => {
+  expandableLinks.forEach((link) => {
+    link.classList.remove('nav-link--expanded');
+  });
+});
+</script>

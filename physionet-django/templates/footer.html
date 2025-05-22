@@ -1,17 +1,46 @@
-<!-- This footer template is from the bootstrap 'blog' example -->
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/footer.css' %}"/>
 
-<footer class="blog-footer">
-  <div class="container">
-    <div class="row row-centered">
-      <div class="col-xs-10 center col-centered">
-        <p>{{ SITE_NAME }} is a repository of freely-available medical research data, managed by the {{ FOOTER_MANAGED_BY }}.</p>
-        <p>Supported by the {{ FOOTER_SUPPORTED_BY }}.</p>
-        {% if FOOTER_ACCESSIBILITY_PAGE %}
-          <p>For more accessibility options, see {{ FOOTER_ACCESSIBILITY_PAGE|safe }}.</p>
-        {% endif %}
-        <p><a href="#">Back to top</a></p>
+<footer class="footer w-100 secondary-bg py-5">
+  <div class="container my-0 py-5">
+    <div class="d-flex light-text">
+      <div style="width: 30%;">
+        <img src="/static/images/logo-white.png" alt="PhysioNet Logo" class="pb-2" />
+        <p class="dark-light-text mb-2">PhysioNet is a repository of freely-available medical research data, managed by the MIT Laboratory for Computational Physiology.</p>
+        <p class="dark-light-text mb-2">Supported by the National Institute of Biomedical Imaging and Bioengineering (NIBIB) under NIH grant number R01EB030362.</p>
+        <p class="dark-light-text mb-2">For more accessibility options, see the <a class="dark-primary-text" href="https://accessibility.mit.edu/">MIT Accessibility Page.</a></p>
+      </div>
+      <div class="d-flex flex-grow pl-5">
+        <div class="d-flex flex-column flex-grow">
+          <h2 class="text-white font-weight-bold">Navigation</h2>
+          <a class="pb-3 dark-light-text">Discover Data</a>
+          <a class="pb-3 dark-light-text">Share Data</a>
+          <a class="pb-3 dark-light-text">About</a>
+          <a class="pb-3 dark-light-text">News</a>
+        </div>
+        <div class="d-flex flex-column flex-grow">
+          <h2 class="text-white font-weight-bold">Explore</h2>
+          {% for button in front_page_buttons %}
+            <a href="{{ button.url }}" class="pb-3 dark-light-text">{{ button.label|title }}</a>
+          {% endfor %}
+        </div>
+        <div class="d-flex flex-column flex-grow">
+          <h2 class="text-white font-weight-bold">Subscribe to our Newsletter</h2>
+          <input type="email" class="form-control mb-2" placeholder="Your email">
+          <button type="button" class="primary-button">Subscribe Now</button>
+        </div>
+      </div>
+    </div>
+    <hr >
+    <div class="d-flex justify-content-between">
+      <div class="d-flex">
+        <a class="mr-3" href=""><img src="/static/images/icons/twitter.png"></a>
+        <a class="mr-3" href=""><img src="/static/images/icons/linkedin.png"></a>
+        <a href=""><img src="/static/images/icons/facebook.png"></a>
+      </div>
+      <div>
+        <a class="dark-light-text mr-5" href="">Terms & Conditions</a>
+        <a class="dark-light-text" href="">Privacy Policy</a>
       </div>
     </div>
   </div>
