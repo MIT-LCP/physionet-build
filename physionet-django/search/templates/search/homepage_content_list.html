@@ -1,0 +1,31 @@
+{% load project_templatetags %}
+
+{% for published_project in projects|slice:":3" %}
+  <div class="card card--flat d-flex flex-column" style="flex: 1;">
+    <div>
+      {{ published_project.resource_type.id|resource_badge|safe }}
+      {{ published_project.access_policy|access_badge|safe }}
+    </div>
+    <h3 class="card-title">
+      <a href="{% url 'published_project' published_project.slug published_project.version %}">
+        {{ published_project.title }}
+      </a>
+    </h3>
+    {% if not published_project.is_legacy %}
+      <p>
+          {% for author in published_project.author_list %}
+          {{ author.get_full_name }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+      </p>
+    {% endif %}
+
+    {% if not published_project.short_description %}
+      {{ published_project.abstract|safe|truncatechars_html:250 }}
+    {% else %}
+      {{ published_project.short_description }}
+    {% endif %}
+
+    <span class="caption-text">Published: {{ published_project.publish_datetime|date }}.
+      Version: {{ published_project.version }}</span>
+  </div>
+{% endfor %}

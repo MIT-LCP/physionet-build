@@ -1,47 +1,48 @@
 {% load static %}
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/footer.css' %}"/>
 
-<footer class="footer w-100 secondary-bg py-5">
-  <div class="container my-0 py-5">
-    <div class="d-flex light-text">
-      <div style="width: 30%;">
-        <img src="{% static 'images/logo-white.png' %}" alt="PhysioNet Logo" class="pb-2" />
-        <p class="dark-light-text mb-2">PhysioNet is a repository of freely-available medical research data, managed by the MIT Laboratory for Computational Physiology.</p>
-        <p class="dark-light-text mb-2">Supported by the National Institute of Biomedical Imaging and Bioengineering (NIBIB) under NIH grant number R01EB030362.</p>
-        <p class="dark-light-text mb-2">For more accessibility options, see the <a class="dark-primary-text" href="https://accessibility.mit.edu/">MIT Accessibility Page.</a></p>
-      </div>
-      <div class="d-flex flex-grow pl-5">
-        <div class="d-flex flex-column flex-grow">
+<div class="modern-ui">
+  <footer class="footer w-100 secondary-bg py-5">
+    <div class="container my-0 py-5">
+      <img src="{% static 'images/logo-white.png' %}" alt="PhysioNet Logo" class="pb-2" />
+      <div class="footer__columns light-text">
+        <div>
+          <p class="dark-light-text mb-2">PhysioNet is a repository of freely-available medical research data, managed by the MIT Laboratory for Computational Physiology.</p>
+          <p class="dark-light-text mb-2">Supported by the National Institute of Biomedical Imaging and Bioengineering (NIBIB) under NIH grant number R01EB030362.</p>
+          <p class="dark-light-text mb-2">For more accessibility options, see the <a class="dark-primary-text" href="https://accessibility.mit.edu/">MIT Accessibility Page.</a></p>
+        </div>
+        <div class="d-flex flex-column" style="padding-left: 100px;">
           <h2 class="text-white font-weight-bold">Navigation</h2>
-          <a class="pb-3 dark-light-text">Discover Data</a>
-          <a class="pb-3 dark-light-text">Share Data</a>
-          <a class="pb-3 dark-light-text">About</a>
-          <a class="pb-3 dark-light-text">News</a>
+          <a href="/content" class="pb-3 dark-light-text">Discover Data</a>
+          <a href="/about/publish" class="pb-3 dark-light-text">Share Data</a>
+          <a href="/about" class="pb-3 dark-light-text">About</a>
+          <a href="/news" class="pb-3 dark-light-text">News</a>
         </div>
-        <div class="d-flex flex-column flex-grow">
+        <div class="d-flex flex-column">
           <h2 class="text-white font-weight-bold">Explore</h2>
-          {% for button in front_page_buttons %}
-            <a href="{{ button.url }}" class="pb-3 dark-light-text">{{ button.label|title }}</a>
-          {% endfor %}
+          <a href="/about/database" class="pb-3 dark-light-text">Data</a>
+          <a href="/about/software" class="pb-3 dark-light-text">Software</a>
+          <a href="/about/challenge" class="pb-3 dark-light-text">Challenges</a>
+          <a href="/about/tutorial" class="pb-3 dark-light-text">Tutorials</a>
         </div>
-        <div class="d-flex flex-column flex-grow">
+        <!-- <div class="d-flex flex-column flex-grow">
           <h2 class="text-white font-weight-bold">Subscribe to our Newsletter</h2>
           <input type="email" class="form-control mb-2" placeholder="Your email">
           <button type="button" class="primary-button">Subscribe Now</button>
+        </div> -->
+      </div>
+      <hr >
+      <div class="d-flex justify-content-between">
+        <div class="d-flex">
+          <a class="mr-3" href=""><img src="{% static 'images/icons/twitter.png' %}"></a>
+          <a class="mr-3" href=""><img src="{% static 'images/icons/linkedin.png' %}"></a>
+          <a href=""><img src="{% static 'images/icons/facebook.png' %}"></a>
+        </div>
+        <div>
+          <a class="dark-light-text mr-5" href="">Terms & Conditions</a>
+          <a class="dark-light-text" href="">Privacy Policy</a>
         </div>
       </div>
     </div>
-    <hr >
-    <div class="d-flex justify-content-between">
-      <div class="d-flex">
-        <a class="mr-3" href=""><img src="{% static 'images/icons/twitter.png' %}"></a>
-        <a class="mr-3" href=""><img src="{% static 'images/icons/linkedin.png' %}"></a>
-        <a href=""><img src="{% static 'images/icons/facebook.png' %}"></a>
-      </div>
-      <div>
-        <a class="dark-light-text mr-5" href="">Terms & Conditions</a>
-        <a class="dark-light-text" href="">Privacy Policy</a>
-      </div>
-    </div>
-  </div>
-</footer>
+  </footer>
+</div>

@@ -11,6 +11,7 @@
     {% block local_js_top %}{% endblock %}
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/style.css' %}"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +21,7 @@
   {% block body %}
   <body class="flexbody">
     {% include "navbar.html" %}
+    <div class="nav-spacer"></div>
 
     <main>{% block content %}{% endblock %}</main>
 
