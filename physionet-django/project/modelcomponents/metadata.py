@@ -427,7 +427,7 @@ class Metadata(models.Model):
                             '<i>{platform_name}</i> ({year}). {rrid}')
 
             doi_format = (' <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>.')
+                          'https://doi.org/{doi}</a>')
 
             if (len(authors) == 1):
                 all_authors = authors[0].get_full_name(reverse=True)
@@ -445,7 +445,7 @@ class Metadata(models.Model):
                             '{version}). <i>{platform_name}</i>. {rrid}')
 
             doi_format = (' <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>.')
+                          'https://doi.org/{doi}</a>')
 
             if (len(authors) == 1):
                 all_authors = authors[0].initialed_name()
@@ -470,7 +470,7 @@ class Metadata(models.Model):
                             '<i>{platform_name}</i> ({year}). {rrid}')
 
             doi_format = (' <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>.')
+                          'https://doi.org/{doi}</a>')
 
             if (len(authors) == 1):
                 all_authors = authors[0].get_full_name(reverse=True)
@@ -488,7 +488,7 @@ class Metadata(models.Model):
 
             doi_format = (" Available at: "
                           "<a href='https://doi.org/{doi}'>"
-                          "https://doi.org/{doi}</a>.")
+                          "https://doi.org/{doi}</a>")
 
             if (len(authors) == 1):
                 all_authors = authors[0].initialed_name()
@@ -505,7 +505,7 @@ class Metadata(models.Model):
 
             doi_format = (' Available from: '
                           '<a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>.')
+                          'https://doi.org/{doi}</a>')
 
             all_authors = ', '.join(a.initialed_name(commas=False,
                                     periods=False) for a in authors)
