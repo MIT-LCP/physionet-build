@@ -721,6 +721,11 @@ LOG_TIMEDELTA = config('LOG_TIMEDELTA', cast=int, default='10')
 # Ticket system for user support
 TICKET_SYSTEM_URL = config('TICKET_SYSTEM_URL', default=None)
 
+# Platform Research Resource Identifer: https://rrid.site/
+# Added to citations to support tracking of reuse.
+# e.g. PhysioNet is "SCR_007345"
+PLATFORM_RRID = config('PLATFORM_RRID', default=None)
+
 #  Platform wide citation config
 PLATFORM_WIDE_CITATION = {
     'APA': config('PLATFORM_WIDE_CITATION_APA', default=None),

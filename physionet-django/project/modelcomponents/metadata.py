@@ -414,18 +414,20 @@ class Metadata(models.Model):
             year = timezone.now().year
             doi = '10.13026/*****'
 
+        rrid_text = f"RRID:{settings.PLATFORM_RRID}." if settings.PLATFORM_RRID else ""
         shared_content = {'year': year,
                           'title': self.title,
                           'version': self.version,
-                          'platform_name': settings.SITE_NAME}
+                          'platform_name': settings.SITE_NAME,
+                          'rrid': rrid_text}
 
         if style == 'MLA':
 
             style_format = ('{author}. "{title}" (version {version}). '
-                            '<i>{platform_name}</i> ({year})')
+                            '<i>{platform_name}</i> ({year}). {rrid}')
 
-            doi_format = (', <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>.')
+            doi_format = (' <a href="https://doi.org/{doi}">'
+                          'https://doi.org/{doi}</a>')
 
             if (len(authors) == 1):
                 all_authors = authors[0].get_full_name(reverse=True)
@@ -440,10 +442,10 @@ class Metadata(models.Model):
         elif style == 'APA':
 
             style_format = ('{author} ({year}). {title} (version '
-                            '{version}). <i>{platform_name}</i>')
+                            '{version}). <i>{platform_name}</i>. {rrid}')
 
-            doi_format = ('. <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>.')
+            doi_format = (' <a href="https://doi.org/{doi}">'
+                          'https://doi.org/{doi}</a>')
 
             if (len(authors) == 1):
                 all_authors = authors[0].initialed_name()
@@ -465,10 +467,10 @@ class Metadata(models.Model):
         elif style == 'Chicago':
 
             style_format = ('{author}. "{title}" (version {version}). '
-                            '<i>{platform_name}</i> ({year})')
+                            '<i>{platform_name}</i> ({year}). {rrid}')
 
-            doi_format = ('. <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>.')
+            doi_format = (' <a href="https://doi.org/{doi}">'
+                          'https://doi.org/{doi}</a>')
 
             if (len(authors) == 1):
                 all_authors = authors[0].get_full_name(reverse=True)
@@ -482,11 +484,11 @@ class Metadata(models.Model):
         elif style == 'Harvard':
 
             style_format = ("{author} ({year}) '{title}' (version "
-                            "{version}), <i>{platform_name}</i>")
+                            "{version}), <i>{platform_name}</i>. {rrid}")
 
-            doi_format = (". Available at: "
+            doi_format = (" Available at: "
                           "<a href='https://doi.org/{doi}'>"
-                          "https://doi.org/{doi}</a>.")
+                          "https://doi.org/{doi}</a>")
 
             if (len(authors) == 1):
                 all_authors = authors[0].initialed_name()
@@ -499,11 +501,11 @@ class Metadata(models.Model):
         elif style == 'Vancouver':
 
             style_format = ('{author}. {title} (version {version}). '
-                            '{platform_name}. {year}')
+                            '{platform_name}. {year}. {rrid}')
 
-            doi_format = ('. Available from: '
+            doi_format = (' Available from: '
                           '<a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>.')
+                          'https://doi.org/{doi}</a>')
 
             all_authors = ', '.join(a.initialed_name(commas=False,
                                     periods=False) for a in authors)
