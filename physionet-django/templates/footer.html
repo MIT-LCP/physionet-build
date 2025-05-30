@@ -34,13 +34,26 @@
       <hr >
       <div class="d-flex justify-content-between">
         <div class="d-flex">
-          <a class="mr-3" href=""><img src="{% static 'images/icons/twitter.png' %}"></a>
-          <a class="mr-3" href=""><img src="{% static 'images/icons/linkedin.png' %}"></a>
-          <a href=""><img src="{% static 'images/icons/facebook.png' %}"></a>
+          {% if GITHUB_LINK %}
+            <a class="mr-3" href="{{ GITHUB_LINK }}"><img src="{% static 'images/icons/github.png' %}"></a>
+          {% endif %}
+          {% if X_LINK %}
+            <a class="mr-3" href="{{ X_LINK }}"><img src="{% static 'images/icons/x.png' %}"></a>
+          {% endif %}
+          {% if LINKEDIN_LINK %}
+            <a class="mr-3" href="{{ LINKEDIN_LINK }}"><img src="{% static 'images/icons/linkedin.png' %}"></a>
+          {% endif %}
+          {% if FACEBOOK_LINK %}
+            <a href="{{ FACEBOOK_LINK }}"><img src="{% static 'images/icons/facebook.png' %}"></a>
+          {% endif %}
         </div>
         <div>
-          <a class="dark-light-text mr-5" href="">Terms & Conditions</a>
-          <a class="dark-light-text" href="">Privacy Policy</a>
+          {% if TERMS_AND_CONDITIONS_LINK %}
+            <a class="dark-light-text mr-5" href="{{ TERMS_AND_CONDITIONS_LINK }}">Terms & Conditions</a>
+          {% endif %}
+          {% if PRIVACY_POLICY_URL %}
+            <a class="dark-light-text" href="{{ PRIVACY_POLICY_URL }}">Privacy Policy</a>
+          {% endif %}
         </div>
       </div>
     </div>

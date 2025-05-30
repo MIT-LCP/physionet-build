@@ -138,6 +138,7 @@ TEMPLATES = [
                 'physionet.context_processors.platform_config',
                 'sso.context_processors.sso_enabled',
                 'physionet.context_processors.cloud_research_environments_config',
+                'physionet.context_processors.homepage_config'
             ],
             'debug': DEBUG,
         },
@@ -733,6 +734,15 @@ PLATFORM_WIDE_CITATION = {
 SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
                                      default='https://github.com/MIT-LCP/physionet-build')
 MAX_TRAINING_REPORT_UPLOAD_SIZE = config('MAX_TRAINING_REPORT_UPLOAD_SIZE', cast=int, default=1048576)
+
+# Homepage config
+GITHUB_LINK = config('GITHUB_LINK', cast=str)
+X_LINK = config('X_LINK', cast=str)
+LINKEDIN_LINK = config('LINKEDIN_LINK', cast=str)
+FACEBOOK_LINK = config('FACEBOOK_LINK', cast=str)
+
+TERMS_AND_CONDITIONS_LINK = config('TERMS_AND_CONDITIONS_LINK', cast=str)
+PRIVACY_POLICY_URL = config('PRIVACY_POLICY_URL', cast=str)
 
 # User model configurable settings
 MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)

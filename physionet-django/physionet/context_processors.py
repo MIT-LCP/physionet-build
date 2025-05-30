@@ -32,3 +32,13 @@ def cloud_research_environments_config(request):
     return {
         "ENABLE_CLOUD_RESEARCH_ENVIRONMENTS": settings.ENABLE_CLOUD_RESEARCH_ENVIRONMENTS,
     }
+
+def homepage_config(request):
+    return {
+        'GITHUB_LINK': settings.GITHUB_LINK,
+        "X_LINK": settings.X_LINK,
+        "LINKEDIN_LINK": settings.LINKEDIN_LINK,
+        "FACEBOOK_LINK": settings.FACEBOOK_LINK,
+        "TERMS_AND_CONDITIONS_LINK": settings.TERMS_AND_CONDITIONS_LINK,
+        "PRIVACY_POLICY_URL": settings.PRIVACY_POLICY_URL
+    }
