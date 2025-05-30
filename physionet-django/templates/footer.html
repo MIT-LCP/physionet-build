@@ -4,7 +4,7 @@
 <div class="modern-ui">
   <footer class="footer w-100 secondary-bg py-5">
     <div class="container my-0 py-5">
-      <img src="{% static 'images/logo-white.png' %}" alt="PhysioNet Logo" class="pb-2" />
+      <img src="{% static 'images/logo-white.png' %}" width="180px" alt="PhysioNet Logo" class="pb-2" />
       <div class="footer__columns light-text">
         <div>
           <p class="dark-light-text mb-2">PhysioNet is a repository of freely-available medical research data, managed by the MIT Laboratory for Computational Physiology.</p>
@@ -35,16 +35,16 @@
       <div class="d-flex justify-content-between">
         <div class="d-flex">
           {% if GITHUB_LINK %}
-            <a class="mr-3" href="{{ GITHUB_LINK }}"><img src="{% static 'images/icons/github.png' %}"></a>
+            <a class="mr-3" href=""><img src="{% static 'images/icons/github.png' %}" height="18px"></a>
           {% endif %}
           {% if X_LINK %}
-            <a class="mr-3" href="{{ X_LINK }}"><img src="{% static 'images/icons/x.png' %}"></a>
+            <a class="mr-3" href="{{ X_LINK }}"><img src="{% static 'images/icons/x.png' %}" height="18px"></a>
           {% endif %}
           {% if LINKEDIN_LINK %}
-            <a class="mr-3" href="{{ LINKEDIN_LINK }}"><img src="{% static 'images/icons/linkedin.png' %}"></a>
+            <a class="mr-3" href="{{ LINKEDIN_LINK }}"><img src="{% static 'images/icons/linkedin.png' %}" height="18px"></a>
           {% endif %}
           {% if FACEBOOK_LINK %}
-            <a href="{{ FACEBOOK_LINK }}"><img src="{% static 'images/icons/facebook.png' %}"></a>
+            <a href="{{ FACEBOOK_LINK }}"><img src="{% static 'images/icons/facebook.png' %}" height="18px"></a>
           {% endif %}
         </div>
         <div>

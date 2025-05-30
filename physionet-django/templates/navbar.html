@@ -3,7 +3,7 @@
 <div class="modern-ui nav-wrapper">
   <nav class="nav">
     <div class="container my-0 h-100 d-flex justify-content-between align-items-center">
-      <a href="/"><img src="{% static 'images/logo.png' %}" alt="PhysioNet Logo" /></a>
+      <a href="/"><img src="{% static 'images/logo.png' %}" width="200px" alt="PhysioNet Logo" /></a>
       <div class="nav__links align-items-center">
         <a href="/content"><button type="button" class="nav-link">Discover Data</button></a>
         <a href="/about/publish"><button type="button" class="nav-link">Share Data</button></a>
@@ -14,7 +14,7 @@
           <div class="nav-link__expand">
             <a class="nav-sublink" href="/about/database">
               <div class="nav-sublink__icon">
-                <img src="{% static 'images/icons/data.png' %}" />
+                <img src="{% static 'images/icons/data.png' %}" height="32px" />
               </div>
               <div class="nav-sublink__text">
                 <span class="nav-sublink__title">Data</span>
@@ -23,7 +23,7 @@
             </a>
             <a class="nav-sublink" href="/about/software">
               <div class="nav-sublink__icon">
-                <img src="{% static 'images/icons/software.png' %}" />
+                <img src="{% static 'images/icons/software.png' %}" height="32px" />
               </div>
               <div class="nav-sublink__text">
                 <span class="nav-sublink__title">Software</span>
@@ -32,7 +32,7 @@
             </a>
             <a class="nav-sublink" href="/about/challenge">
               <div class="nav-sublink__icon">
-                <img src="{% static 'images/icons/challenges.png' %}" />
+                <img src="{% static 'images/icons/challenges.png' %}" height="32px" />
               </div>
               <div class="nav-sublink__text">
                 <span class="nav-sublink__title">Challenges</span>
@@ -41,7 +41,7 @@
             </a>
             <a class="nav-sublink" href="/about/tutorial">
               <div class="nav-sublink__icon">
-                <img src="{% static 'images/icons/tutorials.png' %}" />
+                <img src="{% static 'images/icons/tutorials.png' %}" height="32px" />
               </div>
               <div class="nav-sublink__text">
                 <span class="nav-sublink__title">Tutorials</span>
@@ -75,7 +75,7 @@
               {% if user.is_authenticated and perms.events.view_event_menu %}
                 <a class="nav-sublink" href="{% url 'event_home' %}">
                   <div class="nav-sublink__icon">
-                    <img src="{% static 'images/icons/events.png' %}" />
+                    <img src="{% static 'images/icons/events.png' %}" height="32px" />
                   </div>
                   <div class="nav-sublink__text">
                     <span class="nav-sublink__title">Events</span>
@@ -87,7 +87,7 @@
                 {% if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS %}
                   <a class="nav-sublink" href="{% url 'research_environments' %}">
                     <div class="nav-sublink__icon">
-                      <img src="{% static 'images/icons/environments.png' %}" />
+                      <img src="{% static 'images/icons/environments.png' %}" height="32px" />
                     </div>
                     <div class="nav-sublink__text">
                       <span class="nav-sublink__title">Research Environments</span>
@@ -98,7 +98,7 @@
 
                 <a class="nav-sublink" href="{% url 'project_home' %}">
                   <div class="nav-sublink__icon">
-                    <img src="{% static 'images/icons/projects.png' %}" />
+                    <img src="{% static 'images/icons/projects.png' %}" height="32px" />
                   </div>
                   <div class="nav-sublink__text">
                     <span class="nav-sublink__title">Projects</span>
@@ -108,7 +108,7 @@
               {% endif %}
               <a class="nav-sublink" href="{% url 'user_settings' %}">
                 <div class="nav-sublink__icon">
-                  <img src="{% static 'images/icons/settings.png' %}" />
+                  <img src="{% static 'images/icons/settings.png' %}" height="32px" />
                 </div>
                 <div class="nav-sublink__text">
                   <span class="nav-sublink__title">Settings</span>
@@ -118,7 +118,7 @@
               {% if user.has_access_to_admin_console %}
                 <a class="nav-sublink" href="{% url 'console_home' %}">
                   <div class="nav-sublink__icon">
-                    <img src="{% static 'images/icons/admin.png' %}" />
+                    <img src="{% static 'images/icons/admin.png' %}" height="32px" />
                   </div>
                   <div class="nav-sublink__text">
                     <span class="nav-sublink__title">Admin Console</span>
@@ -128,7 +128,7 @@
               {% endif %}
               <a class="nav-sublink" href="{% url 'logout' %}">
                 <div class="nav-sublink__icon">
-                  <img src="{% static 'images/icons/logout.png' %}" />
+                  <img src="{% static 'images/icons/logout.png' %}" height="32px" />
                 </div>
                 <div class="nav-sublink__text">
                   <span class="nav-sublink__title">Logout</span>
