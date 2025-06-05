@@ -62,7 +62,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file
-skip = '.git*,*.pdf,*.svg,*.lock,*.css,*.min.*,static,localization,fixtures,demo-files'
+skip = '.git*,*.pdf,*.svg,*.lock,*.css,*.min.*,static,localization,fixtures,demo-files,migrations'
 check-hidden = true
 # I excluded "Viet Nam" but current ISO name is "Vietnam"
 ignore-regex = '"[A-Z][A-Z]"|\b(Maggiore of Parma|Cardiological Technics|Viet Nam)'
