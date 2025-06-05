@@ -1352,22 +1352,22 @@ class TestGenerateSignedUrl(TestMixin):
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
-        with self.subTest('A filename without a leading slash returns a bad reqeust.'):
+        with self.subTest('A filename without a leading slash returns a bad request.'):
             response = self.client.post(self.url, self.invalid_filename_data_3, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
-        with self.subTest('A filename with  leading slashes returns a bad reqeust.'):
+        with self.subTest('A filename with  leading slashes returns a bad request.'):
             response = self.client.post(self.url, self.invalid_filename_data_4, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
-        with self.subTest('A filename with a trailing slash returns a bad reqeust.'):
+        with self.subTest('A filename with a trailing slash returns a bad request.'):
             response = self.client.post(self.url, self.invalid_filename_data_5, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
 
-        with self.subTest('A filename with an empty segment returns a bad reqeust.'):
+        with self.subTest('A filename with an empty segment returns a bad request.'):
             response = self.client.post(self.url, self.invalid_filename_data_6, format='json')
 
             self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)

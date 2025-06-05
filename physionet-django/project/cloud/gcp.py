@@ -205,7 +205,7 @@ def upload_files(project):
     storage_client = storage.Client()
     bucket = storage_client.get_bucket(project.gcp.bucket_name)
 
-    for indx, location in enumerate(subfolders_fullpath):
+    for index, location in enumerate(subfolders_fullpath):
         chdir(location)
         files = [f for f in listdir('.') if path.isfile(f)]
         for file in files:

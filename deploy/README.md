@@ -216,9 +216,9 @@ There are two GCP integrations:
  - A service account to create and edit of buckets 
  - A service account to manage the access to the buckets and Big Query, both handled by Google G Suite
 
-Since Google G Suite doesn't have direct acess to GCP, the access has to be delegated to a service account.
+Since Google G Suite doesn't have direct access to GCP, the access has to be delegated to a service account.
 
-The following variables should be added to the enviroment file:
+The following variables should be added to the environment file:
 ```
 SECRET_KEY=secret
 ALLOWED_HOSTS=[]
@@ -231,7 +231,7 @@ GCP_DELEGATION_EMAIL=email@physionet.org
 There is some data stored in the Amazon Open Data platform.
 That is managed by a doing a POST request to a REST API.
 
-The following variables should be added to the enviroment file:
+The following variables should be added to the environment file:
 ```
 AWS_KEY=string1
 AWS_KEY2=string2
@@ -282,7 +282,7 @@ ORCID_SCOPE='/read-limited,/activities/update'
 ```
 To obtain valid CLIENT_ID and CLIENT_SECRET values you must register an account or use an account from your institution to obtain valid codes.  When doing development work off of base.py, register an account at https://sandbox.orcid.org/ and when using staging.py or production.py register at https://orcid.org/.  
 
-To register an account on sandbox.orcid.org you must use an username<span>@<span>mailinator.com address.  Mailinator hosts public inboxes.  Since this is the only domain that sandbox.orcid.org will send emails to, it is your only choice for registering an account.  You can use any username you like but it's good to use something unique so you don't have to sift through the public inbox looking for your email amoung lots of others.  To retireve your email go to https://www.mailinator.com/ and at the top type in your username in the box that says "Enter Public Mailinator Inbox".  You should see your email for validation from sandbox.orcid.org (it will be automatically deleted sooner than later).  
+To register an account on sandbox.orcid.org you must use an username<span>@<span>mailinator.com address.  Mailinator hosts public inboxes.  Since this is the only domain that sandbox.orcid.org will send emails to, it is your only choice for registering an account.  You can use any username you like but it's good to use something unique so you don't have to sift through the public inbox looking for your email among lots of others.  To retrieve your email go to https://www.mailinator.com/ and at the top type in your username in the box that says "Enter Public Mailinator Inbox".  You should see your email for validation from sandbox.orcid.org (it will be automatically deleted sooner than later).  
  
 Registration on orcid.org is more straight forward.  Simply go to orcid.org/register and follow the instructions.
  

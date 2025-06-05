@@ -60,7 +60,7 @@ class LocalProjectFiles(BaseProjectFiles):
         file_names, dir_names = list_items(path)
         display_files, display_dirs = [], []
 
-        # Files require desciptive info and download links
+        # Files require descriptive info and download links
         for file in file_names:
             file_info = get_file_info(os.path.join(path, file))
             file_info.url = file_display_url(subdir=subdir, file=file)
