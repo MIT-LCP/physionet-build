@@ -867,7 +867,7 @@ def published_projects(request, project_slug=None):
 def send_files_to_gcp(pid):
     """
     Schedule a background task to send the files to GCP.
-    This function can be runned manually to force a re-send of all the files
+    This function can be run manually to force a re-send of all the files
     to GCP. It only requires the Project ID.
     """
     project = PublishedProject.objects.get(id=pid)
