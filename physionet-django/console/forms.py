@@ -891,7 +891,7 @@ class FrontPageButtonForm(forms.ModelForm):
 
     class Meta:
         model = FrontPageButton
-        fields = ["label", "url"]
+        fields = ["label", "url", "associated_image"]
 
     def clean_url(self):
         """
