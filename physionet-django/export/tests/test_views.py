@@ -72,7 +72,7 @@ class TestRateLimiting(TestCase):
     def test_project_detail_rate_limit(self):
         """Test rate limiting on project detail endpoint"""
         url = reverse('published_project_detail',
-                      kwargs={'project_slug': 'test-project', 'version': '1.0.0'})
+                      kwargs={'project_slug': 'demopsn', 'version': '1.0'})
 
         # Make requests up to the limit
         for _ in range(20):
