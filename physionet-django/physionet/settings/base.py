@@ -218,7 +218,7 @@ MAX_ATTEMPTS = 5
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
-# Google Storge service account credentials
+# Google Storage service account credentials
 if config('GOOGLE_APPLICATION_CREDENTIALS', default=None):
     GOOGLE_APPLICATION_CREDENTIALS = os.path.join(
         BASE_DIR,
@@ -678,7 +678,7 @@ if os.getenv('PHYSIONET_LOCK_FILE'):
                       os.O_RDWR | os.O_CREAT, 0o660)
     # Note that Python has at least three different ways of locking
     # files.  We want fcntl.flock (i.e. flock(2)), which is tied to
-    # the file desciptor and inherited by child processes.  In
+    # the file descriptor and inherited by child processes.  In
     # contrast, fcntl.lockf uses fcntl(2) and os.lockf uses lockf(3),
     # both of which are tied to the PID.
     fcntl.flock(_lockfd, fcntl.LOCK_SH)
@@ -721,7 +721,7 @@ LOG_TIMEDELTA = config('LOG_TIMEDELTA', cast=int, default='10')
 # Ticket system for user support
 TICKET_SYSTEM_URL = config('TICKET_SYSTEM_URL', default=None)
 
-# Platform Research Resource Identifer: https://rrid.site/
+# Platform Research Resource Identifier: https://rrid.site/
 # Added to citations to support tracking of reuse.
 # e.g. PhysioNet is "SCR_007345"
 PLATFORM_RRID = config('PLATFORM_RRID', default=None)

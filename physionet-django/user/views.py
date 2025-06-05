@@ -238,7 +238,7 @@ def activate_user(request, uidb64, token):
 
 def check_legacy_credentials(user, email):
     """
-    Check whether a user has already beeen credentialed on the old pn
+    Check whether a user has already been credentialed on the old pn
     site. If so, credential their account and mark the migration.
     """
     legacy_credential = LegacyCredential.objects.filter(email=email,

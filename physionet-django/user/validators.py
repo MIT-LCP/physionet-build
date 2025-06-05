@@ -62,7 +62,7 @@ class UsernameValidator(UnicodeUsernameValidator):
 def validate_name(value):
     """
     Only accept words that start with an alphabetical character followed by
-    alphanumeric characters incluiding spaces, underscores, hyphens, and apostrophes.
+    alphanumeric characters including spaces, underscores, hyphens, and apostrophes.
     """
     if not re.fullmatch(r'[^\W_0-9]([\w\' -])+', value):
         raise ValidationError('Letters, numbers, spaces, underscores, hyphens, and apostrophes only. Must begin with a letter.')

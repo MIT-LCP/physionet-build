@@ -253,7 +253,7 @@ def write_uploaded_file(file, write_file_path, overwrite=True):
 
 def get_form_errors(form):
     """
-    Extract all errors from a form eith errors
+    Extract all errors from a form with errors
     """
     all_errors = []
     for field in form.errors:
@@ -291,7 +291,7 @@ def grant_aws_open_data_access(user, project):
     # Exit early if we received a response from AWS indicating an error.
     if response.status_code < 200 or response.status_code >= 300:
         LOGGER.info("Error sending adding the AWS ID to the Bucket Policy."
-                    "The request payload is {0}\nThe errror is the following: "
+                    "The request payload is {0}\nThe error is the following: "
                     "{1}\n".format(payload, response.content))
         return "Access could not be granted.", False
 

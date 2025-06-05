@@ -321,7 +321,7 @@ def paginate(request, to_paginate, maximum):
     ----------
     request : HTTP request to get the desired page if not defaults to 1.
     to_paginate : Array to paginate.
-    maximum : Maximum ammount of elments in a page.
+    maximum : Maximum amount of elements in a page.
 
     Returns a page in the array.
     """

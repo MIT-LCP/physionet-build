@@ -1231,7 +1231,7 @@ class InviteDataAccessReviewerForm(forms.ModelForm):
         invitation = DataAccessRequestReviewer()
         if DataAccessRequestReviewer.objects.filter(reviewer=reviewer,
                                                     project=self.project).exists():
-            # updating existing row in case a revoked user gets readded again
+            # updating existing row in case a revoked user gets re-added again
             invitation = DataAccessRequestReviewer.objects.get(
                 reviewer=reviewer,
                 project=self.project)

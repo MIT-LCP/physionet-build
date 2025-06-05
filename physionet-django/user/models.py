@@ -1005,7 +1005,7 @@ class CredentialApplication(models.Model):
         """
         Revokes an approved application.
         """
-        # Set the application as unsucessful with the current datetime
+        # Set the application as unsuccessful with the current datetime
         self.status = self.Status.REVOKED
         self.revoked_datetime = timezone.now()
 

@@ -867,7 +867,7 @@ def published_projects(request, project_slug=None):
 def send_files_to_gcp(pid):
     """
     Schedule a background task to send the files to GCP.
-    This function can be runned manually to force a re-send of all the files
+    This function can be run manually to force a re-send of all the files
     to GCP. It only requires the Project ID.
     """
     project = PublishedProject.objects.get(id=pid)
@@ -2604,11 +2604,11 @@ def download_credentialed_users(request):
         elif 'eicu' in person.project.slug:
             eicu_signature_date = person.sign_datetime
         if person.user.id in added:
-            for indx, item in enumerate(dua_info_csv):
+            for index, item in enumerate(dua_info_csv):
                 if item[2] == person.user.email and item[5] == None:
-                    dua_info_csv[indx][5] = mimic_signature_date
+                    dua_info_csv[index][5] = mimic_signature_date
                 elif item[2] == person.user.email and item[6] == None:
-                    dua_info_csv[indx][6] = eicu_signature_date
+                    dua_info_csv[index][6] = eicu_signature_date
         else:
             if application:
                 dua_info_csv.append([person.user.profile.first_names,
@@ -2947,7 +2947,7 @@ class ProjectAutocomplete(autocomplete.Select2QuerySetView):
 @console_permission_required('user.change_credentialapplication')
 def known_references(request):
     """
-    List all known references witht he option of removing the contact date
+    List all known references with he option of removing the contact date
     """
     user = request.user
 

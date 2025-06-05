@@ -337,9 +337,9 @@ class PublishedProject(Metadata, SubmissionInfo):
             project_versions.append(project.version)
         sorted_versions = sorted(project_versions, key=StrictVersion)
 
-        for indx, version in enumerate(sorted_versions):
+        for index, version in enumerate(sorted_versions):
             tmp = published_projects.get(version=version)
-            tmp.version_order = indx
+            tmp.version_order = index
             tmp.has_other_versions = True
             tmp.is_latest_version = False
             if sorted_versions[-1] == version:
