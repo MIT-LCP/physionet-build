@@ -10,8 +10,6 @@ from django.urls import path
 from physionet import views
 from physionet.settings.base import StorageTypes
 
-from export.views import database_list
-
 handler403 = 'physionet.views.error_403'
 handler404 = 'physionet.views.error_404'
 handler500 = 'physionet.views.error_500'
@@ -80,10 +78,6 @@ urlpatterns = [
 
     # path for the Browsable API Authentication
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-
-    # path for Database List - to be deprecated soon
-    path('rest/database-list/', database_list,
-         name='database_list')
 ]
 
 if settings.ENABLE_LIGHTWAVE:
