@@ -11,20 +11,6 @@ from search.views import get_content
 from project.models import ProjectType
 from rest_framework.renderers import JSONRenderer
 
-# Temporary imports for Database List Function.
-from django.http import JsonResponse
-
-
-def database_list(request):
-    """
-    List all published databases
-    """
-    projects = PublishedProject.objects.filter(resource_type=0).order_by(
-        'publish_datetime')
-    serializer = PublishedProjectSerializer(projects, many=True)
-    return JsonResponse(serializer.data, safe=False)
-
-
 class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     """
     List all Published Projects
