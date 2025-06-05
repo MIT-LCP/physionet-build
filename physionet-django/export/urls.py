@@ -21,6 +21,10 @@ urlpatterns = [
          views.PublishedProjectDetail.as_view(),
          name='published_project_detail'),
 
+    path('v1/projects/published/<str:project_slug>/<str:version>/sha256sums/',
+         views.ProjectSHA256Sums.as_view(),
+         name='published_project_sha256sums'),
+
     # Legacy project endpoints (synonyms)
     path('v1/project/published/',
          views.PublishedProjectList.as_view(),
@@ -43,4 +47,12 @@ urlpatterns = [
 TEST_DEFAULTS = {
     'project_slug': 'demoeicu',
     'version': '2.0.0',
+}
+
+TEST_CASES = {
+    'published_project_sha256sums': {
+        '_user_': 'rgmark',
+        'project_slug': 'demopsn',
+        'version': '1.0',
+    },
 }

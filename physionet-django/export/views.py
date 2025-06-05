@@ -1,9 +1,14 @@
+import os
+
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
-from rest_framework import generics, mixins, status
+from rest_framework import generics, mixins, status, permissions
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
+from rest_framework.views import APIView
 
+from project.authorization.access import can_access_project
 from project.models import PublishedProject, ProjectType
 from export.serializers import (
     PublishedProjectSerializer,
@@ -163,3 +168,29 @@ class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
             )
 
         return self.list(request, *args, **kwargs)
+
+
+class ProjectSHA256Sums(APIView):
+    """
+    Download SHA256SUMS.txt file for a project.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, project_slug, version):
+        project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+
+        # Check if user has access to the project
+        if not can_access_project(project, request.user):
+            return Response({"error": "You do not have permission to access this project"}, status=403)
+
+        # Get the path to SHA256SUMS.txt
+        sha256sums_path = os.path.join(project.file_root(), 'SHA256SUMS.txt')
+
+        if not os.path.exists(sha256sums_path):
+            return Response({"error": "SHA256SUMS.txt not found for this project"}, status=404)
+
+        # Return the file as a download
+        response = FileResponse(open(sha256sums_path, 'rb'))
+        response['Content-Type'] = 'text/plain'
+        response['Content-Disposition'] = 'attachment; filename="SHA256SUMS.txt"'
+        return response
