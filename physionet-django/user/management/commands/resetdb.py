@@ -119,6 +119,9 @@ def clear_created_static_files():
                 for d in dirs:
                     os.chmod(os.path.join(root, d), 0o755)
                 for f in files:
-                    os.chmod(os.path.join(root, f), 0o755)
+                    try:
+                        os.chmod(os.path.join(root, f), 0o755)
+                    except FileNotFoundError:
+                        pass
 
             shutil.rmtree(item)
