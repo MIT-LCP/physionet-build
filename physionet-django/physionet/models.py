@@ -113,6 +113,7 @@ class FrontPageButton(models.Model):
     url = models.CharField(max_length=200, blank=False)
     order = models.PositiveSmallIntegerField(default=1)
     associated_image = models.ImageField(upload_to="frontpagebuttons/", null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         default_permissions = ('change',)
