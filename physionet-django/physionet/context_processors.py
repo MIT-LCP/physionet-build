@@ -1,4 +1,5 @@
 from django.conf import settings
+from physionet.models import FrontPageButton
 
 from project.models import (
     AccessPolicy,
@@ -34,11 +35,13 @@ def cloud_research_environments_config(request):
     }
 
 def homepage_config(request):
+    front_page_buttons = FrontPageButton.objects.all()
     return {
         'GITHUB_LINK': settings.GITHUB_LINK,
         "X_LINK": settings.X_LINK,
         "LINKEDIN_LINK": settings.LINKEDIN_LINK,
         "FACEBOOK_LINK": settings.FACEBOOK_LINK,
         "TERMS_AND_CONDITIONS_LINK": settings.TERMS_AND_CONDITIONS_LINK,
-        "PRIVACY_POLICY_URL": settings.PRIVACY_POLICY_URL
+        "PRIVACY_POLICY_URL": settings.PRIVACY_POLICY_URL,
+        "FRONT_PAGE_BUTTONS": front_page_buttons,
     }

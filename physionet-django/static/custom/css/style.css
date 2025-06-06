@@ -140,33 +140,47 @@
 }
 
 /* bootstrap modifications */
-.modern-ui .container {
+body .container, body .main {
   width: 100%;
+  /* background-color: red!important; */
 }
 @media (min-width: 576px) {
-  .modern-ui .container {
+  body .container, body .main {
     max-width: 540px;
   }
 }
 @media (min-width: 768px) {
-  .modern-ui .container {
+  body .container, body .main {
     max-width: 720px;
   }
 }
 @media (min-width: 992px) {
-  .modern-ui .container {
+  body .container, body .main {
     max-width: 960px;
   }
 }
 @media (min-width: 1200px) {
-  .modern-ui .container {
+  body .container, body .main {
     max-width: 1140px;
   }
 }
 @media (min-width: 1400px) {
-  .modern-ui .container {
+  body .container, body .main {
     max-width: 1320px;
   }
+}
+
+body .main-side {
+  width: 30%;
+  flex-shrink: 0;
+}
+body .main > .row {
+  flex-wrap: nowrap;
+}
+body .main {
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 15px;
 }
 
 .modern-ui .card {
