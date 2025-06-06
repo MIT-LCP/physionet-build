@@ -15,13 +15,13 @@
             {% for button in FRONT_PAGE_BUTTONS %}
               <a class="nav-sublink" href="{{ button.url }}">
                 <div class="nav-sublink__icon">
-                  {% if button.associated_image %}
-                    <img src="{{ button.associated_image.url }}" alt="{{ button.label }}">
+                  {% if button.associated_image_path %}
+                    <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
                   {% endif %}
                 </div>
                 <div class="nav-sublink__text">
                   <span class="nav-sublink__title">{{ button.label }}</span>
-                  <!-- <span class="nav-sublink__description">{{ button.description }}</span> -->
+                   <span class="nav-sublink__description">{{ button.description }}</span>
                 </div>
               </a>
             {% endfor %}
