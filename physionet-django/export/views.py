@@ -2,12 +2,14 @@ import os
 
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from oauth2_provider.models import AccessToken
 from rest_framework import generics, mixins, status, permissions
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from rest_framework.views import APIView
 
+from physionet.utility import file_content_type
 from project.authorization.access import can_access_project
 from project.models import PublishedProject, ProjectType
 from export.serializers import (
@@ -194,3 +196,64 @@ class ProjectSHA256Sums(APIView):
         response['Content-Type'] = 'text/plain'
         response['Content-Disposition'] = 'attachment; filename="SHA256SUMS.txt"'
         return response
+
+
+class ProjectFileDownload(APIView):
+    """
+    Download a file from a published project using token authentication.
+
+    Parameters:
+        project_slug (str): The unique identifier for the project
+        version (str): The version number of the project
+        filepath (str): The path to the file relative to the project root
+
+    Authentication:
+        - Token authentication required with 'data:download' scope
+        - Rate limited: 100 requests/hour for authenticated users
+        - Rate limited: 20 requests/hour for anonymous users
+    """
+    throttle_classes = [StandardRateThrottle, StandardAnonRateThrottle]
+    required_scopes = ["data:download"]
+
+    def get(self, request, project_slug, version, filepath):
+        # Get token from either Authorization or HTTP_AUTHORIZATION header
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        if not auth_header.startswith('Bearer '):
+            return Response({"error": "Invalid or missing token"}, status=403)
+        token = auth_header.split(' ')[1]
+
+        # Verify token and scope
+        try:
+            access_token = AccessToken.objects.get(token=token)
+            if not access_token.is_valid():
+                return Response({"error": "Invalid or missing token"}, status=403)
+            if not any(scope in access_token.scope.split() for scope in self.required_scopes):
+                return Response({"error": "Invalid or missing token"}, status=403)
+        except AccessToken.DoesNotExist:
+            return Response({"error": "Invalid or missing token"}, status=403)
+
+        try:
+            # Get the project
+            project = PublishedProject.objects.get(slug=project_slug, version=version)
+        except PublishedProject.DoesNotExist:
+            return Response({"error": "Project not found"}, status=404)
+
+        # Check if user has access to the project
+        if not can_access_project(project, access_token.user):
+            return Response({"error": "You do not have permission to access this project"}, status=403)
+
+        # Get the file path
+        file_path = os.path.join(project.file_root(), filepath)
+
+        try:
+            # Check if file exists and is not a directory
+            if not os.path.isfile(file_path):
+                return Response({"error": "File not found"}, status=404)
+
+            # Return the file as a download
+            response = FileResponse(open(file_path, 'rb'))
+            response['Content-Type'] = file_content_type(file_path)
+            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(file_path)}"'
+            return response
+        except (IOError, OSError):
+            return Response({"error": "File not found"}, status=404)
