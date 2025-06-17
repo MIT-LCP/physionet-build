@@ -3,6 +3,10 @@
 <div class="modern-ui nav-wrapper">
   <nav class="nav">
     <div class="container my-0 h-100 d-flex justify-content-between align-items-center">
+      <button type="button" class="nav__hamburger circle-button mr-2">
+        <i class="nav__hamburger__list bi bi-list"></i>
+        <i class="nav__hamburger__x bi bi-x"></i>
+      </button>
       <a href="/"><img src="{% static 'images/logo.png' %}" width="200px" alt="PhysioNet Logo" /></a>
       <div class="nav__links align-items-center">
         <a href="/content"><button type="button" class="nav-link">Discover Data</button></a>
@@ -28,7 +32,7 @@
           </div>
         </button>
       </div>
-      <div class="nav__actions d-flex ml-4">
+      <div class="nav__actions d-flex ml-md-4">
         <form action="{% url 'content_index' %}" class="mr-2">
           <div class="nav__search">
             <input type="text" name="topic" placeholder="Search for anything...">
@@ -38,9 +42,9 @@
             </div>
           </div>
         </form>
-        <button type="button" class="nav__search__open circle-button mr-2"><i class="bi bi-search"></i></button>
+        <button type="button" class="nav__search__open circle-button mr-md-2"><i class="bi bi-search"></i></button>
         {% if user.is_authenticated %}
-          <button type="button" class="nav-link nav-link--expandable nav-link--expand-left nav-link--gray">
+          <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray">
             {% if user.has_access_to_admin_console %}
               <i class="bi bi-person-fill-lock mr-2"></i>
             {% else %}
@@ -115,7 +119,7 @@
             </div>
           </button>
         {% else %}
-          <a href="{% url 'login' %}">
+          <a class="nav__user" href="{% url 'login' %}">
             <button type="button" class="circle-button">
               <i class="bi bi-person"></i>
             </button>
@@ -124,12 +128,38 @@
       </div>
     </div>
   </nav>
+  <div class="nav__mobile">
+    <a href="/content"><button type="button" class="nav-link">Discover Data</button></a>
+    <a href="/about/publish"><button type="button" class="nav-link mt-2">Share Data</button></a>
+    <a href="/about"><button type="button" class="nav-link mt-2">About</button></a>
+    <a href="/news"><button type="button" class="nav-link mt-2">News</button></a>
+    <button type="button" class="nav-link nav-link--expandable mt-2">
+      Explore <i class="bi bi-chevron-down ml-2"></i>
+      <div class="nav-link__expand">
+        {% for button in FRONT_PAGE_BUTTONS %}
+          <a class="nav-sublink" href="{{ button.url }}">
+            <div class="nav-sublink__icon">
+              {% if button.associated_image_path %}
+                <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
+              {% endif %}
+            </div>
+            <div class="nav-sublink__text">
+              <span class="nav-sublink__title">{{ button.label }}</span>
+                <span class="nav-sublink__description">{{ button.description }}</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </button>
+  </div>
 </div>
 
 <!-- move this to the right place -->
 <script>
 const dom = {
   nav: document.querySelector('.nav'),
+  hamburger: document.querySelector('.nav__hamburger'),
+  navWrapper: document.querySelector('.nav-wrapper'),
   expandableLinks: document.querySelectorAll('.nav-link--expandable'),
   searchOpenButton: document.querySelector('.nav__search__open'),
   searchCloseButton: document.querySelector('.nav__search__close')
@@ -148,6 +178,7 @@ document.addEventListener('click', (ev) => {
   dom.expandableLinks.forEach((link) => {
     link.classList.remove('nav-link--expanded');
   });
+  dom.navWrapper.classList.remove('nav-wrapper--mobile-open');
 });
 
 dom.searchOpenButton.addEventListener('click', () => {
@@ -155,5 +186,10 @@ dom.searchOpenButton.addEventListener('click', () => {
 });
 dom.searchCloseButton.addEventListener('click', () => {
   dom.nav.classList.remove('nav--search');
+});
+
+dom.hamburger.addEventListener('click', (ev) => {
+  ev.stopPropagation();
+  dom.navWrapper.classList.toggle('nav-wrapper--mobile-open');
 });
 </script>

@@ -3,7 +3,7 @@
 
 <div class="modern-ui">
   <footer class="footer w-100 secondary-bg py-5">
-    <div class="container my-0 py-5">
+    <div class="container my-0 py-0 py-md-5">
       <img src="{% static 'images/logo-white.png' %}" width="180px" alt="PhysioNet Logo" class="pb-2" />
       <div class="footer__columns light-text">
         <div>
@@ -11,14 +11,14 @@
           <p class="dark-light-text mb-2">Supported by the National Institute of Biomedical Imaging and Bioengineering (NIBIB) under NIH grant number R01EB030362.</p>
           <p class="dark-light-text mb-2">For more accessibility options, see the <a class="dark-primary-text" href="https://accessibility.mit.edu/">MIT Accessibility Page.</a></p>
         </div>
-        <div class="d-flex flex-column" style="padding-left: 100px;">
+        <div class="d-flex flex-column pl-0 pl-md-5 pt-4 pt-md-0">
           <h2 class="text-white font-weight-bold">Navigation</h2>
           <a href="/content" class="pb-3 dark-light-text">Discover Data</a>
           <a href="/about/publish" class="pb-3 dark-light-text">Share Data</a>
           <a href="/about" class="pb-3 dark-light-text">About</a>
           <a href="/news" class="pb-3 dark-light-text">News</a>
         </div>
-        <div class="d-flex flex-column">
+        <div class="d-flex flex-column pt-4 pt-md-0">
           <h2 class="text-white font-weight-bold">Explore</h2>
           <a href="/about/database" class="pb-3 dark-light-text">Data</a>
           <a href="/about/software" class="pb-3 dark-light-text">Software</a>
@@ -32,28 +32,16 @@
         </div> -->
       </div>
       <hr >
-      <div class="d-flex justify-content-between">
-        <div class="d-flex">
-          {% if GITHUB_LINK %}
+      <div class="d-flex flex-column align-items-center justify-content-between flex-md-row">
+        <div class="d-flex pt-2 pt-md-0">
             <a class="mr-3" href=""><img src="{% static 'images/icons/github.png' %}" height="18px"></a>
-          {% endif %}
-          {% if X_LINK %}
-            <a class="mr-3" href="{{ X_LINK }}"><img src="{% static 'images/icons/x.png' %}" height="18px"></a>
-          {% endif %}
-          {% if LINKEDIN_LINK %}
-            <a class="mr-3" href="{{ LINKEDIN_LINK }}"><img src="{% static 'images/icons/linkedin.png' %}" height="18px"></a>
-          {% endif %}
-          {% if FACEBOOK_LINK %}
+            <a class="mr-3" href=""><img src="{% static 'images/icons/x.png' %}" height="18px"></a>
+            <a class="mr-3" href=""><img src="{% static 'images/icons/linkedin.png' %}" height="18px"></a>
             <a href="{{ FACEBOOK_LINK }}"><img src="{% static 'images/icons/facebook.png' %}" height="18px"></a>
-          {% endif %}
         </div>
-        <div>
-          {% if TERMS_AND_CONDITIONS_LINK %}
+        <div class="pt-4 pt-md-0">
             <a class="dark-light-text mr-5" href="{{ TERMS_AND_CONDITIONS_LINK }}">Terms & Conditions</a>
-          {% endif %}
-          {% if PRIVACY_POLICY_URL %}
             <a class="dark-light-text" href="{{ PRIVACY_POLICY_URL }}">Privacy Policy</a>
-          {% endif %}
         </div>
       </div>
     </div>

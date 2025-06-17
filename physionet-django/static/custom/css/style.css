@@ -170,12 +170,20 @@ body .container, body .main {
   }
 }
 
-body .main-side {
-  width: 30%;
-  flex-shrink: 0;
-}
 body .main > .row {
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+}
+body .main-side {
+  width: 100%;
+  flex-shrink: 0;
+  border: none;
+  border-bottom-left-radius: 0.3rem;
+  border-bottom-right-radius: 0.3rem;
+}
+body .main-content {
+  padding: 0;
+  margin-top: 40px;
+  margin-bottom: 40px;
 }
 body .main {
   margin-left: auto;
@@ -228,7 +236,7 @@ body .main {
 }
 
 .modern-ui h2 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   margin-bottom: 1rem;
   font-weight: 600;
   color: var(--secondary-color);
@@ -396,6 +404,31 @@ body .main {
 .modern-ui .nav__search button.nav__search__close i {
   font-size: 1.5rem;
 }
+.modern-ui .nav__user {
+  display: none;
+}
+.modern-ui .nav__mobile {
+  display: none;
+  position: fixed;
+  left: 0;
+  top: var(--nav-height);
+  width: 100%;
+  background-color: white;
+  box-sizing: border-box;
+  padding: 1rem;
+  z-index: 9;
+  box-shadow: 0px 1px 4px 0px #0000001A;
+}
+.nav__hamburger__x,
+.nav-wrapper--mobile-open .nav__hamburger__list {
+  display: none;
+}
+.nav-wrapper--mobile-open .nav__hamburger__x {
+  display: block
+}
+.nav-wrapper--mobile-open .nav__mobile {
+  display: block!important;
+}
 
 .modern-ui .nav--search .nav__actions {
   width: 100%;
@@ -409,6 +442,9 @@ body .main {
 .modern-ui .nav--search .nav__actions .nav__search__open {
   display: none;
 }
+.modern-ui .nav__search__open {
+  visibility: hidden;
+}
 
 .modern-ui .banner {
   background-size: auto 100%;
@@ -420,11 +456,8 @@ body .main {
 .modern-ui .banner .container {
   height: calc(100% - 100px);
 }
-
-@media (min-width: 1400px) {
-  .modern-ui .banner {
-    background-size: auto 130%;
-  }
+.modern-ui .banner h1 {
+  font-size: 2rem;
 }
 
 .modern-ui .footer {
@@ -436,29 +469,119 @@ body .main {
 .modern-ui .footer input {
   border-radius: 50rem;
 }
-.modern-ui .footer__columns {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+.modern-ui .banner__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.modern-ui .banner__buttons button {
+  width: 100%;
 }
 
+.swiper {
+  padding: 1.5rem 1rem 2.25rem 1rem;
+}
+.modern-ui .swiper .swiper-slide {
+  height: auto;
+}
+.modern-ui .swiper .swiper-pagination {
+  top: unset!important;
+  bottom: 0!important;
+}
+.modern-ui .swiper .swiper-pagination-bullet-active {
+  background-color: var(--primary-color);
+}
+.modern-ui .swiper .swiper-pagination-bullet {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+.modern-ui .swiper .card--news {
+  height: 100%;
+}
+
+.modern-ui .carousel-cards {
+  overflow-x: scroll;
+  width: 100%;
+}
+.modern-ui .carousel-cards .card {
+  width: 90%;
+  flex-shrink: 0;
+}
+
+.modern-ui .cards-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
 
 @media (min-width: 576px) {
 
 }
 @media (min-width: 768px) {
+  .modern-ui h2 {
+    font-size: 2rem;
+  }
+
   .modern-ui .nav__search {
     display: block;
   }
+  .modern-ui .nav__search__open {
+    visibility: visible;
+  }
+
+  .modern-ui .banner__column {
+    width: 50%;
+  }
+  .modern-ui .banner__buttons {
+    flex-direction: row;
+  }
+  .modern-ui .banner__buttons button {
+    width: auto;
+  }
+
+  .modern-ui .cards-wrapper {
+    flex-direction: row;
+    gap: 1.5rem;
+  }
+
+  .modern-ui .footer__columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
 }
 @media (min-width: 992px) {
+  body .main-content {
+    padding: 40px 50px;
+  }
 
+  body .main-side {
+    width: 30%;
+    border-right: 1px solid rgb(229, 229, 229);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+  body .main-content {
+    padding: 40px 50px;
+    margin: 0;
+  }
+  body .main > .row {
+    flex-wrap: nowrap;
+  }
 }
 @media (min-width: 1200px) {
+  .modern-ui .nav__user {
+    display: block;
+  }
+  .modern-ui .nav__hamburger {
+    display: none;
+  }
   .modern-ui .nav__links {
     display: flex;
   }
 }
 @media (min-width: 1400px) {
-
+  .modern-ui .banner {
+    background-size: auto 130%;
+  }
 }
