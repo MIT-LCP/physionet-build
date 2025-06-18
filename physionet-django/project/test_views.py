@@ -906,7 +906,7 @@ class TestAccessPublished(TestMixin):
             # Requests for this public URL:
             url = '/files/{}/{}/'.format(project.slug, project.version)
             # should be redirected to this internal path:
-            path = '/static/published-projects/{}/{}/'.format(
+            path = '/protected/published-projects/{}/{}/'.format(
                 project.slug, project.version)
 
             response = self.client.get(url + 'foo/')
