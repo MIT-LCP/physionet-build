@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -o pipefail
 
 install_dir=/physionet/physionet-build
 working_dir=/physionet/physionet-build.new
