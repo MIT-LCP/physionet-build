@@ -47,19 +47,6 @@
             </div>
           </div>
         {% endfor %}
-        {% for news in news_pieces|slice:":10" %}
-          <div class="swiper-slide">
-            <div class="card card--news">
-              <span class="caption-text">{{ news.publish_datetime|date }}</span>
-              <h2 class="card-title">
-                <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
-              </h2>
-              <p class="card-content light-text">
-                {{ news.content|safe }}
-              </p>
-            </div>
-          </div>
-        {% endfor %}
       </div>
       <div class="swiper-pagination"></div>
     </div>

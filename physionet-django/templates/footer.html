@@ -20,10 +20,9 @@
         </div>
         <div class="d-flex flex-column pt-4 pt-md-0">
           <h2 class="text-white font-weight-bold">Explore</h2>
-          <a href="/about/database" class="pb-3 dark-light-text">Data</a>
-          <a href="/about/software" class="pb-3 dark-light-text">Software</a>
-          <a href="/about/challenge" class="pb-3 dark-light-text">Challenges</a>
-          <a href="/about/tutorial" class="pb-3 dark-light-text">Tutorials</a>
+          {% for button in FRONT_PAGE_BUTTONS %}
+            <a href="{{ button.url }}" class="pb-3 dark-light-text">{{ button.label }}</a>
+          {% endfor %}
         </div>
         <!-- <div class="d-flex flex-column flex-grow">
           <h2 class="text-white font-weight-bold">Subscribe to our Newsletter</h2>
@@ -34,14 +33,26 @@
       <hr >
       <div class="d-flex flex-column align-items-center justify-content-between flex-md-row">
         <div class="d-flex pt-2 pt-md-0">
-            <a class="mr-3" href=""><img src="{% static 'images/icons/github.png' %}" height="18px"></a>
-            <a class="mr-3" href=""><img src="{% static 'images/icons/x.png' %}" height="18px"></a>
-            <a class="mr-3" href=""><img src="{% static 'images/icons/linkedin.png' %}" height="18px"></a>
+          {% if GITHUB_LINK %}
+            <a class="mr-3" href="{{ GITHUB_LINK }}"><img src="{% static 'images/icons/github.png' %}" height="18px"></a>
+          {% endif %}
+          {% if X_LINK %}
+            <a class="mr-3" href="{{ X_LINK }}"><img src="{% static 'images/icons/x.png' %}" height="18px"></a>
+          {% endif %}
+          {% if LINKEDIN_LINK %}
+            <a class="mr-3" href="{{ LINKEDIN_LINK }}"><img src="{% static 'images/icons/linkedin.png' %}" height="18px"></a>
+          {% endif %}
+          {% if FACEBOOK_LINK %}
             <a href="{{ FACEBOOK_LINK }}"><img src="{% static 'images/icons/facebook.png' %}" height="18px"></a>
+          {% endif %}
         </div>
         <div class="pt-4 pt-md-0">
+          {% if TERMS_AND_CONDITIONS_LINK %}
             <a class="dark-light-text mr-5" href="{{ TERMS_AND_CONDITIONS_LINK }}">Terms & Conditions</a>
+          {% endif %}
+          {% if PRIVACY_POLICY_URL %}
             <a class="dark-light-text" href="{{ PRIVACY_POLICY_URL }}">Privacy Policy</a>
+          {% endif %}
         </div>
       </div>
     </div>
