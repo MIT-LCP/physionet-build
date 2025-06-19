@@ -83,6 +83,7 @@ class Metadata(models.Model):
     allow_file_downloads = models.BooleanField(default=True)
     # Store the number of days a project's files should be under embargo
     embargo_files_days = models.SmallIntegerField(default=None, null=True, blank=True)
+    georestricted = models.BooleanField(default=False, null=True)
 
     ethics_statement = SafeHTMLField(blank=True)
     required_trainings = models.ManyToManyField('user.TrainingType', related_name='%(class)s')
