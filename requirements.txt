@@ -206,9 +206,9 @@ django-storages==1.12.3 ; python_version >= "3.11" and python_version < "4.0" \
 django-tinymce==4.1.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:02e3b70e940fd299f0fbef4315aee5c185664e1eb8cd396b176963954e4357c9 \
     --hash=sha256:9804836e6d2b08de3b03a27c100f8c2e9633549913eff8b323678a10cd48b94e
-django==4.2.21 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:1d658c7bf5d31c7d0cac1cab58bc1f822df89255080fec81909256c30e6180b3 \
-    --hash=sha256:b54ac28d6aa964fc7c2f7335138a54d78980232011e0cd2231d04eed393dcb0d
+django==4.2.22 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:0a32773b5b7f4e774a155ee253ab24a841fed7e9e9061db08bf2ce9711da404d \
+    --hash=sha256:e726764b094407c313adba5e2e866ab88f00436cad85c540a5bf76dc0a912c9e
 djangorestframework==3.15.2 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:2b8871b062ba1aefc2de01f773875441a961fefbf79f5eed1e32b2f096944b20 \
     --hash=sha256:36fe88cd2d6c6bec23dca9804bab2ba5517a8bb9d8f47ebc68981b56840107ad
