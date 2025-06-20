@@ -11,6 +11,8 @@ from django.conf import settings
 from django.http import HttpResponse, Http404, BadHeaderError
 from django.utils.html import format_html
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.gis.geoip2 import GeoIP2, GeoIP2Exception
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -79,15 +81,18 @@ CONTENT_TYPE = {
     '.trigger': 'application/octet-stream',
 }
 
+
 def get_project_apps():
     """
     Return a string list of all the apps in this django project
     """
     return [app for app in settings.INSTALLED_APPS if not app.startswith('django') and not app.startswith('ck') and not app.startswith('debug')]
 
+
 def file_content_type(filename):
     (_, ext) = os.path.splitext(filename)
     return CONTENT_TYPE.get(ext, 'text/plain')
+
 
 def _file_x_accel_path(file_path):
     static_root = settings.STATIC_ROOT or settings.STATICFILES_DIRS[0]
@@ -345,3 +350,29 @@ def validate_pdf_file_type(pdf_file) -> bool:
     if chunk.startswith(b'%PDF-'):
         return True
     return False
+
+
+def get_client_ip(request):
+    """
+    Get the client's IP address from the request.
+    """
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+def get_country_code(ip):
+    """
+    Get the country code for a given IP address using Django's GeoIP2.
+    """
+    # For testing - return localhost for localhost IPs
+    if ip in ("127.0.0.1", "localhost", "::1"):
+        return "localhost"
+    try:
+        geoip = GeoIP2()
+        return geoip.country(ip)['country_code']
+    except (GeoIP2Exception, KeyError, TypeError):
+        return None
