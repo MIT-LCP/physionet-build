@@ -779,3 +779,6 @@ OAUTH2_PROVIDER = {
         "data:download": "Download project data if token-holder is approved for access (training, DUA, etc).",
     }
 }
+
+# Path to GeoIP2 database directory
+GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
