@@ -25,6 +25,7 @@ def platform_config(request):
         'FOOTER_SUPPORTED_BY': settings.FOOTER_SUPPORTED_BY,
         'FOOTER_ACCESSIBILITY_PAGE': settings.FOOTER_ACCESSIBILITY_PAGE,
         'STRAPLINE': settings.STRAPLINE,
+        'SITE_DESCRIPTION': settings.SITE_DESCRIPTION,
         'SOURCE_CODE_REPOSITORY_LINK': settings.SOURCE_CODE_REPOSITORY_LINK
     }
 
@@ -33,6 +34,7 @@ def cloud_research_environments_config(request):
     return {
         "ENABLE_CLOUD_RESEARCH_ENVIRONMENTS": settings.ENABLE_CLOUD_RESEARCH_ENVIRONMENTS,
     }
+
 
 def homepage_config(request):
     front_page_buttons = FrontPageButton.objects.all()

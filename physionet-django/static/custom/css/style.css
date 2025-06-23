@@ -58,6 +58,11 @@
 .modern-ui .primary-button:hover {
   background-color: var(--primary-color);
 }
+.modern-ui .primary-button {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 
 .modern-ui .circle-button {
   background-color: var(--light-color);
