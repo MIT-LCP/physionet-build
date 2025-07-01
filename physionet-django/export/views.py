@@ -180,7 +180,7 @@ class ProjectSHA256Sums(APIView):
         project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
 
         # Check if user has access to the project
-        if not can_access_project(project, request.user):
+        if not can_access_project(project, request.user, request):
             return Response({"error": "You do not have permission to access this project"}, status=403)
 
         # Get the path to SHA256SUMS.txt

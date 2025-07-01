@@ -178,7 +178,7 @@ def lightwave_server(request):
                 f'Project {project_alias!r} does not exist',
                 public=True,
             )
-        if can_view_project_files(project, request.user):
+        if can_view_project_files(project, request.user, request):
             root = project.file_root()
             params['db'] = ''.join(parts[2:]) or '.'
         else:
