@@ -210,5 +210,5 @@ def call_method(obj, method_name, *args):
 
 
 @register.simple_tag(name='can_view_project_files')
-def can_view_project_files(project, user):
-    return can_view_project_files_func(project, user)
+def can_view_project_files(project, user, request=None):
+    return can_view_project_files_func(project, user, request)
