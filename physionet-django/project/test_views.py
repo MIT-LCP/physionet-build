@@ -1,4 +1,3 @@
-
 import base64
 import html.parser
 import os
@@ -1433,3 +1432,43 @@ class TestGenerateSignedUrl(TestMixin):
                 format='json'
             )
             self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+
+class TestGeoRestrictedAccess(TestCase):
+    def setUp(self):
+        self.project = PublishedProject.objects.create(
+            title='GeoRestricted Project',
+            slug='georestricted-project',
+            version='1.0',
+            georestricted=True,
+        )
+        self.open_project = PublishedProject.objects.create(
+            title='Open Project',
+            slug='open-project',
+            version='1.0',
+            georestricted=False,
+        )
+
+    @mock.patch('physionet.utility.get_country_code')
+    def test_blocked_country(self, mock_get_country_code):
+        mock_get_country_code.return_value = 'RU'
+        url = reverse('serve_published_project_file', args=(self.project.slug, self.project.version, 'file.txt'))
+        response = self.client.get(url, REMOTE_ADDR='1.2.3.4')
+        self.assertEqual(response.status_code, 403)
+        self.assertIn(b'data is not available in your region', response.content)
+
+    @mock.patch('physionet.utility.get_country_code')
+    def test_allowed_country(self, mock_get_country_code):
+        mock_get_country_code.return_value = 'US'
+        url = reverse('serve_published_project_file', args=(self.project.slug, self.project.version, 'file.txt'))
+        response = self.client.get(url, REMOTE_ADDR='1.2.3.4')
+        # Should not be blocked by region restriction (may still 404 if file doesn't exist)
+        self.assertNotEqual(response.status_code, 403)
+
+    @mock.patch('physionet.utility.get_country_code')
+    def test_not_georestricted(self, mock_get_country_code):
+        mock_get_country_code.return_value = 'RU'
+        url = reverse('serve_published_project_file', args=(self.open_project.slug, self.open_project.version, 'file.txt'))
+        response = self.client.get(url, REMOTE_ADDR='1.2.3.4')
+        # Should not be blocked by region restriction (may still 404 if file doesn't exist)
+        self.assertNotEqual(response.status_code, 403)
