@@ -16,6 +16,13 @@ from django.contrib.gis.geoip2 import GeoIP2, GeoIP2Exception
 
 LOGGER = logging.getLogger(__name__)
 
+
+try:
+    geoip = GeoIP2()
+except Exception:
+    # Fallback if GeoIP2 database is not available
+    geoip = None
+
 CONTENT_TYPE = {
     '.html': 'text/html',
     '.htm': 'text/html',
@@ -371,8 +378,11 @@ def get_country_code(ip):
     # For testing - return localhost for localhost IPs
     if ip in ("127.0.0.1", "localhost", "::1"):
         return "localhost"
+
+    if geoip is None:
+        return None
+
     try:
-        geoip = GeoIP2()
         return geoip.country(ip)['country_code']
     except (GeoIP2Exception, KeyError, TypeError):
         return None
