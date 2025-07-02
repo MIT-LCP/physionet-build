@@ -158,6 +158,7 @@ def lightwave_server(request):
         'access_policy',
         'allow_file_downloads',
         'deprecated_files',
+        'georestricted',
     ).order_by('title', '-version_order')
 
     params = request.GET.copy()
