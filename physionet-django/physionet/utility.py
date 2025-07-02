@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 try:
-    geoip = GeoIP2()
+    geoip = GeoIP2(path=settings.GEOIP_PATH)
 except Exception:
     # Fallback if GeoIP2 database is not available
     geoip = None

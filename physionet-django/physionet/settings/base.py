@@ -789,4 +789,4 @@ OAUTH2_PROVIDER = {
 }
 
 # Path to GeoIP2 database directory
-GEOIP_PATH = os.path.join(BASE_DIR, 'geoip')
+GEOIP_PATH = config('GEOIP_PATH', default=os.path.join(BASE_DIR, 'geoip'))
