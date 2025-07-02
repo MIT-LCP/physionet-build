@@ -1474,7 +1474,10 @@ class TestGeoRestrictedAccess(TestCase):
                                                  self.open_project.version))
         response = self.client.get(url, REMOTE_ADDR='localhost')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Data is not available in your region due to legal or policy restrictions', response.content)
+        self.assertIn(
+            b'Data is not available in your region due to legal or policy restrictions',
+            response.content
+        )
 
     @mock.patch('physionet.utility.get_country_code')
     def test_blocked_country_credentialed_project(self, mock_get_country_code):
@@ -1491,7 +1494,10 @@ class TestGeoRestrictedAccess(TestCase):
                                                  self.credentialed_project.version))
         response = self.client.get(url, REMOTE_ADDR='localhost')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b'Data is not available in your region due to legal or policy restrictions', response.content)
+        self.assertIn(
+            b'Data is not available in your region due to legal or policy restrictions',
+            response.content
+        )
 
     @mock.patch('physionet.utility.get_country_code')
     def test_allowed_country_open_project(self, mock_get_country_code):
@@ -1504,6 +1510,11 @@ class TestGeoRestrictedAccess(TestCase):
         # Should not be blocked by region restriction
         self.assertNotEqual(response.status_code, 403)
         self.assertNotEqual(response.status_code, 404)
+        if response.status_code == 200:
+            self.assertNotIn(
+                b'Data is not available in your region due to legal or policy restrictions',
+                response.content
+            )
 
         # Test that project page doesn't show georestriction message
         url = reverse('published_project', args=(self.open_project.slug, self.open_project.version))
@@ -1512,7 +1523,10 @@ class TestGeoRestrictedAccess(TestCase):
         self.assertNotEqual(response.status_code, 403)
         self.assertNotEqual(response.status_code, 404)
         if response.status_code == 200:
-            self.assertNotIn(b'Data is not available in your region due to legal or policy restrictions', response.content)
+            self.assertNotIn(
+                b'Data is not available in your region due to legal or policy restrictions',
+                response.content
+            )
 
     @mock.patch('physionet.utility.get_country_code')
     def test_not_georestricted(self, mock_get_country_code):
@@ -1536,7 +1550,10 @@ class TestGeoRestrictedAccess(TestCase):
         # Should not be blocked by region restriction
         self.assertNotEqual(response.status_code, 403)
         if response.status_code == 200:
-            self.assertNotIn(b'Data is not available in your region due to legal or policy restrictions', response.content)
+            self.assertNotIn(
+                b'Data is not available in your region due to legal or policy restrictions',
+                response.content
+            )
 
     def tearDown(self):
         # Reset georestriction flags
