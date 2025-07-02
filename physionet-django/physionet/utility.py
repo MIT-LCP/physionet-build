@@ -17,11 +17,27 @@ from django.contrib.gis.geoip2 import GeoIP2, GeoIP2Exception
 LOGGER = logging.getLogger(__name__)
 
 
-try:
-    geoip = GeoIP2(path=settings.GEOIP_PATH)
-except Exception:
-    # Fallback if GeoIP2 database is not available
-    geoip = None
+# Initialize GeoIP2
+geoip = None
+
+
+def is_blocking_countries():
+    """Returns True if any region other than 'localhost' is blocked."""
+    return any(region != 'localhost' for region in getattr(settings, 'BLOCKED_REGIONS', []))
+
+
+if not settings.GEOIP_PATH:
+    if is_blocking_countries():
+        raise RuntimeError(
+            "BLOCKED_REGIONS is set to block real countries, but GEOIP_PATH is not configured. "
+            "Please set GEOIP_PATH to the directory containing your GeoIP2 database files."
+        )
+else:
+    try:
+        geoip = GeoIP2(path=settings.GEOIP_PATH)
+    except Exception as e:
+        raise e
+
 
 CONTENT_TYPE = {
     '.html': 'text/html',
