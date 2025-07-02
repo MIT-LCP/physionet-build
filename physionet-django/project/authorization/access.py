@@ -7,17 +7,7 @@ from events.models import Event, EventDataset
 from project.authorization.events import has_access_to_event_dataset
 from project.models import AccessPolicy, DUASignature, DataAccessRequest, PublishedProject
 from user.models import Training, TrainingType
-from physionet.utility import get_country_code
-
-
-def get_client_ip(request):
-    """Get the client IP address from the request"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+from physionet.utility import get_country_code, get_client_ip
 
 
 def get_public_projects_query():

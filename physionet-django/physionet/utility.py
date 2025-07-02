@@ -362,8 +362,13 @@ def validate_pdf_file_type(pdf_file) -> bool:
 def get_client_ip(request):
     """
     Get the client's IP address from the request.
+    Handles cases where the request goes through a proxy or load balancer.
     """
-    ip = request.META.get('REMOTE_ADDR')
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
     return ip
 
 
