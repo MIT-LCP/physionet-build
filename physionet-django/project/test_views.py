@@ -8,7 +8,7 @@ from unittest import mock
 from django.conf import settings
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from project.forms import ContentForm
 from project.models import (
@@ -1437,6 +1437,7 @@ class TestGenerateSignedUrl(TestMixin):
             self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
 
 
+@override_settings(BLOCKED_REGIONS={'localhost'})
 class TestGeoRestrictedAccess(TestCase):
     def setUp(self):
         # Use existing fixtures and set georestricted flag
