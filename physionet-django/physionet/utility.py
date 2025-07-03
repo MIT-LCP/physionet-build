@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 # Initialize GeoIP2
-geoip = None
+GEOIP = None
 
 
 def is_blocking_countries():
@@ -33,10 +33,7 @@ if not settings.GEOIP_PATH:
             "Please set GEOIP_PATH to the directory containing your GeoIP2 database files."
         )
 else:
-    try:
-        geoip = GeoIP2(path=settings.GEOIP_PATH)
-    except Exception as e:
-        raise e
+    GEOIP = GeoIP2(path=settings.GEOIP_PATH)
 
 
 CONTENT_TYPE = {
@@ -396,10 +393,10 @@ def get_country_code(ip):
     if ip in ("127.0.0.1", "localhost", "::1"):
         return "localhost"
 
-    if geoip is None:
+    if GEOIP is None:
         return None
 
     try:
-        return geoip.country(ip)['country_code']
+        return GEOIP.country(ip)['country_code']
     except (GeoIP2Exception, KeyError, TypeError):
         return None
