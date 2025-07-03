@@ -33,7 +33,7 @@ BLOCKED_REGIONS=RU
 BLOCKED_REGIONS=
 ```
 
-The path to the folder containing GeoLite2-Country.mmdb.gz file should be assigned to `GEOIP_PATH`:
+The path to the folder containing GeoLite2-Country.mmdb file should be assigned to `GEOIP_PATH`:
 
 ```
 GEOIP_PATH=path/to/folder/containing/file
