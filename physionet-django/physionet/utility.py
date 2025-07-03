@@ -395,7 +395,4 @@ def get_country_code(ip):
     if GEOIP is None:
         return None
 
-    try:
-        return GEOIP.country(ip)['country_code']
-    except (GeoIP2Exception, KeyError, TypeError):
-        return None
+    return GEOIP.country(ip)['country_code']
