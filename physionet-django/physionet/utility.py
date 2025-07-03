@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import shutil
+import socket
 import struct
 import subprocess
 import tempfile
@@ -400,5 +401,5 @@ def get_country_code(ip):
 
     try:
         return GEOIP.country(ip)['country_code']
-    except geoip2.errors.AddressNotFoundError:
+    except (geoip2.errors.AddressNotFoundError, socket.gaierror):
         return None
