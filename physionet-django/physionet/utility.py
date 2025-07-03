@@ -11,7 +11,8 @@ from django.conf import settings
 from django.http import HttpResponse, Http404, BadHeaderError
 from django.utils.html import format_html
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from django.contrib.gis.geoip2 import GeoIP2, GeoIP2Exception
+from django.contrib.gis.geoip2 import GeoIP2
+import geoip2.errors
 
 
 LOGGER = logging.getLogger(__name__)
@@ -387,6 +388,8 @@ def get_client_ip(request):
 def get_country_code(ip):
     """
     Get the country code for a given IP address using Django's GeoIP2.
+
+    Returns None if the IP address is not found in the database.
     """
     # For testing - return localhost for localhost IPs
     if ip in ("127.0.0.1", "localhost", "::1"):
@@ -395,4 +398,7 @@ def get_country_code(ip):
     if GEOIP is None:
         return None
 
-    return GEOIP.country(ip)['country_code']
+    try:
+        return GEOIP.country(ip)['country_code']
+    except geoip2.errors.AddressNotFoundError:
+        return None
