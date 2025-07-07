@@ -89,7 +89,7 @@ class TestGeoIP(TestCase):
     def setUp(self):
         # Ensure the test database exists
         test_db_path = os.path.join(os.path.dirname(__file__), '..', '..',
-                                   'demo-files', 'geoip', 'GeoLite2-Country.mmdb')
+                                    'demo-files', 'geoip', 'GeoLite2-Country.mmdb')
         print(f"Test GeoIP database path: {test_db_path}")
 
     def test_localhost_ips(self):
@@ -218,5 +218,4 @@ class TestGeoIP(TestCase):
         self.assertEqual(utility.get_country_code("::1"), "localhost")
 
         # Should return None for other IPs when no database is available
-        if utility.GEOIP is None:
-            self.assertIsNone(utility.get_country_code("8.8.8.8"))
+        self.assertIsNone(utility.get_country_code("8.8.8.8"))

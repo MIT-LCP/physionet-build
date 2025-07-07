@@ -28,14 +28,22 @@ def is_blocking_countries():
     return any(region != 'localhost' for region in getattr(settings, 'BLOCKED_REGIONS', []))
 
 
-if not settings.GEOIP_PATH:
-    if is_blocking_countries():
-        raise RuntimeError(
-            "BLOCKED_REGIONS is set to block real countries, but GEOIP_PATH is not configured. "
-            "Please set GEOIP_PATH to the directory containing your GeoIP2 database files."
-        )
-else:
-    GEOIP = GeoIP2(path=settings.GEOIP_PATH)
+def _get_geoip():
+    """
+    Get the GeoIP2 object, initializing it if necessary.
+    """
+    global GEOIP
+    if GEOIP is None:
+        if not settings.GEOIP_PATH:
+            if is_blocking_countries():
+                raise RuntimeError(
+                    "BLOCKED_REGIONS is set to block real countries, but GEOIP_PATH is not configured. "
+                    "Please set GEOIP_PATH to the directory containing your GeoIP2 database files."
+                )
+            GEOIP = None
+        else:
+            GEOIP = GeoIP2(path=settings.GEOIP_PATH)
+    return GEOIP
 
 
 CONTENT_TYPE = {
@@ -396,10 +404,10 @@ def get_country_code(ip):
     if ip in ("127.0.0.1", "localhost", "::1"):
         return "localhost"
 
-    if GEOIP is None:
-        return None
-
     try:
-        return GEOIP.country(ip)['country_code']
+        geoip = _get_geoip()
+        if geoip is None:
+            return None
+        return geoip.country(ip)['country_code']
     except (geoip2.errors.AddressNotFoundError, socket.gaierror):
         return None
