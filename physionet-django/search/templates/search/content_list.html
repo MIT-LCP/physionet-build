@@ -28,7 +28,7 @@
     <p class="pub-details">Published: {{ published_project.publish_datetime|date }}.
       Version: {{ published_project.version }}</p>
     {% if published_project.files.is_lightwave_supported %}
-      {% can_view_project_files published_project request.user as user_can_view_project_files %}
+      {% can_view_project_files published_project request.user request as user_can_view_project_files %}
       {% if published_project.has_wfdb and user_can_view_project_files %}
         <a href="{% url 'lightwave_home' %}?db={{ published_project.slug }}/{{ published_project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a>
       {% endif %}

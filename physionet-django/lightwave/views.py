@@ -158,6 +158,7 @@ def lightwave_server(request):
         'access_policy',
         'allow_file_downloads',
         'deprecated_files',
+        'georestricted',
     ).order_by('title', '-version_order')
 
     params = request.GET.copy()
@@ -178,7 +179,7 @@ def lightwave_server(request):
                 f'Project {project_alias!r} does not exist',
                 public=True,
             )
-        if can_view_project_files(project, request.user):
+        if can_view_project_files(project, request.user, request):
             root = project.file_root()
             params['db'] = ''.join(parts[2:]) or '.'
         else:

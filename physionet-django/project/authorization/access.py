@@ -1,11 +1,13 @@
 from datetime import datetime
 
 from django.db.models import Q
+from django.conf import settings
 
 from events.models import Event, EventDataset
 from project.authorization.events import has_access_to_event_dataset
 from project.models import AccessPolicy, DUASignature, DataAccessRequest, PublishedProject
 from user.models import Training, TrainingType
+from physionet.utility import get_country_code, get_client_ip
 
 
 def get_public_projects_query():
@@ -22,6 +24,7 @@ def get_restricted_projects_query(user):
 
 def get_credentialed_projects_query(user):
     """Returns query filter for credentialed published projects accessible by a specified user"""
+
     dua_signatures = DUASignature.objects.filter(user=user)
 
     completed_training = (
@@ -86,16 +89,28 @@ def get_accessible_projects(user):
     return PublishedProject.objects.filter(query).distinct()
 
 
-def can_access_project(project, user):
+def can_access_project(project, user, request=None):
     """
     Checks if the project is accessible by the user
     Users may access a project through different ways, for example, thorough direct download on the physionet website,
     or through s3 bucket links, or gcs storage.
     This function only checks access to the project in general, users might still not be able to access the files
     even if they can access the project.
+
+    Args:
+        project: The project instance
+        user: The user requesting access
+        request: The HTTP request object (optional, needed for country-based restrictions)
     """
     if project.deprecated_files:
         return False
+
+    # Check country-based restrictions if project is georestricted and request is provided
+    if project.georestricted and request:
+        ip = get_client_ip(request)
+        country_code = get_country_code(ip)
+        if country_code in settings.BLOCKED_REGIONS:
+            return False
 
     if project.access_policy == AccessPolicy.OPEN:
         return True
@@ -128,9 +143,9 @@ def can_access_project(project, user):
     return False
 
 
-def can_view_project_files(project, user):
+def can_view_project_files(project, user, request=None):
     """
     Checks if the project files are  directly accessible by the user
     Currently used to allow direct file downloads and to show project files on the platform
     """
-    return can_access_project(project, user) and project.allow_file_downloads
+    return can_access_project(project, user, request) and project.allow_file_downloads

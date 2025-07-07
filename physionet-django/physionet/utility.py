@@ -2,6 +2,7 @@ import logging
 import os
 import re
 import shutil
+import socket
 import struct
 import subprocess
 import tempfile
@@ -11,8 +12,39 @@ from django.conf import settings
 from django.http import HttpResponse, Http404, BadHeaderError
 from django.utils.html import format_html
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.gis.geoip2 import GeoIP2
+import geoip2.errors
+
 
 LOGGER = logging.getLogger(__name__)
+
+
+# Initialize GeoIP2
+GEOIP = None
+
+
+def is_blocking_countries():
+    """Returns True if any region other than 'localhost' is blocked."""
+    return any(region != 'localhost' for region in getattr(settings, 'BLOCKED_REGIONS', []))
+
+
+def _get_geoip():
+    """
+    Get the GeoIP2 object, initializing it if necessary.
+    """
+    global GEOIP
+    if GEOIP is None:
+        if not settings.GEOIP_PATH:
+            if is_blocking_countries():
+                raise RuntimeError(
+                    "BLOCKED_REGIONS is set to block real countries, but GEOIP_PATH is not configured. "
+                    "Please set GEOIP_PATH to the directory containing your GeoIP2 database files."
+                )
+            GEOIP = None
+        else:
+            GEOIP = GeoIP2(path=settings.GEOIP_PATH)
+    return GEOIP
+
 
 CONTENT_TYPE = {
     '.html': 'text/html',
@@ -79,15 +111,18 @@ CONTENT_TYPE = {
     '.trigger': 'application/octet-stream',
 }
 
+
 def get_project_apps():
     """
     Return a string list of all the apps in this django project
     """
     return [app for app in settings.INSTALLED_APPS if not app.startswith('django') and not app.startswith('ck') and not app.startswith('debug')]
 
+
 def file_content_type(filename):
     (_, ext) = os.path.splitext(filename)
     return CONTENT_TYPE.get(ext, 'text/plain')
+
 
 def _file_x_accel_path(file_path):
     static_root = settings.STATIC_ROOT or settings.STATICFILES_DIRS[0]
@@ -345,3 +380,34 @@ def validate_pdf_file_type(pdf_file) -> bool:
     if chunk.startswith(b'%PDF-'):
         return True
     return False
+
+
+def get_client_ip(request):
+    """
+    Get the client's IP address from the request.
+    Handles cases where the request goes through a proxy or load balancer.
+    """
+    if settings.DEBUG:
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            return x_forwarded_for.split(',')[0]
+    return request.META.get('REMOTE_ADDR')
+
+
+def get_country_code(ip):
+    """
+    Get the country code for a given IP address using Django's GeoIP2.
+
+    Returns None if the IP address is not found in the database.
+    """
+    # For testing - return localhost for localhost IPs
+    if ip in ("127.0.0.1", "localhost", "::1"):
+        return "localhost"
+
+    try:
+        geoip = _get_geoip()
+        if geoip is None:
+            return None
+        return geoip.country(ip)['country_code']
+    except (geoip2.errors.AddressNotFoundError, socket.gaierror):
+        return None

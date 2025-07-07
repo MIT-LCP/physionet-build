@@ -48,9 +48,17 @@ ORCID_LOGIN_ENABLED = config('ORCID_LOGIN_ENABLED', default=False, cast=bool)
 ORCID_OPEN_ID_JWKS_URL = config('ORCID_OPEN_ID_JWKS_URL', default="https://sandbox.orcid.org/oauth/jwks")
 ORCID_LOGIN_BUTTON_TEXT = config('ORCID_LOGIN_BUTTON_TEXT', default="Log in using ORCID iD")
 
+# Geographic restrictions
+# BLOCKED_REGIONS: Comma-separated list of region codes to block access from
+# Example: BLOCKED_REGIONS=localhost,RU,CN,IR,NK
+BLOCKED_REGIONS_STR = config('BLOCKED_REGIONS', default='')
+BLOCKED_REGIONS = set(
+    region.strip()
+    for region in BLOCKED_REGIONS_STR.split(',')
+    if region.strip()
+)
 
-# Application definition
-
+# Installed apps
 INSTALLED_APPS = [
     'dal',
     'dal_select2',
@@ -779,3 +787,6 @@ OAUTH2_PROVIDER = {
         "data:download": "Download project data if token-holder is approved for access (training, DUA, etc).",
     }
 }
+
+# Path to GeoIP2 database directory
+GEOIP_PATH = config('GEOIP_PATH', default=None)
