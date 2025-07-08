@@ -790,3 +790,11 @@ OAUTH2_PROVIDER = {
 
 # Path to GeoIP2 database directory
 GEOIP_PATH = config('GEOIP_PATH', default=None)
+
+# Validate GeoIP configuration
+if BLOCKED_REGIONS and any(region != 'localhost' for region in BLOCKED_REGIONS):
+    if not GEOIP_PATH:
+        raise RuntimeError(
+            "BLOCKED_REGIONS is set to block real countries, but GEOIP_PATH is not configured. "
+            "Please set GEOIP_PATH to the directory containing your GeoIP2 database files."
+        )
