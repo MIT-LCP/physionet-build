@@ -23,26 +23,16 @@ LOGGER = logging.getLogger(__name__)
 GEOIP = None
 
 
-def is_blocking_countries():
-    """Returns True if any region other than 'localhost' is blocked."""
-    return any(region != 'localhost' for region in getattr(settings, 'BLOCKED_REGIONS', []))
-
-
 def _get_geoip():
     """
     Get the GeoIP2 object, initializing it if necessary.
     """
     global GEOIP
     if GEOIP is None:
-        if not settings.GEOIP_PATH:
-            if is_blocking_countries():
-                raise RuntimeError(
-                    "BLOCKED_REGIONS is set to block real countries, but GEOIP_PATH is not configured. "
-                    "Please set GEOIP_PATH to the directory containing your GeoIP2 database files."
-                )
-            GEOIP = None
-        else:
+        if settings.GEOIP_PATH:
             GEOIP = GeoIP2(path=settings.GEOIP_PATH)
+        else:
+            GEOIP = None
     return GEOIP
 
 
