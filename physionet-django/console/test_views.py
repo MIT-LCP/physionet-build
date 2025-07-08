@@ -385,14 +385,14 @@ class TestState(TestMixin):
             taken_slug = PublishedProject.objects.all().first().slug
             response = self.client.post(reverse(
                 'publish_submission', args=(project.slug,)),
-                data={'slug':taken_slug, 'doi': False, 'make_zip':1})
+                data={'slug': taken_slug, 'doi': False, 'make_zip': 1, 'georestricted': False})
             self.assertTrue(bool(ActiveProject.objects.filter(
                 slug=project_slug)))
 
         # Publish with a valid custom slug
         response = self.client.post(reverse(
             'publish_submission', args=(project.slug,)),
-            data={'slug':custom_slug, 'doi': False, 'make_zip':1})
+            data={'slug': custom_slug, 'doi': False, 'make_zip': 1, 'georestricted': False})
 
         # Run background tasks
         self.assertTrue(bool(tasks.run_next_task()))
