@@ -10,7 +10,13 @@
         <i class="nav__hamburger__list bi bi-list"></i>
         <i class="nav__hamburger__x bi bi-x"></i>
       </button>
-      <a href="/"><img src="{% static 'images/logo.png' %}" width="200px" alt="PhysioNet Logo" /></a>
+      <a href="/">
+        {% if SITE_HEADER_LOGO %}
+          <img src="{% static SITE_HEADER_LOGO %}" width="200px" alt="{{ SITE_NAME }}">
+        {% else %}
+          {{ SITE_NAME }}
+        {% endif %}
+      </a>
       <div class="nav__links align-items-center">
         {% for page in static_pg %}
           {% if page.nav_bar %}

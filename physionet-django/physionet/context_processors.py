@@ -46,4 +46,5 @@ def homepage_config(request):
         "TERMS_AND_CONDITIONS_LINK": settings.TERMS_AND_CONDITIONS_LINK,
         "PRIVACY_POLICY_URL": settings.PRIVACY_POLICY_URL,
         "FRONT_PAGE_BUTTONS": front_page_buttons,
+        "SITE_HEADER_LOGO": settings.SITE_HEADER_LOGO,
     }
