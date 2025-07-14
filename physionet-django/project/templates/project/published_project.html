@@ -337,10 +337,10 @@
               Download the files using AWS command line tools:
               <pre class="shell-command">aws s3 sync {{ s3_uri }} DESTINATION</pre>
             </li>
-          {% elif project.access_policy != AccessPolicy.OPEN and not user.cloud_information.aws_verification_datetime %}
+          {% elif show_aws_configuration_link %}
             <li>
               To download the files using AWS command line tools, first
-              <a href="https://physionet.org/settings/cloud/">configure your AWS credentials</a>.
+              <a href="{% url 'edit_cloud' %}">configure your AWS credentials</a>.
             </li>
           {% endif %}
           {% endif %}
