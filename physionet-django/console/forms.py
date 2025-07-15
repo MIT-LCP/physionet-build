@@ -328,6 +328,11 @@ class PublishForm(forms.Form):
     """
     Form for publishing a project
     """
+    georestricted = forms.ChoiceField(
+        choices=[(True, 'True'), (False, 'False')],
+        label='Georestricted',
+        help_text='If True, georestriction rules will be applied to the dataset.'
+    )
     slug = forms.CharField(max_length=MAX_PROJECT_SLUG_LENGTH,
                            validators=[validate_slug])
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
@@ -335,6 +340,10 @@ class PublishForm(forms.Form):
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project
+
+        # Set initial value for georestricted field
+        self.fields['georestricted'].initial = self.project.georestricted
+
         # No option to set slug if publishing new version
         if self.project.is_new_version:
             del(self.fields['slug'])
