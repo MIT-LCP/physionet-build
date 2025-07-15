@@ -129,11 +129,23 @@
   font-size: 1.25rem;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+}
+.modern-ui .card-title > a {
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  cursor: pointer;
+  color: var(--secondary-color);
+  text-decoration: underline;
+  text-decoration-color: var(--primary-color);
+  text-underline-offset: 2px;
+}
+.modern-ui .card-title > a:hover {
+  color: var(--primary-color);
+}
+.modern-ui .card-title > a:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 .modern-ui .card-content {
   font-size: 0.875rem;
