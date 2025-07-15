@@ -4,7 +4,11 @@
 <div class="modern-ui">
   <footer class="footer w-100 secondary-bg py-5">
     <div class="container my-0 py-0 py-md-5">
-      <img src="{% static 'images/logo-white.png' %}" width="180px" alt="PhysioNet Logo" class="pb-2" />
+      {% if SITE_FOOTER_LOGO %}
+        <img src="{% static SITE_FOOTER_LOGO %}" width="180px" alt="{{ SITE_NAME }}" class="pb-2" />
+      {% else %}
+        <h1 class="text-white font-weight-bold pb-2">{{ SITE_NAME }}</h1>
+      {% endif %}
       <div class="footer__columns light-text">
         <div>
           <p class="dark-light-text mb-2">{{ FOOTER_MANAGED_BY }}</p>

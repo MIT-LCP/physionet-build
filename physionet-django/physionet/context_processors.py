@@ -47,4 +47,5 @@ def homepage_config(request):
         "PRIVACY_POLICY_URL": settings.PRIVACY_POLICY_URL,
         "FRONT_PAGE_BUTTONS": front_page_buttons,
         "SITE_HEADER_LOGO": settings.SITE_HEADER_LOGO,
+        "SITE_FOOTER_LOGO": settings.SITE_FOOTER_LOGO,
     }
