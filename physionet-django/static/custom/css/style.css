@@ -1,12 +1,15 @@
 .modern-ui {
   font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 
   --nav-height: 80px;
 
   --primary-color: #DA1259;
   --secondary-color: #212529;
   --light-color: #F8F9FA;
-  --gray-color: #6C757D;
+  --gray-color: #5A6268;
 
   /* for dark background */
   --dark-primary-color: #c05474;
@@ -253,7 +256,7 @@ body .main {
 }
 
 .modern-ui h2 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin-bottom: 1rem;
   font-weight: 600;
   color: var(--secondary-color);
@@ -478,6 +481,7 @@ body .main {
 }
 .modern-ui .banner h1 {
   font-size: 2rem;
+  font-weight: 500;
 }
 
 .modern-ui .footer {
