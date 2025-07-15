@@ -20,7 +20,7 @@
       <div class="nav__links align-items-center">
         {% for page in static_pg %}
           {% if page.nav_bar %}
-            <a href="{{ page.url }}"><button type="button" class="nav-link">{{ page.title }}</button></a>
+            <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
           {% endif %}
         {% endfor %}
 
@@ -130,10 +130,8 @@
             </div>
           </button>
         {% else %}
-          <a class="nav__user" href="{% url 'login' %}">
-            <button type="button" class="circle-button">
-              <i class="bi bi-person"></i>
-            </button>
+          <a class="nav__user circle-button" href="{% url 'login' %}">
+            <i class="bi bi-person"></i>
           </a>
         {% endif %}
       </div>
@@ -142,7 +140,7 @@
   <div class="nav__mobile">
     {% for page in static_pg %}
       {% if page.nav_bar %}
-        <a href="{{ page.url }}"><button type="button" class="nav-link">{{ page.title }}</button></a>
+        <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
       {% endif %}
     {% endfor %}
 

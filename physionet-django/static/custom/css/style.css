@@ -412,6 +412,9 @@ body .main {
 .modern-ui .nav__user {
   display: none;
 }
+.modern-ui .nav__user.circle-button {
+  display: flex;
+}
 .modern-ui .nav__mobile {
   display: none;
   position: fixed;
@@ -576,7 +579,7 @@ body .main {
 }
 @media (min-width: 1200px) {
   .modern-ui .nav__user {
-    display: block;
+    display: flex;
   }
   .modern-ui .nav__hamburger {
     display: none;
