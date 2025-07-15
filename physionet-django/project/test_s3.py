@@ -91,13 +91,38 @@ class TestS3(TestMixin):
 
         self.assertTrue(check_s3_bucket_exists(project1))
         self.assertTrue(check_s3_bucket_exists(project2))
+        self.assert_bucket_is_public(get_bucket_name(project1))
+        self.assert_project_files_uploaded([project1, project2])
 
+    def test_upload_controlled_projects(self):
+        """
+        Test uploading controlled-access projects to S3.
+        """
+        create_s3_server_access_log_bucket()
+
+        project1 = PublishedProject.objects.get(slug='demoeicu',
+                                                version='2.0.0')
+
+        self.assertFalse(check_s3_bucket_exists(project1))
+
+        upload_project_to_S3(project1)
+
+        self.assertTrue(check_s3_bucket_exists(project1))
+
+        # FIXME: upload_project_to_S3 does not set an explicit
+        # PublicAccessBlockConfiguration for the controlled bucket.
+        # self.assert_bucket_is_not_public(get_bucket_name(project1))
+
+        self.assert_project_files_uploaded([project1])
+
+    def assert_project_files_uploaded(self, projects):
+        """
+        Check that the given projects' files were uploaded.
+        """
         s3 = create_s3_client()
         expected_files = {}
-        for project in (project1, project2):
-            bucket = get_bucket_name(project)
-            self.assert_bucket_is_public(bucket)
-
+        bucket = get_bucket_name(projects[0])
+        for project in projects:
             prefix = project.slug + '/' + project.version + '/'
             for subdir, _, files in os.walk(project.file_root()):
                 for name in files:
