@@ -63,6 +63,7 @@ from project.cloud.s3 import (
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 from physionet.utility import get_client_ip, get_country_code
+from user.awsverification import aws_verification_available
 
 LOGGER = logging.getLogger(__name__)
 
@@ -1964,6 +1965,21 @@ def published_project(request, project_slug, version, subdir=''):
     except AWS.DoesNotExist:
         s3_uri = None
 
+    # Determine when to show AWS configuration link
+    try:
+        show_aws_configuration_link = (
+            not s3_uri
+            and project.aws.sent_files
+            and project.aws.is_private
+            and aws_verification_available()
+            and (
+                not hasattr(user, 'cloud_information')
+                or not user.cloud_information.aws_verification_datetime
+            )
+        )
+    except AWS.DoesNotExist:
+        show_aws_configuration_link = False
+
     context = {
         'project': project,
         'authors': authors,
@@ -1992,6 +2008,7 @@ def published_project(request, project_slug, version, subdir=''):
         'is_wget_supported': project.files.is_wget_supported(),
         'has_s3_credentials': has_s3_credentials(),
         's3_uri': s3_uri,
+        'show_aws_configuration_link': show_aws_configuration_link,
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
         'user_country_blocked': user_country_blocked,
