@@ -342,7 +342,7 @@
               To download the files using AWS command line tools, first
               <a href="{% url 'edit_cloud' %}">configure your AWS credentials</a>.
             </li>
-          {% elif not user_included_in_ap_policy %}
+          {% elif not user_in_access_point_policy %}
             <li>
               Click to access the files using AWS command line tools:
               <a href="{% url 'enable_aws_access' project.slug project.version %}">
