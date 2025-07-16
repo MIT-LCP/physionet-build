@@ -2273,27 +2273,38 @@ def enable_aws_access(request, project_slug, version):
         return redirect('project_home')
 
     # Verify if the user has access to the project
-    if not can_access_project(project, user, request):
+    if not can_view_project_files(project, user, request):
         messages.error(request, 'You do not have permission to access this project.')
         return redirect('published_project', project_slug=project_slug, version=version)
 
-    try:
-        result = add_user_to_access_point_policy(project, user)
-        if result:
-            messages.success(
-                request,
-                'AWS access has been enabled! You can now download files using AWS CLI.'
-            )
+    if request.method == 'POST':
+        if has_s3_credentials() and files_sent_to_S3(project):
+            if (
+                hasattr(user, 'cloud_information')
+                and user.cloud_information is not None
+                and user.cloud_information.aws_verification_datetime is not None
+            ):
+                try:
+                    result = add_user_to_access_point_policy(project, user)
+                    if result:
+                        messages.success(
+                            request,
+                            'AWS access has been enabled! You can now download files using AWS CLI.'
+                        )
+                    else:
+                        messages.error(
+                            request,
+                            'Failed to enable AWS access.'
+                        )
+                except Exception as e:
+                    messages.error(
+                        request,
+                        f'An error occurred while enabling AWS access: {str(e)}'
+                    )
+            else:
+                messages.error(request, 'Please configure and verify your AWS credentials first.')
         else:
-            messages.error(
-                request,
-                'Failed to enable AWS access.'
-            )
-    except Exception as e:
-        messages.error(
-            request,
-            f'An error occurred while enabling AWS access: {str(e)}'
-        )
+            messages.error(request, 'AWS access is not available for this project.')
 
     return redirect('published_project', project_slug=project_slug, version=version)
 
