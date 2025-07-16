@@ -68,6 +68,21 @@ class AWS(models.Model):
         """
         return f's3://{self.bucket_name}/{self.project.slug}/{self.project.version}/'
 
+    def user_included_in_ap_policy(self, user):
+        """
+        Check if a user has access to this AWS project through any access point.
+
+        Args:
+            user (User): The user to check
+
+        Returns:
+            bool: True if user has access, False otherwise
+        """
+        return AWSAccessPointUser.objects.filter(
+            user=user,
+            aws=self
+        ).exists()
+
     def __str__(self):
         return f"AWS instance for project: {self.project.slug}"
 
