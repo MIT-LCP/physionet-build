@@ -15,7 +15,7 @@ urlpatterns = [
     path('model/', views.model_index, name='model_index'),
     path('content/', views.content_index, name='content_index'),
     path(
-        'content/<project_slug>/<version>/enable-aws-access/',
+        'enable-aws-access/<project_slug>/<version>/',
         project_views.enable_aws_access,
         name='enable_aws_access'
     ),
