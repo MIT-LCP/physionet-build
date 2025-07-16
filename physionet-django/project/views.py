@@ -1980,6 +1980,13 @@ def published_project(request, project_slug, version, subdir=''):
     except AWS.DoesNotExist:
         show_aws_configuration_link = False
 
+    try:
+        aws_instance = project.aws
+        if aws_instance.is_private:
+            user_included_in_ap_policy = aws_instance.user_in_access_point_policy(user)
+    except AWS.DoesNotExist:
+        user_included_in_ap_policy = False
+
     context = {
         'project': project,
         'authors': authors,
@@ -2008,6 +2015,7 @@ def published_project(request, project_slug, version, subdir=''):
         'is_wget_supported': project.files.is_wget_supported(),
         'has_s3_credentials': has_s3_credentials(),
         's3_uri': s3_uri,
+        'user_included_in_ap_policy': user_included_in_ap_policy,
         'show_aws_configuration_link': show_aws_configuration_link,
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
@@ -2250,6 +2258,55 @@ def data_access_requests_overview(request, project_slug, version):
                    'requests': all_requests,
                    'accepted_requests': accepted_requests,
                    'is_additional_reviewer': proj.is_data_access_reviewer(reviewer)})
+
+
+@login_required
+def enable_aws_access(request, project_slug, version):
+    """
+    Enable AWS access for a user by adding them to the access point policy.
+    """
+    user = request.user
+    try:
+        project = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
+        messages.error(request, 'Project not found.')
+        return redirect('project_home')
+
+    # Verify if the user has access to the project
+    if not can_view_project_files(project, user, request):
+        messages.error(request, 'You do not have permission to access this project.')
+        return redirect('published_project', project_slug=project_slug, version=version)
+
+    if request.method == 'POST':
+        if has_s3_credentials() and files_sent_to_S3(project):
+            if (
+                hasattr(user, 'cloud_information')
+                and user.cloud_information is not None
+                and user.cloud_information.aws_verification_datetime is not None
+            ):
+                try:
+                    result = add_user_to_access_point_policy(project, user)
+                    if result:
+                        messages.success(
+                            request,
+                            'AWS access has been enabled! You can now download files using AWS CLI.'
+                        )
+                    else:
+                        messages.error(
+                            request,
+                            'Failed to enable AWS access.'
+                        )
+                except Exception as e:
+                    messages.error(
+                        request,
+                        f'An error occurred while enabling AWS access: {str(e)}'
+                    )
+            else:
+                messages.error(request, 'Please configure and verify your AWS credentials first.')
+        else:
+            messages.error(request, 'AWS access is not available for this project.')
+
+    return redirect('published_project', project_slug=project_slug, version=version)
 
 
 @login_required

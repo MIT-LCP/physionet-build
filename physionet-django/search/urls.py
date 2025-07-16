@@ -14,6 +14,11 @@ urlpatterns = [
     path('challenge/', views.challenge_index, name='challenge_index'),
     path('model/', views.model_index, name='model_index'),
     path('content/', views.content_index, name='content_index'),
+    path(
+        'enable-aws-access/<project_slug>/<version>/',
+        project_views.enable_aws_access,
+        name='enable_aws_access'
+    ),
 
     # published project content
     re_path('^(?P<anonymous_url>[\w\d]{64})/$', project_views.anonymous_login,
@@ -118,6 +123,7 @@ TEST_CASES = {
     'display_published_project_file': {'full_file_name': 'Makefile'},
 
     'sign_dua': _demo_credentialed_access,
+    'enable_aws_access': _demo_credentialed_access,
 
     'request_data_access': _demo_access_requester,
     'data_access_request_status': _demo_access_requester,
