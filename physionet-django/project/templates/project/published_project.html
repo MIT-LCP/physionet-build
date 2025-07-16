@@ -345,9 +345,12 @@
           {% elif not user_in_access_point_policy %}
             <li>
               Click to access the files using AWS command line tools:
-              <a href="{% url 'enable_aws_access' project.slug project.version %}">
-                Enable AWS access
-              </a>
+              <form method="post" action="{% url 'enable_aws_access' project.slug project.version %}">
+                {% csrf_token %}
+                <button class="btn btn-primary btn-fixed" type="submit">
+                  Enable AWS access
+                </button>
+              </form>
             </li>
           {% endif %}
           {% endif %}
