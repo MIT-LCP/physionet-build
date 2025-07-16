@@ -2272,6 +2272,11 @@ def enable_aws_access(request, project_slug, version):
         messages.error(request, 'Project not found.')
         return redirect('project_home')
 
+    # Verify if the user has access to the project
+    if not can_access_project(project, user, request):
+        messages.error(request, 'You do not have permission to access this project.')
+        return redirect('published_project', project_slug=project_slug, version=version)
+
     try:
         result = add_user_to_access_point_policy(project, user)
         if result:
