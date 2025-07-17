@@ -879,7 +879,7 @@ class TestAccessPublished(TestMixin):
             args=(project.slug, project.version, long_fn)))
         self.assertEqual(response.status_code, 404)
 
-        aws = AWS.objects.create(
+        AWS.objects.create(
             project=project,
             bucket_name='testproject',
             is_private=False,
@@ -887,8 +887,9 @@ class TestAccessPublished(TestMixin):
             sent_files=True,
         )
 
-        response = self.client.get(reverse('published_project',
-            args=(project.slug, project.version,)))
+        response = self.client.get(reverse(
+            'published_project', args=(project.slug, project.version,)
+        ))
         self.assertEqual(response.status_code, 200)
 
     @prevent_request_warnings
