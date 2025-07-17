@@ -24,7 +24,8 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
     StorageRequest,
-    SubmissionStatus
+    SubmissionStatus,
+    AWS
 )
 from user.models import User
 from user.test_views import TestMixin, prevent_request_warnings
@@ -877,6 +878,18 @@ class TestAccessPublished(TestMixin):
         response = self.client.get(reverse('display_published_project_file',
             args=(project.slug, project.version, long_fn)))
         self.assertEqual(response.status_code, 404)
+
+        aws = AWS.objects.create(
+            project=project,
+            bucket_name='testproject',
+            is_private=False,
+            sent_zip=True,
+            sent_files=True,
+        )
+
+        response = self.client.get(reverse('published_project',
+            args=(project.slug, project.version,)))
+        self.assertEqual(response.status_code, 200)
 
     @prevent_request_warnings
     def test_nonexistent(self):
