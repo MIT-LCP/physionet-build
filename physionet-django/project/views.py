@@ -1983,9 +1983,9 @@ def published_project(request, project_slug, version, subdir=''):
     try:
         aws_instance = project.aws
         if aws_instance.is_private:
-            user_included_in_ap_policy = aws_instance.user_in_access_point_policy(user)
+            user_in_access_point_policy = aws_instance.user_in_access_point_policy(user)
     except AWS.DoesNotExist:
-        user_included_in_ap_policy = False
+        user_in_access_point_policy = False
 
     context = {
         'project': project,
@@ -2015,7 +2015,7 @@ def published_project(request, project_slug, version, subdir=''):
         'is_wget_supported': project.files.is_wget_supported(),
         'has_s3_credentials': has_s3_credentials(),
         's3_uri': s3_uri,
-        'user_included_in_ap_policy': user_included_in_ap_policy,
+        'user_in_access_point_policy': user_in_access_point_policy,
         'show_aws_configuration_link': show_aws_configuration_link,
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
