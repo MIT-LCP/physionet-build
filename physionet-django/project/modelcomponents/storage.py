@@ -78,6 +78,8 @@ class AWS(models.Model):
         Returns:
             bool: True if user has access, False otherwise
         """
+        if not user.is_authenticated:
+            return False
         return AWSAccessPointUser.objects.filter(
             user=user,
             aws=self
