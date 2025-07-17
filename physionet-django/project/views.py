@@ -1980,6 +1980,7 @@ def published_project(request, project_slug, version, subdir=''):
     except AWS.DoesNotExist:
         show_aws_configuration_link = False
 
+    user_in_access_point_policy = False
     try:
         aws_instance = project.aws
         if aws_instance.is_private:
