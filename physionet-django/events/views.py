@@ -28,7 +28,9 @@ def update_event(request, event_slug, **kwargs):
     event = Event.objects.get(slug=event_slug)
 
     # if the event has dataset added to it, it cannot be edited
-    if event.datasets.exists():
+    if event.datasets.filter(is_active=True).exists():
+        if not can_change_event:
+            messages.error(request, "You don't have permission to edit this event")
         messages.error(request, "Event with datasets cannot be edited")
         return redirect(reverse('event_detail', args=[event_slug]))
 
