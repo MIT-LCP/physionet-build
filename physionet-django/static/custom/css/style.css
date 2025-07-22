@@ -504,6 +504,49 @@ body .main {
 
 .swiper {
   padding: 1.5rem 1rem 2.25rem 1rem;
+  /* Fallback grid layout when JavaScript is disabled */
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.swiper-wrapper {
+  /* Remove default swiper wrapper styling when JS is disabled */
+  display: contents !important;
+}
+
+.swiper-slide {
+  /* Make slides display as grid items when JS is disabled */
+  display: block;
+  width: 100%;
+  margin: 0;
+}
+
+/* Responsive grid for larger screens when JS is disabled */
+@media screen and (min-width: 768px) {
+  .swiper {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media screen and (min-width: 992px) {
+  .swiper {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* When JavaScript is enabled, Swiper will override these styles */
+.swiper.swiper-initialized {
+  display: block !important;
+}
+
+.swiper.swiper-initialized .swiper-wrapper {
+  display: flex !important;
+}
+
+.swiper.swiper-initialized .swiper-slide {
+  display: block;
+  flex-shrink: 0;
 }
 .modern-ui .swiper .swiper-slide {
   height: auto;
