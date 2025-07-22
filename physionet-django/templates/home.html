@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load project_templatetags %}
+{% load physionet_templatetags %}
 
 {% block title %}
 {{ SITE_NAME }}
@@ -42,7 +43,7 @@
                 <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
               </h2>
               <p class="card-content light-text">
-                {{ news.content|safe }}
+                {{ news.content|news_preview:200 }}
               </p>
             </div>
           </div>
@@ -90,7 +91,7 @@
                   <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
                 </h2>
                 <p class="card-content light-text">
-                  {{ news.content|safe }}
+                  {{ news.content|news_preview:200 }}
                 </p>
               </div>
             </div>
