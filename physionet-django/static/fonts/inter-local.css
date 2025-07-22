@@ -1,0 +1,107 @@
+/*
+ * Inter Font - Local Version
+ * 
+ * This is a local copy of the Inter font family.
+ * Original source: https://github.com/rsms/inter
+ * License: SIL Open Font License 1.1
+ * 
+ * Inter is a typeface carefully crafted & designed for computer screens.
+ * It features a tall x-height to aid in readability of mixed-case and lower-case text.
+ * Several OpenType features are provided as well, like contextual alternates that
+ * adjusts punctuation depending on the shape of surrounding glyphs, slashed zero
+ * for when you need to distinguish "O" from "0", tabular numbers, etc.
+ */
+
+/* Regular weight (400) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('inter-regular.woff2') format('woff2'),
+       url('inter-regular.woff') format('woff'),
+       url('inter-regular.ttf') format('truetype');
+}
+
+/* Medium weight (500) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('inter-medium.woff2') format('woff2'),
+       url('inter-medium.woff') format('woff');
+}
+
+/* Bold weight (700) */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('inter-bold.woff2') format('woff2'),
+       url('inter-bold.woff') format('woff');
+}
+
+/* Fallback for other weights - use regular */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url('inter-regular.woff2') format('woff2'),
+       url('inter-regular.woff') format('woff'),
+       url('inter-regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url('inter-regular.woff2') format('woff2'),
+       url('inter-regular.woff') format('woff'),
+       url('inter-regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('inter-regular.woff2') format('woff2'),
+       url('inter-regular.woff') format('woff'),
+       url('inter-regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('inter-bold.woff2') format('woff2'),
+       url('inter-bold.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('inter-bold.woff2') format('woff2'),
+       url('inter-bold.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url('inter-bold.woff2') format('woff2'),
+       url('inter-bold.woff') format('woff');
+}
+
+/* Fallback to system fonts */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+} 

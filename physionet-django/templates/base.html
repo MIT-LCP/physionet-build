@@ -11,11 +11,17 @@
     {% block local_js_top %}{% endblock %}
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'bootstrap/bootstrap-icons/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'fonts/inter-local.css' %}">
+    <link rel="stylesheet" href="{% static 'swiper/swiper-bundle.min.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/style.css' %}"/>
+    <script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
   </head>
 
   {% block body %}
   <body class="flexbody">
     {% include "navbar.html" %}
+    <div class="nav-spacer"></div>
 
     <main>{% block content %}{% endblock %}</main>
 

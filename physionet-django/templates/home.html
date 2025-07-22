@@ -15,71 +15,109 @@
 
 {# avoid using flexbody style #}
 {% block body %}
-<body>
+<body class="modern-ui">
   {% include "navbar.html" %}
 
-  {% if front_page_banner %}
-  <div class="alert alert-primary front-page-banner">
-    <ul class="list-unstyled front-page-banner">
-    {% for news in front_page_banner %}
-    <li>
-      <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
-    </li>
-    {% endfor %}
-    </ul>
-  </div>
-  {% endif %}
-
-  <div class="main-header">
-    <div class="center">
-      <h1>{{ SITE_NAME }}</h1>
-      <p>
-        {{ STRAPLINE }}
-      </p>
-      <br>
-      <div>
-        {% for button in front_page_buttons %}
-            <a href="{{ button.url }}">{{ button.label|title }}</a>
-        {% endfor %}
+  <div class="banner relative" style="height: 650px; background-image: linear-gradient(to right, white 40%, rgba(255,255,255,0) 80%), url({% static 'images/banner.png' %});">
+    <div class="container absolute my-0">
+      <div class="banner__column d-flex flex-column justify-content-center h-100">
+        <h1 style="font-weight: 600;">{{ STRAPLINE }}</h1>
+        <p class="font-weight-light">{{ SITE_DESCRIPTION }}</p>
+        <div class="banner__buttons">
+          <a href="/about/publish" class="primary-button primary-button--large">Publish Your Data</a>
+          <a href="/content" class="primary-button primary-button--outline primary-button--large">Discover Datasets</a>
+        </div>
       </div>
     </div>
-    <a href="#latest">
-      <div class="down-container"><div class="down"></div></div>
-    </a>
   </div>
-  <div class="main">
-    <div class="main-content" id="latest">
-      <div class="content-box">
-        <h2>
-          Featured Resources
-        </h2>
-        <br>
-        {% include "search/content_list.html" with projects=featured content_list_header='h3' %}
-      </div><div class="content-box">
-        <h2>
-          Latest Resources
-        </h2>
-        <br>
-        {% include "search/content_list.html" with projects=latest content_list_header='h3' %}
-        <div class="more"><a class="btn btn-outline-dark" href="{% url 'content_index' %}">More resources</a></div>
+
+  <div class="container pb-5 mt-0 px-0">
+    <div class="swiper">
+      <div class="swiper-wrapper">
+        {% for news in news_pieces|slice:":10" %}
+          <div class="swiper-slide">
+            <div class="card card--news">
+              <span class="caption-text">{{ news.publish_datetime|date }}</span>
+              <h2 class="card-title">
+                <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
+              </h2>
+              <p class="card-content light-text">
+                {{ news.content|safe }}
+              </p>
+            </div>
+          </div>
+        {% endfor %}
       </div>
-    </div><div class="main-side">
-      <h2>
-        News
-      </h2>
-      <br>
-      {% for news in news_pieces %}
-        <h3>
-          <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
-        </h3>
-        {% include "notification/news_content.html" %}
-        <hr>
-      {% endfor %}
-      <div class="more"><a class="btn btn-outline-dark" href="{% url 'news' %}">More news</a></div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </div>
+
+  <div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-start">
+      <h2 class="">Featured Resources</h2>
+      <a href="/content" class="primary-button primary-button--outline d-none d-md-block">More Resources</a>
+    </div>
+    <div class="cards-wrapper">
+      {% include "search/homepage_content_list.html" with projects=featured content_list_header='h3' %}
+    </div>
+    <button type="button" class="primary-button primary-button--outline w-100 mt-4 d-md-none">More Resources</button>
+  </div>
+
+  <div class="container pb-5">
+    <div class="d-flex justify-content-between align-items-start">
+      <h2 class="">Latest Resources</h2>
+      <a href="/content" class="primary-button primary-button--outline d-none d-md-block">More Resources</a>
+    </div>
+    <div class="cards-wrapper">
+      {% include "search/homepage_content_list.html" with projects=latest content_list_header='h3' %}
+    </div>
+    <button type="button" class="primary-button primary-button--outline w-100 mt-4 d-md-none">More Resources</button>
+  </div>
+
+  <div class="w-100 light-bg py-3 py-md-5">
+    <div class="container pt-4 pb-5 my-0 px-0">
+      <div class="d-flex justify-content-between align-items-start px-3">
+        <h2 class="">News</h2>
+        <a href="/news" class="primary-button primary-button--outline">More News</a>
+      </div>
+      <div class="swiper">
+        <div class="swiper-wrapper">
+          {% for news in news_pieces|slice:":10" %}
+            <div class="swiper-slide">
+              <div class="card card--news">
+                <span class="caption-text">{{ news.publish_datetime|date }}</span>
+                <h2 class="card-title">
+                  <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
+                </h2>
+                <p class="card-content light-text">
+                  {{ news.content|safe }}
+                </p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="swiper-pagination"></div>
+      </div>
     </div>
   </div>
 
   {% include "footer.html" %}
   {% include "base_js_bottom.html" %}
+
+  <script>
+    const swiper = new Swiper('.swiper', {
+      slidesPerView: window.innerWidth >= 768 ? (window.innerWidth > 992 ? 3 : 2) : 1,
+      spaceBetween: 24,
+      loop: true,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+    });
+  </script>
 </body>
 {% endblock %}

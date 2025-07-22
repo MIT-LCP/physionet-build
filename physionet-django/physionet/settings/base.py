@@ -146,6 +146,7 @@ TEMPLATES = [
                 'physionet.context_processors.platform_config',
                 'sso.context_processors.sso_enabled',
                 'physionet.context_processors.cloud_research_environments_config',
+                'physionet.context_processors.homepage_config'
             ],
             'debug': DEBUG,
         },
@@ -716,6 +717,10 @@ if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
 
 SITE_NAME = config('SITE_NAME')
 STRAPLINE = config('STRAPLINE')
+SITE_HEADER_LOGO = config('SITE_HEADER_LOGO', default=None)
+SITE_FOOTER_LOGO = config('SITE_FOOTER_LOGO', default=None)
+
+SITE_DESCRIPTION = config('SITE_DESCRIPTION', default=None)
 EMAIL_SIGNATURE = config('EMAIL_SIGNATURE')
 FOOTER_MANAGED_BY = config('FOOTER_MANAGED_BY')
 FOOTER_SUPPORTED_BY = config('FOOTER_SUPPORTED_BY')
@@ -746,6 +751,15 @@ PLATFORM_WIDE_CITATION = {
 SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
                                      default='https://github.com/MIT-LCP/physionet-build')
 MAX_TRAINING_REPORT_UPLOAD_SIZE = config('MAX_TRAINING_REPORT_UPLOAD_SIZE', cast=int, default=1048576)
+
+# Homepage config
+GITHUB_LINK = config('GITHUB_LINK', cast=str, default=None)
+X_LINK = config('X_LINK', cast=str, default=None)
+LINKEDIN_LINK = config('LINKEDIN_LINK', cast=str, default=None)
+FACEBOOK_LINK = config('FACEBOOK_LINK', cast=str, default=None)
+
+TERMS_AND_CONDITIONS_LINK = config('TERMS_AND_CONDITIONS_LINK', cast=str, default=None)
+PRIVACY_POLICY_URL = config('PRIVACY_POLICY_URL', cast=str, default=None)
 
 # User model configurable settings
 MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)

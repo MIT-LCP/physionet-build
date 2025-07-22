@@ -1,6 +1,7 @@
 from django.db import models
 from django.db import transaction
 from project.models import SafeHTMLField
+from storages.backends.gcloud import GoogleCloudStorage
 
 
 class StaticPage(models.Model):
@@ -112,6 +113,8 @@ class FrontPageButton(models.Model):
     label = models.CharField(max_length=20, unique=True)
     url = models.CharField(max_length=200, blank=False)
     order = models.PositiveSmallIntegerField(default=1)
+    associated_image_path = models.CharField(max_length=200, null=True, blank=True)
+    description = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         default_permissions = ('change',)
