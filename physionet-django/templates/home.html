@@ -42,7 +42,7 @@
                 <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
               </h2>
               <p class="card-content light-text">
-                {{ news.content|safe }}
+                {{ news.content|safe|truncatewords_html:30 }}
               </p>
             </div>
           </div>
@@ -90,7 +90,7 @@
                   <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
                 </h2>
                 <p class="card-content light-text">
-                  {{ news.content|safe }}
+                  {{ news.content|safe|truncatewords_html:30 }}
                 </p>
               </div>
             </div>
