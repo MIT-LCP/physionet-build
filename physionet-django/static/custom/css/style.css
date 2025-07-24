@@ -228,7 +228,7 @@ body .main {
   flex-grow: 1;
   font-size: 0.875rem;
 }
-.modern-ui .card--news p {
+.modern-ui .card--news .card-content {
   font-size: 0.875rem;
   margin: 0;
   display: -webkit-box;

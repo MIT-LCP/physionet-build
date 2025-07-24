@@ -41,9 +41,9 @@
               <h2 class="card-title">
                 <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
               </h2>
-              <p class="card-content light-text">
+              <div class="card-content light-text">
                 {{ news.content|safe }}
-              </p>
+              </div>
             </div>
           </div>
         {% endfor %}
@@ -89,9 +89,9 @@
                 <h2 class="card-title">
                   <a href="{% url 'news_by_slug' news.slug %}">{{ news.title }}</a>
                 </h2>
-                <p class="card-content light-text">
+                <div class="card-content light-text">
                   {{ news.content|safe }}
-                </p>
+                </div>
               </div>
             </div>
           {% endfor %}
