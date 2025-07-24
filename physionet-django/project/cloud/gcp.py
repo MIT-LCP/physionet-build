@@ -107,15 +107,18 @@ def create_access_group(bucket, project, version, title):
     already exist.
 
     Returns:
-        bool: False if there was an error or change to the API. True otherwise.
+        str: The group email if successful, None otherwise.
     """
     bucket_name, email = bucket_info(project, version)
     service = create_directory_service(settings.GCP_DELEGATION_EMAIL)
 
-    # Get all the members of the Google group
+    # Get all the groups in the domain
     try:
         outcome = service.groups().list(domain=settings.GCP_DOMAIN).execute()
-        if not any(group['email'] in email for group in outcome['groups']):
+        # Check if the group already exists by comparing exact email addresses
+        group_exists = any(group['email'] == email for group in outcome.get('groups', []))
+
+        if not group_exists:
             creation = service.groups().insert(body={
                 'email': email,
                 'name': '{0} v{1}'.format(title, version),
@@ -124,20 +127,22 @@ def create_access_group(bucket, project, version, title):
             if creation['kind'] != 'admin#directory#group':
                 LOGGER.info("Error {0} creating the "
                             "group {1}.".format(creation, email))
-                return False
+                return None
             LOGGER.info("Access group {0} was created.".format(email))
             if update_access_group(email):
                 LOGGER.info("Access group {0} was updated.".format(email))
         else:
             LOGGER.info("Access group {0} already exists.".format(email))
     except HttpError as e:
-        if (json.loads(e.content)['error']['message']
-                != 'Member already exists.'):
+        error_content = json.loads(e.content)
+        error_message = error_content['error']['message']
+
+        if error_message == 'Member already exists.' or error_message == 'Entity already exists.':
+            LOGGER.info("Access group {0} already exists.".format(email))
+        else:
             LOGGER.info("Error {0} creating the access group {1} for "
                         "{2}.".format(e.content, email, project))
-            raise e
-        else:
-            LOGGER.info("Access group {0} already exists.".format(email))
+            return None
 
     return email
 
