@@ -411,6 +411,11 @@
         {% endif %}
       </li>
       <li class="list-group-item">
+        <h5 class="card-title mt-3 mb-1">Google BigQuery</h5>
+        <p>Create and manage BigQuery datasets and associated Google Groups for this project. This does not upload any files; it only creates the dataset and group and sets permissions.</p>
+        <a href="{% url 'gcp_bigquery_management' project.slug project.version %}" class="btn btn-primary">Manage BigQuery Datasets</a>
+      </li>
+      <li class="list-group-item">
         <h5 class="card-title mt-3 mb-1">AWS</h5>
         {% if not has_s3_credentials %}
           <p>

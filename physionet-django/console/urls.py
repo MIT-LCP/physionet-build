@@ -1,6 +1,7 @@
 from console import views
 from training import views as training_views
 from django.urls import path
+from .views import gcp_bigquery_management
 
 urlpatterns = [
     path('', views.console_home,
@@ -283,3 +284,7 @@ TEST_CASES = {
     'known_references_search': {'_skip_': True},
     'news_search': {'_skip_': True},
 }
+
+urlpatterns += [
+    path('projects/<slug:project_slug>/<version>/manage/bigquery/', gcp_bigquery_management, name='gcp_bigquery_management'),
+]

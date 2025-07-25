@@ -1037,3 +1037,8 @@ class CodeOfConductForm(forms.ModelForm):
         model = CodeOfConduct
         fields = ('name', 'version', 'slug', 'html_content')
         labels = {'html_content': 'Content'}
+
+
+class BigQueryDatasetForm(forms.Form):
+    dataset_name = forms.CharField(max_length=128, label='BigQuery Dataset Name')
+    group_email = forms.EmailField(label='Google Group Email', required=False)

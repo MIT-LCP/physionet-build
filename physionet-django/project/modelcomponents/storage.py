@@ -132,3 +132,18 @@ class AWSAccessPointUser(models.Model):
 
     def __str__(self):
         return f"User: {self.user}, Access Point: {self.access_point}"
+
+
+class BigQueryDataset(models.Model):
+    project = models.ForeignKey('project.PublishedProject', on_delete=models.CASCADE, related_name='bigquery_datasets')
+    dataset_name = models.CharField(max_length=128)
+    group_email = models.CharField(max_length=170)
+    created_by = models.ForeignKey('user.User', on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        default_permissions = ()
+        unique_together = ('project', 'dataset_name')
+
+    def __str__(self):
+        return f'{self.project.slug} v{self.project.version} - {self.dataset_name}'

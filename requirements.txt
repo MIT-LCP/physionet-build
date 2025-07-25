@@ -428,6 +428,9 @@ google-auth-httplib2==0.1.0 ; python_version >= "3.11" and python_version < "4.0
 google-auth==1.32.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:b3a67fa9ba5b768861dacf374c2135eb09fa14a0e40c851c3b8ea7abe6fc8fef \
     --hash=sha256:e34e5f5de5610b202f9b40ebd9f8b27571d5c5537db9afed3a72b2db5a345039
+google-cloud-bigquery==3.35.1 \
+    --hash=sha256:599f26cacf190acfe88000f6cc5f4bc9e6baac7899e4f406ca054f1906f71960 \
+    --hash=sha256:6739a6ba63c6d80735ca2b34b1df2090ff473b80c1a62354caa2debe6dbbd961
 google-cloud-core==1.7.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:2ab0cf260c11d0cc334573301970419abb6a1f3909c6cd136e4be996616372fe \
     --hash=sha256:9bd528810423aeaa428a9a178e7320883bbb690a8b0bb38297b794dc319c415a

@@ -84,6 +84,15 @@ from project.cloud.s3 import (
     check_s3_bucket_exists,
     has_s3_credentials,
 )
+from project.modelcomponents.storage import BigQueryDataset
+from .forms import BigQueryDatasetForm
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from physionet.enums import LogCategory
+from project.cloud.gcp import create_access_group
+from google.cloud import bigquery
 
 LOGGER = logging.getLogger(__name__)
 
@@ -3646,3 +3655,62 @@ def event_agreement_delete(request, pk):
         messages.success(request, "The Event Agreement has been deleted.")
 
     return redirect("event_agreement_list")
+
+
+@console_permission_required('project.change_publishedproject')
+def gcp_bigquery_management(request, project_slug, version):
+    try:
+        project = PublishedProject.objects.get(slug=project_slug, version=version)
+    except PublishedProject.DoesNotExist:
+        raise Http404()
+    user = request.user
+    datasets = BigQueryDataset.objects.filter(project=project)
+    breakpoint()
+    if request.method == 'POST':
+        form = BigQueryDatasetForm(request.POST)
+        if form.is_valid():
+            dataset_name = form.cleaned_data['dataset_name']
+            group_email = form.cleaned_data['group_email'] or f"bigquery-{project.slug}-v{project.version}@physionet.org"
+            # 1. Create group (if not exists)
+            create_access_group(None, project.slug, project.version, f"BigQuery - {project.title}", group_email=group_email)
+            # 2. Create BigQuery dataset
+            bq_client = bigquery.Client(project='physionet-data')
+            dataset_id = f'physionet-data.{dataset_name}'
+            dataset_ref = bigquery.Dataset(dataset_id)
+            try:
+                bq_client.create_dataset(dataset_ref, exists_ok=True)
+            except Exception as e:
+                messages.error(request, f'Error creating BigQuery dataset: {e}')
+                return redirect(reverse('gcp_bigquery_management', args=[project.slug, project.version]))
+            # 3. Grant group Data Viewer access
+            try:
+                dataset = bq_client.get_dataset(dataset_id)
+                access_entries = list(dataset.access_entries)
+                group_entry = bigquery.AccessEntry(
+                    role="READER",
+                    entity_type="groupByEmail",
+                    entity_id=group_email,
+                )
+                if group_entry not in access_entries:
+                    access_entries.append(group_entry)
+                    dataset.access_entries = access_entries
+                    bq_client.update_dataset(dataset, ["access_entries"])
+            except Exception as e:
+                messages.error(request, f'Error granting group access: {e}')
+                return redirect(reverse('gcp_bigquery_management', args=[project.slug, project.version]))
+            # 4. Create BigQueryDataset record
+            BigQueryDataset.objects.create(
+                project=project,
+                dataset_name=dataset_name,
+                group_email=group_email,
+                created_by=user
+            )
+            messages.success(request, f'BigQuery dataset {dataset_name} and group {group_email} created and linked.')
+            return redirect(reverse('gcp_bigquery_management', args=[project.slug, project.version]))
+    else:
+        form = BigQueryDatasetForm()
+    return render(request, 'console/manage_bigquery_datasets.html', {
+        'form': form,
+        'datasets': datasets,
+        'project': project,
+    })
