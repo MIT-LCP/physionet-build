@@ -34,7 +34,7 @@
   <div class="container pb-5 mt-0 px-0">
     <div class="swiper">
       <div class="swiper-wrapper">
-        {% for news in news_pieces|slice:":10" %}
+        {% for news in front_page_banner|slice:":10" %}
           <div class="swiper-slide">
             <div class="card card--news">
               <span class="caption-text">{{ news.publish_datetime|date }}</span>

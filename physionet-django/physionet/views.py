@@ -24,7 +24,7 @@ def home(request):
     """
     featured = PublishedProject.objects.filter(featured__isnull=False).order_by('featured')[:6]
     latest = PublishedProject.objects.filter(is_latest_version=True).order_by('-publish_datetime')[:6]
-    news_pieces = News.objects.all().order_by('-publish_datetime')[:5]
+    news_pieces = News.objects.filter(front_page_banner=False).order_by('-publish_datetime')[:5]
     front_page_buttons = FrontPageButton.objects.all()
     front_page_banner = News.objects.filter(front_page_banner=True)
 
