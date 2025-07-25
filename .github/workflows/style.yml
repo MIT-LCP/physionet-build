@@ -31,7 +31,9 @@ jobs:
           fetch-depth: 2
 
       - name: Run code style check on files modified in pull request
+        shell: bash
         run: |
+          set -o pipefail
           git diff -U0 HEAD^ HEAD | \
               flake8 --diff | \
               perl -ne '
