@@ -1,9 +1,6 @@
 name: Debian / Upgrade Test
 
 on:
-  push:
-    branches:
-      - dev
   pull_request:
     branches:
       - dev
@@ -39,7 +36,7 @@ jobs:
                   zip
 
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 

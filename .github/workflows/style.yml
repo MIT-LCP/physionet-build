@@ -1,0 +1,52 @@
+name: Style
+
+on:
+  pull_request:
+    branches:
+      - dev
+  merge_group:
+    types:
+      - checks_requested
+
+jobs:
+  style:
+    name: Style
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install \
+              flake8==5.0.4 \
+              mccabe==0.7.0 \
+              pycodestyle==2.9.1 \
+              pyflakes==2.5.0
+
+      - name: Check out pull request
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Run code style check on files modified in pull request
+        shell: bash
+        run: |
+          set -o pipefail
+          git diff -U0 HEAD^ HEAD | \
+              flake8 --diff | \
+              perl -ne '
+                print; if (/^([^:]+):(\d+):(\d+):/) {
+                  $path = $1; $line = $2; $col = $3;
+                  open F, $path or die;
+                  print "\n";
+                  while (<F>) {
+                    next if $. < $line - 2;
+                    print " $_";
+                    if ($. == $line) { print " " x $col . "^\n\n"; last; }
+                  }
+                  close F;
+                  $status = 1;
+                }
+                END { exit $status }'

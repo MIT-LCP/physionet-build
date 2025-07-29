@@ -3,9 +3,6 @@
 name: Debian / Build and Test
 
 on:
-  push:
-    branches:
-      - dev
   pull_request:
     branches:
       - dev
@@ -39,7 +36,6 @@ jobs:
         run: |
           apt-get install --yes \
                   build-essential \
-                  flake8 \
                   git \
                   libcap-dev \
                   libffi-dev \
@@ -55,9 +51,7 @@ jobs:
 
       # Note: run checkout after updating git
       - name: Checkout physionet-build repo
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+        uses: actions/checkout@v4
 
       - name: Mark git repository as trusted
         run: |
@@ -117,45 +111,3 @@ jobs:
         run: |
           cd physionet-django
           python manage.py compilestatic
-
-      - name: Run code style check on changed files relative to PR base branch
-        if: github.event_name == 'pull_request'
-        run: |
-          git rev-parse --verify ${{ github.event.pull_request.base.sha }}
-          git diff -U0 ${{ github.event.pull_request.base.sha }} HEAD | \
-              flake8 --diff | \
-              perl -ne '
-                print; if (/^([^:]+):(\d+):(\d+):/) {
-                  $path = $1; $line = $2; $col = $3;
-                  open F, $path or die;
-                  print "\n";
-                  while (<F>) {
-                    next if $. < $line - 2;
-                    print " $_";
-                    if ($. == $line) { print " " x $col . "^\n\n"; last; }
-                  }
-                  close F;
-                  $status = 1;
-                }
-                END { exit $status }'
-
-      - name: Run code style check relative to local dev branch
-        if: github.event_name != 'pull_request'
-        run: |
-          git fetch origin dev
-          git diff -U0 origin/dev HEAD | \
-              flake8 --diff | \
-              perl -ne '
-                print; if (/^([^:]+):(\d+):(\d+):/) {
-                  $path = $1; $line = $2; $col = $3;
-                  open F, $path or die;
-                  print "\n";
-                  while (<F>) {
-                    next if $. < $line - 2;
-                    print " $_";
-                    if ($. == $line) { print " " x $col . "^\n\n"; last; }
-                  }
-                  close F;
-                  $status = 1;
-                }
-                END { exit $status }'
