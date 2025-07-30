@@ -7,8 +7,12 @@
 {{ SITE_NAME }}
 {% endblock %}
 
+{% block local_js_top %}
+<script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
+{% endblock %}
 
 {% block local_css %}
+<link rel="stylesheet" href="{% static 'swiper/swiper-bundle.min.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
 <link rel="alternate" type="application/rss+xml" title="{{ SITE_NAME }} News" href="{% url 'news_rss' %}"/>
 {% endblock %}
