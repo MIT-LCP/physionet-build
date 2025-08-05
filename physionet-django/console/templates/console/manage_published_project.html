@@ -8,6 +8,7 @@
 
 {% block local_css %}
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'console/css/cloud-mirrors.css' %}">
 {% endblock %}
 
 {% block local_js_top %}
@@ -386,6 +387,10 @@
       </li>
       <li class="list-group-item">
         <h5 class="card-title mt-3 mb-1">Google Cloud</h5>
+        {% if project.gcp %}
+          {% include "console/cloud_mirror_info_card.html" with mirror=project.gcp %}
+        {% endif %}
+
         {% if not has_credentials %}
           <p>You are missing the Google Cloud credentials.</p>
         {% elif not project.gcp.bucket_name %}
@@ -412,6 +417,10 @@
       </li>
       <li class="list-group-item">
         <h5 class="card-title mt-3 mb-1">AWS</h5>
+        {% if project.aws %}
+          {% include "console/cloud_mirror_info_card.html" with mirror=project.aws %}
+        {% endif %}
+
         {% if not has_s3_credentials %}
           <p>
             Support for Amazon S3 is not enabled.  (Check that

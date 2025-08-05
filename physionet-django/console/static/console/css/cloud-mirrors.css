@@ -42,14 +42,14 @@
     content: "\f375";           /* aws */
 }
 
-.project-site-status-open,
-.project-site-status-restricted,
-.project-site-status-embargo,
-.project-site-status-forbidden,
-.project-cloud-status-public,
-.project-cloud-status-private,
-.project-cloud-status-pending,
-.project-cloud-status-none {
+.table-cloud-status .project-site-status-open,
+.table-cloud-status .project-site-status-restricted,
+.table-cloud-status .project-site-status-embargo,
+.table-cloud-status .project-site-status-forbidden,
+.table-cloud-status .project-cloud-status-public,
+.table-cloud-status .project-cloud-status-private,
+.table-cloud-status .project-cloud-status-pending,
+.table-cloud-status .project-cloud-status-none {
     font-size: 0;
 }
 .project-site-status-open::before,

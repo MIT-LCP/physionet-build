@@ -44,6 +44,9 @@ class GCP(models.Model):
     def __str__(self):
         return self.bucket_name
 
+    def cloud_uri(self):
+        return f'gs://{self.bucket_name}/'
+
 
 class AWS(models.Model):
     """
@@ -61,6 +64,9 @@ class AWS(models.Model):
 
     class Meta:
         default_permissions = ()
+
+    def cloud_uri(self):
+        return self.public_s3_uri()
 
     def public_s3_uri(self):
         """

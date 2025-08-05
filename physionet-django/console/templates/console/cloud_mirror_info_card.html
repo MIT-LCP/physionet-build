@@ -1,0 +1,63 @@
+<div class="card">
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <dl class="row mb-0">
+        <dt class="col-md-3">Location</dt>
+        <dd class="col-md-9">{{ mirror.cloud_uri }}</dd>
+        <dt class="col-md-3">Project files</dt>
+        <dd class="col-md-9">
+          {% if mirror.sent_files %}
+            <span class="project-cloud-status-public">Uploaded</span>
+          {% else %}
+            <span class="project-cloud-status-pending">Not yet uploaded</span>
+          {% endif %}
+        </dd>
+        <dt class="col-md-3">ZIP archive</dt>
+        <dd class="col-md-9">
+          {% if mirror.sent_zip %}
+            <span class="project-cloud-status-public">Uploaded</span>
+          {% elif mirror.project.compressed_storage_size %}
+            <span class="project-cloud-status-pending">Not yet uploaded</span>
+          {% else %}
+            <span class="project-cloud-status-none">None</span>
+          {% endif %}
+        </dd>
+        <dt class="col-md-3">Created</dt>
+        <dd class="col-md-9">{{ mirror.creation_datetime }}</dd>
+        <dt class="col-md-3">Upload finished</dt>
+        <dd class="col-md-9">
+          {% if mirror.finished_datetime %}
+            {{ mirror.finished_datetime }}
+          {% else %}
+            Not yet uploaded
+          {% endif %}
+        </dd>
+      </dl>
+    </li>
+    <li class="list-group-item">
+      <dl class="row mb-0">
+        <dt class="col-md-3">Policy</dt>
+        <dd class="col-md-9">
+          {% if mirror.is_private %}
+            <span class="project-cloud-status-private">Private</span>
+          {% else %}
+            <span class="project-cloud-status-public">Public</span>
+          {% endif %}
+        </dd>
+        {% if mirror.access_group %}
+          <dt class="col-md-3">Access group</dt>
+          <dd class="col-md-9">{{ mirror.access_group }}</dd>
+        {% endif %}
+        {% if mirror.access_points.exists %}
+          <dt class="col-md-3">Access points</dt>
+          <dd class="col-md-9">
+            {% for access_point in mirror.access_points.all %}
+              {{ access_point.name }} ({{ access_point.users.count }})
+              {% if not forloop.last %}<br>{% endif %}
+            {% endfor %}
+          </dd>
+        {% endif %}
+      </dl>
+    </li>
+  </ul>
+</div>
