@@ -396,9 +396,22 @@
         {% else %}
           <form action="" method="post">
             {% csrf_token %}
-            <button class="btn btn-primary" name="bucket" value='{{project.slug}}'
-                    {% if gcp_upload_pending or rw_tasks %} disabled="disabled" {% endif %}
-                    type="submit">Upload files</button><br><br>
+            <p>
+              <button class="btn btn-primary"
+                      name="bucket" value="{{ project.slug }}"
+                      {% if gcp_upload_pending or rw_tasks %}
+                        disabled="disabled"
+                      {% endif %}
+                      type="submit">
+                {% if project.gcp.sent_files %}
+                  <span class="fa fa-sync-alt"></span>
+                  Reupload files
+                {% else %}
+                  <span class="fa fa-cloud-upload-alt"></span>
+                  Upload files
+                {% endif %}
+              </button>
+            </p>
           </form>
         {% endif %}
       </li>
@@ -417,9 +430,22 @@
         {% else %}
           <form action="" method="post">
             {% csrf_token %}
-            <button class="btn btn-primary" name="aws-bucket" value='{{project.slug}}'
-                    {% if aws_upload_pending or rw_tasks %} disabled="disabled" {% endif %}
-                    type="submit">Upload files</button><br><br>
+            <p>
+              <button class="btn btn-primary"
+                      name="aws-bucket" value="{{ project.slug }}"
+                      {% if aws_upload_pending or rw_tasks %}
+                        disabled="disabled"
+                      {% endif %}
+                      type="submit">
+                {% if project.aws.sent_files %}
+                  <span class="fa fa-sync-alt"></span>
+                  Reupload files
+                {% else %}
+                  <span class="fa fa-cloud-upload-alt"></span>
+                  Upload files
+                {% endif %}
+              </button>
+            </p>
           </form>
         {% endif %}
       </li>
