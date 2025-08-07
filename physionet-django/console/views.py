@@ -1138,6 +1138,10 @@ def gcp_bucket_management(request, project, user):
     Create the database object and cloud bucket if they do not exist, and send
     the files to the bucket.
     """
+    if any(get_associated_tasks(project, name=send_files_to_gcp.name)):
+        messages.info(request, 'Project is already scheduled to be uploaded.')
+        return
+
     is_private = True
 
     if project.access_policy == AccessPolicy.OPEN:
@@ -1194,6 +1198,10 @@ def aws_bucket_management(request, project, user):
     - Ensure that AWS credentials and configurations are correctly set
     up for the S3 client.
     """
+    if any(get_associated_tasks(project, name=send_files_to_aws.name)):
+        messages.info(request, 'Project is already scheduled to be uploaded.')
+        return
+
     is_private = True
 
     if project.access_policy == AccessPolicy.OPEN:
