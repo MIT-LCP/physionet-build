@@ -100,7 +100,7 @@ def associated_task(model, param, *, read_only=False, field='pk'):
     return decorate
 
 
-def get_associated_tasks(instance, *, read_only=None):
+def get_associated_tasks(instance, *, read_only=None, name=None):
     """
     Find pending tasks associated with a model instance.
 
@@ -118,9 +118,15 @@ def get_associated_tasks(instance, *, read_only=None):
 
     model = type(instance)._meta.label
 
-    # Consider all possible task_names that might be associated with
-    # this object.
-    for (task_name, param_info) in sorted(_model_tasks[model].items()):
+    if name is None:
+        # Consider all possible task_names that might be associated with
+        # this object.
+        task_names = sorted(_model_tasks[model].keys())
+    else:
+        task_names = [name]
+
+    for task_name in task_names:
+        param_info = _model_tasks[model][task_name]
 
         # If we are only interested in read-only tasks, skip checking
         # read-write parameters, and vice versa.

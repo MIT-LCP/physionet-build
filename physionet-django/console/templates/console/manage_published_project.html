@@ -393,26 +393,26 @@
 
         {% if not has_credentials %}
           <p>You are missing the Google Cloud credentials.</p>
-        {% elif not project.gcp.bucket_name %}
-          <p>Create a bucket on the Google Cloud Platform (GCP) to store the files associated with this project. Please create the special files before sending the files to GCP.</p>
-          <form action="" method="post">
-          {% csrf_token %}
-          <button class="btn btn-primary" name="bucket" value='{{project.slug}}'
-                  {% if rw_tasks %} disabled="disabled" {% endif %}
-                  type="submit">Create bucket and send files </button><br><br>
-          </form>
-        {% elif project.gcp.sent_files and project.gcp.bucket_name %}
-          <p>The files have been sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
-          <form action="" method="post">
-          {% csrf_token %}
-          <button class="btn btn-primary" name="bucket" value='{{project.slug}}'
-                  {% if rw_tasks %} disabled="disabled" {% endif %}
-                  type="submit">Resend files </button><br><br>
-        </form>
-
         {% else %}
-          <p>The files are being sent to GCP. The bucket name is: {{project.gcp.bucket_name}}.</p>
-          <p>If this message is here for a long time, check the Django "process_tasks"</p>
+          <form action="" method="post">
+            {% csrf_token %}
+            <p>
+              <button class="btn btn-primary"
+                      name="bucket" value="{{ project.slug }}"
+                      {% if gcp_upload_pending or rw_tasks %}
+                        disabled="disabled"
+                      {% endif %}
+                      type="submit">
+                {% if project.gcp.sent_files %}
+                  <span class="fa fa-sync-alt"></span>
+                  Reupload files
+                {% else %}
+                  <span class="fa fa-cloud-upload-alt"></span>
+                  Upload files
+                {% endif %}
+              </button>
+            </p>
+          </form>
         {% endif %}
       </li>
       <li class="list-group-item">
@@ -427,23 +427,27 @@
             <code>AWS_PROFILE</code> and <code>S3_OPEN_ACCESS_BUCKET</code>
             are set.)
           </p>
-        {% elif not project.aws.bucket_name %}
-          <p>Create a bucket on AWS to store the files associated with this project.</p>
+        {% else %}
           <form action="" method="post">
             {% csrf_token %}
-            <button class="btn btn-primary" name="aws-bucket" value='{{project.slug}}'
-                    {% if rw_tasks %} disabled="disabled" {% endif %}
-                    type="submit">Create AWS bucket and send files</button><br><br>
-            </form>
-        {% elif project.aws.sent_files and project.aws.bucket_name %}
-          <p>The files have been sent to AWS. The bucket name is: {{project.aws.bucket_name}}.</p>
-          <form action="" method="post">
-          {% csrf_token %}
-          <button class="btn btn-primary" name="aws-bucket" value='{{project.slug}}'
-                  {% if rw_tasks %} disabled="disabled" {% endif %}
-                  type="submit">Resend files to AWS</button><br><br>
-        </form>
-        {% endif %} 
+            <p>
+              <button class="btn btn-primary"
+                      name="aws-bucket" value="{{ project.slug }}"
+                      {% if aws_upload_pending or rw_tasks %}
+                        disabled="disabled"
+                      {% endif %}
+                      type="submit">
+                {% if project.aws.sent_files %}
+                  <span class="fa fa-sync-alt"></span>
+                  Reupload files
+                {% else %}
+                  <span class="fa fa-cloud-upload-alt"></span>
+                  Upload files
+                {% endif %}
+              </button>
+            </p>
+          </form>
+        {% endif %}
       </li>
     </ul>
 

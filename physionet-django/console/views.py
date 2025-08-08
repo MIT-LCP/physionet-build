@@ -1094,6 +1094,10 @@ def manage_published_project(request, project_slug, version):
     ro_tasks = [task for (task, read_only) in tasks if read_only]
     rw_tasks = [task for (task, read_only) in tasks if not read_only]
 
+    task_names = [task.task_name for (task, read_only) in tasks]
+    gcp_upload_pending = (send_files_to_gcp.name in task_names)
+    aws_upload_pending = (send_files_to_aws.name in task_names)
+
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request)
 
@@ -1119,6 +1123,8 @@ def manage_published_project(request, project_slug, version):
             'data_access': data_access,
             'rw_tasks': rw_tasks,
             'ro_tasks': ro_tasks,
+            'gcp_upload_pending': gcp_upload_pending,
+            'aws_upload_pending': aws_upload_pending,
             'anonymous_url': anonymous_url,
             'passphrase': passphrase,
             'url_prefix': url_prefix,
@@ -1138,6 +1144,10 @@ def gcp_bucket_management(request, project, user):
     Create the database object and cloud bucket if they do not exist, and send
     the files to the bucket.
     """
+    if any(get_associated_tasks(project, name=send_files_to_gcp.name)):
+        messages.info(request, 'Project is already scheduled to be uploaded.')
+        return
+
     is_private = True
 
     if project.access_policy == AccessPolicy.OPEN:
@@ -1194,6 +1204,10 @@ def aws_bucket_management(request, project, user):
     - Ensure that AWS credentials and configurations are correctly set
     up for the S3 client.
     """
+    if any(get_associated_tasks(project, name=send_files_to_aws.name)):
+        messages.info(request, 'Project is already scheduled to be uploaded.')
+        return
+
     is_private = True
 
     if project.access_policy == AccessPolicy.OPEN:
