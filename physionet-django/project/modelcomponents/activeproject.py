@@ -444,11 +444,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         Reopen the project for copyediting
         """
         if self.submission_status == SubmissionStatus.NEEDS_APPROVAL:
-            self.submission_status = SubmissionStatus.NEEDS_COPYEDIT
-            self.copyedit_completion_datetime = None
-            self.save()
-            CopyeditLog.objects.create(project=self, is_reedit=True)
-            self.authors.all().update(approval_datetime=None)
+            with transaction.atomic():
+                self.submission_status = SubmissionStatus.NEEDS_COPYEDIT
+                self.copyedit_completion_datetime = None
+                self.save()
+                CopyeditLog.objects.create(project=self, is_reedit=True)
+                self.authors.all().update(approval_datetime=None)
 
     def approve_author(self, author):
         """"
