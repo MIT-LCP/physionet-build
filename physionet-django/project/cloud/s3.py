@@ -15,6 +15,7 @@ from math import ceil
 from django.db.models import Q
 
 MAX_PRINCIPALS_PER_AP_POLICY = 500
+MAX_RETRIES = 500
 
 # Manage AWS buckets and objects
 def has_S3_open_data_bucket_name():
@@ -870,32 +871,108 @@ def create_data_access_point_policy(
     return policy_str
 
 
-def set_data_access_point_policy(data_access_point_name, data_access_point_policy):
+def extract_invalid_userid(client_error):
+    """
+    Extract the invalid AWS user ID from the ClientError detail.
+
+    Args:
+        client_error (ClientError): The boto3 ClientError exception
+
+    Returns:
+        str or None: The invalid user ID if found, None otherwise
+    """
+    try:
+        detail = client_error.response['Error']['Detail']
+        import re
+        match = re.search(r'"AWS"\s*:\s*"(AIDA[A-Z0-9]+)"', detail)
+        if match:
+            return match.group(1)
+    except (KeyError, AttributeError):
+        pass
+    return None
+
+
+def mark_user_unverified(invalid_userid):
+    """
+    Mark a user as unverified based on their AWS user ID.
+
+    Args:
+        invalid_userid (str): The AWS user ID that's invalid
+
+    Returns:
+        bool: True if user was found and marked as unverified, False otherwise
+    """
+    try:
+        cloud_info = CloudInformation.objects.get(aws_userid=invalid_userid)
+        cloud_info.aws_verification_datetime = None
+        cloud_info.save()
+        return True
+    except CloudInformation.DoesNotExist:
+        return False
+
+
+def set_data_access_point_policy(data_access_point_name, data_access_point_policy, new_user_to_add=None):
     """
     Apply a custom policy to an AWS S3 data access point.
-
-    This function sets a custom access policy for the specified
-    S3 data access point.
+    Retries until all invalid users are processed or no more users exist.
 
     Args:
         data_access_point_name (str): The name of the data access point.
         data_access_point_policy (str): The policy to be applied, in JSON string format.
+        new_user_to_add (dict, optional): New user being added (format: {'aws_userid': 'AIDA...'})
 
     Returns:
         bool: True if the policy was successfully applied, False otherwise.
-
-    Note:
-    - Ensure that AWS credentials (Access Key and Secret Key)
-    are properly configured for the S3 client used in this function.
     """
     s3_control = create_s3_control_client()
+    # Limit number of attempts to prevent infinite loop
 
-    s3_control.put_access_point_policy(
-        AccountId=settings.AWS_ACCOUNT_ID,
-        Name=data_access_point_name,
-        Policy=data_access_point_policy,
-    )
-    return True
+    for attempt in range(MAX_RETRIES):
+        try:
+            s3_control.put_access_point_policy(
+                AccountId=settings.AWS_ACCOUNT_ID,
+                Name=data_access_point_name,
+                Policy=data_access_point_policy,
+            )
+            return True
+
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'MalformedPolicy':
+                invalid_userid = extract_invalid_userid(e)
+                if invalid_userid:
+                    mark_user_unverified(invalid_userid)
+                    # Recreate policy without the invalid user
+                    try:
+                        # Get current users after marking invalid user
+                        current_aws_accounts = get_aws_accounts_for_access_point(data_access_point_name)
+                        # Add the new user if provided
+                        if new_user_to_add:
+                            current_aws_accounts.append(new_user_to_add)
+
+                        if not current_aws_accounts:
+                            return True
+
+                        access_point = AWSAccessPoint.objects.get(name=data_access_point_name)
+                        project = access_point.aws.project
+
+                        # Recreate policy with remaining valid users + new user
+                        data_access_point_policy = create_data_access_point_policy(
+                            data_access_point_name,
+                            project.slug,
+                            project.version,
+                            current_aws_accounts
+                        )
+
+                        continue
+
+                    except AWSAccessPoint.DoesNotExist:
+                        return False
+                else:
+                    return False
+            else:
+                raise
+
+    return False
 
 
 def add_user_to_access_point_policy(project, user):
@@ -1005,15 +1082,33 @@ def get_access_point_with_capacity(project):
 
 
 def insert_access_point_policy(access_point, data_access_point_name, project, subset_aws_ids):
-    # Set policies and associate users for the newly created access point
+    """
+    Set policies and associate users for an access point.
+    """
+    # Identify if we're adding a new user (last user in the list)
+    new_user = None
+    existing_users = get_aws_accounts_for_access_point(data_access_point_name)
+
+    if len(subset_aws_ids) > len(existing_users):
+        # Find the new user (the one not in existing_users)
+        existing_userids = {user['aws_userid'] for user in existing_users}
+        for user in subset_aws_ids:
+            if user['aws_userid'] not in existing_userids:
+                new_user = user
+                break
+
     access_point_policy = create_data_access_point_policy(
         data_access_point_name, project.slug, project.version, subset_aws_ids
     )
+
     valid_ap_policy = set_data_access_point_policy(
-        data_access_point_name, access_point_policy
+        data_access_point_name, access_point_policy, new_user
     )
+
     if valid_ap_policy:
         associate_aws_users_with_data_access_point(access_point, subset_aws_ids)
+        return True
+    return False
 
 
 def initialize_access_points(project):
