@@ -43,6 +43,7 @@ urlpatterns = [
     path('submitted-projects/<project_slug>/info/', views.submission_info, name='submission_info'),
     path('submitted-projects/<project_slug>/edit/', views.edit_submission, name='edit_submission'),
     path('submitted-projects/<project_slug>/copyedit/', views.copyedit_submission, name='copyedit_submission'),
+    path('submitted-projects/<project_slug>/reopen/', views.reopen_copyedit, name='reopen_copyedit'),
     path('submitted-projects/<project_slug>/awaiting-authors/', views.awaiting_authors, name='awaiting_authors'),
     path('submitted-projects/<project_slug>/publish/', views.publish_submission, name='publish_submission'),
     path('publish-slug-available/<project_slug>/', views.publish_slug_available, name='publish_slug_available'),
@@ -220,6 +221,10 @@ TEST_CASES = {
         '_skip_': True,
     },
     'awaiting_authors': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        '_skip_': True,
+    },
+    'reopen_copyedit': {
         'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
         '_skip_': True,
     },

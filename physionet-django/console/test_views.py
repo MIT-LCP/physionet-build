@@ -267,7 +267,7 @@ class TestState(TestMixin):
         self.assertFalse(project.copyeditable())
         # Reopen copyedit
         response = self.client.post(reverse(
-            'awaiting_authors', args=(project.slug,)),
+            'reopen_copyedit', args=(project.slug,)),
             data={'reopen_copyedit':''})
         project = ActiveProject.objects.get(id=project.id)
         self.assertTrue(project.copyeditable())

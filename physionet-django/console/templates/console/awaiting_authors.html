@@ -62,7 +62,7 @@
         do this unless you need to make additional changes to the project.
       </div>
       <div class="modal-footer">
-        <form action="" method="post">
+        <form action="{% url 'reopen_copyedit' project.slug %}" method="post">
           {% csrf_token %}
           <button class="btn btn-danger btn-fixed" name="reopen_copyedit" type="submit">Reopen Copyedit</button>
         </form>
