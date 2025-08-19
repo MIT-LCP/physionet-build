@@ -357,6 +357,40 @@ class TestState(TestMixin):
 
         self.assertTrue(ActiveProject.objects.get(id=project.id).is_publishable())
 
+        # Reopen copyedit
+        self.client.login(username='admin', password='Tester11!')
+        self.client.post(reverse(
+            'reopen_copyedit', args=(project.slug,)
+        ), data={
+            'reopen_copyedit': '',
+        })
+        project.refresh_from_db()
+        self.assertTrue(project.copyeditable())
+        self.assertFalse(project.is_publishable())
+
+        # Complete copyedit again
+        self.client.post(reverse(
+            'copyedit_submission', args=(project.slug,)
+        ), data={
+            'complete_copyedit': '',
+            'made_changes': 1,
+            'changelog_summary': 'blah blah',
+        })
+        project.refresh_from_db()
+        self.assertFalse(project.copyeditable())
+        self.assertFalse(project.is_publishable())
+
+        # Approve again
+        self.client.login(username='rgmark', password='Tester11!')
+        self.client.post(reverse(
+            'project_submission', args=(project.slug,)
+        ), data={
+            'approve_publication': '',
+        })
+        project.refresh_from_db()
+        self.assertTrue(project.is_publishable())
+
+
     def test_publish(self):
         """
         Test publishing project
