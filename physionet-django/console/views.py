@@ -689,7 +689,10 @@ def reopen_copyedit(request, project_slug, *args, **kwargs):
     """
     project = kwargs['project']
 
-    if project.submission_status != SubmissionStatus.NEEDS_APPROVAL:
+    if project.submission_status not in (
+        SubmissionStatus.NEEDS_APPROVAL,
+        SubmissionStatus.NEEDS_PUBLICATION,
+    ):
         return redirect('submission_info', project_slug=project_slug)
 
     if request.method == 'POST':
