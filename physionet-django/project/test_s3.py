@@ -40,6 +40,7 @@ from user.test_views import TestMixin
     S3_OPEN_ACCESS_BUCKET='datashare-public',
     S3_SERVER_ACCESS_LOG_BUCKET='datashare-logs',
     S3_CONTROLLED_ACCESS_BUCKET='datashare-protected',
+    S3_GEO_RESTRICTED_ACCESS_BUCKET='datashare-geo-restricted',
 )
 class TestS3(TestMixin):
     """

@@ -44,6 +44,19 @@ def has_S3_controlled_data_bucket_name():
     return bool(settings.S3_CONTROLLED_ACCESS_BUCKET)
 
 
+def has_S3_geo_restricted_data_bucket_name():
+    """
+    Check if the S3_GEO_RESTRICTED_ACCESS_BUCKET setting has a value set in the project's settings.
+
+    This method verifies whether a geo-restricted data bucket name has been specified for S3 storage.
+
+    Returns:
+        bool: Returns True if the S3_GEO_RESTRICTED_ACCESS_BUCKET setting is set
+        (i.e., truthy), False otherwise.
+    """
+    return bool(settings.S3_GEO_RESTRICTED_ACCESS_BUCKET)
+
+
 def has_s3_credentials():
     """
     Check if AWS credentials have been set in
@@ -59,6 +72,7 @@ def has_s3_credentials():
             settings.S3_OPEN_ACCESS_BUCKET,
             settings.S3_SERVER_ACCESS_LOG_BUCKET,
             settings.S3_CONTROLLED_ACCESS_BUCKET,
+            settings.S3_GEO_RESTRICTED_ACCESS_BUCKET,
         ]
     )
 
@@ -172,7 +186,11 @@ def get_bucket_name(project):
     """
     bucket_name = None
 
-    if project.access_policy == AccessPolicy.OPEN and has_S3_open_data_bucket_name():
+    if (project.georestricted
+            and project.access_policy == AccessPolicy.OPEN
+            and has_S3_geo_restricted_data_bucket_name()):
+        bucket_name = settings.S3_GEO_RESTRICTED_ACCESS_BUCKET
+    elif project.access_policy == AccessPolicy.OPEN and has_S3_open_data_bucket_name():
         bucket_name = settings.S3_OPEN_ACCESS_BUCKET
     elif (
         project.access_policy != AccessPolicy.OPEN
@@ -1235,7 +1253,7 @@ def upload_project_to_S3(project):
 
     # Set the bucket policy only if the bucket was newly created
     # and has controlled access
-    if bucket_created and project.access_policy != AccessPolicy.OPEN:
+    if bucket_created and project.access_policy != AccessPolicy.OPEN or project.georestricted:
         controlled_policy = create_controlled_bucket_policy(bucket_name)
         s3.put_bucket_policy(Bucket=bucket_name, Policy=controlled_policy)
 
@@ -1245,7 +1263,7 @@ def upload_project_to_S3(project):
     folder_path = project.file_root()
     s3_prefix = f"{project.slug}/{project.version}/"
     send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
-    if project.access_policy == AccessPolicy.OPEN:
+    if project.access_policy == AccessPolicy.OPEN and not project.georestricted:
         update_open_bucket_policy(project, bucket_name)
     else:
         initialize_access_points(project)
