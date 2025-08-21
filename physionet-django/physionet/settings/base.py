@@ -291,7 +291,7 @@ S3_SERVER_ACCESS_LOG_BUCKET = config('S3_SERVER_ACCESS_LOG_BUCKET', default=None
 # Bucket name for the S3 bucket containing the controlled access data
 S3_CONTROLLED_ACCESS_BUCKET = config('S3_CONTROLLED_ACCESS_BUCKET', default=None)
 
-# Bucket name for the S3 bucket containing the geo-restricted access data
+# Bucket name for the S3 bucket containing geo-restricted projects with an 'OPEN' access policy.
 S3_GEO_RESTRICTED_ACCESS_BUCKET = config('S3_GEO_RESTRICTED_ACCESS_BUCKET', default=None)
 
 # Header tags for the AWS lambda function that grants access to S3 storage
