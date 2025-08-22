@@ -478,7 +478,7 @@ def get_aws_accounts_for_access_point(access_point_name):
             if user.cloud_information.aws_userid
             else None
         )
-        if re.search(aws_id_pattern, aws_id):
+        if aws_id and re.search(aws_id_pattern, aws_id):
             aws_accounts.append({'aws_id': aws_id, 'aws_userid': aws_userid})
 
     return aws_accounts
@@ -522,7 +522,7 @@ def get_aws_accounts_for_dataset(dataset_name):
                         aws_userid = user.cloud_information.aws_userid
                     else:
                         aws_userid = None
-                    if re.search(aws_id_pattern, aws_id):
+                    if aws_id and re.search(aws_id_pattern, aws_id):
                         aws_accounts.append({'aws_id': aws_id, 'aws_userid': aws_userid})
             break  # Stop iterating once the dataset is found
 
@@ -884,7 +884,7 @@ def extract_invalid_userid(client_error):
     try:
         detail = client_error.response['Error']['Detail']
         import re
-        match = re.search(r'"AWS"\s*:\s*"(AIDA[A-Z0-9]+)"', detail)
+        match = re.search(r'"AWS"\s*:\s*"([^"]+)"', detail)
         if match:
             return match.group(1)
     except (KeyError, AttributeError):
@@ -911,68 +911,28 @@ def mark_user_unverified(invalid_userid):
         return False
 
 
-def set_data_access_point_policy(data_access_point_name, data_access_point_policy, new_user_to_add=None):
+def set_data_access_point_policy(data_access_point_name, data_access_point_policy):
     """
     Apply a custom policy to an AWS S3 data access point.
-    Retries until all invalid users are processed or no more users exist.
 
     Args:
         data_access_point_name (str): The name of the data access point.
         data_access_point_policy (str): The policy to be applied, in JSON string format.
-        new_user_to_add (dict, optional): New user being added (format: {'aws_userid': 'AIDA...'})
 
     Returns:
         bool: True if the policy was successfully applied, False otherwise.
     """
     s3_control = create_s3_control_client()
-    # Limit number of attempts to prevent infinite loop
 
-    for attempt in range(MAX_RETRIES):
-        try:
-            s3_control.put_access_point_policy(
-                AccountId=settings.AWS_ACCOUNT_ID,
-                Name=data_access_point_name,
-                Policy=data_access_point_policy,
-            )
-            return True
-
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'MalformedPolicy':
-                invalid_userid = extract_invalid_userid(e)
-                if invalid_userid:
-                    mark_user_unverified(invalid_userid)
-                    # Recreate policy without the invalid user
-                    try:
-                        # Get current users after marking invalid user
-                        current_aws_accounts = get_aws_accounts_for_access_point(data_access_point_name)
-                        # Add the new user if provided
-                        if new_user_to_add:
-                            current_aws_accounts.append(new_user_to_add)
-
-                        if not current_aws_accounts:
-                            return True
-
-                        access_point = AWSAccessPoint.objects.get(name=data_access_point_name)
-                        project = access_point.aws.project
-
-                        # Recreate policy with remaining valid users + new user
-                        data_access_point_policy = create_data_access_point_policy(
-                            data_access_point_name,
-                            project.slug,
-                            project.version,
-                            current_aws_accounts
-                        )
-
-                        continue
-
-                    except AWSAccessPoint.DoesNotExist:
-                        return False
-                else:
-                    return False
-            else:
-                raise
-
-    return False
+    try:
+        s3_control.put_access_point_policy(
+            AccountId=settings.AWS_ACCOUNT_ID,
+            Name=data_access_point_name,
+            Policy=data_access_point_policy,
+        )
+        return True
+    except ClientError:
+        raise
 
 
 def add_user_to_access_point_policy(project, user):
@@ -1084,30 +1044,48 @@ def get_access_point_with_capacity(project):
 def insert_access_point_policy(access_point, data_access_point_name, project, subset_aws_ids):
     """
     Set policies and associate users for an access point.
+    Handles invalid users by retrying with them removed from the list.
     """
-    # Identify if we're adding a new user (last user in the list)
-    new_user = None
-    existing_users = get_aws_accounts_for_access_point(data_access_point_name)
+    # Work with a copy to avoid modifying the original list
+    working_aws_ids = subset_aws_ids.copy()
+    for attempt in range(MAX_RETRIES):
+        if not working_aws_ids:
+            # No valid users left
+            return True
 
-    if len(subset_aws_ids) > len(existing_users):
-        # Find the new user (the one not in existing_users)
-        existing_userids = {user['aws_userid'] for user in existing_users}
-        for user in subset_aws_ids:
-            if user['aws_userid'] not in existing_userids:
-                new_user = user
-                break
+        access_point_policy = create_data_access_point_policy(
+            data_access_point_name, project.slug, project.version, working_aws_ids
+        )
+        try:
+            valid_ap_policy = set_data_access_point_policy(
+                data_access_point_name, access_point_policy
+            )
+            if valid_ap_policy:
+                associate_aws_users_with_data_access_point(access_point, working_aws_ids)
+                return True
+            else:
+                return False
 
-    access_point_policy = create_data_access_point_policy(
-        data_access_point_name, project.slug, project.version, subset_aws_ids
-    )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'MalformedPolicy':
+                invalid_userid = extract_invalid_userid(e)
+                if invalid_userid:
+                    # Mark user as unverified
+                    mark_user_unverified(invalid_userid)
 
-    valid_ap_policy = set_data_access_point_policy(
-        data_access_point_name, access_point_policy, new_user
-    )
+                    # Remove the invalid user
+                    working_aws_ids = [
+                        user for user in working_aws_ids
+                        if user['aws_userid'] != invalid_userid
+                    ]
+                    # Continue to next attempt with reduced user list
+                    continue
+                else:
+                    return False
+            else:
+                raise
 
-    if valid_ap_policy:
-        associate_aws_users_with_data_access_point(access_point, subset_aws_ids)
-        return True
+    # Exceeded max retries
     return False
 
 
