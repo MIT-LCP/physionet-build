@@ -1956,7 +1956,7 @@ def published_project(request, project_slug, version, subdir=''):
     s3_uri = None
     try:
         if project.aws.is_private:
-            if has_signed_dua and request.user.is_authenticated:
+            if request.user.is_authenticated:
                 # It prevents showing the cli command for users who are still associated with
                 # an access point for the project but have deleted their aws credentials
                 if hasattr(user, 'cloud_information') and user.cloud_information.aws_verification_datetime:
