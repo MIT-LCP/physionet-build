@@ -1228,7 +1228,7 @@ def aws_bucket_management(request, project, user):
 
     is_private = True
 
-    if project.access_policy == AccessPolicy.OPEN:
+    if project.access_policy == AccessPolicy.OPEN and not project.georestricted:
         is_private = False
 
     bucket_name = get_bucket_name(project)
