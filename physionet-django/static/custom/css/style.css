@@ -277,7 +277,7 @@ body .main {
 .modern-ui .nav {
   height: var(--nav-height);
   box-shadow: 0px 1px 4px 0px #0000001A;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -432,7 +432,7 @@ body .main {
 }
 .modern-ui .nav__mobile {
   display: none;
-  position: fixed;
+  position: absolute;
   left: 0;
   top: var(--nav-height);
   width: 100%;
