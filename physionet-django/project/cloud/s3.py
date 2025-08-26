@@ -46,15 +46,15 @@ def has_S3_controlled_data_bucket_name():
 
 def has_S3_geo_restricted_data_bucket_name():
     """
-    Check if the S3_GEO_RESTRICTED_ACCESS_BUCKET setting has a value set in the project's settings.
+    Check if the S3_OPEN_ACCESS_BUCKET_WITH_LOGIN setting has a value set in the project's settings.
 
     This method verifies whether a geo-restricted data bucket name has been specified for S3 storage.
 
     Returns:
-        bool: Returns True if the S3_GEO_RESTRICTED_ACCESS_BUCKET setting is set
+        bool: Returns True if the S3_OPEN_ACCESS_BUCKET_WITH_LOGIN setting is set
         (i.e., truthy), False otherwise.
     """
-    return bool(settings.S3_GEO_RESTRICTED_ACCESS_BUCKET)
+    return bool(settings.S3_OPEN_ACCESS_BUCKET_WITH_LOGIN)
 
 
 def has_s3_credentials():
@@ -72,7 +72,7 @@ def has_s3_credentials():
             settings.S3_OPEN_ACCESS_BUCKET,
             settings.S3_SERVER_ACCESS_LOG_BUCKET,
             settings.S3_CONTROLLED_ACCESS_BUCKET,
-            settings.S3_GEO_RESTRICTED_ACCESS_BUCKET,
+            settings.S3_OPEN_ACCESS_BUCKET_WITH_LOGIN,
         ]
     )
 
@@ -189,7 +189,7 @@ def get_bucket_name(project):
     if (project.georestricted
             and project.access_policy == AccessPolicy.OPEN
             and has_S3_geo_restricted_data_bucket_name()):
-        bucket_name = settings.S3_GEO_RESTRICTED_ACCESS_BUCKET
+        bucket_name = settings.S3_OPEN_ACCESS_BUCKET_WITH_LOGIN
     elif project.access_policy == AccessPolicy.OPEN and has_S3_open_data_bucket_name():
         bucket_name = settings.S3_OPEN_ACCESS_BUCKET
     elif (
