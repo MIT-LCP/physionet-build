@@ -655,12 +655,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
     internal_note_form = forms.InternalNoteForm()
 
     if request.method == 'POST':
-        if 'reopen_copyedit' in request.POST:
-            project.reopen_copyedit()
-            notification.reopen_copyedit_notify(request, project)
-            return render(request, 'console/reopen_copyedit_complete.html',
-                          {'project': project})
-        elif 'send_reminder' in request.POST:
+        if 'send_reminder' in request.POST:
             notification.copyedit_complete_notify(request, project,
                                                   project.copyedit_logs.last(), reminder=True)
             messages.success(request, 'The reminder email has been sent.')
@@ -685,6 +680,29 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
                    'yesterday': yesterday,
                    'editor_home': True,
                    'reassign_editor_form': reassign_editor_form})
+
+
+@handling_editor
+def reopen_copyedit(request, project_slug, *args, **kwargs):
+    """
+    Re-open a project for another round of copyediting.
+    """
+    project = kwargs['project']
+
+    if project.submission_status not in (
+        SubmissionStatus.NEEDS_APPROVAL,
+        SubmissionStatus.NEEDS_PUBLICATION,
+    ):
+        return redirect('submission_info', project_slug=project_slug)
+
+    if request.method == 'POST':
+        if 'reopen_copyedit' in request.POST:
+            project.reopen_copyedit()
+            notification.reopen_copyedit_notify(request, project)
+            return render(request, 'console/reopen_copyedit_complete.html',
+                          {'project': project})
+
+    return redirect('submission_info', project_slug=project_slug)
 
 
 @handling_editor
