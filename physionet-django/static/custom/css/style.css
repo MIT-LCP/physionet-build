@@ -272,7 +272,7 @@ body .main {
 }
 
 .modern-ui hr {
-  border-color: var(--gray-color);
+  border-color: #0000001F;
 }
 
 .modern-ui .nav {
