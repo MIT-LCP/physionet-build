@@ -25,24 +25,29 @@
           {% endif %}
         {% endfor %}
 
-        <button type="button" class="nav-link nav-link--expandable">
-          Explore <i class="bi bi-chevron-down ml-2"></i>
-          <div class="nav-link__expand">
-            {% for button in FRONT_PAGE_BUTTONS %}
-              <a class="nav-sublink" href="{{ button.url }}">
-                <div class="nav-sublink__icon">
-                  {% if button.associated_image_path %}
-                    <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
-                  {% endif %}
-                </div>
-                <div class="nav-sublink__text">
-                  <span class="nav-sublink__title">{{ button.label }}</span>
-                   <span class="nav-sublink__description">{{ button.description }}</span>
-                </div>
-              </a>
-            {% endfor %}
-          </div>
-        </button>
+        <div>{# wrapper for popover positioning #}
+          <button type="button" class="nav-link nav-link--expandable"
+                  popovertarget="nav__explore_popup">
+            Explore <i class="bi bi-chevron-down ml-2"></i>
+          </button>
+          <dialog class="nav-link__popup" id="nav__explore_popup" popover>
+            <div class="nav-sublinks">
+              {% for button in FRONT_PAGE_BUTTONS %}
+                <a class="nav-sublink" href="{{ button.url }}">
+                  <div class="nav-sublink__icon">
+                    {% if button.associated_image_path %}
+                      <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
+                    {% endif %}
+                  </div>
+                  <div class="nav-sublink__text">
+                    <span class="nav-sublink__title">{{ button.label }}</span>
+                    <span class="nav-sublink__description">{{ button.description }}</span>
+                  </div>
+                </a>
+              {% endfor %}
+              </div>
+          </dialog>
+        </div>
       </div>
       <div class="nav__actions d-flex ml-md-4">
         <form action="{% url 'content_index' %}" class="mr-2">
