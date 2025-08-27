@@ -425,9 +425,6 @@ body .main {
   font-size: 1.5rem;
 }
 .modern-ui .nav__user {
-  display: none;
-}
-.modern-ui .nav__user.circle-button {
   display: flex;
 }
 .modern-ui .nav__mobile {
@@ -637,9 +634,6 @@ body .main {
   }
 }
 @media (min-width: 1200px) {
-  .modern-ui .nav__user {
-    display: flex;
-  }
   .modern-ui .nav__hamburger {
     display: none;
   }
