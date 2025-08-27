@@ -6,7 +6,8 @@
 <div class="modern-ui nav-wrapper">
   <nav class="nav">
     <div class="container my-0 h-100 d-flex justify-content-between align-items-center">
-      <button type="button" class="nav__hamburger circle-button mr-2">
+      <button type="button" class="nav__hamburger circle-button mr-2"
+              popovertarget="nav__hamburger_popup">
         <i class="nav__hamburger__list bi bi-list"></i>
         <i class="nav__hamburger__x bi bi-x"></i>
       </button>
@@ -139,7 +140,8 @@
       </div>
     </div>
   </nav>
-  <div class="nav__mobile">
+
+  <dialog class="nav__mobile" id="nav__hamburger_popup" popover>
     {% for page in static_pg %}
       {% if page.nav_bar %}
         <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
@@ -164,5 +166,5 @@
         {% endfor %}
       </div>
     </button>
-  </div>
+  </dialog>
 </div>

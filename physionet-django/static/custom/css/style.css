@@ -431,9 +431,13 @@ body .main {
 .modern-ui .nav__user {
   display: flex;
 }
-.modern-ui .nav__mobile {
-  display: none;
+.modern-ui dialog {
   position: absolute;
+  inset: auto;
+  margin: 0;
+  border: 0;
+}
+.modern-ui .nav__mobile {
   left: 0;
   top: var(--nav-height);
   width: 100%;
