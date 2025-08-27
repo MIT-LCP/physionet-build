@@ -67,7 +67,8 @@
   user-select: none;
 }
 
-.modern-ui .circle-button {
+.modern-ui .circle-button,
+.modern-ui .nav__user {
   background-color: var(--light-color);
   border: none;
   border-radius: 50rem;
@@ -424,6 +425,9 @@ body .main {
 .modern-ui .nav__search button.nav__search__close i {
   font-size: 1.5rem;
 }
+.modern-ui .nav__username {
+  display: none;
+}
 .modern-ui .nav__user {
   display: flex;
 }
@@ -639,6 +643,12 @@ body .main {
   }
   .modern-ui .nav__links {
     display: flex;
+  }
+  .modern-ui .nav__username {
+    display: inline;
+  }
+  .modern-ui .nav__user {
+    padding: 0.5rem 1rem;
   }
 }
 @media (min-width: 1400px) {

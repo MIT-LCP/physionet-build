@@ -57,12 +57,14 @@
         {% if user.is_authenticated %}
           <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray">
             {% if user.has_access_to_admin_console %}
-              <i class="bi bi-person-fill-lock mr-2"></i>
+              <i class="bi bi-person-fill-lock"></i>
             {% else %}
-              <i class="bi bi-person-fill mr-2"></i>
+              <i class="bi bi-person-fill"></i>
             {% endif %}
-            <span>{{ user }}</span>
-            <i class="bi bi-chevron-down ml-2"></i>
+            <span class="nav__username ml-2">
+              {{ user }}
+              <i class="bi bi-chevron-down ml-2"></i>
+            </span>
             <div class="nav-link__expand">
               {% if user.is_authenticated and perms.events.view_event_menu %}
                 <a class="nav-sublink" href="{% url 'event_home' %}">
@@ -130,7 +132,7 @@
             </div>
           </button>
         {% else %}
-          <a class="nav__user circle-button" href="{% url 'login' %}">
+          <a class="nav__user" href="{% url 'login' %}">
             <i class="bi bi-person"></i>
           </a>
         {% endif %}
