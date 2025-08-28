@@ -44,7 +44,7 @@
                   </div>
                   <div class="nav-sublink__text">
                     <span class="nav-sublink__title">{{ button.label }}</span>
-                    <span class="nav-sublink__description">{{ button.description }}</span>
+                    <span class="nav-sublink__description">{{ button.description|default:"" }}</span>
                   </div>
                 </a>
               {% endfor %}
@@ -181,7 +181,7 @@
               </div>
             <div class="nav-sublink__text">
               <span class="nav-sublink__title">{{ button.label }}</span>
-              <span class="nav-sublink__description">{{ button.description }}</span>
+              <span class="nav-sublink__description">{{ button.description|default:"" }}</span>
             </div>
           </a>
         {% endfor %}
