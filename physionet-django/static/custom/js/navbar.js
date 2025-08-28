@@ -9,7 +9,6 @@
         searchOpenButton: document.querySelector('.nav__search__open'),
         searchCloseButton: document.querySelector('.nav__search__close')
     };
-    let searchOpen = false;
 
     dom.expandableLinks.forEach((link) => {
         link.addEventListener('click', (ev) => {
