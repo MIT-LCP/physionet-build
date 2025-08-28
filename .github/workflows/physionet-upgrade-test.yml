@@ -15,7 +15,7 @@ jobs:
     container: ${{ matrix.container }}
     strategy:
       matrix:
-        container: ['debian:12']
+        container: ['debian:12', 'debian:13']
     steps:
       - name: Install dependencies
         run: |
