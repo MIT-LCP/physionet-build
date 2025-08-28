@@ -147,29 +147,29 @@
         {% endif %}
       </div>
     </div>
-  </nav>
 
-  <dialog class="nav__mobile" id="nav__hamburger_popup" popover>
-    {% for page in static_pg %}
-      {% if page.nav_bar %}
-        <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
-      {% endif %}
-    {% endfor %}
-    <hr>
-    <div class="nav-sublinks">
-      {% for button in FRONT_PAGE_BUTTONS %}
-        <a class="nav-sublink" href="{{ button.url }}">
-          <div class="nav-sublink__icon">
-            {% if button.associated_image_path %}
-              <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
-            {% endif %}
-            </div>
-          <div class="nav-sublink__text">
-            <span class="nav-sublink__title">{{ button.label }}</span>
-            <span class="nav-sublink__description">{{ button.description }}</span>
-          </div>
-        </a>
+    <dialog class="nav__mobile" id="nav__hamburger_popup" popover>
+      {% for page in static_pg %}
+        {% if page.nav_bar %}
+          <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
+        {% endif %}
       {% endfor %}
-    </div>
-  </dialog>
+      <hr>
+      <div class="nav-sublinks">
+        {% for button in FRONT_PAGE_BUTTONS %}
+          <a class="nav-sublink" href="{{ button.url }}">
+            <div class="nav-sublink__icon">
+              {% if button.associated_image_path %}
+                <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
+              {% endif %}
+              </div>
+            <div class="nav-sublink__text">
+              <span class="nav-sublink__title">{{ button.label }}</span>
+              <span class="nav-sublink__description">{{ button.description }}</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </dialog>
+  </nav>
 </div>
