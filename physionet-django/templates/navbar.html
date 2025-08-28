@@ -39,7 +39,7 @@
                 <a class="nav-sublink" href="{{ button.url }}">
                   <div class="nav-sublink__icon">
                     {% if button.associated_image_path %}
-                      <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
+                      <img src="{% static button.associated_image_path %}" alt="" height="32px">
                     {% endif %}
                   </div>
                   <div class="nav-sublink__text">
@@ -176,7 +176,7 @@
           <a class="nav-sublink" href="{{ button.url }}">
             <div class="nav-sublink__icon">
               {% if button.associated_image_path %}
-                <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
+                <img src="{% static button.associated_image_path %}" alt="" height="32px">
               {% endif %}
               </div>
             <div class="nav-sublink__text">
