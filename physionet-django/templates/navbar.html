@@ -7,9 +7,11 @@
   <nav class="nav">
     <div class="container my-0 h-100 d-flex justify-content-between align-items-center">
       <button type="button" class="nav__hamburger circle-button mr-2"
-              popovertarget="nav__hamburger_popup">
+              popovertarget="nav__hamburger_popup"
+              title="Menu">
         <i class="nav__hamburger__list bi bi-list"></i>
         <i class="nav__hamburger__x bi bi-x"></i>
+        <span class="visually-hidden">Menu</span>
       </button>
       <a href="/">
         {% if SITE_HEADER_LOGO %}
@@ -30,7 +32,8 @@
                   popovertarget="nav__explore_popup">
             Explore <i class="bi bi-chevron-down ml-2"></i>
           </button>
-          <dialog class="nav-link__popup" id="nav__explore_popup" popover>
+          <dialog class="nav-link__popup" id="nav__explore_popup" popover
+                  aria-label="Explore">
             <div class="nav-sublinks">
               {% for button in FRONT_PAGE_BUTTONS %}
                 <a class="nav-sublink" href="{{ button.url }}">
@@ -54,15 +57,24 @@
           <div class="nav__search">
             <input type="text" name="topic" placeholder="Search for anything...">
             <div class="nav__search__actions">
-              <button type="button" class="nav__search__close mr-2"><i class="bi bi-x"></i></button>
+              <button type="button" class="nav__search__close mr-2"
+                      title="Cancel">
+                <i class="bi bi-x"></i>
+                <span class="visually-hidden">Cancel</span>
+              </button>
               <button type="submit" class="circle-button">Search</button>
             </div>
           </div>
         </form>
-        <button type="button" class="nav__search__open circle-button mr-md-2"><i class="bi bi-search"></i></button>
+        <button type="button" class="nav__search__open circle-button mr-md-2"
+                title="Search {{ SITE_NAME }}">
+          <i class="bi bi-search"></i>
+          <span class="visually-hidden">Search {{ SITE_NAME }}</span>
+        </button>
         {% if user.is_authenticated %}
           <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray"
-                  popovertarget="nav__user_popup">
+                  popovertarget="nav__user_popup"
+                  title="Account: {{ user }}">
             {% if user.has_access_to_admin_console %}
               <i class="bi bi-person-fill-lock"></i>
             {% else %}
@@ -73,7 +85,8 @@
               <i class="bi bi-chevron-down ml-2"></i>
             </span>
           </button>
-          <dialog class="nav-link__popup" id="nav__user_popup" popover>
+          <dialog class="nav-link__popup" id="nav__user_popup" popover
+                  aria-label="Account: {{ user }}">
             <div class="nav-sublinks">
               {% if user.is_authenticated and perms.events.view_event_menu %}
                 <a class="nav-sublink" href="{% url 'event_home' %}">
@@ -141,14 +154,17 @@
             </div>
           </dialog>
         {% else %}
-          <a class="nav__user" href="{% url 'login' %}">
+          <a class="nav__user" href="{% url 'login' %}"
+             title="Log in">
             <i class="bi bi-person"></i>
+            <span class="visually-hidden">Log in</span>
           </a>
         {% endif %}
       </div>
     </div>
 
-    <dialog class="nav__mobile" id="nav__hamburger_popup" popover>
+    <dialog class="nav__mobile" id="nav__hamburger_popup" popover
+            aria-label="Menu">
       {% for page in static_pg %}
         {% if page.nav_bar %}
           <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
