@@ -77,6 +77,7 @@ from user.models import (
 from physionet.enums import LogCategory
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
+from console.file_utils import FileUnpacker
 from project.cloud.s3 import (
     create_s3_bucket,
     upload_project_to_S3,
@@ -282,7 +283,8 @@ def submission_info_card_params(request,
                                 embargo_form,
                                 internal_note_form,
                                 bulk_download,
-                                force_calculate):
+                                force_calculate,
+                                file_unpack_form=None):
     """
     Parameters used across submission_info_card.html pages, including:
 
@@ -311,6 +313,7 @@ def submission_info_card_params(request,
         'embargo_form': embargo_form,
         'notes': notes,
         'internal_note_form': internal_note_form,
+        'file_unpack_form': file_unpack_form,
     }
 
 
@@ -328,6 +331,7 @@ def submission_info(request, project_slug):
     reassign_editor_form = forms.ReassignEditorForm(project=project, data=data)
     internal_note_form = forms.InternalNoteForm(data)
     embargo_form = forms.EmbargoFilesDaysForm()
+    file_unpack_form = forms.FileUnpackForm(data)
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
 
@@ -376,6 +380,40 @@ def submission_info(request, project_slug):
         else:
             messages.error(request, "You are not authorized to delete this note.")
         return redirect(f'{request.path}?tab=notes')
+    elif 'unpack_file' in request.POST and user == project.editor:
+        if file_unpack_form.is_valid():
+            try:
+                project_root = project.file_root()
+
+                LOGGER.info(f"Project root: {project_root}")
+                LOGGER.info(f"File path: {file_unpack_form.cleaned_data['file_path']}")
+                LOGGER.info(f"Full file path: {os.path.join(project_root, file_unpack_form.cleaned_data['file_path'])}")
+
+                result = FileUnpacker.unpack_file(
+                    project_root=project_root,
+                    file_path=file_unpack_form.cleaned_data['file_path'],
+                    target_directory=file_unpack_form.cleaned_data['target_directory'] or None,
+                    overwrite_existing=file_unpack_form.cleaned_data['overwrite_existing']
+                )
+
+                if result['success']:
+                    messages.success(
+                        request,
+                        f"Successfully unpacked {len(result['extracted_files'])} files to {result['extract_directory']}"
+                    )
+                    # Reset form after successful unpacking
+                    file_unpack_form = forms.FileUnpackForm()
+                else:
+                    messages.error(request, "File unpacking failed")
+
+            except Exception as e:
+                error_msg = f"Error unpacking file: {str(e)}"
+                if "File not found" in str(e):
+                    error_msg += f" (searched in: {project_root})"
+                messages.error(request, error_msg)
+                LOGGER.error(f"File unpacking error for project {project.slug}: {str(e)}")
+        else:
+            messages.error(request, 'Invalid file unpacking submission. See errors below.')
 
     return render(request, 'console/submission_info.html',
                   {**submission_info_card_params(
@@ -385,11 +423,13 @@ def submission_info(request, project_slug):
                    embargo_form,
                    internal_note_form,
                    bulk_download=True,
-                   force_calculate=False
+                   force_calculate=False,
+                   file_unpack_form=file_unpack_form
                    ),
                    'copyedit_logs': copyedit_logs,
                    'passphrase': passphrase,
                    'anonymous_url': anonymous_url,
+                   'file_unpack_form': file_unpack_form,
                    }
                   )
 
@@ -449,7 +489,8 @@ def edit_submission(request, project_slug, *args, **kwargs):
                    embargo_form,
                    internal_note_form,
                    bulk_download=True,
-                   force_calculate=False
+                   force_calculate=False,
+                   file_unpack_form=None
                    ),
                    'edit_submission_form': edit_submission_form,
                    'editor_home': True,
@@ -590,15 +631,16 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     response = render(
         request,
         'console/copyedit_submission.html',
-        {**submission_info_card_params(
-         request,
-         project,
-         reassign_editor_form,
-         embargo_form,
-         internal_note_form,
-         bulk_download=False,
-         force_calculate=True,
-         ),
+            {**submission_info_card_params(
+                   request,
+                   project,
+                   reassign_editor_form,
+                   embargo_form,
+                   internal_note_form,
+                   bulk_download=False,
+                   force_calculate=True,
+                   file_unpack_form=None
+                   ),
          'description_form': description_form,
          'ethics_form': ethics_form,
          'individual_size_limit': readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
@@ -674,6 +716,7 @@ def awaiting_authors(request, project_slug, *args, **kwargs):
                    internal_note_form,
                    bulk_download=True,
                    force_calculate=False,
+                   file_unpack_form=None
                    ),
                    'copyedit_logs': copyedit_logs,
                    'outstanding_emails': outstanding_emails,
@@ -790,7 +833,8 @@ def publish_submission(request, project_slug, *args, **kwargs):
                    embargo_form,
                    internal_note_form,
                    bulk_download=True,
-                   force_calculate=True
+                   force_calculate=True,
+                   file_unpack_form=None
                    ),
                    'publishable': publishable,
                    'copyedit_logs': copyedit_logs,
