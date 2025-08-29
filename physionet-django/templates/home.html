@@ -7,8 +7,12 @@
 {{ SITE_NAME }}
 {% endblock %}
 
+{% block local_js_top %}
+<script src="{% static 'swiper/swiper-bundle.min.js' %}"></script>
+{% endblock %}
 
 {% block local_css %}
+<link rel="stylesheet" href="{% static 'swiper/swiper-bundle.min.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/home.css' %}"/>
 <link rel="alternate" type="application/rss+xml" title="{{ SITE_NAME }} News" href="{% url 'news_rss' %}"/>
 {% endblock %}
@@ -24,8 +28,8 @@
         <h1 style="font-weight: 600;">{{ STRAPLINE }}</h1>
         <p class="font-weight-light">{{ SITE_DESCRIPTION }}</p>
         <div class="banner__buttons">
-          <a href="/about/publish" class="primary-button primary-button--large">Publish Your Data</a>
-          <a href="/content" class="primary-button primary-button--outline primary-button--large">Discover Datasets</a>
+          <a href="/about/publish/" class="primary-button primary-button--large">Publish Your Data</a>
+          <a href="/content/" class="primary-button primary-button--outline primary-button--large">Discover Datasets</a>
         </div>
       </div>
     </div>
@@ -55,7 +59,7 @@
   <div class="container pb-5">
     <div class="d-flex justify-content-between align-items-start">
       <h2 class="">Featured Resources</h2>
-      <a href="/content" class="primary-button primary-button--outline d-none d-md-block">More Resources</a>
+      <a href="/content/" class="primary-button primary-button--outline d-none d-md-block">More Resources</a>
     </div>
     <div class="cards-wrapper">
       {% include "search/homepage_content_list.html" with projects=featured content_list_header='h3' %}
@@ -66,7 +70,7 @@
   <div class="container pb-5">
     <div class="d-flex justify-content-between align-items-start">
       <h2 class="">Latest Resources</h2>
-      <a href="/content" class="primary-button primary-button--outline d-none d-md-block">More Resources</a>
+      <a href="/content/" class="primary-button primary-button--outline d-none d-md-block">More Resources</a>
     </div>
     <div class="cards-wrapper">
       {% include "search/homepage_content_list.html" with projects=latest content_list_header='h3' %}
@@ -78,7 +82,7 @@
     <div class="container pt-4 pb-5 my-0 px-0">
       <div class="d-flex justify-content-between align-items-start px-3">
         <h2 class="">News</h2>
-        <a href="/news" class="primary-button primary-button--outline">More News</a>
+        <a href="/news/" class="primary-button primary-button--outline">More News</a>
       </div>
       <div class="swiper">
         <div class="swiper-wrapper">

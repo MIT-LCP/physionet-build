@@ -67,7 +67,8 @@
   user-select: none;
 }
 
-.modern-ui .circle-button {
+.modern-ui .circle-button,
+.modern-ui .nav__user {
   background-color: var(--light-color);
   border: none;
   border-radius: 50rem;
@@ -271,13 +272,13 @@ body .main {
 }
 
 .modern-ui hr {
-  border-color: var(--gray-color);
+  border-color: #0000001F;
 }
 
 .modern-ui .nav {
   height: var(--nav-height);
   box-shadow: 0px 1px 4px 0px #0000001A;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -314,26 +315,30 @@ body .main {
   pointer-events: none;
 }
 
-.modern-ui .nav-link--expanded .nav-link__expand {
-  display: flex;
+.modern-ui .nav-link--expanded + .nav-link__popup {
+  display: block;
+  top: var(--nav-height);
 }
-
-.modern-ui .nav-link__expand {
-  display: none;
+.modern-ui .nav-link__popup {
   width: 314px;
   box-shadow: 0px 4px 10px 0px #0000001F;
   border-radius: 0.5rem;
   position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
+  top: var(--nav-height);
+  left: anchor(left);
   background-color: white;
   padding: 0.75rem;
-  flex-direction: column;
-  gap: 0.75rem;
 }
-.modern-ui .nav-link--expand-left .nav-link__expand {
+.modern-ui .nav-link--expand-left + .nav-link__popup {
   left: unset;
   right: 0;
+  right: anchor(right);
+}
+
+.modern-ui .nav-sublinks {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 .modern-ui .nav-sublink {
   display: flex;
@@ -424,15 +429,19 @@ body .main {
 .modern-ui .nav__search button.nav__search__close i {
   font-size: 1.5rem;
 }
-.modern-ui .nav__user {
+.modern-ui .nav__username {
   display: none;
 }
-.modern-ui .nav__user.circle-button {
+.modern-ui .nav__user {
   display: flex;
 }
+.modern-ui dialog {
+  position: absolute;
+  inset: auto;
+  margin: 0;
+  border: 0;
+}
 .modern-ui .nav__mobile {
-  display: none;
-  position: fixed;
   left: 0;
   top: var(--nav-height);
   width: 100%;
@@ -637,14 +646,17 @@ body .main {
   }
 }
 @media (min-width: 1200px) {
-  .modern-ui .nav__user {
-    display: flex;
-  }
   .modern-ui .nav__hamburger {
     display: none;
   }
   .modern-ui .nav__links {
     display: flex;
+  }
+  .modern-ui .nav__username {
+    display: inline;
+  }
+  .modern-ui .nav__user {
+    padding: 0.5rem 1rem;
   }
 }
 @media (min-width: 1400px) {

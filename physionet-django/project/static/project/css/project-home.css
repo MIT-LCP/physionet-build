@@ -7,11 +7,6 @@
   padding: 10px 20px;
 }
 
-html,
-body {
-  overflow-x: hidden; /* Prevent scroll on narrow devices */
-}
-
 footer {
   margin-top: 30px;
   padding: 10px 0;

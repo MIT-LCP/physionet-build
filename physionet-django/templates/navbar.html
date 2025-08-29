@@ -6,9 +6,12 @@
 <div class="modern-ui nav-wrapper">
   <nav class="nav">
     <div class="container my-0 h-100 d-flex justify-content-between align-items-center">
-      <button type="button" class="nav__hamburger circle-button mr-2">
+      <button type="button" class="nav__hamburger circle-button mr-2"
+              popovertarget="nav__hamburger_popup"
+              title="Menu">
         <i class="nav__hamburger__list bi bi-list"></i>
         <i class="nav__hamburger__x bi bi-x"></i>
+        <span class="visually-hidden">Menu</span>
       </button>
       <a href="/">
         {% if SITE_HEADER_LOGO %}
@@ -24,50 +27,71 @@
           {% endif %}
         {% endfor %}
 
-        <button type="button" class="nav-link nav-link--expandable">
-          Explore <i class="bi bi-chevron-down ml-2"></i>
-          <div class="nav-link__expand">
-            {% for button in FRONT_PAGE_BUTTONS %}
-              <a class="nav-sublink" href="{{ button.url }}">
-                <div class="nav-sublink__icon">
-                  {% if button.associated_image_path %}
-                    <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
-                  {% endif %}
-                </div>
-                <div class="nav-sublink__text">
-                  <span class="nav-sublink__title">{{ button.label }}</span>
-                   <span class="nav-sublink__description">{{ button.description }}</span>
-                </div>
-              </a>
-            {% endfor %}
-          </div>
-        </button>
+        <div>{# wrapper for popover positioning #}
+          <button type="button" class="nav-link nav-link--expandable"
+                  popovertarget="nav__explore_popup">
+            Explore <i class="bi bi-chevron-down ml-2"></i>
+          </button>
+          <dialog class="nav-link__popup" id="nav__explore_popup" popover
+                  aria-label="Explore">
+            <div class="nav-sublinks">
+              {% for button in FRONT_PAGE_BUTTONS %}
+                <a class="nav-sublink" href="{{ button.url }}">
+                  <div class="nav-sublink__icon">
+                    {% if button.associated_image_path %}
+                      <img src="{% static button.associated_image_path %}" alt="" height="32px">
+                    {% endif %}
+                  </div>
+                  <div class="nav-sublink__text">
+                    <span class="nav-sublink__title">{{ button.label }}</span>
+                    <span class="nav-sublink__description">{{ button.description|default:"" }}</span>
+                  </div>
+                </a>
+              {% endfor %}
+              </div>
+          </dialog>
+        </div>
       </div>
       <div class="nav__actions d-flex ml-md-4">
         <form action="{% url 'content_index' %}" class="mr-2">
           <div class="nav__search">
             <input type="text" name="topic" placeholder="Search for anything...">
             <div class="nav__search__actions">
-              <button type="button" class="nav__search__close mr-2"><i class="bi bi-x"></i></button>
+              <button type="button" class="nav__search__close mr-2"
+                      title="Cancel">
+                <i class="bi bi-x"></i>
+                <span class="visually-hidden">Cancel</span>
+              </button>
               <button type="submit" class="circle-button">Search</button>
             </div>
           </div>
         </form>
-        <button type="button" class="nav__search__open circle-button mr-md-2"><i class="bi bi-search"></i></button>
+        <button type="button" class="nav__search__open circle-button mr-md-2"
+                title="Search {{ SITE_NAME }}">
+          <i class="bi bi-search"></i>
+          <span class="visually-hidden">Search {{ SITE_NAME }}</span>
+        </button>
         {% if user.is_authenticated %}
-          <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray">
+          <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray"
+                  popovertarget="nav__user_popup"
+                  title="Account: {{ user }}">
             {% if user.has_access_to_admin_console %}
-              <i class="bi bi-person-fill-lock mr-2"></i>
+              <i class="bi bi-person-fill-lock"></i>
             {% else %}
-              <i class="bi bi-person-fill mr-2"></i>
+              <i class="bi bi-person-fill"></i>
             {% endif %}
-            <span>{{ user }}</span>
-            <i class="bi bi-chevron-down ml-2"></i>
-            <div class="nav-link__expand">
+            <span class="nav__username ml-2">
+              {{ user }}
+              <i class="bi bi-chevron-down ml-2"></i>
+            </span>
+          </button>
+          <dialog class="nav-link__popup" id="nav__user_popup" popover
+                  aria-label="Account: {{ user }}">
+            <div class="nav-sublinks">
               {% if user.is_authenticated and perms.events.view_event_menu %}
                 <a class="nav-sublink" href="{% url 'event_home' %}">
                   <div class="nav-sublink__icon">
-                    <img src="{% static 'images/icons/events.png' %}" height="32px" />
+                    <img src="{% static 'images/icons/events.png' %}" alt="" height="32px" />
                   </div>
                   <div class="nav-sublink__text">
                     <span class="nav-sublink__title">Events</span>
@@ -79,7 +103,7 @@
                 {% if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS %}
                   <a class="nav-sublink" href="{% url 'research_environments' %}">
                     <div class="nav-sublink__icon">
-                      <img src="{% static 'images/icons/environments.png' %}" height="32px" />
+                      <img src="{% static 'images/icons/environments.png' %}" alt="" height="32px" />
                     </div>
                     <div class="nav-sublink__text">
                       <span class="nav-sublink__title">Research Environments</span>
@@ -90,7 +114,7 @@
 
                 <a class="nav-sublink" href="{% url 'project_home' %}">
                   <div class="nav-sublink__icon">
-                    <img src="{% static 'images/icons/projects.png' %}" height="32px" />
+                    <img src="{% static 'images/icons/projects.png' %}" alt="" height="32px" />
                   </div>
                   <div class="nav-sublink__text">
                     <span class="nav-sublink__title">Projects</span>
@@ -100,7 +124,7 @@
               {% endif %}
               <a class="nav-sublink" href="{% url 'user_settings' %}">
                 <div class="nav-sublink__icon">
-                  <img src="{% static 'images/icons/settings.png' %}" height="32px" />
+                  <img src="{% static 'images/icons/settings.png' %}" alt="" height="32px" />
                 </div>
                 <div class="nav-sublink__text">
                   <span class="nav-sublink__title">Settings</span>
@@ -110,7 +134,7 @@
               {% if user.has_access_to_admin_console %}
                 <a class="nav-sublink" href="{% url 'console_home' %}">
                   <div class="nav-sublink__icon">
-                    <img src="{% static 'images/icons/admin.png' %}" height="32px" />
+                    <img src="{% static 'images/icons/admin.png' %}" alt="" height="32px" />
                   </div>
                   <div class="nav-sublink__text">
                     <span class="nav-sublink__title">Admin Console</span>
@@ -120,7 +144,7 @@
               {% endif %}
               <a class="nav-sublink" href="{% url 'logout' %}">
                 <div class="nav-sublink__icon">
-                  <img src="{% static 'images/icons/logout.png' %}" height="32px" />
+                  <img src="{% static 'images/icons/logout.png' %}" alt="" height="32px" />
                 </div>
                 <div class="nav-sublink__text">
                   <span class="nav-sublink__title">Logout</span>
@@ -128,78 +152,40 @@
                 </div>
               </a>
             </div>
-          </button>
+          </dialog>
         {% else %}
-          <a class="nav__user circle-button" href="{% url 'login' %}">
+          <a class="nav__user" href="{% url 'login' %}"
+             title="Log in">
             <i class="bi bi-person"></i>
+            <span class="visually-hidden">Log in</span>
           </a>
         {% endif %}
       </div>
     </div>
-  </nav>
-  <div class="nav__mobile">
-    {% for page in static_pg %}
-      {% if page.nav_bar %}
-        <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
-      {% endif %}
-    {% endfor %}
 
-    <button type="button" class="nav-link nav-link--expandable mt-2">
-      Explore <i class="bi bi-chevron-down ml-2"></i>
-      <div class="nav-link__expand">
+    <dialog class="nav__mobile" id="nav__hamburger_popup" popover
+            aria-label="Menu">
+      {% for page in static_pg %}
+        {% if page.nav_bar %}
+          <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
+        {% endif %}
+      {% endfor %}
+      <hr>
+      <div class="nav-sublinks">
         {% for button in FRONT_PAGE_BUTTONS %}
           <a class="nav-sublink" href="{{ button.url }}">
             <div class="nav-sublink__icon">
               {% if button.associated_image_path %}
-                <img src="{% static button.associated_image_path %}" alt="{{ button.label }}" height="32px">
+                <img src="{% static button.associated_image_path %}" alt="" height="32px">
               {% endif %}
-            </div>
+              </div>
             <div class="nav-sublink__text">
               <span class="nav-sublink__title">{{ button.label }}</span>
-                <span class="nav-sublink__description">{{ button.description }}</span>
+              <span class="nav-sublink__description">{{ button.description|default:"" }}</span>
             </div>
           </a>
         {% endfor %}
       </div>
-    </button>
-  </div>
+    </dialog>
+  </nav>
 </div>
-
-<script>
-const dom = {
-  nav: document.querySelector('.nav'),
-  hamburger: document.querySelector('.nav__hamburger'),
-  navWrapper: document.querySelector('.nav-wrapper'),
-  expandableLinks: document.querySelectorAll('.nav-link--expandable'),
-  searchOpenButton: document.querySelector('.nav__search__open'),
-  searchCloseButton: document.querySelector('.nav__search__close')
-};
-let searchOpen = false;
-
-dom.expandableLinks.forEach((link) => {
-  link.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    ev.target.classList.toggle('nav-link--expanded');
-  });
-});
-
-// clickaway
-document.addEventListener('click', (ev) => {
-  dom.expandableLinks.forEach((link) => {
-    link.classList.remove('nav-link--expanded');
-  });
-  dom.navWrapper.classList.remove('nav-wrapper--mobile-open');
-});
-
-dom.searchOpenButton.addEventListener('click', () => {
-  dom.nav.classList.add('nav--search');
-});
-dom.searchCloseButton.addEventListener('click', () => {
-  dom.nav.classList.remove('nav--search');
-});
-
-dom.hamburger.addEventListener('click', (ev) => {
-  ev.stopPropagation();
-  dom.navWrapper.classList.toggle('nav-wrapper--mobile-open');
-});
-</script>
