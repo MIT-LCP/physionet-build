@@ -586,7 +586,10 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
         raise ValueError("AWS_PROFILE is undefined. Please set it in your settings.")
 
     s3 = create_s3_client()
-    for root, _, files in os.walk(folder_path):
+    for root, subdirs, files in os.walk(folder_path):
+        subdirs.sort()
+        files.sort()
+
         if root == folder_path:
             dir_prefix = s3_prefix
         else:
