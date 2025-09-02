@@ -22,6 +22,9 @@
       <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="embargo-tab" data-toggle="tab" href="#embargo" role="tab" aria-controls="reassign" aria-selected="false">Embargo</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" id="manage-files-tab" data-toggle="tab" href="#manage-files" role="tab" aria-controls="manage-files" aria-selected="false">Manage Files</a>
+      </li>
       {% endif %}
       {% if project.submission_status >= SubmissionStatus.NEEDS_COPYEDIT %}
       <li class="nav-item">
@@ -227,6 +230,90 @@
         {% else %}
               The files for an open access project cannot be placed under embargo.
         {% endif %}
+      </div>
+      {% endif %}
+
+      {# Manage Files #}
+      {% if project.editor == user %}
+      <div class="tab-pane fade" id="manage-files" role="tabpanel" aria-labelledby="manage-files-tab">
+        <h5 class="card-title">File Management</h5>
+        <p class="card-text">
+          This tool allows you to unpack compressed files (tar.gz, zip, gz, bz2, xz) within the project directory.
+          This is useful for extracting archives that authors have uploaded.
+        </p>
+
+        <div class="alert alert-info">
+          <strong>Project files are located at:</strong> {{ project.file_root }}
+        </div>
+
+        <div class="alert alert-info">
+          <strong>Supported formats:</strong> .tar.gz, .tgz, .tar.bz2, .tar.xz, .zip, .gz, .bz2, .xz
+        </div>
+
+        <form action="{% url 'submission_info' project.slug %}" method="POST" id="file_unpack_form">
+          {% csrf_token %}
+                  <div class="form-group">
+          <label for="{{ file_unpack_form.file_path.id_for_label }}">{{ file_unpack_form.file_path.label }}</label>
+          {{ file_unpack_form.file_path }}
+          {% if file_unpack_form.file_path.help_text %}
+            <small class="form-text text-muted">{{ file_unpack_form.file_path.help_text }}</small>
+          {% endif %}
+          <small class="form-text text-muted">
+            <strong>Tip:</strong> Use relative paths from the project root. For example, if your file is in a subdirectory called "data", enter "data/CFPFlyer.zip"
+          </small>
+          {% if file_unpack_form.file_path.errors %}
+            <div class="invalid-feedback d-block">
+              {% for error in file_unpack_form.file_path.errors %}
+                {{ error }}
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+          <div class="form-group">
+            <label for="{{ file_unpack_form.target_directory.id_for_label }}">{{ file_unpack_form.target_directory.label }}</label>
+            {{ file_unpack_form.target_directory }}
+            {% if file_unpack_form.target_directory.help_text %}
+              <small class="form-text text-muted">{{ file_unpack_form.target_directory.help_text }}</small>
+            {% endif %}
+            {% if file_unpack_form.target_directory.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in file_unpack_form.target_directory.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <div class="form-check">
+              {{ file_unpack_form.overwrite_existing }}
+              <label class="form-check-label" for="{{ file_unpack_form.overwrite_existing.id_for_label }}">
+                {{ file_unpack_form.overwrite_existing.label }}
+              </label>
+              {% if file_unpack_form.overwrite_existing.help_text %}
+                <small class="form-text text-muted">{{ file_unpack_form.overwrite_existing.help_text }}</small>
+              {% endif %}
+            </div>
+            {% if file_unpack_form.overwrite_existing.errors %}
+              <div class="invalid-feedback d-block">
+                {% for error in file_unpack_form.overwrite_existing.errors %}
+                  {{ error }}
+                {% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn btn-primary" name="unpack_file">
+            <i class="fas fa-archive"></i> Unpack File
+          </button>
+        </form>
+
+        <hr>
+
+        <div class="alert alert-warning">
+          <strong>Note:</strong> This operation will modify the project files. Make sure you have the necessary permissions and that the file paths are correct.
+        </div>
       </div>
       {% endif %}
 

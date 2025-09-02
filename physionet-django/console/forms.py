@@ -1037,3 +1037,37 @@ class CodeOfConductForm(forms.ModelForm):
         model = CodeOfConduct
         fields = ('name', 'version', 'slug', 'html_content')
         labels = {'html_content': 'Content'}
+
+
+class FileUnpackForm(forms.Form):
+    """
+    Form for unpacking compressed files in a project
+    """
+    file_path = forms.CharField(
+        max_length=500,
+        label='File Path',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter the path to the compressed file (e.g., data/archive.tar.gz)'
+        }),
+        help_text='Enter the relative path to the compressed file within the project directory'
+    )
+
+    target_directory = forms.CharField(
+        max_length=500,
+        required=False,
+        label='Target Directory',
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Leave empty to extract to the same directory as the archive'
+        }),
+        help_text='Optional: Specify a target directory for extraction (relative to project root)'
+    )
+
+    overwrite_existing = forms.BooleanField(
+        required=False,
+        initial=False,
+        label='Overwrite Existing Files',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text='Check this to overwrite existing files during extraction'
+    )
