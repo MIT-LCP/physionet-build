@@ -1396,10 +1396,16 @@ def project_submission(request, project_slug, **kwargs):
                 project.submit(author_comments=comments)
                 notification.submit_notify(project)
                 messages.success(request, 'Your project has been submitted. You will be notified when an editor is assigned.')
-            elif project.integrity_errors:
-                messages.error(request, project.integrity_errors)
+                return redirect('project_submission', project_slug=project.slug)
             else:
-                messages.error(request, 'Fix the errors before submitting')
+                if project.under_submission():
+                    messages.error(request, 'Project has already been submitted.')
+                else:
+                    project.check_integrity()
+                    if project.integrity_errors:
+                        messages.error(request, project.integrity_errors)
+                    else:
+                        raise Exception(f"Submission error for project {project.slug}")
         elif 'resubmit_project' in request.POST and is_submitting:
             author_comments_form = forms.AuthorCommentsForm(data=request.POST)
             if project.is_resubmittable() and author_comments_form.is_valid():
@@ -1407,6 +1413,16 @@ def project_submission(request, project_slug, **kwargs):
                 project.resubmit(author_comments=comments)
                 notification.resubmit_notify(project, comments)
                 messages.success(request, 'Your project has been resubmitted. You will be notified when the editor makes their decision.')
+                return redirect('project_submission', project_slug=project.slug)
+            else:
+                if project.under_submission():
+                    messages.error(request, 'Project has already been submitted.')
+                else:
+                    project.check_integrity()
+                    if project.integrity_errors:
+                        messages.error(request, project.integrity_errors)
+                    else:
+                        raise Exception(f"Submission error for project {project.slug}")
         # Author approves publication
         elif 'approve_publication' in request.POST:
             author = authors.get(user=user)
