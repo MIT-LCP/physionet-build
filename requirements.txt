@@ -1227,8 +1227,6 @@ uritemplate==3.0.1 ; python_version >= "3.11" and python_version < "4.0" \
 urllib3==1.26.19 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:37a0344459b199fce0e80b0d3569837ec6b6937435c5244e7fd73fa6006830f3 \
     --hash=sha256:3e3d753a8618b86d7de333b4223005f68720bcd6a7d2bcb9fbd2229ec7c1e429
-uwsgi==2.0.22 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:4cc4727258671ac5fa17ab422155e9aaef8a2008ebb86e4404b66deaae965db2
 webencodings==0.5.1 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78 \
     --hash=sha256:b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923
