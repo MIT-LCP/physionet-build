@@ -1388,25 +1388,36 @@ def project_submission(request, project_slug, **kwargs):
     author_comments_form = forms.AuthorCommentsForm() if is_submitting and project.author_editable() else None
 
     if request.method == 'POST':
-        # ActiveProject is submitted for review
-        if 'submit_project' in request.POST and is_submitting:
+        # Handle project submission or resubmission
+        if ('submit_project' in request.POST or 'resubmit_project' in request.POST) and is_submitting:
+            is_resubmit = 'resubmit_project' in request.POST
             author_comments_form = forms.AuthorCommentsForm(data=request.POST)
-            if project.is_submittable() and author_comments_form.is_valid():
+            can_submit = project.is_resubmittable() if is_resubmit else project.is_submittable()
+
+            if can_submit and author_comments_form.is_valid():
                 comments = author_comments_form.cleaned_data['author_comments']
-                project.submit(author_comments=comments)
-                notification.submit_notify(project)
-                messages.success(request, 'Your project has been submitted. You will be notified when an editor is assigned.')
-            elif project.integrity_errors:
-                messages.error(request, project.integrity_errors)
+                if is_resubmit:
+                    project.resubmit(author_comments=comments)
+                    notification.resubmit_notify(project, comments)
+                    messages.success(request,
+                                     'Your project has been resubmitted. '
+                                     'You will be notified when the editor makes their decision.')
+                else:
+                    project.submit(author_comments=comments)
+                    notification.submit_notify(project)
+                    messages.success(request,
+                                     'Your project has been submitted. '
+                                     'You will be notified when an editor is assigned.')
+                return redirect('project_submission', project_slug=project.slug)
             else:
-                messages.error(request, 'Fix the errors before submitting')
-        elif 'resubmit_project' in request.POST and is_submitting:
-            author_comments_form = forms.AuthorCommentsForm(data=request.POST)
-            if project.is_resubmittable() and author_comments_form.is_valid():
-                comments = author_comments_form.cleaned_data['author_comments']
-                project.resubmit(author_comments=comments)
-                notification.resubmit_notify(project, comments)
-                messages.success(request, 'Your project has been resubmitted. You will be notified when the editor makes their decision.')
+                if project.under_submission():
+                    messages.error(request, 'Project has already been submitted.')
+                else:
+                    project.check_integrity()
+                    if project.integrity_errors:
+                        messages.error(request, project.integrity_errors)
+                    else:
+                        raise Exception(f"Submission error for project {project.slug}")
         # Author approves publication
         elif 'approve_publication' in request.POST:
             author = authors.get(user=user)
