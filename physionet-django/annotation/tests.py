@@ -16,29 +16,8 @@ class AnnotationCollectionTests(TestCase):
             email="oauth_test@example.com",
             password="123456",
         )
-    
-    def test_create_annotation_collection(self):
-        request = self.factory.post(f"{BASE_URL}/api/annotations/collection/create/", data={
-            "name": "Test Annotation Collection",
-            "description": "Base test collection"
-        }, format='json')
-        force_authenticate(request, user=self.user)
-        
-        # Print user details to verify
-        print(f"Test user ID: {self.user.id}")
-        print(f"Test user username: {self.user.username}")
-        
-        response = AnnotationCollectionCreateAPIView.as_view()(request)
-        print(f"Response data: {response.data}")
-        
-        # Verify the created_by matches the test user
-        self.assertEqual(response.data['created_by'], self.user.id)
 
-class AnnotationTypeTests(TestCase):
-    def setUp(self):
-        self.factory = APIRequestFactory()
-   
-    def test_create_annotation_type(self):
+    def _create_annotation_type(self):
         request = self.factory.post(f"{BASE_URL}/api/annotations/type/create/", data={
             "name": "Test Annotation Type",
             "description": "Base test type",
@@ -55,9 +34,25 @@ class AnnotationTypeTests(TestCase):
             },
             "allowed_location_kind": "text_span"
         }, format='json')
+        return request
+    
+    def _create_annotation_collection(self):
+        request = self.factory.post(f"{BASE_URL}/api/annotations/collection/create/", data={
+            "name": "Test Annotation Collection",
+            "description": "Base test collection"
+        }, format='json')
+        return request
+    
+    def test_create_annotation_collection(self):
+        request = self._create_annotation_collection()
+        force_authenticate(request, user=self.user)
+        response = AnnotationCollectionCreateAPIView.as_view()(request)        
+        self.assertEqual(response.data['created_by'], self.user.id)
+
+    def test_create_annotation_type(self):
+        request = self._create_annotation_type()
         # force_authenticate(request, user=self.user)
         response = AnnotationTypeCreateAPIView.as_view()(request)
-        print(f"Response data: {response.data}")
         self.assertEqual(response.data['slug'], "test-annotation-type")
         self.assertEqual(response.data['label_schema'], {
             "type": "object",
@@ -67,3 +62,4 @@ class AnnotationTypeTests(TestCase):
             }
         })
         self.assertEqual(response.data['allowed_location_kind'], "text_span")
+    
