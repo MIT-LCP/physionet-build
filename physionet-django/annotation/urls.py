@@ -15,5 +15,8 @@ app_name = 'annotation'
 urlpatterns = [
     path('annotations/collection/create/', 
          AnnotationCollectionCreateAPIView.as_view(), 
-         name='annotation-collection-create')
+         name='annotation-collection-create'),
+    path('annotations/type/create/', 
+         AnnotationCollectionCreateAPIView.as_view(), 
+         name='annotation-type-create')
 ]

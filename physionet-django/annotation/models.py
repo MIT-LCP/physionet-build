@@ -38,7 +38,7 @@ class AnnotationType(models.Model):
         - Labels with event_type (enum), confidence (0-1), notes (optional)
         - Validation that start < end and coordinates are non-negative
     """
-    slug = models.SlugField(max_length=100, unique=True)  # e.g., "ecg_interval_label"
+    slug = models.CharField(max_length=100, unique=True)  # e.g., "ecg_interval_label"
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
 

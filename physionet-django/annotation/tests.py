@@ -1,7 +1,7 @@
 import requests
 import json
 from django.test import RequestFactory, TestCase
-from annotation.views import AnnotationCollectionCreateAPIView
+from annotation.views import AnnotationCollectionCreateAPIView, AnnotationTypeCreateAPIView
 from user.models import User
 from rest_framework.test import APIRequestFactory, force_authenticate
 
@@ -33,3 +33,37 @@ class AnnotationCollectionTests(TestCase):
         
         # Verify the created_by matches the test user
         self.assertEqual(response.data['created_by'], self.user.id)
+
+class AnnotationTypeTests(TestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+   
+    def test_create_annotation_type(self):
+        request = self.factory.post(f"{BASE_URL}/api/annotations/type/create/", data={
+            "name": "Test Annotation Type",
+            "description": "Base test type",
+            "slug": "test-annotation-type",
+            "label_schema": {
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string"},
+                    "confidence": {
+                        "type": "number", 
+                        "minimum": 0.0,
+                        "maximum": 1.0},
+                }
+            },
+            "allowed_location_kind": "text_span"
+        }, format='json')
+        # force_authenticate(request, user=self.user)
+        response = AnnotationTypeCreateAPIView.as_view()(request)
+        print(f"Response data: {response.data}")
+        self.assertEqual(response.data['slug'], "test-annotation-type")
+        self.assertEqual(response.data['label_schema'], {
+            "type": "object",
+            "properties": {
+                "label": {"type": "string"},
+                "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+            }
+        })
+        self.assertEqual(response.data['allowed_location_kind'], "text_span")
