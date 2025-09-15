@@ -1,4 +1,5 @@
-# apps/annotations/models.py
+from django.db import models
+import uuid
 
 
 class AnnotationCollection(models.Model):
@@ -37,7 +38,7 @@ class AnnotationType(models.Model):
         - Labels with event_type (enum), confidence (0-1), notes (optional)
         - Validation that start < end and coordinates are non-negative
     """
-    slug = models.SlugField(max_length=100, unique=True). # e.g., "ecg_interval_label"
+    slug = models.SlugField(max_length=100, unique=True)  # e.g., "ecg_interval_label"
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
 
@@ -136,21 +137,33 @@ class BaseLocation(models.Model):
         abstract = True
 
 
-class TimeseriesIntervalLocation(BaseLocation):
-    coord_system = models.CharField(max_length=24, default='samples')
-    channel = models.CharField(max_length=32, blank=True)
-    start = models.BigIntegerField()
-    end = models.BigIntegerField()
+# class TimeseriesIntervalLocation(BaseLocation):
+#     channel = models.CharField(max_length=32, blank=True)
+#     start = models.BigIntegerField()
+#     end = models.BigIntegerField()
 
-class ImageBBoxLocation(BaseLocation):
-    coord_system = 'pixels'
-    x = models.IntegerField()
-    y = models.IntegerField()
-    width = models.IntegerField()
-    height = models.IntegerField()
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if not self.coord_system:
+#             self.coord_system = 'samples'
 
-class TextSpanLocation(BaseLocation):
-    coord_system = 'char_offset'
-    begin = models.IntegerField()
-    end = models.IntegerField()
-    encoding = models.CharField(max_length=16, default='utf-8')
+# class ImageBBoxLocation(BaseLocation):
+#     x = models.IntegerField()
+#     y = models.IntegerField()
+#     width = models.IntegerField()
+#     height = models.IntegerField()
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if not self.coord_system:
+#             self.coord_system = 'pixels'
+
+# class TextSpanLocation(BaseLocation):
+#     begin = models.IntegerField()
+#     end = models.IntegerField()
+#     encoding = models.CharField(max_length=16, default='utf-8')
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         if not self.coord_system:
+#             self.coord_system = 'char_offset'

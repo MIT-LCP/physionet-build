@@ -91,7 +91,8 @@ INSTALLED_APPS = [
     'django_sass',
     'events',
     'oauth',
-    'annotation'
+    'annotation',
+    'experimental',
 ]
 
 if ENABLE_SSO:
