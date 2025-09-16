@@ -12,6 +12,7 @@ class AnnotationCollection(models.Model):
         - "Multi-Dataset Sleep Stages" - sleep annotations across multiple datasets
         - "Research Study XYZ Annotations" - all annotations for a specific study
     """
+    slug = models.CharField(max_length=100, unique=True, null=True)  # e.g., "ecg_interval_collection"
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     created_by = models.ForeignKey('user.User', on_delete=models.CASCADE)
@@ -85,11 +86,11 @@ class Annotation(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    collection = models.ForeignKey(AnnotationCollection, on_delete=models.CASCADE, related_name='annotations')
-    annotation_type = models.ForeignKey(AnnotationType, on_delete=models.PROTECT, related_name='annotations')
+    collection = models.ForeignKey(AnnotationCollection, on_delete=models.CASCADE, related_name='collection_slug')
+    annotation_type = models.ForeignKey(AnnotationType, on_delete=models.PROTECT, related_name='annotation_type_slug')
 
     # Anchor to the file
-    project = models.ForeignKey('project.PublishedProject', on_delete=models.CASCADE, null=True, blank=True)
+    project = models.ForeignKey('project.PublishedProject', on_delete=models.CASCADE, null=True, blank=True, related_name='project_slug')
     file_path = models.CharField(max_length=500)
     # file_format = models.CharField(max_length=32, blank=True)  # e.g., "wfdb", "dicom", "png", "txt"
 

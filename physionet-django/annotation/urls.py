@@ -18,5 +18,8 @@ urlpatterns = [
          name='annotation-collection-create'),
     path('annotations/type/create/', 
          AnnotationCollectionCreateAPIView.as_view(), 
-         name='annotation-type-create')
+         name='annotation-type-create'),
+    path('annotations/collections/<slug:collection_slug>/', 
+         AnnotationCreateAPIView.as_view(), 
+         name='annotation-create-view')
 ]
