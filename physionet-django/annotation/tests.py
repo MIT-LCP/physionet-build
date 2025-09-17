@@ -12,7 +12,11 @@ from annotation.views import AnnotationCreateAPIView
 # Configuration
 BASE_URL = "http://localhost:8000"
 
-class AnnotationCollectionTests(TestCase):
+class AnnotationAPITests(TestCase):
+    """
+    Annotation API Tests: Using APIRequestFactory to simulate API requests to creating
+    Annotation Collection, Annotation Type, and Annotation.
+    """
     def setUp(self):
         self.factory = APIRequestFactory()
         self.user = User.objects.create_user(
@@ -50,7 +54,7 @@ class AnnotationCollectionTests(TestCase):
                 },
                 "required": ["label"]
             },
-            "allowed_location_kind": "text_span"
+            "allowed_location_type": "text_span"
         }, format='json')
         return request
     
@@ -84,7 +88,7 @@ class AnnotationCollectionTests(TestCase):
                 },
                 "required": ["label"]
             })
-        self.assertEqual(response.data['allowed_location_kind'], "text_span")
+        self.assertEqual(response.data['allowed_location_type'], "text_span")
     
     def _create_annotation(self):
         request = self.factory.post(f"{BASE_URL}/api/annotations/collections/{self.collection.slug}/", data={
@@ -94,6 +98,12 @@ class AnnotationCollectionTests(TestCase):
             "labels": {
                 "label": "Test Label",
                 "confidence": 0.5
+            },
+            "location": {
+                "location_type": "text_span",
+                "coord_system": "char_offset",
+                "begin": 100,
+                "end": 200
             }
         }, format='json')
         return request
@@ -117,13 +127,19 @@ class AnnotationCollectionTests(TestCase):
                 },
                 "required": ["label"]
             },
-            allowed_location_kind="text_span",
+            allowed_location_type="text_span",
         )
         request = self._create_annotation()
         force_authenticate(request, user=self.user)
         response = AnnotationCreateAPIView.as_view()(request, collection=self.collection.slug)
+        # print("Response: ", response.data)
         self.assertEqual(response.data['file_path'], "../test-filepath.txt")
         self.assertEqual(response.data['labels'], {
             "label": "Test Label", 
             "confidence": 0.5
         })
+        ## Testing location setting
+        self.assertEqual(response.data['location']['location_type'], "text_span")
+        self.assertEqual(response.data['location']['coord_system'], "char_offset")
+        self.assertEqual(response.data['location']['begin'], 100)
+        self.assertEqual(response.data['location']['end'], 200)

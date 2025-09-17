@@ -19,7 +19,7 @@ class AnnotationAdmin(admin.ModelAdmin):
 
 @admin.register(AnnotationType)
 class AnnotationTypeAdmin(admin.ModelAdmin):
-    list_display = ('slug', 'name', 'allowed_location_kind', 'version', 'created_datetime')
-    list_filter = ('allowed_location_kind', 'version', 'created_datetime')
+    list_display = ('slug', 'name', 'allowed_location_type', 'version', 'created_datetime')
+    list_filter = ('allowed_location_type', 'version', 'created_datetime')
     search_fields = ('slug', 'name', 'description')
     readonly_fields = ('created_datetime',)

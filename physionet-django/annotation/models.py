@@ -1,6 +1,16 @@
 from django.db import models
 import uuid
+from enum import Enum
 
+
+class AllowedLocationType(Enum):
+    TIMESERIES_INTERVAL = 'timeseries_interval'
+    IMAGE_BBOX = 'image_bbox'
+    TEXT_SPAN = 'text_span'
+    
+    @classmethod
+    def choices(cls):
+        return [(choice.value, choice.value.replace('_', ' ').title()) for choice in cls]
 
 class AnnotationCollection(models.Model):
     """
@@ -12,6 +22,7 @@ class AnnotationCollection(models.Model):
         - "Multi-Dataset Sleep Stages" - sleep annotations across multiple datasets
         - "Research Study XYZ Annotations" - all annotations for a specific study
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slug = models.CharField(max_length=100, unique=True, null=True)  # e.g., "ecg_interval_collection"
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -39,6 +50,7 @@ class AnnotationType(models.Model):
         - Labels with event_type (enum), confidence (0-1), notes (optional)
         - Validation that start < end and coordinates are non-negative
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slug = models.CharField(max_length=100, unique=True)  # e.g., "ecg_interval_label"
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
@@ -46,18 +58,85 @@ class AnnotationType(models.Model):
     # JSON Schema for Annotation.labels (semantic labels)
     label_schema = models.JSONField()
 
-    class AllowedLocationType(models.TextChoices):
-        TIMESERIES_INTERVAL = 'timeseries_interval', 'Timeseries Interval'
-        IMAGE_BBOX = 'image_bbox', 'Image Bbox'
-        TEXT_SPAN = 'text_span', 'Text Span'
-
-    allowed_location_kind = models.CharField(
+    allowed_location_type = models.CharField(
         max_length=40,
-        choices=AllowedLocationType.choices,
-        default=AllowedLocationType.TIMESERIES_INTERVAL,
+        choices=AllowedLocationType.choices(),
+        default=AllowedLocationType.TIMESERIES_INTERVAL.value,
     )
     version = models.CharField(max_length=20, default='1.0.0')
     created_datetime = models.DateTimeField(auto_now_add=True)
+
+
+
+class BaseLocation(models.Model):
+    """
+    Concrete base class for all Location types that define "where" within a file.
+    
+    Locations specify the spatial, temporal, or textual position of an annotation
+    within its anchored file. Each Location type represents a different
+    way of describing position, e.g.:
+    
+    - TimeseriesIntervalLocation: Time-based intervals (e.g., ECG segments)
+    - ImageBBoxLocation: Rectangular regions in images (e.g., bounding boxes)
+    - TextSpanLocation: Character ranges in text (e.g., named entity spans)
+    
+    Common fields:
+    - id: The unique identifier for the location
+    - location_type: The type of location (e.g., 'timeseries_interval', 'image_bbox', 'text_span')
+    - coord_system: The coordinate system used (e.g., 'samples', 'seconds', 'pixels')
+    - created_by: The user who created the location
+    - created_datetime: The datetime the location was created
+    
+    Each annotation must have exactly one Location instance that matches the
+    AnnotationType's allowed_location_kind. The Location provides the "where"
+    component that, combined with the annotation's labels (the "what"),
+    forms a complete annotation.
+    
+    Examples:
+        - TimeseriesIntervalLocation: "from sample 1000 to 2000 in lead II"
+        - ImageBBoxLocation: "rectangle at (50,100) with size 200x150 pixels"
+        - TextSpanLocation: "characters 150-200 in the diagnosis section"
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    location_type = models.CharField(
+        max_length=40,
+        choices=AllowedLocationType.choices(),
+        default=AllowedLocationType.TIMESERIES_INTERVAL.value,
+    )
+    coord_system = models.CharField(max_length=24, blank=True)  # e.g., 'samples','seconds','pixels','char_offset'
+    created_datetime = models.DateTimeField(auto_now_add=True)
+
+
+class TimeseriesIntervalLocation(BaseLocation):
+    channel = models.CharField(max_length=32, blank=True)
+    start = models.BigIntegerField()
+    end = models.BigIntegerField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.coord_system:
+            self.coord_system = 'samples'
+
+class ImageBBoxLocation(BaseLocation):
+    x = models.IntegerField()
+    y = models.IntegerField()
+    width = models.IntegerField()
+    height = models.IntegerField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.coord_system:
+            self.coord_system = 'pixels'
+
+class TextSpanLocation(BaseLocation):
+    begin = models.IntegerField()
+    end = models.IntegerField()
+    encoding = models.CharField(max_length=16, default='utf-8')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.coord_system:
+            self.coord_system = 'char_offset'
 
 
 class Annotation(models.Model):
@@ -65,7 +144,7 @@ class Annotation(models.Model):
     An individual annotation instance that anchors to a specific file/record.
     
     An annotation represents a single labeled piece of data, consisting of:
-    - An anchor (which file/record it applies to)
+    - An anchor (which project and file path it applies to)
     - A location (where within that file/record)
     - Label (what the label means)
     
@@ -97,74 +176,11 @@ class Annotation(models.Model):
     # Labels: validated by AnnotationType.label_schema
     labels = models.JSONField(default=dict, blank=True)
 
+    location = models.OneToOneField(
+        BaseLocation, on_delete=models.CASCADE, related_name='location'
+    )
+    # Provenance: Metadata about who created it, using what tool, etc.
     created_by = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='created_annotations')
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
 
-
-class BaseLocation(models.Model):
-    """
-    Abstract base class for all Location types that define "where" within a file.
-    
-    Locations specify the spatial, temporal, or textual position of an annotation
-    within its anchored file. Each Location type represents a different
-    way of describing position, e.g.:
-    
-    - TimeseriesIntervalLocation: Time-based intervals (e.g., ECG segments)
-    - ImageBBoxLocation: Rectangular regions in images (e.g., bounding boxes)
-    - TextSpanLocation: Character ranges in text (e.g., named entity spans)
-    
-    Common fields:
-    - coord_system: The coordinate system used (e.g., 'samples', 'seconds', 'pixels')
-    - channel: Optional channel identifier (useful for multi-channel data like ECG leads)
-    
-    Each annotation must have exactly one Location instance that matches the
-    AnnotationType's allowed_location_kind. The Location provides the "where"
-    component that, combined with the annotation's labels (the "what"),
-    forms a complete annotation.
-    
-    Examples:
-        - TimeseriesIntervalLocation: "from sample 1000 to 2000 in lead II"
-        - ImageBBoxLocation: "rectangle at (50,100) with size 200x150 pixels"
-        - TextSpanLocation: "characters 150-200 in the diagnosis section"
-    """
-    annotation = models.OneToOneField(
-        Annotation, on_delete=models.CASCADE, related_name='location'
-    )
-    coord_system = models.CharField(max_length=24, blank=True)  # e.g., 'samples','seconds','pixels','char_offset'
-    created_datetime = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        abstract = True
-
-
-# class TimeseriesIntervalLocation(BaseLocation):
-#     channel = models.CharField(max_length=32, blank=True)
-#     start = models.BigIntegerField()
-#     end = models.BigIntegerField()
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         if not self.coord_system:
-#             self.coord_system = 'samples'
-
-# class ImageBBoxLocation(BaseLocation):
-#     x = models.IntegerField()
-#     y = models.IntegerField()
-#     width = models.IntegerField()
-#     height = models.IntegerField()
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         if not self.coord_system:
-#             self.coord_system = 'pixels'
-
-# class TextSpanLocation(BaseLocation):
-#     begin = models.IntegerField()
-#     end = models.IntegerField()
-#     encoding = models.CharField(max_length=16, default='utf-8')
-
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         if not self.coord_system:
-#             self.coord_system = 'char_offset'

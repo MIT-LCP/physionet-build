@@ -35,7 +35,7 @@ urlpatterns = [
     # export app
     path('api/', include('export.urls')),
     # annotation app
-    # path('api/', include('annotation.urls')),
+    path('api/', include('annotation.urls')),
     # oauth app
     path('oauth/', include('oauth.urls')),
 
