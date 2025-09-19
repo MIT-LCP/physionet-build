@@ -4,6 +4,12 @@ from enum import Enum
 
 
 class AllowedLocationType(Enum):
+    """
+    Enumeration of supported location types for annotations.
+    
+    Defines the spatial/temporal/textual coordinate systems that can be used
+    to specify where an annotation is positioned within a data file.
+    """
     TIMESERIES_INTERVAL = 'timeseries_interval'
     IMAGE_BBOX = 'image_bbox'
     TEXT_SPAN = 'text_span'
@@ -14,13 +20,13 @@ class AllowedLocationType(Enum):
 
 class AnnotationCollection(models.Model):
     """
-    A collection of annotations that can span multiple projects or be project-specific.
+    A collection of related annotations across one or more datasets.
     
-    Collections provide a way to group related annotations together, whether they're
-    from a single PhysioNet project or span multiple datasets. Examples:
-
-        - "Multi-Dataset Sleep Stages" - sleep annotations across multiple datasets
-        - "Research Study XYZ Annotations" - all annotations for a specific study
+    Collections organize annotations by research context, study, or analytical purpose
+    rather than by technical constraints. They enable:
+    - Cross-dataset studies (e.g., "Sleep stages across MIT-BIH and SHHS datasets")
+    - Research project organization (e.g., "Cardiology Study 2024 annotations")
+    - Collaborative annotation workflows (e.g., "Expert consensus labels")
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slug = models.CharField(max_length=100, unique=True, null=True)  # e.g., "ecg_interval_collection"
@@ -33,22 +39,17 @@ class AnnotationCollection(models.Model):
 
 class AnnotationType(models.Model):
     """
-    Defines the contract/schema for a specific type of annotation.
+    Schema definition and validation contract for a specific annotation type.
     
     This model acts as a formal contract that specifies:
     - What data structure is required for annotation labels (via label_schema)
-    - What location type must be used (via allowed_location_kind)
-    - What validation rules apply (via location_schema)
+    - What location type must be used (via allowed_location_type)
     - What the annotation represents semantically (via name, description)
-    
-    All annotations of this type must follow this contract. The system enforces
-    the contract during validation to ensure consistency and data integrity.
     
     Example:
         An "ECG arrhythmia interval" type might require:
         - TimeseriesIntervalLocation for the "where"
-        - Labels with event_type (enum), confidence (0-1), notes (optional)
-        - Validation that start < end and coordinates are non-negative
+        - Labels with label (string), confidence (0-1), notes (optional)
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slug = models.CharField(max_length=100, unique=True)  # e.g., "ecg_interval_label"
@@ -63,6 +64,7 @@ class AnnotationType(models.Model):
         choices=AllowedLocationType.choices(),
         default=AllowedLocationType.TIMESERIES_INTERVAL.value,
     )
+    # Schema versioning for evolution and backward compatibility
     version = models.CharField(max_length=20, default='1.0.0')
     created_datetime = models.DateTimeField(auto_now_add=True)
 
@@ -72,13 +74,13 @@ class BaseLocation(models.Model):
     """
     Concrete base class for all Location types that define "where" within a file.
     
-    Locations specify the spatial, temporal, or textual position of an annotation
-    within its anchored file. Each Location type represents a different
-    way of describing position, e.g.:
+    Locations define the spatial, temporal, or textual coordinates of an annotation
+    within its target file. Different location types handle different coordinate systems:
     
-    - TimeseriesIntervalLocation: Time-based intervals (e.g., ECG segments)
-    - ImageBBoxLocation: Rectangular regions in images (e.g., bounding boxes)
-    - TextSpanLocation: Character ranges in text (e.g., named entity spans)
+    COORDINATE SYSTEMS:
+    - Timeseries: temporal coordinates (samples, seconds, milliseconds)
+    - Images: spatial coordinates (pixels, relative positions)  
+    - Text: character-based coordinates (UTF-8 offsets, line/column)
     
     Common fields:
     - id: The unique identifier for the location
@@ -91,11 +93,6 @@ class BaseLocation(models.Model):
     AnnotationType's allowed_location_kind. The Location provides the "where"
     component that, combined with the annotation's labels (the "what"),
     forms a complete annotation.
-    
-    Examples:
-        - TimeseriesIntervalLocation: "from sample 1000 to 2000 in lead II"
-        - ImageBBoxLocation: "rectangle at (50,100) with size 200x150 pixels"
-        - TextSpanLocation: "characters 150-200 in the diagnosis section"
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     location_type = models.CharField(
@@ -104,10 +101,28 @@ class BaseLocation(models.Model):
         default=AllowedLocationType.TIMESERIES_INTERVAL.value,
     )
     coord_system = models.CharField(max_length=24, blank=True)  # e.g., 'samples','seconds','pixels','char_offset'
+    created_by = models.ForeignKey('user.User', on_delete=models.CASCADE)
     created_datetime = models.DateTimeField(auto_now_add=True)
 
 
 class TimeseriesIntervalLocation(BaseLocation):
+    """
+    Temporal interval location for time-series data annotations.
+    
+    Specifies a contiguous time interval within a time-series recording using
+    start and end coordinates. Commonly used for:
+    - Physiological events (heart beats, seizures, sleep stages)
+    - Signal quality segments (noisy vs clean data regions)
+    - Clinical episodes (medication periods, monitoring sessions)
+    
+    Example: from seconds 10 to 20 of the EEG recording
+
+    COORDINATE SYSTEMS:
+    - 'samples': Digital sample indices (most common for raw signals)
+    - 'seconds': Time offsets from recording start
+    - 'milliseconds': High-precision timing
+    - Custom units as needed by specific datasets
+    """
     channel = models.CharField(max_length=32, blank=True)
     start = models.BigIntegerField()
     end = models.BigIntegerField()
@@ -118,6 +133,22 @@ class TimeseriesIntervalLocation(BaseLocation):
             self.coord_system = 'samples'
 
 class ImageBBoxLocation(BaseLocation):
+    """
+    Rectangular bounding box location for 2D image annotations.
+    
+    Defines a rectangular region within an image using top-left corner coordinates
+    and dimensions. Commonly used for:
+    - Medical imaging ROIs (lesions, anatomical structures)
+    - Object detection (instruments, landmarks)
+    - Image quality assessment (artifact regions)
+    
+    Example: a lesion at (50,100) with size 200x150 pixels
+
+    COORDINATE SYSTEMS:
+    - 'pixels': Absolute pixel coordinates (most common)
+    - 'relative': Normalized coordinates (0.0-1.0 range)
+    - 'mm': Physical measurements for calibrated medical images
+    """
     x = models.IntegerField()
     y = models.IntegerField()
     width = models.IntegerField()
@@ -129,6 +160,22 @@ class ImageBBoxLocation(BaseLocation):
             self.coord_system = 'pixels'
 
 class TextSpanLocation(BaseLocation):
+    """
+    Character span location for text-based annotations.
+    
+    Defines a contiguous character range within a text document using start and
+    end character offsets. Commonly used for:
+    - Clinical NLP (named entities, medical terms, symptoms)
+    - Report section identification (diagnosis, treatment, history)
+    - Text quality assessment (errors, ambiguities)
+    
+    Example: characters 150-200 in the diagnosis section of a medical report
+
+    COORDINATE SYSTEMS:
+    - 'char_offset': Unicode character positions (default)
+    - 'byte_offset': Raw byte positions for specific encodings
+    - 'token_offset': Word/token-based positions
+    """
     begin = models.IntegerField()
     end = models.IntegerField()
     encoding = models.CharField(max_length=16, default='utf-8')
@@ -141,27 +188,22 @@ class TextSpanLocation(BaseLocation):
 
 class Annotation(models.Model):
     """
-    An individual annotation instance that anchors to a specific file/record.
+    Individual annotation instance linking semantic labels to file locations.
     
-    An annotation represents a single labeled piece of data, consisting of:
-    - An anchor (which project and file path it applies to)
-    - A location (where within that file/record)
-    - Label (what the label means)
+    Represents a single labeled data point consisting of three components:
     
-    The annotation must follow the contract defined by its AnnotationType, which
-    specifies the required data structure and validation rules.
+    1. ANCHOR: Which file/record the annotation applies to (project + file_path)
+    2. LOCATION: Where within that file (via OneToOne relationship to BaseLocation)  
+    3. LABELS: What the annotation means (semantic data validated by AnnotationType)
     
-    Key Components:
-    - Anchor: Links to a specific file_path within a project (optional)
-    - Location: One-to-one relationship with a concrete Location model (e.g., 
-      TimeseriesIntervalLocation for time-based annotations)
-    - Labels: JSON data validated against the AnnotationType's label_schema
-    - Provenance: Metadata about who created it, using what tool, etc.
+    VALIDATION CONTRACTS:
+    - Must conform to AnnotationType's label_schema (semantic validation)
+    - Location type must match AnnotationType's allowed_location_type    
     
-    Examples:
-        - ECG arrhythmia annotation: "afib from sample 1000 to 2000 in record001.wfdb"
-        - Image bounding box: "dense region at (x,y) with width/height in scan.dcm"
-        - Text span: "medical term from character 150 to 200 in report.txt"
+    Example: ECG Annotation:
+        - project: "mitdb/1.0.0", file_path: "100.dat"
+        - location: TimeseriesIntervalLocation(start=1000, end=2000, channel="II")
+        - labels: {"rhythm": "atrial_fibrillation", "confidence": 0.95}
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -171,7 +213,6 @@ class Annotation(models.Model):
     # Anchor to the file
     project = models.ForeignKey('project.PublishedProject', on_delete=models.CASCADE, null=True, blank=True, related_name='project_slug')
     file_path = models.CharField(max_length=500)
-    # file_format = models.CharField(max_length=32, blank=True)  # e.g., "wfdb", "dicom", "png", "txt"
 
     # Labels: validated by AnnotationType.label_schema
     labels = models.JSONField(default=dict, blank=True)
@@ -180,7 +221,7 @@ class Annotation(models.Model):
         BaseLocation, on_delete=models.CASCADE, related_name='location'
     )
     # Provenance: Metadata about who created it, using what tool, etc.
-    created_by = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='created_annotations')
+    created_by = models.ForeignKey('user.User', on_delete=models.CASCADE)
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
 

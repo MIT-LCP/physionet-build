@@ -120,13 +120,15 @@ class AnnotationSerializer(serializers.ModelSerializer):
         if 'project' in validated_data:
             validated_data['project'] = validated_data.pop('project')
         # Create Location the
+        request = self.context.get('request')
         if 'location' in validated_data:
             location_data = validated_data.pop('location')
             # print("Location Raw Data: ", location_data)
             if 'id' not in location_data:
                 location_data["id"] = uuid.uuid4()
+                if request.user and request.user.is_authenticated:
+                    location_data['created_by'] = request.user
 
-            # print("Location Data: ", location_data)
             location_obj = None
             if location_data['location_type'] == AllowedLocationType.TIMESERIES_INTERVAL.value:
                 location_obj = TimeseriesIntervalLocation.objects.create(**location_data)
@@ -139,7 +141,6 @@ class AnnotationSerializer(serializers.ModelSerializer):
             validated_data['location'] = location_obj
             # print("Validated Data after location: ", validated_data)
             
-        request = self.context.get('request')
         if request and request.user and request.user.is_authenticated:
             validated_data['created_by'] = request.user
         return super().create(validated_data)
