@@ -1,7 +1,4 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
 import uuid
 from enum import Enum
 
@@ -217,7 +214,7 @@ class Annotation(models.Model):
     project = models.ForeignKey('project.PublishedProject', on_delete=models.CASCADE, null=True, blank=True, related_name='project_slug')
     file_path = models.CharField(max_length=500)
 
-     # Labels: validated by AnnotationType.label_schema
+    # Labels: validated by AnnotationType.label_schema
     labels = models.JSONField(default=dict, blank=True)
 
     location = models.OneToOneField(
