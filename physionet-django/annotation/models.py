@@ -217,7 +217,8 @@ class Annotation(models.Model):
     project = models.ForeignKey('project.PublishedProject', on_delete=models.CASCADE, null=True, blank=True, related_name='project_slug')
     file_path = models.CharField(max_length=500)
 
-    labels = models.JSONField(default=dict, blank=True) # Labels: validated by AnnotationType.label_schema
+     # Labels: validated by AnnotationType.label_schema
+    labels = models.JSONField(default=dict, blank=True)
 
     location = models.OneToOneField(
         BaseLocation, on_delete=models.CASCADE, related_name='location'
@@ -225,4 +226,3 @@ class Annotation(models.Model):
     created_by = models.ForeignKey('user.User', on_delete=models.CASCADE)
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
-
