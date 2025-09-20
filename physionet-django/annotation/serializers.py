@@ -7,6 +7,7 @@ from annotation.models import (
     TimeseriesIntervalLocation, ImageBBoxLocation, TextSpanLocation, AllowedLocationType
 )
 from project.models import PublishedProject
+from oauth2_provider.views.generic import ProtectedResourceView, ScopedProtectedResourceView
 import uuid
 
 class AnnotationCollectionSerializer(serializers.ModelSerializer):
@@ -14,6 +15,7 @@ class AnnotationCollectionSerializer(serializers.ModelSerializer):
         model = AnnotationCollection
         fields = [
             'id',
+            'slug',
             'name', 
             'description',
             'created_by',
