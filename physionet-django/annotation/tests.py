@@ -1,29 +1,51 @@
 import requests
 import json
-from django.test import RequestFactory, TestCase
-from annotation.views import AnnotationCollectionCreateAPIView, AnnotationTypeCreateAPIView
-from user.models import User
-from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
-from project.models import PublishedProject, AccessPolicy, ProjectType, CoreProject
-from annotation.models import AnnotationCollection, AnnotationType
-from annotation.views import AnnotationCreateAPIView
-from oauth2_provider.models import get_access_token_model, get_application_model
-from oauth2_provider.settings import oauth2_settings
-
 import os
 from django.utils import timezone
 from datetime import timedelta
+from dotenv import load_dotenv
+import pathlib
 
+from project.models import PublishedProject, AccessPolicy, ProjectType, CoreProject
+from annotation.models import AnnotationCollection, AnnotationType
+from annotation.views import AnnotationCreateAPIView
+from annotation.views import AnnotationCollectionCreateAPIView, AnnotationTypeCreateAPIView
+from user.models import User
 
-# Configuration
+from django.test import RequestFactory, TestCase
+from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
+from oauth2_provider.models import get_access_token_model, get_application_model
+from oauth2_provider.settings import oauth2_settings
 
-CLIENT_ID="rcKCw8TDUU5qwW7N4yUeWIj9tpzDJSQ3f35rxvfT"
-CLIENT_SECRET="zr33KPGR1Ow8rQYKsgH2SPhTB0kEIdlcWrA8xpZJxhI464mfJXFdKsrg9y1vt5cLzqLmWU5Qdw8vGsJaqVdsrHwEIPSwpZa5kcFJVKzH394w0oiAphF2gC2cKmiCmW0K"
-BASE_URL = "http://127.0.0.1:8000"
-CODE="VuQPg3yRaSClNNCHiNvnCJ2HF6VEC7"
-CODE_VERIFIER="1KWEQ511H8ND7DF7882WHV8OJFNG48EVM7TFR6ZVF6GGRPVDW5F7081SC1"
-TOKEN_URL = f"{BASE_URL}/o/token/"
-REDIRECT_URI = "http://127.0.0.1:8000/noexist/callback"
+# Load .env file from project root
+project_root = pathlib.Path(__file__).parent.parent.parent
+env_path = project_root / '.env'
+load_dotenv(dotenv_path=env_path)
+
+CLIENT_ID = os.getenv('CLIENT_ID')
+CLIENT_SECRET = os.getenv('CLIENT_SECRET')
+BASE_URL = os.getenv('BASE_URL')
+CODE = os.getenv('CODE')
+CODE_VERIFIER = os.getenv('CODE_VERIFIER')
+TOKEN_URL = f"{BASE_URL}/o/token/" if BASE_URL else None
+REDIRECT_URI = os.getenv('REDIRECT_URI')
+
+# Validate required environment variables
+required_env_vars = {
+    'OAUTH_CLIENT_ID': CLIENT_ID,
+    'OAUTH_CLIENT_SECRET': CLIENT_SECRET,
+    'TEST_BASE_URL': BASE_URL,
+    'OAUTH_TEST_CODE': CODE,
+    'OAUTH_CODE_VERIFIER': CODE_VERIFIER,
+    'OAUTH_REDIRECT_URI': REDIRECT_URI,
+}
+
+missing_vars = [var for var, value in required_env_vars.items() if not value]
+if missing_vars:
+    raise EnvironmentError(
+        f"Missing required environment variables: {', '.join(missing_vars)}\n"
+        "Please set these environment variables before running tests."
+    )
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
@@ -57,6 +79,7 @@ class BaseTest(TestCase):
             token="secret-access-token-key",
             application=self.application,
         )
+        self.auth_header = self._create_authorization_header(self.access_token.token)
         self.oauth2_settings = oauth2_settings
         self.core_project = CoreProject.objects.create()
         self.project = PublishedProject.objects.create(
@@ -88,8 +111,7 @@ class BaseTest(TestCase):
         """
         This test verifies that a request with a valid access token is allowed.
         """
-        auth = self._create_authorization_header(self.access_token.token)
-        response = self.client.get("/oauth/hello", HTTP_AUTHORIZATION=auth)
+        response = self.client.get("/oauth/hello", HTTP_AUTHORIZATION=self.auth_header)
         self.assertEqual(response.status_code, 200)
 
 class AnnotationAPITests(BaseTest):
@@ -99,7 +121,6 @@ class AnnotationAPITests(BaseTest):
     """
 
     def _create_annotation_collection(self):
-        auth = self._create_authorization_header(self.access_token.token)
         data = {
             "slug": "test-collection",
             "name": "Test Annotation Collection",
@@ -107,7 +128,7 @@ class AnnotationAPITests(BaseTest):
         }
         
         response = self.client.post(f"{BASE_URL}/api/annotations/collection/create/", 
-        HTTP_AUTHORIZATION=auth, data=data)
+        HTTP_AUTHORIZATION=self.auth_header, data=data)
         return response
     
     def test_create_annotation_collection(self):
@@ -120,7 +141,7 @@ class AnnotationAPITests(BaseTest):
         self.assertEqual(response['created_by'], self.user.id)
         
     def _create_annotation_type(self):
-        request = self.factory.post(f"{BASE_URL}/api/annotations/type/create/", data={
+        data = {
             "name": "Test Annotation Type",
             "description": "Base test type",
             "slug": "test-annotation-type",
@@ -133,18 +154,21 @@ class AnnotationAPITests(BaseTest):
                         "minimum": 0.0,
                         "maximum": 1.0},
                 },
-                "required": ["label"]
+                "required": ["label"],
             },
             "allowed_location_type": "text_span"
-        }, format='json')
+        }
+        request = self.client.post(f"{BASE_URL}/api/annotations/type/create/", 
+                                    data=data, format='json',
+                                    HTTP_AUTHORIZATION=self.auth_header)
         return request
     
     def test_create_annotation_type(self):
-        request = self._create_annotation_type()
-        # force_authenticate(request, user=self.user)
-        response = AnnotationTypeCreateAPIView.as_view()(request)
-        self.assertEqual(response.data['slug'], "test-annotation-type")
-        self.assertEqual(response.data['label_schema'], {
+        response = self._create_annotation_type()
+        self.assertEqual(response.status_code, 201)
+        response = response.json()
+        self.assertEqual(response['slug'], "test-annotation-type")
+        self.assertEqual(response['label_schema'], {
                 "type": "object",
                 "properties": {
                     "label": {"type": "string"},
@@ -153,9 +177,9 @@ class AnnotationAPITests(BaseTest):
                         "minimum": 0.0,
                         "maximum": 1.0},
                 },
-                "required": ["label"]
+                "required": ["label"],
             })
-        self.assertEqual(response.data['allowed_location_type'], "text_span")
+        self.assertEqual(response['allowed_location_type'], "text_span")
     
     def _create_annotation(self, data):
         request = self.factory.post(f"{BASE_URL}/api/annotations/collections/{self.collection.slug}/", data=data, format='json')

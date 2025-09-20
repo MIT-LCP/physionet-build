@@ -45,12 +45,6 @@ class AnnotationTypeSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_datetime']
 
-    def create(self, validated_data):
-        request = self.context.get('request')
-        if request and request.user and request.user.is_authenticated:
-            validated_data['created_by'] = request.user
-        return super().create(validated_data)
-
 class BaseLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseLocation
