@@ -69,7 +69,6 @@ class BaseTest(TestCase):
             core_project=self.core_project
         )
 
-    
     def _create_authorization_header(self, token):
         return "Bearer {0}".format(token)
 
