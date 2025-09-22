@@ -13,7 +13,7 @@ from oauth2_provider.views.generic import ProtectedResourceView
 
 class AnnotationCollectionCreateAPIView(ProtectedResourceView):
     """
-    POST: Create an AnnotationCollection, return back the create AnnotationCollection ID
+    POST: Create an AnnotationCollection
     """
     def post(self, request, *args, **kwargs):
         try:
@@ -35,7 +35,7 @@ class AnnotationCollectionCreateAPIView(ProtectedResourceView):
 
 class AnnotationTypeCreateAPIView(ProtectedResourceView):
     """
-    POST: Create an AnnotationCollection, return back the create AnnotationCollection ID
+    POST: Create an AnnotationType
     """
     def post(self, request, *args, **kwargs):
         try:
@@ -49,38 +49,36 @@ class AnnotationTypeCreateAPIView(ProtectedResourceView):
         serializer = AnnotationTypeSerializer(data=data, context={'request': request})
         
         if serializer.is_valid():
-            annotation_collection = serializer.save()
+            annotation_type = serializer.save()
             return JsonResponse(serializer.data, status=201)
         else:
             return JsonResponse(serializer.errors, status=400)
 
 
-class AnnotationCreateAPIView(generics.CreateAPIView):
+class AnnotationCreateAPIView(ProtectedResourceView):
     """
-    POST: Create an Annotation, return back the create Annotation ID
+    POST: Create an Annotation
     """
-    queryset = Annotation.objects.all()
-    serializer_class = AnnotationSerializer
-    
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['collection'] = self.kwargs.get('collection')
-        return context
-    
-    def create(self, request, *args, **kwargs):
-        # Get collection_slug from URL
-        collection = kwargs.get('collection')
+    def post(self, request, *args, **kwargs):
+        try:
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+            else:
+                data = request.POST.dict()
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            data = request.POST.dict()
+
+        collection = kwargs.get('collection_slug')
         if not collection:
             return Response(
-                {'collection': ['This field is required.']}, 
+                {'collection_slug': ['This field is required.']}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        # Add collection to request data
-        data = request.data.copy()
         data['collection'] = collection
-        
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+        serializer = AnnotationSerializer(data=data, context={'request': request})
+        if serializer.is_valid(raise_exception=True):
+            annotation = serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        else:
+            return JsonResponse(serializer.errors, status=400)

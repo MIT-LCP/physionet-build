@@ -92,7 +92,6 @@ INSTALLED_APPS = [
     'events',
     'oauth',
     'annotation',
-    'experimental',
 ]
 
 if ENABLE_SSO:
@@ -100,6 +99,8 @@ if ENABLE_SSO:
 
 if ENABLE_LIGHTWAVE:
     INSTALLED_APPS += ['lightwave']
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -176,7 +177,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend']
+AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend', 'oauth2_provider.backends.OAuth2Backend']
 if ORCID_LOGIN_ENABLED:
     AUTHENTICATION_BACKENDS.append('user.backends.OrcidAuthBackend')
 

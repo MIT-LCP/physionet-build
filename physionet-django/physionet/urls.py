@@ -9,6 +9,8 @@ from django.http import HttpResponse
 from django.urls import path
 from physionet import views
 from physionet.settings.base import StorageTypes
+from oauth2_provider import urls as oauth2_urls
+
 
 handler403 = 'physionet.views.error_403'
 handler404 = 'physionet.views.error_404'
@@ -18,6 +20,7 @@ handler500 = 'physionet.views.error_500'
 urlpatterns = [
     # django admin app
     path('admin/', admin.site.urls),
+    path("o/", include(oauth2_urls)),
     # management console app
     path('console/', include('console.urls')),
     # user app
