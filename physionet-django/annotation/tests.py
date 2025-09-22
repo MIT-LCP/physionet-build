@@ -114,33 +114,26 @@ class BaseTest(TestCase):
         response = self.client.get("/oauth/hello", HTTP_AUTHORIZATION=self.auth_header)
         self.assertEqual(response.status_code, 200)
 
-class AnnotationAPITests(BaseTest):
-    """
-    Annotation API Tests: Using APIRequestFactory to simulate API requests to creating
-    Annotation Collection, Annotation Type, and Annotation.
-    """
-
     def _create_annotation_collection(self):
+        """
+        Helper function to create annotation collection
+        """
         data = {
-            "slug": "test-collection",
-            "name": "Test Annotation Collection",
-            "description": "Base test collection"
+                "slug": "test-collection",
+                "name": "Test Annotation Collection",
+                "description": "Base test collection"
         }
-        
+            
         response = self.client.post(f"{BASE_URL}/api/annotations/collection/create/", 
-        HTTP_AUTHORIZATION=self.auth_header, data=data)
+                                    data=data, format='json',
+                                    HTTP_AUTHORIZATION=self.auth_header)
         return response
-    
-    def test_create_annotation_collection(self):
-        response = self._create_annotation_collection()
-        self.assertEqual(response.status_code, 201)
-        response = response.json()
-        self.assertEqual(response['slug'], "test-collection")
-        self.assertEqual(response['name'], "Test Annotation Collection")
-        self.assertEqual(response['description'], "Base test collection")
-        self.assertEqual(response['created_by'], self.user.id)
+
         
     def _create_annotation_type(self):
+        """
+        Helper function to create annotation type
+        """
         data = {
             "name": "Test Annotation Type",
             "description": "Base test type",
@@ -163,6 +156,31 @@ class AnnotationAPITests(BaseTest):
                                     HTTP_AUTHORIZATION=self.auth_header)
         return request
     
+    def _create_annotation(self, data):
+        """
+        Helper function to create annotation
+        """
+        response = self.client.post(f"{BASE_URL}/api/annotations/collections/{self.collection.slug}/", 
+                                    data=data, format='json', 
+                                    HTTP_AUTHORIZATION=self.auth_header)
+        return response
+
+class AnnotationAPITests(BaseTest):
+    """
+    Tests for the Annotation API endpoints, including creation of annotation collections,
+    annotation types, and annotations using simulated API requests.
+    These tests verify correct API behavior and data validation.
+    """
+
+    def test_create_annotation_collection(self):
+        response = self._create_annotation_collection()
+        self.assertEqual(response.status_code, 201)
+        response = response.json()
+        self.assertEqual(response['slug'], "test-collection")
+        self.assertEqual(response['name'], "Test Annotation Collection")
+        self.assertEqual(response['description'], "Base test collection")
+        self.assertEqual(response['created_by'], self.user.id)
+    
     def test_create_annotation_type(self):
         response = self._create_annotation_type()
         self.assertEqual(response.status_code, 201)
@@ -181,13 +199,11 @@ class AnnotationAPITests(BaseTest):
             })
         self.assertEqual(response['allowed_location_type'], "text_span")
     
-    def _create_annotation(self, data):
-        response = self.client.post(f"{BASE_URL}/api/annotations/collections/{self.collection.slug}/", 
-                                    data=data, format='json', 
-                                    HTTP_AUTHORIZATION=self.auth_header)
-        return response
     
     def test_create_annotation_text_span(self):
+        """
+        Test create annotation with text span location
+        """
         self.collection = AnnotationCollection.objects.create(
             slug="test-collection-text-span",
             name="Test Collection Text Span",
@@ -226,19 +242,21 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation(data=text_span_annotation_data)
         self.assertEqual(response.status_code, 201)
         response = response.json()
-        print("Response: ", response)
         self.assertEqual(response['file_path'], "../test-filepath.txt")
         self.assertEqual(response['labels'], {
             "label": "Test Label", 
             "confidence": 0.5
         })
-        ## Testing location setting
+        ## Testing text span setting
         self.assertEqual(response['location']['location_type'], "text_span")
         self.assertEqual(response['location']['coord_system'], "char_offset")
         self.assertEqual(response['location']['begin'], 100)
         self.assertEqual(response['location']['end'], 200)
 
     def test_create_annotation_image_bbox(self):
+        """
+        Test create annotation with image bbox location
+        """
         self.collection = AnnotationCollection.objects.create(
             slug="test-collection-bbox",
             name="Test Collection BBox",
@@ -280,13 +298,12 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation(data=image_bbox_annotation_data)
         self.assertEqual(response.status_code, 201)
         response = response.json()
-        print("Response: ", response)
         self.assertEqual(response['file_path'], "../test-image.png")
         self.assertEqual(response['labels'], {
             "label": "Test Label", 
             "confidence": 0.8
         })
-        ## Testing location setting
+        ## Testing image bbox setting
         self.assertEqual(response['location']['location_type'], "image_bbox")
         self.assertEqual(response['location']['coord_system'], "pixels")
         self.assertEqual(response['location']['x'], 50)
@@ -295,55 +312,57 @@ class AnnotationAPITests(BaseTest):
         self.assertEqual(response['location']['height'], 150)
 
     
-    # def test_create_annotation_timeseries_interval(self):
-    #     self.collection = AnnotationCollection.objects.create(
-    #         slug="test-collection-timeseries-interval",
-    #         name="Test Collection Timeseries Interval",
-    #         description="Test Description",
-    #         created_by=self.user
-    #     )
-    #     self.annotation_type = AnnotationType.objects.create(
-    #         slug="test-annotation-type-timeseries-interval",
-    #         name="Test Annotation Type Timeseries Interval",
-    #         description="Test Description",
-    #         label_schema={
-    #             "type": "object",
-    #             "properties": {
-    #                 "label": {"type": "string"},
-    #                 "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
-    #             },
-    #             "required": ["label"]
-    #         },
-    #         allowed_location_type="timeseries_interval",
-    #     )
-    #     timeseries_interval_annotation_data = {
-    #         "annotation_type": self.annotation_type.slug,
-    #         "project": self.project.slug,
-    #         "file_path": "../test-ecg-record.wfdb",
-    #         "labels": {
-    #             "label": "Normal Sinus Rhythm",
-    #             "confidence": 0.95
-    #         },
-    #         "location": {
-    #             "location_type": "timeseries_interval",
-    #             "coord_system": "samples",
-    #             "channel": "II",
-    #             "start": 1000,
-    #             "end": 5000
-    #         }
-    #     }
-    #     request = self._create_annotation(data=timeseries_interval_annotation_data)
-    #     force_authenticate(request, user=self.user)
-    #     response = AnnotationCreateAPIView.as_view()(request, collection=self.collection.slug)
-    #     # print("Response: ", response.data)
-    #     self.assertEqual(response.data['file_path'], "../test-ecg-record.wfdb")
-    #     self.assertEqual(response.data['labels'], {
-    #         "label": "Normal Sinus Rhythm", 
-    #         "confidence": 0.95
-    #     })
-    #     ## Testing location setting
-    #     self.assertEqual(response.data['location']['location_type'], "timeseries_interval")
-    #     self.assertEqual(response.data['location']['coord_system'], "samples")
-    #     self.assertEqual(response.data['location']['channel'], "II")
-    #     self.assertEqual(response.data['location']['start'], 1000)
-    #     self.assertEqual(response.data['location']['end'], 5000)
+    def test_create_annotation_timeseries_interval(self):
+        """
+        Test create annotation with timeseries interval location
+        """
+        self.collection = AnnotationCollection.objects.create(
+            slug="test-collection-timeseries-interval",
+            name="Test Collection Timeseries Interval",
+            description="Test Description",
+            created_by=self.user
+        )
+        self.annotation_type = AnnotationType.objects.create(
+            slug="test-annotation-type-timeseries-interval",
+            name="Test Annotation Type Timeseries Interval",
+            description="Test Description",
+            label_schema={
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string"},
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+                },
+                "required": ["label"]
+            },
+            allowed_location_type="timeseries_interval",
+        )
+        timeseries_interval_annotation_data = {
+            "annotation_type": self.annotation_type.slug,
+            "project": self.project.slug,
+            "file_path": "../test-ecg-record.wfdb",
+            "labels": {
+                "label": "Normal Sinus Rhythm",
+                "confidence": 0.95
+            },
+            "location": {
+                "location_type": "timeseries_interval",
+                "coord_system": "samples",
+                "channel": "II",
+                "start": 1000,
+                "end": 5000
+            }
+        }
+        response = self._create_annotation(data=timeseries_interval_annotation_data)
+        self.assertEqual(response.status_code, 201)
+        response = response.json()
+        self.assertEqual(response['file_path'], "../test-ecg-record.wfdb")
+        self.assertEqual(response['labels'], {
+            "label": "Normal Sinus Rhythm", 
+            "confidence": 0.95
+        })
+        ## Testing timeseries interval setting
+        self.assertEqual(response['location']['location_type'], "timeseries_interval")
+        self.assertEqual(response['location']['coord_system'], "samples")
+        self.assertEqual(response['location']['channel'], "II")
+        self.assertEqual(response['location']['start'], 1000)
+        self.assertEqual(response['location']['end'], 5000)
