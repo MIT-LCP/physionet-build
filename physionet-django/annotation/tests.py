@@ -277,116 +277,131 @@ class AnnotationAPITests(BaseTest):
         self.assertEqual(response['location']['begin'], 100)
         self.assertEqual(response['location']['end'], 200)
 
-    # def test_create_annotation_image_bbox(self):
-    #     """
-    #     Test create annotation with image bbox location
-    #     """
-    #     self.collection = AnnotationCollection.objects.create(
-    #         slug="test-collection-bbox",
-    #         name="Test Collection BBox",
-    #         description="Test Description",
-    #         created_by=self.user
-    #     )
-    #     self.annotation_type = AnnotationType.objects.create(
-    #         slug="test-annotation-type-bbox",
-    #         name="Test Annotation Type BBox",
-    #         description="Test Description",
-    #         label_schema={
-    #             "type": "object",
-    #             "properties": {
-    #                 "label": {"type": "string"},
-    #                 "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
-    #             },
-    #             "required": ["label"]
-    #         },
-    #         allowed_location_type="image_bbox",
-    #     )
-    #     image_bbox_annotation_data = {
-    #         "annotation_type": self.annotation_type.slug,
-    #         "project": self.project.slug,
-    #         "file_path": "../test-image.png",
-    #         "labels": {
-    #             "label": "Test Label",
-    #             "confidence": 0.8
-    #         },
-    #         "location": {
-    #             "location_type": "image_bbox",
-    #             "coord_system": "pixels",
-    #             "x": 50,
-    #             "y": 100,
-    #             "width": 200,
-    #             "height": 150
-    #         }
-    #     }
-
-    #     response = self._create_annotation(data=image_bbox_annotation_data)
-    #     self.assertEqual(response.status_code, 201)
-    #     response = response.json()
-    #     self.assertEqual(response['file_path'], "../test-image.png")
-    #     self.assertEqual(response['labels'], {
-    #         "label": "Test Label", 
-    #         "confidence": 0.8
-    #     })
-    #     ## Testing image bbox setting
-    #     self.assertEqual(response['location']['location_type'], "image_bbox")
-    #     self.assertEqual(response['location']['coord_system'], "pixels")
-    #     self.assertEqual(response['location']['x'], 50)
-    #     self.assertEqual(response['location']['y'], 100)
-    #     self.assertEqual(response['location']['width'], 200)
-    #     self.assertEqual(response['location']['height'], 150)
+    def test_create_annotation_image_bbox(self):
+        """
+        Test create annotation with image bbox location
+        """
+        self.collection = AnnotationCollection.objects.create(
+            slug="test-collection-bbox",
+            name="Test Collection BBox",
+            description="Test Description",
+            created_by=self.user
+        )
+        self.annotation_type = AnnotationType.objects.create(
+            slug="test-annotation-type-bbox",
+            name="Test Annotation Type BBox",
+            description="Test Description",
+            label_schema={
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string"},
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+                },
+                "required": ["label"]
+            },
+            allowed_location_type="image_bbox",
+        )
+        image_bbox_annotation_data = {
+            "annotation_type": self.annotation_type.slug,
+            "project": self.project.slug,
+            "file_path": "../test-image.png",
+            "labels": {
+                "label": "Test Label",
+                "confidence": 0.8
+            },
+            "location": {
+                "location_type": "image_bbox",
+                "coord_system": "pixels",
+                "x": 50,
+                "y": 100,
+                "width": 200,
+                "height": 150
+            }
+        }
+        self.access_token = AccessToken.objects.create(
+            user=self.user,
+            scope="annotations:edit",
+            expires=timezone.now() + timedelta(seconds=300),
+            token="secret-access-token-key",
+            application=self.application,
+        )
+        self.auth_header = self._create_authorization_header(self.access_token.token)
+        response = self._create_annotation(data=image_bbox_annotation_data)
+        self.assertEqual(response.status_code, 201)
+        response = response.json()
+        self.assertEqual(response['file_path'], "../test-image.png")
+        self.assertEqual(response['labels'], {
+            "label": "Test Label", 
+            "confidence": 0.8
+        })
+        ## Testing image bbox setting
+        self.assertEqual(response['location']['location_type'], "image_bbox")
+        self.assertEqual(response['location']['coord_system'], "pixels")
+        self.assertEqual(response['location']['x'], 50)
+        self.assertEqual(response['location']['y'], 100)
+        self.assertEqual(response['location']['width'], 200)
+        self.assertEqual(response['location']['height'], 150)
 
     
-    # def test_create_annotation_timeseries_interval(self):
-    #     """
-    #     Test create annotation with timeseries interval location
-    #     """
-    #     self.collection = AnnotationCollection.objects.create(
-    #         slug="test-collection-timeseries-interval",
-    #         name="Test Collection Timeseries Interval",
-    #         description="Test Description",
-    #         created_by=self.user
-    #     )
-    #     self.annotation_type = AnnotationType.objects.create(
-    #         slug="test-annotation-type-timeseries-interval",
-    #         name="Test Annotation Type Timeseries Interval",
-    #         description="Test Description",
-    #         label_schema={
-    #             "type": "object",
-    #             "properties": {
-    #                 "label": {"type": "string"},
-    #                 "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
-    #             },
-    #             "required": ["label"]
-    #         },
-    #         allowed_location_type="timeseries_interval",
-    #     )
-    #     timeseries_interval_annotation_data = {
-    #         "annotation_type": self.annotation_type.slug,
-    #         "project": self.project.slug,
-    #         "file_path": "../test-ecg-record.wfdb",
-    #         "labels": {
-    #             "label": "Normal Sinus Rhythm",
-    #             "confidence": 0.95
-    #         },
-    #         "location": {
-    #             "location_type": "timeseries_interval",
-    #             "coord_system": "samples",
-    #             "channel": "II",
-    #             "start": 1000,
-    #             "end": 5000
-    #         }
-    #     }
-    #     response = self._create_annotation(data=timeseries_interval_annotation_data)
-    #     self.assertEqual(response.status_code, 201)
-    #     response = response.json()
-    #     self.assertEqual(response['file_path'], "../test-ecg-record.wfdb")
-    #     self.assertEqual(response['labels'], {
-    #         "label": "Normal Sinus Rhythm", 
-    #         "confidence": 0.95
-    #     })
-    #     ## Testing timeseries interval setting
-    #     self.assertEqual(response['location']['location_type'], "timeseries_interval")
-    #     self.assertEqual(response['location']['coord_system'], "samples")
-    #     self.assertEqual(response['location']['channel'], "II")
-    #     self.assertEqual(response['location']['start'], 1000)
-    #     self.assertEqual(response['location']['end'], 5000)
+    def test_create_annotation_timeseries_interval(self):
+        """
+        Test create annotation with timeseries interval location
+        """
+        self.collection = AnnotationCollection.objects.create(
+            slug="test-collection-timeseries-interval",
+            name="Test Collection Timeseries Interval",
+            description="Test Description",
+            created_by=self.user
+        )
+        self.annotation_type = AnnotationType.objects.create(
+            slug="test-annotation-type-timeseries-interval",
+            name="Test Annotation Type Timeseries Interval",
+            description="Test Description",
+            label_schema={
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string"},
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+                },
+                "required": ["label"]
+            },
+            allowed_location_type="timeseries_interval",
+        )
+        timeseries_interval_annotation_data = {
+            "annotation_type": self.annotation_type.slug,
+            "project": self.project.slug,
+            "file_path": "../test-ecg-record.wfdb",
+            "labels": {
+                "label": "Normal Sinus Rhythm",
+                "confidence": 0.95
+            },
+            "location": {
+                "location_type": "timeseries_interval",
+                "coord_system": "samples",
+                "channel": "II",
+                "start": 1000,
+                "end": 5000
+            }
+        }
+        self.access_token = AccessToken.objects.create(
+            user=self.user,
+            scope="annotations:edit",
+            expires=timezone.now() + timedelta(seconds=300),
+            token="secret-access-token-key",
+            application=self.application,
+        )
+        self.auth_header = self._create_authorization_header(self.access_token.token)
+        response = self._create_annotation(data=timeseries_interval_annotation_data)
+        self.assertEqual(response.status_code, 201)
+        response = response.json()
+        self.assertEqual(response['file_path'], "../test-ecg-record.wfdb")
+        self.assertEqual(response['labels'], {
+            "label": "Normal Sinus Rhythm", 
+            "confidence": 0.95
+        })
+        ## Testing timeseries interval setting
+        self.assertEqual(response['location']['location_type'], "timeseries_interval")
+        self.assertEqual(response['location']['coord_system'], "samples")
+        self.assertEqual(response['location']['channel'], "II")
+        self.assertEqual(response['location']['start'], 1000)
+        self.assertEqual(response['location']['end'], 5000)
