@@ -215,58 +215,67 @@ class AnnotationAPITests(BaseTest):
         self.assertEqual(response['allowed_location_type'], "text_span")
     
     
-    # def test_create_annotation_text_span(self):
-    #     """
-    #     Test create annotation with text span location
-    #     """
-    #     self.collection = AnnotationCollection.objects.create(
-    #         slug="test-collection-text-span",
-    #         name="Test Collection Text Span",
-    #         description="Test Description",
-    #         created_by=self.user
-    #     )
-    #     self.annotation_type = AnnotationType.objects.create(
-    #         slug="test-annotation-type-text-span",
-    #         name="Test Annotation Type Text Span",
-    #         description="Test Description",
-    #         label_schema={
-    #             "type": "object",
-    #             "properties": {
-    #                 "label": {"type": "string"},
-    #                 "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
-    #             },
-    #             "required": ["label"]
-    #         },
-    #         allowed_location_type="text_span",
-    #     )
-    #     text_span_annotation_data = {
-    #         "annotation_type": self.annotation_type.slug,
-    #         "project": self.project.slug,
-    #         "file_path": "../test-filepath.txt",
-    #         "labels": {
-    #             "label": "Test Label",
-    #             "confidence": 0.5
-    #         },
-    #         "location": {
-    #             "location_type": "text_span",
-    #             "coord_system": "char_offset",
-    #             "begin": 100,
-    #             "end": 200
-    #         }
-    #     }
-    #     response = self._create_annotation(data=text_span_annotation_data)
-    #     self.assertEqual(response.status_code, 201)
-    #     response = response.json()
-    #     self.assertEqual(response['file_path'], "../test-filepath.txt")
-    #     self.assertEqual(response['labels'], {
-    #         "label": "Test Label", 
-    #         "confidence": 0.5
-    #     })
-    #     ## Testing text span setting
-    #     self.assertEqual(response['location']['location_type'], "text_span")
-    #     self.assertEqual(response['location']['coord_system'], "char_offset")
-    #     self.assertEqual(response['location']['begin'], 100)
-    #     self.assertEqual(response['location']['end'], 200)
+    def test_create_annotation_text_span_correct_scope(self):
+        """
+        Test create annotation with text span location
+        """
+        self.collection = AnnotationCollection.objects.create(
+            slug="test-collection-text-span",
+            name="Test Collection Text Span",
+            description="Test Description",
+            created_by=self.user
+        )
+        self.annotation_type = AnnotationType.objects.create(
+            slug="test-annotation-type-text-span",
+            name="Test Annotation Type Text Span",
+            description="Test Description",
+            label_schema={
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string"},
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+                },
+                "required": ["label"]
+            },
+            allowed_location_type="text_span",
+        )
+        text_span_annotation_data = {
+            "annotation_type": self.annotation_type.slug,
+            "project": self.project.slug,
+            "file_path": "../test-filepath.txt",
+            "labels": {
+                "label": "Test Label",
+                "confidence": 0.5
+            },
+            "location": {
+                "location_type": "text_span",
+                "coord_system": "char_offset",
+                "begin": 100,
+                "end": 200
+            }
+        }
+        
+        self.access_token = AccessToken.objects.create(
+            user=self.user,
+            scope="annotations:edit",
+            expires=timezone.now() + timedelta(seconds=300),
+            token="secret-access-token-key",
+            application=self.application,
+        )
+        self.auth_header = self._create_authorization_header(self.access_token.token)
+        response = self._create_annotation(data=text_span_annotation_data)
+        self.assertEqual(response.status_code, 201)
+        response = response.json()
+        self.assertEqual(response['file_path'], "../test-filepath.txt")
+        self.assertEqual(response['labels'], {
+            "label": "Test Label", 
+            "confidence": 0.5
+        })
+        ## Testing text span setting
+        self.assertEqual(response['location']['location_type'], "text_span")
+        self.assertEqual(response['location']['coord_system'], "char_offset")
+        self.assertEqual(response['location']['begin'], 100)
+        self.assertEqual(response['location']['end'], 200)
 
     # def test_create_annotation_image_bbox(self):
     #     """

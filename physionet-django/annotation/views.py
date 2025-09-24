@@ -40,48 +40,29 @@ class AnnotationTypeCreateAPIView(generics.CreateAPIView):
     queryset = AnnotationType.objects.all()
     required_scopes = ['annotations:edit']
 
-    # def post(self, request, *args, **kwargs):
-    #     try:
-    #         if request.content_type == 'application/json':
-    #             data = json.loads(request.body)
-    #         else:
-    #             data = request.POST.dict()
-    #     except (json.JSONDecodeError, UnicodeDecodeError):
-    #         data = request.POST.dict()
-        
-    #     serializer = AnnotationTypeSerializer(data=data, context={'request': request})
-        
-    #     if serializer.is_valid():
-    #         annotation_type = serializer.save()
-    #         return JsonResponse(serializer.data, status=201)
-    #     else:
-    #         return JsonResponse(serializer.errors, status=400)
 
-
-class AnnotationCreateAPIView(ProtectedResourceView):
+class AnnotationCreateAPIView(generics.CreateAPIView):
     """
-    POST: Create an Annotation
+    POST: Create an Annotation, return back the create Annotation ID
     """
-    def post(self, request, *args, **kwargs):
-        try:
-            if request.content_type == 'application/json':
-                data = json.loads(request.body)
-            else:
-                data = request.POST.dict()
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            data = request.POST.dict()
-
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [AnnotationsScope, IsAuthenticated]
+    serializer_class = AnnotationSerializer
+    queryset = Annotation.objects.all()
+    required_scopes = ['annotations:edit']
+    
+    def create(self, request, *args, **kwargs):
         collection = kwargs.get('collection_slug')
         if not collection:
             return Response(
-                {'collection_slug': ['This field is required.']}, 
+                {'collection': ['This field is required.']}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
+        data = request.data.copy()
         data['collection'] = collection
-
-        serializer = AnnotationSerializer(data=data, context={'request': request})
-        if serializer.is_valid(raise_exception=True):
-            annotation = serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        else:
-            return JsonResponse(serializer.errors, status=400)
+        
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
