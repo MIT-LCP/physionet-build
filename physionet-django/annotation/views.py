@@ -30,26 +30,32 @@ class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
     queryset = AnnotationCollection.objects.all()
     required_scopes = ['annotations:edit']
 
-class AnnotationTypeCreateAPIView(ProtectedResourceView):
+class AnnotationTypeCreateAPIView(generics.CreateAPIView):
     """
     POST: Create an AnnotationType
     """
-    def post(self, request, *args, **kwargs):
-        try:
-            if request.content_type == 'application/json':
-                data = json.loads(request.body)
-            else:
-                data = request.POST.dict()
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            data = request.POST.dict()
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [AnnotationsScope, IsAuthenticated]
+    serializer_class = AnnotationTypeSerializer
+    queryset = AnnotationType.objects.all()
+    required_scopes = ['annotations:edit']
+
+    # def post(self, request, *args, **kwargs):
+    #     try:
+    #         if request.content_type == 'application/json':
+    #             data = json.loads(request.body)
+    #         else:
+    #             data = request.POST.dict()
+    #     except (json.JSONDecodeError, UnicodeDecodeError):
+    #         data = request.POST.dict()
         
-        serializer = AnnotationTypeSerializer(data=data, context={'request': request})
+    #     serializer = AnnotationTypeSerializer(data=data, context={'request': request})
         
-        if serializer.is_valid():
-            annotation_type = serializer.save()
-            return JsonResponse(serializer.data, status=201)
-        else:
-            return JsonResponse(serializer.errors, status=400)
+    #     if serializer.is_valid():
+    #         annotation_type = serializer.save()
+    #         return JsonResponse(serializer.data, status=201)
+    #     else:
+    #         return JsonResponse(serializer.errors, status=400)
 
 
 class AnnotationCreateAPIView(ProtectedResourceView):

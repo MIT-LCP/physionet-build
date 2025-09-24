@@ -188,23 +188,31 @@ class AnnotationAPITests(BaseTest):
         self.assertEqual(response.status_code, 403)
         response = response.json()
     
-    # def test_create_annotation_type(self):
-    #     response = self._create_annotation_type()
-    #     self.assertEqual(response.status_code, 201)
-    #     response = response.json()
-    #     self.assertEqual(response['slug'], "test-annotation-type")
-    #     self.assertEqual(response['label_schema'], {
-    #             "type": "object",
-    #             "properties": {
-    #                 "label": {"type": "string"},
-    #                 "confidence": {
-    #                     "type": "number", 
-    #                     "minimum": 0.0,
-    #                     "maximum": 1.0},
-    #             },
-    #             "required": ["label"],
-    #         })
-    #     self.assertEqual(response['allowed_location_type'], "text_span")
+    def test_create_annotation_type_correct_scope(self):
+        self.access_token = AccessToken.objects.create(
+            user=self.user,
+            scope="annotations:edit",
+            expires=timezone.now() + timedelta(seconds=300),
+            token="secret-access-token-key",
+            application=self.application,
+        )
+        self.auth_header = self._create_authorization_header(self.access_token.token)
+        response = self._create_annotation_type()
+        self.assertEqual(response.status_code, 201)
+        response = response.json()
+        self.assertEqual(response['slug'], "test-annotation-type")
+        self.assertEqual(response['label_schema'], {
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string"},
+                    "confidence": {
+                        "type": "number", 
+                        "minimum": 0.0,
+                        "maximum": 1.0},
+                },
+                "required": ["label"],
+            })
+        self.assertEqual(response['allowed_location_type'], "text_span")
     
     
     # def test_create_annotation_text_span(self):
