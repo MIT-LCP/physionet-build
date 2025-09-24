@@ -805,6 +805,8 @@ OAUTH2_PROVIDER = {
         "orcid:read": "Read access to user's ORCID iD",
         "public_id:read": "Read access to the user's persistent public ID",
         "data:download": "Download project data if token-holder is approved for access (training, DUA, etc).",
+        "annotations:view": "Read Annotation resources",
+        "annotations:edit": "Create/Update/Delete Annotation resources",
     }
 }
 
