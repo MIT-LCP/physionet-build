@@ -9,7 +9,10 @@ import pathlib
 from project.models import PublishedProject, AccessPolicy, ProjectType, CoreProject
 from annotation.models import AnnotationCollection, AnnotationType
 from annotation.views import AnnotationCreateAPIView
-from annotation.views import AnnotationCollectionCreateAPIView, AnnotationTypeCreateAPIView
+from annotation.views import (
+    AnnotationCollectionCreateAPIView,
+    AnnotationTypeCreateAPIView,
+)
 from user.models import User
 
 from django.test import RequestFactory, TestCase
@@ -19,25 +22,25 @@ from oauth2_provider.settings import oauth2_settings
 
 # Load .env file from project root
 project_root = pathlib.Path(__file__).parent.parent.parent
-env_path = project_root / '.env'
+env_path = project_root / ".env"
 load_dotenv(dotenv_path=env_path)
 
-CLIENT_ID = os.getenv('CLIENT_ID')
-CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-BASE_URL = os.getenv('BASE_URL')
-CODE = os.getenv('CODE')
-CODE_VERIFIER = os.getenv('CODE_VERIFIER')
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+BASE_URL = os.getenv("BASE_URL")
+CODE = os.getenv("CODE")
+CODE_VERIFIER = os.getenv("CODE_VERIFIER")
 TOKEN_URL = f"{BASE_URL}/o/token/" if BASE_URL else None
-REDIRECT_URI = os.getenv('REDIRECT_URI')
+REDIRECT_URI = os.getenv("REDIRECT_URI")
 
 # Validate required environment variables
 required_env_vars = {
-    'OAUTH_CLIENT_ID': CLIENT_ID,
-    'OAUTH_CLIENT_SECRET': CLIENT_SECRET,
-    'TEST_BASE_URL': BASE_URL,
-    'OAUTH_TEST_CODE': CODE,
-    'OAUTH_CODE_VERIFIER': CODE_VERIFIER,
-    'OAUTH_REDIRECT_URI': REDIRECT_URI,
+    "OAUTH_CLIENT_ID": CLIENT_ID,
+    "OAUTH_CLIENT_SECRET": CLIENT_SECRET,
+    "TEST_BASE_URL": BASE_URL,
+    "OAUTH_TEST_CODE": CODE,
+    "OAUTH_CODE_VERIFIER": CODE_VERIFIER,
+    "OAUTH_REDIRECT_URI": REDIRECT_URI,
 }
 
 missing_vars = [var for var, value in required_env_vars.items() if not value]
@@ -62,9 +65,7 @@ class BaseTest(TestCase):
             email="oauth_test@example.com",
             password="123456",
         )
-        self.resource_type = ProjectType.objects.create(
-            id=195539, name='TestType'
-        )
+        self.resource_type = ProjectType.objects.create(id=195539, name="TestType")
         self.application = Application.objects.create(
             name="Test Application",
             redirect_uris="http://localhost http://example.com http://example.org",
@@ -76,13 +77,13 @@ class BaseTest(TestCase):
         self.oauth2_settings = oauth2_settings
         self.core_project = CoreProject.objects.create()
         self.project = PublishedProject.objects.create(
-            slug='test-project',
-            version='1.0.0',
-            title='Test Project',
-            abstract='Test abstract',
+            slug="test-project",
+            version="1.0.0",
+            title="Test Project",
+            abstract="Test abstract",
             access_policy=AccessPolicy.CREDENTIALED,
             resource_type=self.resource_type,
-            core_project=self.core_project
+            core_project=self.core_project,
         )
 
     def _create_authorization_header(self, token):
@@ -95,12 +96,15 @@ class BaseTest(TestCase):
         data = {
             "slug": "test-collection",
             "name": "Test Annotation Collection",
-            "description": "Base test collection"
+            "description": "Base test collection",
         }
 
-        response = self.client.post(f"{BASE_URL}/api/annotations/collection/create/",
-                                    data=data, format='json',
-                                    HTTP_AUTHORIZATION=self.auth_header)
+        response = self.client.post(
+            f"{BASE_URL}/api/annotations/collection/create/",
+            data=data,
+            format="json",
+            HTTP_AUTHORIZATION=self.auth_header,
+        )
         return response
 
     def _create_annotation_type(self):
@@ -115,27 +119,30 @@ class BaseTest(TestCase):
                 "type": "object",
                 "properties": {
                     "label": {"type": "string"},
-                    "confidence": {
-                        "type": "number",
-                        "minimum": 0.0,
-                        "maximum": 1.0},
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
                 },
                 "required": ["label"],
             },
-            "allowed_location_type": "text_span"
+            "allowed_location_type": "text_span",
         }
-        request = self.client.post(f"{BASE_URL}/api/annotations/type/create/",
-                                   data=data, format='json',
-                                   HTTP_AUTHORIZATION=self.auth_header)
+        request = self.client.post(
+            f"{BASE_URL}/api/annotations/type/create/",
+            data=data,
+            format="json",
+            HTTP_AUTHORIZATION=self.auth_header,
+        )
         return request
 
     def _create_annotation(self, data):
         """
         Helper function to create annotation
         """
-        response = self.client.post(f"{BASE_URL}/api/annotations/collections/{self.collection.slug}/",
-                                    data=data, format='json',
-                                    HTTP_AUTHORIZATION=self.auth_header)
+        response = self.client.post(
+            f"{BASE_URL}/api/annotations/collections/{self.collection.slug}/",
+            data=data,
+            format="json",
+            HTTP_AUTHORIZATION=self.auth_header,
+        )
         return response
 
 
@@ -158,10 +165,10 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation_collection()
         self.assertEqual(response.status_code, 201)
         response = response.json()
-        self.assertEqual(response['slug'], "test-collection")
-        self.assertEqual(response['name'], "Test Annotation Collection")
-        self.assertEqual(response['description'], "Base test collection")
-        self.assertEqual(response['created_by'], self.user.id)
+        self.assertEqual(response["slug"], "test-collection")
+        self.assertEqual(response["name"], "Test Annotation Collection")
+        self.assertEqual(response["description"], "Base test collection")
+        self.assertEqual(response["created_by"], self.user.id)
 
     def test_create_annotation_collection_wrong_scope(self):
         self.access_token = AccessToken.objects.create(
@@ -201,19 +208,19 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation_type()
         self.assertEqual(response.status_code, 201)
         response = response.json()
-        self.assertEqual(response['slug'], "test-annotation-type")
-        self.assertEqual(response['label_schema'], {
-            "type": "object",
-            "properties": {
+        self.assertEqual(response["slug"], "test-annotation-type")
+        self.assertEqual(
+            response["label_schema"],
+            {
+                "type": "object",
+                "properties": {
                     "label": {"type": "string"},
-                    "confidence": {
-                        "type": "number",
-                        "minimum": 0.0,
-                        "maximum": 1.0},
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+                },
+                "required": ["label"],
             },
-            "required": ["label"],
-        })
-        self.assertEqual(response['allowed_location_type'], "text_span")
+        )
+        self.assertEqual(response["allowed_location_type"], "text_span")
 
     def test_create_annotation_text_span_correct_scope(self):
         """
@@ -223,7 +230,7 @@ class AnnotationAPITests(BaseTest):
             slug="test-collection-text-span",
             name="Test Collection Text Span",
             description="Test Description",
-            created_by=self.user
+            created_by=self.user,
         )
         self.annotation_type = AnnotationType.objects.create(
             slug="test-annotation-type-text-span",
@@ -233,9 +240,9 @@ class AnnotationAPITests(BaseTest):
                 "type": "object",
                 "properties": {
                     "label": {"type": "string"},
-                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
                 },
-                "required": ["label"]
+                "required": ["label"],
             },
             allowed_location_type="text_span",
         )
@@ -243,16 +250,13 @@ class AnnotationAPITests(BaseTest):
             "annotation_type": self.annotation_type.slug,
             "project": self.project.slug,
             "file_path": "../test-filepath.txt",
-            "labels": {
-                "label": "Test Label",
-                "confidence": 0.5
-            },
+            "labels": {"label": "Test Label", "confidence": 0.5},
             "location": {
                 "location_type": "text_span",
                 "coord_system": "char_offset",
                 "begin": 100,
-                "end": 200
-            }
+                "end": 200,
+            },
         }
 
         self.access_token = AccessToken.objects.create(
@@ -266,16 +270,13 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation(data=text_span_annotation_data)
         self.assertEqual(response.status_code, 201)
         response = response.json()
-        self.assertEqual(response['file_path'], "../test-filepath.txt")
-        self.assertEqual(response['labels'], {
-            "label": "Test Label",
-            "confidence": 0.5
-        })
+        self.assertEqual(response["file_path"], "../test-filepath.txt")
+        self.assertEqual(response["labels"], {"label": "Test Label", "confidence": 0.5})
         # Testing text span setting
-        self.assertEqual(response['location']['location_type'], "text_span")
-        self.assertEqual(response['location']['coord_system'], "char_offset")
-        self.assertEqual(response['location']['begin'], 100)
-        self.assertEqual(response['location']['end'], 200)
+        self.assertEqual(response["location"]["location_type"], "text_span")
+        self.assertEqual(response["location"]["coord_system"], "char_offset")
+        self.assertEqual(response["location"]["begin"], 100)
+        self.assertEqual(response["location"]["end"], 200)
 
     def test_create_annotation_image_bbox(self):
         """
@@ -285,7 +286,7 @@ class AnnotationAPITests(BaseTest):
             slug="test-collection-bbox",
             name="Test Collection BBox",
             description="Test Description",
-            created_by=self.user
+            created_by=self.user,
         )
         self.annotation_type = AnnotationType.objects.create(
             slug="test-annotation-type-bbox",
@@ -295,9 +296,9 @@ class AnnotationAPITests(BaseTest):
                 "type": "object",
                 "properties": {
                     "label": {"type": "string"},
-                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
                 },
-                "required": ["label"]
+                "required": ["label"],
             },
             allowed_location_type="image_bbox",
         )
@@ -305,18 +306,15 @@ class AnnotationAPITests(BaseTest):
             "annotation_type": self.annotation_type.slug,
             "project": self.project.slug,
             "file_path": "../test-image.png",
-            "labels": {
-                "label": "Test Label",
-                "confidence": 0.8
-            },
+            "labels": {"label": "Test Label", "confidence": 0.8},
             "location": {
                 "location_type": "image_bbox",
                 "coord_system": "pixels",
                 "x": 50,
                 "y": 100,
                 "width": 200,
-                "height": 150
-            }
+                "height": 150,
+            },
         }
         self.access_token = AccessToken.objects.create(
             user=self.user,
@@ -329,18 +327,15 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation(data=image_bbox_annotation_data)
         self.assertEqual(response.status_code, 201)
         response = response.json()
-        self.assertEqual(response['file_path'], "../test-image.png")
-        self.assertEqual(response['labels'], {
-            "label": "Test Label",
-            "confidence": 0.8
-        })
+        self.assertEqual(response["file_path"], "../test-image.png")
+        self.assertEqual(response["labels"], {"label": "Test Label", "confidence": 0.8})
         # Testing image bbox setting
-        self.assertEqual(response['location']['location_type'], "image_bbox")
-        self.assertEqual(response['location']['coord_system'], "pixels")
-        self.assertEqual(response['location']['x'], 50)
-        self.assertEqual(response['location']['y'], 100)
-        self.assertEqual(response['location']['width'], 200)
-        self.assertEqual(response['location']['height'], 150)
+        self.assertEqual(response["location"]["location_type"], "image_bbox")
+        self.assertEqual(response["location"]["coord_system"], "pixels")
+        self.assertEqual(response["location"]["x"], 50)
+        self.assertEqual(response["location"]["y"], 100)
+        self.assertEqual(response["location"]["width"], 200)
+        self.assertEqual(response["location"]["height"], 150)
 
     def test_create_annotation_timeseries_interval(self):
         """
@@ -350,7 +345,7 @@ class AnnotationAPITests(BaseTest):
             slug="test-collection-timeseries-interval",
             name="Test Collection Timeseries Interval",
             description="Test Description",
-            created_by=self.user
+            created_by=self.user,
         )
         self.annotation_type = AnnotationType.objects.create(
             slug="test-annotation-type-timeseries-interval",
@@ -360,9 +355,9 @@ class AnnotationAPITests(BaseTest):
                 "type": "object",
                 "properties": {
                     "label": {"type": "string"},
-                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
                 },
-                "required": ["label"]
+                "required": ["label"],
             },
             allowed_location_type="timeseries_interval",
         )
@@ -370,17 +365,14 @@ class AnnotationAPITests(BaseTest):
             "annotation_type": self.annotation_type.slug,
             "project": self.project.slug,
             "file_path": "../test-ecg-record.wfdb",
-            "labels": {
-                "label": "Normal Sinus Rhythm",
-                "confidence": 0.95
-            },
+            "labels": {"label": "Normal Sinus Rhythm", "confidence": 0.95},
             "location": {
                 "location_type": "timeseries_interval",
                 "coord_system": "samples",
                 "channel": "II",
                 "start": 1000,
-                "end": 5000
-            }
+                "end": 5000,
+            },
         }
         self.access_token = AccessToken.objects.create(
             user=self.user,
@@ -393,14 +385,13 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation(data=timeseries_interval_annotation_data)
         self.assertEqual(response.status_code, 201)
         response = response.json()
-        self.assertEqual(response['file_path'], "../test-ecg-record.wfdb")
-        self.assertEqual(response['labels'], {
-            "label": "Normal Sinus Rhythm",
-            "confidence": 0.95
-        })
+        self.assertEqual(response["file_path"], "../test-ecg-record.wfdb")
+        self.assertEqual(
+            response["labels"], {"label": "Normal Sinus Rhythm", "confidence": 0.95}
+        )
         # Testing timeseries interval setting
-        self.assertEqual(response['location']['location_type'], "timeseries_interval")
-        self.assertEqual(response['location']['coord_system'], "samples")
-        self.assertEqual(response['location']['channel'], "II")
-        self.assertEqual(response['location']['start'], 1000)
-        self.assertEqual(response['location']['end'], 5000)
+        self.assertEqual(response["location"]["location_type"], "timeseries_interval")
+        self.assertEqual(response["location"]["coord_system"], "samples")
+        self.assertEqual(response["location"]["channel"], "II")
+        self.assertEqual(response["location"]["start"], 1000)
+        self.assertEqual(response["location"]["end"], 5000)

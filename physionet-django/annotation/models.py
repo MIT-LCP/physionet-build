@@ -10,13 +10,17 @@ class AllowedLocationType(Enum):
     Defines the spatial/temporal/textual coordinate systems that can be used
     to specify where an annotation is positioned within a data file.
     """
-    TIMESERIES_INTERVAL = 'timeseries_interval'
-    IMAGE_BBOX = 'image_bbox'
-    TEXT_SPAN = 'text_span'
+
+    TIMESERIES_INTERVAL = "timeseries_interval"
+    IMAGE_BBOX = "image_bbox"
+    TEXT_SPAN = "text_span"
 
     @classmethod
     def choices(cls):
-        return [(choice.value, choice.value.replace('_', ' ').title()) for choice in cls]
+        return [
+            (choice.value, choice.value.replace("_", " ").title()) for choice in cls
+        ]
+
 
 class AnnotationCollection(models.Model):
     """
@@ -28,13 +32,17 @@ class AnnotationCollection(models.Model):
     - Research project organization (e.g., "Cardiology Study 2024 annotations")
     - Collaborative annotation workflows (e.g., "Expert consensus labels")
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    slug = models.CharField(max_length=100, unique=True, null=True)  # e.g., "ecg_interval_collection"
+    slug = models.CharField(
+        max_length=100, unique=True, null=True
+    )  # e.g., "ecg_interval_collection"
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    created_by = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    created_by = models.ForeignKey("user.User", on_delete=models.CASCADE)
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
+
 
 class AnnotationType(models.Model):
     """
@@ -50,6 +58,7 @@ class AnnotationType(models.Model):
         - TimeseriesIntervalLocation for the "where"
         - Labels with label (string), confidence (0-1), notes (optional)
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     slug = models.CharField(max_length=100, unique=True)  # e.g., "ecg_interval_label"
     name = models.CharField(max_length=120)
@@ -64,7 +73,7 @@ class AnnotationType(models.Model):
         default=AllowedLocationType.TIMESERIES_INTERVAL.value,
     )
     # Schema versioning for evolution and backward compatibility
-    version = models.CharField(max_length=20, default='1.0.0')
+    version = models.CharField(max_length=20, default="1.0.0")
     created_datetime = models.DateTimeField(auto_now_add=True)
 
 
@@ -92,14 +101,17 @@ class BaseLocation(models.Model):
     component that, combined with the annotation's labels (the "what"),
     forms a complete annotation.
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     location_type = models.CharField(
         max_length=40,
         choices=AllowedLocationType.choices(),
         default=AllowedLocationType.TIMESERIES_INTERVAL.value,
     )
-    coord_system = models.CharField(max_length=24, blank=True)  # e.g., 'samples','seconds','pixels','char_offset'
-    created_by = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    coord_system = models.CharField(
+        max_length=24, blank=True
+    )  # e.g., 'samples','seconds','pixels','char_offset'
+    created_by = models.ForeignKey("user.User", on_delete=models.CASCADE)
     created_datetime = models.DateTimeField(auto_now_add=True)
 
 
@@ -121,6 +133,7 @@ class TimeseriesIntervalLocation(BaseLocation):
     - 'milliseconds': High-precision timing
     - Custom units as needed by specific datasets
     """
+
     channel = models.CharField(max_length=32, blank=True)
     start = models.BigIntegerField()
     end = models.BigIntegerField()
@@ -128,7 +141,7 @@ class TimeseriesIntervalLocation(BaseLocation):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.coord_system:
-            self.coord_system = 'samples'
+            self.coord_system = "samples"
 
 
 class ImageBBoxLocation(BaseLocation):
@@ -148,6 +161,7 @@ class ImageBBoxLocation(BaseLocation):
     - 'relative': Normalized coordinates (0.0-1.0 range)
     - 'mm': Physical measurements for calibrated medical images
     """
+
     x = models.IntegerField()
     y = models.IntegerField()
     width = models.IntegerField()
@@ -156,7 +170,7 @@ class ImageBBoxLocation(BaseLocation):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.coord_system:
-            self.coord_system = 'pixels'
+            self.coord_system = "pixels"
 
 
 class TextSpanLocation(BaseLocation):
@@ -176,14 +190,15 @@ class TextSpanLocation(BaseLocation):
     - 'byte_offset': Raw byte positions for specific encodings
     - 'token_offset': Word/token-based positions
     """
+
     begin = models.IntegerField()
     end = models.IntegerField()
-    encoding = models.CharField(max_length=16, default='utf-8')
+    encoding = models.CharField(max_length=16, default="utf-8")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.coord_system:
-            self.coord_system = 'char_offset'
+            self.coord_system = "char_offset"
 
 
 class Annotation(models.Model):
@@ -205,26 +220,32 @@ class Annotation(models.Model):
         - location: TimeseriesIntervalLocation(start=1000, end=2000, channel="II")
         - labels: {"rhythm": "atrial_fibrillation", "confidence": 0.95}
     """
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    collection = models.ForeignKey(AnnotationCollection, on_delete=models.CASCADE, related_name='collection_slug')
-    annotation_type = models.ForeignKey(AnnotationType, on_delete=models.PROTECT, related_name='annotation_type_slug')
+    collection = models.ForeignKey(
+        AnnotationCollection, on_delete=models.CASCADE, related_name="collection_slug"
+    )
+    annotation_type = models.ForeignKey(
+        AnnotationType, on_delete=models.PROTECT, related_name="annotation_type_slug"
+    )
 
     # Anchor to the file
     project = models.ForeignKey(
-        'project.PublishedProject',
+        "project.PublishedProject",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name='project_slug')
+        related_name="project_slug",
+    )
     file_path = models.CharField(max_length=500)
 
     # Labels: validated by AnnotationType.label_schema
     labels = models.JSONField(default=dict, blank=True)
 
     location = models.OneToOneField(
-        BaseLocation, on_delete=models.CASCADE, related_name='location'
+        BaseLocation, on_delete=models.CASCADE, related_name="location"
     )
-    created_by = models.ForeignKey('user.User', on_delete=models.CASCADE)
+    created_by = models.ForeignKey("user.User", on_delete=models.CASCADE)
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
