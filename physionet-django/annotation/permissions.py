@@ -1,4 +1,3 @@
-# permissions.py
 from oauth2_provider.contrib.rest_framework import TokenHasScope
 from rest_framework.permissions import DjangoModelPermissions, SAFE_METHODS
 
