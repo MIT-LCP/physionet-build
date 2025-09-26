@@ -10,25 +10,27 @@ from project.models import PublishedProject
 from oauth2_provider.views.generic import ProtectedResourceView, ScopedProtectedResourceView
 import uuid
 
+
 class AnnotationCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnnotationCollection
         fields = [
             'id',
             'slug',
-            'name', 
+            'name',
             'description',
             'created_by',
             'created_datetime',
             'updated_datetime',
         ]
         read_only_fields = ['created_by', 'created_datetime', 'updated_datetime']
-    
+
     def create(self, validated_data):
         request = self.context.get('request')
         if request and request.user and request.user.is_authenticated:
             validated_data['created_by'] = request.user
         return super().create(validated_data)
+
 
 class AnnotationTypeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -45,25 +47,30 @@ class AnnotationTypeSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['created_datetime']
 
+
 class BaseLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = BaseLocation
         fields = '__all__'
+
 
 class TimeseriesIntervalLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = TimeseriesIntervalLocation
         fields = '__all__'
 
+
 class ImageBBoxLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImageBBoxLocation
         fields = '__all__'
 
+
 class TextSpanLocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextSpanLocation
         fields = '__all__'
+
 
 class AnnotationSerializer(serializers.ModelSerializer):
     annotation_type = serializers.SlugRelatedField(
@@ -82,7 +89,7 @@ class AnnotationSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'collection',
-            'annotation_type', 
+            'annotation_type',
             'project',
             'file_path',
             'labels',
@@ -92,21 +99,21 @@ class AnnotationSerializer(serializers.ModelSerializer):
             'updated_datetime',
         ]
         read_only_fields = ['created_by', 'created_datetime', 'updated_datetime']
-    
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if instance.location:
             # Use the appropriate serializer based on location type
             if instance.location.location_type == 'text_span':  # TextSpanLocation
                 data['location'] = TextSpanLocationSerializer(instance.location).data
-            elif instance.location.location_type == 'timeseries_interval':  # TimeseriesIntervalLocation  
+            elif instance.location.location_type == 'timeseries_interval':  # TimeseriesIntervalLocation
                 data['location'] = TimeseriesIntervalLocationSerializer(instance.location).data
             elif instance.location.location_type == 'image_bbox':  # ImageBBoxLocation
                 data['location'] = ImageBBoxLocationSerializer(instance.location).data
             else:
                 raise serializers.ValidationError(f"Unknown location_type: {instance.location.location_type}")
         return data
-    
+
     def create(self, validated_data):
         # Map the slug fields to the actual model fields
         if 'collection' in validated_data:
@@ -133,14 +140,14 @@ class AnnotationSerializer(serializers.ModelSerializer):
             elif location_data['location_type'] == AllowedLocationType.TEXT_SPAN.value:
                 location_obj = TextSpanLocation.objects.create(**location_data)
                 # print("Location: ", location_obj)
-            
+
             validated_data['location'] = location_obj
             # print("Validated Data after location: ", validated_data)
-            
+
         if request and request.user and request.user.is_authenticated:
             validated_data['created_by'] = request.user
         return super().create(validated_data)
-    
+
     def validate(self, data):
         annotation_type = self.initial_data.get('annotation_type')
         labels = self.initial_data.get('labels')
@@ -155,4 +162,3 @@ class AnnotationSerializer(serializers.ModelSerializer):
             except jsonschema.exceptions.ValidationError as e:
                 raise serializers.ValidationError(e.message) from e
         return data
-

@@ -52,6 +52,7 @@ AccessToken = get_access_token_model()
 
 CLEARTEXT_SECRET = "1234567890abcdefghijklmnopqrstuvwxyz"
 
+
 class BaseTest(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -92,17 +93,16 @@ class BaseTest(TestCase):
         Helper function to create annotation collection
         """
         data = {
-                "slug": "test-collection",
-                "name": "Test Annotation Collection",
-                "description": "Base test collection"
+            "slug": "test-collection",
+            "name": "Test Annotation Collection",
+            "description": "Base test collection"
         }
-            
-        response = self.client.post(f"{BASE_URL}/api/annotations/collection/create/", 
+
+        response = self.client.post(f"{BASE_URL}/api/annotations/collection/create/",
                                     data=data, format='json',
                                     HTTP_AUTHORIZATION=self.auth_header)
         return response
 
-        
     def _create_annotation_type(self):
         """
         Helper function to create annotation type
@@ -116,7 +116,7 @@ class BaseTest(TestCase):
                 "properties": {
                     "label": {"type": "string"},
                     "confidence": {
-                        "type": "number", 
+                        "type": "number",
                         "minimum": 0.0,
                         "maximum": 1.0},
                 },
@@ -124,19 +124,20 @@ class BaseTest(TestCase):
             },
             "allowed_location_type": "text_span"
         }
-        request = self.client.post(f"{BASE_URL}/api/annotations/type/create/", 
-                                    data=data, format='json',
-                                    HTTP_AUTHORIZATION=self.auth_header)
+        request = self.client.post(f"{BASE_URL}/api/annotations/type/create/",
+                                   data=data, format='json',
+                                   HTTP_AUTHORIZATION=self.auth_header)
         return request
-    
+
     def _create_annotation(self, data):
         """
         Helper function to create annotation
         """
-        response = self.client.post(f"{BASE_URL}/api/annotations/collections/{self.collection.slug}/", 
-                                    data=data, format='json', 
+        response = self.client.post(f"{BASE_URL}/api/annotations/collections/{self.collection.slug}/",
+                                    data=data, format='json',
                                     HTTP_AUTHORIZATION=self.auth_header)
         return response
+
 
 class AnnotationAPITests(BaseTest):
     """
@@ -161,7 +162,7 @@ class AnnotationAPITests(BaseTest):
         self.assertEqual(response['name'], "Test Annotation Collection")
         self.assertEqual(response['description'], "Base test collection")
         self.assertEqual(response['created_by'], self.user.id)
-    
+
     def test_create_annotation_collection_wrong_scope(self):
         self.access_token = AccessToken.objects.create(
             user=self.user,
@@ -174,7 +175,7 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation_collection()
         self.assertEqual(response.status_code, 403)
         response = response.json()
-    
+
     def test_create_annotation_collection_no_scope(self):
         self.access_token = AccessToken.objects.create(
             user=self.user,
@@ -187,7 +188,7 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation_collection()
         self.assertEqual(response.status_code, 403)
         response = response.json()
-    
+
     def test_create_annotation_type_correct_scope(self):
         self.access_token = AccessToken.objects.create(
             user=self.user,
@@ -202,19 +203,18 @@ class AnnotationAPITests(BaseTest):
         response = response.json()
         self.assertEqual(response['slug'], "test-annotation-type")
         self.assertEqual(response['label_schema'], {
-                "type": "object",
-                "properties": {
+            "type": "object",
+            "properties": {
                     "label": {"type": "string"},
                     "confidence": {
-                        "type": "number", 
+                        "type": "number",
                         "minimum": 0.0,
                         "maximum": 1.0},
-                },
-                "required": ["label"],
-            })
+            },
+            "required": ["label"],
+        })
         self.assertEqual(response['allowed_location_type'], "text_span")
-    
-    
+
     def test_create_annotation_text_span_correct_scope(self):
         """
         Test create annotation with text span location
@@ -254,7 +254,7 @@ class AnnotationAPITests(BaseTest):
                 "end": 200
             }
         }
-        
+
         self.access_token = AccessToken.objects.create(
             user=self.user,
             scope="annotations:edit",
@@ -268,10 +268,10 @@ class AnnotationAPITests(BaseTest):
         response = response.json()
         self.assertEqual(response['file_path'], "../test-filepath.txt")
         self.assertEqual(response['labels'], {
-            "label": "Test Label", 
+            "label": "Test Label",
             "confidence": 0.5
         })
-        ## Testing text span setting
+        # Testing text span setting
         self.assertEqual(response['location']['location_type'], "text_span")
         self.assertEqual(response['location']['coord_system'], "char_offset")
         self.assertEqual(response['location']['begin'], 100)
@@ -331,10 +331,10 @@ class AnnotationAPITests(BaseTest):
         response = response.json()
         self.assertEqual(response['file_path'], "../test-image.png")
         self.assertEqual(response['labels'], {
-            "label": "Test Label", 
+            "label": "Test Label",
             "confidence": 0.8
         })
-        ## Testing image bbox setting
+        # Testing image bbox setting
         self.assertEqual(response['location']['location_type'], "image_bbox")
         self.assertEqual(response['location']['coord_system'], "pixels")
         self.assertEqual(response['location']['x'], 50)
@@ -342,7 +342,6 @@ class AnnotationAPITests(BaseTest):
         self.assertEqual(response['location']['width'], 200)
         self.assertEqual(response['location']['height'], 150)
 
-    
     def test_create_annotation_timeseries_interval(self):
         """
         Test create annotation with timeseries interval location
@@ -396,10 +395,10 @@ class AnnotationAPITests(BaseTest):
         response = response.json()
         self.assertEqual(response['file_path'], "../test-ecg-record.wfdb")
         self.assertEqual(response['labels'], {
-            "label": "Normal Sinus Rhythm", 
+            "label": "Normal Sinus Rhythm",
             "confidence": 0.95
         })
-        ## Testing timeseries interval setting
+        # Testing timeseries interval setting
         self.assertEqual(response['location']['location_type'], "timeseries_interval")
         self.assertEqual(response['location']['coord_system'], "samples")
         self.assertEqual(response['location']['channel'], "II")

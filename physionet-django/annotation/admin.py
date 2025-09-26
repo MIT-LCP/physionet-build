@@ -17,6 +17,7 @@ class AnnotationAdmin(admin.ModelAdmin):
     search_fields = ('file_path', 'collection__name', 'labels')
     readonly_fields = ('created_datetime', 'updated_datetime')
 
+
 @admin.register(AnnotationType)
 class AnnotationTypeAdmin(admin.ModelAdmin):
     list_display = ('slug', 'name', 'allowed_location_type', 'version', 'created_datetime')

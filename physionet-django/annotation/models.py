@@ -36,18 +36,6 @@ class AnnotationCollection(models.Model):
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        permissions = [
-            (
-                "can_publish",
-                "Can publish annotation collections",
-            ),
-            (
-                "can_view",
-                "Can view annotation collections",
-            ),
-        ]
-
 class AnnotationType(models.Model):
     """
     Schema definition and validation contract for a specific annotation type.
