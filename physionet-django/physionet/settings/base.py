@@ -91,7 +91,7 @@ INSTALLED_APPS = [
     'django_sass',
     'events',
     'oauth',
-    'annotation'
+    'annotation',
 ]
 
 if ENABLE_SSO:
@@ -99,6 +99,8 @@ if ENABLE_SSO:
 
 if ENABLE_LIGHTWAVE:
     INSTALLED_APPS += ['lightwave']
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -175,7 +177,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend']
+AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend', 'oauth2_provider.backends.OAuth2Backend']
 if ORCID_LOGIN_ENABLED:
     AUTHENTICATION_BACKENDS.append('user.backends.OrcidAuthBackend')
 
@@ -803,6 +805,8 @@ OAUTH2_PROVIDER = {
         "orcid:read": "Read access to user's ORCID iD",
         "public_id:read": "Read access to the user's persistent public ID",
         "data:download": "Download project data if token-holder is approved for access (training, DUA, etc).",
+        "annotations:view": "Read Annotation resources",
+        "annotations:edit": "Create/Update/Delete Annotation resources",
     }
 }
 

@@ -18,7 +18,6 @@ class AllowedLocationType(Enum):
     def choices(cls):
         return [(choice.value, choice.value.replace('_', ' ').title()) for choice in cls]
 
-
 class AnnotationCollection(models.Model):
     """
     A collection of related annotations across one or more datasets.
@@ -36,7 +35,6 @@ class AnnotationCollection(models.Model):
     created_by = models.ForeignKey('user.User', on_delete=models.CASCADE)
     created_datetime = models.DateTimeField(auto_now_add=True)
     updated_datetime = models.DateTimeField(auto_now=True)
-
 
 class AnnotationType(models.Model):
     """
