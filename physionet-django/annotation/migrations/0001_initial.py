@@ -7,94 +7,225 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('project', '0085_activeproject_georestricted_and_more'),
+        ("project", "0085_activeproject_georestricted_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AnnotationType',
+            name="AnnotationType",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('slug', models.CharField(max_length=100, unique=True)),
-                ('name', models.CharField(max_length=120)),
-                ('description', models.TextField(blank=True)),
-                ('label_schema', models.JSONField()),
-                ('allowed_location_type', models.CharField(choices=[('timeseries_interval', 'Timeseries Interval'), ('image_bbox', 'Image Bbox'), ('text_span', 'Text Span')], default='timeseries_interval', max_length=40)),
-                ('version', models.CharField(default='1.0.0', max_length=20)),
-                ('created_datetime', models.DateTimeField(auto_now_add=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("slug", models.CharField(max_length=100, unique=True)),
+                ("name", models.CharField(max_length=120)),
+                ("description", models.TextField(blank=True)),
+                ("label_schema", models.JSONField()),
+                (
+                    "allowed_location_type",
+                    models.CharField(
+                        choices=[
+                            ("timeseries_interval", "Timeseries Interval"),
+                            ("image_bbox", "Image Bbox"),
+                            ("text_span", "Text Span"),
+                        ],
+                        default="timeseries_interval",
+                        max_length=40,
+                    ),
+                ),
+                ("version", models.CharField(default="1.0.0", max_length=20)),
+                ("created_datetime", models.DateTimeField(auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
-            name='BaseLocation',
+            name="BaseLocation",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('location_type', models.CharField(choices=[('timeseries_interval', 'Timeseries Interval'), ('image_bbox', 'Image Bbox'), ('text_span', 'Text Span')], default='timeseries_interval', max_length=40)),
-                ('coord_system', models.CharField(blank=True, max_length=24)),
-                ('created_datetime', models.DateTimeField(auto_now_add=True)),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                (
+                    "location_type",
+                    models.CharField(
+                        choices=[
+                            ("timeseries_interval", "Timeseries Interval"),
+                            ("image_bbox", "Image Bbox"),
+                            ("text_span", "Text Span"),
+                        ],
+                        default="timeseries_interval",
+                        max_length=40,
+                    ),
+                ),
+                ("coord_system", models.CharField(blank=True, max_length=24)),
+                ("created_datetime", models.DateTimeField(auto_now_add=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='ImageBBoxLocation',
+            name="ImageBBoxLocation",
             fields=[
-                ('baselocation_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='annotation.baselocation')),
-                ('x', models.IntegerField()),
-                ('y', models.IntegerField()),
-                ('width', models.IntegerField()),
-                ('height', models.IntegerField()),
+                (
+                    "baselocation_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="annotation.baselocation",
+                    ),
+                ),
+                ("x", models.IntegerField()),
+                ("y", models.IntegerField()),
+                ("width", models.IntegerField()),
+                ("height", models.IntegerField()),
             ],
-            bases=('annotation.baselocation',),
+            bases=("annotation.baselocation",),
         ),
         migrations.CreateModel(
-            name='TextSpanLocation',
+            name="TextSpanLocation",
             fields=[
-                ('baselocation_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='annotation.baselocation')),
-                ('begin', models.IntegerField()),
-                ('end', models.IntegerField()),
-                ('encoding', models.CharField(default='utf-8', max_length=16)),
+                (
+                    "baselocation_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="annotation.baselocation",
+                    ),
+                ),
+                ("begin", models.IntegerField()),
+                ("end", models.IntegerField()),
+                ("encoding", models.CharField(default="utf-8", max_length=16)),
             ],
-            bases=('annotation.baselocation',),
+            bases=("annotation.baselocation",),
         ),
         migrations.CreateModel(
-            name='TimeseriesIntervalLocation',
+            name="TimeseriesIntervalLocation",
             fields=[
-                ('baselocation_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='annotation.baselocation')),
-                ('channel', models.CharField(blank=True, max_length=32)),
-                ('start', models.BigIntegerField()),
-                ('end', models.BigIntegerField()),
+                (
+                    "baselocation_ptr",
+                    models.OneToOneField(
+                        auto_created=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        parent_link=True,
+                        primary_key=True,
+                        serialize=False,
+                        to="annotation.baselocation",
+                    ),
+                ),
+                ("channel", models.CharField(blank=True, max_length=32)),
+                ("start", models.BigIntegerField()),
+                ("end", models.BigIntegerField()),
             ],
-            bases=('annotation.baselocation',),
+            bases=("annotation.baselocation",),
         ),
         migrations.CreateModel(
-            name='AnnotationCollection',
+            name="AnnotationCollection",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('slug', models.CharField(max_length=100, null=True, unique=True)),
-                ('name', models.CharField(max_length=200)),
-                ('description', models.TextField(blank=True)),
-                ('created_datetime', models.DateTimeField(auto_now_add=True)),
-                ('updated_datetime', models.DateTimeField(auto_now=True)),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("slug", models.CharField(max_length=100, null=True, unique=True)),
+                ("name", models.CharField(max_length=200)),
+                ("description", models.TextField(blank=True)),
+                ("created_datetime", models.DateTimeField(auto_now_add=True)),
+                ("updated_datetime", models.DateTimeField(auto_now=True)),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Annotation',
+            name="Annotation",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('file_path', models.CharField(max_length=500)),
-                ('labels', models.JSONField(blank=True, default=dict)),
-                ('created_datetime', models.DateTimeField(auto_now_add=True)),
-                ('updated_datetime', models.DateTimeField(auto_now=True)),
-                ('annotation_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='annotation_type_slug', to='annotation.annotationtype')),
-                ('collection', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='collection_slug', to='annotation.annotationcollection')),
-                ('created_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
-                ('location', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='location', to='annotation.baselocation')),
-                ('project', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='project_slug', to='project.publishedproject')),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("file_path", models.CharField(max_length=500)),
+                ("labels", models.JSONField(blank=True, default=dict)),
+                ("created_datetime", models.DateTimeField(auto_now_add=True)),
+                ("updated_datetime", models.DateTimeField(auto_now=True)),
+                (
+                    "annotation_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="annotation_type_slug",
+                        to="annotation.annotationtype",
+                    ),
+                ),
+                (
+                    "collection",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="collection_slug",
+                        to="annotation.annotationcollection",
+                    ),
+                ),
+                (
+                    "created_by",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "location",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="location",
+                        to="annotation.baselocation",
+                    ),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="project_slug",
+                        to="project.publishedproject",
+                    ),
+                ),
             ],
         ),
     ]
