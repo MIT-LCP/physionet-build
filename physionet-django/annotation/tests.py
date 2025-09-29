@@ -65,7 +65,7 @@ class BaseTest(TestCase):
             email="oauth_test@example.com",
             password="123456",
         )
-        self.resource_type = ProjectType.objects.create(id=1, name="TestType")
+        self.resource_type = ProjectType.objects.create(id="32707", name="TestType")
         self.application = Application.objects.create(
             name="Test Application",
             redirect_uris="http://localhost http://example.com http://example.org",
