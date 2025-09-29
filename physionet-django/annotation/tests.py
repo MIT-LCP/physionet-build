@@ -26,7 +26,6 @@ env_path = project_root / ".env"
 load_dotenv(dotenv_path=env_path)
 
 CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 BASE_URL = os.getenv("BASE_URL")
 CODE = os.getenv("CODE")
 CODE_VERIFIER = os.getenv("CODE_VERIFIER")
@@ -36,7 +35,6 @@ REDIRECT_URI = os.getenv("REDIRECT_URI")
 # Validate required environment variables
 required_env_vars = {
     "OAUTH_CLIENT_ID": CLIENT_ID,
-    "OAUTH_CLIENT_SECRET": CLIENT_SECRET,
     "TEST_BASE_URL": BASE_URL,
     "OAUTH_TEST_CODE": CODE,
     "OAUTH_CODE_VERIFIER": CODE_VERIFIER,
