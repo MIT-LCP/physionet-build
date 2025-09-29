@@ -12,108 +12,114 @@ from physionet.settings.base import StorageTypes
 from oauth2_provider import urls as oauth2_urls
 
 
-handler403 = 'physionet.views.error_403'
-handler404 = 'physionet.views.error_404'
-handler500 = 'physionet.views.error_500'
+handler403 = "physionet.views.error_403"
+handler404 = "physionet.views.error_404"
+handler500 = "physionet.views.error_500"
 
 
 urlpatterns = [
     # django admin app
-    path('admin/', admin.site.urls),
+    path("admin/", admin.site.urls),
     path("o/", include(oauth2_urls)),
     # management console app
-    path('console/', include('console.urls')),
+    path("console/", include("console.urls")),
     # user app
-    path('', include('user.urls')),
+    path("", include("user.urls")),
     # training app
-    path('', include('training.urls')),
+    path("", include("training.urls")),
     # project app
-    path('projects/', include('project.urls')),
+    path("projects/", include("project.urls")),
     # events
-    path('events/', include('events.urls')),
+    path("events/", include("events.urls")),
     # notification app
-    path('', include('notification.urls')),
+    path("", include("notification.urls")),
     # search app
-    path('', include('search.urls')),
+    path("", include("search.urls")),
     # export app
-    path('api/', include('export.urls')),
+    path("api/", include("export.urls")),
     # annotation app
-    path('api/', include('annotation.urls')),
+    path("api/", include("annotation.urls")),
     # oauth app
-    path('oauth/', include('oauth.urls')),
-
-    path('', views.home, name='home'),
-    path('ping/', views.ping),
-
+    path("oauth/", include("oauth.urls")),
+    path("", views.home, name="home"),
+    path("ping/", views.ping),
     # about pages
-    path('about/timeline', views.timeline, name='timeline'),
-    path('about/licenses/<slug:license_slug>/', views.license_content, name='license_content'),
-    path('about/duas/<slug:dua_slug>/', views.dua_content, name='dua_content'),
-    path('about/citi-course/', views.citi_course, name='citi_course'),
-
+    path("about/timeline", views.timeline, name="timeline"),
+    path(
+        "about/licenses/<slug:license_slug>/",
+        views.license_content,
+        name="license_content",
+    ),
+    path("about/duas/<slug:dua_slug>/", views.dua_content, name="dua_content"),
+    path("about/citi-course/", views.citi_course, name="citi_course"),
     # # Custom error pages for testing
     # path('403.html', views.error_403, name='error_403'),
     # path('404.html', views.error_404, name='error_404'),
     # path('500.html', views.error_500, name='error_500'),
-
     # temporary content overview pages
-    path('about/content/', views.content_overview,
-        name='content_overview'),
-    path('about/database/', views.database_overview,
-        name='database_overview'),
-    path('about/software/', views.software_overview,
-        name='software_overview'),
-
+    path("about/content/", views.content_overview, name="content_overview"),
+    path("about/database/", views.database_overview, name="database_overview"),
+    path("about/software/", views.software_overview, name="software_overview"),
     # detailed pages related to the challenges overview
-    path('about/challenge/moody-challenge-overview', views.moody_challenge_overview,
-         name='moody_challenge_overview'),
-    path('about/challenge/moody-challenge', views.moody_challenge,
-         name='moody_challenge'),
-    path('about/challenge/community-challenge', views.community_challenge,
-         name='community_challenge'),
-
+    path(
+        "about/challenge/moody-challenge-overview",
+        views.moody_challenge_overview,
+        name="moody_challenge_overview",
+    ),
+    path(
+        "about/challenge/moody-challenge", views.moody_challenge, name="moody_challenge"
+    ),
+    path(
+        "about/challenge/community-challenge",
+        views.community_challenge,
+        name="community_challenge",
+    ),
     # path for about static pages
-    path('about/', views.static_view, name='static_view'),
-    path('about/<path:static_url>/', views.static_view, name='static_view'),
-
+    path("about/", views.static_view, name="static_view"),
+    path("about/<path:static_url>/", views.static_view, name="static_view"),
     # robots.txt for crawlers
     path(
-        'robots.txt', lambda x: HttpResponse("User-Agent: *\\Allow: /", content_type="text/plain"), name="robots_file"
+        "robots.txt",
+        lambda x: HttpResponse("User-Agent: *\\Allow: /", content_type="text/plain"),
+        name="robots_file",
     ),
-
     # path for the Browsable API Authentication
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
 ]
 
 if settings.ENABLE_LIGHTWAVE:
-    urlpatterns.append(path('lightwave/', include('lightwave.urls')))
+    urlpatterns.append(path("lightwave/", include("lightwave.urls")))
     # backward compatibility for LightWAVE
-    urlpatterns.append(path('cgi-bin/lightwave',
-                            lightwave_views.lightwave_server,
-                            name='lightwave_server_compat'))
+    urlpatterns.append(
+        path(
+            "cgi-bin/lightwave",
+            lightwave_views.lightwave_server,
+            name="lightwave_server_compat",
+        )
+    )
 
 if settings.ENABLE_SSO:
-    urlpatterns.append(path('', include('sso.urls')))
+    urlpatterns.append(path("", include("sso.urls")))
 
 if settings.ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
-    urlpatterns.append(path('environments/', include('environment.urls')))
+    urlpatterns.append(path("environments/", include("environment.urls")))
 
 if settings.DEBUG:
     import debug_toolbar
 
     # debug toolbar
-    urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+    urlpatterns.append(path("__debug__/", include(debug_toolbar.urls)))
 
 # Parameters for testing URLs (see physionet/test_urls.py)
 TEST_DEFAULTS = {
-    'dua_slug': 'physionet-credentialed-health-data-dua',
-    'event_slug': 'iLII4L9jSDFh',
-    'license_slug': 'open-data-commons-attribution-license-v10',
-    'static_url': 'publish',
-    'news_slug': 'cloud-migration',
+    "dua_slug": "physionet-credentialed-health-data-dua",
+    "event_slug": "iLII4L9jSDFh",
+    "license_slug": "open-data-commons-attribution-license-v10",
+    "static_url": "publish",
+    "news_slug": "cloud-migration",
 }
 TEST_CASES = {
-    'lightwave_server_compat': {
-        '_skip_': lambda: (shutil.which('sandboxed-lightwave') is None),
+    "lightwave_server_compat": {
+        "_skip_": lambda: (shutil.which("sandboxed-lightwave") is None),
     },
 }

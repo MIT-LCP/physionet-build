@@ -24,105 +24,115 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
-ENVIRONMENT = config('ENVIRONMENT', default='production')
-DEBUG = config('DEBUG', default=False, cast=bool)
-SECRET_KEY = config('SECRET_KEY')
-ENABLE_SSO = config('ENABLE_SSO', default=False, cast=bool)
-ENABLE_LIGHTWAVE = config('ENABLE_LIGHTWAVE', default=True, cast=bool)
-SSO_REMOTE_USER_HEADER = config('SSO_REMOTE_USER_HEADER', default='HTTP_REMOTE_USER')
-SSO_LOGIN_BUTTON_TEXT = config('SSO_LOGIN_BUTTON_TEXT', default='Login')
-PRIVACY_POLICY_HTML = config('PRIVACY_POLICY_HTML', default=None)
-GCS_SIGNED_URL_LIFETIME_IN_MINUTES = config('GCS_SIGNED_URL_LIFETIME_IN_MINUTES', default=1440, cast=int)
+ENVIRONMENT = config("ENVIRONMENT", default="production")
+DEBUG = config("DEBUG", default=False, cast=bool)
+SECRET_KEY = config("SECRET_KEY")
+ENABLE_SSO = config("ENABLE_SSO", default=False, cast=bool)
+ENABLE_LIGHTWAVE = config("ENABLE_LIGHTWAVE", default=True, cast=bool)
+SSO_REMOTE_USER_HEADER = config("SSO_REMOTE_USER_HEADER", default="HTTP_REMOTE_USER")
+SSO_LOGIN_BUTTON_TEXT = config("SSO_LOGIN_BUTTON_TEXT", default="Login")
+PRIVACY_POLICY_HTML = config("PRIVACY_POLICY_HTML", default=None)
+GCS_SIGNED_URL_LIFETIME_IN_MINUTES = config(
+    "GCS_SIGNED_URL_LIFETIME_IN_MINUTES", default=1440, cast=int
+)
 
 
 # Tags for the ORCID API
-ORCID_DOMAIN = config('ORCID_DOMAIN', default='https://sandbox.orcid.org')
-ORCID_REDIRECT_URI = config('ORCID_REDIRECT_URI', default='http://127.0.0.1:8000/authorcid')
-ORCID_LOGIN_REDIRECT_URI = config('ORCID_LOGIN_REDIRECT_URI', default='http://127.0.0.1:8000/authorcid_login')
-ORCID_AUTH_URL = config('ORCID_AUTH_URL', default='https://sandbox.orcid.org/oauth/authorize')
-ORCID_TOKEN_URL = config('ORCID_TOKEN_URL', default='https://sandbox.orcid.org/oauth/token')
-ORCID_CLIENT_ID = config('ORCID_CLIENT_ID', default=False)
-ORCID_CLIENT_SECRET = config('ORCID_CLIENT_SECRET', default=False)
-ORCID_SCOPE = config('ORCID_SCOPE', default=False)
-ORCID_LOGIN_ENABLED = config('ORCID_LOGIN_ENABLED', default=False, cast=bool)
-ORCID_OPEN_ID_JWKS_URL = config('ORCID_OPEN_ID_JWKS_URL', default="https://sandbox.orcid.org/oauth/jwks")
-ORCID_LOGIN_BUTTON_TEXT = config('ORCID_LOGIN_BUTTON_TEXT', default="Log in using ORCID iD")
+ORCID_DOMAIN = config("ORCID_DOMAIN", default="https://sandbox.orcid.org")
+ORCID_REDIRECT_URI = config(
+    "ORCID_REDIRECT_URI", default="http://127.0.0.1:8000/authorcid"
+)
+ORCID_LOGIN_REDIRECT_URI = config(
+    "ORCID_LOGIN_REDIRECT_URI", default="http://127.0.0.1:8000/authorcid_login"
+)
+ORCID_AUTH_URL = config(
+    "ORCID_AUTH_URL", default="https://sandbox.orcid.org/oauth/authorize"
+)
+ORCID_TOKEN_URL = config(
+    "ORCID_TOKEN_URL", default="https://sandbox.orcid.org/oauth/token"
+)
+ORCID_CLIENT_ID = config("ORCID_CLIENT_ID", default=False)
+ORCID_CLIENT_SECRET = config("ORCID_CLIENT_SECRET", default=False)
+ORCID_SCOPE = config("ORCID_SCOPE", default=False)
+ORCID_LOGIN_ENABLED = config("ORCID_LOGIN_ENABLED", default=False, cast=bool)
+ORCID_OPEN_ID_JWKS_URL = config(
+    "ORCID_OPEN_ID_JWKS_URL", default="https://sandbox.orcid.org/oauth/jwks"
+)
+ORCID_LOGIN_BUTTON_TEXT = config(
+    "ORCID_LOGIN_BUTTON_TEXT", default="Log in using ORCID iD"
+)
 
 # Geographic restrictions
 # BLOCKED_REGIONS: Comma-separated list of region codes to block access from
 # Example: BLOCKED_REGIONS=localhost,RU,CN,IR,NK
-BLOCKED_REGIONS_STR = config('BLOCKED_REGIONS', default='')
+BLOCKED_REGIONS_STR = config("BLOCKED_REGIONS", default="")
 BLOCKED_REGIONS = set(
-    region.strip()
-    for region in BLOCKED_REGIONS_STR.split(',')
-    if region.strip()
+    region.strip() for region in BLOCKED_REGIONS_STR.split(",") if region.strip()
 )
 
 # Installed apps
 INSTALLED_APPS = [
-    'dal',
-    'dal_select2',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'django.contrib.redirects',
-
-    'tinymce',
+    "dal",
+    "dal_select2",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "django.contrib.redirects",
+    "tinymce",
     # 'django_cron',
-    'django_q',
-    'background_task',
-    'rest_framework',
-    'oauth2_provider',
-    'corsheaders',
-    'mathjax',
-
-    'training',
-    'user',
-    'project',
-    'console',
-    'export',
-    'notification',
-    'search',
-    'physionet',
-    'django_sass',
-    'events',
-    'oauth',
-    'annotation',
+    "django_q",
+    "background_task",
+    "rest_framework",
+    "oauth2_provider",
+    "corsheaders",
+    "mathjax",
+    "training",
+    "user",
+    "project",
+    "console",
+    "export",
+    "notification",
+    "search",
+    "physionet",
+    "django_sass",
+    "events",
+    "oauth",
+    "annotation",
 ]
 
 if ENABLE_SSO:
-    INSTALLED_APPS += ['sso']
+    INSTALLED_APPS += ["sso"]
 
 if ENABLE_LIGHTWAVE:
-    INSTALLED_APPS += ['lightwave']
+    INSTALLED_APPS += ["lightwave"]
 
 CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'physionet.middleware.maintenance.SystemMaintenanceMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'oauth2_provider.middleware.OAuth2TokenMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "physionet.middleware.maintenance.SystemMaintenanceMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "oauth2_provider.middleware.OAuth2TokenMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # RedirectFallbackMiddleware should go at end of list, according
     # to the docs: https://docs.djangoproject.com/en/4.1/ref/contrib/redirects/
-    'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
+    "django.contrib.redirects.middleware.RedirectFallbackMiddleware",
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
     ]
 }
 
@@ -131,32 +141,32 @@ CRON_CLASSES = [
     "physionet.cron.RemoveOutstandingInvites",
 ]
 
-ROOT_URLCONF = 'physionet.urls'
+ROOT_URLCONF = "physionet.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR,'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-                'physionet.context_processors.project_enums',
-                'physionet.context_processors.storage_type',
-                'physionet.context_processors.platform_config',
-                'sso.context_processors.sso_enabled',
-                'physionet.context_processors.cloud_research_environments_config',
-                'physionet.context_processors.homepage_config'
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "physionet.context_processors.project_enums",
+                "physionet.context_processors.storage_type",
+                "physionet.context_processors.platform_config",
+                "sso.context_processors.sso_enabled",
+                "physionet.context_processors.cloud_research_environments_config",
+                "physionet.context_processors.homepage_config",
             ],
-            'debug': DEBUG,
+            "debug": DEBUG,
         },
     },
 ]
 
-WSGI_APPLICATION = 'physionet.wsgi.application'
+WSGI_APPLICATION = "physionet.wsgi.application"
 
 # Session management
 
@@ -164,7 +174,7 @@ SESSION_COOKIE_SECURE = True
 
 # Absolute timeout
 try:
-    SESSION_COOKIE_AGE = config('SESSION_COOKIE_AGE', cast=int)
+    SESSION_COOKIE_AGE = config("SESSION_COOKIE_AGE", cast=int)
 except UndefinedValueError:
     pass
 
@@ -173,31 +183,34 @@ except UndefinedValueError:
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'user.validators.ComplexityValidator',
+        "NAME": "user.validators.ComplexityValidator",
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend', 'oauth2_provider.backends.OAuth2Backend']
+AUTHENTICATION_BACKENDS = [
+    "user.backends.DualAuthModelBackend",
+    "oauth2_provider.backends.OAuth2Backend",
+]
 if ORCID_LOGIN_ENABLED:
-    AUTHENTICATION_BACKENDS.append('user.backends.OrcidAuthBackend')
+    AUTHENTICATION_BACKENDS.append("user.backends.OrcidAuthBackend")
 
 if ENABLE_SSO:
-    AUTHENTICATION_BACKENDS += ['sso.auth.RemoteUserBackend']
+    AUTHENTICATION_BACKENDS += ["sso.auth.RemoteUserBackend"]
 
-AUTH_USER_MODEL = 'user.User'
+AUTH_USER_MODEL = "user.User"
 
-LOGIN_URL = '/login/'
+LOGIN_URL = "/login/"
 
-LOGIN_REDIRECT_URL = '/projects/'
+LOGIN_REDIRECT_URL = "/projects/"
 
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = "/"
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'America/New_York'
+TIME_ZONE = "America/New_York"
 
 USE_I18N = True
 
@@ -211,15 +224,15 @@ USE_TZ = True
 # but it "is not best for a high-traffic setup".
 # https://django-q2.readthedocs.io/en/master/configure.html
 Q_CLUSTER = {
-    'name': 'Django_ORM',
-    'workers': 4,
-    'timeout': 120,
-    'retry': 600,
-    'max_attempts': 5,
-    'queue_limit': 100,
-    'bulk': 10,
-    'orm': 'default',
-    'label': 'Django Q2',
+    "name": "Django_ORM",
+    "workers": 4,
+    "timeout": 120,
+    "retry": 600,
+    "max_attempts": 5,
+    "queue_limit": 100,
+    "bulk": 10,
+    "orm": "default",
+    "label": "Django Q2",
 }
 
 # Django background tasks max attempts
@@ -228,236 +241,307 @@ MAX_ATTEMPTS = 5
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 # Google Storage service account credentials
-if config('GOOGLE_APPLICATION_CREDENTIALS', default=None):
+if config("GOOGLE_APPLICATION_CREDENTIALS", default=None):
     GOOGLE_APPLICATION_CREDENTIALS = os.path.join(
-        BASE_DIR,
-        config('GOOGLE_APPLICATION_CREDENTIALS'))
-    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
+        BASE_DIR, config("GOOGLE_APPLICATION_CREDENTIALS")
+    )
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
 else:
     GOOGLE_APPLICATION_CREDENTIALS = None
 
 # Maintenance mode
 
 # If true, disable all POSTs and other requests to make changes
-SYSTEM_MAINTENANCE_NO_CHANGES = config('SYSTEM_MAINTENANCE_NO_CHANGES',
-                                       cast=bool, default=False)
+SYSTEM_MAINTENANCE_NO_CHANGES = config(
+    "SYSTEM_MAINTENANCE_NO_CHANGES", cast=bool, default=False
+)
 # If true, disable upload functions
-SYSTEM_MAINTENANCE_NO_UPLOAD = config('SYSTEM_MAINTENANCE_NO_UPLOAD',
-                                      cast=bool, default=False)
+SYSTEM_MAINTENANCE_NO_UPLOAD = config(
+    "SYSTEM_MAINTENANCE_NO_UPLOAD", cast=bool, default=False
+)
 # HTML error message displayed during maintenance
-SYSTEM_MAINTENANCE_MESSAGE = config('SYSTEM_MAINTENANCE_MESSAGE',
-                                    default=None)
+SYSTEM_MAINTENANCE_MESSAGE = config("SYSTEM_MAINTENANCE_MESSAGE", default=None)
 
 # Prevent new applications for credentialed access
-PAUSE_CREDENTIALING = config('PAUSE_CREDENTIALING', cast=bool, default=False)
-PAUSE_CREDENTIALING_MESSAGE = config('PAUSE_CREDENTIALING_MESSAGE',
-                                     default=None)
+PAUSE_CREDENTIALING = config("PAUSE_CREDENTIALING", cast=bool, default=False)
+PAUSE_CREDENTIALING_MESSAGE = config("PAUSE_CREDENTIALING_MESSAGE", default=None)
 
 # Auto reject credentialing applications whose references are not verified after selected number of days
-MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION = config('MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION',
-                                                               cast=int, default=30)
-MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REMINDER = config('MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REMINDER',
-                                                              cast=int, default=15)
-ENABLE_CREDENTIALING_AUTO_REJECTION = config('ENABLE_CREDENTIALING_AUTO_REJECTION', default=False, cast=bool)
+MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION = config(
+    "MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REJECTION", cast=int, default=30
+)
+MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REMINDER = config(
+    "MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REMINDER", cast=int, default=15
+)
+ENABLE_CREDENTIALING_AUTO_REJECTION = config(
+    "ENABLE_CREDENTIALING_AUTO_REJECTION", default=False, cast=bool
+)
 
-DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT = config('DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT', default=5, cast=int)
-DEFAULT_NUMBER_OF_APPLICATIONS_TO_REMIND = config('DEFAULT_NUMBER_OF_APPLICATIONS_TO_REMIND', default=5, cast=int)
+DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT = config(
+    "DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT", default=5, cast=int
+)
+DEFAULT_NUMBER_OF_APPLICATIONS_TO_REMIND = config(
+    "DEFAULT_NUMBER_OF_APPLICATIONS_TO_REMIND", default=5, cast=int
+)
 
-GCP_DELEGATION_EMAIL = config('GCP_DELEGATION_EMAIL', default=False)
+GCP_DELEGATION_EMAIL = config("GCP_DELEGATION_EMAIL", default=False)
 
-GCP_BUCKET_PREFIX = 'testing-delete.'
-GCP_DOMAIN = config('GCP_DOMAIN', default='')
+GCP_BUCKET_PREFIX = "testing-delete."
+GCP_DOMAIN = config("GCP_DOMAIN", default="")
 
 # Alternate hostname to be used in example download commands
-BULK_DOWNLOAD_HOSTNAME = config('BULK_DOWNLOAD_HOSTNAME', default=None)
+BULK_DOWNLOAD_HOSTNAME = config("BULK_DOWNLOAD_HOSTNAME", default=None)
 
 # AWS credentials to access to S3 storage
-if config('AWS_SHARED_CREDENTIALS_FILE', default=None):
-    AWS_SHARED_CREDENTIALS_FILE = os.path.expanduser(config('AWS_SHARED_CREDENTIALS_FILE'))
-    os.environ['AWS_SHARED_CREDENTIALS_FILE'] = AWS_SHARED_CREDENTIALS_FILE
+if config("AWS_SHARED_CREDENTIALS_FILE", default=None):
+    AWS_SHARED_CREDENTIALS_FILE = os.path.expanduser(
+        config("AWS_SHARED_CREDENTIALS_FILE")
+    )
+    os.environ["AWS_SHARED_CREDENTIALS_FILE"] = AWS_SHARED_CREDENTIALS_FILE
 else:
     AWS_SHARED_CREDENTIALS_FILE = None
 
-AWS_PROFILE = config('AWS_PROFILE', default=None)
+AWS_PROFILE = config("AWS_PROFILE", default=None)
 
-AWS_ACCOUNT_ID = config('AWS_ACCOUNT_ID', default=None)
+AWS_ACCOUNT_ID = config("AWS_ACCOUNT_ID", default=None)
 
 # Bucket name for the S3 bucket containing the open access data
-S3_OPEN_ACCESS_BUCKET = config('S3_OPEN_ACCESS_BUCKET', default=None)
+S3_OPEN_ACCESS_BUCKET = config("S3_OPEN_ACCESS_BUCKET", default=None)
 
 # Bucket name to store logs and metrics related to project usage.
-S3_SERVER_ACCESS_LOG_BUCKET = config('S3_SERVER_ACCESS_LOG_BUCKET', default=None)
+S3_SERVER_ACCESS_LOG_BUCKET = config("S3_SERVER_ACCESS_LOG_BUCKET", default=None)
 
 # Bucket name for the S3 bucket containing the controlled access data
-S3_CONTROLLED_ACCESS_BUCKET = config('S3_CONTROLLED_ACCESS_BUCKET', default=None)
+S3_CONTROLLED_ACCESS_BUCKET = config("S3_CONTROLLED_ACCESS_BUCKET", default=None)
 
 # Bucket name for the S3 bucket containing geo-restricted projects with an 'OPEN' access policy.
-S3_OPEN_ACCESS_BUCKET_WITH_LOGIN = config('S3_OPEN_ACCESS_BUCKET_WITH_LOGIN', default=None)
+S3_OPEN_ACCESS_BUCKET_WITH_LOGIN = config(
+    "S3_OPEN_ACCESS_BUCKET_WITH_LOGIN", default=None
+)
 
 # Header tags for the AWS lambda function that grants access to S3 storage
-AWS_HEADER_KEY = config('AWS_KEY', default=False)
-AWS_HEADER_VALUE = config('AWS_VALUE', default=False)
-AWS_HEADER_KEY2 = config('AWS_KEY2', default=False)
-AWS_HEADER_VALUE2 = config('AWS_VALUE2', default=False)
-AWS_CLOUD_FORMATION = config('AWS_CLOUD_FORMATION', default=False)
+AWS_HEADER_KEY = config("AWS_KEY", default=False)
+AWS_HEADER_VALUE = config("AWS_VALUE", default=False)
+AWS_HEADER_KEY2 = config("AWS_KEY2", default=False)
+AWS_HEADER_VALUE2 = config("AWS_VALUE2", default=False)
+AWS_CLOUD_FORMATION = config("AWS_CLOUD_FORMATION", default=False)
 
 # User verification bucket (see user/awsverification.py)
-AWS_VERIFICATION_BUCKET_NAME = config('AWS_VERIFICATION_BUCKET_NAME', default=None)
+AWS_VERIFICATION_BUCKET_NAME = config("AWS_VERIFICATION_BUCKET_NAME", default=None)
 
 # Tags for the DataCite API used for DOI
-DATACITE_API_URL = config('DATACITE_API_URL', default='https://api.test.datacite.org/dois')
-DATACITE_PREFIX = config('DATACITE_PREFIX', default='')
-DATACITE_USER = config('DATACITE_USER', default='')
-DATACITE_PASS = config('DATACITE_PASS', default='')
+DATACITE_API_URL = config(
+    "DATACITE_API_URL", default="https://api.test.datacite.org/dois"
+)
+DATACITE_PREFIX = config("DATACITE_PREFIX", default="")
+DATACITE_USER = config("DATACITE_USER", default="")
+DATACITE_PASS = config("DATACITE_PASS", default="")
 
 # Tags for the CITISOAPService API
-CITI_USERNAME = config('CITI_USERNAME', default='')
-CITI_PASSWORD = config('CITI_PASSWORD', default='')
-CITI_SOAP_URL = config('CITI_SOAP_URL', default='')
+CITI_USERNAME = config("CITI_USERNAME", default="")
+CITI_PASSWORD = config("CITI_PASSWORD", default="")
+CITI_SOAP_URL = config("CITI_SOAP_URL", default="")
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
 # configurations may be added that permit different sets of tags.
 
 # Attributes that can be added to any HTML tag
-_generic_attributes = ['lang', 'title']
+_generic_attributes = ["lang", "title"]
 
 # Inline/phrasing content
 _inline_tags = {
-    'a':      {'attributes': ['href']},
-    'abbr':   True,
-    'b':      True,
-    'bdi':    True,
-    'cite':   True,
-    'code':   True,
-    'dfn':    True,
-    'em':     True,
-    'i':      True,
-    'kbd':    True,
-    'q':      True,
-    'rb':     True,
-    'rp':     True,
-    'rt':     True,
-    'rtc':    True,
-    'ruby':   True,
-    's':      True,
-    'samp':   True,
-    'span':   True,
-    'strong': True,
-    'sub':    True,
-    'sup':    True,
-    'time':   True,
-    'u':      True,
-    'var':    True,
-    'wbr':    True,
-    'img':    {'attributes': ['alt', 'src', 'height', 'width']},
+    "a": {"attributes": ["href"]},
+    "abbr": True,
+    "b": True,
+    "bdi": True,
+    "cite": True,
+    "code": True,
+    "dfn": True,
+    "em": True,
+    "i": True,
+    "kbd": True,
+    "q": True,
+    "rb": True,
+    "rp": True,
+    "rt": True,
+    "rtc": True,
+    "ruby": True,
+    "s": True,
+    "samp": True,
+    "span": True,
+    "strong": True,
+    "sub": True,
+    "sup": True,
+    "time": True,
+    "u": True,
+    "var": True,
+    "wbr": True,
+    "img": {"attributes": ["alt", "src", "height", "width"]},
 }
 # Block/flow content
 _block_tags = {
     # Paragraphs, lists, quotes, line breaks
-    'blockquote': True,
-    'br':         True,
-    'dd':         True,
-    'div':        True,
-    'dl':         True,
-    'dt':         True,
-    'li':         {'attributes': ['value']},
-    'ol':         {'attributes': ['start', 'type']},
-    'p':          True,
-    'pre':        True,
-    'ul':         True,
-
+    "blockquote": True,
+    "br": True,
+    "dd": True,
+    "div": True,
+    "dl": True,
+    "dt": True,
+    "li": {"attributes": ["value"]},
+    "ol": {"attributes": ["start", "type"]},
+    "p": True,
+    "pre": True,
+    "ul": True,
     # Tables
-    'caption':    True,
-    'col':        {'attributes': ['span']},
-    'colgroup':   {'attributes': ['span']},
-    'table':      {'attributes': ['width']},
-    'tbody':      True,
-    'td':         {'attributes': ['colspan', 'headers', 'rowspan', 'style'],
-                   'styles': ['text-align']},
-    'tfoot':      True,
-    'th':         {'attributes': ['abbr', 'colspan', 'headers', 'rowspan',
-                                  'scope', 'sorted', 'style'],
-                   'styles': ['text-align']},
-    'thead':      True,
-    'tr':         True,
+    "caption": True,
+    "col": {"attributes": ["span"]},
+    "colgroup": {"attributes": ["span"]},
+    "table": {"attributes": ["width"]},
+    "tbody": True,
+    "td": {
+        "attributes": ["colspan", "headers", "rowspan", "style"],
+        "styles": ["text-align"],
+    },
+    "tfoot": True,
+    "th": {
+        "attributes": [
+            "abbr",
+            "colspan",
+            "headers",
+            "rowspan",
+            "scope",
+            "sorted",
+            "style",
+        ],
+        "styles": ["text-align"],
+    },
+    "thead": True,
+    "tr": True,
 }
 # Math content (inline or block)
 _math_tags = {
-    'math':          {'attributes': ['alttext', 'display']},
-    'annotation':    {'attributes': ['encoding']},
-    'semantics':     True,
-
-    'maligngroup':   {'attributes': ['groupalign']},
-    'malignmark':    {'attributes': ['edge']},
-    'menclose':      {'attributes': ['notation']},
-    'merror':        True,
-    'mfenced':       {'attributes': ['close', 'open', 'separators']},
-    'mfrac':         {'attributes': [
-        'bevelled', 'numalign', 'denomalign', 'linethickness']},
-    'mi':            {'attributes': ['class', 'mathsize', 'mathvariant']},
-    'mlabeledtr':    {'attributes': ['rowalign', 'columnalign', 'groupalign']},
-    'mmultiscripts': True,
-    'mn':            {'attributes': ['class', 'mathsize', 'mathvariant']},
-    'mo':            {'attributes': [
-        'class', 'accent', 'fence', 'form', 'largeop', 'linebreak',
-        'linebreakmultchar', 'linebreakstyle', 'lspace', 'mathsize',
-        'mathvariant', 'maxsize', 'minsize', 'movablelimits', 'rspace',
-        'separator', 'stretchy', 'symmetric']},
-    'mover':         {'attributes': ['accent', 'align']},
-    'mpadded':       {'attributes': [
-        'depth', 'height', 'lspace', 'voffset', 'width']},
-    'mphantom':      True,
-    'mprescripts':   True,
-    'mroot':         True,
-    'mrow':          {'attributes': ['class']},
-    'ms':            {'attributes': ['lquote', 'rquote']},
-    'mspace':        {'attributes': ['width', 'height', 'depth', 'linebreak']},
-    'msqrt':         True,
-    'mstyle':        {'attributes': [
-        'decimalpoint', 'displaystyle', 'infixlinebreakstyle', 'mathsize',
-        'mathvariant', 'scriptlevel', 'scriptsizemultiplier']},
-    'msub':          True,
-    'msubsup':       True,
-    'msup':          True,
-    'mtable':        {'attributes': [
-        'align', 'alignmentscope', 'columnalign', 'columnlines',
-        'columnspacing', 'columnwidth', 'displaystyle', 'equalcolumns',
-        'equalrows', 'frame', 'groupalign', 'rowalign', 'rowlines',
-        'rowspacing', 'side', 'width']},
-    'mtd':           {'attributes': [
-        'rowspan', 'columnspan', 'rowalign', 'columnalign', 'groupalign']},
-    'mtext':         {'attributes': ['class', 'mathsize', 'mathvariant']},
-    'mtr':           {'attributes': ['rowalign', 'columnalign', 'groupalign']},
-    'munder':        {'attributes': ['accentunder', 'align']},
-    'munderover':    {'attributes': ['accent', 'accentunder', 'align']},
-    'none':          True,
+    "math": {"attributes": ["alttext", "display"]},
+    "annotation": {"attributes": ["encoding"]},
+    "semantics": True,
+    "maligngroup": {"attributes": ["groupalign"]},
+    "malignmark": {"attributes": ["edge"]},
+    "menclose": {"attributes": ["notation"]},
+    "merror": True,
+    "mfenced": {"attributes": ["close", "open", "separators"]},
+    "mfrac": {"attributes": ["bevelled", "numalign", "denomalign", "linethickness"]},
+    "mi": {"attributes": ["class", "mathsize", "mathvariant"]},
+    "mlabeledtr": {"attributes": ["rowalign", "columnalign", "groupalign"]},
+    "mmultiscripts": True,
+    "mn": {"attributes": ["class", "mathsize", "mathvariant"]},
+    "mo": {
+        "attributes": [
+            "class",
+            "accent",
+            "fence",
+            "form",
+            "largeop",
+            "linebreak",
+            "linebreakmultchar",
+            "linebreakstyle",
+            "lspace",
+            "mathsize",
+            "mathvariant",
+            "maxsize",
+            "minsize",
+            "movablelimits",
+            "rspace",
+            "separator",
+            "stretchy",
+            "symmetric",
+        ]
+    },
+    "mover": {"attributes": ["accent", "align"]},
+    "mpadded": {"attributes": ["depth", "height", "lspace", "voffset", "width"]},
+    "mphantom": True,
+    "mprescripts": True,
+    "mroot": True,
+    "mrow": {"attributes": ["class"]},
+    "ms": {"attributes": ["lquote", "rquote"]},
+    "mspace": {"attributes": ["width", "height", "depth", "linebreak"]},
+    "msqrt": True,
+    "mstyle": {
+        "attributes": [
+            "decimalpoint",
+            "displaystyle",
+            "infixlinebreakstyle",
+            "mathsize",
+            "mathvariant",
+            "scriptlevel",
+            "scriptsizemultiplier",
+        ]
+    },
+    "msub": True,
+    "msubsup": True,
+    "msup": True,
+    "mtable": {
+        "attributes": [
+            "align",
+            "alignmentscope",
+            "columnalign",
+            "columnlines",
+            "columnspacing",
+            "columnwidth",
+            "displaystyle",
+            "equalcolumns",
+            "equalrows",
+            "frame",
+            "groupalign",
+            "rowalign",
+            "rowlines",
+            "rowspacing",
+            "side",
+            "width",
+        ]
+    },
+    "mtd": {
+        "attributes": ["rowspan", "columnspan", "rowalign", "columnalign", "groupalign"]
+    },
+    "mtext": {"attributes": ["class", "mathsize", "mathvariant"]},
+    "mtr": {"attributes": ["rowalign", "columnalign", "groupalign"]},
+    "munder": {"attributes": ["accentunder", "align"]},
+    "munderover": {"attributes": ["accent", "accentunder", "align"]},
+    "none": True,
 }
 # Classes used by MathJax (see toMathMLclass() in extensions/toMathML.js)
 _math_classes = [
-    'MJX-TeXAtom-ORD', 'MJX-TeXAtom-OP', 'MJX-TeXAtom-BIN', 'MJX-TeXAtom-REL',
-    'MJX-TeXAtom-OPEN', 'MJX-TeXAtom-CLOSE', 'MJX-TeXAtom-PUNCT',
-    'MJX-TeXAtom-INNER', 'MJX-TeXAtom-VCENTER',
-    'MJX-fixedlimits', 'MJX-variant',
-    'MJX-tex-caligraphic', 'MJX-tex-caligraphic-bold', 'MJX-tex-oldstyle',
-    'MJX-tex-oldstyle-bold', 'MJX-tex-mathit',
+    "MJX-TeXAtom-ORD",
+    "MJX-TeXAtom-OP",
+    "MJX-TeXAtom-BIN",
+    "MJX-TeXAtom-REL",
+    "MJX-TeXAtom-OPEN",
+    "MJX-TeXAtom-CLOSE",
+    "MJX-TeXAtom-PUNCT",
+    "MJX-TeXAtom-INNER",
+    "MJX-TeXAtom-VCENTER",
+    "MJX-fixedlimits",
+    "MJX-variant",
+    "MJX-tex-caligraphic",
+    "MJX-tex-caligraphic-bold",
+    "MJX-tex-oldstyle",
+    "MJX-tex-oldstyle-bold",
+    "MJX-tex-mathit",
 ]
 
 HTML_ALLOWED_CONTENT = {
-    'default': {
+    "default": {
         **_inline_tags,
         **_block_tags,
         **_math_tags,
-        'h3': True,
-        'h4': True,
-        'h5': True,
-        'h6': True,
-        'img': {'attributes': ['src', 'alt', 'width', 'height']},
-        '*': {'attributes': _generic_attributes,
-              'classes': _math_classes},
+        "h3": True,
+        "h4": True,
+        "h5": True,
+        "h6": True,
+        "img": {"attributes": ["src", "alt", "width", "height"]},
+        "*": {"attributes": _generic_attributes, "classes": _math_classes},
     },
 }
 
@@ -475,32 +559,30 @@ TINYMCE_DEFAULT_CONFIG = {
     "mobile": {
         "max_height": 300,
     },
-
-    "plugins": ",".join([
-        "autoresize",
-        "autosave",
-        "code",
-        "fullscreen",
-        "help",
-        "link",
-        "lists",
-        "searchreplace",
-        "table",
-    ]),
+    "plugins": ",".join(
+        [
+            "autoresize",
+            "autosave",
+            "code",
+            "fullscreen",
+            "help",
+            "link",
+            "lists",
+            "searchreplace",
+            "table",
+        ]
+    ),
     "external_plugins": {
         "pnmath": "/static/tinymce-plugins/pnmath.js",
         "codetag": "/static/tinymce-plugins/codetag.js",
     },
-
     "pnmath_mathjax_url": "/static/mathjax/es5/",
-
     "toolbar": (
         "undo redo | styles | "
         "bold italic codetag math | "
         "numlist bullist table | "
         "searchreplace code restoredraft"
     ),
-
     "table_header_type": "sectionCells",
     "table_resize_bars": False,
     "table_appearance_options": False,
@@ -514,9 +596,7 @@ TINYMCE_DEFAULT_CONFIG = {
         "tableinsertcolbefore tableinsertcolafter tabledeletecol | "
         "tablecaption | tabledelete"
     ),
-
     "content_css": "/static/custom/css/richtext.css",
-
     "text_patterns": [
         {"start": "*", "end": "*", "format": "italic"},
         {"start": "**", "end": "**", "format": "bold"},
@@ -535,265 +615,284 @@ TINYMCE_DEFAULT_CONFIG = {
         {"start": r"\(", "end": r"\)", "cmd": "InlineMath"},
         {"start": r"\[", "end": r"\]", "cmd": "BlockMath"},
     ],
-
     "formats": {
         "underline": {"inline": "u"},
     },
-
     "style_formats": [
-        {"title": "Headings", "items": [
-            {"title": "Heading 3", "format": "h3"},
-            {"title": "Heading 4", "format": "h4"},
-            {"title": "Heading 5", "format": "h5"},
-            {"title": "Heading 6", "format": "h6"},
-        ]},
-        {"title": "Inline", "items": [
-            {"title": "Bold", "format": "bold"},
-            {"title": "Italic", "format": "italic"},
-            {"title": "Underline", "format": "underline"},
-            {"title": "Superscript", "format": "superscript"},
-            {"title": "Subscript", "format": "subscript"},
-            {"title": "Code", "format": "code"},
-        ]},
-        {"title": "Blocks", "items": [
-            {"title": "Paragraph", "format": "p"},
-            {"title": "Blockquote", "format": "blockquote"},
-            {"title": "Code Block", "format": "pre"},
-        ]},
+        {
+            "title": "Headings",
+            "items": [
+                {"title": "Heading 3", "format": "h3"},
+                {"title": "Heading 4", "format": "h4"},
+                {"title": "Heading 5", "format": "h5"},
+                {"title": "Heading 6", "format": "h6"},
+            ],
+        },
+        {
+            "title": "Inline",
+            "items": [
+                {"title": "Bold", "format": "bold"},
+                {"title": "Italic", "format": "italic"},
+                {"title": "Underline", "format": "underline"},
+                {"title": "Superscript", "format": "superscript"},
+                {"title": "Subscript", "format": "subscript"},
+                {"title": "Code", "format": "code"},
+            ],
+        },
+        {
+            "title": "Blocks",
+            "items": [
+                {"title": "Paragraph", "format": "p"},
+                {"title": "Blockquote", "format": "blockquote"},
+                {"title": "Code Block", "format": "pre"},
+            ],
+        },
     ],
 }
 
 # True if the program is invoked as 'manage.py test'
-RUNNING_TEST_SUITE = (len(sys.argv) > 1 and sys.argv[1] == 'test')
-JSON_LOGGING = config('JSON_LOGGING', default=False, cast=bool)
+RUNNING_TEST_SUITE = len(sys.argv) > 1 and sys.argv[1] == "test"
+JSON_LOGGING = config("JSON_LOGGING", default=False, cast=bool)
 
 if RUNNING_TEST_SUITE:
-    _logfile = open(os.path.join(BASE_DIR, 'test.log'), 'w')
+    _logfile = open(os.path.join(BASE_DIR, "test.log"), "w")
 elif JSON_LOGGING:
     _logfile = sys.stdout
 else:
     _logfile = sys.stderr
 
 if JSON_LOGGING:
-    _formatter = 'json'
+    _formatter = "json"
     _simple_formatter = _formatter
-    _class = 'logging.StreamHandler'
+    _class = "logging.StreamHandler"
     _verbose_class = _class
 else:
-    _formatter = 'console'
-    _simple_formatter = 'simple'
-    _class = 'logging.StreamHandler'
-    _verbose_class = 'physionet.log.VerboseStreamHandler'
+    _formatter = "console"
+    _simple_formatter = "simple"
+    _class = "logging.StreamHandler"
+    _verbose_class = "physionet.log.VerboseStreamHandler"
 
-LOGLEVEL = os.environ.get('LOGLEVEL', 'info').upper()
+LOGLEVEL = os.environ.get("LOGLEVEL", "info").upper()
 
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "filters": {
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse",
         },
     },
-    'formatters': {
-        'console': {
-            'format': '%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+    "formatters": {
+        "console": {
+            "format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
         },
-        'simple': {
-            'format': '%(levelname)s %(asctime)-15s %(message)s',
+        "simple": {
+            "format": "%(levelname)s %(asctime)-15s %(message)s",
         },
-        'json': {
-            'format': '%(created)s %(name)s %(levelname)s %(message)s %(sinfo)s',
-            '()': 'physionet.log.UwsgiJsonFormatter',
+        "json": {
+            "format": "%(created)s %(name)s %(levelname)s %(message)s %(sinfo)s",
+            "()": "physionet.log.UwsgiJsonFormatter",
         },
-        'admin': {
-            'format': '%(levelname)s %(asctime)-15s %(user)s %(message)s'
-        }
+        "admin": {"format": "%(levelname)s %(asctime)-15s %(user)s %(message)s"},
     },
-    'handlers': {
-        'console': {
-            'class': _class,
-            'formatter': _formatter,
-            'stream': _logfile,
+    "handlers": {
+        "console": {
+            "class": _class,
+            "formatter": _formatter,
+            "stream": _logfile,
         },
-        'custom_logging': {
-            'level': 'INFO',
-            'class': _class,
-            'formatter': _simple_formatter,
-            'stream': _logfile,
+        "custom_logging": {
+            "level": "INFO",
+            "class": _class,
+            "formatter": _simple_formatter,
+            "stream": _logfile,
         },
-        'verbose_console': {
-            'class': _verbose_class,
-            'formatter': _formatter,
-            'stream': _logfile,
+        "verbose_console": {
+            "class": _verbose_class,
+            "formatter": _formatter,
+            "stream": _logfile,
         },
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'physionet.log.SaferAdminEmailHandler',
+        "mail_admins": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "physionet.log.SaferAdminEmailHandler",
         },
-        'admin_logging': {
-            'level': 'INFO',
-            'class': _class,
-            'formatter': 'admin',
-            'stream': _logfile,
+        "admin_logging": {
+            "level": "INFO",
+            "class": _class,
+            "formatter": "admin",
+            "stream": _logfile,
         },
     },
-    'loggers': {
-        '': {
-            'level': LOGLEVEL,
-            'handlers': ['console'],
+    "loggers": {
+        "": {
+            "level": LOGLEVEL,
+            "handlers": ["console"],
         },
-        'user': {
-            'level': 'INFO',
-            'handlers': ['custom_logging'],
-            'propagate': False,
+        "user": {
+            "level": "INFO",
+            "handlers": ["custom_logging"],
+            "propagate": False,
         },
-        'admin': {
-            'level': 'INFO',
-            'handlers': ['admin_logging'],
-            'propagate': False,
+        "admin": {
+            "level": "INFO",
+            "handlers": ["admin_logging"],
+            "propagate": False,
         },
-        'django.security.DisallowedHost': {
-            'handlers': ['mail_admins'],
-            'level': 'CRITICAL',
-            'propagate': True,
+        "django.security.DisallowedHost": {
+            "handlers": ["mail_admins"],
+            "level": "CRITICAL",
+            "propagate": True,
         },
-        'django.request': {
-            'handlers': ['verbose_console', 'mail_admins'],
-            'level': 'ERROR',
-            'propagate': False,
+        "django.request": {
+            "handlers": ["verbose_console", "mail_admins"],
+            "level": "ERROR",
+            "propagate": False,
         },
-        'physionet.error': {
-            'handlers': ['console', 'mail_admins', 'custom_logging'],
-            'level': 'ERROR',
-            'propagate': False,
+        "physionet.error": {
+            "handlers": ["console", "mail_admins", "custom_logging"],
+            "level": "ERROR",
+            "propagate": False,
         },
     },
 }
 
-if config('SENTRY_DSN', default=None):
+if config("SENTRY_DSN", default=None):
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
 
     sentry_sdk.init(
-        dsn=config('SENTRY_DSN'),
+        dsn=config("SENTRY_DSN"),
         integrations=[DjangoIntegration()],
-        sample_rate=config('SENTRY_SAMPLE_RATE', default=1.0, cast=float),
-        traces_sample_rate=config('SENTRY_TRACES_SAMPLE_RATE', default=0.0, cast=float),
-        send_default_pii=False
+        sample_rate=config("SENTRY_SAMPLE_RATE", default=1.0, cast=float),
+        traces_sample_rate=config("SENTRY_TRACES_SAMPLE_RATE", default=0.0, cast=float),
+        send_default_pii=False,
     )
 
 # If this environment variable is set, acquire a shared lock on the
 # named file.  The file descriptor is left open, but is
 # non-inheritable (close-on-exec), so the lock will be inherited by
 # forked child processes, but not by execed programs.
-if os.getenv('PHYSIONET_LOCK_FILE'):
-    _lockfd = os.open(os.getenv('PHYSIONET_LOCK_FILE'),
-                      os.O_RDWR | os.O_CREAT, 0o660)
+if os.getenv("PHYSIONET_LOCK_FILE"):
+    _lockfd = os.open(os.getenv("PHYSIONET_LOCK_FILE"), os.O_RDWR | os.O_CREAT, 0o660)
     # Note that Python has at least three different ways of locking
     # files.  We want fcntl.flock (i.e. flock(2)), which is tied to
     # the file descriptor and inherited by child processes.  In
     # contrast, fcntl.lockf uses fcntl(2) and os.lockf uses lockf(3),
     # both of which are tied to the PID.
     fcntl.flock(_lockfd, fcntl.LOCK_SH)
-class StorageTypes:
-    LOCAL = 'LOCAL'
-    GCP = 'GCP'
 
-STORAGE_TYPE = config('STORAGE_TYPE', default=StorageTypes.LOCAL)
-GCP_STORAGE_BUCKET_NAME = config('GCP_MEDIA_BUCKET_NAME')
-GCP_STATIC_BUCKET_NAME = config('GCP_STATIC_BUCKET_NAME')
+
+class StorageTypes:
+    LOCAL = "LOCAL"
+    GCP = "GCP"
+
+
+STORAGE_TYPE = config("STORAGE_TYPE", default=StorageTypes.LOCAL)
+GCP_STORAGE_BUCKET_NAME = config("GCP_MEDIA_BUCKET_NAME")
+GCP_STATIC_BUCKET_NAME = config("GCP_STATIC_BUCKET_NAME")
 
 if STORAGE_TYPE == StorageTypes.GCP:
-    DEFAULT_FILE_STORAGE = 'physionet.storage.MediaStorage'
-    STATICFILES_STORAGE = 'physionet.storage.StaticStorage'
-    GCP_BUCKET_LOCATION = config('GCP_BUCKET_LOCATION')
-    GS_PROJECT_ID = config('GCP_PROJECT_ID')
+    DEFAULT_FILE_STORAGE = "physionet.storage.MediaStorage"
+    STATICFILES_STORAGE = "physionet.storage.StaticStorage"
+    GCP_BUCKET_LOCATION = config("GCP_BUCKET_LOCATION")
+    GS_PROJECT_ID = config("GCP_PROJECT_ID")
 
 
 # Cloud research environment integration
 # See: https://pypi.org/project/hdn-research-environment/
-ENABLE_CLOUD_RESEARCH_ENVIRONMENTS = config('ENABLE_CLOUD_RESEARCH_ENVIRONMENTS', default=False, cast=bool)
+ENABLE_CLOUD_RESEARCH_ENVIRONMENTS = config(
+    "ENABLE_CLOUD_RESEARCH_ENVIRONMENTS", default=False, cast=bool
+)
 
 if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
-    CLOUD_RESEARCH_ENVIRONMENTS_API_URL = config('CLOUD_RESEARCH_ENVIRONMENTS_API_URL')
-    INSTALLED_APPS.append('environment.apps.EnvironmentConfig')
+    CLOUD_RESEARCH_ENVIRONMENTS_API_URL = config("CLOUD_RESEARCH_ENVIRONMENTS_API_URL")
+    INSTALLED_APPS.append("environment.apps.EnvironmentConfig")
 
 
-SITE_NAME = config('SITE_NAME')
-STRAPLINE = config('STRAPLINE')
-SITE_HEADER_LOGO = config('SITE_HEADER_LOGO', default=None)
-SITE_FOOTER_LOGO = config('SITE_FOOTER_LOGO', default=None)
+SITE_NAME = config("SITE_NAME")
+STRAPLINE = config("STRAPLINE")
+SITE_HEADER_LOGO = config("SITE_HEADER_LOGO", default=None)
+SITE_FOOTER_LOGO = config("SITE_FOOTER_LOGO", default=None)
 
-SITE_DESCRIPTION = config('SITE_DESCRIPTION', default=None)
-EMAIL_SIGNATURE = config('EMAIL_SIGNATURE')
-FOOTER_MANAGED_BY = config('FOOTER_MANAGED_BY')
-FOOTER_SUPPORTED_BY = config('FOOTER_SUPPORTED_BY')
-FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)
+SITE_DESCRIPTION = config("SITE_DESCRIPTION", default=None)
+EMAIL_SIGNATURE = config("EMAIL_SIGNATURE")
+FOOTER_MANAGED_BY = config("FOOTER_MANAGED_BY")
+FOOTER_SUPPORTED_BY = config("FOOTER_SUPPORTED_BY")
+FOOTER_ACCESSIBILITY_PAGE = config("FOOTER_ACCESSIBILITY_PAGE", default=None)
 
-ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
-COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)
+ENABLE_FILE_DOWNLOADS_OPTION = config(
+    "ENABLE_FILE_DOWNLOADS_OPTION", cast=bool, default=False
+)
+COPY_FILES_TO_NEW_VERSION = config("COPY_FILES_TO_NEW_VERSION", cast=bool, default=True)
 
-LOG_TIMEDELTA = config('LOG_TIMEDELTA', cast=int, default='10')
+LOG_TIMEDELTA = config("LOG_TIMEDELTA", cast=int, default="10")
 
 # Ticket system for user support
-TICKET_SYSTEM_URL = config('TICKET_SYSTEM_URL', default=None)
+TICKET_SYSTEM_URL = config("TICKET_SYSTEM_URL", default=None)
 
 # Platform Research Resource Identifier: https://rrid.site/
 # Added to citations to support tracking of reuse.
 # e.g. PhysioNet is "SCR_007345"
-PLATFORM_RRID = config('PLATFORM_RRID', default=None)
+PLATFORM_RRID = config("PLATFORM_RRID", default=None)
 
 #  Platform wide citation config
 PLATFORM_WIDE_CITATION = {
-    'APA': config('PLATFORM_WIDE_CITATION_APA', default=None),
-    'MLA': config('PLATFORM_WIDE_CITATION_MLA', default=None),
-    'CHICAGO': config('PLATFORM_WIDE_CITATION_CHICAGO', default=None),
-    'HARVARD': config('PLATFORM_WIDE_CITATION_HARVARD', default=None),
-    'VANCOUVER': config('PLATFORM_WIDE_CITATION_VANCOUVER', default=None),
+    "APA": config("PLATFORM_WIDE_CITATION_APA", default=None),
+    "MLA": config("PLATFORM_WIDE_CITATION_MLA", default=None),
+    "CHICAGO": config("PLATFORM_WIDE_CITATION_CHICAGO", default=None),
+    "HARVARD": config("PLATFORM_WIDE_CITATION_HARVARD", default=None),
+    "VANCOUVER": config("PLATFORM_WIDE_CITATION_VANCOUVER", default=None),
 }
 
-SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
-                                     default='https://github.com/MIT-LCP/physionet-build')
-MAX_TRAINING_REPORT_UPLOAD_SIZE = config('MAX_TRAINING_REPORT_UPLOAD_SIZE', cast=int, default=1048576)
+SOURCE_CODE_REPOSITORY_LINK = config(
+    "SOURCE_CODE_REPOSITORY_LINK", default="https://github.com/MIT-LCP/physionet-build"
+)
+MAX_TRAINING_REPORT_UPLOAD_SIZE = config(
+    "MAX_TRAINING_REPORT_UPLOAD_SIZE", cast=int, default=1048576
+)
 
 # Homepage config
-GITHUB_LINK = config('GITHUB_LINK', cast=str, default=None)
-X_LINK = config('X_LINK', cast=str, default=None)
-LINKEDIN_LINK = config('LINKEDIN_LINK', cast=str, default=None)
-FACEBOOK_LINK = config('FACEBOOK_LINK', cast=str, default=None)
+GITHUB_LINK = config("GITHUB_LINK", cast=str, default=None)
+X_LINK = config("X_LINK", cast=str, default=None)
+LINKEDIN_LINK = config("LINKEDIN_LINK", cast=str, default=None)
+FACEBOOK_LINK = config("FACEBOOK_LINK", cast=str, default=None)
 
-TERMS_AND_CONDITIONS_LINK = config('TERMS_AND_CONDITIONS_LINK', cast=str, default=None)
-PRIVACY_POLICY_URL = config('PRIVACY_POLICY_URL', cast=str, default=None)
+TERMS_AND_CONDITIONS_LINK = config("TERMS_AND_CONDITIONS_LINK", cast=str, default=None)
+PRIVACY_POLICY_URL = config("PRIVACY_POLICY_URL", cast=str, default=None)
 
 # User model configurable settings
-MAX_EMAILS_PER_USER = config('MAX_EMAILS_PER_USER', cast=int, default=10)
-MAX_SUBMITTABLE_PROJECTS = config('MAX_SUBMITTABLE_PROJECTS', cast=int, default=10)
+MAX_EMAILS_PER_USER = config("MAX_EMAILS_PER_USER", cast=int, default=10)
+MAX_SUBMITTABLE_PROJECTS = config("MAX_SUBMITTABLE_PROJECTS", cast=int, default=10)
 
 # Updating to Django to 3.2 requires DEFAULT_AUTO_FIELD to be specified
 # Starting at 3.2, new projects are generated with DEFAULT_AUTO_FIELD set to BigAutoField
 # https://docs.djangoproject.com/en/3.2/releases/3.2/#customizing-type-of-auto-created-primary-keys
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # minimum number of word needed for research_summary field for Credentialing Model.
-MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING = config('MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING', cast=int, default=20)
+MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING = config(
+    "MIN_WORDS_RESEARCH_SUMMARY_CREDENTIALING", cast=int, default=20
+)
 
 # Django configuration for file upload (see https://docs.djangoproject.com/en/4.2/ref/settings/)
-DATA_UPLOAD_MAX_NUMBER_FILES = config('DATA_UPLOAD_MAX_NUMBER_FILES', cast=int, default=1000)
-DATA_UPLOAD_MAX_MEMORY_SIZE = config('DATA_UPLOAD_MAX_MEMORY_SIZE', cast=int, default=2621440)
+DATA_UPLOAD_MAX_NUMBER_FILES = config(
+    "DATA_UPLOAD_MAX_NUMBER_FILES", cast=int, default=1000
+)
+DATA_UPLOAD_MAX_MEMORY_SIZE = config(
+    "DATA_UPLOAD_MAX_MEMORY_SIZE", cast=int, default=2621440
+)
 
 # Emails
-PROJECT_EDITOR_EMAIL = config('PROJECT_EDITOR_EMAIL', default='')
+PROJECT_EDITOR_EMAIL = config("PROJECT_EDITOR_EMAIL", default="")
 
 ALLOWED_ACCESS_POLICIES = config(
-    'ALLOWED_ACCESS_POLICIES',
-    default='OPEN,RESTRICTED,CREDENTIALED,CONTRIBUTOR_REVIEW'
-).split(',')
+    "ALLOWED_ACCESS_POLICIES", default="OPEN,RESTRICTED,CREDENTIALED,CONTRIBUTOR_REVIEW"
+).split(",")
 
 # OAUTH_CLIENT_APP_NAME is the name of the default OAuth application used
 # when programmatically generating access tokens (e.g., via the /settings/tokens).
-OAUTH_CLIENT_APP_NAME = config('OAUTH_CLIENT_APP_NAME', default='')
+OAUTH_CLIENT_APP_NAME = config("OAUTH_CLIENT_APP_NAME", default="")
 
 # OAUTH PROVIDER SCOPES
 OAUTH2_PROVIDER = {
@@ -811,10 +910,10 @@ OAUTH2_PROVIDER = {
 }
 
 # Path to GeoIP2 database directory
-GEOIP_PATH = config('GEOIP_PATH', default=None)
+GEOIP_PATH = config("GEOIP_PATH", default=None)
 
 # Validate GeoIP configuration
-if BLOCKED_REGIONS and any(region != 'localhost' for region in BLOCKED_REGIONS):
+if BLOCKED_REGIONS and any(region != "localhost" for region in BLOCKED_REGIONS):
     if not GEOIP_PATH:
         raise RuntimeError(
             "BLOCKED_REGIONS is set to block real countries, but GEOIP_PATH is not configured. "

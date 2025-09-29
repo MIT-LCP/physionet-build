@@ -1,0 +1,36 @@
+# This file may be used to create an environment using:
+# $ conda create --name <env> --file <this file>
+# platform: osx-arm64
+@EXPLICIT
+https://repo.anaconda.com/pkgs/main/osx-arm64/bzip2-1.0.8-h80987f9_6.conda
+https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.8.3-hbd8a1cb_0.conda
+https://conda.anaconda.org/conda-forge/osx-arm64/icu-73.2-hc8870d7_0.conda
+https://conda.anaconda.org/conda-forge/osx-arm64/jansson-2.14.1-h5505292_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/libcxx-20.1.8-h8869778_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/libffi-3.4.4-hca03da5_1.conda
+https://conda.anaconda.org/conda-forge/osx-arm64/libiconv-1.18-h23cfdf5_2.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/ncurses-6.5-hee39554_0.conda
+https://repo.anaconda.com/pkgs/main/noarch/tzdata-2025b-h04d1e81_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/xz-5.6.4-h80987f9_1.conda
+https://conda.anaconda.org/conda-forge/osx-arm64/yaml-0.2.5-h925e9cb_3.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/zlib-1.2.13-h18a0788_1.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/expat-2.7.1-h313beb8_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/libxml2-2.13.8-h0b34f26_0.conda
+https://conda.anaconda.org/conda-forge/osx-arm64/openssl-3.5.3-h5503f6c_1.conda
+https://conda.anaconda.org/conda-forge/osx-arm64/pcre-8.45-hbdafb3b_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/osx-arm64/readline-8.3-h0b18652_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/tk-8.6.15-hcd8a7d5_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/sqlite-3.50.2-h79febb2_1.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/python-3.11.13-h19e8193_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/asgiref-3.8.1-py311hca03da5_0.conda
+https://repo.anaconda.com/pkgs/main/noarch/mccabe-0.7.0-pyhd3eb1b0_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/pycodestyle-2.12.1-py311hca03da5_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/pyflakes-3.2.0-py311hca03da5_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/setuptools-78.1.1-py311hca03da5_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/sqlparse-0.5.2-py311hca03da5_0.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/uwsgi-2.0.21-py311h228fba9_4.conda
+https://repo.anaconda.com/pkgs/main/osx-arm64/wheel-0.45.1-py311hca03da5_0.conda
+https://repo.anaconda.com/pkgs/main/noarch/autopep8-2.0.4-pyhd3eb1b0_0.conda
+https://conda.anaconda.org/anaconda/osx-arm64/django-5.2-py311hca03da5_0.tar.bz2
+https://repo.anaconda.com/pkgs/main/osx-arm64/flake8-7.1.1-py311hca03da5_0.conda
+https://repo.anaconda.com/pkgs/main/noarch/pip-25.2-pyhc872135_0.conda

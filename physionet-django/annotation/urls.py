@@ -1,5 +1,5 @@
 from django.urls import path
-from annotation.views import *
+from annotation.views import AnnotationCollectionCreateAPIView, AnnotationTypeCreateAPIView, AnnotationCreateAPIView
 
 app_name = "annotation"
 

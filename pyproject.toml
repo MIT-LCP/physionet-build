@@ -3,6 +3,7 @@ name = "physionet-build"
 version = "0.1.0"
 description = ""
 authors = []
+package-mode = false
 
 [tool.poetry.dependencies]
 aiohttp = "^3.12.15"
@@ -50,6 +51,8 @@ django-cors-headers = "^3.14.0"
 urllib3 = "^1.26.19"
 pyjwt = "^2.9.0"
 jsonschema = "^4.0.0"
+dotenv = "^0.9.9"
+poetry-plugin-export = "^1.8.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2.3"
