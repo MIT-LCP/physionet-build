@@ -1234,6 +1234,8 @@ def edit_cloud_aws(request):
     aws_account = request.session.get('new_aws_account', '')
     aws_userid = request.session.get('new_aws_userid', '')
     aws_user_arn = request.session.get('new_aws_user_arn', '')
+    if not (aws_account and aws_userid and aws_user_arn):
+        return redirect('edit_cloud')
     form = forms.AWSVerificationForm(user=request.user,
                                      site_domain=site_domain,
                                      aws_account=aws_account,
