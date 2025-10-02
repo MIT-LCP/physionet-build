@@ -416,7 +416,7 @@ frozenlist==1.7.0 ; python_version >= "3.11" and python_version < "4.0" \
 geoip2==5.1.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:445a058995ad5bb3e665ae716413298d4383b1fb38d372ad59b9b405f6b0ca19 \
     --hash=sha256:ee3f87f0ce9325eb6484fe18cbd9771a03d0a2bad1dd156fa3584fafa562d39a
-google-api-core==2.25.1 ; python_version >= "3.11" and python_version < "4.0" \
+google-api-core[grpc]==2.25.1 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:8a2a56c1fef82987a524371f99f3bd0143702fecc670c72e600c1cda6bf8dbb7 \
     --hash=sha256:d2aaa0b13c78c61cb3f4282c464c046e45fbd75755683c9c525e6e8f7ed0a5e8
 google-api-python-client==2.177.0 ; python_version >= "3.11" and python_version < "4.0" \
