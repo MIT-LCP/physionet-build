@@ -5,10 +5,6 @@ Dear {{ name }},
 
 We are writing to inform you that the review process for your project entitled "{{ project.title }}" is complete. Based on the review, our decision is that the project is not suitable for publication in its current form.
 
-A summary of the review is listed below:
-{% for result in edit_log.quality_assurance_results %}- {{ result }}
-{% endfor %}
-
 Additional comments by the editorial team follow below:
 {{ edit_log.editor_comments }}
 

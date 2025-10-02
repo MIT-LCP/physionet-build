@@ -565,3 +565,9 @@ footer.sticky-footer {
 .table-process {
   width: 11%;
 }
+.qa-checklist .qa-item {
+  margin-bottom: 1rem;
+}
+.qa-checklist .qa-label {
+  display: inline;
+}
