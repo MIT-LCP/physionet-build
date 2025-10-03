@@ -1,4 +1,6 @@
-/data/log/nginx/*.log {
+/var/log/nginx/*.log
+/data/log/nginx/*.log
+{
 	daily
 	missingok
 	rotate 90
