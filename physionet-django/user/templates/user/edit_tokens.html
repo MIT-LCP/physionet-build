@@ -26,14 +26,20 @@
     {% for token in tokens %}
       <li class="list-group-item d-flex justify-content-between align-items-center">
       <div>
-        <code>{{ token.token }}</code>
+        <strong>ID:</strong> {{ token.id }} <medium>– </medium><span class=""><code>{{ token.token }}</code></span>
         <br>
+        <strong>Scopes:</strong> 
+        <br>
+        <div class="ml-4">
+          {% for model_type, permissions in token.grouped_scopes.items %}
+          <medium>{{ model_type }}:</medium> <code> {{ permissions|join:", " }}</code>
+          <br>
+        {% endfor %}
+        </div>
         <small>
         Created {{ token.created|date:"Y-m-d H:i" }} —
         Expires {{ token.expires|date:"Y-m-d H:i" }}
         {% if token.is_expired %}<span class="badge badge-danger">Expired</span>{% endif %}
-        <br>
-        <strong>Scopes:</strong> {{ token.scope|default:"None" }}
         </small>
       </div>
       <a class="btn btn-sm btn-danger" href="?delete={{ token.id }}">Revoke</a>

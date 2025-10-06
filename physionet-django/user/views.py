@@ -2,7 +2,7 @@ import logging
 import os
 import pdb
 from datetime import datetime, date, timedelta
-
+from collections import defaultdict   
 import django.contrib.auth.views as auth_views
 import pytz
 from django.conf import settings
@@ -471,8 +471,6 @@ def edit_tokens(request):
         if AccessToken.objects.filter(user=request.user, application=application).count() >= 3:
             messages.error(request, "You can only have up to 3 tokens. Please delete one first.")
             return redirect("edit_tokens")
-        token_name = request.POST.get('name', '').strip()
-        if not token_name:
             messages.error(request, "Please enter a name for the token.")
             return redirect("edit_tokens")
         selected_annotation_endpoints = request.POST.getlist('annotation_endpoints')
@@ -494,21 +492,43 @@ def edit_tokens(request):
             return redirect("edit_tokens")
 
         expires_at = timezone.now() + timedelta(days=60)
-        AccessToken.objects.create(
+        created_token = AccessToken.objects.create(
             user=request.user,
             application=application,
             token=get_random_string(40),
             expires=expires_at,
             scope=" ".join(valid_scopes),
         )
-        messages.success(request, f"Token '{token_name}' created successfully with scopes: {', '.join(valid_scopes)}")
+        messages.success(request, f"Token '{created_token.id}' created successfully with scopes: {', '.join(valid_scopes)}")
         return redirect("edit_tokens")
 
     if request.GET.get("delete"):
         AccessToken.objects.filter(user=request.user, id=request.GET["delete"]).delete()
         return redirect("edit_tokens")
 
+    def group_scopes_by_model(scopes):
+        """Group scopes by their model type (collections, types, annotations)"""
+        grouped = defaultdict(list)
+        for scope in scopes:
+            parts = scope.split(":")
+            if len(parts) >= 3:
+                model_type = parts[1]  # collections, types, annotations
+                model_type = model_type.capitalize()
+                if model_type != "Annotations":
+                    model_type = "Annotation " + model_type
+                permission = parts[-1].capitalize()
+                grouped[model_type].append(permission)
+            else:
+                grouped['other'].append(scope)
+        
+        return dict(grouped)
+    
     tokens = AccessToken.objects.filter(user=request.user)
+    for token in tokens:
+        scopes = token.scope.split(" ")
+        grouped_scopes = group_scopes_by_model(scopes)
+        token.grouped_scopes = grouped_scopes
+    
     available_scopes = settings.OAUTH2_PROVIDER['SCOPES']
     available_endpoints = {}
     for scope in available_scopes:
