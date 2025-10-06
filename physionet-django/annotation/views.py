@@ -19,17 +19,8 @@ from oauth2_provider.contrib.rest_framework import (
 )
 from oauth2_provider.decorators import protected_resource
 from oauth2_provider.views.generic import ProtectedResourceView
-
+from annotation.permissions import AnnotationsScope, AnnotationsCollectionsScope, AnnotationsTypesScope
 from rest_framework.permissions import SAFE_METHODS
-
-
-class AnnotationsScope(TokenHasScope):
-    def get_scopes(self, request, view):
-        return (
-            ["annotations:view"]
-            if request.method in SAFE_METHODS
-            else ["annotations:edit"]
-        )
 
 
 class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
@@ -38,10 +29,10 @@ class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
     """
 
     authentication_classes = [OAuth2Authentication]
-    permission_classes = [AnnotationsScope, IsAuthenticated]
+    permission_classes = [AnnotationsCollectionsScope, IsAuthenticated]
     serializer_class = AnnotationCollectionSerializer
     queryset = AnnotationCollection.objects.all()
-    required_scopes = ["annotations:edit"]
+    required_scopes = ["annotations:collections:write"]
 
 
 class AnnotationTypeCreateAPIView(generics.CreateAPIView):
@@ -50,10 +41,10 @@ class AnnotationTypeCreateAPIView(generics.CreateAPIView):
     """
 
     authentication_classes = [OAuth2Authentication]
-    permission_classes = [AnnotationsScope, IsAuthenticated]
+    permission_classes = [AnnotationsTypesScope, IsAuthenticated]
     serializer_class = AnnotationTypeSerializer
     queryset = AnnotationType.objects.all()
-    required_scopes = ["annotations:edit"]
+    required_scopes = ["annotations:types:write"]
 
 
 class AnnotationCreateAPIView(generics.CreateAPIView):
@@ -65,7 +56,7 @@ class AnnotationCreateAPIView(generics.CreateAPIView):
     permission_classes = [AnnotationsScope, IsAuthenticated]
     serializer_class = AnnotationSerializer
     queryset = Annotation.objects.all()
-    required_scopes = ["annotations:edit"]
+    required_scopes = ["annotations:write"]
 
     def create(self, request, *args, **kwargs):
         collection = kwargs.get("collection_slug")
