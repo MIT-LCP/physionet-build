@@ -156,12 +156,6 @@
           {% elif e.decision == 2 %}
             <p>The editor accepted the submission.</p>
           {% endif %}
-          <p>The standard quality assurance results are as follows:</p>
-          <ul>
-            {% for result in e.quality_assurance_results %}
-              <li>{{ result }}</li>
-            {% endfor %}
-          </ul>
         <br>
         <p>The editor comments regarding the submission are as follows:</p>
         <a class="editor-comments">{{ e.editor_comments|linebreaks }}</a>

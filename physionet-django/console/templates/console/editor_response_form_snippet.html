@@ -1,0 +1,40 @@
+<div class="qa-checklist">
+  <p><strong>Quality assurance checks (not shared with authors)</strong></p>
+  <ol>
+    {% for field in form.visible_fields %}
+      {% if field.name in form.quality_assurance_fields %}
+        <li class="qa-item">
+          <label class="qa-label" for="{{ field.id_for_label }}" title="{{ field.help_text }}">{{ field.label|safe }}</label>
+          <div class="qa-field">{{ field }}</div>
+          {% for error in field.errors %}
+            <div class="alert alert-danger">
+              <strong>{{ error|escape }}</strong>
+            </div>
+          {% endfor %}
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ol>
+</div>
+
+{% for field in form.visible_fields %}
+  {% if field.name not in form.quality_assurance_fields %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}" title="{{ field.help_text }}">{{ field.label|safe }}
+      </label> {{ field }}
+      {% for error in field.errors %}
+        <div class="alert alert-danger">
+          <strong>{{ error|escape }}</strong>
+        </div>
+      {% endfor %}
+      </div>
+  {% endif %}
+{% endfor %}
+{% for error in form.non_field_errors %}
+  <div class="alert alert-danger">
+    <strong>{{ error|escape }}</strong>
+  </div>
+{% endfor %}
+{% for field in form.hidden_fields %}
+  {{ field }}
+{% endfor %}
