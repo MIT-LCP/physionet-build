@@ -71,6 +71,23 @@ from django.db.models import F
 
 logger = logging.getLogger(__name__)
 
+SCOPE_TO_ENDPOINT = {
+    "annotations:collections:read": ["annotations/collections/", "Annotation Collections"],
+    "annotations:collections:write": ["annotations/collections/", "Annotation Collections"],
+    "annotations:types:read": ["annotations/types/", "Annotation Types"],
+    "annotations:types:write": ["annotations/types/", "Annotation Types"],
+    "annotations:annotations:read": ["annotations/collections/<collection_slug>/", "Annotations"],
+    "annotations:annotations:write": ["annotations/collections/<collection_slug>/", "Annotations"],
+}
+
+ENDPOINT_TO_SCOPE = {   
+    'annotations/types/read': 'annotations:types:read',
+    'annotations/types/write': 'annotations:types:write',
+    'annotations/collections/read': 'annotations:collections:read',
+    'annotations/collections/write': 'annotations:collections:write',
+    'annotations/collections/<collection_slug>/read': 'annotations:annotations:read',
+    'annotations/collections/<collection_slug>/write': 'annotations:annotations:write',
+}
 
 @method_decorator(allow_post_during_maintenance, 'dispatch')
 class LoginView(auth_views.LoginView):
@@ -429,13 +446,12 @@ def edit_profile(request):
 
     return render(request, 'user/edit_profile.html', {'form':form})
 
-
 @login_required
 def edit_tokens(request):
     """
     View for users to manage their personal API access tokens.
 
-    - POST: Creates a new access token with default read scopes.
+    - POST: Creates a new access token with selected scopes.
     - GET with `?delete=<id>`: Deletes an access token.
     - GET: Lists current active tokens.
     """
@@ -452,9 +468,29 @@ def edit_tokens(request):
         raise Exception(f"OAuth application named '{app_name}' not found.")
 
     if request.method == "POST":
-
         if AccessToken.objects.filter(user=request.user, application=application).count() >= 3:
             messages.error(request, "You can only have up to 3 tokens. Please delete one first.")
+            return redirect("edit_tokens")
+        token_name = request.POST.get('name', '').strip()
+        if not token_name:
+            messages.error(request, "Please enter a name for the token.")
+            return redirect("edit_tokens")
+        selected_annotation_endpoints = request.POST.getlist('annotation_endpoints')
+        if not selected_annotation_endpoints:
+            messages.error(request, "Please select at least one scope for the token.")
+            return redirect("edit_tokens")
+        selected_scopes = []
+        for endpoint in selected_annotation_endpoints:
+            if endpoint in ENDPOINT_TO_SCOPE:
+                scope = ENDPOINT_TO_SCOPE[endpoint]
+                if scope not in selected_scopes:
+                    selected_scopes.append(scope)
+        # Validate scopes against available scopes
+        available_scopes = list(settings.OAUTH2_PROVIDER['SCOPES'].keys())
+        valid_scopes = [scope for scope in selected_scopes if scope in available_scopes]
+        
+        if not valid_scopes:
+            messages.error(request, "Please select valid scopes for the token.")
             return redirect("edit_tokens")
 
         expires_at = timezone.now() + timedelta(days=60)
@@ -463,8 +499,9 @@ def edit_tokens(request):
             application=application,
             token=get_random_string(40),
             expires=expires_at,
-            scope="data:download",
+            scope=" ".join(valid_scopes),
         )
+        messages.success(request, f"Token '{token_name}' created successfully with scopes: {', '.join(valid_scopes)}")
         return redirect("edit_tokens")
 
     if request.GET.get("delete"):
@@ -472,7 +509,22 @@ def edit_tokens(request):
         return redirect("edit_tokens")
 
     tokens = AccessToken.objects.filter(user=request.user)
-    return render(request, "user/edit_tokens.html", {"tokens": tokens})
+    available_scopes = settings.OAUTH2_PROVIDER['SCOPES']
+    available_endpoints = {}
+    for scope in available_scopes:
+        if scope in SCOPE_TO_ENDPOINT:
+            endpoint, name = SCOPE_TO_ENDPOINT[scope]
+            if endpoint not in available_endpoints:
+                available_endpoints[endpoint] = {"name": name, "scopes": []}
+            # parsing the permission at the end of scope as R/W
+            scope_cleaned = scope.split(":")[-1]
+            available_endpoints[endpoint]["scopes"].append(scope_cleaned)
+        else:
+            pass
+    return render(request, "user/edit_tokens.html", {
+        "tokens": tokens,
+        "available_endpoints": available_endpoints,
+    })
 
 
 @login_required
