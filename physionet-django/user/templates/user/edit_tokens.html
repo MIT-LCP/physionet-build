@@ -16,7 +16,6 @@
   {% csrf_token %}
   <div class="form-group">
     <label for="token-name">Create new token:</label>&nbsp;
-    <input type="text" class="form-control" id="token-name" name="name" placeholder="e.g. My Laptop" required>
     <button class="btn btn-primary ml-2" type="button" id="create-token-btn">Generate</button>
   </div>
 </form>
@@ -118,10 +117,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     createTokenBtn.addEventListener('click', function(e) {
         e.preventDefault();
-        if (!tokenNameInput.value.trim()) {
-            alert('Please enter a name for the token.');
-            return;
-        }
         $(scopeModal).modal('show');
     });
 
@@ -132,14 +127,6 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Please select at least one scope for the token.');
             return;
         }
-        
-        // Add the token name to the form
-        const nameInput = document.createElement('input');
-        nameInput.type = 'hidden';
-        nameInput.name = 'name';
-        nameInput.value = tokenNameInput.value;
-        tokenForm.appendChild(nameInput);
-
         // Add selected annotation endpoints
         selectedAnnotationEndpoints.forEach(function(endpoint) {
             const hiddenInput = document.createElement('input');
