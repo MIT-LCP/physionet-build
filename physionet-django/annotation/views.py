@@ -56,7 +56,7 @@ class AnnotationCreateAPIView(generics.CreateAPIView):
     permission_classes = [AnnotationsScope, IsAuthenticated]
     serializer_class = AnnotationSerializer
     queryset = Annotation.objects.all()
-    required_scopes = ["annotations:write"]
+    required_scopes = ["annotations:annotations:write"]
 
     def create(self, request, *args, **kwargs):
         collection = kwargs.get("collection_slug")
