@@ -486,6 +486,31 @@ def publish_notify(request, published_project):
           [settings.CONTACT_EMAIL], fail_silently=False)
 
 
+def archive_notify(request, project, archive_reason):
+    """
+    Notify authors when a project is archived by an editor
+    """
+    subject = 'Project archived: {}'.format(project.title)
+    email_context = {
+        'project': project,
+        'archive_reason': archive_reason,
+        'signature': settings.EMAIL_SIGNATURE,
+        'project_info': email_project_info(project),
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+        'domain': get_current_site(request),
+        'url_prefix': get_url_prefix(request),
+    }
+
+    for email, name in project.author_contact_info():
+        email_context['name'] = name
+        body = loader.render_to_string(
+            'notification/email/archive_notify.html', email_context)
+
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
+
 def storage_request_notify(request, project):
     """
     Notify administrators when a storage request is received

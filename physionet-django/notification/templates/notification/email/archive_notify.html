@@ -1,0 +1,21 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+Your project "{{ project.title }}" has been archived.
+
+Archive reason: {{ project.get_archive_reason_display|default:"Unknown" }}
+{% if archive_reason %}
+Additional details:
+{{ archive_reason }}
+{% endif %}
+The project is no longer in the submission workflow and cannot be edited by authors.
+If you believe this was done in error, please contact the editorial team.
+
+You can view your projects at: {{ url_prefix }}{% url 'project_home' %}
+
+{{ signature|safe }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}
