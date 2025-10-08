@@ -304,7 +304,7 @@ class AnnotationAPITests(BaseTest):
         self.assertEqual(response["location"]["width"], 200)
         self.assertEqual(response["location"]["height"], 150)
 
-    def test_create_annotation_timeseries_interval(self):
+    def test_create_annotation_location_type_mismatch(self):
         """
         Test create annotation with timeseries interval location
         """
@@ -326,7 +326,7 @@ class AnnotationAPITests(BaseTest):
                 },
                 "required": ["label"],
             },
-            allowed_location_type="timeseries_interval",
+            allowed_location_type="image_bbox",
         )
         timeseries_interval_annotation_data = {
             "annotation_type": self.annotation_type.slug,
@@ -350,15 +350,4 @@ class AnnotationAPITests(BaseTest):
         )
         self.auth_header = self._create_authorization_header(self.access_token.token)
         response = self._create_annotation(data=timeseries_interval_annotation_data)
-        self.assertEqual(response.status_code, 201)
-        response = response.json()
-        self.assertEqual(response["file_path"], "../test-ecg-record.wfdb")
-        self.assertEqual(
-            response["labels"], {"label": "Normal Sinus Rhythm", "confidence": 0.95}
-        )
-        # Testing timeseries interval setting
-        self.assertEqual(response["location"]["location_type"], "timeseries_interval")
-        self.assertEqual(response["location"]["coord_system"], "samples")
-        self.assertEqual(response["location"]["channel"], "II")
-        self.assertEqual(response["location"]["start"], 1000)
-        self.assertEqual(response["location"]["end"], 5000)
+        self.assertEqual(response.status_code, 400)

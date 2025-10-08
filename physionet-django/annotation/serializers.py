@@ -113,9 +113,7 @@ class AnnotationSerializer(serializers.ModelSerializer):
         if instance.location:
             if instance.location.location_type == "text_span":  # TextSpanLocation
                 data["location"] = TextSpanLocationSerializer(instance.location).data
-            elif (
-                instance.location.location_type == "timeseries_interval"
-            ):  
+            elif instance.location.location_type == "timeseries_interval":
                 data["location"] = TimeseriesIntervalLocationSerializer(
                     instance.location
                 ).data
@@ -165,12 +163,15 @@ class AnnotationSerializer(serializers.ModelSerializer):
                 jsonschema.validate(labels, schema)
             except jsonschema.exceptions.ValidationError as e:
                 raise serializers.ValidationError(e.message) from e
-         # validate location type
+        # validate location type
         location_data = self.initial_data.get("location", {})
-        if location_data.get("location_type") != annotation_type_obj.allowed_location_type:
-            raise serializers.ValidationError({
-                "location": f"Location type must be '{annotation_type_obj.allowed_location_type}' "
-                            f"for annotation type '{annotation_type}', "
-                            f"but got '{location_data.get('location_type')}'"
-            })
+        if (
+            location_data.get("location_type")
+            != annotation_type_obj.allowed_location_type
+        ):
+            raise serializers.ValidationError(
+                f"Location type must be '{annotation_type_obj.allowed_location_type} \
+                    for annotation type '{annotation_type}' but got \
+                        '{location_data.get('location_type')}'"
+            )
         return data
