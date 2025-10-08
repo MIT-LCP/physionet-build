@@ -111,12 +111,11 @@ class AnnotationSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if instance.location:
-            # Use the appropriate serializer based on location type
             if instance.location.location_type == "text_span":  # TextSpanLocation
                 data["location"] = TextSpanLocationSerializer(instance.location).data
             elif (
                 instance.location.location_type == "timeseries_interval"
-            ):  # TimeseriesIntervalLocation
+            ):  
                 data["location"] = TimeseriesIntervalLocationSerializer(
                     instance.location
                 ).data
@@ -129,23 +128,13 @@ class AnnotationSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        # Map the slug fields to the actual model fields
-        if "collection" in validated_data:
-            validated_data["collection"] = validated_data.pop("collection")
-        if "annotation_type" in validated_data:
-            validated_data["annotation_type"] = validated_data.pop("annotation_type")
-        if "project" in validated_data:
-            validated_data["project"] = validated_data.pop("project")
-        # Create Location the
         request = self.context.get("request")
         if "location" in validated_data:
             location_data = validated_data.pop("location")
-            # print("Location Raw Data: ", location_data)
             if "id" not in location_data:
                 location_data["id"] = uuid.uuid4()
                 if request.user and request.user.is_authenticated:
                     location_data["created_by"] = request.user
-
             location_obj = None
             if (
                 location_data["location_type"]
@@ -158,11 +147,7 @@ class AnnotationSerializer(serializers.ModelSerializer):
                 location_obj = ImageBBoxLocation.objects.create(**location_data)
             elif location_data["location_type"] == AllowedLocationType.TEXT_SPAN.value:
                 location_obj = TextSpanLocation.objects.create(**location_data)
-                # print("Location: ", location_obj)
-
             validated_data["location"] = location_obj
-            # print("Validated Data after location: ", validated_data)
-
         if request and request.user and request.user.is_authenticated:
             validated_data["created_by"] = request.user
         return super().create(validated_data)
@@ -180,4 +165,12 @@ class AnnotationSerializer(serializers.ModelSerializer):
                 jsonschema.validate(labels, schema)
             except jsonschema.exceptions.ValidationError as e:
                 raise serializers.ValidationError(e.message) from e
+         # validate location type
+        location_data = self.initial_data.get("location", {})
+        if location_data.get("location_type") != annotation_type_obj.allowed_location_type:
+            raise serializers.ValidationError({
+                "location": f"Location type must be '{annotation_type_obj.allowed_location_type}' "
+                            f"for annotation type '{annotation_type}', "
+                            f"but got '{location_data.get('location_type')}'"
+            })
         return data

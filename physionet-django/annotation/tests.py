@@ -1,6 +1,4 @@
-import requests
 import json
-import os
 from django.utils import timezone
 from datetime import timedelta
 
@@ -17,12 +15,12 @@ from django.test import RequestFactory, TestCase
 from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
 from oauth2_provider.models import get_access_token_model, get_application_model
 from oauth2_provider.settings import oauth2_settings
+from django.urls import reverse
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
 
 CLEARTEXT_SECRET = "1234567890abcdefghijklmnopqrstuvwxyz"
-BASE_URL = "http://127.0.0.1:8000"
 
 
 class BaseTest(TestCase):
@@ -69,7 +67,7 @@ class BaseTest(TestCase):
         }
 
         response = self.client.post(
-            f"{BASE_URL}/api/annotations/collection/create/",
+            reverse("annotation:annotation-collection-create"),
             data=data,
             format="json",
             HTTP_AUTHORIZATION=self.auth_header,
@@ -95,7 +93,7 @@ class BaseTest(TestCase):
             "allowed_location_type": "text_span",
         }
         request = self.client.post(
-            f"{BASE_URL}/api/annotations/type/create/",
+            reverse("annotation:annotation-type-create"),
             data=data,
             format="json",
             HTTP_AUTHORIZATION=self.auth_header,
@@ -107,7 +105,7 @@ class BaseTest(TestCase):
         Helper function to create annotation
         """
         response = self.client.post(
-            f"{BASE_URL}/api/annotations/collections/{self.collection.slug}/",
+            reverse("annotation:annotation-create-view", args=[self.collection.slug]),
             data=data,
             format="json",
             HTTP_AUTHORIZATION=self.auth_header,
