@@ -33,7 +33,7 @@
           {{ notes|task_count_badge|safe }}
         </a>
       </li>
-      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION %}
+      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION and project.editor == user %}
       <li class="nav-item">
         <a class="nav-link" id="archive-tab" data-toggle="tab" href="#archive" role="tab" aria-controls="archive" aria-selected="false">Archive Project</a>
       </li>
@@ -164,16 +164,17 @@
       </div>
 
       {# Archive Project #}
-      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION %}
+      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION and project.editor == user %}
       <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
         <div class="alert alert-warning" role="alert">
-          <p>You may archive the project <strong>"{{ project.title }}"</strong>.</p>
+          <p>As the project editor, you may archive the project <strong>"{{ project.title }}"</strong>.</p>
           <p>This action will:</p>
           <ul>
             <li>Move the project to "Archived" status</li>
             <li>Prevent authors from editing the project</li>
             <li>Remove the project from active submission workflow</li>
           </ul>
+          <p><strong>Note:</strong> Only the project editor can archive a project.</p>
         </div>
 
         <form action="{% url 'submission_info' project.slug %}" method="POST" id="archive_project_form">
@@ -190,7 +191,7 @@
 
           <div class="form-group">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="send_email" name="send_email" value="1">
+              <input class="form-check-input" type="checkbox" id="send_email" name="send_email" value="1" checked>
               <label class="form-check-label" for="send_email">
                 Send email notification to authors
               </label>
