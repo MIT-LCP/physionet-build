@@ -40,6 +40,7 @@ django-storages = { version = "^1.11.1", extras = ["google"] }
 requests = "2.32.4"
 cffi = "^1.15.1"
 pytz = "^2022.1"
+packaging = "^25.0"
 django-sass = "1.1.0"
 zxcvbn = "^4.4.28"
 certifi = "^2024.7.4"
