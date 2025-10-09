@@ -73,6 +73,18 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
         published_project.make_zip()
 
 
+class ArchiveReason(models.IntegerChoices):
+    """
+    Numeric codes to indicate the reason for archiving a project.
+
+    These codes are stored in the archive_reason field of
+    ActiveProject.
+    """
+    REJECTED = 0, 'Rejected by editor'
+    DELETED_BY_AUTHOR = 1, 'Deleted by author'
+    ARCHIVED_BY_EDITOR = 2, 'Archived by editor'
+
+
 class SubmissionStatus(IntEnum):
     """
     Numeric codes to indicate submission status of a project.
@@ -153,6 +165,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     "phase" of submission; see SubmissionStatus.
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
+    archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
+    archive_reason_text = models.TextField(null=True, blank=True)
 
     # Max number of active submitting projects a user is allowed to have
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
@@ -250,6 +264,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     def submission_status_label(self):
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
+
     def author_editable(self):
         """
         Whether the project can be edited by its authors
@@ -264,11 +279,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if self.submission_status == SubmissionStatus.NEEDS_COPYEDIT:
             return True
 
-    def archive(self, archive_reason, clear_files=False):
+    def archive(self, archive_reason, archive_reason_text='', clear_files=False):
         """
         Archive the project. Sets the status of the project to "Archived" object.
         """
         self.submission_status = SubmissionStatus.ARCHIVED
+        self.archive_reason = archive_reason
+        self.archive_reason_text = archive_reason_text
         self.archive_datetime = timezone.now()
         self.save()
 
@@ -417,7 +434,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Reject a project under submission
         """
-        self.archive(archive_reason=0)
+        self.archive(archive_reason=ArchiveReason.REJECTED)
 
     def is_resubmittable(self):
         """

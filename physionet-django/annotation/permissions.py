@@ -10,6 +10,7 @@ class AnnotationsScope(TokenHasScope):
             else ["annotations:annotations:write"]
         )
 
+
 class AnnotationsTypesScope(TokenHasScope):
     def get_scopes(self, request, view):
         return (
@@ -18,6 +19,7 @@ class AnnotationsTypesScope(TokenHasScope):
             else ["annotations:types:write"]
         )
 
+
 class AnnotationsCollectionsScope(TokenHasScope):
     def get_scopes(self, request, view):
         return (
@@ -25,14 +27,3 @@ class AnnotationsCollectionsScope(TokenHasScope):
             if request.method in SAFE_METHODS
             else ["annotations:collections:write"]
         )
-
-class DjangoModelPermissionsWithView(DjangoModelPermissions):
-    perms_map = {
-        "GET": ["%(app_label)s.view_%(model_name)s"],
-        "HEAD": ["%(app_label)s.view_%(model_name)s"],
-        "OPTIONS": ["%(app_label)s.view_%(model_name)s"],
-        "POST": ["%(app_label)s.add_%(model_name)s"],
-        "PUT": ["%(app_label)s.change_%(model_name)s"],
-        "PATCH": ["%(app_label)s.change_%(model_name)s"],
-        "DELETE": ["%(app_label)s.delete_%(model_name)s"],
-    }

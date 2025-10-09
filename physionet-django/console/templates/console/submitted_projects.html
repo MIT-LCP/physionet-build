@@ -164,14 +164,21 @@
                   <td>{{ project.latest_reminder|date }}</td>
                   <td>{{ project.editor }}</td>
                   <td>
-                    <form action="" method="post" class="form-signin">
-                      {% csrf_token %}
-                      {% if project.latest_reminder < yesterday %}
-                      <button class="btn btn-primary" name="send_revision_reminder" value="{{ project.id }}" type="submit">Send Reminder Email</button>
+                    <div class="btn-group" role="group">
+                      <form action="" method="post" class="form-signin d-inline">
+                        {% csrf_token %}
+                        {% if project.latest_reminder < yesterday %}
+                        <button class="btn btn-primary btn-sm" name="send_revision_reminder" value="{{ project.id }}" type="submit">Send Reminder</button>
+                        {% else %}
+                        <button class="btn btn-primary btn-sm" name="send_revision_reminder" value="{{ project.id }}" disabled type="submit">Send Reminder</button>
+                        {% endif %}
+                      </form>
+                      {% if project.editor == user %}
+                        <a href="{% url 'submission_info' project.slug %}?tab=archive" class="btn btn-warning btn-sm ml-2" role="button">Archive</a>
                       {% else %}
-                      <button class="btn btn-primary" name="send_revision_reminder" value="{{ project.id }}" disabled type="submit">Send Reminder Email</button>
+                        <button class="btn btn-warning btn-sm ml-2" disabled title="Only the handling editor ({{ project.editor }}) can archive this project" data-toggle="tooltip">Archive</button>
                       {% endif %}
-                    </form>
+                    </div>
                   </td>
                 </tr>
               {% endfor %}

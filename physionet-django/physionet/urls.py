@@ -10,6 +10,10 @@ from django.urls import path
 from physionet import views
 from physionet.settings.base import StorageTypes
 
+handler403 = 'physionet.views.error_403'
+handler404 = 'physionet.views.error_404'
+handler500 = 'physionet.views.error_500'
+
 urlpatterns = [
     # django admin app
     path('admin/', admin.site.urls),

@@ -1,8 +1,6 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
-from django.http import JsonResponse
 import json
 
 from annotation.models import Annotation, AnnotationCollection, AnnotationType
@@ -17,10 +15,11 @@ from oauth2_provider.contrib.rest_framework import (
     TokenHasScope,
     OAuth2Authentication,
 )
-from oauth2_provider.decorators import protected_resource
-from oauth2_provider.views.generic import ProtectedResourceView
-from annotation.permissions import AnnotationsScope, AnnotationsCollectionsScope, AnnotationsTypesScope
-from rest_framework.permissions import SAFE_METHODS
+from annotation.permissions import (
+    AnnotationsScope,
+    AnnotationsTypesScope,
+    AnnotationsCollectionsScope,
+)
 
 
 class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
@@ -32,7 +31,6 @@ class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
     permission_classes = [AnnotationsCollectionsScope, IsAuthenticated]
     serializer_class = AnnotationCollectionSerializer
     queryset = AnnotationCollection.objects.all()
-    required_scopes = ["annotations:collections:write"]
 
 
 class AnnotationTypeCreateAPIView(generics.CreateAPIView):
@@ -44,7 +42,6 @@ class AnnotationTypeCreateAPIView(generics.CreateAPIView):
     permission_classes = [AnnotationsTypesScope, IsAuthenticated]
     serializer_class = AnnotationTypeSerializer
     queryset = AnnotationType.objects.all()
-    required_scopes = ["annotations:types:write"]
 
 
 class AnnotationCreateAPIView(generics.CreateAPIView):
@@ -56,7 +53,6 @@ class AnnotationCreateAPIView(generics.CreateAPIView):
     permission_classes = [AnnotationsScope, IsAuthenticated]
     serializer_class = AnnotationSerializer
     queryset = Annotation.objects.all()
-    required_scopes = ["annotations:annotations:write"]
 
     def create(self, request, *args, **kwargs):
         collection = kwargs.get("collection_slug")

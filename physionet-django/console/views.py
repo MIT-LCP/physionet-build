@@ -7,6 +7,7 @@ from itertools import chain
 from statistics import StatisticsError, median
 
 import notification.utility as notification
+from notification.utility import archive_notify
 from background_task import background
 from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
@@ -62,6 +63,7 @@ from project.authorization.access import can_view_project_files
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
+from project.modelcomponents.activeproject import ArchiveReason
 from user.models import (
     AssociatedEmail,
     CredentialApplication,
@@ -376,6 +378,25 @@ def submission_info(request, project_slug):
         else:
             messages.error(request, "You are not authorized to delete this note.")
         return redirect(f'{request.path}?tab=notes')
+    if 'archive_project' in request.POST:
+        if user != project.editor:
+            messages.error(request, 'Only the project editor can archive a project.')
+            return redirect(f'{request.path}?tab=archive')
+
+        if project.submission_status != SubmissionStatus.NEEDS_RESUBMISSION:
+            messages.error(request, 'Only projects awaiting author revisions can be archived.')
+            return redirect(f'{request.path}?tab=archive')
+
+        archive_reason_text = request.POST.get('archive_reason', '').strip()
+        send_email = request.POST.get('send_email', False)
+
+        project.archive(archive_reason=ArchiveReason.ARCHIVED_BY_EDITOR, archive_reason_text=archive_reason_text)
+
+        if send_email:
+            archive_notify(request, project, archive_reason_text)
+
+        messages.success(request, f'Project "{project.title}" has been archived successfully.')
+        return redirect('submitted_projects')
 
     return render(request, 'console/submission_info.html',
                   {**submission_info_card_params(

@@ -30,4 +30,13 @@
   }
 </script>
 {% endif %}
+<script>
+  // Activate archive tab if URL contains ?tab=archive
+  $(document).ready(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tab') === 'archive') {
+      $('#archive-tab').tab('show');
+    }
+  });
+</script>
 {% endblock %}

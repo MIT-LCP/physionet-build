@@ -126,7 +126,7 @@ if settings.ORCID_LOGIN_ENABLED:
             re_path(
                 r"^orcid_activate/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,32})/$",
                 views.activate_orcid_user,
-                name="orcid_activate_user"
+                name="orcid_activate_user",
             ),
         ]
     )

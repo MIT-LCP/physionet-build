@@ -51,6 +51,7 @@ from project.models import (
     UploadedDocument,
     AWS,
 )
+from project.modelcomponents.activeproject import ArchiveReason
 from project.authorization.access import can_view_project_files, can_access_project
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
@@ -407,7 +408,7 @@ def project_overview(request, project_slug, **kwargs):
     under_submission = project.under_submission()
 
     if request.method == 'POST' and 'delete_project' in request.POST and is_submitting and not under_submission:
-        project.archive(archive_reason=1, clear_files=True)
+        project.archive(archive_reason=ArchiveReason.DELETED_BY_AUTHOR, clear_files=True)
         return redirect('delete_project_success')
 
     return render(request, 'project/project_overview.html',

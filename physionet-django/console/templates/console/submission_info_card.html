@@ -33,6 +33,11 @@
           {{ notes|task_count_badge|safe }}
         </a>
       </li>
+      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION and project.editor == user %}
+      <li class="nav-item">
+        <a class="nav-link" id="archive-tab" data-toggle="tab" href="#archive" role="tab" aria-controls="archive" aria-selected="false">Archive Project</a>
+      </li>
+      {% endif %}
     </ul>
   </div>
   <div class="card-body">
@@ -157,6 +162,56 @@
           </button>
         </form>
       </div>
+
+      {# Archive Project #}
+      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION and project.editor == user %}
+      <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
+        <div class="alert alert-warning" role="alert">
+          <p>As the project editor, you may archive the project <strong>"{{ project.title }}"</strong>.</p>
+          <p>This action will:</p>
+          <ul>
+            <li>Move the project to "Archived" status</li>
+            <li>Prevent authors from editing the project</li>
+            <li>Remove the project from active submission workflow</li>
+          </ul>
+          <p><strong>Note:</strong> Only the project editor can archive a project.</p>
+        </div>
+
+        <form action="{% url 'submission_info' project.slug %}" method="POST" id="archive_project_form">
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label for="archive_reason">Reason for archiving (optional):</label>
+            <textarea class="form-control" id="archive_reason" name="archive_reason" rows="4" 
+                      placeholder="Please provide a reason for archiving this project..."></textarea>
+            <small class="form-text text-muted">
+              This reason will be included in the email notification to authors if you choose to send one.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="send_email" name="send_email" value="1" checked>
+              <label class="form-check-label" for="send_email">
+                Send email notification to authors
+              </label>
+            </div>
+            <small class="form-text text-muted">
+              If checked, an email will be sent to all project authors with the reason for archiving.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <button type="submit" class="btn btn-danger" name="archive_project" onclick="return confirm('Are you sure you want to archive this project?');">
+              Archive Project
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="document.getElementById('archive-tab').click();">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+      {% endif %}
 
       {# Permanent Reassign #}
       {% if project.editor == user %}

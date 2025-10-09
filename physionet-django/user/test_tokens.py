@@ -28,10 +28,15 @@ class TestAccessTokens(TestCase):
         self.assertContains(response, "API Access Tokens")
 
     def test_create_token_with_fixed_60_day_expiration(self):
-        response = self.client.post(reverse("edit_tokens"), data={"name": "Fixed Expiry Token"})
+        response = self.client.post(
+            reverse("edit_tokens"),
+            data={"annotation_endpoints": ["annotations/types/read"]},
+        )
         self.assertRedirects(response, reverse("edit_tokens"))
 
-        token = AccessToken.objects.filter(user=self.user, application=self.application).latest("created")
+        token = AccessToken.objects.filter(
+            user=self.user, application=self.application
+        ).latest("created")
         self.assertIsNotNone(token.expires)
 
         expected_expiration = token.created + timedelta(days=60)
@@ -62,20 +67,25 @@ class TestAccessTokens(TestCase):
 
     def test_token_generation(self):
         # Reset tokens
-        AccessToken.objects.filter(user=self.user, application=self.application).delete()
+        AccessToken.objects.filter(
+            user=self.user, application=self.application
+        ).delete()
 
-        self.client.login(username='admin@mit.edu', password='Tester11!')
-        user = User.objects.get(email='admin@mit.edu')
+        self.client.login(username="admin@mit.edu", password="Tester11!")
+        user = User.objects.get(email="admin@mit.edu")
 
         # Visit the token settings page (GET)
-        response = self.client.get(reverse('edit_tokens'))
+        response = self.client.get(reverse("edit_tokens"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "API Access Tokens")
 
         # Create a new token (POST)
-        response = self.client.post(reverse('edit_tokens'), data={'name': 'Test Token'})
+        response = self.client.post(
+            reverse("edit_tokens"),
+            data={"annotation_endpoints": ["annotations/types/read"]},
+        )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['Location'], reverse('edit_tokens'))
+        self.assertEqual(response["Location"], reverse("edit_tokens"))
 
         # Verify that token exists in DB
         tokens = AccessToken.objects.filter(user=user)
@@ -86,7 +96,9 @@ class TestAccessTokens(TestCase):
         """
         Users are limited to 3 tokens at a time.
         """
-        AccessToken.objects.filter(user=self.user, application=self.application).delete()
+        AccessToken.objects.filter(
+            user=self.user, application=self.application
+        ).delete()
         for i in range(3):
             AccessToken.objects.create(
                 user=self.user,
@@ -96,6 +108,7 @@ class TestAccessTokens(TestCase):
                 scope="data:download",
             )
 
-        response = self.client.post(reverse("edit_tokens"),
-                                    data={"name": "Should Fail"}, follow=True)
+        response = self.client.post(
+            reverse("edit_tokens"), data={"name": "Should Fail"}, follow=True
+        )
         self.assertContains(response, "You can only have up to 3 tokens")
