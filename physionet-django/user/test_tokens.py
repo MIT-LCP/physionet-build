@@ -28,7 +28,8 @@ class TestAccessTokens(TestCase):
         self.assertContains(response, "API Access Tokens")
 
     def test_create_token_with_fixed_60_day_expiration(self):
-        response = self.client.post(reverse("edit_tokens"), data={"name": "Fixed Expiry Token"})
+        response = self.client.post(reverse("edit_tokens"), \
+            data={"annotation_endpoints": ["annotations/types/read"]},)
         self.assertRedirects(response, reverse("edit_tokens"))
 
         token = AccessToken.objects.filter(user=self.user, application=self.application).latest("created")
@@ -73,7 +74,8 @@ class TestAccessTokens(TestCase):
         self.assertContains(response, "API Access Tokens")
 
         # Create a new token (POST)
-        response = self.client.post(reverse('edit_tokens'), data={'name': 'Test Token'})
+        response = self.client.post(reverse('edit_tokens'),\
+            data={"annotation_endpoints": ["annotations/types/read"]},)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['Location'], reverse('edit_tokens'))
 

@@ -15,7 +15,11 @@ from oauth2_provider.contrib.rest_framework import (
     TokenHasScope,
     OAuth2Authentication,
 )
-from annotation.permissions import AnnotationsScope
+from annotation.permissions import (
+    AnnotationsScope,
+    AnnotationsTypesScope,
+    AnnotationsCollectionsScope,
+)
 
 
 class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
@@ -24,7 +28,7 @@ class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
     """
 
     authentication_classes = [OAuth2Authentication]
-    permission_classes = [AnnotationsScope, IsAuthenticated]
+    permission_classes = [AnnotationsCollectionsScope, IsAuthenticated]
     serializer_class = AnnotationCollectionSerializer
     queryset = AnnotationCollection.objects.all()
 
@@ -35,7 +39,7 @@ class AnnotationTypeCreateAPIView(generics.CreateAPIView):
     """
 
     authentication_classes = [OAuth2Authentication]
-    permission_classes = [AnnotationsScope, IsAuthenticated]
+    permission_classes = [AnnotationsTypesScope, IsAuthenticated]
     serializer_class = AnnotationTypeSerializer
     queryset = AnnotationType.objects.all()
 
