@@ -209,8 +209,8 @@ class Annotation(models.Model):
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    collection = models.ForeignKey(AnnotationCollection, on_delete=models.CASCADE, related_name='collection_slug')
-    annotation_type = models.ForeignKey(AnnotationType, on_delete=models.PROTECT, related_name='annotation_type_slug')
+    collection = models.ForeignKey(AnnotationCollection, on_delete=models.CASCADE, related_name='annotations')
+    annotation_type = models.ForeignKey(AnnotationType, on_delete=models.PROTECT, related_name='annotations')
 
     # Anchor to the file
     project = models.ForeignKey(
@@ -218,14 +218,14 @@ class Annotation(models.Model):
         on_delete=models.CASCADE,
         null=True,
         blank=True,
-        related_name='project_slug')
+        related_name='annotations')
     file_path = models.CharField(max_length=500)
 
     # Labels: validated by AnnotationType.label_schema
     labels = models.JSONField(default=dict, blank=True)
 
     location = models.OneToOneField(
-        BaseLocation, on_delete=models.CASCADE, related_name='location'
+        BaseLocation, on_delete=models.CASCADE, related_name='annotations'
     )
     created_by = models.ForeignKey('user.User', on_delete=models.CASCADE)
     created_datetime = models.DateTimeField(auto_now_add=True)
