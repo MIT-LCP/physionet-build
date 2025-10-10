@@ -32,6 +32,20 @@ class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
     serializer_class = AnnotationCollectionSerializer
     queryset = AnnotationCollection.objects.all()
 
+class AnnotationCollectionReadAPIView(generics.RetrieveAPIView):
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [AnnotationsCollectionsScope, IsAuthenticated]
+    serializer_class = AnnotationCollectionSerializer
+    queryset = AnnotationCollection.objects.all()
+    lookup_field = "slug"
+
+    def get_queryset(self):
+        return AnnotationCollection.objects.prefetch_related(
+            'annotations',  # Current related_name (or 'annotations' if you change it)
+            'annotations__annotation_type',  # Also prefetch annotation types
+            'annotations__location',  # And locations
+            'annotations__project'  # And projects
+        )
 
 class AnnotationTypeCreateAPIView(generics.CreateAPIView):
     """
