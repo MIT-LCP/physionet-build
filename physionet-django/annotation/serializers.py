@@ -19,7 +19,6 @@ from oauth2_provider.views.generic import (
 import uuid
 
 
-
 class AnnotationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnnotationType
@@ -92,13 +91,17 @@ class AnnotationSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if instance.location:
             if instance.location.location_type == "text_span":  # TextSpanLocation
-                data["location"] = TextSpanLocationSerializer(instance.location.textspanlocation).data
+                data["location"] = TextSpanLocationSerializer(
+                    instance.location.textspanlocation
+                ).data
             elif instance.location.location_type == "timeseries_interval":
                 data["location"] = TimeseriesIntervalLocationSerializer(
                     instance.location.timeseriesintervallocation
                 ).data
             elif instance.location.location_type == "image_bbox":  # ImageBBoxLocation
-                data["location"] = ImageBBoxLocationSerializer(instance.location.imagebboxlocation).data
+                data["location"] = ImageBBoxLocationSerializer(
+                    instance.location.imagebboxlocation
+                ).data
             else:
                 raise serializers.ValidationError(
                     f"Unknown location_type: {instance.location.location_type}"
@@ -158,10 +161,7 @@ class AnnotationSerializer(serializers.ModelSerializer):
 
 
 class AnnotationCollectionSerializer(serializers.ModelSerializer):
-    annotations = AnnotationSerializer(
-        many=True, 
-        read_only=True
-    )
+    annotations = AnnotationSerializer(many=True, read_only=True)
 
     class Meta:
         model = AnnotationCollection

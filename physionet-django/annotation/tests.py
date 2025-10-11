@@ -79,7 +79,9 @@ class BaseTest(TestCase):
         Helper function to read annotation collection
         """
         response = self.client.get(
-            reverse("annotation:annotation-collection-read", args=[self.collection.slug]),
+            reverse(
+                "annotation:annotation-collection-read", args=[self.collection.slug]
+            ),
             format="json",
             HTTP_AUTHORIZATION=self.auth_header,
         )
@@ -173,7 +175,7 @@ class AnnotationAPITests(BaseTest):
         response = self._create_annotation_collection()
         self.assertEqual(response.status_code, 403)
         response = response.json()
-    
+
     def test_read_annotation_collection_correct_scope(self):
         self.collection = AnnotationCollection.objects.create(
             slug="test-collection-text-span",
@@ -407,4 +409,3 @@ class AnnotationAPITests(BaseTest):
         self.auth_header = self._create_authorization_header(self.access_token.token)
         response = self._create_annotation(data=timeseries_interval_annotation_data)
         self.assertEqual(response.status_code, 400)
-
