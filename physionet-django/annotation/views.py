@@ -42,10 +42,10 @@ class AnnotationCollectionReadAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return AnnotationCollection.objects.prefetch_related(
-            "annotations",
-            "annotations__annotation_type",
-            "annotations__location",
-            "annotations__project",
+            "collection_slug",
+            "collection_slug__annotation_type",
+            "collection_slug__location",
+            "collection_slug__project",
         )
 
 
