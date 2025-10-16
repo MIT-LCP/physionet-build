@@ -14669,6 +14669,49 @@
   }
 },
 {
+  "model": "auth.group",
+  "fields": {
+    "name": "Annotator",
+    "permissions": [
+      [
+        "add_annotation",
+        "annotation",
+        "annotation"
+      ],
+      [
+        "change_annotation",
+        "annotation",
+        "annotation"
+      ],
+      [
+        "view_annotation",
+        "annotation",
+        "annotation"
+      ],
+      [
+        "add_annotationcollection",
+        "annotation",
+        "annotationcollection"
+      ],
+      [
+        "change_annotationcollection",
+        "annotation",
+        "annotationcollection"
+      ],
+      [
+        "view_annotationcollection",
+        "annotation",
+        "annotationcollection"
+      ],
+      [
+        "view_annotationtype",
+        "annotation",
+        "annotationtype"
+      ]
+    ]
+  }
+},
+{
   "model": "user.training",
   "pk": 1,
   "fields": {
