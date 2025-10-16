@@ -12,12 +12,11 @@
   Tokens expire automatically after <strong>60 days</strong>. Keep these tokens secret — they act like passwords. You can revoke them at any time.
 </p>
 
-<form action="" method="post" class="form-inline mt-3">
+<form action="" method="post" class="form-inline mt-3" id="token-form">
   {% csrf_token %}
   <div class="form-group">
     <label for="token-name">Create new token:</label>&nbsp;
-    <input type="text" class="form-control" id="token-name" name="name" placeholder="e.g. My Laptop" required>
-    <button class="btn btn-primary ml-2" type="submit">Generate</button>
+    <button class="btn btn-primary ml-2" type="button" id="create-token-btn">Generate</button>
   </div>
 </form>
 
@@ -27,8 +26,16 @@
     {% for token in tokens %}
       <li class="list-group-item d-flex justify-content-between align-items-center">
       <div>
-        <code>{{ token.token }}</code>
+        <strong>ID:</strong> {{ token.id }} <medium>– </medium><span class=""><code>{{ token.token }}</code></span>
         <br>
+        <strong>Scopes:</strong> 
+        <br>
+        <div class="ml-4">
+          {% for model_type, permissions in token.grouped_scopes.items %}
+          <medium>{{ model_type }}:</medium> <code> {{ permissions|join:", " }}</code>
+          <br>
+        {% endfor %}
+        </div>
         <small>
         Created {{ token.created|date:"Y-m-d H:i" }} —
         Expires {{ token.expires|date:"Y-m-d H:i" }}
@@ -40,6 +47,114 @@
     {% endfor %}  
   </ul>
 {% else %}
-  <p class="mt-4">You don’t have any tokens yet.</p>
+  <p class="mt-4">You don't have any tokens yet.</p>
 {% endif %}
+
+<!-- Scope Selection Modal -->
+<div class="modal fade" id="scopeModal" tabindex="-1" role="dialog" aria-labelledby="scopeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="scopeModalLabel">Select API Scopes</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Choose which permissions this token should have. You can select multiple scopes:</p>
+        <form id="scope-form">
+          <div class="card mb-3">
+            <div class="card-header">
+              <h6 class="mb-0">Annotation API Endpoints</h6>
+            </div>
+            {% for endpoint, scopes_info in available_endpoints.items %}
+            <div class="card-body">
+              <div class="ml-4">                    
+                <div class="form-group">
+                  <label>{{ scopes_info.name }}:</label>
+                  <div class="endpoint-label">{{ endpoint }}</div>
+                  <div class="form-check form-check-inline gap-2">
+                    {% for scope in scopes_info.scopes %}
+                      <input class="form-check-input annotation-endpoint" type="checkbox" name="annotation_endpoints" value="{{ endpoint }}{{ scope }}" id="{{ scope }}">
+                      <label class="form-check-label" for="{{ scope }}">{{ scope }}</label>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirm-scopes">Create Token</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .endpoint-label {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.9em;
+    font-weight: 400;
+    color: #495057;
+    background-color: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    display: inline-block;
+    margin: 4px 0;
+  }
+  .gap-2 {
+    gap: 0.5rem;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const createTokenBtn = document.getElementById('create-token-btn');
+    const scopeModal = document.getElementById('scopeModal');
+    const scopeForm = document.getElementById('scope-form');
+    const tokenForm = document.getElementById('token-form');
+    const confirmScopesBtn = document.getElementById('confirm-scopes');
+    const tokenNameInput = document.getElementById('token-name');
+
+    createTokenBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        $(scopeModal).modal('show');
+    });
+
+    confirmScopesBtn.addEventListener('click', function() {
+        const selectedAnnotationEndpoints = Array.from(document.querySelectorAll('input[name="annotation_endpoints"]:checked'));
+        
+        if (selectedAnnotationEndpoints.length === 0) {
+            alert('Please select at least one scope for the token.');
+            return;
+        }
+        // Add selected annotation endpoints
+        selectedAnnotationEndpoints.forEach(function(endpoint) {
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'annotation_endpoints';
+            hiddenInput.value = endpoint.value;
+            tokenForm.appendChild(hiddenInput);
+        });
+        tokenForm.submit();
+    });
+
+    $(scopeModal).on('hidden.bs.modal', function() {
+        const existingHiddenInputs = tokenForm.querySelectorAll('input[name="name"], input[name="annotation_endpoints"]');
+        existingHiddenInputs.forEach(function(input) {
+            input.remove();
+        });
+        
+        const checkboxes = scopeForm.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(function(checkbox) {
+            checkbox.checked = false;
+        });
+    });
+});
+</script>
 {% endblock %}

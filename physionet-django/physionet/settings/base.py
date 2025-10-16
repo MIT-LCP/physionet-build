@@ -803,8 +803,12 @@ OAUTH2_PROVIDER = {
         "orcid:read": "Read access to user's ORCID iD",
         "public_id:read": "Read access to the user's persistent public ID",
         "data:download": "Download project data if token-holder is approved for access (training, DUA, etc).",
-        "annotations:view": "Read Annotation resources",
-        "annotations:edit": "Create/Update/Delete Annotation resources",
+        "annotations:collections:read": "Read access to annotation collections",
+        "annotations:collections:write": "Create/Update/Delete annotation collections",
+        "annotations:types:read": "Read access to annotation types",
+        "annotations:types:write": "Create/Update/Delete annotation types",
+        "annotations:annotations:read": "Read access to annotations",
+        "annotations:annotations:write": "Create/Update/Delete annotations",
     }
 }
 
