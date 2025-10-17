@@ -71,11 +71,11 @@ class TestAccessTokens(TestCase):
             user=self.user, application=self.application
         ).delete()
 
-        self.client.login(username="admin@mit.edu", password="Tester11!")
-        user = User.objects.get(email="admin@mit.edu")
+        self.client.login(username='admin@mit.edu', password='Tester11!')
+        user = User.objects.get(email='admin@mit.edu')
 
         # Visit the token settings page (GET)
-        response = self.client.get(reverse("edit_tokens"))
+        response = self.client.get(reverse('edit_tokens'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "API Access Tokens")
 
@@ -85,7 +85,7 @@ class TestAccessTokens(TestCase):
             data={"annotation_endpoints": ["annotations/types/read"]},
         )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response["Location"], reverse("edit_tokens"))
+        self.assertEqual(response['Location'], reverse('edit_tokens'))
 
         # Verify that token exists in DB
         tokens = AccessToken.objects.filter(user=user)
