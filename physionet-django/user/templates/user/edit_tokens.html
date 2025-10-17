@@ -74,9 +74,15 @@
                   <label>{{ scopes_info.name }}:</label>
                   <div class="endpoint-label">{{ endpoint }}</div>
                   <div class="form-check form-check-inline gap-2">
-                    {% for scope in scopes_info.scopes %}
-                      <input class="form-check-input annotation-endpoint" type="checkbox" name="annotation_endpoints" value="{{ endpoint }}{{ scope }}" id="{{ scope }}">
-                      <label class="form-check-label" for="{{ scope }}">{{ scope }}</label>
+                    {% for scope_option in scopes_info.scope_options %}
+                      <input class="form-check-input annotation-endpoint" 
+                             type="checkbox" 
+                             name="annotation_endpoints" 
+                             value="{{ scope_option.value }}" 
+                             id="{{ scope_option.id }}">
+                      <label class="form-check-label" for="{{ scope_option.id }}">
+                        {{ scope_option.label }}
+                      </label>
                     {% endfor %}
                   </div>
                 </div>

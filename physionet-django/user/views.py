@@ -568,10 +568,15 @@ def edit_tokens(request):
         if scope in SCOPE_TO_ENDPOINT:
             endpoint, name = SCOPE_TO_ENDPOINT[scope]
             if endpoint not in available_endpoints:
-                available_endpoints[endpoint] = {"name": name, "scopes": []}
+                available_endpoints[endpoint] = {"name": name, "scope_options": []}
             # parsing the permission at the end of scope as R/W
-            scope_cleaned = scope.split(":")[-1]
-            available_endpoints[endpoint]["scopes"].append(scope_cleaned)
+            scope_method = scope.split(":")[-1]
+            # Build complete scope option with value and label
+            available_endpoints[endpoint]["scope_options"].append({
+                "value": endpoint + scope_method,  
+                "label": scope_method, 
+                "id": f"{endpoint.replace('/', '-')}{scope_method}"  
+            })
         else:
             pass
     return render(
