@@ -495,10 +495,7 @@ def edit_tokens(request):
 
     if request.method == "POST":
         if (AccessToken.objects.filter(
-                user=request.user, application=application
-            ).count()
-            >= 3
-        ):
+                user=request.user, application=application).count() >= 3):
             messages.error(
                 request, "You can only have up to 3 tokens. Please delete one first."
             )
@@ -573,9 +570,9 @@ def edit_tokens(request):
             scope_method = scope.split(":")[-1]
             # Build complete scope option with value and label
             available_endpoints[endpoint]["scope_options"].append({
-                "value": endpoint + scope_method,  
-                "label": scope_method, 
-                "id": f"{endpoint.replace('/', '-')}{scope_method}"  
+                "value": endpoint + scope_method,
+                "label": scope_method,
+                "id": f"{endpoint.replace('/', '-')}{scope_method}"
             })
         else:
             pass
