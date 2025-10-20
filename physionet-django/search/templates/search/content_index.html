@@ -32,6 +32,14 @@
                 <input type="checkbox" id="resource-check">
                 {% include "inline_form_snippet.html" with form=form_type %}
               </div>
+              {% if has_federated_sites %}
+              <div class="federated-search" style="margin-top: 15px;">
+                <label>
+                  <input type="checkbox" name="include_federated" value="true" {% if form_federated.include_federated.value %}checked{% endif %}>
+                  Search across all federated sites
+                </label>
+              </div>
+              {% endif %}
             </div>
             <hr>
             <button class="btn btn-primary btn-rsp" type="submit">Apply</button>
@@ -41,8 +49,16 @@
     </div><div class="main-content">
       <h1>Resources</h1>
       <br>
-      {% if projects|length < 1 %} No results {% endif %}
-      {% include "search/content_list.html" %}
+      {% if projects|length < 1 and federated_results|length < 1 %} No results {% endif %}
+
+      {% if projects|length > 0 %}
+        {% include "search/content_list.html" with projects=projects is_federated=False %}
+      {% endif %}
+
+      {% if federated_results|length > 0 %}
+        <h3 style="margin-top: 2rem; border-top: 2px solid #ddd; padding-top: 1rem;">Results from Federated Sites</h3>
+        {% include "search/content_list.html" with projects=federated_results is_federated=True %}
+      {% endif %}
 
       {% include "console/pagination.html" with pagination=projects %}
 

@@ -11,6 +11,7 @@ from django.templatetags.static import static
 from physionet.utility import paginate
 from project.models import PublishedProject, PublishedTopic
 from search import forms
+from search.federated_search import FederatedSearchService
 
 
 def topic_search(request):
@@ -199,7 +200,13 @@ def content_index(request, resource_type=None):
     else:
         form_topic = forms.TopicSearchForm()
 
-    # BUILD
+    # FEDERATED SEARCH FORM
+    form_federated = forms.FederatedSearchForm(request.GET)
+    include_federated = False
+    if form_federated.is_valid():
+        include_federated = form_federated.cleaned_data.get('include_federated', False)
+
+    # BUILD LOCAL RESULTS
     published_projects = get_content(resource_type=resource_type,
                                      orderby=orderby,
                                      direction=direction,
@@ -207,6 +214,27 @@ def content_index(request, resource_type=None):
 
     # PAGINATION
     projects = paginate(request, published_projects, 10)
+
+    # FEDERATED SEARCH RESULTS
+    federated_results = []
+    page_num = request.GET.get('page', '1')
+    if include_federated and FederatedSearchService.is_enabled() and topic:
+        # Only fetch federated results on page 1 and if there's a search term
+        if page_num == '1':
+            # Convert resource_type to API format
+            api_resource_types = ['all']
+            if resource_type and len(resource_type) < len(LABELS):
+                # Map resource type IDs to names
+                type_names = ['Data', 'Software', 'Challenge', 'Model']
+                api_resource_types = [type_names[rt] for rt in resource_type if rt < len(type_names)]
+
+            # Execute federated search
+            federated_results = FederatedSearchService.search(
+                search_term=topic,
+                resource_type=api_resource_types,
+                page=1,
+                page_size=10
+            )
 
     params = request.GET.copy()
     # Remove the page argument from the querystring if it exists
@@ -225,6 +253,9 @@ def content_index(request, resource_type=None):
             'projects': projects,
             'form_type': form_type,
             'form_topic': form_topic,
+            'form_federated': form_federated,
+            'federated_results': federated_results,
+            'has_federated_sites': FederatedSearchService.is_enabled(),
             'querystring': querystring,
         },
     )

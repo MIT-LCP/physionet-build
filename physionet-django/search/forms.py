@@ -31,3 +31,12 @@ class ProjectTypeForm(forms.Form):
 
     types = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
                                       choices=PROJECT_TYPES, label='')
+
+
+class FederatedSearchForm(forms.Form):
+    include_federated = forms.BooleanField(
+        required=False,
+        initial=True,
+        label='Search across all federated sites',
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
