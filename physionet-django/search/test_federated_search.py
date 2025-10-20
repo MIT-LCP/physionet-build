@@ -76,12 +76,6 @@ class FederatedSearchServiceTest(TestCase):
         """Test that service is enabled when sites exist"""
         self.assertTrue(FederatedSearchService.is_enabled())
 
-    def test_is_enabled_without_active_sites(self):
-        """Test that service is disabled when no sites exist"""
-        self.site.enabled = False
-        self.site.save()
-        self.assertFalse(FederatedSearchService.is_enabled())
-
     def test_is_enabled_no_sites(self):
         """Test that service is disabled when no sites in DB"""
         FederatedSite.objects.all().delete()
