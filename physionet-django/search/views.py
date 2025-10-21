@@ -201,10 +201,27 @@ def content_index(request, resource_type=None):
         form_topic = forms.TopicSearchForm()
 
     # FEDERATED SEARCH FORM
-    form_federated = forms.FederatedSearchForm(request.GET)
-    include_federated = False
-    if form_federated.is_valid():
-        include_federated = form_federated.cleaned_data.get('include_federated', False)
+    # Default to True if 'include_federated' is not explicitly in GET params
+    print(f"DEBUG: request.GET = {request.GET}")
+    print(f"DEBUG: 'include_federated' in request.GET = {'include_federated' in request.GET}")
+    
+    if 'include_federated' in request.GET:
+        # User explicitly submitted the form with checkbox state
+        form_federated = forms.FederatedSearchForm(request.GET)
+        if form_federated.is_valid():
+            include_federated = form_federated.cleaned_data.get('include_federated', False)
+            print(f"DEBUG: User choice - include_federated = {include_federated}")
+        else:
+            include_federated = True
+            print(f"DEBUG: Form invalid, defaulting to True")
+    else:
+        # First visit or form submitted without federated checkbox interaction
+        # Default to True and show checkbox as checked
+        form_federated = forms.FederatedSearchForm(initial={'include_federated': True})
+        include_federated = True
+        print(f"DEBUG: No explicit choice, defaulting to True")
+    
+    print(f"DEBUG: form_federated['include_federated'].value() = {form_federated['include_federated'].value()}")
 
     # BUILD LOCAL RESULTS
     published_projects = get_content(resource_type=resource_type,
@@ -245,6 +262,9 @@ def content_index(request, resource_type=None):
 
     querystring = params.urlencode()
 
+    has_federated_sites = FederatedSearchService.is_enabled()
+    print(f"DEBUG: has_federated_sites = {has_federated_sites}")
+
     return render(
         request,
         'search/content_index.html',
@@ -255,7 +275,7 @@ def content_index(request, resource_type=None):
             'form_topic': form_topic,
             'form_federated': form_federated,
             'federated_results': federated_results,
-            'has_federated_sites': FederatedSearchService.is_enabled(),
+            'has_federated_sites': has_federated_sites,
             'querystring': querystring,
         },
     )
