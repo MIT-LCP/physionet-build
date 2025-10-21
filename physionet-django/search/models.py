@@ -20,7 +20,7 @@ class FederatedSite(models.Model):
     )
     display_name = models.CharField(
         max_length=200,
-        help_text="Display name shown in UI (e.g., 'Health Data Nexus')"
+        help_text="Display name shown in UI (e.g., 'HDN')"
     )
     base_url = models.URLField(
         max_length=500,
@@ -28,7 +28,6 @@ class FederatedSite(models.Model):
     )
     api_endpoint = models.CharField(
         max_length=500,
-        default='/api/v1/projects/published/search/',
         help_text="API endpoint path for search"
     )
     site_type = models.CharField(
