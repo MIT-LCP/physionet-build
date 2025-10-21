@@ -119,25 +119,11 @@ class PhysioNetAdapter(BaseRepositoryAdapter):
         }
 
 
-class GenericAPIAdapter(BaseRepositoryAdapter):
-    """Adapter for generic API repositories (future extensibility)"""
-
-    def search(self, search_term: str, resource_type: List[str],
-               page: int = 1, page_size: int = 10) -> Dict:
-        """To be implemented for non-PhysioNet repositories"""
-        return {'success': False, 'results': [], 'error': 'not_implemented'}
-
-    def normalize_result(self, raw_result: Dict) -> Dict:
-        """To be implemented for non-PhysioNet repositories"""
-        return {}
-
-
 # Adapter factory
 def get_adapter(federated_site) -> BaseRepositoryAdapter:
     """Factory to create appropriate adapter"""
     adapters = {
-        'physionet': PhysioNetAdapter,
-        'generic_api': GenericAPIAdapter,
+        'physionet': PhysioNetAdapter
     }
     adapter_class = adapters.get(federated_site.site_type, PhysioNetAdapter)
     return adapter_class(federated_site)
