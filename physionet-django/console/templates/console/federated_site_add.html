@@ -1,0 +1,42 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ SITE_NAME }} - Add Federated Site{% endblock %}
+
+{% block content %}
+  <div class="card mb-3">
+    <div class="card-header">
+        Add New Federated Site
+    </div>
+    <div class="card-body">
+        <p class="text-muted mb-4">
+          Configure a new external repository for federated search. This site will be queried when users perform searches with federated search enabled.
+        </p>
+        <form method="post" action="{% url 'federated_site_add' %}">
+            {% include "inline_form_snippet.html" with form=form %}
+            <hr>
+            <button class="btn btn-primary btn-fixed" type="submit">Add Site</button>
+            <a href="{% url 'federated_sites' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      Help: Setting up a Federated Site
+    </div>
+    <div class="card-body">
+      <h6>Configuration Guide</h6>
+      <ul>
+        <li><strong>Name:</strong> A unique identifier (lowercase, no spaces). Example: <code>healthdatanexus</code></li>
+        <li><strong>Display Name:</strong> The human-readable name shown in search results. Example: <code>Health Data Nexus</code></li>
+        <li><strong>Base URL:</strong> The root URL of the external site. Example: <code>https://healthdatanexus.ca</code></li>
+        <li><strong>API Endpoint:</strong> The search API path (usually <code>/api/v1/projects/search/</code> for PhysioNet clones)</li>
+        <li><strong>Site Type:</strong> Select <code>PhysioNet Instance</code> for PhysioNet clones</li>
+        <li><strong>Auth Token:</strong> Optional. Only needed if the external API requires authentication</li>
+        <li><strong>Order:</strong> Lower numbers appear first in search results (e.g., 0 = highest priority)</li>
+      </ul>
+    </div>
+  </div>
+{% endblock %}

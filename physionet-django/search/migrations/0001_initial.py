@@ -55,7 +55,6 @@ class Migration(migrations.Migration):
                     models.CharField(
                         choices=[
                             ("physionet", "PhysioNet Instance"),
-                            ("generic_api", "Generic API Repository"),
                         ],
                         default="physionet",
                         help_text="Type of repository",

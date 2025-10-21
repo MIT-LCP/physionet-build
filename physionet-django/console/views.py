@@ -35,6 +35,7 @@ from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
 from physionet.models import FrontPageButton, Section, StaticPage
+from search.models import FederatedSite
 from project import forms as project_forms
 from project.models import (
     GCP,
@@ -3699,3 +3700,59 @@ def event_agreement_delete(request, pk):
         messages.success(request, "The Event Agreement has been deleted.")
 
     return redirect("event_agreement_list")
+
+
+@console_permission_required('search.change_federatedsite')
+def federated_sites(request):
+    """List all federated sites"""
+    sites = FederatedSite.objects.all().order_by('order', 'name')
+    sites = paginate(request, sites, 20)
+    
+    return render(request, 'console/federated_sites.html', {'sites': sites})
+
+
+@console_permission_required('search.add_federatedsite')
+def federated_site_add(request):
+    """Add a new federated site"""
+    if request.method == 'POST':
+        form = forms.FederatedSiteForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'The federated site has been added.')
+            return redirect('federated_sites')
+        else:
+            messages.error(request, 'Invalid submission. Check errors below.')
+    else:
+        form = forms.FederatedSiteForm()
+    
+    return render(request, 'console/federated_site_add.html', {'form': form})
+
+
+@console_permission_required('search.change_federatedsite')
+def federated_site_edit(request, pk):
+    """Edit an existing federated site"""
+    site = get_object_or_404(FederatedSite, pk=pk)
+    
+    if request.method == 'POST':
+        form = forms.FederatedSiteForm(data=request.POST, instance=site)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'The federated site has been updated.')
+            return redirect('federated_sites')
+        else:
+            messages.error(request, 'Invalid submission. Check errors below.')
+    else:
+        form = forms.FederatedSiteForm(instance=site)
+    
+    return render(request, 'console/federated_site_edit.html', {'form': form, 'site': site})
+
+
+@console_permission_required('search.delete_federatedsite')
+def federated_site_delete(request, pk):
+    """Delete a federated site"""
+    if request.method == 'POST':
+        site = get_object_or_404(FederatedSite, pk=pk)
+        site.delete()
+        messages.success(request, 'The federated site has been deleted.')
+    
+    return redirect('federated_sites')

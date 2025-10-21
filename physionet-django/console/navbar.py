@@ -186,6 +186,8 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('Event Agreements'), 'event_agreement_list'),
     ]),
 
+    NavLink(_('Federated Sites'), 'federated_sites', 'globe'),
+
     NavSubmenu(_('Logs'), 'logs', 'fingerprint', [
         NavLink(_('Project Logs'), 'project_access_logs'),
         NavLink(_('Access Requests'), 'project_access_requests_list'),

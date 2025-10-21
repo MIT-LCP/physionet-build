@@ -10,7 +10,6 @@ class FederatedSite(models.Model):
     """
     SITE_TYPE_CHOICES = [
         ('physionet', 'PhysioNet Instance'),
-        ('generic_api', 'Generic API Repository'),
     ]
 
     name = models.CharField(

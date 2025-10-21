@@ -213,10 +213,3 @@ class PhysioNetAdapterTest(TestCase):
         """Test adapter factory"""
         adapter = get_adapter(self.site)
         self.assertIsInstance(adapter, PhysioNetAdapter)
-
-        # Test generic_api type
-        self.site.site_type = 'generic_api'
-        self.site.save()
-        from search.adapters import GenericAPIAdapter
-        adapter = get_adapter(self.site)
-        self.assertIsInstance(adapter, GenericAPIAdapter)

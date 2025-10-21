@@ -1,0 +1,104 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block title %}{{ SITE_NAME }} - Federated Sites{% endblock %}
+
+{% block content %}
+ <div class="card mb-3">
+  <div class="card-header">
+    Federated Sites <span class="badge badge-pill badge-info">{{ sites|length }}</span>
+    <a href="{% url 'federated_site_add' %}" class="btn btn-sm btn-success float-right" role="button">Add New Site</a>
+  </div>
+  <div class="card-body">
+    <p class="text-muted">
+      Manage external sites for federated search. Users can search across all enabled sites to discover research data from partner repositories.
+    </p>
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Display Name</th>
+            <th>Name (ID)</th>
+            <th>Base URL</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th>Order</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for site in sites %}
+            <tr>
+                <td>
+                  {{ site.display_name }}
+                </td>
+                <td>{{ site.name }}</td>
+                <td>
+                  <a href="{{ site.base_url }}" target="_blank" rel="noopener noreferrer">
+                    {{ site.base_url|truncatechars:40 }}
+                    <i class="fas fa-external-link-alt" style="font-size: 0.7em;"></i>
+                  </a>
+                </td>
+                <td>
+                  {% if site.site_type == 'physionet' %}
+                    <span class="badge badge-primary">PhysioNet</span>
+                  {% else %}
+                    <span class="badge badge-secondary">Generic API</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if site.enabled %}
+                    <span class="badge badge-success">Enabled</span>
+                  {% else %}
+                    <span class="badge badge-danger">Disabled</span>
+                  {% endif %}
+                </td>
+                <td>{{ site.order }}</td>
+                <td>
+                  <a href="{% url 'federated_site_edit' site.pk %}" class="btn btn-sm btn-primary" role="button">Edit</a>
+                  <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#remove-site-{{ site.pk }}">Delete</button>
+
+                  <div class="modal fade" id="remove-site-{{ site.pk }}" tabindex="1" role="dialog" aria-hidden="true">
+                    <form method="post" action="{% url 'federated_site_delete' site.pk %}">
+                      {% csrf_token %}
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <h5 class="modal-title">Delete Federated Site</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                          <div class="modal-body">
+                              <p>Are you sure you want to delete <strong>{{ site.display_name }}</strong>?</p>
+                              <p class="text-muted">This will remove it from federated search results.</p>
+                          </div>
+                          <div class="modal-footer">
+                              <button class="btn btn-danger" type="submit">Delete</button>
+                              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                          </div>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7" class="text-center text-muted">
+                    No federated sites configured. <a href="{% url 'federated_site_add' %}">Add your first site</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=sites %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -27,6 +27,7 @@ from project.models import (
     exists_project_slug,
     InternalNote,
 )
+from search.models import FederatedSite
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
@@ -1037,3 +1038,29 @@ class CodeOfConductForm(forms.ModelForm):
         model = CodeOfConduct
         fields = ('name', 'version', 'slug', 'html_content')
         labels = {'html_content': 'Content'}
+
+
+class FederatedSiteForm(forms.ModelForm):
+    """
+    Form for adding and editing federated sites
+    """
+    class Meta:
+        model = FederatedSite
+        fields = (
+            'name', 'display_name', 'base_url', 'api_endpoint',
+            'site_type', 'enabled', 'auth_token', 'timeout_seconds', 'order'
+        )
+        widgets = {
+            'auth_token': forms.PasswordInput(render_value=True),
+        }
+        help_texts = {
+            'name': "Unique identifier (e.g., 'healthdatanexus')",
+            'display_name': "Display name shown in UI (e.g., 'Health Data Nexus')",
+            'base_url': "Base URL (e.g., 'https://healthdatanexus.ca')",
+            'api_endpoint': "API endpoint path for search (default: '/api/v1/projects/search/')",
+            'site_type': "Type of repository",
+            'enabled': "Enable/disable this site in federated search",
+            'auth_token': "Optional API key/token for authenticated access (leave blank if not required)",
+            'timeout_seconds': "Request timeout in seconds",
+            'order': "Display order (lower = higher priority)",
+        }

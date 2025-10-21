@@ -1,0 +1,55 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ SITE_NAME }} - Edit Federated Site{% endblock %}
+
+{% block content %}
+  <div class="card mb-3">
+    <div class="card-header">
+        Edit Federated Site: {{ site.display_name }}
+    </div>
+    <div class="card-body">
+        <form method="post" action="{% url 'federated_site_edit' site.pk %}">
+            {% include "inline_form_snippet.html" with form=form %}
+            <hr>
+            <button class="btn btn-primary btn-fixed" type="submit">Save Changes</button>
+            <a href="{% url 'federated_sites' %}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header">
+      Site Information
+    </div>
+    <div class="card-body">
+      <dl class="row">
+        <dt class="col-sm-3">Created:</dt>
+        <dd class="col-sm-9">{{ site.created_at|date:"F j, Y, g:i a" }}</dd>
+
+        <dt class="col-sm-3">Last Updated:</dt>
+        <dd class="col-sm-9">{{ site.updated_at|date:"F j, Y, g:i a" }}</dd>
+
+        <dt class="col-sm-3">Full Search URL:</dt>
+        <dd class="col-sm-9">
+          <code>{{ site.get_full_search_url }}</code>
+          <a href="{{ site.get_full_search_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary ml-2">
+            Test URL <i class="fas fa-external-link-alt"></i>
+          </a>
+        </dd>
+
+        <dt class="col-sm-3">Status:</dt>
+        <dd class="col-sm-9">
+          {% if site.enabled %}
+            <span class="badge badge-success">Enabled</span>
+            <span class="text-muted">This site is included in federated search results</span>
+          {% else %}
+            <span class="badge badge-danger">Disabled</span>
+            <span class="text-muted">This site is not included in federated search results</span>
+          {% endif %}
+        </dd>
+      </dl>
+    </div>
+  </div>
+{% endblock %}
