@@ -64,8 +64,8 @@ class FederatedSearchService:
 
     @staticmethod
     def _search_single_site(site: FederatedSite, search_term: str,
-                           resource_type: List[str], page: int,
-                           page_size: int) -> List[Dict]:
+                            resource_type: List[str], page: int,
+                            page_size: int) -> List[Dict]:
         """Execute search on a single site"""
         try:
             adapter = get_adapter(site)

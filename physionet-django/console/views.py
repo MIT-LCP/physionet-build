@@ -3707,7 +3707,7 @@ def federated_sites(request):
     """List all federated sites"""
     sites = FederatedSite.objects.all().order_by('order', 'name')
     sites = paginate(request, sites, 20)
-    
+
     return render(request, 'console/federated_sites.html', {'sites': sites})
 
 
@@ -3724,7 +3724,7 @@ def federated_site_add(request):
             messages.error(request, 'Invalid submission. Check errors below.')
     else:
         form = forms.FederatedSiteForm()
-    
+
     return render(request, 'console/federated_site_add.html', {'form': form})
 
 
@@ -3732,7 +3732,7 @@ def federated_site_add(request):
 def federated_site_edit(request, pk):
     """Edit an existing federated site"""
     site = get_object_or_404(FederatedSite, pk=pk)
-    
+
     if request.method == 'POST':
         form = forms.FederatedSiteForm(data=request.POST, instance=site)
         if form.is_valid():
@@ -3743,7 +3743,7 @@ def federated_site_edit(request, pk):
             messages.error(request, 'Invalid submission. Check errors below.')
     else:
         form = forms.FederatedSiteForm(instance=site)
-    
+
     return render(request, 'console/federated_site_edit.html', {'form': form, 'site': site})
 
 
@@ -3754,5 +3754,5 @@ def federated_site_delete(request, pk):
         site = get_object_or_404(FederatedSite, pk=pk)
         site.delete()
         messages.success(request, 'The federated site has been deleted.')
-    
+
     return redirect('federated_sites')

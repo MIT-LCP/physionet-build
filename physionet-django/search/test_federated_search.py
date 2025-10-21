@@ -133,7 +133,7 @@ class FederatedSearchServiceTest(TestCase):
     def test_multiple_sites_search(self, mock_get):
         """Test searching across multiple sites"""
         # Create second site
-        site2 = FederatedSite.objects.create(
+        FederatedSite.objects.create(
             name='testsite2',
             display_name='Test Site 2',
             base_url='https://example2.com',

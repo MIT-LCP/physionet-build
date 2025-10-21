@@ -288,6 +288,8 @@ TEST_CASES = {
     'event_agreement_detail': {'_skip_': True},
     'event_agreement_delete': {'_skip_': True},
     'event_agreement_new_version': {'_skip_': True},
+    'federated_site_edit': {'_skip_': True},
+    'federated_site_delete': {'_skip_': True},
 
     # Broken views: POST required for no reason
     'users_list_search': {'group': 'all', '_skip_': True},

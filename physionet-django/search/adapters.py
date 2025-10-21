@@ -126,7 +126,10 @@ class PhysioNetAdapter(BaseRepositoryAdapter):
             'source_site_name': self.site.name,
             'source_site_display_name': self.site.display_name,
             'source_site_url': self.site.base_url,
-            'external_url': f"{self.site.base_url.rstrip('/')}/content/{raw_result.get('slug', '')}/{raw_result.get('version', '')}/",
+            'external_url': (
+                f"{self.site.base_url.rstrip('/')}/content/"
+                f"{raw_result.get('slug', '')}/{raw_result.get('version', '')}/"
+            ),
         }
 
 
