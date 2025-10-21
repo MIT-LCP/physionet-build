@@ -3,6 +3,8 @@ import requests
 from typing import Dict, List, Optional
 import logging
 
+from project.models import ProjectType
+
 logger = logging.getLogger(__name__)
 
 
@@ -96,6 +98,14 @@ class PhysioNetAdapter(BaseRepositoryAdapter):
 
     def normalize_result(self, raw_result: Dict) -> Dict:
         """Normalize PhysioNet API result to common format"""
+        # Get resource type name from database
+        resource_type_id = raw_result.get('resource_type', 0)
+        try:
+            resource_type_obj = ProjectType.objects.get(id=resource_type_id)
+            resource_type_name = resource_type_obj.name
+        except ProjectType.DoesNotExist:
+            resource_type_name = 'Database'  # Default fallback
+
         return {
             'title': raw_result.get('title', 'Untitled'),
             'slug': raw_result.get('slug', ''),
@@ -103,7 +113,8 @@ class PhysioNetAdapter(BaseRepositoryAdapter):
             'abstract': raw_result.get('abstract', ''),
             'short_description': raw_result.get('short_description', ''),
             'publish_date': raw_result.get('publish_date', ''),
-            'resource_type': raw_result.get('resource_type', 0),
+            'resource_type': resource_type_id,
+            'resource_type_name': resource_type_name,
             'access_policy': raw_result.get('access_policy', 0),
             'main_storage_size': raw_result.get('main_storage_size', 0),
             'compressed_storage_size': raw_result.get('compressed_storage_size', 0),

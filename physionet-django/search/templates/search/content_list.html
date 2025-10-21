@@ -39,7 +39,7 @@
     {% else %}
       {# Federated project #}
       <p>
-        <span class="badge badge-dark">{{ published_project.resource_type }}</span>
+        <span class="badge badge-dark">{{ published_project.resource_type_name }}</span>
         {{ published_project.source_site_display_name|site_badge|safe }}
       </p>
       <{% firstof content_list_header 'h2' %}>

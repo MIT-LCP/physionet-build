@@ -218,8 +218,8 @@ def content_index(request, resource_type=None):
     # FEDERATED SEARCH RESULTS
     federated_results = []
     page_num = request.GET.get('page', '1')
-    if include_federated and FederatedSearchService.is_enabled() and topic:
-        # Only fetch federated results on page 1 and if there's a search term
+    if include_federated and FederatedSearchService.is_enabled():
+        # Only fetch federated results on page 1
         if page_num == '1':
             # Convert resource_type to API format
             api_resource_types = ['all']
