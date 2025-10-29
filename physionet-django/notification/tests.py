@@ -37,6 +37,15 @@ class TestDataAccessRequestNotification(TestCase):
         requester = User.objects.get(username='rgmark')
         project = PublishedProject.objects.get(title="Self Managed Access Database Demo")
 
+        # Dummy DataAccessRequest to avoid ID collision with rgmark
+        DataAccessRequest.objects.create(
+            requester=requester,
+            project=project,
+            data_use_title='Dummy Request',
+            data_use_purpose='Dummy purposes',
+            status=DataAccessRequest.PENDING_VALUE
+        )
+
         dar = DataAccessRequest.objects.create(
             requester=requester,
             project=project,
