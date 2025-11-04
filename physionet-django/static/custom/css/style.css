@@ -67,6 +67,8 @@
   user-select: none;
 }
 
+.modern-ui .banner__buttons .primary-button:not(.primary-button--outline):hover { color: white; }
+
 .modern-ui .circle-button,
 .modern-ui .nav__user {
   background-color: var(--light-color);
