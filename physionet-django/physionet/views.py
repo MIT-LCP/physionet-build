@@ -137,13 +137,6 @@ def software_overview(request):
                   {'all_projects': all_projects})
 
 
-def moody_challenge_overview(request):
-    """
-    View for detailed information about the George B. Moody PhysioNet Challenge
-    """
-    return render(request, 'about/moody_challenge_overview_index.html')
-
-
 def moody_challenge(request):
     """
     View for the list of previous Moody challenges

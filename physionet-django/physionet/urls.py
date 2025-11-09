@@ -62,8 +62,6 @@ urlpatterns = [
         name='software_overview'),
 
     # detailed pages related to the challenges overview
-    path('about/challenge/moody-challenge-overview', views.moody_challenge_overview,
-         name='moody_challenge_overview'),
     path('about/challenge/moody-challenge', views.moody_challenge,
          name='moody_challenge'),
     path('about/challenge/community-challenge', views.community_challenge,
