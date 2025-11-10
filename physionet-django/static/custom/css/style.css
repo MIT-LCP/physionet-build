@@ -666,3 +666,16 @@ body .main {
     background-size: auto 130%;
   }
 }
+
+.endpoint-label {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.9em;
+  font-weight: 400;
+  color: #495057;
+  background-color: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  display: inline-block;
+  margin: 4px 0;
+}

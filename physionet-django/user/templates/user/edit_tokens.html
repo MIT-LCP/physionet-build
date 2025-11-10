@@ -26,13 +26,13 @@
     {% for token in tokens %}
       <li class="list-group-item d-flex justify-content-between align-items-center">
       <div>
-        <strong>ID:</strong> {{ token.id }} <medium>– </medium><span class=""><code>{{ token.token }}</code></span>
+        <strong>ID:</strong> {{ token.id }} – <span class=""><code>{{ token.token }}</code></span>
         <br>
         <strong>Scopes:</strong> 
         <br>
         <div class="ml-4">
           {% for model_type, permissions in token.grouped_scopes.items %}
-          <medium>{{ model_type }}:</medium> <code> {{ permissions|join:", " }}</code>
+          {{ model_type }}: <code> {{ permissions|join:", " }}</code>
           <br>
         {% endfor %}
         </div>
@@ -73,7 +73,7 @@
                 <div class="form-group">
                   <label>{{ scopes_info.name }}:</label>
                   <div class="endpoint-label">{{ endpoint }}</div>
-                  <div class="form-check form-check-inline gap-2">
+                  <div class="form-check form-check-inline">
                     {% for scope_option in scopes_info.scope_options %}
                       <input class="form-check-input annotation-endpoint" 
                              type="checkbox" 
@@ -100,24 +100,6 @@
   </div>
 </div>
 
-<style>
-  .endpoint-label {
-    font-family: 'Roboto Mono', monospace;
-    font-size: 0.9em;
-    font-weight: 400;
-    color: #495057;
-    background-color: #f8f9fa;
-    padding: 4px 8px;
-    border-radius: 4px;
-    border: 1px solid #dee2e6;
-    display: inline-block;
-    margin: 4px 0;
-  }
-  .gap-2 {
-    gap: 0.5rem;
-  }
-</style>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const createTokenBtn = document.getElementById('create-token-btn');
@@ -125,7 +107,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const scopeForm = document.getElementById('scope-form');
     const tokenForm = document.getElementById('token-form');
     const confirmScopesBtn = document.getElementById('confirm-scopes');
-    const tokenNameInput = document.getElementById('token-name');
 
     createTokenBtn.addEventListener('click', function(e) {
         e.preventDefault();

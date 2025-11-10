@@ -114,6 +114,31 @@ ENDPOINT_TO_SCOPE = {
     for scope, data in ANNOTATION_SCOPES.items()
 }
 
+def group_scopes_by_model(scopes):
+    """
+      Group OAuth scopes by their resource type for display purposes.
+      
+      Args:
+          scopes: List of scope strings (e.g., ["annotations:collections:read"])
+      
+      Returns:
+          Dict mapping resource names to permission lists
+          Example: {"Annotation Collections": ["Read", "Write"]}
+      """
+    grouped = defaultdict(list)
+    for scope in scopes:
+        parts = scope.split(":")
+        if len(parts) >= 3:
+            model_type = parts[1]  # collections, types, annotations
+            model_type = model_type.capitalize()
+            if model_type != "Annotations":
+                model_type = "Annotation " + model_type
+            permission = parts[-1].capitalize()
+            grouped[model_type].append(permission)
+        else:
+            grouped["other"].append(scope)
+    return dict(grouped)
+        
 @method_decorator(allow_post_during_maintenance, 'dispatch')
 class LoginView(auth_views.LoginView):
     template_name = 'user/login.html'
@@ -535,23 +560,6 @@ def edit_tokens(request):
     if request.GET.get("delete"):
         AccessToken.objects.filter(user=request.user, id=request.GET["delete"]).delete()
         return redirect("edit_tokens")
-
-    def group_scopes_by_model(scopes):
-        """Group scopes by their model type (collections, types, annotations)"""
-        grouped = defaultdict(list)
-        for scope in scopes:
-            parts = scope.split(":")
-            if len(parts) >= 3:
-                model_type = parts[1]  # collections, types, annotations
-                model_type = model_type.capitalize()
-                if model_type != "Annotations":
-                    model_type = "Annotation " + model_type
-                permission = parts[-1].capitalize()
-                grouped[model_type].append(permission)
-            else:
-                grouped["other"].append(scope)
-
-        return dict(grouped)
 
     tokens = AccessToken.objects.filter(user=request.user)
     for token in tokens:
