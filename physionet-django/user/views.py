@@ -116,15 +116,15 @@ ENDPOINT_TO_SCOPE = {
 
 def group_scopes_by_model(scopes):
     """
-      Group OAuth scopes by their resource type for display purposes.
-      
-      Args:
-          scopes: List of scope strings (e.g., ["annotations:collections:read"])
-      
-      Returns:
-          Dict mapping resource names to permission lists
-          Example: {"Annotation Collections": ["Read", "Write"]}
-      """
+    Group OAuth scopes by their resource type for display purposes.
+
+    Args:
+        scopes: List of scope strings (e.g., ["annotations:collections:read"])
+
+    Returns:
+        Dict mapping resource names to permission lists
+        Example: {"Annotation Collections": ["Read", "Write"]}
+    """
     grouped = defaultdict(list)
     for scope in scopes:
         parts = scope.split(":")
@@ -138,7 +138,8 @@ def group_scopes_by_model(scopes):
         else:
             grouped["other"].append(scope)
     return dict(grouped)
-        
+
+
 @method_decorator(allow_post_during_maintenance, 'dispatch')
 class LoginView(auth_views.LoginView):
     template_name = 'user/login.html'
