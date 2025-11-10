@@ -114,6 +114,7 @@ ENDPOINT_TO_SCOPE = {
     for scope, data in ANNOTATION_SCOPES.items()
 }
 
+
 def group_scopes_by_model(scopes):
     """
     Group OAuth scopes by their resource type for display purposes.
