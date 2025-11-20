@@ -1,0 +1,126 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block title %}{{ SITE_NAME }} - Federated Sites{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Federated Sites <span class="badge badge-pill badge-info">{{ sites.paginator.count }}</span></span>
+    <a href="{% url 'federated_site_add' %}" class="btn btn-sm btn-success">Add New Site</a>
+  </div>
+
+  <div class="card-body">
+    <!-- Filter Form -->
+    <form method="get" class="mb-3">
+      <div class="row">
+        <div class="col-md-5">
+          {{ filter_form.search }}
+        </div>
+        <div class="col-md-3">
+          {{ filter_form.status }}
+        </div>
+        <div class="col-md-3">
+          {{ filter_form.sync_status }}
+        </div>
+        <div class="col-md-1">
+          <button type="submit" class="btn btn-primary btn-block">Filter</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Site Name</th>
+            <th>Identifier</th>
+            <th>Status</th>
+            <th>Last Sync</th>
+            <th>Sync Status</th>
+            <th>Projects</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for site in sites %}
+          <tr>
+            <td>
+              <a href="{% url 'federated_site_detail' site.id %}">{{ site.site_name }}</a>
+            </td>
+            <td><code>{{ site.site_identifier }}</code></td>
+            <td>
+              {% if site.is_active %}
+                <span class="badge badge-success">Active</span>
+              {% else %}
+                <span class="badge badge-secondary">Inactive</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if site.last_sync_datetime %}
+                {{ site.last_sync_datetime|date:"Y-m-d H:i" }}
+              {% else %}
+                <span class="text-muted">Never</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if site.last_sync_status == 'success' %}
+                <span class="badge badge-success">Success</span>
+              {% elif site.last_sync_status == 'failed' %}
+                <span class="badge badge-danger">Failed</span>
+              {% elif site.last_sync_status == 'in_progress' %}
+                <span class="badge badge-info">In Progress</span>
+              {% else %}
+                <span class="badge badge-secondary">Never Synced</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{% url 'federated_projects_list' site.id %}">
+                {{ site.cached_projects.count }}
+              </a>
+            </td>
+            <td>
+              <div class="btn-group btn-group-sm" role="group">
+                <a href="{% url 'federated_site_detail' site.id %}" class="btn btn-primary" title="View Details">
+                  <i class="fa fa-eye"></i>
+                </a>
+                <a href="{% url 'federated_site_edit' site.id %}" class="btn btn-secondary" title="Edit">
+                  <i class="fa fa-edit"></i>
+                </a>
+                <a href="{% url 'federated_site_sync' site.id %}" class="btn btn-info" title="Sync Now">
+                  <i class="fa fa-sync"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center text-muted">No federated sites configured</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=sites %}
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    About Federated Search
+  </div>
+  <div class="card-body">
+    <p>Federated sites allow this PhysioNet instance to sync and search projects from other PhysioNet deployments.</p>
+    <ul>
+      <li><strong>Active sites</strong> will be synced periodically based on the configured sync frequency</li>
+      <li><strong>Manual sync</strong> can be triggered at any time using the sync button</li>
+      <li>Cached projects from federated sites appear in search results alongside local projects</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

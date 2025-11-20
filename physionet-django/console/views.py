@@ -1,6 +1,7 @@
 import csv
 import logging
 import os
+import traceback
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
@@ -12,6 +13,7 @@ from background_task import background
 from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
+from django.core.management import call_command
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib.auth.models import Group
@@ -48,6 +50,8 @@ from project.models import (
     DataAccessRequest,
     DUASignature,
     EditLog,
+    FederatedSite,
+    FederationSyncLog,
     License,
     Publication,
     PublishedAuthor,
@@ -3699,3 +3703,327 @@ def event_agreement_delete(request, pk):
         messages.success(request, "The Event Agreement has been deleted.")
 
     return redirect("event_agreement_list")
+
+
+@console_permission_required('project.view_federatedsite')
+def federated_sites_handler(request):
+    """
+    Combined handler for federated sites collection.
+
+    - GET: list sites with filters
+    - POST: create site (requires project.add_federatedsite)
+    """
+
+    if request.method == 'GET':
+        sites = FederatedSite.objects.all().order_by('site_name')
+
+        filter_form = forms.FederatedSiteFilterForm(request.GET)
+
+        if filter_form.is_valid():
+            search = filter_form.cleaned_data.get('search')
+            status = filter_form.cleaned_data.get('status')
+            sync_status = filter_form.cleaned_data.get('sync_status')
+
+            if search:
+                sites = sites.filter(
+                    Q(site_name__icontains=search) |
+                    Q(site_identifier__icontains=search) |
+                    Q(api_base_url__icontains=search)
+                )
+
+            if status == 'active':
+                sites = sites.filter(is_active=True)
+            elif status == 'inactive':
+                sites = sites.filter(is_active=False)
+
+            if sync_status:
+                sites = sites.filter(last_sync_status=sync_status)
+
+        sites = paginate(request, sites, 50)
+
+        return render(request, 'console/federated_sites_list.html', {
+            'sites': sites,
+            'filter_form': filter_form,
+        })
+
+    # POST -> create (Add)
+    if not request.user.has_perm('project.add_federatedsite'):
+        raise PermissionDenied
+
+    form = forms.FederatedSiteForm(data=request.POST)
+    if form.is_valid():
+        site = form.save()
+        messages.success(request, f'Federated site "{site.site_name}" has been created.')
+        LOGGER.info(f'User {request.user} created federated site {site.site_identifier}')
+        return redirect('federated_site_detail', site_id=site.id)
+
+    # On validation error, render the same form template used for Add
+    return render(request, 'console/federated_site_form.html', {
+        'form': form,
+        'action': 'Add',
+    })
+
+
+@console_permission_required('project.view_federatedsite')
+def federated_site_handler(request, site_id=None, action=None):
+    """
+    Combined handler for a single federated site.
+
+    Actions via URL kwarg `action`:
+      - None (default):
+          - GET: detail page
+      - 'add':
+          - GET: show empty form (requires project.add_federatedsite)
+          - POST: create site (requires project.add_federatedsite)
+      - 'edit':
+          - GET: show edit form (requires project.change_federatedsite)
+          - POST: update site (requires project.change_federatedsite)
+      - 'delete':
+          - GET: confirm delete (requires project.delete_federatedsite)
+          - POST: delete site (requires project.delete_federatedsite)
+      - 'sync':
+          - GET: show sync page
+          - POST: enqueue sync (requires project.change_federatedsite)
+    """
+
+    # Handle create without site instance
+    if action == 'add':
+        if request.method == 'GET':
+            if not request.user.has_perm('project.add_federatedsite'):
+                raise PermissionDenied
+            form = forms.FederatedSiteForm()
+            return render(request, 'console/federated_site_form.html', {
+                'form': form,
+                'action': 'Add',
+            })
+
+        # POST create
+        if not request.user.has_perm('project.add_federatedsite'):
+            raise PermissionDenied
+        form = forms.FederatedSiteForm(data=request.POST)
+        if form.is_valid():
+            site = form.save()
+            messages.success(request, f'Federated site "{site.site_name}" has been created.')
+            LOGGER.info(f'User {request.user} created federated site {site.site_identifier}')
+            return redirect('federated_site_detail', site_id=site.id)
+        return render(request, 'console/federated_site_form.html', {
+            'form': form,
+            'action': 'Add',
+        })
+
+    # For all other actions, we need an existing site
+    site = get_object_or_404(FederatedSite, id=site_id)
+
+    if action is None:
+        # Detail view
+        sync_logs = FederationSyncLog.objects.filter(site=site).order_by('-started_at')[:20]
+        cached_projects_count = site.cached_projects.filter(is_stale=False).count()
+        return render(request, 'console/federated_site_detail.html', {
+            'site': site,
+            'sync_logs': sync_logs,
+            'cached_projects_count': cached_projects_count,
+        })
+
+    if action == 'edit':
+        if request.method == 'GET':
+            if not request.user.has_perm('project.change_federatedsite'):
+                raise PermissionDenied
+            form = forms.FederatedSiteForm(instance=site)
+            return render(request, 'console/federated_site_form.html', {
+                'form': form,
+                'site': site,
+                'action': 'Edit',
+            })
+        # POST update
+        if not request.user.has_perm('project.change_federatedsite'):
+            raise PermissionDenied
+        form = forms.FederatedSiteForm(data=request.POST, instance=site)
+        if form.is_valid():
+            site = form.save()
+            messages.success(request, f'Federated site "{site.site_name}" has been updated.')
+            LOGGER.info(f'User {request.user} updated federated site {site.site_identifier}')
+            return redirect('federated_site_detail', site_id=site.id)
+        return render(request, 'console/federated_site_form.html', {
+            'form': form,
+            'site': site,
+            'action': 'Edit',
+        })
+
+    if action == 'delete':
+        if request.method == 'GET':
+            if not request.user.has_perm('project.delete_federatedsite'):
+                raise PermissionDenied
+            cached_projects_count = site.cached_projects.count()
+            sync_logs_count = site.sync_logs.count()
+            return render(request, 'console/federated_site_delete.html', {
+                'site': site,
+                'cached_projects_count': cached_projects_count,
+                'sync_logs_count': sync_logs_count,
+            })
+        # POST delete
+        if not request.user.has_perm('project.delete_federatedsite'):
+            raise PermissionDenied
+        site_name = site.site_name
+        cached_count = site.cached_projects.count()
+        site.delete()
+        messages.success(
+            request,
+            f'Federated site "{site_name}" and {cached_count} cached projects have been deleted.'
+        )
+        LOGGER.info(f'User {request.user} deleted federated site {site_name}')
+        return redirect('federated_sites_list')
+
+    if action == 'sync':
+        if request.method == 'GET':
+            existing_tasks = list(get_associated_tasks(site))
+            has_pending = any(task.failed_at is None for task, _ in existing_tasks)
+            return render(request, 'console/federated_site_sync.html', {
+                'site': site,
+                'has_pending_task': has_pending,
+            })
+        # POST enqueue sync
+        if not request.user.has_perm('project.change_federatedsite'):
+            raise PermissionDenied
+
+        existing_tasks = list(get_associated_tasks(site))
+        if existing_tasks:
+            active_tasks = [task for task, _ in existing_tasks if task.failed_at is None]
+            if active_tasks:
+                messages.warning(
+                    request,
+                    f'A sync task is already queued for "{site.site_name}". '
+                    f'Please wait for it to complete.'
+                )
+                return redirect('federated_site_detail', site_id=site.id)
+
+        sync_federated_site_background(site_id, verbose_name=f'Sync {site.site_name}')
+        messages.success(
+            request,
+            f'Sync task queued for "{site.site_name}". '
+            f'The background worker will process it shortly. '
+            f'Refresh the page in a minute to see results in sync logs.'
+        )
+        LOGGER.info(f'User {request.user} queued background sync for site {site.site_identifier}')
+        return redirect('federated_site_detail', site_id=site.id)
+
+    # Unknown action
+    return redirect('federated_site_detail', site_id=site.id)
+
+
+@associated_task(FederatedSite, 'site_id')
+@background()
+def sync_federated_site_background(site_id):
+    """
+    Background task to sync a federated site.
+
+    This is picked up by the background worker process.
+    Run: python manage.py process_tasks
+    
+    Ensures FederationSyncLog is ALWAYS created, even if sync crashes.
+    """
+    from project.models import FederationSyncLog
+    
+    site = FederatedSite.objects.get(id=site_id)
+    started_at = timezone.now()
+
+    LOGGER.info(f'[FEDERATION] Background task starting sync for {site.site_identifier} (ID: {site_id})')
+
+    try:
+        call_command(
+            'sync_federated_sites',
+            site=site.site_identifier,
+            force=True,
+            verbosity=1
+        )
+        LOGGER.info(f'[FEDERATION] Background task completed sync for {site.site_identifier}')
+    except Exception as e:
+        # Capture full error details
+        error_traceback = traceback.format_exc()
+        error_msg = f'{str(e)}\n\n{error_traceback}'
+        
+        LOGGER.error(f'[FEDERATION] Background task sync failed for {site.site_identifier}: {error_msg}')
+        
+        # Ensure sync log exists with failure status
+        # This is critical - the log MUST be created even if command crashed
+        try:
+            FederationSyncLog.objects.create(
+                site=site,
+                started_at=started_at,
+                completed_at=timezone.now(),
+                status=FederationSyncLog.STATUS_FAILED,
+                projects_fetched=0,
+                projects_created=0,
+                projects_updated=0,
+                projects_deleted=0,
+                error_message=error_msg[:1000]  # Truncate to fit field limit
+            )
+        except Exception as log_error:
+            LOGGER.error(f'[FEDERATION] Failed to create sync log: {log_error}')
+        
+        # Update site status
+        try:
+            site.mark_sync_failed()
+        except Exception as status_error:
+            LOGGER.error(f'[FEDERATION] Failed to mark site as failed: {status_error}')
+        
+        # Re-raise so the task is marked as failed in the queue
+        raise
+
+
+# federated_site_sync merged into federated_site_handler (action='sync')
+
+
+@console_permission_required('project.view_federatedsite')
+def federated_projects_list(request, site_id):
+    """
+    List all cached projects from a specific federated site.
+    """
+
+    site = get_object_or_404(FederatedSite, id=site_id)
+
+    projects = site.cached_projects.filter(is_stale=False).order_by('-publish_datetime')
+
+    # Add search functionality
+    search = request.GET.get('search', '')
+    if search:
+        projects = projects.filter(
+            Q(title__icontains=search) |
+            Q(slug__icontains=search) |
+            Q(abstract__icontains=search)
+        )
+
+    projects = paginate(request, projects, 50)
+
+    return render(request, 'console/federated_projects_list.html', {
+        'site': site,
+        'projects': projects,
+        'search': search,
+    })
+
+
+@console_permission_required('project.view_federatedsite')
+def federation_sync_logs(request):
+    """
+    View all federation sync logs across all sites.
+    """
+
+    logs = FederationSyncLog.objects.select_related('site').order_by('-started_at')
+
+    # Filter by site if specified
+    site_id = request.GET.get('site')
+    if site_id:
+        logs = logs.filter(site_id=site_id)
+
+    # Filter by status if specified
+    status = request.GET.get('status')
+    if status:
+        logs = logs.filter(status=status)
+
+    logs = paginate(request, logs, 50)
+    sites = FederatedSite.objects.all().order_by('site_name')
+    return render(request, 'console/federation_sync_logs.html', {
+        'logs': logs,
+        'sites': sites,
+        'selected_site': site_id,
+        'selected_status': status,
+    })

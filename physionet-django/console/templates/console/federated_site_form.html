@@ -1,0 +1,99 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ SITE_NAME }} - {{ action }} Federated Site{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    {{ action }} Federated Site
+  </div>
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <div class="form-group">
+        <label for="{{ form.site_name.id_for_label }}">{{ form.site_name.label }} <span class="text-danger">*</span></label>
+        {{ form.site_name }}
+        {% if form.site_name.errors %}
+          <div class="text-danger">{{ form.site_name.errors }}</div>
+        {% endif %}
+        <small class="form-text text-muted">{{ form.site_name.help_text }}</small>
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.site_identifier.id_for_label }}">{{ form.site_identifier.label }} <span class="text-danger">*</span></label>
+        {{ form.site_identifier }}
+        {% if form.site_identifier.errors %}
+          <div class="text-danger">{{ form.site_identifier.errors }}</div>
+        {% endif %}
+        <small class="form-text text-muted">{{ form.site_identifier.help_text }}</small>
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.api_base_url.id_for_label }}">{{ form.api_base_url.label }} <span class="text-danger">*</span></label>
+        {{ form.api_base_url }}
+        {% if form.api_base_url.errors %}
+          <div class="text-danger">{{ form.api_base_url.errors }}</div>
+        {% endif %}
+        <small class="form-text text-muted">{{ form.api_base_url.help_text }}</small>
+      </div>
+
+      <div class="form-group">
+        <label for="{{ form.api_key.id_for_label }}">{{ form.api_key.label }}</label>
+        {{ form.api_key }}
+        {% if form.api_key.errors %}
+          <div class="text-danger">{{ form.api_key.errors }}</div>
+        {% endif %}
+        <small class="form-text text-muted">{{ form.api_key.help_text }}</small>
+      </div>
+
+      <div class="form-check mb-3">
+        {{ form.is_active }}
+        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+          {{ form.is_active.label }}
+        </label>
+        {% if form.is_active.errors %}
+          <div class="text-danger">{{ form.is_active.errors }}</div>
+        {% endif %}
+        <br><small class="form-text text-muted">{{ form.is_active.help_text }}</small>
+      </div>
+
+      <div class="btn-group" role="group">
+        <button type="submit" class="btn btn-primary">
+          {% if action == 'Add' %}Create{% else %}Save{% endif %}
+        </button>
+        <a href="{% if site %}{% url 'federated_site_detail' site.id %}{% else %}{% url 'federated_sites_list' %}{% endif %}" class="btn btn-secondary">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Help
+  </div>
+  <div class="card-body">
+    <h6>Site Identifier</h6>
+    <p>A unique slug-style identifier for this site (e.g., "physionet-mit", "hdnx-uoft"). Can only contain lowercase letters, numbers, and hyphens.</p>
+
+    <h6>API Base URL</h6>
+    <p>The base URL where the federated site's API is hosted. Do not include a trailing slash. Example: <code>https://healthdatanexus.ca</code></p>
+
+    <h6>API Key</h6>
+    <p>Optional authentication key if the remote site requires it. Leave blank if the API is publicly accessible.</p>
+
+    <h6>Active Status</h6>
+    <p>If unchecked, this site will not be included in automatic syncs. You can still manually trigger a sync.</p>
+  </div>
+</div>
+{% endblock %}

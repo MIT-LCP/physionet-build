@@ -31,3 +31,18 @@ class ProjectTypeForm(forms.Form):
 
     types = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple,
                                       choices=PROJECT_TYPES, label='')
+
+
+class FederatedSearchForm(forms.Form):
+    """
+    Form for enabling/disabling federated search.
+
+    This adds a checkbox to include results from registered federated sites
+    in addition to local projects.
+    """
+    include_federated = forms.BooleanField(
+        required=False,
+        label='Search all federated sites',
+        initial=False,
+        help_text='Include results from registered PhysioNet instances'
+    )

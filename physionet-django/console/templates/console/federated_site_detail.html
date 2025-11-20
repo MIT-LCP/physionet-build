@@ -1,0 +1,205 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ SITE_NAME }} - {{ site.site_name }}{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>{{ site.site_name }}</span>
+    <div>
+      <a href="{% url 'federated_site_edit' site.id %}" class="btn btn-sm btn-secondary">
+        <i class="fa fa-edit"></i> Edit
+      </a>
+      <a href="{% url 'federated_site_sync' site.id %}" class="btn btn-sm btn-info">
+        <i class="fa fa-sync"></i> Sync Now
+      </a>
+      <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#delete-site-modal">
+        <i class="fa fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-6">
+        <h5>Site Information</h5>
+        <table class="table table-sm">
+          <tr>
+            <th style="width: 40%;">Site Name:</th>
+            <td>{{ site.site_name }}</td>
+          </tr>
+          <tr>
+            <th>Identifier:</th>
+            <td><code>{{ site.site_identifier }}</code></td>
+          </tr>
+          <tr>
+            <th>API Base URL:</th>
+            <td><a href="{{ site.api_base_url }}" target="_blank">{{ site.api_base_url }}</a></td>
+          </tr>
+          <tr>
+            <th>Status:</th>
+            <td>
+              {% if site.is_active %}
+                <span class="badge badge-success">Active</span>
+              {% else %}
+                <span class="badge badge-secondary">Inactive</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th>API Key:</th>
+            <td>
+              {% if site.api_key %}
+                <span class="text-muted">Configured</span>
+              {% else %}
+                <span class="text-muted">Not set</span>
+              {% endif %}
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="col-md-6">
+        <h5>Sync Status</h5>
+        <table class="table table-sm">
+          <tr>
+            <th style="width: 40%;">Last Sync:</th>
+            <td>
+              {% if site.last_sync_datetime %}
+                {{ site.last_sync_datetime|date:"Y-m-d H:i:s" }}
+              {% else %}
+                <span class="text-muted">Never synced</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th>Sync Status:</th>
+            <td>
+              {% if site.last_sync_status == 'success' %}
+                <span class="badge badge-success">Success</span>
+              {% elif site.last_sync_status == 'failed' %}
+                <span class="badge badge-danger">Failed</span>
+              {% elif site.last_sync_status == 'in_progress' %}
+                <span class="badge badge-info">In Progress</span>
+              {% else %}
+                <span class="badge badge-secondary">Never Synced</span>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <th>Cached Projects:</th>
+            <td>
+              <a href="{% url 'federated_projects_list' site.id %}">
+                {{ cached_projects_count }} projects
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <th>Created:</th>
+            <td>{{ site.created|date:"Y-m-d H:i:s" }}</td>
+          </tr>
+          <tr>
+            <th>Modified:</th>
+            <td>{{ site.modified|date:"Y-m-d H:i:s" }}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Recent Sync History
+  </div>
+  <div class="card-body">
+    {% if sync_logs %}
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+          <thead>
+            <tr>
+              <th>Started</th>
+              <th>Duration</th>
+              <th>Status</th>
+              <th>Fetched</th>
+              <th>Created</th>
+              <th>Updated</th>
+              <th>Deleted</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for log in sync_logs %}
+            <tr>
+              <td>{{ log.started_at|date:"Y-m-d H:i:s" }}</td>
+              <td>
+                {% if log.get_duration_seconds %}
+                  {{ log.get_duration_seconds }}s
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>
+                {% if log.status == 'success' %}
+                  <span class="badge badge-success">Success</span>
+                {% elif log.status == 'failed' %}
+                  <span class="badge badge-danger">Failed</span>
+                {% else %}
+                  <span class="badge badge-warning">Partial</span>
+                {% endif %}
+              </td>
+              <td>{{ log.projects_fetched }}</td>
+              <td>{{ log.projects_created }}</td>
+              <td>{{ log.projects_updated }}</td>
+              <td>{{ log.projects_deleted }}</td>
+              <td>
+                {% if log.error_message %}
+                  <span class="text-danger" title="{{ log.error_message }}">
+                    <i class="fa fa-exclamation-triangle"></i>
+                  </span>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <a href="{% url 'federation_sync_logs' %}?site={{ site.id }}" class="btn btn-sm btn-secondary">View All Logs</a>
+    {% else %}
+      <p class="text-muted">No sync history available</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="delete-site-modal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm Deletion</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this federated site?</p>
+        <p class="text-danger">
+          <strong>Warning:</strong> This will also delete all {{ cached_projects_count }} cached projects from this site.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <form method="post" action="{% url 'federated_site_delete' site.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Delete</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

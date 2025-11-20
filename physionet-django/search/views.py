@@ -11,6 +11,7 @@ from django.templatetags.static import static
 from physionet.utility import paginate
 from project.models import PublishedProject, PublishedTopic
 from search import forms
+from search.federation import get_federated_content
 
 
 def topic_search(request):
@@ -159,7 +160,7 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
 
 def content_index(request, resource_type=None):
     """
-    List of all published resources
+    List of all published resources (including federated search)
     """
     LABELS = {0: ['Database', 'databases'],
               1: ['Software', 'softwares'],
@@ -199,14 +200,17 @@ def content_index(request, resource_type=None):
     else:
         form_topic = forms.TopicSearchForm()
 
-    # BUILD
-    published_projects = get_content(resource_type=resource_type,
-                                     orderby=orderby,
-                                     direction=direction,
-                                     search_term=topic)
+    # FEDERATED SEARCH
+    form_federated = forms.FederatedSearchForm(request.GET if 'include_federated' in request.GET else None)
+    include_federated = form_federated.is_valid() and form_federated.cleaned_data.get('include_federated', False)
 
-    # PAGINATION
-    projects = paginate(request, published_projects, 10)
+    # BUILD RESULTS
+    if include_federated and getattr(settings, 'FEDERATION_SYNC_ENABLED', True):
+        results = get_federated_content(resource_type, topic, include_federated=True)
+    else:
+        results = get_content(resource_type, orderby, direction, topic)
+
+    projects = paginate(request, results, settings.PAGINATION_RESULTS_PER_PAGE)
 
     params = request.GET.copy()
     # Remove the page argument from the querystring if it exists
@@ -225,6 +229,8 @@ def content_index(request, resource_type=None):
             'projects': projects,
             'form_type': form_type,
             'form_topic': form_topic,
+            'form_federated': form_federated,
+            'include_federated': include_federated,
             'querystring': querystring,
         },
     )

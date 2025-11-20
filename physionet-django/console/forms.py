@@ -18,6 +18,7 @@ from project.models import (
     DataAccess,
     DUA,
     EditLog,
+    FederatedSite,
     License,
     PublishedAffiliation,
     PublishedAuthor,
@@ -1037,3 +1038,216 @@ class CodeOfConductForm(forms.ModelForm):
         model = CodeOfConduct
         fields = ('name', 'version', 'slug', 'html_content')
         labels = {'html_content': 'Content'}
+
+
+class FederatedSiteForm(forms.ModelForm):
+    """
+    Form for creating and editing federated PhysioNet sites.
+    Validates API connectivity before saving.
+    """
+    skip_api_validation = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label='Skip API validation',
+        help_text='Check this to save without validating the API endpoint (not recommended)'
+    )
+    
+    class Meta:
+        model = FederatedSite
+        fields = (
+            'site_identifier',
+            'site_name',
+            'api_base_url',
+            'is_active',
+            'api_key',
+        )
+        labels = {
+            'site_identifier': 'Site Identifier',
+            'site_name': 'Site Name',
+            'api_base_url': 'API Base URL',
+            'is_active': 'Active',
+            'api_key': 'API Key (optional)',
+        }
+        help_texts = {
+            'site_identifier': 'Unique identifier for this site (e.g., "physionet-mit", "hdnx-uoft")',
+            'site_name': 'Display name for this site (e.g., "PhysioNet", "HealthDataNexus")',
+            'api_base_url': 'Base URL for the federation API (e.g., "https://healthdatanexus.ca") - will be validated',
+            'is_active': 'Whether to sync data from this site',
+            'api_key': 'API key for authentication (leave blank if not required)',
+        }
+        widgets = {
+            'site_identifier': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'physionet-example'}),
+            'site_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'PhysioNet Example'}),
+            'api_base_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://example.physionet.org'}),
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'api_key': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional API key'}),
+        }
+
+    def clean_api_base_url(self):
+        """Ensure URL doesn't have trailing slash and is valid."""
+        url = self.cleaned_data['api_base_url']
+        if url:
+            url = url.rstrip('/')
+            # Basic validation
+            validate = URLValidator()
+            validate(url)
+        return url
+
+    def clean(self):
+        """Validate API endpoint is reachable and returns expected data."""
+        import requests
+        
+        cleaned_data = super().clean()
+        api_base_url = cleaned_data.get('api_base_url')
+        api_key = cleaned_data.get('api_key')
+        skip_validation = cleaned_data.get('skip_api_validation', False)
+        
+        # Skip validation if checkbox is checked or URL is missing
+        if skip_validation or not api_base_url:
+            return cleaned_data
+        
+        # Construct test endpoint URL
+        test_url = f"{api_base_url.rstrip('/')}/api/v1/project/published/"
+        
+        try:
+            headers = {}
+            if api_key:
+                headers['Authorization'] = f'Bearer {api_key}'
+            
+            # Make request with 10 second timeout
+            response = requests.get(test_url, headers=headers, timeout=10)
+            
+            # Check for specific error status codes
+            if response.status_code == 404:
+                raise forms.ValidationError(
+                    f'API endpoint not found at {test_url}. '
+                    'Please verify the base URL is correct. '
+                    'Expected a PhysioNet-compatible API with /api/v1/project/published/ endpoint.'
+                )
+            elif response.status_code == 401:
+                raise forms.ValidationError(
+                    'Authentication failed (401 Unauthorized). '
+                    'Please verify the API key is correct, or leave it blank if not required.'
+                )
+            elif response.status_code == 403:
+                raise forms.ValidationError(
+                    'Access forbidden (403 Forbidden). '
+                    'The API key may not have sufficient permissions.'
+                )
+            elif response.status_code >= 500:
+                raise forms.ValidationError(
+                    f'Server error ({response.status_code}). '
+                    'The remote site may be down or experiencing issues. '
+                    'You can check "Skip API validation" to save anyway.'
+                )
+            
+            # Raise for other HTTP errors
+            response.raise_for_status()
+            
+            # Validate response format
+            try:
+                data = response.json()
+                
+                # Should be either a list or dict with 'results'
+                if isinstance(data, list):
+                    if len(data) == 0:
+                        # Empty list is okay, but warn in help text
+                        pass
+                elif isinstance(data, dict):
+                    if 'results' not in data:
+                        raise forms.ValidationError(
+                            'API returned a dict without "results" key. '
+                            'Expected either a list of projects or a paginated dict with "results".'
+                        )
+                else:
+                    raise forms.ValidationError(
+                        f'API returned unexpected type: {type(data).__name__}. '
+                        'Expected a list of projects or a paginated dict.'
+                    )
+                    
+            except ValueError as e:
+                raise forms.ValidationError(
+                    f'API did not return valid JSON: {str(e)}. '
+                    'Please verify this is a PhysioNet-compatible API.'
+                )
+                
+        except requests.exceptions.Timeout:
+            raise forms.ValidationError(
+                f'Connection timeout after 10 seconds. '
+                f'The API at {api_base_url} did not respond in time. '
+                'Please verify the URL is correct and the site is accessible. '
+                'You can check "Skip API validation" to save anyway.'
+            )
+        except requests.exceptions.SSLError as e:
+            raise forms.ValidationError(
+                f'SSL/TLS error: {str(e)}. '
+                'The site may have an invalid or expired SSL certificate.'
+            )
+        except requests.exceptions.ConnectionError:
+            raise forms.ValidationError(
+                f'Connection failed. Cannot reach {api_base_url}. '
+                'Please verify the URL is correct and the site is accessible. '
+                'Check your network connection and DNS settings. '
+                'You can check "Skip API validation" to save anyway.'
+            )
+        except requests.exceptions.RequestException as e:
+            raise forms.ValidationError(
+                f'API validation failed: {str(e)}. '
+                'You can check "Skip API validation" to save anyway.'
+            )
+        except forms.ValidationError:
+            # Re-raise our own validation errors
+            raise
+        except Exception as e:
+            # Catch any other unexpected errors
+            raise forms.ValidationError(
+                f'Unexpected error during API validation: {str(e)}. '
+                'You can check "Skip API validation" to save anyway.'
+            )
+        
+        return cleaned_data
+    
+    def clean_site_identifier(self):
+        """Ensure site identifier is lowercase and valid slug format."""
+        identifier = self.cleaned_data['site_identifier']
+        if identifier:
+            identifier = identifier.lower()
+            if not re.fullmatch(r'[a-z0-9-]+', identifier):
+                raise forms.ValidationError(
+                    'Site identifier can only contain lowercase letters, numbers, and hyphens.'
+                )
+        return identifier
+
+
+class FederatedSiteFilterForm(forms.Form):
+    """
+    Form for filtering federated sites in the list view.
+    """
+    STATUS_CHOICES = [
+        ('', 'All Statuses'),
+        ('active', 'Active Only'),
+        ('inactive', 'Inactive Only'),
+    ]
+
+    SYNC_STATUS_CHOICES = [
+        ('', 'All Sync Statuses'),
+    ] + list(FederatedSite.SYNC_STATUS_CHOICES)
+
+    search = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Search by site name or identifier...'
+        })
+    )
+    status = forms.ChoiceField(
+        required=False,
+        choices=STATUS_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    sync_status = forms.ChoiceField(
+        required=False,
+        choices=SYNC_STATUS_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )

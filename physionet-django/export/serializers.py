@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.urls import reverse
 
 from rest_framework import serializers
 
@@ -26,6 +28,9 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
     publish_date = serializers.SerializerMethodField()
     core_doi = serializers.SerializerMethodField()
     version_doi = serializers.SerializerMethodField()
+    topics = serializers.SerializerMethodField()
+    resource_type = serializers.IntegerField(source='resource_type.id')
+    access_policy = serializers.IntegerField()
 
     class Meta:
         model = PublishedProject
@@ -43,6 +48,9 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
             'dua',
             'main_storage_size',
             'compressed_storage_size',
+            'resource_type',
+            'access_policy',
+            'topics',
         )
 
     def get_publish_date(self, obj):
@@ -53,6 +61,10 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
 
     def get_version_doi(self, obj):
         return obj.doi
+
+    def get_topics(self, obj):
+        """Get list of topic descriptions."""
+        return [topic.description for topic in obj.topics.all()]
 
 
 class ProjectVersionsSerializer(serializers.ModelSerializer):
@@ -74,6 +86,10 @@ class ProjectVersionsSerializer(serializers.ModelSerializer):
 
 class PublishedProjectDetailSerializer(serializers.ModelSerializer):
     license = LicenseSerializer()
+    source_url = serializers.SerializerMethodField()
+    topics = serializers.SerializerMethodField()
+    resource_type = serializers.IntegerField(source='resource_type.id')
+    access_policy = serializers.IntegerField()
 
     class Meta:
         model = PublishedProject
@@ -89,4 +105,25 @@ class PublishedProjectDetailSerializer(serializers.ModelSerializer):
             'doi',
             'main_storage_size',
             'compressed_storage_size',
+            'resource_type',
+            'access_policy',
+            'topics',
+            'source_url',
         )
+
+    def get_source_url(self, obj):
+        """Generate the full URL to this project's page."""
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(
+                reverse('published_project', args=[obj.slug, obj.version])
+            )
+        else:
+            # Fallback to settings-based URL
+            site_url = getattr(settings, 'SITE_URL', 'https://physionet.org')
+            path = reverse('published_project', args=[obj.slug, obj.version])
+            return f"{site_url.rstrip('/')}{path}"
+
+    def get_topics(self, obj):
+        """Get list of topic descriptions."""
+        return [topic.description for topic in obj.topics.all()]

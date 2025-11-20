@@ -1,0 +1,189 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block title %}{{ SITE_NAME }} - Federation Sync Logs{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    Federation Sync Logs <span class="badge badge-pill badge-info">{{ logs.paginator.count }}</span>
+  </div>
+
+  <div class="card-body">
+    <!-- Filter Form -->
+    <form method="get" class="mb-3">
+      <div class="row">
+        <div class="col-md-5">
+          <select name="site" class="form-control">
+            <option value="">All Sites</option>
+            {% for site in sites %}
+              <option value="{{ site.id }}" {% if selected_site == site.id|stringformat:"s" %}selected{% endif %}>
+                {{ site.site_name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-5">
+          <select name="status" class="form-control">
+            <option value="">All Statuses</option>
+            <option value="success" {% if selected_status == 'success' %}selected{% endif %}>Success</option>
+            <option value="failed" {% if selected_status == 'failed' %}selected{% endif %}>Failed</option>
+            <option value="partial" {% if selected_status == 'partial' %}selected{% endif %}>Partial</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary btn-block">Filter</button>
+        </div>
+      </div>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-sm">
+        <thead>
+          <tr>
+            <th>Site</th>
+            <th>Started</th>
+            <th>Completed</th>
+            <th>Duration</th>
+            <th>Status</th>
+            <th>Fetched</th>
+            <th>Created</th>
+            <th>Updated</th>
+            <th>Deleted</th>
+            <th>Error</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for log in logs %}
+          <tr>
+            <td>
+              <a href="{% url 'federated_site_detail' log.site.id %}">
+                {{ log.site.site_name }}
+              </a>
+            </td>
+            <td>{{ log.started_at|date:"Y-m-d H:i:s" }}</td>
+            <td>
+              {% if log.completed_at %}
+                {{ log.completed_at|date:"Y-m-d H:i:s" }}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if log.get_duration_seconds %}
+                {{ log.get_duration_seconds }}s
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if log.status == 'success' %}
+                <span class="badge badge-success">Success</span>
+              {% elif log.status == 'failed' %}
+                <span class="badge badge-danger">Failed</span>
+              {% else %}
+                <span class="badge badge-warning">Partial</span>
+              {% endif %}
+            </td>
+            <td class="text-right">{{ log.projects_fetched }}</td>
+            <td class="text-right">
+              {% if log.projects_created > 0 %}
+                <span class="text-success">+{{ log.projects_created }}</span>
+              {% else %}
+                0
+              {% endif %}
+            </td>
+            <td class="text-right">
+              {% if log.projects_updated > 0 %}
+                <span class="text-info">{{ log.projects_updated }}</span>
+              {% else %}
+                0
+              {% endif %}
+            </td>
+            <td class="text-right">
+              {% if log.projects_deleted > 0 %}
+                <span class="text-danger">-{{ log.projects_deleted }}</span>
+              {% else %}
+                0
+              {% endif %}
+            </td>
+            <td>
+              {% if log.error_message %}
+                <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#error-modal-{{ log.id }}" title="View error details">
+                  <i class="fa fa-exclamation-triangle"></i>
+                </button>
+
+                <!-- Error Modal -->
+                <div class="modal fade" id="error-modal-{{ log.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                  <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-content">
+                      <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title">Sync Error - {{ log.site.site_name }}</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <div class="modal-body">
+                        <p><strong>Started:</strong> {{ log.started_at|date:"Y-m-d H:i:s" }}</p>
+                        <p><strong>Error Message:</strong></p>
+                        <pre class="bg-light p-3">{{ log.error_message }}</pre>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="10" class="text-center text-muted">No sync logs available</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=logs %}
+    </div>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">
+    Statistics Summary
+  </div>
+  <div class="card-body">
+    <div class="row text-center">
+      <div class="col-md-3">
+        <h4>{{ sites|length }}</h4>
+        <p class="text-muted">Federated Sites</p>
+      </div>
+      <div class="col-md-3">
+        <h4>{{ logs.paginator.count }}</h4>
+        <p class="text-muted">Total Syncs</p>
+      </div>
+      <div class="col-md-3">
+        <h4 class="text-success">
+          {% with success_count=logs|length %}
+            {{ logs.paginator.count }}
+          {% endwith %}
+        </h4>
+        <p class="text-muted">Log Entries</p>
+      </div>
+      <div class="col-md-3">
+        <a href="{% url 'federated_sites_list' %}" class="btn btn-primary">
+          Manage Sites
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

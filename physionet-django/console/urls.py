@@ -25,6 +25,24 @@ urlpatterns = [
     path('cloud/mirrors/', views.cloud_mirrors,
          name='cloud_mirrors'),
 
+    # Federation
+    path('federation/sites/', views.federated_sites_handler,
+         name='federated_sites_list'),
+    path('federation/sites/add/', views.federated_site_handler, {'action': 'add'},
+         name='federated_site_add'),
+    path('federation/sites/<int:site_id>/', views.federated_site_handler,
+         name='federated_site_detail'),
+    path('federation/sites/<int:site_id>/edit/', views.federated_site_handler, {'action': 'edit'},
+         name='federated_site_edit'),
+    path('federation/sites/<int:site_id>/delete/', views.federated_site_handler, {'action': 'delete'},
+         name='federated_site_delete'),
+    path('federation/sites/<int:site_id>/sync/', views.federated_site_handler, {'action': 'sync'},
+         name='federated_site_sync'),
+    path('federation/sites/<int:site_id>/projects/', views.federated_projects_list,
+         name='federated_projects_list'),
+    path('federation/sync-logs/', views.federation_sync_logs,
+         name='federation_sync_logs'),
+
     # Logs
     path('data-access-logs/', views.project_access_requests_list, name='project_access_requests_list'),
     path('data-access-logs/<int:pk>/', views.project_access_requests_detail, name='project_access_requests_detail'),
@@ -185,6 +203,7 @@ TEST_DEFAULTS = {
     'pk': 1,
     'pid': 1,
     'section_pk': 1,
+    'site_id': 1,
     'news_id': 1,
     'username': 'rgmark',
     'news_slug': 'cloud-migration',
@@ -282,6 +301,13 @@ TEST_CASES = {
     'event_agreement_detail': {'_skip_': True},
     'event_agreement_delete': {'_skip_': True},
     'event_agreement_new_version': {'_skip_': True},
+
+    # Federation (skip if no test data)
+    'federated_site_detail': {'_skip_': True},
+    'federated_site_edit': {'_skip_': True},
+    'federated_site_delete': {'_skip_': True},
+    'federated_site_sync': {'_skip_': True},
+    'federated_projects_list': {'_skip_': True},
 
     # Broken views: POST required for no reason
     'users_list_search': {'group': 'all', '_skip_': True},

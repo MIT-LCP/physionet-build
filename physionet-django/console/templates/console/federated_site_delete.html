@@ -1,0 +1,63 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ SITE_NAME }} - Delete Federated Site{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header bg-danger text-white">
+    <i class="fa fa-exclamation-triangle"></i> Confirm Deletion
+  </div>
+  <div class="card-body">
+    <h5>Are you sure you want to delete this federated site?</h5>
+
+    <div class="alert alert-warning mt-3">
+      <h6><i class="fa fa-exclamation-triangle"></i> Warning</h6>
+      <p>This action cannot be undone. The following data will be permanently deleted:</p>
+      <ul>
+        <li><strong>Site:</strong> {{ site.site_name }} ({{ site.site_identifier }})</li>
+        <li><strong>Cached Projects:</strong> {{ cached_projects_count }} projects</li>
+        <li><strong>Sync Logs:</strong> {{ sync_logs_count }} log entries</li>
+      </ul>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h6>Site Details</h6>
+        <dl class="row">
+          <dt class="col-sm-3">Site Name:</dt>
+          <dd class="col-sm-9">{{ site.site_name }}</dd>
+
+          <dt class="col-sm-3">Identifier:</dt>
+          <dd class="col-sm-9"><code>{{ site.site_identifier }}</code></dd>
+
+          <dt class="col-sm-3">API URL:</dt>
+          <dd class="col-sm-9">{{ site.api_base_url }}</dd>
+
+          <dt class="col-sm-3">Last Sync:</dt>
+          <dd class="col-sm-9">
+            {% if site.last_sync_datetime %}
+              {{ site.last_sync_datetime|date:"Y-m-d H:i:s" }}
+            {% else %}
+              Never synced
+            {% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <form method="post" class="mt-4">
+      {% csrf_token %}
+      <div class="btn-group" role="group">
+        <button type="submit" class="btn btn-danger">
+          <i class="fa fa-trash"></i> Yes, Delete This Site
+        </button>
+        <a href="{% url 'federated_site_detail' site.id %}" class="btn btn-secondary">
+          <i class="fa fa-times"></i> Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

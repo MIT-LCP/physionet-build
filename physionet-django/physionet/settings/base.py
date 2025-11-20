@@ -812,6 +812,12 @@ OAUTH2_PROVIDER = {
     }
 }
 
+# Enable/disable federation sync globally
+FEDERATION_SYNC_ENABLED = config('FEDERATION_SYNC_ENABLED', cast=bool, default=True)
+
+# Pagination
+PAGINATION_RESULTS_PER_PAGE = config('PAGINATION_RESULTS_PER_PAGE', cast=int, default=10)
+
 # Path to GeoIP2 database directory
 GEOIP_PATH = config('GEOIP_PATH', default=None)
 

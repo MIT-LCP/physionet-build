@@ -160,6 +160,8 @@ CONSOLE_NAV_MENU = NavMenu([
 
     NavSubmenu(_('Cloud'), 'cloud', 'cloud', [
         NavLink(_('Mirrors'), 'cloud_mirrors'),
+        NavLink(_('Federated Sites'), 'federated_sites_list'),
+        NavLink(_('Sync Logs'), 'federation_sync_logs'),
     ]),
 
     NavSubmenu(_('Identity check'), 'identity', 'hand-paper', [

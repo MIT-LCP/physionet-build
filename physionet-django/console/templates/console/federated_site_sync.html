@@ -1,0 +1,96 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ SITE_NAME }} - Sync Federated Site{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">
+    <i class="fa fa-sync"></i> Manual Sync
+  </div>
+  <div class="card-body">
+    <h5>Trigger Manual Sync for {{ site.site_name }}</h5>
+
+    {% if has_pending_task %}
+      <div class="alert alert-warning mt-3">
+        <h6><i class="fa fa-clock"></i> Task Already Queued</h6>
+        <p class="mb-0">A sync task is already queued for this site. Please wait for it to complete before queueing another.</p>
+      </div>
+    {% endif %}
+
+    <div class="alert alert-info mt-3">
+      <h6><i class="fa fa-info-circle"></i> About Background Sync</h6>
+      <p>Clicking "Queue Sync Task" will schedule a background task:</p>
+      <ul class="mb-0">
+        <li>The task is queued immediately and the page returns right away</li>
+        <li>A background worker process picks up and executes the task</li>
+        <li>New projects will be added to the local cache</li>
+        <li>Existing projects will be updated with latest metadata</li>
+        <li>Projects no longer on the remote site will be marked as stale</li>
+        <li>Refresh the detail page after a minute to see results in sync logs</li>
+      </ul>
+    </div>
+
+    <div class="alert alert-secondary mt-3">
+      <h6><i class="fa fa-terminal"></i> Background Worker Required</h6>
+      <p class="mb-0">
+        <strong>Important:</strong> The background worker must be running for tasks to execute.<br>
+        Run in a separate terminal: <code>python manage.py process_tasks</code><br>
+        For production, use a process manager like supervisor or systemd.
+      </p>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h6>Site Information</h6>
+        <dl class="row">
+          <dt class="col-sm-3">Site Name:</dt>
+          <dd class="col-sm-9">{{ site.site_name }}</dd>
+
+          <dt class="col-sm-3">Identifier:</dt>
+          <dd class="col-sm-9"><code>{{ site.site_identifier }}</code></dd>
+
+          <dt class="col-sm-3">API URL:</dt>
+          <dd class="col-sm-9">{{ site.api_base_url }}</dd>
+
+          <dt class="col-sm-3">Status:</dt>
+          <dd class="col-sm-9">
+            {% if site.is_active %}
+              <span class="badge badge-success">Active</span>
+            {% else %}
+              <span class="badge badge-secondary">Inactive</span>
+            {% endif %}
+          </dd>
+
+          <dt class="col-sm-3">Last Sync:</dt>
+          <dd class="col-sm-9">
+            {% if site.last_sync_datetime %}
+              {{ site.last_sync_datetime|date:"Y-m-d H:i:s" }}
+              {% if site.last_sync_status == 'success' %}
+                <span class="badge badge-success">Success</span>
+              {% elif site.last_sync_status == 'failed' %}
+                <span class="badge badge-danger">Failed</span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">Never synced</span>
+            {% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+
+    <form method="post" class="mt-4">
+      {% csrf_token %}
+      <div class="btn-group" role="group">
+        <button type="submit" class="btn btn-info" {% if has_pending_task %}disabled title="A task is already queued"{% endif %}>
+          <i class="fa fa-sync"></i> {% if has_pending_task %}Task Already Queued{% else %}Queue Sync Task{% endif %}
+        </button>
+        <a href="{% url 'federated_site_detail' site.id %}" class="btn btn-secondary">
+          Cancel
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
