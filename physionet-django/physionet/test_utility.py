@@ -90,7 +90,6 @@ class TestGeoIP(TestCase):
         # Ensure the test database exists
         test_db_path = os.path.join(os.path.dirname(__file__), '..', '..',
                                     'demo-files', 'geoip', 'GeoLite2-Country.mmdb')
-        print(f"Test GeoIP database path: {test_db_path}")
 
     def test_localhost_ips(self):
         """
