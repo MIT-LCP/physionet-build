@@ -43,6 +43,6 @@ class FederatedSearchForm(forms.Form):
     include_federated = forms.BooleanField(
         required=False,
         label='Search all federated sites',
-        initial=False,
+        initial=True,
         help_text='Include results from registered PhysioNet instances'
     )

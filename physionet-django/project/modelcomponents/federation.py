@@ -202,13 +202,11 @@ class FederatedProject(models.Model):
 
     # Classification metadata (optional - not all federated sites expose these)
     resource_type = models.PositiveSmallIntegerField(
-        null=True,
-        blank=True,
+        default=0,
         help_text='Resource type: 0=Database, 1=Software, 2=Challenge, 3=Model'
     )
     access_policy = models.PositiveSmallIntegerField(
-        null=True,
-        blank=True,
+        default=0,
         help_text='Access policy: 0=Open, 1=Restricted, 2=Credentialed, 3=Contributor Review'
     )
 

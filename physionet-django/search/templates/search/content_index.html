@@ -32,6 +32,12 @@
                 <input type="checkbox" id="resource-check">
                 {% include "inline_form_snippet.html" with form=form_type %}
               </div>
+              <div class="federated-search">
+                {{ form_federated.include_federated }}
+                <label for="{{ form_federated.include_federated.id_for_label }}">
+                  {{ form_federated.include_federated.label }}
+                </label>
+              </div>
             </div>
             <hr>
             <button class="btn btn-primary btn-rsp" type="submit">Apply</button>

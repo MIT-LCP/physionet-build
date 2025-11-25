@@ -201,8 +201,22 @@ def content_index(request, resource_type=None):
         form_topic = forms.TopicSearchForm()
 
     # FEDERATED SEARCH
-    form_federated = forms.FederatedSearchForm(request.GET if 'include_federated' in request.GET else None)
-    include_federated = form_federated.is_valid() and form_federated.cleaned_data.get('include_federated', False)
+    # Check if this is a sidebar form submission (has sidebar-specific params like types/orderby)
+    # vs navbar search (only has topic) or first load (no params)
+    is_sidebar_form_submission = 'types' in request.GET or 'orderby' in request.GET
+
+    if 'include_federated' in request.GET:
+        # Checkbox was explicitly checked
+        form_federated = forms.FederatedSearchForm(request.GET)
+        include_federated = form_federated.is_valid() and form_federated.cleaned_data.get('include_federated', False)
+    elif is_sidebar_form_submission:
+        # Sidebar form submitted but checkbox was unchecked (not in GET params)
+        form_federated = forms.FederatedSearchForm(request.GET)
+        include_federated = False
+    else:
+        # First page load or navbar search - use initial value (defaults to True)
+        form_federated = forms.FederatedSearchForm()
+        include_federated = form_federated.fields['include_federated'].initial
 
     # BUILD RESULTS
     if include_federated and getattr(settings, 'FEDERATION_SYNC_ENABLED', True):
