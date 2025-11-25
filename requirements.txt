@@ -850,9 +850,9 @@ oauthlib==3.2.2 ; python_version >= "3.11" and python_version < "4.0" \
 packaging==25.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484 \
     --hash=sha256:d443872c98d677bf60f6a1f2f8c1cb748e8fe762d2bf9d3148b5599295b0fc4f
-pdfminer-six==20211012 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:0351f17d362ee2d48b158be52bcde6576d96460efd038a3e89a043fba6d634d7 \
-    --hash=sha256:d3efb75c0249b51c1bf795e3a8bddf1726b276c77bf75fb136adea471ee2825b
+pdfminer-six==20251107 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:5fb0c553799c591777f22c0c72b77fc2522d7d10c70654e25f4c5f1fd996e008 \
+    --hash=sha256:c09df33e4cbe6b26b2a79248a4ffcccafaa5c5d39c9fff0e6e81567f165b5401
 pillow==11.3.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:023f6d2d11784a465f09fd09a34b150ea4672e85fb3d05931d89f373ab14abb2 \
     --hash=sha256:02a723e6bf909e7cea0dac1b0e0310be9d7650cd66222a5f1c571455c0a45214 \
