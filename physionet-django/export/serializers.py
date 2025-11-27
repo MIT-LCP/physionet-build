@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.urls import reverse
 
 from rest_framework import serializers
@@ -71,15 +70,9 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
     def get_source_url(self, obj):
         """Generate the full URL to this project's page."""
         request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(
-                reverse('published_project', args=[obj.slug, obj.version])
-            )
-        else:
-            # Fallback to settings-based URL
-            site_url = settings.SITE_URL
-            path = reverse('published_project', args=[obj.slug, obj.version])
-            return f"{site_url.rstrip('/')}{path}"
+        return request.build_absolute_uri(
+            reverse('published_project', args=[obj.slug, obj.version])
+        )
 
 
 class ProjectVersionsSerializer(serializers.ModelSerializer):
@@ -129,15 +122,9 @@ class PublishedProjectDetailSerializer(serializers.ModelSerializer):
     def get_source_url(self, obj):
         """Generate the full URL to this project's page."""
         request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(
-                reverse('published_project', args=[obj.slug, obj.version])
-            )
-        else:
-            # Fallback to settings-based URL
-            site_url = settings.SITE_URL
-            path = reverse('published_project', args=[obj.slug, obj.version])
-            return f"{site_url.rstrip('/')}{path}"
+        return request.build_absolute_uri(
+            reverse('published_project', args=[obj.slug, obj.version])
+        )
 
     def get_topics(self, obj):
         """Get list of topic descriptions."""

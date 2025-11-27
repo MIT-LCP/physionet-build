@@ -95,7 +95,7 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
 
     def get(self, request, project_slug, version, *args, **kwargs):
         project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
-        serializer = PublishedProjectDetailSerializer(project)
+        serializer = PublishedProjectDetailSerializer(project, context={'request': request})
         return Response(serializer.data)
 
 
