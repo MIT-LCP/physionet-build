@@ -138,7 +138,7 @@ class Command(BaseCommand):
                 # Delete all existing projects for this site
                 deleted_count = FederatedProject.objects.filter(source_site=site).delete()[0]
                 stats['deleted'] = deleted_count
-                
+
                 if self.verbosity >= 2 and deleted_count > 0:
                     self.stdout.write(f'  Deleted {deleted_count} existing projects')
 
@@ -182,7 +182,7 @@ class Command(BaseCommand):
     def _fetch_all_projects(self, site):
         """
         Fetch all projects from a site's list endpoint.
-        
+
         Fetches from /api/v1/project/published/ and constructs source_url locally.
         Uses only the list endpoint for efficiency (avoids N+1 detail calls).
 

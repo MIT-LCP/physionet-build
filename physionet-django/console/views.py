@@ -3726,9 +3726,9 @@ def federated_sites_handler(request):
 
             if search:
                 sites = sites.filter(
-                    Q(site_name__icontains=search) |
-                    Q(site_identifier__icontains=search) |
-                    Q(api_base_url__icontains=search)
+                    Q(site_name__icontains=search)
+                    | Q(site_identifier__icontains=search)
+                    | Q(api_base_url__icontains=search)
                 )
 
             if status == 'active':
@@ -3922,7 +3922,7 @@ def sync_federated_site_background(site_id):
     Ensures FederationSyncLog is ALWAYS created, even if sync crashes.
     """
     from project.models import FederationSyncLog
-    
+
     site = FederatedSite.objects.get(id=site_id)
     started_at = timezone.now()
 
@@ -3940,9 +3940,9 @@ def sync_federated_site_background(site_id):
         # Capture full error details
         error_traceback = traceback.format_exc()
         error_msg = f'{str(e)}\n\n{error_traceback}'
-        
+
         LOGGER.error(f'[FEDERATION] Background task sync failed for {site.site_identifier}: {error_msg}')
-        
+
         # Ensure sync log exists with failure status
         # This is critical - the log MUST be created even if command crashed
         try:
@@ -3959,13 +3959,13 @@ def sync_federated_site_background(site_id):
             )
         except Exception as log_error:
             LOGGER.error(f'[FEDERATION] Failed to create sync log: {log_error}')
-        
+
         # Update site status
         try:
             site.mark_sync_failed()
         except Exception as status_error:
             LOGGER.error(f'[FEDERATION] Failed to mark site as failed: {status_error}')
-        
+
         # Re-raise so the task is marked as failed in the queue
         raise
 
@@ -3984,9 +3984,9 @@ def federated_projects_list(request, site_id):
     search = request.GET.get('search', '')
     if search:
         projects = projects.filter(
-            Q(title__icontains=search) |
-            Q(slug__icontains=search) |
-            Q(abstract__icontains=search)
+            Q(title__icontains=search)
+            | Q(slug__icontains=search)
+            | Q(abstract__icontains=search)
         )
 
     projects = paginate(request, projects, 50)

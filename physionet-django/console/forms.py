@@ -1052,7 +1052,7 @@ class FederatedSiteForm(forms.ModelForm):
         label='Skip API validation',
         help_text='Check this to save without validating the API endpoint (not recommended)'
     )
-    
+
     class Meta:
         model = FederatedSite
         fields = (
@@ -1077,9 +1077,16 @@ class FederatedSiteForm(forms.ModelForm):
             'api_key': 'API key for authentication (leave blank if not required)',
         }
         widgets = {
-            'site_identifier': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'physionet-example'}),
-            'site_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'PhysioNet Example'}),
-            'api_base_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://example.physionet.org'}),
+            'site_identifier': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'physionet-example'}
+            ),
+            'site_name': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'PhysioNet Example'}
+            ),
+            'api_base_url': forms.URLInput(
+                attrs={'class': 'form-control',
+                       'placeholder': 'https://example.physionet.org'}
+            ),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'api_key': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional API key'}),
         }
@@ -1097,27 +1104,27 @@ class FederatedSiteForm(forms.ModelForm):
     def clean(self):
         """Validate API endpoint is reachable and returns expected data."""
         import requests
-        
+
         cleaned_data = super().clean()
         api_base_url = cleaned_data.get('api_base_url')
         api_key = cleaned_data.get('api_key')
         skip_validation = cleaned_data.get('skip_api_validation', False)
-        
+
         # Skip validation if checkbox is checked or URL is missing
         if skip_validation or not api_base_url:
             return cleaned_data
-        
+
         # Construct test endpoint URL
         test_url = f"{api_base_url.rstrip('/')}/api/v1/project/published/"
-        
+
         try:
             headers = {}
             if api_key:
                 headers['Authorization'] = f'Bearer {api_key}'
-            
+
             # Make request with 10 second timeout
             response = requests.get(test_url, headers=headers, timeout=10)
-            
+
             # Check for specific error status codes
             if response.status_code == 404:
                 raise forms.ValidationError(
@@ -1141,14 +1148,14 @@ class FederatedSiteForm(forms.ModelForm):
                     'The remote site may be down or experiencing issues. '
                     'You can check "Skip API validation" to save anyway.'
                 )
-            
+
             # Raise for other HTTP errors
             response.raise_for_status()
-            
+
             # Validate response format
             try:
                 data = response.json()
-                
+
                 # Should be either a list or dict with 'results'
                 if isinstance(data, list):
                     if len(data) == 0:
@@ -1165,13 +1172,13 @@ class FederatedSiteForm(forms.ModelForm):
                         f'API returned unexpected type: {type(data).__name__}. '
                         'Expected a list of projects or a paginated dict.'
                     )
-                    
+
             except ValueError as e:
                 raise forms.ValidationError(
                     f'API did not return valid JSON: {str(e)}. '
                     'Please verify this is a PhysioNet-compatible API.'
                 )
-                
+
         except requests.exceptions.Timeout:
             raise forms.ValidationError(
                 f'Connection timeout after 10 seconds. '
@@ -1205,9 +1212,9 @@ class FederatedSiteForm(forms.ModelForm):
                 f'Unexpected error during API validation: {str(e)}. '
                 'You can check "Skip API validation" to save anyway.'
             )
-        
+
         return cleaned_data
-    
+
     def clean_site_identifier(self):
         """Ensure site identifier is lowercase and valid slug format."""
         identifier = self.cleaned_data['site_identifier']

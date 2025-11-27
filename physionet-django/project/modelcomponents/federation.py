@@ -137,7 +137,7 @@ class FederatedSite(models.Model):
         # Remove trailing slash if present
         base_url = self.api_base_url.rstrip('/')
         return f"{base_url}/api/v1/project/published/"
-    
+
     def get_detail_endpoint(self, slug, version):
         """
         Get the full API endpoint URL for a specific project detail.

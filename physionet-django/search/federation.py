@@ -86,13 +86,13 @@ def _get_local_projects(resource_type, keywords):
         q_filters = Q()
         for keyword in keywords:
             q_filters |= (
-                Q(title__icontains=keyword) |
-                Q(abstract__icontains=keyword) |
-                Q(short_description__icontains=keyword) |
-                Q(slug__icontains=keyword) |
-                Q(doi__icontains=keyword) |
-                Q(project_home_page__icontains=keyword) |
-                Q(topics__description__icontains=keyword)
+                Q(title__icontains=keyword)
+                | Q(abstract__icontains=keyword)
+                | Q(short_description__icontains=keyword)
+                | Q(slug__icontains=keyword)
+                | Q(doi__icontains=keyword)
+                | Q(project_home_page__icontains=keyword)
+                | Q(topics__description__icontains=keyword)
             )
         base_query = base_query.filter(q_filters).distinct()
 
@@ -124,11 +124,11 @@ def _get_federated_projects(resource_type, keywords):
         q_filters = Q()
         for keyword in keywords:
             q_filters |= (
-                Q(title__icontains=keyword) |
-                Q(abstract__icontains=keyword) |
-                Q(slug__icontains=keyword) |
-                Q(source_url__icontains=keyword) |
-                Q(source_site__site_name__icontains=keyword)
+                Q(title__icontains=keyword)
+                | Q(abstract__icontains=keyword)
+                | Q(slug__icontains=keyword)
+                | Q(source_url__icontains=keyword)
+                | Q(source_site__site_name__icontains=keyword)
             )
         base_query = base_query.filter(q_filters)
 
