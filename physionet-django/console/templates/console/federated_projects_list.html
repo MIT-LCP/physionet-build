@@ -59,7 +59,11 @@
             <td><code>{{ project.slug }}</code></td>
             <td>{{ project.version }}</td>
             <td>
-              <span class="badge badge-secondary">{{ project.get_resource_type_display_name }}</span>
+              {% if project.resource_type is not None %}
+                <span class="badge badge-secondary">{{ project.get_resource_type_display_name }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
             </td>
             <td>{{ project.publish_datetime|date:"Y-m-d" }}</td>
             <td>

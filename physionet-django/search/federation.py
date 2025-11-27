@@ -117,7 +117,7 @@ def _get_federated_projects(resource_type, keywords):
 
     # Filter by resource type if provided
     if resource_type:
-        base_query = base_query.filter(resource_type__in=resource_type)
+        base_query = base_query.filter(resource_type__in=resource_type, resource_type__isnull=False)
 
     # Prefilter if keywords provided (performance optimization)
     if keywords:

@@ -2,8 +2,13 @@
 
 {% for published_project in projects %}
   <div class="project">
-    <p>{% if published_project.is_federated|default:False %}{{ published_project.resource_type|resource_badge|safe }}{% else %}{{ published_project.resource_type.id|resource_badge|safe }}{% endif %}
-       {% if published_project.is_federated|default:False %}{{ published_project.access_policy|access_badge|safe }}{% else %}{{ published_project.access_policy|access_badge|safe }}{% endif %}
+    <p>{% if published_project.is_federated|default:False %}
+         {% if published_project.resource_type is not None %}{{ published_project.resource_type|resource_badge|safe }}{% endif %}
+         {% if published_project.access_policy is not None %}{{ published_project.access_policy|access_badge|safe }}{% endif %}
+       {% else %}
+         {{ published_project.resource_type.id|resource_badge|safe }}
+         {{ published_project.access_policy|access_badge|safe }}
+       {% endif %}
        {% if published_project.is_federated|default:False %}
          <span class="badge badge-info">{{ published_project.source_site.site_name }}</span>
        {% endif %}

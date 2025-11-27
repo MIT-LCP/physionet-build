@@ -297,8 +297,8 @@ class Command(BaseCommand):
             abstract=project_data.get('abstract', ''),
             doi=project_data.get('version_doi') or project_data.get('doi'),
             source_url=project_data['source_url'],
-            resource_type=project_data.get('resource_type', 0),  # Default to Database (0)
-            access_policy=project_data.get('access_policy', 0),  # Default to Open (0)
+            resource_type=project_data.get('resource_type'),  # Optional - None if not provided
+            access_policy=project_data.get('access_policy'),  # Optional - None if not provided
             publish_datetime=publish_datetime,
             main_storage_size=project_data.get('main_storage_size', 0),
             topics=topics,  # Optional, defaults to empty list

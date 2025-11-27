@@ -21,7 +21,7 @@ urlpatterns = [
          views.PublishedProjectDetail.as_view(),
          name='published_project_detail'),
 
-    path('v1/<slug:project_slug>/<slug:version>/sha256sums/',
+    path('v1/projects/published/<str:project_slug>/<str:version>/sha256sums/',
          views.ProjectSHA256Sums.as_view(),
          name='published_project_sha256sums'),
 

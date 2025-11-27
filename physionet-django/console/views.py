@@ -3970,9 +3970,6 @@ def sync_federated_site_background(site_id):
         raise
 
 
-# federated_site_sync merged into federated_site_handler (action='sync')
-
-
 @console_permission_required('project.view_federatedsite')
 def federated_projects_list(request, site_id):
     """
