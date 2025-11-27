@@ -3918,7 +3918,7 @@ def sync_federated_site_background(site_id):
 
     This is picked up by the background worker process.
     Run: python manage.py process_tasks
-    
+
     Ensures FederationSyncLog is ALWAYS created, even if sync crashes.
     """
     from project.models import FederationSyncLog
