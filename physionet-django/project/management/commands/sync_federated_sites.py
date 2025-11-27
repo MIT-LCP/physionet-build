@@ -133,42 +133,19 @@ class Command(BaseCommand):
             if self.verbosity >= 2:
                 self.stdout.write(f'  Fetched {len(all_projects)} projects')
 
-            # Track which projects we've seen
-            seen_slugs = set()
-
-            # Update or create projects
+            # Delete and recreate all projects for efficiency
             with transaction.atomic():
+                # Delete all existing projects for this site
+                deleted_count = FederatedProject.objects.filter(source_site=site).delete()[0]
+                stats['deleted'] = deleted_count
+                
+                if self.verbosity >= 2 and deleted_count > 0:
+                    self.stdout.write(f'  Deleted {deleted_count} existing projects')
+
+                # Create all projects fresh
                 for project_data in all_projects:
-                    slug = project_data['slug']
-                    version = project_data['version']
-                    seen_slugs.add((slug, version))
-
-                    # Check if project already exists
-                    existing = FederatedProject.objects.filter(
-                        source_site=site,
-                        slug=slug,
-                        version=version
-                    ).first()
-
-                    if existing:
-                        # Update existing project
-                        updated = self._update_project(existing, project_data)
-                        if updated:
-                            stats['updated'] += 1
-                    else:
-                        # Create new project
-                        self._create_project(site, project_data)
-                        stats['created'] += 1
-
-                # Mark projects not in the response as stale
-                stale_count = FederatedProject.objects.filter(
-                    source_site=site,
-                    is_stale=False
-                ).exclude(
-                    slug__in=[s[0] for s in seen_slugs]
-                ).update(is_stale=True)
-
-                stats['deleted'] = stale_count
+                    self._create_project(site, project_data)
+                    stats['created'] += 1
 
             # Mark sync as successful
             site.mark_sync_success()
@@ -254,14 +231,15 @@ class Command(BaseCommand):
                 if self.verbosity >= 2 and next_url:
                     self.stdout.write(f'  Fetching page... ({len(all_projects)} projects so far)')
 
-        # Construct source_url for each project
-        base_url = site.api_base_url.rstrip('/')
+        # Validate that all projects have source_url
         for project in all_projects:
-            slug = project.get('slug')
-            version = project.get('version')
-            if slug and version:
-                # Construct source_url pointing to the project page
-                project['source_url'] = f"{base_url}/projects/{slug}/{version}/"
+            if 'source_url' not in project or not project['source_url']:
+                slug = project.get('slug', 'unknown')
+                version = project.get('version', 'unknown')
+                raise ValueError(
+                    f"Project {slug}/{version} is missing 'source_url' field. "
+                    f"The federated site API must provide source_url for each project."
+                )
 
         return all_projects
 

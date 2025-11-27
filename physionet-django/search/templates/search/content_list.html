@@ -13,29 +13,47 @@
          <span class="badge badge-info">{{ published_project.source_site.site_name }}</span>
        {% endif %}
     </p>
-    <{% firstof content_list_header 'h2' %}><a href="{% url 'published_project' published_project.slug published_project.version %}">{{ published_project.title }}</a></{% firstof content_list_header 'h2' %}>
-    {% if not published_project.is_legacy %}
-      <p class="text-muted">
-          {% for author in published_project.author_list %}
-          {{ author.get_full_name }}{% if not forloop.last %}, {% endif %}
-          {% endfor %}
-      </p>
+    {% if published_project.is_federated|default:False %}
+      <{% firstof content_list_header 'h2' %}><a href="{{ published_project.source_url }}" target="_blank" rel="noopener noreferrer">{{ published_project.title }} <i class="fas fa-external-link-alt fa-xs"></i></a></{% firstof content_list_header 'h2' %}>
+    {% else %}
+      <{% firstof content_list_header 'h2' %}><a href="{% url 'published_project' published_project.slug published_project.version %}">{{ published_project.title }}</a></{% firstof content_list_header 'h2' %}>
     {% endif %}
+    
+    {% if not published_project.is_federated|default:False %}
+      {% if not published_project.is_legacy %}
+        <p class="text-muted">
+            {% for author in published_project.author_list %}
+            {{ author.get_full_name }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+      {% endif %}
+    {% endif %}
+    
     <div style="margin-bottom: 1rem;">
-      {% if not published_project.short_description %}
+      {% if published_project.abstract %}
         {{ published_project.abstract|safe|truncatechars_html:250 }}
-      {% else %}
+      {% elif not published_project.is_federated|default:False and published_project.short_description %}
         {{ published_project.short_description }}
       {% endif %}
     </div>
-    <p class="text-muted">
-      {% for topic in published_project.topics.all %}
-        {{ topic|topic_badge|safe }}
-      {% endfor %}
-    </p>
+    
+    {% if not published_project.is_federated|default:False %}
+      <p class="text-muted">
+        {% for topic in published_project.topics.all %}
+          {{ topic|topic_badge|safe }}
+        {% endfor %}
+      </p>
+    {% elif published_project.topics %}
+      <p class="text-muted">
+        {% for topic in published_project.topics %}
+          <span class="badge badge-pn">{{ topic }}</span>
+        {% endfor %}
+      </p>
+    {% endif %}
+    
     <p class="pub-details">Published: {{ published_project.publish_datetime|date }}.
       Version: {{ published_project.version }}</p>
-    {% if published_project.files.is_lightwave_supported %}
+    {% if not published_project.is_federated|default:False and published_project.files.is_lightwave_supported %}
       {% can_view_project_files published_project request.user request as user_can_view_project_files %}
       {% if published_project.has_wfdb and user_can_view_project_files %}
         <a href="{% url 'lightwave_home' %}?db={{ published_project.slug }}/{{ published_project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a>

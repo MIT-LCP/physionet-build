@@ -29,6 +29,7 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
     core_doi = serializers.SerializerMethodField()
     version_doi = serializers.SerializerMethodField()
     topics = serializers.SerializerMethodField()
+    source_url = serializers.SerializerMethodField()
     resource_type = serializers.IntegerField(source='resource_type.id')
     access_policy = serializers.IntegerField()
 
@@ -51,6 +52,7 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
             'resource_type',
             'access_policy',
             'topics',
+            'source_url',
         )
 
     def get_publish_date(self, obj):
@@ -65,6 +67,19 @@ class PublishedProjectSerializer(serializers.ModelSerializer):
     def get_topics(self, obj):
         """Get list of topic descriptions."""
         return [topic.description for topic in obj.topics.all()]
+
+    def get_source_url(self, obj):
+        """Generate the full URL to this project's page."""
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(
+                reverse('published_project', args=[obj.slug, obj.version])
+            )
+        else:
+            # Fallback to settings-based URL
+            site_url = settings.SITE_URL
+            path = reverse('published_project', args=[obj.slug, obj.version])
+            return f"{site_url.rstrip('/')}{path}"
 
 
 class ProjectVersionsSerializer(serializers.ModelSerializer):
@@ -120,7 +135,7 @@ class PublishedProjectDetailSerializer(serializers.ModelSerializer):
             )
         else:
             # Fallback to settings-based URL
-            site_url = getattr(settings, 'SITE_URL', 'https://physionet.org')
+            site_url = settings.SITE_URL
             path = reverse('published_project', args=[obj.slug, obj.version])
             return f"{site_url.rstrip('/')}{path}"
 
