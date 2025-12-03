@@ -255,10 +255,8 @@
             {% endif %}
           </div>
         </div>
-        {% if not project.is_latest_version or project.version_order or project.has_other_versions %}
-          {% include "project/version_list_card.html" %}
-        {% endif %}
 
+        {% include "project/version_list_card.html" %}
       </div>
       <!-- /.sidebar -->
     </div>
