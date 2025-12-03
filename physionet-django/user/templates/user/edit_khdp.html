@@ -1,0 +1,6 @@
+<!-- KHDP linking settings page UI -->
+<h2>Link your KHDP account</h2>
+<form method="post" action="{% url 'auth_khdp' %}">
+    {% csrf_token %}
+    <button type="submit">Link KHDP Account</button>
+</form>
