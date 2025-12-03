@@ -1410,3 +1410,22 @@ def view_signed_agreement(request, dua_signature_id):
 
     return render(request, 'user/view_signed_agreement.html',
                   {'user': user, 'signed': signed})
+
+
+from .models import KhdpAccount
+
+
+@login_required
+def edit_khdp(request):
+    """
+    KHDP account linking settings page.
+    """
+    return render(request, 'user/edit_khdp.html')
+
+
+@login_required
+def auth_khdp(request):
+    """
+    Handle KHDP OAuth callback and link the account.
+    """
+    return redirect('edit_khdp')
