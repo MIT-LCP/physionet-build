@@ -341,8 +341,8 @@ def create_project(request):
 
     return render(request, 'project/create_project.html', {
         'form': form,
-        'georestriction_message': getattr(settings, 'CREATE_PROJECT_GEORESTRICTION', ''),
-    })
+        'warning_message': settings.CREATE_PROJECT_WARNING}
+    )
 
 @login_required
 def new_project_version(request, project_slug):

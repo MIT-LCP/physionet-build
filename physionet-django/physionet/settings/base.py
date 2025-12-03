@@ -58,10 +58,10 @@ BLOCKED_REGIONS = set(
     if region.strip()
 )
 
-# Create project georestriction warning message
-# CREATE_PROJECT_GEORESTRICTION: Custom message to display on create project page
-# Example: CREATE_PROJECT_GEORESTRICTION=strong>TITLE:</strong> MESSAGE LINK<a href="LINK URL">LINK TEXT</a>.
-CREATE_PROJECT_GEORESTRICTION = config('CREATE_PROJECT_GEORESTRICTION', default='')
+# Create project warning message
+# CREATE_PROJECT_WARNING: Custom message to display on create project page
+# Example: CREATE_PROJECT_WARNING=strong>TITLE:</strong> MESSAGE LINK<a href="LINK URL">LINK TEXT</a>.
+CREATE_PROJECT_WARNING = config('CREATE_PROJECT_WARNING', default='')
 
 # Installed apps
 INSTALLED_APPS = [

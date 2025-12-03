@@ -13,10 +13,10 @@
 <div class="container">
   <form action="{% url 'create_project' %}" method="post" class="no-pd">
     <h2 class="form-signin-heading">Create New Project</h2>
-    {% if georestriction_message %}
+    {% if warning_message %}
       <hr>
       <div class="alert alert-warning" role="alert">
-        {{ georestriction_message|safe }}
+        {{ warning_message|safe }}
       </div>
     {% endif %}
     <hr>
