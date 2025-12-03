@@ -339,7 +339,10 @@ def create_project(request):
     else:
         form = forms.CreateProjectForm(user=user)
 
-    return render(request, 'project/create_project.html', {'form':form})
+    return render(request, 'project/create_project.html', {
+        'form': form,
+        'georestriction_message': getattr(settings, 'CREATE_PROJECT_GEORESTRICTION', ''),
+    })
 
 @login_required
 def new_project_version(request, project_slug):
