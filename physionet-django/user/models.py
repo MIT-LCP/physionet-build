@@ -753,6 +753,24 @@ class Orcid(models.Model):
         return settings.ORCID_DOMAIN
 
 
+class KhdpAccount(models.Model):
+    """
+    Class for storing KHDP account linking information.
+    """
+    user = models.OneToOneField('user.User', related_name='khdp_account',
+                                on_delete=models.CASCADE)
+    khdp_id = models.CharField(max_length=128, unique=True)
+    khdp_username = models.CharField(max_length=128)
+    khdp_email = models.EmailField()
+    linked_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        default_permissions = ()
+
+    def __str__(self):
+        return f"KHDP Account: {self.khdp_username} ({self.khdp_id})"
+
+
 class CredentialApplication(models.Model):
     """
     An application to become credentialed
