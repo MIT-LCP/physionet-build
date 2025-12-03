@@ -256,17 +256,7 @@
           </div>
         </div>
         {% if not project.is_latest_version or project.version_order or project.has_other_versions %}
-          <div class="card my-4">
-            <h5 class="card-header">Versions</h5>
-            <ul class="list-group">
-              {% for project in all_project_versions %}
-                <li class="list-group-item"><a
-                  href="{% url 'published_project' project.slug project.version %}">{{ project.version }}</a>
-                  - {{ project.publish_datetime|date }}
-                </li>
-              {% endfor %}
-            </ul>
-          </div>
+          {% include "project/version_list_card.html" %}
         {% endif %}
 
       </div>
