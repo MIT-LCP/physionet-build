@@ -1,6 +1,27 @@
-<!-- KHDP linking settings page UI -->
-<h2>Link your KHDP account</h2>
-<form method="post" action="{% url 'auth_khdp' %}">
+{% extends "user/settings.html" %}
+
+{% block title %}Edit KHDP{% endblock %}
+
+{% block main_content %}
+<form action="{% url 'edit_khdp' %}" method="post" enctype="multipart/form-data" class="form-signin no-pd">
     {% csrf_token %}
-    <button type="submit">Link KHDP Account</button>
+    <h1>Edit KHDP</h1>
+    <p>
+        KHDP provides identity and profile information to help link your accounts securely.
+        By linking, KHDP may share the following with PhysioNet:
+    </p>
+    <ul>
+        <li>userId</li>
+        <li>userName</li>
+        <li>affiliation</li>
+        <li>mail</li>
+        <li>orcid</li>
+        <li>physionetId</li>
+    </ul>
+    <p>
+        By clicking the button below, you agree to KHDP’s <a href="#" rel="noopener">Terms of Conditions</a> and
+        <a href="#" rel="noopener">Privacy Policy</a>.
+    </p>
+    <button class="btn btn-primary btn-rsp" type="submit" name="request_khdp" value="make_request">Link KHDP Account</button>
 </form>
+{% endblock %}
