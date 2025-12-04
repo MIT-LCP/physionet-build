@@ -339,7 +339,10 @@ def create_project(request):
     else:
         form = forms.CreateProjectForm(user=user)
 
-    return render(request, 'project/create_project.html', {'form':form})
+    return render(request, 'project/create_project.html', {
+        'form': form,
+        'warning_message': settings.CREATE_PROJECT_WARNING}
+    )
 
 @login_required
 def new_project_version(request, project_slug):

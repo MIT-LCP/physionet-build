@@ -58,6 +58,11 @@ BLOCKED_REGIONS = set(
     if region.strip()
 )
 
+# Create project warning message
+# CREATE_PROJECT_WARNING: Custom message to display on create project page
+# Example: CREATE_PROJECT_WARNING=<strong>TITLE:</strong> MESSAGE LINK<a href="LINK URL">LINK TEXT</a>.
+CREATE_PROJECT_WARNING = config('CREATE_PROJECT_WARNING', default='')
+
 # Installed apps
 INSTALLED_APPS = [
     'dal',
