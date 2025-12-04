@@ -1,10 +1,14 @@
 <div class="card my-4">
   <h5 class="card-header">Versions</h5>
-  <ul class="list-group">
+  <ul class="list-group list-group-flush project-version-list">
     {% for project in all_project_versions %}
-      <li class="list-group-item"><a
-        href="{% url 'published_project' project.slug project.version %}">{{ project.version }}</a>
-        - {{ project.publish_datetime|date }}
+      <li class="list-group-item">
+        <a href="{% url 'published_project' project.slug project.version %}">
+          <span class="project-version">{{ project.version }}</span>
+          <time datetime="{{ project.publish_datetime|date:'Y-m-d' }}">
+            {{ project.publish_datetime|date }}
+          </time>
+        </a>
       </li>
     {% endfor %}
   </ul>

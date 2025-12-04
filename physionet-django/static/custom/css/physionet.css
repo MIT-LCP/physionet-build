@@ -615,3 +615,13 @@ body .tox .tox-dialog-wrap__backdrop {
     background-color: #000; /* bootstrap: $modal-backdrop-bg */
     opacity: 0.5;           /* bootstrap: $modal-backdrop-opacity */
 }
+
+.project-version-list .list-group-item > a {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+.project-version-list .list-group-item time {
+    padding-left: 0.5em;
+    text-align: right;
+}
