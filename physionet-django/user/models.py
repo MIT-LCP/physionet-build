@@ -754,21 +754,43 @@ class Orcid(models.Model):
 
 
 class KhdpAccount(models.Model):
+    """Stores KHDP OAuth linkage and tokens.
+    
+    KHDP provides the following user info fields:
+    - publicUuid (required): Persistent UUID for cross-system identification
+    - userId: KHDP login ID
+    - userName: Full name
+    - affiliation: Institution/organization
+    - mail: Email address
+    - orcid: ORCID iD (if linked)
+    - physionetId: PhysioNet public user UUID (if previously shared)
     """
-    Class for storing KHDP account linking information.
-    """
-    user = models.OneToOneField('user.User', related_name='khdp_account',
-                                on_delete=models.CASCADE)
-    khdp_id = models.CharField(max_length=128, unique=True)
-    khdp_username = models.CharField(max_length=128)
-    khdp_email = models.EmailField()
-    linked_at = models.DateTimeField(auto_now_add=True)
+    user = models.OneToOneField('user.User', related_name='khdp', on_delete=models.CASCADE)
+    
+    # Primary identifier from KHDP (publicUuid)
+    public_uuid = models.CharField(max_length=128, default='', blank=True, unique=True,
+                                   help_text='KHDP publicUuid - persistent identifier')
+    
+    # Additional KHDP user info fields
+    khdp_user_id = models.CharField(max_length=128)
+    name = models.CharField(max_length=100)
+    affiliation = models.CharField(max_length=250)
+    email = models.EmailField(max_length=255)
+    orcid = models.CharField(max_length=50, blank=True)
+    physionet_id = models.CharField(max_length=128, blank=True,
+                                   help_text='PhysioNet public user UUID shared with KHDP')
+    
+    # OAuth token information
+    access_token = models.CharField(max_length=512, default='', blank=True)
+    token_type = models.CharField(max_length=50, default='', blank=True)
+    token_expiration = models.DecimalField(max_digits=50, decimal_places=40, default=0)
+    datetime_added = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         default_permissions = ()
 
     def __str__(self):
-        return f"KHDP Account: {self.khdp_username} ({self.khdp_id})"
+        return f"KHDP Account: {self.name} ({self.khdp_user_id})"
 
 
 class CredentialApplication(models.Model):
