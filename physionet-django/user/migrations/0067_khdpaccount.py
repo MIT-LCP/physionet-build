@@ -3,7 +3,7 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('user', '0066_previous_migration'),
+           ('user', '0066_enforce_public_user_uuid_constraint'),
     ]
     operations = [
         migrations.CreateModel(
