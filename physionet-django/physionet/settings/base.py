@@ -63,10 +63,17 @@ BLOCKED_REGIONS = set(
 # Example: CREATE_PROJECT_WARNING=<strong>TITLE:</strong> MESSAGE LINK<a href="LINK URL">LINK TEXT</a>.
 CREATE_PROJECT_WARNING = config('CREATE_PROJECT_WARNING', default='')
 
+KHDP_LINK_REDIRECT_URI = config('KHDP_LINK_REDIRECT_URI', default=config('KHDP_REDIRECT_URI', default=''))
+KHDP_AUTH_URL = config('KHDP_AUTH_URL', default='')
+KHDP_TOKEN_URL = config('KHDP_TOKEN_URL', default='')
+KHDP_USERINFO_URL = config('KHDP_USERINFO_URL', default='')
+KHDP_SCOPE = config('KHDP_SCOPE', default='openid profile email')
+
 # KHDP linking config
 KHDP_CLIENT_ID = config('KHDP_CLIENT_ID', default='')
 KHDP_CLIENT_SECRET = config('KHDP_CLIENT_SECRET', default='')
 KHDP_LINK_REDIRECT_URI = config('KHDP_LINK_REDIRECT_URI', default='')
+
 # Installed apps
 INSTALLED_APPS = [
     'dal',
