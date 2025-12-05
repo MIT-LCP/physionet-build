@@ -1489,14 +1489,11 @@ def auth_khdp(request):
                 'appId': client_id,
                 'secretKey': client_secret,
             }
-            # Note: verify=False disables SSL certificate verification due to KHDP cert mismatch
-            # In production, consider using the correct hostname or installing the cert chain
             resp = requests.post(
                 token_url,
                 json=payload,
                 headers={'Content-Type': 'application/json'},
                 timeout=10,
-                verify=False,
             )
             # KHDP returns 201 Created, not 200 OK
             if resp.status_code not in [200, 201]:
@@ -1513,12 +1510,10 @@ def auth_khdp(request):
             # Call userinfo with Bearer token
             # KHDP returns 'accessToken' not 'access_token'
             access_token = token.get('accessToken') or token.get('access_token')
-            # Note: verify=False disables SSL certificate verification due to KHDP cert mismatch
             resp = requests.get(
                 userinfo_url,
                 headers={'Authorization': f"Bearer {access_token}"},
                 timeout=10,
-                verify=False,
             )
             if resp.status_code != 200:
                 logger.error("KHDP userinfo failed with status %s: %s", resp.status_code, resp.text)
