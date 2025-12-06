@@ -6,10 +6,20 @@
 <form action="{% url 'edit_khdp' %}" method="post" enctype="multipart/form-data" class="form-signin no-pd">
     {% csrf_token %}
     <h1>Edit KHDP</h1>
+
     <p>
-        KHDP provides identity and profile information to help link your accounts securely.
-        By linking, KHDP may share the following with PhysioNet:
+        Korea Health Data Platform (KHDP) is a secure identity and data platform for global collaborative research.
+        You can learn more at
+        <a href="https://khdp.net/" target="_blank" rel="noopener">https://khdp.net/</a>.
+        If you do not already have a KHDP account, you can create one on the KHDP website.
     </p>
+
+    <p>
+        If you already have a KHDP account, you can use the button below to link it to your PhysioNet account.
+        When you link your account, KHDP may share the following information with PhysioNet so that we can
+        keep your profiles in sync:
+    </p>
+
     <ul>
         <li>userId</li>
         <li>userName</li>
@@ -18,10 +28,22 @@
         <li>orcid</li>
         <li>physionetId</li>
     </ul>
+
     <p>
-        By clicking the button below, you agree to KHDP’s <a href="#" rel="noopener">Terms of Conditions</a> and
-        <a href="#" rel="noopener">Privacy Policy</a>.
+        Linking your KHDP account may help streamline identity verification and future integrations between
+        PhysioNet and KHDP services.
     </p>
-    <button class="btn btn-primary btn-rsp" type="submit" name="request_khdp" value="make_request">Link KHDP Account</button>
+
+    <p>
+        By clicking the button below, you agree to KHDP’s terms and privacy policy.
+    </p>
+
+    <ul>
+        <li>No KHDP account linked.</li>
+    </ul>
+
+    <button class="btn btn-primary btn-rsp" type="submit" name="request_khdp" value="make_request">
+        Link KHDP Account
+    </button>
 </form>
 {% endblock %}
