@@ -34,13 +34,17 @@
         PhysioNet and KHDP services.
     </p>
 
-    <p>
-        By clicking the button below, you agree to KHDP’s terms and privacy policy.
-    </p>
-
-    <ul>
-        <li>No KHDP account linked.</li>
-    </ul>
+    {% if request.user.khdp %}
+        <p>Your KHDP account is currently linked:</p>
+        <ul>
+            <li>User ID: {{ request.user.khdp.khdp_user_id }}</li>
+            <li>Name: {{ request.user.khdp.name }}</li>
+            <li>Affiliation: {{ request.user.khdp.affiliation }}</li>
+            <li>Email: {{ request.user.khdp.email }}</li>
+        </ul>
+    {% else %}
+        <p><strong>No KHDP account linked.</strong></p>
+    {% endif %}
 
     <button class="btn btn-primary btn-rsp" type="submit" name="request_khdp" value="make_request">
         Link KHDP Account
