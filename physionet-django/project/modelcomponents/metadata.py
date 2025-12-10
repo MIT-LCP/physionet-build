@@ -523,7 +523,7 @@ class Metadata(models.Model):
                                           **shared_content)
 
         else:
-            final_style = style_format + '.'
+            final_style = style_format
             citation_format = format_html(final_style,
                                           author=all_authors,
                                           **shared_content)
