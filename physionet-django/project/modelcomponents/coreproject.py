@@ -1,5 +1,6 @@
 import uuid
 
+from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
@@ -57,6 +58,21 @@ class CoreProject(models.Model):
         # The sum will be None if there are no publishedprojects.  It will
         # also be None if any projects have incremental_storage_size=None.
         return result['total'] or 0
+
+    def future_doi_prefix(self):
+        """
+        The organizational prefix for the project's future DOI.
+
+        This is a string like "10.12345", which will be the prefix of
+        the DOI when and if the project is published.  This is meant
+        to be used as a hint for placeholder citations.
+        """
+        if self.doi:
+            return self.doi.split('/')[0]
+        elif settings.DATACITE_PREFIX:
+            return settings.DATACITE_PREFIX
+        else:
+            return None
 
 
 class ProgrammingLanguage(models.Model):

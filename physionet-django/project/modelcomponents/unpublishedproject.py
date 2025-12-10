@@ -89,6 +89,20 @@ class UnpublishedProject(models.Model):
         else:
             raise Exception('Not a new version')
 
+    def future_doi_prefix(self):
+        """
+        The organizational prefix for the project's future DOI.
+
+        This is a string like "10.12345", which will be the prefix of
+        the DOI when and if the project is published.  This is meant
+        to be used as a hint for placeholder citations.
+        """
+        if self.doi:
+            return self.doi.split('/')[0]
+        elif settings.DATACITE_PREFIX:
+            return settings.DATACITE_PREFIX
+        else:
+            return None
 
     def remove(self):
         """
