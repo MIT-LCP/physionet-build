@@ -413,7 +413,11 @@ class Metadata(models.Model):
             DOI suffix.
             """
             year = timezone.now().year
-            doi = '10.13026/*****'
+            prefix = self.future_doi_prefix()
+            if prefix:
+                doi = prefix + '/*****'
+            else:
+                doi = None
 
         rrid_text = f"RRID:{settings.PLATFORM_RRID}." if settings.PLATFORM_RRID else ""
         shared_content = {'year': year,
@@ -519,7 +523,7 @@ class Metadata(models.Model):
                                           **shared_content)
 
         else:
-            final_style = style_format + '.'
+            final_style = style_format
             citation_format = format_html(final_style,
                                           author=all_authors,
                                           **shared_content)
