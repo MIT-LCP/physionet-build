@@ -35,6 +35,15 @@ class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     Returns a paginated list of all published projects, ordered by ID.
     Supports filtering by resource type and search terms.
 
+    Response includes:
+        - Basic metadata (title, version, slug, DOIs, etc.)
+        - License and DUA information
+        - Storage sizes
+        - Resource type (Database, Software, Challenge, Model) - as string
+        - Access policy (Open, Restricted, Credentialed, Contributor Review) - as string
+        - Topics (list of descriptive keywords)
+        - Source URL (full URL to project page)
+
     Authentication:
         - Session or Basic authentication required
         - Rate limited: 100 requests/hour for authenticated users
@@ -84,6 +93,17 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
     Parameters:
         project_slug (str): The unique identifier for the project
         version (str): The version number of the project
+
+    Response includes:
+        - Complete project metadata (title, version, slug, abstract, etc.)
+        - License information
+        - Project home page
+        - DOI
+        - Storage sizes
+        - Resource type (Database, Software, Challenge, Model) - as string
+        - Access policy (Open, Restricted, Credentialed, Contributor Review) - as string
+        - Topics (list of descriptive keywords)
+        - Source URL (full URL to project page)
 
     Authentication:
         - Session or Basic authentication required
