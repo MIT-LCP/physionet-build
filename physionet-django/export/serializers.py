@@ -85,6 +85,7 @@ class PublishedProjectSerializer(ProjectFieldsMixin, serializers.ModelSerializer
     class Meta:
         model = PublishedProject
         fields = (
+            'public_project_uuid',
             'slug',
             'version',
             'core_doi',
@@ -150,6 +151,7 @@ class PublishedProjectDetailSerializer(ProjectFieldsMixin, serializers.ModelSeri
     class Meta:
         model = PublishedProject
         fields = (
+            'public_project_uuid',
             'slug',
             'title',
             'version',

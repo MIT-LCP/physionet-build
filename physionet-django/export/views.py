@@ -36,6 +36,7 @@ class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
     Supports filtering by resource type and search terms.
 
     Response includes:
+        - Public project UUID (persistent unique identifier)
         - Basic metadata (title, version, slug, DOIs, etc.)
         - License and DUA information
         - Storage sizes
@@ -95,6 +96,7 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
         version (str): The version number of the project
 
     Response includes:
+        - Public project UUID (persistent unique identifier)
         - Complete project metadata (title, version, slug, abstract, etc.)
         - License information
         - Project home page

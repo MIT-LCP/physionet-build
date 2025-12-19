@@ -1,3 +1,8 @@
 from django.db import models
 
-# Create your models here.
+# Import federation models
+from search.modelcomponents.federation import (
+    FederatedSite,
+    FederatedProject,
+    FederationSyncLog,
+)
