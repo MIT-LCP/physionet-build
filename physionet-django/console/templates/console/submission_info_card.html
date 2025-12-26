@@ -99,12 +99,25 @@
           <i><a href="{% url 'project_preview' project.slug %}" target="_blank">preview</a></i> of this project.
           This is useful if the authors are submitting an article to a peer-reviewed journal and access
           to a {{ SITE_NAME }} resource is needed during the review process.
-          <br>
-          {% if anonymous_url %}
-            The URL for reviewer access is:
-            <a href="{% url 'anonymous_login' anonymous_url %}" target="_blank">{{ url_prefix }}{% url 'anonymous_login' anonymous_url %}</a>
-          {% endif %}
         </p>
+        <p>
+          <strong>Link types:</strong>
+        </p>
+        <ul>
+          <li><strong>Standard Link:</strong> Shows author names, affiliations, and corresponding author information.</li>
+          <li><strong>Author-Masked Link:</strong> Hides all author information for anonymous peer review.</li>
+        </ul>
+        {% if anonymous_url %}
+        <div class="alert alert-info">
+          <p class="m-0">
+            <strong>Active Link Type:</strong> {% if hide_authors %}Author-Masked Link{% else %}Standard Link{% endif %}
+          </p>
+          <p class="mt-2 mb-0">
+            <strong>URL for reviewer access:</strong><br>
+            <a href="{% url 'anonymous_login' anonymous_url %}" target="_blank">{{ url_prefix }}{% url 'anonymous_login' anonymous_url %}</a>
+          </p>
+        </div>
+        {% endif %}
         <div
           {% if not passphrase or passphrase == "revoked" %}
             class="alert alert-danger">
@@ -112,18 +125,22 @@
               the {{ SITE_NAME }} review process will impact anyone viewing the project through that access.</p>
           {% else %}
             class="alert alert-success">
-            Passphrase: {{ passphrase }}
+            <strong>Passphrase:</strong> {{ passphrase }}
+            <p class="mt-2 mb-0"><strong>Link Type:</strong> {% if hide_authors %}Author-Masked Link{% else %}Standard Link{% endif %}</p>
           {% endif %}
         </div>
         <form action="{% url 'submission_info' project.slug %}" method="POST" id="passphrase_form">
           {% csrf_token %}
           {% if not project.anonymous.first %}
           <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase">
-            Grant access
+            Generate Standard Link
+          </button>
+          <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase_masked">
+            Generate Author-Masked Link
           </button>
           {% else %}
           <button class="btn btn-danger btn-rsp" type="submit" name="remove_passphrase">
-            Revoke access
+            Revoke Access
           </button>
           {% endif %}
         </form>
