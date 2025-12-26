@@ -184,6 +184,9 @@ class AnonymousAccess(models.Model):
     # Random url
     url = models.CharField(max_length=64)
 
+    # Hide author information for blind review
+    hide_authors = models.BooleanField(default=False)
+
     # Record tracking
     creation_datetime = models.DateTimeField(auto_now_add=True)
     expiration_datetime = models.DateTimeField(null=True)

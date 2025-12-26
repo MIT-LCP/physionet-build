@@ -347,14 +347,21 @@ class Metadata(models.Model):
 
         return anonymous.check_passphrase(raw_passphrase)
 
-    def generate_anonymous_access(self):
+    def generate_anonymous_access(self, hide_authors=False):
         """
-        Checks if passphrase is valid for project
+        Generate or regenerate anonymous access for the project
+
+        Args:
+            hide_authors: If True, author information will be hidden when
+                         accessing via the anonymous link (for blind review)
         """
         if not self.anonymous.first():
             anonymous = AnonymousAccess(project=self)
         else:
             anonymous = self.anonymous.first()
+
+        anonymous.hide_authors = hide_authors
+        anonymous.save()
 
         return anonymous.generate_access()
 
