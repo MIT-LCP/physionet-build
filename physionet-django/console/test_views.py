@@ -13,6 +13,7 @@ from django.urls import reverse
 from events.models import EventAgreement
 from project.models import (
     ActiveProject,
+    AnonymousAccess,
     Author,
     AuthorInvitation,
     License,
@@ -1076,3 +1077,154 @@ class TestEventAgreements(TestMixin):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'console/event_agreement_new_version.html')
+
+
+class TestAnonymousAccess(TestMixin):
+    """
+    Test anonymous access functionality for project previews,
+    including standard and author-masked links.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.editor = User.objects.get(username='admin')
+        self.client.login(username='admin', password='Tester11!')
+
+    def test_generate_standard_anonymous_link(self):
+        """
+        Test generating a standard anonymous access link (shows authors)
+        """
+        # Ensure no anonymous access exists initially
+        self.assertEqual(self.project.anonymous.count(), 0)
+
+        # Generate standard anonymous link
+        self.client.post(
+            reverse('submission_info', args=[self.project.slug]),
+            data={'generate_passphrase': ''}
+        )
+
+        # Check that anonymous access was created
+        self.assertEqual(self.project.anonymous.count(), 1)
+        anonymous = self.project.anonymous.first()
+        self.assertIsNotNone(anonymous)
+        self.assertFalse(anonymous.hide_authors)
+        self.assertIsNotNone(anonymous.url)
+        self.assertIsNotNone(anonymous.passphrase)
+
+    def test_generate_author_masked_anonymous_link(self):
+        """
+        Test generating an author-masked anonymous access link (hides authors)
+        """
+        # Ensure no anonymous access exists initially
+        self.assertEqual(self.project.anonymous.count(), 0)
+
+        # Generate author-masked anonymous link
+        self.client.post(
+            reverse('submission_info', args=[self.project.slug]),
+            data={'generate_passphrase_masked': ''}
+        )
+
+        # Check that anonymous access was created with hide_authors=True
+        self.assertEqual(self.project.anonymous.count(), 1)
+        anonymous = self.project.anonymous.first()
+        self.assertIsNotNone(anonymous)
+        self.assertTrue(anonymous.hide_authors)
+        self.assertIsNotNone(anonymous.url)
+        self.assertIsNotNone(anonymous.passphrase)
+
+    def test_regenerate_link_changes_hide_authors_flag(self):
+        """
+        Test that regenerating a link can change the hide_authors flag
+        """
+        # Generate standard link first
+        self.client.post(
+            reverse('submission_info', args=[self.project.slug]),
+            data={'generate_passphrase': ''}
+        )
+        anonymous = self.project.anonymous.first()
+        self.assertFalse(anonymous.hide_authors)
+
+        # Regenerate as author-masked link
+        self.client.post(
+            reverse('submission_info', args=[self.project.slug]),
+            data={'generate_passphrase_masked': ''}
+        )
+        anonymous.refresh_from_db()
+        self.assertTrue(anonymous.hide_authors)
+
+        # Regenerate as standard link again
+        self.client.post(
+            reverse('submission_info', args=[self.project.slug]),
+            data={'generate_passphrase': ''}
+        )
+        anonymous.refresh_from_db()
+        self.assertFalse(anonymous.hide_authors)
+
+    def test_remove_anonymous_access(self):
+        """
+        Test revoking anonymous access
+        """
+        # Generate anonymous link
+        self.client.post(
+            reverse('submission_info', args=[self.project.slug]),
+            data={'generate_passphrase': ''}
+        )
+        self.assertEqual(self.project.anonymous.count(), 1)
+
+        # Revoke access
+        self.client.post(
+            reverse('submission_info', args=[self.project.slug]),
+            data={'remove_passphrase': ''}
+        )
+
+        # Check that anonymous access was deleted
+        self.assertEqual(self.project.anonymous.count(), 0)
+
+    def test_author_masked_preview_hides_author_info(self):
+        """
+        Test that author information is hidden in preview when using author-masked link
+        """
+        # Generate author-masked link
+        url, passphrase = self.project.generate_anonymous_access(hide_authors=True)
+
+        # Login using the anonymous access credentials
+        self.client.post(
+            reverse('anonymous_login', args=[url]),
+            data={'passphrase': passphrase}
+        )
+
+        # Access the preview page
+        response = self.client.get(reverse('project_preview', args=[self.project.slug]))
+
+        # Check that the response contains the "hidden for blind review" text
+        self.assertContains(response, 'Author information hidden')
+
+        # Check that author names are NOT in the response
+        authors = self.project.authors.all()
+        for author in authors:
+            self.assertNotContains(response, author.get_full_name())
+
+    def test_standard_preview_shows_author_info(self):
+        """
+        Test that author information is shown in preview when using standard link
+        """
+        # Generate standard link
+        url, passphrase = self.project.generate_anonymous_access(hide_authors=False)
+
+        # Login using the anonymous access credentials
+        self.client.post(
+            reverse('anonymous_login', args=[url]),
+            data={'passphrase': passphrase}
+        )
+
+        # Access the preview page
+        response = self.client.get(reverse('project_preview', args=[self.project.slug]))
+
+        # Check that the response does NOT contain the "hidden" text
+        self.assertNotContains(response, 'Author information hidden')
+
+        # Check that author names ARE in the response
+        authors = self.project.authors.all()
+        for author in authors:
+            self.assertContains(response, author.get_full_name())
