@@ -334,7 +334,9 @@ def submission_info(request, project_slug):
     anonymous_url = project.get_anonymous_url()
 
     if 'generate_passphrase' in request.POST:
-        anonymous_url, passphrase = project.generate_anonymous_access()
+        anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=False)
+    elif 'generate_passphrase_masked' in request.POST:
+        anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=True)
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
         anonymous_url, passphrase = '', 'revoked'
@@ -398,6 +400,10 @@ def submission_info(request, project_slug):
         messages.success(request, f'Project "{project.title}" has been archived successfully.')
         return redirect('submitted_projects')
 
+    # Check if anonymous access link should hide authors
+    anonymous = project.anonymous.first()
+    hide_authors = anonymous.hide_authors if anonymous else False
+
     return render(request, 'console/submission_info.html',
                   {**submission_info_card_params(
                    request,
@@ -411,6 +417,7 @@ def submission_info(request, project_slug):
                    'copyedit_logs': copyedit_logs,
                    'passphrase': passphrase,
                    'anonymous_url': anonymous_url,
+                   'hide_authors': hide_authors,
                    }
                   )
 

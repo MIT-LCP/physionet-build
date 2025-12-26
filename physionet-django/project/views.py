@@ -101,6 +101,10 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
             has_passphrase = project.get_anonymous_url() == an_url
 
+            # Check if anonymous access link should hide authors
+            anonymous = project.anonymous.first()
+            hide_authors = anonymous.hide_authors if (anonymous and has_passphrase) else False
+
             # Get user
             user = request.user
 
@@ -147,6 +151,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 kwargs['is_author'] = is_author
                 kwargs['is_submitting'] = is_submitting
                 kwargs['has_passphrase'] = has_passphrase
+                kwargs['hide_authors'] = hide_authors
                 return base_view(request, *args, **kwargs)
             raise PermissionDenied()
         return view_wrapper
@@ -1286,6 +1291,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
 
     # Flag for anonymous access
     has_passphrase = kwargs['has_passphrase']
+    hide_authors = kwargs['hide_authors']
 
     return render(
         request,
@@ -1312,6 +1318,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
             'platform_citations': platform_citations,
             'parent_projects': parent_projects,
             'has_passphrase': has_passphrase,
+            'hide_authors': hide_authors,
             'is_lightwave_supported': project.files.is_lightwave_supported(),
             'show_platform_wide_citation': show_platform_wide_citation,
             'main_platform_citation': main_platform_citation,
