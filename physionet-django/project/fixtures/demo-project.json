@@ -496,6 +496,201 @@
   }
 },
 {
+  "model": "project.publishedauthor",
+  "pk": 9,
+  "fields": {
+    "user": ["george"],
+    "display_order": 2,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "George",
+    "last_name": "Moody",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 10,
+  "fields": {
+    "user": ["aewj"],
+    "display_order": 3,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Alistair",
+    "last_name": "Johnson",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 11,
+  "fields": {
+    "user": ["admin"],
+    "display_order": 4,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Admin",
+    "last_name": "Bot",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 12,
+  "fields": {
+    "user": ["jameslawson"],
+    "display_order": 5,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "James",
+    "last_name": "Lawson",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 13,
+  "fields": {
+    "user": ["eulaeasley"],
+    "display_order": 6,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Eula",
+    "last_name": "Easley",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 14,
+  "fields": {
+    "user": ["miriamturner"],
+    "display_order": 7,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Miriam",
+    "last_name": "Turner",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 15,
+  "fields": {
+    "user": ["deborahbui"],
+    "display_order": 8,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Deborah",
+    "last_name": "Bui",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 16,
+  "fields": {
+    "user": ["theresachesney"],
+    "display_order": 9,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Theresa",
+    "last_name": "Chesney",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 17,
+  "fields": {
+    "user": ["franwilliams"],
+    "display_order": 10,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Fran",
+    "last_name": "Williams",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 18,
+  "fields": {
+    "user": ["johnmassey"],
+    "display_order": 11,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "John",
+    "last_name": "Massey",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 19,
+  "fields": {
+    "user": ["olympiaquillen"],
+    "display_order": 12,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Olympia",
+    "last_name": "Quillen",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 20,
+  "fields": {
+    "user": ["odissinger"],
+    "display_order": 13,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Odis",
+    "last_name": "Singer",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
+  "model": "project.publishedauthor",
+  "pk": 21,
+  "fields": {
+    "user": ["josehardy"],
+    "display_order": 14,
+    "is_submitting": false,
+    "is_corresponding": false,
+    "approval_datetime": "2018-11-14T21:11:11.781Z",
+    "first_names": "Jose",
+    "last_name": "Hardy",
+    "corresponding_email": null,
+    "project": 1
+  }
+},
+{
   "model": "project.topic",
   "pk": 1,
   "fields": {
