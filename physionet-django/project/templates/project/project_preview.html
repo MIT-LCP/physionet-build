@@ -67,6 +67,7 @@
   </p>
   <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }}
   </h1>
+  {% if not hide_authors %}
   <p>
     <strong>
     {% for author in authors %}
@@ -78,6 +79,11 @@
     {% endfor %}
     </strong>
   </p>
+  {% else %}
+  <p>
+    <em>Author information hidden.</em>
+  </p>
+  {% endif %}
 
   <p>Published: [dd/mm/yyyy] - Version:
   {% if project.version %}
@@ -96,7 +102,13 @@
     <!-- Main column -->
     <div class="col-md-8" style="padding-left: 0;">
 
-      {% include "project/citation_box.html" %}
+      {% if not hide_authors %}
+        {% include "project/citation_box.html" %}
+      {% else %}
+        <div class="alert alert-secondary">
+          <p><em> Citation information hidden.</em>
+        </div>
+      {% endif %}
 
       {% include "project/project_preview_content.html" %}
     </div>
@@ -204,6 +216,7 @@
         </div>
       </div>
 
+      {% if not hide_authors %}
       <div class="card my-4">
         <h5 class="card-header">Corresponding Author</h5>
         <div class="card-body">
@@ -214,6 +227,7 @@
             </p>
         </div>
       </div>
+      {% endif %}
     </div>
     <!-- /.sidebar -->
   </div>
