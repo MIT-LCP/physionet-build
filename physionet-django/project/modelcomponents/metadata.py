@@ -115,6 +115,15 @@ class Metadata(models.Model):
         """
         return self.authors.all().order_by('display_order')
 
+    def display_authors(self, max_authors=3):
+        """
+        Get a truncated display string of author names.
+        Shows up to max_authors names, with 'et al.' if there are more.
+        """
+        authors = list(self.authors.all().order_by('display_order'))
+        names = ', '.join(a.get_full_name() for a in authors[:max_authors])
+        return f'{names}, et al.' if len(authors) > max_authors else names
+
     def get_author_info(self, separate_submitting=False, include_emails=False):
         """
         Get the project's authors, setting information needed to display

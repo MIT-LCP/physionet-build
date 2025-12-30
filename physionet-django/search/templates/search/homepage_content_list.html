@@ -12,11 +12,7 @@
       </a>
     </h3>
     {% if not published_project.is_legacy %}
-      <p class="card-authors">
-          {% for author in published_project.author_list %}
-          {{ author.get_full_name }}{% if not forloop.last %}, {% endif %}
-          {% endfor %}
-      </p>
+      <p class="card-authors">{{ published_project.display_authors }}</p>
     {% endif %}
 
     {% if not published_project.short_description %}

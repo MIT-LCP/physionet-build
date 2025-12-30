@@ -7,11 +7,7 @@
     </p>
     <{% firstof content_list_header 'h2' %}><a href="{% url 'published_project' published_project.slug published_project.version %}">{{ published_project.title }}</a></{% firstof content_list_header 'h2' %}>
     {% if not published_project.is_legacy %}
-      <p class="text-muted card-authors">
-          {% for author in published_project.author_list %}
-          {{ author.get_full_name }}{% if not forloop.last %}, {% endif %}
-          {% endfor %}
-      </p>
+      <p class="text-muted card-authors">{{ published_project.display_authors }}</p>
     {% endif %}
     <div style="margin-bottom: 1rem;">
       {% if not published_project.short_description %}

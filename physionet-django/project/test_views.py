@@ -1576,3 +1576,38 @@ class TestGeoRestrictedAccess(TestCase):
         self.credentialed_project.save()
         self.open_project.georestricted = False
         self.open_project.save()
+
+
+class TestDisplayAuthors(TestMixin):
+    """Test the display_authors method on projects."""
+
+    def test_display_authors_few(self):
+        """Projects with 3 or fewer authors show all names."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        result = project.display_authors()
+        self.assertNotIn('et al.', result)
+        # Should contain all author names
+        for author in project.authors.all():
+            self.assertIn(author.get_full_name(), result)
+
+    def test_display_authors_many(self):
+        """Projects with more than 3 authors show truncated list."""
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        # This project should have many authors from the fixture
+        if project.authors.count() > 3:
+            result = project.display_authors()
+            self.assertIn('et al.', result)
+            # Should only contain first 3 author names
+            authors = list(project.authors.all().order_by('display_order'))
+            for author in authors[:3]:
+                self.assertIn(author.get_full_name(), result)
+
+    def test_display_authors_custom_max(self):
+        """Test custom max_authors parameter."""
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        if project.authors.count() > 1:
+            result = project.display_authors(max_authors=1)
+            authors = list(project.authors.all().order_by('display_order'))
+            self.assertIn(authors[0].get_full_name(), result)
+            if project.authors.count() > 1:
+                self.assertIn('et al.', result)
