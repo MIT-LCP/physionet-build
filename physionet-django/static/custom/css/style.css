@@ -241,12 +241,9 @@ body .main {
   color: var(--gray-color);
 }
 .card-authors {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
   overflow: hidden;
-  flex-grow: 0;
-  flex-shrink: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .modern-ui .card-authors {
   font-size: 0.875rem;
