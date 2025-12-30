@@ -245,6 +245,8 @@ body .main {
   -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 .modern-ui .card-authors {
   font-size: 0.875rem;
