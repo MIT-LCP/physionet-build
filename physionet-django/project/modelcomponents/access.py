@@ -184,8 +184,10 @@ class AnonymousAccess(models.Model):
     # Random url
     url = models.CharField(max_length=64)
 
-    # Hide author information for blind review
-    hide_authors = models.BooleanField(default=False)
+    hide_authors = models.BooleanField(
+        default=False,
+        help_text="When True, author information is hidden for anonymous peer review"
+    )
 
     # Record tracking
     creation_datetime = models.DateTimeField(auto_now_add=True)
