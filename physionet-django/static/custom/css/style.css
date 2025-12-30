@@ -240,6 +240,16 @@ body .main {
   overflow: hidden;
   color: var(--gray-color);
 }
+.card-authors {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.modern-ui .card-authors {
+  font-size: 0.875rem;
+  color: var(--gray-color);
+}
 .modern-ui .badge-dark {
   background-color: var(--gray-200);
   color: var(--secondary-color);
