@@ -1611,3 +1611,79 @@ class TestDisplayAuthors(TestMixin):
             self.assertIn(authors[0].get_full_name(), result)
             if project.authors.count() > 1:
                 self.assertIn('et al.', result)
+
+
+class TestBibTeXCitation(TestMixin):
+    """Test the BibTeX citation generation."""
+
+    def test_bibtex_structure(self):
+        """BibTeX output has correct structure."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        bibtex = project.citation_text_bibtex()
+
+        self.assertIn('@article{', bibtex)
+        self.assertIn('author = {', bibtex)
+        self.assertIn('title = {', bibtex)
+        self.assertIn('journal = {', bibtex)
+        self.assertIn('year = {', bibtex)
+        self.assertIn('month = {', bibtex)
+        self.assertIn('}', bibtex)
+
+    def test_bibtex_authors_format(self):
+        """Authors are formatted as 'Last, First and Last2, First2'."""
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        bibtex = project.citation_text_bibtex()
+
+        authors = project.authors.all().order_by('display_order')
+        if authors.count() > 1:
+            self.assertIn(' and ', bibtex)
+
+        for author in authors:
+            expected_name = author.get_full_name(reverse=True)
+            self.assertIn(expected_name, bibtex)
+
+    def test_bibtex_doi_and_url(self):
+        """BibTeX includes DOI and URL when available."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        bibtex = project.citation_text_bibtex()
+
+        if project.doi:
+            self.assertIn(f'doi = {{{project.doi}}}', bibtex)
+            self.assertIn(f'url = {{https://doi.org/{project.doi}}}', bibtex)
+
+    def test_bibtex_version_in_note(self):
+        """BibTeX includes version in note field."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        bibtex = project.citation_text_bibtex()
+
+        if project.version:
+            self.assertIn(f'note = {{version {project.version}}}', bibtex)
+
+    def test_bibtex_citation_key(self):
+        """Citation key uses slug and version."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        bibtex = project.citation_text_bibtex()
+
+        version_str = project.version.replace('.', '_') if project.version else ''
+        expected_key = f'{project.slug}-{version_str}'
+        self.assertIn(f'@article{{{expected_key},', bibtex)
+
+    def test_bibtex_special_characters_escaped(self):
+        """Special characters in title are escaped."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        original_title = project.title
+
+        project.title = 'Test & Title with % special _ chars'
+        bibtex = project.citation_text_bibtex()
+
+        self.assertIn(r'Test \& Title with \% special \_ chars', bibtex)
+
+        project.title = original_title
+
+    def test_bibtex_in_citation_text_all(self):
+        """BibTeX is included in citation_text_all() output."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        citations = project.citation_text_all()
+
+        self.assertIn('BibTeX', citations)
+        self.assertIn('@article{', citations['BibTeX'])

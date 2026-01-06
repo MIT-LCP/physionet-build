@@ -553,7 +553,63 @@ class Metadata(models.Model):
         for style in styles:
             citation_dict[style] = self.citation_text(style)
 
+        citation_dict['BibTeX'] = self.citation_text_bibtex()
+
         return citation_dict
+
+    def citation_text_bibtex(self):
+        """
+        Generate a BibTeX citation for the project.
+        """
+        authors = self.authors.all().order_by('display_order')
+
+        if self.is_published():
+            year = self.publish_datetime.year
+            month = self.publish_datetime.strftime('%b').lower()
+            doi = self.doi
+
+            if self.is_legacy:
+                return ''
+
+            slug = getattr(self, 'slug', 'project')
+            version_str = self.version.replace('.', '_') if self.version else ''
+            citation_key = f"{slug}-{version_str}"
+        else:
+            year = timezone.now().year
+            month = timezone.now().strftime('%b').lower()
+            prefix = self.future_doi_prefix()
+            if prefix:
+                doi = prefix + '/*****'
+            else:
+                doi = None
+            citation_key = 'unpublished'
+
+        author_list = ' and '.join(
+            a.get_full_name(reverse=True) for a in authors
+        )
+
+        title = self.title.replace('&', r'\&').replace('%', r'\%').replace('_', r'\_')
+
+        bibtex_lines = [
+            f"@article{{{citation_key},",
+            f"  author = {{{author_list}}},",
+            f"  title = {{{title}}},",
+            f"  journal = {{{settings.SITE_NAME}}},",
+            f"  year = {{{year}}},",
+            f"  month = {{{month}}},",
+        ]
+
+        if self.version:
+            bibtex_lines.append(f"  note = {{version {self.version}}},")
+
+        if doi:
+            bibtex_lines.append(f"  doi = {{{doi}}},")
+            bibtex_lines.append(f"  url = {{https://doi.org/{doi}}},")
+
+        bibtex_lines[-1] = bibtex_lines[-1].rstrip(',')
+        bibtex_lines.append("}")
+
+        return '\n'.join(bibtex_lines)
 
     def content_sections(self):
         """
