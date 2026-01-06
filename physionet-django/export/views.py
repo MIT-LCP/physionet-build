@@ -40,7 +40,7 @@ class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
         - Basic metadata (title, version, slug, DOIs, etc.)
         - License and DUA information
         - Storage sizes
-        - Resource type (Database, Software, Challenge, Model) - as string
+        - Resource type as descriptive string (e.g., Database, Software, Challenge, Model)
         - Access policy (Open, Restricted, Credentialed, Contributor Review) - as string
         - Topics (list of descriptive keywords)
         - Source URL (full URL to project page)
@@ -50,7 +50,7 @@ class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
         - Rate limited: 100 requests/hour for authenticated users
         - Rate limited: 20 requests/hour for anonymous users
     """
-    queryset = PublishedProject.objects.all().order_by('id')
+    queryset = PublishedProject.objects.all().order_by('id').prefetch_related('topics')
     authentication_classes = [SessionAuthentication, BasicAuthentication]
     serializer_class = PublishedProjectSerializer
     throttle_classes = [StandardRateThrottle, StandardAnonRateThrottle]
@@ -102,7 +102,7 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
         - Project home page
         - DOI
         - Storage sizes
-        - Resource type (Database, Software, Challenge, Model) - as string
+        - Resource type as descriptive string (e.g., Database, Software, Challenge, Model)
         - Access policy (Open, Restricted, Credentialed, Contributor Review) - as string
         - Topics (list of descriptive keywords)
         - Source URL (full URL to project page)
@@ -117,7 +117,7 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
 
     def get(self, request, project_slug, version, *args, **kwargs):
         project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
-        serializer = PublishedProjectDetailSerializer(project)
+        serializer = PublishedProjectDetailSerializer(project, context={'request': request})
         return Response(serializer.data)
 
 

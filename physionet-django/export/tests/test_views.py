@@ -96,14 +96,15 @@ class TestAPIFieldSerialization(TestCase):
         self.client = APIClient()
 
         # Create core project
-        self.core_project = CoreProject.objects.create(
-            title="Test Core Project"
-        )
+        self.core_project = CoreProject.objects.create()
 
         # Create license
-        self.license = License.objects.create(
-            name='Open Data Commons Open Database License v1.0',
-            slug='odbl-1.0'
+        self.license, _ = License.objects.get_or_create(
+            slug='test-license-slug',
+            defaults={
+                'name': 'Test License For API',
+                'version': '1.0'
+            }
         )
 
         # Create project types for testing
@@ -194,6 +195,7 @@ class TestAPIFieldSerialization(TestCase):
         """Test all access policy values serialize correctly"""
         from datetime import datetime
         from django.utils import timezone as tz
+        from project.models import CoreProject
 
         test_cases = [
             (AccessPolicy.OPEN, 'Open'),
@@ -204,6 +206,10 @@ class TestAPIFieldSerialization(TestCase):
 
         for policy_value, expected_name in test_cases:
             with self.subTest(policy=policy_value):
+                # Create a new core project for each iteration to avoid uniqueness constraints
+                # on (core_project, version) if version is kept constant
+                core_project = CoreProject.objects.create(doi=None)
+                
                 project = PublishedProject.objects.create(
                     slug=f'test-policy-{policy_value}',
                     version='1.0.0',
@@ -211,7 +217,7 @@ class TestAPIFieldSerialization(TestCase):
                     abstract='Test',
                     resource_type=self.db_type,
                     access_policy=policy_value,
-                    core_project=self.core_project,
+                    core_project=core_project,
                     license=self.license,
                     publish_datetime=tz.make_aware(datetime(2024, 1, 1))
                 )
@@ -228,6 +234,7 @@ class TestAPIFieldSerialization(TestCase):
         """Test all resource type values serialize correctly"""
         from datetime import datetime
         from django.utils import timezone as tz
+        from project.models import CoreProject
 
         type_data = [
             (self.db_type, 'Database'),
@@ -238,6 +245,9 @@ class TestAPIFieldSerialization(TestCase):
 
         for project_type, type_name in type_data:
             with self.subTest(resource_type=type_name):
+                # Create a new core project for each iteration
+                core_project = CoreProject.objects.create(doi=None)
+
                 project = PublishedProject.objects.create(
                     slug=f'test-type-{project_type.id}',
                     version='1.0.0',
@@ -245,7 +255,7 @@ class TestAPIFieldSerialization(TestCase):
                     abstract='Test',
                     resource_type=project_type,
                     access_policy=AccessPolicy.OPEN,
-                    core_project=self.core_project,
+                    core_project=core_project,
                     license=self.license,
                     publish_datetime=tz.make_aware(datetime(2024, 1, 1))
                 )
@@ -262,6 +272,9 @@ class TestAPIFieldSerialization(TestCase):
         """Test that projects without topics return empty list"""
         from datetime import datetime
         from django.utils import timezone as tz
+        from project.models import CoreProject
+
+        core_project = CoreProject.objects.create(doi=None)
 
         project = PublishedProject.objects.create(
             slug='test-no-topics',
@@ -270,7 +283,7 @@ class TestAPIFieldSerialization(TestCase):
             abstract='Test',
             resource_type=self.db_type,
             access_policy=AccessPolicy.OPEN,
-            core_project=self.core_project,
+            core_project=core_project,
             license=self.license,
             publish_datetime=tz.make_aware(datetime(2024, 1, 1))
         )

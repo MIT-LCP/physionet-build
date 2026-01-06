@@ -53,10 +53,13 @@ class ProjectFieldsMixin:
             str or None: Access policy name or None if not set
         """
         from project.models import AccessPolicy
-        for value, name in AccessPolicy.choices():
-            if value == obj.access_policy:
-                return name
-        return None
+        if obj.access_policy is None:
+            return None
+        try:
+            return AccessPolicy(obj.access_policy).name.replace("_", " ").title()
+        except ValueError:
+            # Handle unexpected/invalid access policy values gracefully
+            return None
 
     def get_topics(self, obj):
         """
@@ -69,6 +72,15 @@ class ProjectFieldsMixin:
             list: List of topic description strings
         """
         return [topic.description for topic in obj.topics.all()]
+
+    def get_source_url(self, obj):
+        """Generate the full URL to this project's page."""
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(
+                reverse('published_project', args=[obj.slug, obj.version])
+            )
+        return None
 
 
 class PublishedProjectSerializer(ProjectFieldsMixin, serializers.ModelSerializer):
@@ -113,15 +125,6 @@ class PublishedProjectSerializer(ProjectFieldsMixin, serializers.ModelSerializer
 
     def get_version_doi(self, obj):
         return obj.doi
-
-    def get_source_url(self, obj):
-        """Generate the full URL to this project's page."""
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(
-                reverse('published_project', args=[obj.slug, obj.version])
-            )
-        return None
 
 
 class ProjectVersionsSerializer(serializers.ModelSerializer):
@@ -168,12 +171,3 @@ class PublishedProjectDetailSerializer(ProjectFieldsMixin, serializers.ModelSeri
             'topics',
             'source_url',
         )
-
-    def get_source_url(self, obj):
-        """Generate the full URL to this project's page."""
-        request = self.context.get('request')
-        if request:
-            return request.build_absolute_uri(
-                reverse('published_project', args=[obj.slug, obj.version])
-            )
-        return None
