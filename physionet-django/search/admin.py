@@ -55,10 +55,18 @@ class FederatedProjectAdmin(admin.ModelAdmin):
 
 @admin.register(FederationSyncLog)
 class FederationSyncLogAdmin(admin.ModelAdmin):
-    list_display = ('site', 'status', 'started_at', 'completed_at', 'projects_fetched', 'projects_created', 'projects_updated', 'projects_deleted')
+    list_display = (
+        'site', 'status', 'started_at', 'completed_at',
+        'projects_fetched', 'projects_created',
+        'projects_updated', 'projects_deleted'
+    )
     list_filter = ('status', 'site', 'started_at')
     search_fields = ('site__site_name', 'error_message')
-    readonly_fields = ('started_at', 'completed_at', 'projects_fetched', 'projects_created', 'projects_updated', 'projects_deleted', 'error_message')
+    readonly_fields = (
+        'started_at', 'completed_at',
+        'projects_fetched', 'projects_created',
+        'projects_updated', 'projects_deleted', 'error_message'
+    )
     date_hierarchy = 'started_at'
     fieldsets = (
         ('Sync Information', {
