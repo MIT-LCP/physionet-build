@@ -1675,8 +1675,11 @@ class TestBibTeXCitation(TestMixin):
 
         project.title = 'Test & Title with % special _ chars'
         bibtex = project.citation_text_bibtex()
-
         self.assertIn(r'Test \& Title with \% special \_ chars', bibtex)
+
+        project.title = 'Price $100 and {braces} with #hashtag'
+        bibtex = project.citation_text_bibtex()
+        self.assertIn(r'Price \$100 and \{braces\} with \#hashtag', bibtex)
 
         project.title = original_title
 

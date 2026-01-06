@@ -557,6 +557,21 @@ class Metadata(models.Model):
 
         return citation_dict
 
+    # Compile regex once at class level for BibTeX escaping
+    _BIBTEX_SPECIAL_CHARS = re.compile(r'([\\%#&_${}])')
+    _BIBTEX_REPLACEMENTS = {
+        '\\': r'\textbackslash{}',
+        '%': r'\%', '#': r'\#', '&': r'\&',
+        '_': r'\_', '$': r'\$', '{': r'\{', '}': r'\}'
+    }
+
+    @classmethod
+    def _escape_bibtex(cls, text):
+        """Escape special characters for BibTeX compatibility."""
+        return cls._BIBTEX_SPECIAL_CHARS.sub(
+            lambda m: cls._BIBTEX_REPLACEMENTS[m.group(1)], text
+        )
+
     def citation_text_bibtex(self):
         """
         Generate a BibTeX citation for the project.
@@ -585,10 +600,10 @@ class Metadata(models.Model):
             citation_key = 'unpublished'
 
         author_list = ' and '.join(
-            a.get_full_name(reverse=True) for a in authors
+            self._escape_bibtex(a.get_full_name(reverse=True)) for a in authors
         )
 
-        title = self.title.replace('&', r'\&').replace('%', r'\%').replace('_', r'\_')
+        title = self._escape_bibtex(self.title)
 
         bibtex_lines = [
             f"@article{{{citation_key},",
