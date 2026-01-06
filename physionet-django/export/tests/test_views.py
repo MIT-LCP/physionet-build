@@ -209,7 +209,7 @@ class TestAPIFieldSerialization(TestCase):
                 # Create a new core project for each iteration to avoid uniqueness constraints
                 # on (core_project, version) if version is kept constant
                 core_project = CoreProject.objects.create(doi=None)
-                
+
                 project = PublishedProject.objects.create(
                     slug=f'test-policy-{policy_value}',
                     version='1.0.0',
