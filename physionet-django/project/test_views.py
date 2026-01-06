@@ -1683,6 +1683,21 @@ class TestBibTeXCitation(TestMixin):
 
         project.title = original_title
 
+    def test_bibtex_multiword_last_name(self):
+        """Multi-word last names are wrapped in braces."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        author = project.authors.first()
+        original_last_name = author.last_name
+
+        author.last_name = 'Van der Berg'
+        author.save()
+
+        bibtex = project.citation_text_bibtex()
+        self.assertIn('{Van der Berg}', bibtex)
+
+        author.last_name = original_last_name
+        author.save()
+
     def test_bibtex_in_citation_text_all(self):
         """BibTeX is included in citation_text_all() output."""
         project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')

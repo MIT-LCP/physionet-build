@@ -572,6 +572,24 @@ class Metadata(models.Model):
             lambda m: cls._BIBTEX_REPLACEMENTS[m.group(1)], text
         )
 
+    @classmethod
+    def _format_bibtex_author(cls, author):
+        """
+        Format author name for BibTeX, handling multi-word last names.
+
+        Converts "Van der Berg, John" to "{Van der Berg}, John" so BibTeX
+        parsers correctly identify the last name.
+        """
+        name = author.get_full_name(reverse=True)
+        if ', ' in name:
+            last_name, first_names = name.split(', ', 1)
+            last_name = cls._escape_bibtex(last_name)
+            first_names = cls._escape_bibtex(first_names)
+            if ' ' in last_name:
+                last_name = '{' + last_name + '}'
+            return last_name + ', ' + first_names
+        return cls._escape_bibtex(name)
+
     def citation_text_bibtex(self):
         """
         Generate a BibTeX citation for the project.
@@ -600,7 +618,7 @@ class Metadata(models.Model):
             citation_key = 'unpublished'
 
         author_list = ' and '.join(
-            self._escape_bibtex(a.get_full_name(reverse=True)) for a in authors
+            self._format_bibtex_author(a) for a in authors
         )
 
         title = self._escape_bibtex(self.title)
