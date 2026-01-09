@@ -51,7 +51,7 @@ django-cors-headers = "^3.14.0"
 urllib3 = "^1.26.19"
 pyjwt = "^2.9.0"
 jsonschema = "^4.0.0"
-werkzeug= "^3.1.4"
+werkzeug= "^3.1.5"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2.3"
