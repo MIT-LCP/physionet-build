@@ -605,8 +605,8 @@ class Metadata(models.Model):
                 return ''
 
             slug = getattr(self, 'slug', 'project')
-            version_str = self.version.replace('.', '_') if self.version else ''
-            citation_key = f"{slug}-{version_str}"
+            version_str = self.version if self.version else ''
+            citation_key = f"{settings.SITE_NAME}-{slug}-{version_str}"
         else:
             year = timezone.now().year
             month = timezone.now().strftime('%b').lower()
@@ -629,11 +629,11 @@ class Metadata(models.Model):
             f"  title = {{{title}}},",
             f"  journal = {{{settings.SITE_NAME}}},",
             f"  year = {{{year}}},",
-            f"  month = {{{month}}},",
+            f"  month = {month},",
         ]
 
         if self.version:
-            bibtex_lines.append(f"  note = {{version {self.version}}},")
+            bibtex_lines.append(f"  note = {{Version {self.version}}},")
 
         if doi:
             bibtex_lines.append(f"  doi = {{{doi}}},")
