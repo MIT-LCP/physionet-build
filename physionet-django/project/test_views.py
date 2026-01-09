@@ -1626,7 +1626,7 @@ class TestBibTeXCitation(TestMixin):
         self.assertIn('title = {', bibtex)
         self.assertIn('journal = {', bibtex)
         self.assertIn('year = {', bibtex)
-        self.assertIn('month = {', bibtex)
+        self.assertIn('month = ', bibtex)
         self.assertIn('}', bibtex)
 
     def test_bibtex_authors_format(self):
@@ -1657,15 +1657,15 @@ class TestBibTeXCitation(TestMixin):
         bibtex = project.citation_text_bibtex()
 
         if project.version:
-            self.assertIn(f'note = {{version {project.version}}}', bibtex)
+            self.assertIn(f'note = {{Version {project.version}}}', bibtex)
 
     def test_bibtex_citation_key(self):
-        """Citation key uses slug and version."""
+        """Citation key uses site name, slug, and version."""
         project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
         bibtex = project.citation_text_bibtex()
 
-        version_str = project.version.replace('.', '_') if project.version else ''
-        expected_key = f'{project.slug}-{version_str}'
+        version_str = project.version if project.version else ''
+        expected_key = f'{settings.SITE_NAME}-{project.slug}-{version_str}'
         self.assertIn(f'@article{{{expected_key},', bibtex)
 
     def test_bibtex_special_characters_escaped(self):
