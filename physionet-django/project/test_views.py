@@ -1623,8 +1623,8 @@ class TestBibTeXCitation(TestMixin):
 
         self.assertIn('@article{', bibtex)
         self.assertIn('author = {', bibtex)
-        self.assertIn('title = {', bibtex)
-        self.assertIn('journal = {', bibtex)
+        self.assertIn('title = {{', bibtex)
+        self.assertIn('journal = {{', bibtex)
         self.assertIn('year = {', bibtex)
         self.assertIn('month = ', bibtex)
         self.assertIn('}', bibtex)

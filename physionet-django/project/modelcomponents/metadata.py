@@ -626,8 +626,8 @@ class Metadata(models.Model):
         bibtex_lines = [
             f"@article{{{citation_key},",
             f"  author = {{{author_list}}},",
-            f"  title = {{{title}}},",
-            f"  journal = {{{settings.SITE_NAME}}},",
+            f"  title = {{{{{title}}}}},",
+            f"  journal = {{{{{settings.SITE_NAME}}}}},",
             f"  year = {{{year}}},",
             f"  month = {month},",
         ]
