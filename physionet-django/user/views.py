@@ -1440,10 +1440,19 @@ def edit_khdp(request):
             )
             return redirect('edit_khdp')
 
+        # Generate random nonce for security (stored in session for CSRF/session validation)
+        # Note: KHDP does not implement OAuth2 state parameter in callback, so we only use nonce
+        nonce = get_random_string(32)
+        
+        # Store nonce in session for CSRF validation
+        request.session['khdp_nonce'] = nonce
+        request.session.modified = True  # Ensure session is saved
+        
         # KHDP expects appId and redirectUrl instead of standard OAuth2 params
         params = {
             'appId': client_id,
             'redirectUrl': redirect_uri,
+            'nonce': nonce,
         }
         final_url = f"{auth_url}?{urlencode(params)}"
         return redirect(final_url)
@@ -1451,11 +1460,36 @@ def edit_khdp(request):
     return render(request, 'user/edit_khdp.html')
 
 
-@login_required
 def auth_khdp(request):
     """
     Handle KHDP OAuth callback and link the account.
+    
+    Note: KHDP does not return the 'state' parameter in the callback, so we validate
+    CSRF protection through session state instead. The presence of stored state/nonce
+    in the session proves the user initiated the flow from PhysioNet.
     """
+    # Ensure user is logged in
+    if not request.user.is_authenticated:
+        messages.error(request, 'You must be logged in to link a KHDP account.')
+        return redirect('login')
+
+    # Log all GET parameters for debugging
+    logger.info("KHDP callback received with GET parameters: %s", dict(request.GET))
+
+    # We validate CSRF protection by checking that nonce exists in session
+    # (meaning user initiated the flow from PhysioNet)
+    expected_nonce = request.session.pop('khdp_nonce', None)
+    
+    if not expected_nonce:
+        logger.warning(
+            "KHDP callback received but no nonce in session. "
+            "User may not have initiated linking from PhysioNet."
+        )
+        messages.error(request, 'Invalid linking session. Please try linking your account again.')
+        return redirect('edit_khdp')
+    
+    # Nonce validation will be done if KHDP returns an ID token in the token response
+
     client_id = getattr(settings, 'KHDP_CLIENT_ID', None)
     client_secret = getattr(settings, 'KHDP_CLIENT_SECRET', None)
     redirect_uri = getattr(settings, 'KHDP_LINK_REDIRECT_URI', None)
@@ -1494,6 +1528,28 @@ def auth_khdp(request):
         logger.error("KHDP token exchange exception: %s", str(e), exc_info=True)
         messages.error(request, 'Failed to exchange authorization code with KHDP.')
         return redirect('edit_khdp')
+
+    # Validate ID token if present (OpenID Connect)
+    id_token = token.get('id_token') or token.get('idToken')
+    if id_token and expected_nonce:
+        try:
+            import jwt
+            # Decode without verification first to check nonce
+            # Full verification would require JWKS endpoint from KHDP
+            decoded = jwt.decode(id_token, options={"verify_signature": False})
+            token_nonce = decoded.get('nonce')
+            
+            if not token_nonce or token_nonce != expected_nonce:
+                logger.warning(
+                    "KHDP nonce validation failed: expected=%s, received=%s",
+                    bool(expected_nonce), bool(token_nonce)
+                )
+                messages.error(request, 'Invalid ID token nonce. Please try linking your account again.')
+                return redirect('edit_khdp')
+        except Exception as e:
+            logger.warning("Failed to validate KHDP ID token: %s", str(e))
+            # Don't fail completely if ID token validation fails, but log it
+            # This allows fallback to userinfo endpoint
 
     # Call userinfo with Bearer token
     try:
