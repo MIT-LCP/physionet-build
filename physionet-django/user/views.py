@@ -1416,6 +1416,7 @@ def view_signed_agreement(request, dua_signature_id):
                   {'user': user, 'signed': signed})
 
 
+@disallow_during_maintenance
 @login_required
 def edit_khdp(request):
     """
@@ -1459,6 +1460,7 @@ def edit_khdp(request):
     return render(request, 'user/edit_khdp.html')
 
 
+@disallow_during_maintenance
 def auth_khdp(request):
     """
     Handle KHDP OAuth callback and link the account.
