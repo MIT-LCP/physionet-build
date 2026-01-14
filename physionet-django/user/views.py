@@ -1423,22 +1423,21 @@ def edit_khdp(request):
     """
     if request.method == 'POST' and request.POST.get('request_khdp'):
         client_id = getattr(settings, 'KHDP_CLIENT_ID', None)
-        redirect_uri = (
-            getattr(settings, 'KHDP_LINK_REDIRECT_URI', '')
-            or getattr(settings, 'KHDP_REDIRECT_URI', '')
-        )
-        auth_url = getattr(settings, 'KHDP_AUTH_URL', None)
+        khdp_auth_url = getattr(settings, 'KHDP_AUTH_URL', None)
 
-        if not client_id or not redirect_uri or not auth_url:
+        if not client_id or not khdp_auth_url:
             logger.error(
-                'KHDP config missing: client_id=%s, redirect_uri="%s", auth_url=%s',
-                bool(client_id), redirect_uri, bool(auth_url),
+                'KHDP config missing: client_id=%s, khdp_auth_url=%s',
+                bool(client_id), bool(khdp_auth_url),
             )
             messages.error(
                 request,
                 'KHDP configuration is incomplete. Please contact support.',
             )
             return redirect('edit_khdp')
+
+        # Generate callback URL dynamically using reverse + build_absolute_uri
+        redirect_uri = request.build_absolute_uri(reverse('auth_khdp'))
 
         # Generate random nonce for security (stored in session for CSRF/session validation)
         # Note: KHDP does not implement OAuth2 state parameter in callback, so we only use nonce
@@ -1454,7 +1453,7 @@ def edit_khdp(request):
             'redirectUrl': redirect_uri,
             'nonce': nonce,
         }
-        final_url = f"{auth_url}?{urlencode(params)}"
+        final_url = f"{khdp_auth_url}?{urlencode(params)}"
         return redirect(final_url)
 
     return render(request, 'user/edit_khdp.html')

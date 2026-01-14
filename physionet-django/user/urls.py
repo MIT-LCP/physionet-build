@@ -45,8 +45,6 @@ urlpatterns = [
     # KHDP linking
     path("settings/khdp/", views.edit_khdp, name="edit_khdp"),
     path("auth/khdp/", views.auth_khdp, name="auth_khdp"),
-    # Legacy KHDP callback path kept for existing redirect URIs
-    path("khdp/", views.auth_khdp, name="auth_khdp_legacy"),
     # Current tokens are 20 characters long and consist of 0-9A-Za-z
     # Obsolete tokens are 34 characters long and also include a hyphen
     re_path(
