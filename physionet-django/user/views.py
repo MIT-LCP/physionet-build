@@ -1443,11 +1443,11 @@ def edit_khdp(request):
         # Generate random nonce for security (stored in session for CSRF/session validation)
         # Note: KHDP does not implement OAuth2 state parameter in callback, so we only use nonce
         nonce = get_random_string(32)
-        
+
         # Store nonce in session for CSRF validation
         request.session['khdp_nonce'] = nonce
         request.session.modified = True  # Ensure session is saved
-        
+
         # KHDP expects appId and redirectUrl instead of standard OAuth2 params
         params = {
             'appId': client_id,
@@ -1464,7 +1464,7 @@ def edit_khdp(request):
 def auth_khdp(request):
     """
     Handle KHDP OAuth callback and link the account.
-    
+
     Note: KHDP does not return the 'state' parameter in the callback, so we validate
     CSRF protection through session state instead. The presence of stored state/nonce
     in the session proves the user initiated the flow from PhysioNet.
@@ -1480,7 +1480,7 @@ def auth_khdp(request):
     # We validate CSRF protection by checking that nonce exists in session
     # (meaning user initiated the flow from PhysioNet)
     expected_nonce = request.session.pop('khdp_nonce', None)
-    
+
     if not expected_nonce:
         logger.warning(
             "KHDP callback received but no nonce in session. "
@@ -1488,7 +1488,7 @@ def auth_khdp(request):
         )
         messages.error(request, 'Invalid linking session. Please try linking your account again.')
         return redirect('edit_khdp')
-    
+
     # Nonce validation will be done if KHDP returns an ID token in the token response
 
     client_id = getattr(settings, 'KHDP_CLIENT_ID', None)
@@ -1539,7 +1539,7 @@ def auth_khdp(request):
             # Full verification would require JWKS endpoint from KHDP
             decoded = jwt.decode(id_token, options={"verify_signature": False})
             token_nonce = decoded.get('nonce')
-            
+
             if not token_nonce or token_nonce != expected_nonce:
                 logger.warning(
                     "KHDP nonce validation failed: expected=%s, received=%s",
