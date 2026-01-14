@@ -16,7 +16,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.db import IntegrityError, transaction
+from django.db import DatabaseError, IntegrityError, transaction
 from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1523,7 +1523,7 @@ def auth_khdp(request):
             messages.error(request, 'Failed to exchange authorization code with KHDP.')
             return redirect('edit_khdp')
         token = resp.json()
-    except Exception as e:
+    except (requests.RequestException, ValueError) as e:
         logger.error("KHDP token exchange exception: %s", str(e), exc_info=True)
         messages.error(request, 'Failed to exchange authorization code with KHDP.')
         return redirect('edit_khdp')
@@ -1545,7 +1545,7 @@ def auth_khdp(request):
                 )
                 messages.error(request, 'Invalid ID token nonce. Please try linking your account again.')
                 return redirect('edit_khdp')
-        except Exception as e:
+        except (jwt.DecodeError, jwt.InvalidTokenError, KeyError) as e:
             logger.warning("Failed to validate KHDP ID token: %s", str(e))
             # Don't fail completely if ID token validation fails, but log it
             # This allows fallback to userinfo endpoint
@@ -1563,7 +1563,7 @@ def auth_khdp(request):
             messages.error(request, 'Failed to retrieve KHDP user information.')
             return redirect('edit_khdp')
         data = resp.json()
-    except Exception as e:
+    except (requests.RequestException, ValueError) as e:
         logger.error("Error parsing KHDP user information: %s", str(e), exc_info=True)
         messages.error(request, 'Error parsing KHDP user information.')
         return redirect('edit_khdp')
@@ -1612,7 +1612,7 @@ def auth_khdp(request):
     except ValidationError as e:
         logger.error("KHDP account validation failed: %s", str(e), exc_info=True)
         messages.error(request, 'Invalid KHDP account data received.')
-    except Exception as e:
+    except (IntegrityError, DatabaseError) as e:
         logger.error("KHDP account save failed: %s", str(e), exc_info=True)
         messages.error(request, 'Failed to save KHDP account.')
 
