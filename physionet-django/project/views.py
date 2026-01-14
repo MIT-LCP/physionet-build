@@ -2108,6 +2108,45 @@ def published_project(request, project_slug, version, subdir=''):
                   status=status)
 
 
+def published_project_metrics(request, project_slug, version):
+    """
+    Public metrics page for a published project.
+    """
+    from django.db.models import Count
+    from django.db.models.functions import TruncMonth
+
+    try:
+        project = PublishedProject.objects.get(slug=project_slug, version=version)
+    except ObjectDoesNotExist:
+        raise Http404()
+
+    content_type = ContentType.objects.get_for_model(project)
+
+    project_logs = AccessLog.objects.filter(object_id=project.id, content_type=content_type)
+    project_views_count = project_logs.unique_viewers_count()
+    views_over_time = project_logs.first_views_by_month()
+
+    all_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
+    views_by_version = []
+    all_versions_views_count = 0
+    for v in all_versions:
+        v_content_type = ContentType.objects.get_for_model(v)
+        v_count = AccessLog.objects.filter(
+            object_id=v.id,
+            content_type=v_content_type
+        ).unique_viewers_count()
+        views_by_version.append({'version': v.version, 'count': v_count})
+        all_versions_views_count += v_count
+
+    return render(request, 'project/published_project_metrics.html', {
+        'project': project,
+        'project_views_count': project_views_count,
+        'all_versions_views_count': all_versions_views_count,
+        'views_over_time': views_over_time,
+        'views_by_version': views_by_version,
+    })
+
+
 @login_required
 def sign_dua(request, project_slug, version):
     """

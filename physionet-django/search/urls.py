@@ -59,6 +59,11 @@ urlpatterns = [
         project_views.published_project_dua,
         name='published_project_dua',
     ),
+    path(
+        'content/<project_slug>/metrics/<version>/',
+        project_views.published_project_metrics,
+        name='published_project_metrics',
+    ),
 
     path('sign-dua/<project_slug>/<version>/', project_views.sign_dua,
          name='sign_dua'),
