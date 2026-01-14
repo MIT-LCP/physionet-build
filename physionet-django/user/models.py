@@ -786,10 +786,11 @@ class KhdpAccount(models.Model):
     name = models.CharField(max_length=100)
     affiliation = models.CharField(max_length=250)
     email = models.EmailField(max_length=255)
-    orcid = models.CharField(max_length=50, blank=True)
+    orcid = models.CharField(max_length=50, blank=True, default='')
     physionet_id = models.CharField(
         max_length=128,
         blank=True,
+        default='',
         help_text='PhysioNet public user UUID shared with KHDP',
     )
 
