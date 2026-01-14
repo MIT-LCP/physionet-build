@@ -1493,11 +1493,11 @@ def auth_khdp(request):
 
     client_id = getattr(settings, 'KHDP_CLIENT_ID', None)
     client_secret = getattr(settings, 'KHDP_CLIENT_SECRET', None)
-    redirect_uri = getattr(settings, 'KHDP_LINK_REDIRECT_URI', None)
     token_url = getattr(settings, 'KHDP_TOKEN_URL', None)
     userinfo_url = getattr(settings, 'KHDP_USERINFO_URL', None)
+    redirect_uri = getattr(settings, 'KHDP_LINK_REDIRECT_URI', None)
 
-    if not all([client_id, client_secret, redirect_uri, token_url, userinfo_url]):
+    if not all([client_id, client_secret, token_url, userinfo_url, redirect_uri]):
         messages.error(request, 'KHDP configuration is incomplete. Please contact support.')
         return redirect('edit_khdp')
 
