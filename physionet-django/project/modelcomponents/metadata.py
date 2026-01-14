@@ -553,7 +553,96 @@ class Metadata(models.Model):
         for style in styles:
             citation_dict[style] = self.citation_text(style)
 
+        citation_dict['BibTeX'] = self.citation_text_bibtex()
+
         return citation_dict
+
+    # Compile regex once at class level for BibTeX escaping
+    _BIBTEX_SPECIAL_CHARS = re.compile(r'([\\%#&_${}])')
+    _BIBTEX_REPLACEMENTS = {
+        '\\': r'\textbackslash{}',
+        '%': r'\%', '#': r'\#', '&': r'\&',
+        '_': r'\_', '$': r'\$', '{': r'\{', '}': r'\}'
+    }
+
+    @classmethod
+    def _escape_bibtex(cls, text):
+        """Escape special characters for BibTeX compatibility."""
+        return cls._BIBTEX_SPECIAL_CHARS.sub(
+            lambda m: cls._BIBTEX_REPLACEMENTS[m.group(1)], text
+        )
+
+    @classmethod
+    def _format_bibtex_author(cls, author):
+        """
+        Format author name for BibTeX, handling multi-word last names.
+
+        Converts "Van der Berg, John" to "{Van der Berg}, John" so BibTeX
+        parsers correctly identify the last name.
+        """
+        name = author.get_full_name(reverse=True)
+        if ', ' in name:
+            last_name, first_names = name.split(', ', 1)
+            last_name = cls._escape_bibtex(last_name)
+            first_names = cls._escape_bibtex(first_names)
+            if ' ' in last_name:
+                last_name = '{' + last_name + '}'
+            return last_name + ', ' + first_names
+        return cls._escape_bibtex(name)
+
+    def citation_text_bibtex(self):
+        """
+        Generate a BibTeX citation for the project.
+        """
+        authors = self.authors.all().order_by('display_order')
+
+        if self.is_published():
+            year = self.publish_datetime.year
+            month = self.publish_datetime.strftime('%b').lower()
+            doi = self.doi
+
+            if self.is_legacy:
+                return ''
+
+            slug = getattr(self, 'slug', 'project')
+            version_str = self.version if self.version else ''
+            citation_key = f"{settings.SITE_NAME}-{slug}-{version_str}"
+        else:
+            year = timezone.now().year
+            month = timezone.now().strftime('%b').lower()
+            prefix = self.future_doi_prefix()
+            if prefix:
+                doi = prefix + '/*****'
+            else:
+                doi = None
+            citation_key = 'unpublished'
+
+        author_list = ' and '.join(
+            self._format_bibtex_author(a) for a in authors
+        )
+
+        title = self._escape_bibtex(self.title)
+
+        bibtex_lines = [
+            f"@article{{{citation_key},",
+            f"  author = {{{author_list}}},",
+            f"  title = {{{{{title}}}}},",
+            f"  journal = {{{{{settings.SITE_NAME}}}}},",
+            f"  year = {{{year}}},",
+            f"  month = {month},",
+        ]
+
+        if self.version:
+            bibtex_lines.append(f"  note = {{Version {self.version}}},")
+
+        if doi:
+            bibtex_lines.append(f"  doi = {{{doi}}},")
+            bibtex_lines.append(f"  url = {{https://doi.org/{doi}}},")
+
+        bibtex_lines[-1] = bibtex_lines[-1].rstrip(',')
+        bibtex_lines.append("}")
+
+        return '\n'.join(bibtex_lines)
 
     def content_sections(self):
         """
