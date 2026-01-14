@@ -1705,3 +1705,32 @@ class TestBibTeXCitation(TestMixin):
 
         self.assertIn('BibTeX', citations)
         self.assertIn('@article{', citations['BibTeX'])
+
+
+class TestFileViewsMetric(TestMixin):
+    """Test the file views metric on published project pages."""
+
+    def test_project_views_count_displayed(self):
+        """Project views count is displayed on the published project page."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project',
+                                           args=(project.slug, project.version)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Current Version')
+        self.assertContains(response, 'All Versions')
+        self.assertEqual(response.context['project_views_count'], 0)
+        self.assertEqual(response.context['all_versions_views_count'], 0)
+
+    def test_project_views_increments_on_authenticated_view(self):
+        """Project views count increments when authenticated user views files."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        # First visit creates the AccessLog
+        self.client.get(reverse('published_project',
+                                args=(project.slug, project.version)))
+        # Second visit sees the incremented count
+        response = self.client.get(reverse('published_project',
+                                           args=(project.slug, project.version)))
+        self.assertEqual(response.context['project_views_count'], 1)
+        self.assertEqual(response.context['all_versions_views_count'], 1)

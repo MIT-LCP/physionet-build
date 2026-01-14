@@ -2013,6 +2013,18 @@ def published_project(request, project_slug, version, subdir=''):
     except AWS.DoesNotExist:
         user_in_access_point_policy = False
 
+    content_type = ContentType.objects.get_for_model(project)
+    project_views_count = AccessLog.objects.filter(
+        object_id=project.id,
+        content_type=content_type
+    ).values('user').distinct().count()
+
+    all_version_ids = PublishedProject.objects.filter(slug=project_slug).values_list('id', flat=True)
+    all_versions_views_count = AccessLog.objects.filter(
+        object_id__in=all_version_ids,
+        content_type=content_type
+    ).values('user').distinct().count()
+
     context = {
         'project': project,
         'authors': authors,
@@ -2046,6 +2058,8 @@ def published_project(request, project_slug, version, subdir=''):
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
         'user_country_blocked': user_country_blocked,
+        'project_views_count': project_views_count,
+        'all_versions_views_count': all_versions_views_count,
     }
     # The file and directory contents
     if can_view_files:
