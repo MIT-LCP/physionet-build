@@ -1,4 +1,5 @@
 from django import template
+from django.conf import settings
 
 
 register = template.Library()
@@ -6,10 +7,15 @@ register = template.Library()
 
 @register.inclusion_tag('user/settings_tabs.html')
 def settings_tabs(hide_password_settings: bool):
-    default_tabs = ['Profile', 'Emails', 'Username', 'Cloud', 'ORCID', 'KHDP', 'Credentialing', 'Training',
+    default_tabs = ['Profile', 'Emails', 'Username', 'Cloud', 'ORCID', 'Credentialing', 'Training',
                     'Certification', 'Agreements']
     if not hide_password_settings:
         default_tabs.insert(1, 'Password')
+    
+    # Only show KHDP tab if configured
+    if getattr(settings, 'KHDP_CLIENT_ID', None):
+        default_tabs.insert(5, 'KHDP')  # Insert after ORCID
+    
     return {'settings_tabs': default_tabs}
 
 
