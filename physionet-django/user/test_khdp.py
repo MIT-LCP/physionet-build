@@ -352,7 +352,7 @@ class KhdpAuthCallbackTests(TestCase):
         mock_get.return_value = mock_get_response
 
         # Make callback request
-        response = self.client.get(reverse('auth_khdp'), {'code': 'test-auth-code'})
+        self.client.get(reverse('auth_khdp'), {'code': 'test-auth-code'})
 
         # Should still have only one KhdpAccount
         self.assertEqual(KhdpAccount.objects.filter(user=self.user).count(), 1)
