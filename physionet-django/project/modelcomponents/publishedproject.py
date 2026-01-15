@@ -16,7 +16,8 @@ from project.modelcomponents.access import DataAccessRequest, DataAccessRequestR
 from project.modelcomponents.fields import SafeHTMLField
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
-from project.models import AccessPolicy
+from project.modelcomponents.access import AccessPolicy
+from project.modelcomponents.log import AccessLog
 from project.utility import StorageInfo, clear_directory, get_tree_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
 from user.models import Training
@@ -395,8 +396,6 @@ class PublishedProject(Metadata, SubmissionInfo):
             all_versions: If True, count views across all versions of this project.
                          If False (default), count only views of this specific version.
         """
-        from project.models import AccessLog
-
         if all_versions:
             versions = PublishedProject.objects.filter(slug=self.slug)
             total = 0
@@ -418,8 +417,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         """
         Return a list of view counts for each version of this project.
         """
-        from project.models import AccessLog
-
         versions = PublishedProject.objects.filter(slug=self.slug).order_by('version_order')
         result = []
         for v in versions:
@@ -436,8 +433,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         Return monthly view counts for this project version.
         Each user is only counted in the month of their first view.
         """
-        from project.models import AccessLog
-
         content_type = ContentType.objects.get_for_model(self)
         return AccessLog.objects.filter(
             object_id=self.id,
