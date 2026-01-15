@@ -217,8 +217,8 @@ class KhdpAuthCallbackTests(TestCase):
             'userName': 'User Without ORCID',
             'affiliation': 'Another University',
             'mail': 'noorcid@khdp.example.com',
-            # No orcid field
-            # No physionetId field
+            'orcid': None,
+            'physionetId': None,
         }
         mock_get_response = Mock()
         mock_get_response.status_code = 200
