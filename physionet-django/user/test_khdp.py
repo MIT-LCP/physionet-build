@@ -110,6 +110,13 @@ class KhdpAuthCallbackTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response.url)
 
+    @override_settings(
+        KHDP_CLIENT_ID='test-client-id',
+        KHDP_CLIENT_SECRET='test-secret',
+        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
+        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
+        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
+    )
     def test_auth_khdp_requires_code_parameter(self):
         """Test that missing authorization code shows error."""
         self.client.force_login(self.user)
