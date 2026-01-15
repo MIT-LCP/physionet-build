@@ -1595,7 +1595,7 @@ def auth_khdp(request):
     account.name = data.get('userName', '')
     account.affiliation = data.get('affiliation', '')
     account.email = data.get('mail', '')
-    account.orcid = data.get('orcid', '')
+    account.orcid = data.get('orcid') or ''
     physionet_id = data.get('physionetId')
     account.physionet_id = physionet_id or ''
 
