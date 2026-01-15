@@ -73,6 +73,13 @@ class KhdpEditViewTests(TestCase):
         self.assertIn('configuration is incomplete', str(messages[0]))
 
 
+@override_settings(
+    KHDP_CLIENT_ID='test-client-id',
+    KHDP_CLIENT_SECRET='test-secret',
+    KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
+    KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
+    KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
+)
 class KhdpAuthCallbackTests(TestCase):
     """Tests for the auth_khdp view (OAuth callback handler)."""
 
@@ -110,13 +117,6 @@ class KhdpAuthCallbackTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response.url)
 
-    @override_settings(
-        KHDP_CLIENT_ID='test-client-id',
-        KHDP_CLIENT_SECRET='test-secret',
-        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
-        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
-        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
-    )
     def test_auth_khdp_requires_code_parameter(self):
         """Test that missing authorization code shows error."""
         self.client.force_login(self.user)
@@ -142,13 +142,6 @@ class KhdpAuthCallbackTests(TestCase):
         self.assertIn('Invalid linking session', str(messages[0]))
         self.assertEqual(response.status_code, 302)
 
-    @override_settings(
-        KHDP_CLIENT_ID='test-client-id',
-        KHDP_CLIENT_SECRET='test-secret',
-        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
-        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
-        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
-    )
     @patch('user.views.requests.post')
     @patch('user.views.requests.get')
     def test_successful_khdp_linking_with_all_fields(self, mock_get, mock_post):
@@ -200,13 +193,6 @@ class KhdpAuthCallbackTests(TestCase):
         # Verify nonce was removed from session
         self.assertNotIn('khdp_nonce', self.client.session)
 
-    @override_settings(
-        KHDP_CLIENT_ID='test-client-id',
-        KHDP_CLIENT_SECRET='test-secret',
-        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
-        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
-        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
-    )
     @patch('user.views.requests.post')
     @patch('user.views.requests.get')
     def test_successful_khdp_linking_without_optional_fields(self, mock_get, mock_post):
@@ -251,13 +237,6 @@ class KhdpAuthCallbackTests(TestCase):
         self.assertEqual(khdp_account.orcid, '')  # Should be empty string, not None
         self.assertEqual(khdp_account.physionet_id, '')  # Should be empty string, not None
 
-    @override_settings(
-        KHDP_CLIENT_ID='test-client-id',
-        KHDP_CLIENT_SECRET='test-secret',
-        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
-        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
-        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
-    )
     @patch('user.views.requests.post')
     @patch('user.views.requests.get')
     def test_khdp_account_already_linked_to_another_user(self, mock_get, mock_post):
@@ -310,13 +289,6 @@ class KhdpAuthCallbackTests(TestCase):
         # Should NOT create a new KhdpAccount for this user
         self.assertFalse(KhdpAccount.objects.filter(user=self.user).exists())
 
-    @override_settings(
-        KHDP_CLIENT_ID='test-client-id',
-        KHDP_CLIENT_SECRET='test-secret',
-        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
-        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
-        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
-    )
     @patch('user.views.requests.post')
     @patch('user.views.requests.get')
     def test_update_existing_khdp_account(self, mock_get, mock_post):
@@ -371,13 +343,6 @@ class KhdpAuthCallbackTests(TestCase):
         self.assertEqual(existing_account.email, 'updated@khdp.com')
         self.assertEqual(existing_account.orcid, '0000-0001-9999-8888')
 
-    @override_settings(
-        KHDP_CLIENT_ID='test-client-id',
-        KHDP_CLIENT_SECRET='test-secret',
-        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
-        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
-        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
-    )
     @patch('user.views.requests.post')
     def test_token_exchange_failure(self, mock_post):
         """Test handling of token exchange failure."""
@@ -404,13 +369,6 @@ class KhdpAuthCallbackTests(TestCase):
         # Should not create KhdpAccount
         self.assertFalse(KhdpAccount.objects.filter(user=self.user).exists())
 
-    @override_settings(
-        KHDP_CLIENT_ID='test-client-id',
-        KHDP_CLIENT_SECRET='test-secret',
-        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
-        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
-        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
-    )
     @patch('user.views.requests.post')
     @patch('user.views.requests.get')
     def test_userinfo_endpoint_failure(self, mock_get, mock_post):
@@ -441,13 +399,6 @@ class KhdpAuthCallbackTests(TestCase):
             any('Failed to retrieve KHDP user information' in str(m) for m in messages)
         )
 
-    @override_settings(
-        KHDP_CLIENT_ID='test-client-id',
-        KHDP_CLIENT_SECRET='test-secret',
-        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
-        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
-        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
-    )
     @patch('user.views.requests.post')
     @patch('user.views.requests.get')
     def test_missing_userid_in_response(self, mock_get, mock_post):
