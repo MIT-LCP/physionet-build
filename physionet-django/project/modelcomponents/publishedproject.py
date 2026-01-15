@@ -4,6 +4,7 @@ import datetime
 from distutils.version import StrictVersion
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -385,3 +386,60 @@ class PublishedProject(Metadata, SubmissionInfo):
             link_all_versions=True).exclude(project=self)
 
         return direct_news | linked_news
+
+    def view_count(self, all_versions=False):
+        """
+        Return the count of unique registered users who have viewed this project.
+
+        Args:
+            all_versions: If True, count views across all versions of this project.
+                         If False (default), count only views of this specific version.
+        """
+        from project.models import AccessLog
+
+        if all_versions:
+            versions = PublishedProject.objects.filter(slug=self.slug)
+            total = 0
+            for v in versions:
+                content_type = ContentType.objects.get_for_model(v)
+                total += AccessLog.objects.filter(
+                    object_id=v.id,
+                    content_type=content_type
+                ).unique_viewers_count()
+            return total
+        else:
+            content_type = ContentType.objects.get_for_model(self)
+            return AccessLog.objects.filter(
+                object_id=self.id,
+                content_type=content_type
+            ).unique_viewers_count()
+
+    def views_by_version(self):
+        """
+        Return a list of view counts for each version of this project.
+        """
+        from project.models import AccessLog
+
+        versions = PublishedProject.objects.filter(slug=self.slug).order_by('version_order')
+        result = []
+        for v in versions:
+            content_type = ContentType.objects.get_for_model(v)
+            count = AccessLog.objects.filter(
+                object_id=v.id,
+                content_type=content_type
+            ).unique_viewers_count()
+            result.append({'version': v.version, 'count': count})
+        return result
+
+    def views_over_time(self):
+        """
+        Return monthly view counts for this project version.
+        Each user is only counted in the month of their first view.
+        """
+        from project.models import AccessLog
+
+        content_type = ContentType.objects.get_for_model(self)
+        return AccessLog.objects.filter(
+            object_id=self.id,
+            content_type=content_type
+        ).first_views_by_month()
