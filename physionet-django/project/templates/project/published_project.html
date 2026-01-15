@@ -243,6 +243,23 @@
         </div>
 
         <div class="card my-4">
+          <h5 class="card-header">Project Views</h5>
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-around mb-2">
+              <div>
+                <h3 class="mb-0">{{ project_views_count }}</h3>
+                <small class="text-muted">Current Version</small>
+              </div>
+              <div>
+                <h3 class="mb-0">{{ all_versions_views_count }}</h3>
+                <small class="text-muted">All Versions</small>
+              </div>
+            </div>
+            <small class="text-muted mb-0"><em>Project Views by Unique Registered Users</em></small>
+          </div>
+        </div>
+
+        <div class="card my-4">
           <h5 class="card-header">Corresponding Author</h5>
           <div class="card-body">
             {% if user.is_authenticated %}
