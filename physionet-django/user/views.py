@@ -1584,9 +1584,13 @@ def auth_khdp(request):
         return redirect('edit_khdp')
 
     # Get or create the KhdpAccount for this user
-    account, created = KhdpAccount.objects.get_or_create(user=request.user)
+    try:
+        account = KhdpAccount.objects.get(user=request.user)
+    except KhdpAccount.DoesNotExist:
+        account = KhdpAccount(user=request.user)
 
     # Update fields from KHDP response
+    account.public_uuid = data.get('publicUuid', '')
     account.khdp_user_id = khdp_user_id
     account.name = data.get('userName', '')
     account.affiliation = data.get('affiliation', '')
