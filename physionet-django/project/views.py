@@ -2138,8 +2138,9 @@ def sign_dua(request, project_slug, version):
             return render(request, 'project/sign_dua_complete.html', {
                 'project': project})
 
-    return render(request, 'project/sign_dua.html', {'project': project,
-        'license': license, 'license_content': license_content, 'form': form})
+    return render(request, 'project/sign_dua.html', {
+        'project': project, 'license': license,
+        'license_content': license_content, 'form': form})
 
 
 @login_required
