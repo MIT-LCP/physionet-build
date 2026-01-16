@@ -23,6 +23,7 @@ from project.cloud.s3 import (
 )
 from project.models import (
     AWS,
+    DUASignature,
     PublishedProject,
 )
 from user.models import (
@@ -280,9 +281,10 @@ class TestS3(TestMixin):
 
         for user in add_aws_users + add_nonaws_users:
             self.client.force_login(user)
+            initials = DUASignature.get_user_initials(user)
             self.client.post(
                 reverse('sign_dua', args=(project.slug, project.version)),
-                data={'agree': '', 'full_name': user.get_full_name()},
+                data={'agree': '', 'initials': initials},
             )
             self.assertTrue(can_view_project_files(project, user))
 

@@ -1111,27 +1111,28 @@ class AnonymousAccessLoginForm(forms.ModelForm):
 
 class DUASignatureForm(forms.Form):
     """
-    Form for signing Data Use Agreement by typing full name.
+    Form for signing Data Use Agreement by typing initials.
     """
-    full_name = forms.CharField(
+    initials = forms.CharField(
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Type your full name',
+            'placeholder': 'Type your initials',
         }),
-        label='Please sign your full name to indicate your consent',
+        label='Please type your initials to indicate your consent',
     )
 
     def __init__(self, user, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-        self.fields['full_name'].help_text = (
-            f'Please type your full name exactly as: {user.get_full_name()}'
+        expected_initials = DUASignature.get_user_initials(user)
+        self.fields['initials'].help_text = (
+            f'Please type your initials exactly as: {expected_initials}'
         )
 
-    def clean_full_name(self):
-        full_name = self.cleaned_data.get('full_name', '').strip()
-        DUASignature.validate_signature_name(self.user, full_name)
-        return full_name
+    def clean_initials(self):
+        initials = self.cleaned_data.get('initials', '').strip()
+        DUASignature.validate_signature_initials(self.user, initials)
+        return initials
 
 
 class DataAccessRequestForm(forms.ModelForm):

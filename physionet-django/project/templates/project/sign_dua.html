@@ -19,13 +19,13 @@ Sign Data Use Agreement for {{ project }}
   <form method="POST">
     {% csrf_token %}
     <div class="form-group">
-      <label for="id_full_name">{{ form.full_name.label }}</label>
-      {{ form.full_name }}
-      {% if form.full_name.help_text %}
-        <small class="form-text text-muted">{{ form.full_name.help_text }}</small>
+      <label for="id_initials">{{ form.initials.label }}</label>
+      {{ form.initials }}
+      {% if form.initials.help_text %}
+        <small class="form-text text-muted">{{ form.initials.help_text }}</small>
       {% endif %}
-      {% if form.full_name.errors %}
-        <div class="text-danger">{{ form.full_name.errors.0 }}</div>
+      {% if form.initials.errors %}
+        <div class="text-danger">{{ form.initials.errors.0 }}</div>
       {% endif %}
     </div>
     <p class="text-center">

@@ -735,7 +735,7 @@ class TestAccessPublished(TestMixin):
         # Sign the dua and get file again
         response = self.client.post(reverse('sign_dua',
             args=(project.slug, project.version,)),
-            data={'agree': '', 'full_name': 'Roger Greenwood Mark'})
+            data={'agree': '', 'initials': 'RGM'})
         response = self.client.get(reverse(
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
@@ -952,7 +952,7 @@ class TestAccessPublished(TestMixin):
             self.client.login(username='rgmark@mit.edu', password='Tester11!')
             response = self.client.post(
                 reverse('sign_dua', args=(project.slug, project.version,)),
-                data={'agree': '', 'full_name': 'Roger Greenwood Mark'})
+                data={'agree': '', 'initials': 'RGM'})
 
             response = self.client.get(url + 'foo/')
             self.assertEqual(response.status_code, 200)
@@ -967,46 +967,46 @@ class TestAccessPublished(TestMixin):
 
 class TestDUASignatureValidation(TestMixin):
     """
-    Test DUA signing with full name validation.
+    Test DUA signing with initials validation.
     """
 
-    def test_sign_dua_with_correct_name(self):
-        """User can sign DUA when typing their correct full name."""
+    def test_sign_dua_with_correct_initials(self):
+        """User can sign DUA when typing their correct initials."""
         project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
         response = self.client.post(
             reverse('sign_dua', args=(project.slug, project.version)),
-            data={'agree': '', 'full_name': 'Roger Greenwood Mark'}
+            data={'agree': '', 'initials': 'RGM'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertTrue(DUASignature.objects.filter(
             user__email='rgmark@mit.edu', project=project
         ).exists())
 
-    def test_sign_dua_with_wrong_name(self):
-        """User cannot sign DUA when typing wrong name."""
+    def test_sign_dua_with_wrong_initials(self):
+        """User cannot sign DUA when typing wrong initials."""
         project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
         response = self.client.post(
             reverse('sign_dua', args=(project.slug, project.version)),
-            data={'agree': '', 'full_name': 'Wrong Name'}
+            data={'agree': '', 'initials': 'XYZ'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertFalse(DUASignature.objects.filter(
             user__email='rgmark@mit.edu', project=project
         ).exists())
-        self.assertContains(response, 'does not match your profile name')
+        self.assertContains(response, 'do not match')
 
-    def test_sign_dua_with_empty_name(self):
-        """User cannot sign DUA without entering their name."""
+    def test_sign_dua_with_empty_initials(self):
+        """User cannot sign DUA without entering their initials."""
         project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
         response = self.client.post(
             reverse('sign_dua', args=(project.slug, project.version)),
-            data={'agree': '', 'full_name': ''}
+            data={'agree': '', 'initials': ''}
         )
         self.assertEqual(response.status_code, 200)
         self.assertFalse(DUASignature.objects.filter(
@@ -1015,18 +1015,38 @@ class TestDUASignatureValidation(TestMixin):
         self.assertContains(response, 'This field is required')
 
     def test_sign_dua_case_insensitive(self):
-        """Name validation is case-insensitive."""
+        """Initials validation is case-insensitive."""
         project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
         response = self.client.post(
             reverse('sign_dua', args=(project.slug, project.version)),
-            data={'agree': '', 'full_name': 'roger greenwood mark'}
+            data={'agree': '', 'initials': 'rgm'}
         )
         self.assertEqual(response.status_code, 200)
         self.assertTrue(DUASignature.objects.filter(
             user__email='rgmark@mit.edu', project=project
         ).exists())
+
+
+class TestDUASignatureNormalization(TestCase):
+    """
+    Test Unicode normalization for initials comparison.
+    """
+
+    def test_normalize_for_comparison(self):
+        """Test that normalize_for_comparison handles Unicode properly."""
+        normalize = DUASignature.normalize_for_comparison
+
+        # Case insensitivity
+        self.assertEqual(normalize('ABC'), normalize('abc'))
+
+        # German sharp S (ß) casefolds to 'ss'
+        self.assertEqual(normalize('ß'), normalize('ss'))
+
+        # Different Unicode representations of same character
+        # é as single character vs e + combining acute accent
+        self.assertEqual(normalize('é'), normalize('é'))
 
 
 class TestState(TestMixin):

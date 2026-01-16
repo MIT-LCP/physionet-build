@@ -1,3 +1,4 @@
+import unicodedata
 from datetime import timedelta
 from enum import IntEnum
 
@@ -44,13 +45,31 @@ class DUASignature(models.Model):
         default_permissions = ()
 
     @staticmethod
-    def validate_signature_name(user, full_name):
-        if not full_name or not full_name.strip():
-            raise ValidationError('You must enter your full name to sign the agreement.')
-        expected_name = user.get_full_name()
-        if full_name.strip().lower() != expected_name.lower():
+    def get_user_initials(user):
+        """Get initials from user's profile name."""
+        initials = ''
+        if user.profile.first_names:
+            for name in user.profile.first_names.split():
+                if name:
+                    initials += name[0].upper()
+        if user.profile.last_name:
+            initials += user.profile.last_name[0].upper()
+        return initials
+
+    @staticmethod
+    def normalize_for_comparison(text):
+        """Normalize text for Unicode-aware case-insensitive comparison."""
+        return unicodedata.normalize('NFKD', text.casefold())
+
+    @staticmethod
+    def validate_signature_initials(user, initials):
+        if not initials or not initials.strip():
+            raise ValidationError('You must enter your initials to sign the agreement.')
+        expected_initials = DUASignature.get_user_initials(user)
+        if DUASignature.normalize_for_comparison(initials.strip()) != \
+                DUASignature.normalize_for_comparison(expected_initials):
             raise ValidationError(
-                f'The name entered does not match your profile name: {expected_name}'
+                f'The initials entered do not match. Please enter: {expected_initials}'
             )
 
 
