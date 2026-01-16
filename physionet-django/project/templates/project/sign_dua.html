@@ -25,7 +25,7 @@ Sign Data Use Agreement for {{ project }}
         <small class="form-text text-muted">{{ form.full_name.help_text }}</small>
       {% endif %}
       {% if form.full_name.errors %}
-        <div class="text-danger">{{ form.full_name.errors }}</div>
+        <div class="text-danger">{{ form.full_name.errors.0 }}</div>
       {% endif %}
     </div>
     <p class="text-center">

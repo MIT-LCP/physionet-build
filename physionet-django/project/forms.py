@@ -1116,9 +1116,9 @@ class DUASignatureForm(forms.Form):
     full_name = forms.CharField(
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Type your full name to sign',
+            'placeholder': 'Type your full name',
         }),
-        label='Full Name',
+        label='Please sign your full name to indicate your consent',
     )
 
     def __init__(self, user, *args, **kwargs):
