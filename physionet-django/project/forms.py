@@ -29,6 +29,7 @@ from project.models import (
     DataAccessRequest,
     DataAccessRequestReviewer,
     DUA,
+    DUASignature,
     License,
     Metadata,
     ProgrammingLanguage,
@@ -1106,6 +1107,31 @@ class AnonymousAccessLoginForm(forms.ModelForm):
             'passphrase':forms.PasswordInput(attrs={'class': 'form-control',
                 'placeholder': 'Passphrase', 'label': 'Passphrase'}),
         }
+
+
+class DUASignatureForm(forms.Form):
+    """
+    Form for signing Data Use Agreement by typing full name.
+    """
+    full_name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Type your full name to sign',
+        }),
+        label='Full Name',
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.fields['full_name'].help_text = (
+            f'Please type your full name exactly as: {user.get_full_name()}'
+        )
+
+    def clean_full_name(self):
+        full_name = self.cleaned_data.get('full_name', '').strip()
+        DUASignature.validate_signature_name(self.user, full_name)
+        return full_name
 
 
 class DataAccessRequestForm(forms.ModelForm):

@@ -4,6 +4,7 @@ from enum import IntEnum
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -41,6 +42,16 @@ class DUASignature(models.Model):
 
     class Meta:
         default_permissions = ()
+
+    @staticmethod
+    def validate_signature_name(user, full_name):
+        if not full_name or not full_name.strip():
+            raise ValidationError('You must enter your full name to sign the agreement.')
+        expected_name = user.get_full_name()
+        if full_name.strip().lower() != expected_name.lower():
+            raise ValidationError(
+                f'The name entered does not match your profile name: {expected_name}'
+            )
 
 
 class DataAccessRequest(models.Model):

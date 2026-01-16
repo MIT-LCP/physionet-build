@@ -28,6 +28,7 @@ from project.models import (
 from user.models import (
     User,
     CloudInformation,
+    Profile,
     Training,
     TrainingStatus,
 )
@@ -281,7 +282,7 @@ class TestS3(TestMixin):
             self.client.force_login(user)
             self.client.post(
                 reverse('sign_dua', args=(project.slug, project.version)),
-                data={'agree': ''},
+                data={'agree': '', 'full_name': user.get_full_name()},
             )
             self.assertTrue(can_view_project_files(project, user))
 
@@ -378,6 +379,11 @@ class TestS3(TestMixin):
                 is_active=True,
                 is_credentialed=True,
                 credential_datetime=now,
+            )
+            Profile.objects.create(
+                user=user,
+                first_names=f"Test{n}",
+                last_name=f"User{n}",
             )
             users.append(user)
             for i, training_type in enumerate(training_types):

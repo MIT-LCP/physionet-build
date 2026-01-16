@@ -18,6 +18,16 @@ Sign Data Use Agreement for {{ project }}
   <hr>
   <form method="POST">
     {% csrf_token %}
+    <div class="form-group">
+      <label for="id_full_name">{{ form.full_name.label }}</label>
+      {{ form.full_name }}
+      {% if form.full_name.help_text %}
+        <small class="form-text text-muted">{{ form.full_name.help_text }}</small>
+      {% endif %}
+      {% if form.full_name.errors %}
+        <div class="text-danger">{{ form.full_name.errors }}</div>
+      {% endif %}
+    </div>
     <p class="text-center">
       <button class="btn btn-lg btn-success" name="agree" type="submit">I agree</button> <a class="btn btn-lg btn-danger" href="{% url 'published_project' project.slug project.version %}">I do not agree</a>
     </p>

@@ -19,6 +19,7 @@ from project.models import (
     CoreProject,
     DataAccessRequest,
     DataAccessRequestReviewer,
+    DUASignature,
     License,
     ProjectType,
     PublishedAuthor,
@@ -734,7 +735,7 @@ class TestAccessPublished(TestMixin):
         # Sign the dua and get file again
         response = self.client.post(reverse('sign_dua',
             args=(project.slug, project.version,)),
-            data={'agree':''})
+            data={'agree': '', 'full_name': 'Roger Greenwood Mark'})
         response = self.client.get(reverse(
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
@@ -951,7 +952,7 @@ class TestAccessPublished(TestMixin):
             self.client.login(username='rgmark@mit.edu', password='Tester11!')
             response = self.client.post(
                 reverse('sign_dua', args=(project.slug, project.version,)),
-                data={'agree': ''})
+                data={'agree': '', 'full_name': 'Roger Greenwood Mark'})
 
             response = self.client.get(url + 'foo/')
             self.assertEqual(response.status_code, 200)
@@ -962,6 +963,70 @@ class TestAccessPublished(TestMixin):
             response = self.client.get(url + '%C3%80')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response['X-Accel-Redirect'], path + '%C3%80')
+
+
+class TestDUASignatureValidation(TestMixin):
+    """
+    Test DUA signing with full name validation.
+    """
+
+    def test_sign_dua_with_correct_name(self):
+        """User can sign DUA when typing their correct full name."""
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        response = self.client.post(
+            reverse('sign_dua', args=(project.slug, project.version)),
+            data={'agree': '', 'full_name': 'Roger Greenwood Mark'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(DUASignature.objects.filter(
+            user__email='rgmark@mit.edu', project=project
+        ).exists())
+
+    def test_sign_dua_with_wrong_name(self):
+        """User cannot sign DUA when typing wrong name."""
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        response = self.client.post(
+            reverse('sign_dua', args=(project.slug, project.version)),
+            data={'agree': '', 'full_name': 'Wrong Name'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(DUASignature.objects.filter(
+            user__email='rgmark@mit.edu', project=project
+        ).exists())
+        self.assertContains(response, 'does not match your profile name')
+
+    def test_sign_dua_with_empty_name(self):
+        """User cannot sign DUA without entering their name."""
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        response = self.client.post(
+            reverse('sign_dua', args=(project.slug, project.version)),
+            data={'agree': '', 'full_name': ''}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(DUASignature.objects.filter(
+            user__email='rgmark@mit.edu', project=project
+        ).exists())
+        self.assertContains(response, 'This field is required')
+
+    def test_sign_dua_case_insensitive(self):
+        """Name validation is case-insensitive."""
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        response = self.client.post(
+            reverse('sign_dua', args=(project.slug, project.version)),
+            data={'agree': '', 'full_name': 'roger greenwood mark'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(DUASignature.objects.filter(
+            user__email='rgmark@mit.edu', project=project
+        ).exists())
 
 
 class TestState(TestMixin):
