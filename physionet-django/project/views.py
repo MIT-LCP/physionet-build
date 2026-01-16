@@ -2135,21 +2135,26 @@ def sign_dua(request, project_slug, version):
 
     license = project.license
     license_content = project.license_content(fmt='html')
+    form = forms.DUASignatureForm(user)
+
     if request.method == 'POST' and 'agree' in request.POST:
-        DUASignature.objects.create(user=user, project=project)
-        if has_s3_credentials() and files_sent_to_S3(project):
-            if (
-                hasattr(user, 'cloud_information')
-                and user.cloud_information is not None
-                and user.cloud_information.aws_verification_datetime is not None
-            ):
-                add_user_to_access_point_policy(project, user)
+        form = forms.DUASignatureForm(user, data=request.POST)
+        if form.is_valid():
+            DUASignature.objects.create(user=user, project=project)
+            if has_s3_credentials() and files_sent_to_S3(project):
+                if (
+                    hasattr(user, 'cloud_information')
+                    and user.cloud_information is not None
+                    and user.cloud_information.aws_verification_datetime is not None
+                ):
+                    add_user_to_access_point_policy(project, user)
 
-        return render(request, 'project/sign_dua_complete.html', {
-            'project':project})
+            return render(request, 'project/sign_dua_complete.html', {
+                'project': project})
 
-    return render(request, 'project/sign_dua.html', {'project':project,
-        'license':license, 'license_content':license_content})
+    return render(request, 'project/sign_dua.html', {
+        'project': project, 'license': license,
+        'license_content': license_content, 'form': form})
 
 
 @login_required

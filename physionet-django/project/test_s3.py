@@ -23,11 +23,13 @@ from project.cloud.s3 import (
 )
 from project.models import (
     AWS,
+    DUASignature,
     PublishedProject,
 )
 from user.models import (
     User,
     CloudInformation,
+    Profile,
     Training,
     TrainingStatus,
 )
@@ -279,9 +281,10 @@ class TestS3(TestMixin):
 
         for user in add_aws_users + add_nonaws_users:
             self.client.force_login(user)
+            initials = DUASignature.get_user_initials(user)
             self.client.post(
                 reverse('sign_dua', args=(project.slug, project.version)),
-                data={'agree': ''},
+                data={'agree': '', 'initials': initials},
             )
             self.assertTrue(can_view_project_files(project, user))
 
@@ -378,6 +381,11 @@ class TestS3(TestMixin):
                 is_active=True,
                 is_credentialed=True,
                 credential_datetime=now,
+            )
+            Profile.objects.create(
+                user=user,
+                first_names=f"Test{n}",
+                last_name=f"User{n}",
             )
             users.append(user)
             for i, training_type in enumerate(training_types):

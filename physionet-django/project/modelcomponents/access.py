@@ -1,9 +1,11 @@
+import unicodedata
 from datetime import timedelta
 from enum import IntEnum
 
 from django.contrib.auth.hashers import check_password, make_password
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -41,6 +43,34 @@ class DUASignature(models.Model):
 
     class Meta:
         default_permissions = ()
+
+    @staticmethod
+    def get_user_initials(user):
+        """Get initials from user's profile name."""
+        initials = ''
+        if user.profile.first_names:
+            for name in user.profile.first_names.split():
+                if name:
+                    initials += name[0].upper()
+        if user.profile.last_name:
+            initials += user.profile.last_name[0].upper()
+        return initials
+
+    @staticmethod
+    def normalize_for_comparison(text):
+        """Normalize text for Unicode-aware case-insensitive comparison."""
+        return unicodedata.normalize('NFKD', text.casefold())
+
+    @staticmethod
+    def validate_signature_initials(user, initials):
+        if not initials or not initials.strip():
+            raise ValidationError('You must enter your initials to sign the agreement.')
+        expected_initials = DUASignature.get_user_initials(user)
+        if DUASignature.normalize_for_comparison(initials.strip()) != \
+                DUASignature.normalize_for_comparison(expected_initials):
+            raise ValidationError(
+                f'The initials entered do not match. Please enter: {expected_initials}'
+            )
 
 
 class DataAccessRequest(models.Model):
