@@ -430,11 +430,11 @@ class PublishedProject(Metadata, SubmissionInfo):
 
     def views_over_time(self):
         """
-        Return monthly view counts for this project version.
-        Each user is only counted in the month of their first view.
+        Return monthly unique viewer counts for this project version.
+        A user viewing in multiple months is counted once per month.
         """
         content_type = ContentType.objects.get_for_model(self)
         return AccessLog.objects.filter(
             object_id=self.id,
             content_type=content_type
-        ).first_views_by_month()
+        ).unique_viewers_by_month()

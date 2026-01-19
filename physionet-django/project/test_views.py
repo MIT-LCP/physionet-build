@@ -1815,8 +1815,8 @@ class TestProjectViewsMetric(TestMixin):
         logs = AccessLog.objects.filter(object_id=project.id, content_type=content_type)
         self.assertEqual(logs.unique_viewers_count(), 2)
 
-    def test_first_views_by_month_no_duplicates(self):
-        """AccessLog.first_views_by_month() counts each user only once."""
+    def test_unique_viewers_by_month(self):
+        """AccessLog.unique_viewers_by_month() counts unique users per month."""
         project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
         user1 = User.objects.get(email='rgmark@mit.edu')
         user2 = User.objects.get(email='admin@mit.edu')
@@ -1825,7 +1825,7 @@ class TestProjectViewsMetric(TestMixin):
         now = timezone.now()
         last_month = now - timedelta(days=35)
 
-        # User1 views in both months
+        # User1 views in both months (should be counted in both)
         AccessLog.objects.create(
             user=user1, object_id=project.id, content_type=content_type, data='')
         AccessLog.objects.filter(user=user1).update(creation_datetime=last_month)
@@ -1837,8 +1837,11 @@ class TestProjectViewsMetric(TestMixin):
             user=user2, object_id=project.id, content_type=content_type, data='')
 
         logs = AccessLog.objects.filter(object_id=project.id, content_type=content_type)
-        views_by_month = logs.first_views_by_month()
+        views_by_month = logs.unique_viewers_by_month()
 
-        # Sum of monthly counts should equal total unique viewers
+        # Total unique viewers across all time is 2
+        self.assertEqual(logs.unique_viewers_count(), 2)
+
+        # Sum of monthly counts is 3 (user1 counted in both months + user2 in current month)
         total_from_months = sum(m['count'] for m in views_by_month)
-        self.assertEqual(total_from_months, logs.unique_viewers_count())
+        self.assertEqual(total_from_months, 3)

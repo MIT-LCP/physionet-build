@@ -1,9 +1,9 @@
 import datetime as dt
-from collections import defaultdict
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import QuerySet, Manager, Min
+from django.db.models import QuerySet, Manager, Count
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 from physionet.enums import LogCategory
@@ -28,19 +28,17 @@ class AccessLogQuerySet(QuerySet):
         """Count unique users who have viewed."""
         return self.values('user').distinct().count()
 
-    def first_views_by_month(self):
+    def unique_viewers_by_month(self):
         """
-        Count first-time viewers per month.
-        Each user is only counted in the month of their first view.
+        Count unique viewers per month.
+        A user viewing in multiple months is counted once per month.
         """
-        first_views = self.values('user').annotate(first_view=Min('creation_datetime'))
-
-        monthly_counts = defaultdict(int)
-        for fv in first_views:
-            month = fv['first_view'].replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-            monthly_counts[month] += 1
-
-        return [{'month': m, 'count': c} for m, c in sorted(monthly_counts.items())]
+        return list(
+            self.annotate(month=TruncMonth('creation_datetime'))
+            .values('month')
+            .annotate(count=Count('user', distinct=True))
+            .order_by('month')
+        )
 
     def update_or_create(self, defaults=None, **kwargs):
         user = kwargs.get('user')
