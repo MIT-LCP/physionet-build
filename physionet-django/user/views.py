@@ -1570,15 +1570,17 @@ def auth_khdp(request):
         messages.error(request, 'Error parsing KHDP user information.')
         return redirect('edit_khdp')
 
-    # Extract KHDP user info
-    khdp_user_id = data.get('userId')
-    if not khdp_user_id:
-        logger.error("KHDP userId not found in response. Available keys: %s", list(data.keys()))
-        messages.error(request, 'KHDP user identifier not found in response.')
+    # Extract KHDP user info (publicUuid is the stable identifier)
+    public_uuid = data.get('publicUuid')
+    if not public_uuid:
+        logger.error("KHDP publicUuid not found in response. Available keys: %s", list(data.keys()))
+        messages.error(request, 'KHDP public identifier not found in response.')
         return redirect('edit_khdp')
 
+    khdp_user_id = data.get('userId') or ''
+
     # Ensure this KHDP account isn't already linked to someone else
-    existing = KhdpAccount.objects.filter(khdp_user_id=khdp_user_id).first()
+    existing = KhdpAccount.objects.filter(public_uuid=public_uuid).first()
     if existing and existing.user != request.user:
         messages.error(request, 'This KHDP account is already linked to another user.')
         return redirect('edit_khdp')
@@ -1590,7 +1592,7 @@ def auth_khdp(request):
         account = KhdpAccount(user=request.user)
 
     # Update fields from KHDP response
-    account.public_uuid = data.get('publicUuid', '')
+    account.public_uuid = public_uuid
     account.khdp_user_id = khdp_user_id
     account.name = data.get('userName', '')
     account.affiliation = data.get('affiliation', '')

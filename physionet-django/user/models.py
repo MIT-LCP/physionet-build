@@ -781,8 +781,8 @@ class KhdpAccount(models.Model):
         help_text='KHDP publicUuid - persistent identifier',
     )
 
-    # Additional KHDP user info fields
-    khdp_user_id = models.CharField(max_length=128)
+    # Additional KHDP user info fields (userId may change; store if provided)
+    khdp_user_id = models.CharField(max_length=128, blank=True, default='')
     name = models.CharField(max_length=100)
     affiliation = models.CharField(max_length=250)
     email = models.EmailField(max_length=255)
@@ -795,7 +795,7 @@ class KhdpAccount(models.Model):
     )
 
     # OAuth token information
-    access_token = models.CharField(max_length=512, default='', blank=True)
+    access_token = models.CharField(max_length=1024, default='', blank=True)
     token_type = models.CharField(max_length=50, default='', blank=True)
     token_expiration = models.DecimalField(
         max_digits=50,
@@ -808,7 +808,8 @@ class KhdpAccount(models.Model):
         default_permissions = ()
 
     def __str__(self):
-        return f"KHDP Account: {self.name} ({self.khdp_user_id})"
+        identifier = self.public_uuid or self.khdp_user_id
+        return f"KHDP Account: {self.name} ({identifier})"
 
 
 class CredentialApplication(models.Model):
