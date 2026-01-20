@@ -199,6 +199,7 @@ TEST_DEFAULTS = {
     'news_slug': 'cloud-migration',
     'version': '1.0',
     'training_slug': 'world-101-introduction-to-continents-and-countries',
+    'site_id': 1,
 }
 TEST_CASES = {
     'published_projects_by_slug': {

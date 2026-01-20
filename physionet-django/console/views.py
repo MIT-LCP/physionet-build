@@ -3717,9 +3717,9 @@ def federated_sites(request):
     List all federated sites with their sync status
     """
     from search.models import FederatedSite, FederationSyncLog
-    
+
     sites = FederatedSite.objects.all().order_by('site_name')
-    
+
     # Get latest sync log for each site
     sites_with_logs = []
     for site in sites:
@@ -3728,7 +3728,7 @@ def federated_sites(request):
             'site': site,
             'latest_log': latest_log,
         })
-    
+
     return render(request, 'console/federated_sites.html', {
         'sites_with_logs': sites_with_logs,
     })
@@ -3740,7 +3740,7 @@ def federated_site_add(request):
     Add a new federated site
     """
     from search.models import FederatedSite
-    
+
     if request.method == 'POST':
         form = forms.FederatedSiteForm(request.POST)
         if form.is_valid():
@@ -3759,7 +3759,7 @@ def federated_site_add(request):
                     messages.error(request, error)
     else:
         form = forms.FederatedSiteForm()
-    
+
     return render(request, 'console/federated_site_form.html', {
         'form': form,
         'action': 'Add',
@@ -3772,9 +3772,9 @@ def federated_site_edit(request, site_id):
     Edit an existing federated site
     """
     from search.models import FederatedSite
-    
+
     site = get_object_or_404(FederatedSite, id=site_id)
-    
+
     if request.method == 'POST':
         form = forms.FederatedSiteForm(request.POST, instance=site)
         if form.is_valid():
@@ -3791,7 +3791,7 @@ def federated_site_edit(request, site_id):
                     messages.error(request, error)
     else:
         form = forms.FederatedSiteForm(instance=site)
-    
+
     return render(request, 'console/federated_site_form.html', {
         'form': form,
         'site': site,
@@ -3804,8 +3804,9 @@ def federated_site_detail(request, site_id):
     """
     View details of a federated site including sync history
     """
+
     from search.models import FederatedSite
-    
+
     site = get_object_or_404(FederatedSite, id=site_id)
     
     # Get sync logs for this site

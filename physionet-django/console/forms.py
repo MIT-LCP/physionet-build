@@ -1088,11 +1088,11 @@ class FederatedSiteForm(forms.Form):
     def clean_site_identifier(self):
         from search.models import FederatedSite
         site_identifier = self.cleaned_data['site_identifier']
-        
+
         # If editing, allow the current identifier
         if self.site_instance and self.site_instance.site_identifier == site_identifier:
             return site_identifier
-            
+
         # Check if identifier already exists
         if FederatedSite.objects.filter(site_identifier=site_identifier).exists():
             raise forms.ValidationError('A site with this identifier already exists.')

@@ -253,7 +253,7 @@ def content_index(request, resource_type=None):
     # Get federated projects
     federated_projects = get_federated_projects(resource_type=resource_type,
                                                 search_term=topic)
-    
+
     # Sort federated projects
     if orderby == 'publish_datetime':
         fed_order = 'publish_datetime' if direction == 'asc' else '-publish_datetime'
@@ -267,19 +267,19 @@ def content_index(request, resource_type=None):
     else:
         # Default to publish_datetime for relevance sorting
         federated_projects = federated_projects.order_by('-publish_datetime')
-    
+
     # Add flag to distinguish federated projects in template
     # Convert to lists
     local_projects_list = list(published_projects)
     federated_projects_list = list(federated_projects)
-    
+
     # Mark federated projects with a flag
     for project in federated_projects_list:
         project.is_federated = True
-    
+
     # Combine both lists
     all_projects = local_projects_list + federated_projects_list
-    
+
     # Apply custom sorting if needed for combined results
     if orderby == 'publish_datetime':
         all_projects.sort(key=lambda p: p.publish_datetime, reverse=(direction == 'desc'))
