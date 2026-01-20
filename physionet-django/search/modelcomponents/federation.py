@@ -40,15 +40,15 @@ class FederatedSite(models.Model):
     site_identifier = models.SlugField(
         max_length=50,
         unique=True,
-        help_text='Unique identifier for this site (e.g., "physionet-mit", "hdnx-uoft")'
+        help_text='Unique identifier for this site (e.g., "physionet-mit")'
     )
     site_name = models.CharField(
         max_length=200,
-        help_text='Display name for this site (e.g., "PhysioNet", "HealthDataNexus")'
+        help_text='Display name for this site (e.g., "PhysioNet")'
     )
     api_base_url = models.URLField(
         max_length=500,
-        help_text='Base URL for the federation API (e.g., "https://healthdatanexus.ca")'
+        help_text='Base URL for the federation API'
     )
 
     # Site status
@@ -211,13 +211,13 @@ class FederatedProject(models.Model):
         max_length=50,
         null=True,
         blank=True,
-        help_text='Resource type (e.g., "Database", "Software", "Challenge", "Model")'
+        help_text='Resource type (e.g., "Database", "Software")'
     )
     access_policy = models.CharField(
         max_length=50,
         null=True,
         blank=True,
-        help_text='Access policy (e.g., "Open", "Restricted", "Credentialed", "Contributor Review")'
+        help_text='Access policy (e.g., "Open", "Restricted")'
     )
 
     # Dates and storage

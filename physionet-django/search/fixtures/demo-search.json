@@ -1,2 +1,17 @@
 [
+    {
+        "model": "search.federatedsite",
+        "pk": 1,
+        "fields": {
+            "site_identifier": "demo-federated-site",
+            "site_name": "Demo Federated Site",
+            "api_base_url": "https://demo.example.com",
+            "is_active": true,
+            "last_sync_datetime": null,
+            "last_sync_status": "never",
+            "api_key": "",
+            "created": "2024-01-01T00:00:00Z",
+            "modified": "2024-01-01T00:00:00Z"
+        }
+    }
 ]
