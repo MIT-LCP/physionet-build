@@ -1037,3 +1037,63 @@ class CodeOfConductForm(forms.ModelForm):
         model = CodeOfConduct
         fields = ('name', 'version', 'slug', 'html_content')
         labels = {'html_content': 'Content'}
+
+
+class FederatedSiteForm(forms.Form):
+    """
+    Form for adding or editing a federated site
+    """
+    from search.models import FederatedSite
+
+    site_identifier = forms.SlugField(
+        max_length=50,
+        label='Site Identifier',
+        help_text='Unique identifier for this site (e.g., "physionet-mit", "hdnx-uoft")'
+    )
+    site_name = forms.CharField(
+        max_length=200,
+        label='Site Name',
+        help_text='Display name for this site (e.g., "PhysioNet", "HealthDataNexus")'
+    )
+    api_base_url = forms.URLField(
+        max_length=500,
+        label='API Base URL',
+        help_text='Base URL for the federation API (e.g., "https://healthdatanexus.ca")'
+    )
+    is_active = forms.BooleanField(
+        required=False,
+        initial=True,
+        label='Active',
+        help_text='Whether to sync data from this site'
+    )
+    api_key = forms.CharField(
+        max_length=200,
+        required=False,
+        label='API Key',
+        help_text='API key for authentication (optional)',
+        widget=forms.PasswordInput(render_value=True)
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.site_instance = kwargs.pop('instance', None)
+        super().__init__(*args, **kwargs)
+        if self.site_instance:
+            self.fields['site_identifier'].initial = self.site_instance.site_identifier
+            self.fields['site_identifier'].widget.attrs['readonly'] = True
+            self.fields['site_name'].initial = self.site_instance.site_name
+            self.fields['api_base_url'].initial = self.site_instance.api_base_url
+            self.fields['is_active'].initial = self.site_instance.is_active
+            self.fields['api_key'].initial = self.site_instance.api_key
+
+    def clean_site_identifier(self):
+        from search.models import FederatedSite
+        site_identifier = self.cleaned_data['site_identifier']
+        
+        # If editing, allow the current identifier
+        if self.site_instance and self.site_instance.site_identifier == site_identifier:
+            return site_identifier
+            
+        # Check if identifier already exists
+        if FederatedSite.objects.filter(site_identifier=site_identifier).exists():
+            raise forms.ValidationError('A site with this identifier already exists.')
+        return site_identifier

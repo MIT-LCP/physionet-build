@@ -1,0 +1,116 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}{{ action }} Federated Site{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h2>{{ action }} Federated Site</h2>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label for="{{ form.site_identifier.id_for_label }}">
+            {{ form.site_identifier.label }}
+            <span class="text-danger">*</span>
+          </label>
+          {{ form.site_identifier }}
+          <small class="form-text text-muted">{{ form.site_identifier.help_text }}</small>
+          {% if form.site_identifier.errors %}
+            <div class="text-danger">{{ form.site_identifier.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.site_name.id_for_label }}">
+            {{ form.site_name.label }}
+            <span class="text-danger">*</span>
+          </label>
+          {{ form.site_name }}
+          <small class="form-text text-muted">{{ form.site_name.help_text }}</small>
+          {% if form.site_name.errors %}
+            <div class="text-danger">{{ form.site_name.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.api_base_url.id_for_label }}">
+            {{ form.api_base_url.label }}
+            <span class="text-danger">*</span>
+          </label>
+          {{ form.api_base_url }}
+          <small class="form-text text-muted">{{ form.api_base_url.help_text }}</small>
+          {% if form.api_base_url.errors %}
+            <div class="text-danger">{{ form.api_base_url.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <div class="form-check">
+            {{ form.is_active }}
+            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+              {{ form.is_active.label }}
+            </label>
+          </div>
+          <small class="form-text text-muted">{{ form.is_active.help_text }}</small>
+          {% if form.is_active.errors %}
+            <div class="text-danger">{{ form.is_active.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.api_key.id_for_label }}">
+            {{ form.api_key.label }}
+          </label>
+          {{ form.api_key }}
+          <small class="form-text text-muted">{{ form.api_key.help_text }}</small>
+          {% if form.api_key.errors %}
+            <div class="text-danger">{{ form.api_key.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn btn-primary">
+            <i class="fa fa-save"></i> Save
+          </button>
+          <a href="{% url 'federated_sites' %}" class="btn btn-secondary">
+            <i class="fa fa-times"></i> Cancel
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if site %}
+    <div class="card mt-4">
+      <div class="card-header">
+        <h3>Quick Reference</h3>
+      </div>
+      <div class="card-body">
+        <p><strong>API Endpoint:</strong> <code>{{ site.get_api_endpoint }}</code></p>
+        <p><strong>Created:</strong> {{ site.created|date:"Y-m-d H:i:s" }}</p>
+        <p><strong>Last Modified:</strong> {{ site.modified|date:"Y-m-d H:i:s" }}</p>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block local_js %}
+<script>
+  // Add form-control class to all inputs
+  document.addEventListener('DOMContentLoaded', function() {
+    var inputs = document.querySelectorAll('input[type="text"], input[type="url"], input[type="password"]');
+    inputs.forEach(function(input) {
+      input.classList.add('form-control');
+    });
+    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.classList.add('form-check-input');
+    });
+  });
+</script>
+{% endblock %}

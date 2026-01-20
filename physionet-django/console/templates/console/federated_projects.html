@@ -1,0 +1,186 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Federated Projects{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h2>Federated Projects</h2>
+      <p class="text-muted">Cached project metadata from federated PhysioNet sites</p>
+    </div>
+    <div class="card-body">
+      <!-- Filter Form -->
+      <form method="get" class="mb-3">
+        <div class="form-row align-items-end">
+          <div class="col-md-4">
+            <label for="site-filter">Filter by Site:</label>
+            <select name="site" id="site-filter" class="form-control">
+              <option value="">All Sites</option>
+              {% for site in sites %}
+                <option value="{{ site.site_identifier }}" 
+                        {% if site_filter == site.site_identifier %}selected{% endif %}>
+                  {{ site.site_name }} ({{ site.cached_projects.count }})
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-filter"></i> Filter
+            </button>
+            {% if site_filter %}
+              <a href="{% url 'federated_projects' %}" class="btn btn-secondary">
+                <i class="fa fa-times"></i> Clear
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </form>
+
+      {% if projects %}
+        <p class="text-muted">
+          Showing {{ projects.paginator.count }} project(s)
+          {% if site_filter %}
+            from {{ sites|first:site_filter }}
+          {% endif %}
+        </p>
+
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Version</th>
+              <th>Source Site</th>
+              <th>Resource Type</th>
+              <th>Access Policy</th>
+              <th>Published</th>
+              <th>Size</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for project in projects %}
+              <tr>
+                <td>
+                  <strong>{{ project.title|truncatechars:60 }}</strong>
+                  {% if project.doi %}
+                    <br><small class="text-muted">DOI: {{ project.doi }}</small>
+                  {% endif %}
+                </td>
+                <td><code>{{ project.version }}</code></td>
+                <td>
+                  <a href="{% url 'federated_site_detail' project.source_site.id %}">
+                    {{ project.source_site.site_name }}
+                  </a>
+                </td>
+                <td>
+                  {% if project.resource_type %}
+                    <span class="badge badge-info">{{ project.resource_type }}</span>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if project.access_policy %}
+                    <span class="badge badge-secondary">{{ project.access_policy }}</span>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <small>{{ project.publish_datetime|date:"Y-m-d" }}</small>
+                </td>
+                <td>
+                  {% if project.main_storage_size %}
+                    <small>{{ project.main_storage_size|filesizeformat }}</small>
+                  {% else %}
+                    <span class="text-muted">-</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ project.source_url }}" 
+                     target="_blank" 
+                     class="btn btn-sm btn-primary"
+                     title="View on source site">
+                    <i class="fa fa-external-link-alt"></i> View
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Pagination -->
+        {% if projects.has_other_pages %}
+          <nav>
+            <ul class="pagination justify-content-center">
+              {% if projects.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page=1{% if site_filter %}&site={{ site_filter }}{% endif %}">
+                    First
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ projects.previous_page_number }}{% if site_filter %}&site={{ site_filter }}{% endif %}">
+                    Previous
+                  </a>
+                </li>
+              {% endif %}
+
+              <li class="page-item active">
+                <span class="page-link">
+                  Page {{ projects.number }} of {{ projects.paginator.num_pages }}
+                </span>
+              </li>
+
+              {% if projects.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ projects.next_page_number }}{% if site_filter %}&site={{ site_filter }}{% endif %}">
+                    Next
+                  </a>
+                </li>
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ projects.paginator.num_pages }}{% if site_filter %}&site={{ site_filter }}{% endif %}">
+                    Last
+                  </a>
+                </li>
+              {% endif %}
+            </ul>
+          </nav>
+        {% endif %}
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fa fa-info-circle"></i> 
+          {% if site_filter %}
+            No cached projects found for the selected site.
+          {% else %}
+            No cached projects yet. Sync a federated site to populate this list.
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3>About Federated Projects</h3>
+    </div>
+    <div class="card-body">
+      <p>
+        This page shows all projects cached from federated PhysioNet sites. 
+        These projects are automatically synchronized from remote instances and made searchable locally.
+      </p>
+      <ul>
+        <li><strong>Cached Data:</strong> Only metadata is cached; files remain on the source site</li>
+        <li><strong>Source URL:</strong> Click "View" to visit the project on its original site</li>
+        <li><strong>Updates:</strong> Projects are refreshed during each sync operation</li>
+      </ul>
+      <p>
+        To manage federated sites or trigger a sync, visit the 
+        <a href="{% url 'federated_sites' %}">Federated Sites</a> page.
+      </p>
+    </div>
+  </div>
+{% endblock %}

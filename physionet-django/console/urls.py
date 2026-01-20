@@ -174,6 +174,15 @@ urlpatterns = [
          training_views.download_course, name='download_course_version'),
     path('courses/<training_slug>/archive/<str:version>',
          training_views.archive_course, name='archive_course_version'),
+
+    # Federated Sites
+    path('federated-sites/', views.federated_sites, name='federated_sites'),
+    path('federated-sites/add/', views.federated_site_add, name='federated_site_add'),
+    path('federated-sites/<int:site_id>/', views.federated_site_detail, name='federated_site_detail'),
+    path('federated-sites/<int:site_id>/edit/', views.federated_site_edit, name='federated_site_edit'),
+    path('federated-sites/<int:site_id>/sync/', views.federated_site_sync, name='federated_site_sync'),
+    path('federated-sites/<int:site_id>/delete/', views.federated_site_delete, name='federated_site_delete'),
+    path('federated-projects/', views.federated_projects, name='federated_projects'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)

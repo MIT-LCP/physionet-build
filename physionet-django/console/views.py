@@ -3706,3 +3706,192 @@ def event_agreement_delete(request, pk):
         messages.success(request, "The Event Agreement has been deleted.")
 
     return redirect("event_agreement_list")
+
+
+# ------------------------- Federated Sites Views ------------------------- #
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_sites(request):
+    """
+    List all federated sites with their sync status
+    """
+    from search.models import FederatedSite, FederationSyncLog
+    
+    sites = FederatedSite.objects.all().order_by('site_name')
+    
+    # Get latest sync log for each site
+    sites_with_logs = []
+    for site in sites:
+        latest_log = site.sync_logs.first()  # Already ordered by -started_at
+        sites_with_logs.append({
+            'site': site,
+            'latest_log': latest_log,
+        })
+    
+    return render(request, 'console/federated_sites.html', {
+        'sites_with_logs': sites_with_logs,
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_add(request):
+    """
+    Add a new federated site
+    """
+    from search.models import FederatedSite
+    
+    if request.method == 'POST':
+        form = forms.FederatedSiteForm(request.POST)
+        if form.is_valid():
+            FederatedSite.objects.create(
+                site_identifier=form.cleaned_data['site_identifier'],
+                site_name=form.cleaned_data['site_name'],
+                api_base_url=form.cleaned_data['api_base_url'],
+                is_active=form.cleaned_data['is_active'],
+                api_key=form.cleaned_data['api_key'],
+            )
+            messages.success(request, f'Federated site "{form.cleaned_data["site_name"]}" has been added.')
+            return redirect('federated_sites')
+        else:
+            for _, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+    else:
+        form = forms.FederatedSiteForm()
+    
+    return render(request, 'console/federated_site_form.html', {
+        'form': form,
+        'action': 'Add',
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_edit(request, site_id):
+    """
+    Edit an existing federated site
+    """
+    from search.models import FederatedSite
+    
+    site = get_object_or_404(FederatedSite, id=site_id)
+    
+    if request.method == 'POST':
+        form = forms.FederatedSiteForm(request.POST, instance=site)
+        if form.is_valid():
+            site.site_name = form.cleaned_data['site_name']
+            site.api_base_url = form.cleaned_data['api_base_url']
+            site.is_active = form.cleaned_data['is_active']
+            site.api_key = form.cleaned_data['api_key']
+            site.save()
+            messages.success(request, f'Federated site "{site.site_name}" has been updated.')
+            return redirect('federated_sites')
+        else:
+            for _, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+    else:
+        form = forms.FederatedSiteForm(instance=site)
+    
+    return render(request, 'console/federated_site_form.html', {
+        'form': form,
+        'site': site,
+        'action': 'Edit',
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_detail(request, site_id):
+    """
+    View details of a federated site including sync history
+    """
+    from search.models import FederatedSite
+    
+    site = get_object_or_404(FederatedSite, id=site_id)
+    
+    # Get sync logs for this site
+    sync_logs = site.sync_logs.all()[:20]  # Last 20 syncs
+    
+    # Get cached projects count
+    cached_projects_count = site.cached_projects.count()
+    
+    return render(request, 'console/federated_site_detail.html', {
+        'site': site,
+        'sync_logs': sync_logs,
+        'cached_projects_count': cached_projects_count,
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_sync(request, site_id):
+    """
+    Trigger a manual sync for a specific site
+    """
+    from search.models import FederatedSite
+    from django.core.management import call_command
+    
+    site = get_object_or_404(FederatedSite, id=site_id)
+    
+    if request.method == 'POST':
+        try:
+            # Call the sync management command for this specific site
+            call_command('sync_federated_sites', site=site.site_identifier, verbosity=0)
+            messages.success(request, f'Sync initiated for "{site.site_name}". Check the sync logs for results.')
+        except Exception as e:
+            messages.error(request, f'Sync failed: {str(e)}')
+        
+        return redirect('federated_site_detail', site_id=site_id)
+    
+    return render(request, 'console/federated_site_sync_confirm.html', {
+        'site': site,
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_delete(request, site_id):
+    """
+    Delete a federated site and all its cached projects
+    """
+    from search.models import FederatedSite
+    
+    site = get_object_or_404(FederatedSite, id=site_id)
+    
+    if request.method == 'POST':
+        site_name = site.site_name
+        site.delete()
+        messages.success(request, f'Federated site "{site_name}" and all its cached projects have been deleted.')
+        return redirect('federated_sites')
+    
+    return render(request, 'console/federated_site_delete_confirm.html', {
+        'site': site,
+        'cached_projects_count': site.cached_projects.count(),
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_projects(request):
+    """
+    List all cached federated projects
+    """
+    from search.models import FederatedProject, FederatedSite
+    
+    # Get filter parameters
+    site_filter = request.GET.get('site', '')
+    
+    projects = FederatedProject.objects.select_related('source_site').all()
+    
+    if site_filter:
+        projects = projects.filter(source_site__site_identifier=site_filter)
+    
+    projects = projects.order_by('-publish_datetime')
+    
+    # Paginate
+    projects = paginate(request, projects, 50)
+    
+    # Get all sites for filter dropdown
+    sites = FederatedSite.objects.all().order_by('site_name')
+    
+    return render(request, 'console/federated_projects.html', {
+        'projects': projects,
+        'sites': sites,
+        'site_filter': site_filter,
+    })
