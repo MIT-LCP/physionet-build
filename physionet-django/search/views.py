@@ -17,31 +17,31 @@ from search.models import FederatedProject
 def get_federated_projects(resource_type, search_term):
     """
     Search federated projects by resource type and search term.
-    
+
     Returns a queryset of FederatedProject objects matching the criteria.
     """
     # Map resource_type IDs to string values
     RESOURCE_TYPE_MAP = {
         0: 'Database',
-        1: 'Software', 
+        1: 'Software',
         2: 'Challenge',
         3: 'Model',
     }
-    
+
     # Convert resource_type list to string values
     resource_type_strings = [RESOURCE_TYPE_MAP.get(rt) for rt in resource_type if rt in RESOURCE_TYPE_MAP]
-    
+
     # Start with active sites filter
     federated_projects = FederatedProject.objects.select_related('source_site').filter(
         source_site__is_active=True
     )
-    
+
     # Filter by resource type if specified
     if resource_type_strings:
         federated_projects = federated_projects.filter(
             resource_type__in=resource_type_strings
         )
-    
+
     # Apply search term filtering if provided
     if search_term:
         search_terms = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
@@ -49,12 +49,12 @@ def get_federated_projects(resource_type, search_term):
         for term in search_terms:
             # Search in title, abstract, and topics (JSON field)
             query |= (
-                Q(title__icontains=term) |
-                Q(abstract__icontains=term) |
-                Q(topics__icontains=term)
+                Q(title__icontains=term)
+                | Q(abstract__icontains=term)
+                | Q(topics__icontains=term)
             )
         federated_projects = federated_projects.filter(query)
-    
+
     return federated_projects
 
 
@@ -249,7 +249,7 @@ def content_index(request, resource_type=None):
                                      orderby=orderby,
                                      direction=direction,
                                      search_term=topic)
-    
+
     # Get federated projects
     federated_projects = get_federated_projects(resource_type=resource_type,
                                                 search_term=topic)
@@ -347,8 +347,8 @@ def charts(request):
     """
     resource_type = None
 
-    if ('resource_type' in request.GET and
-            request.GET['resource_type'] in ['0', '1', '2', '3']):
+    if ('resource_type' in request.GET
+            and request.GET['resource_type'] in ['0', '1', '2', '3']):
         resource_type = int(request.GET['resource_type'])
 
     LABELS = {None: ['Content', 'Projects'],

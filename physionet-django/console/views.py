@@ -3808,13 +3808,13 @@ def federated_site_detail(request, site_id):
     from search.models import FederatedSite
 
     site = get_object_or_404(FederatedSite, id=site_id)
-    
+
     # Get sync logs for this site
     sync_logs = site.sync_logs.all()[:20]  # Last 20 syncs
-    
+
     # Get cached projects count
     cached_projects_count = site.cached_projects.count()
-    
+
     return render(request, 'console/federated_site_detail.html', {
         'site': site,
         'sync_logs': sync_logs,
@@ -3829,9 +3829,9 @@ def federated_site_sync(request, site_id):
     """
     from search.models import FederatedSite
     from django.core.management import call_command
-    
+
     site = get_object_or_404(FederatedSite, id=site_id)
-    
+
     if request.method == 'POST':
         try:
             # Call the sync management command for this specific site
@@ -3839,9 +3839,9 @@ def federated_site_sync(request, site_id):
             messages.success(request, f'Sync initiated for "{site.site_name}". Check the sync logs for results.')
         except Exception as e:
             messages.error(request, f'Sync failed: {str(e)}')
-        
+
         return redirect('federated_site_detail', site_id=site_id)
-    
+
     return render(request, 'console/federated_site_sync_confirm.html', {
         'site': site,
     })
@@ -3853,15 +3853,15 @@ def federated_site_delete(request, site_id):
     Delete a federated site and all its cached projects
     """
     from search.models import FederatedSite
-    
+
     site = get_object_or_404(FederatedSite, id=site_id)
-    
+
     if request.method == 'POST':
         site_name = site.site_name
         site.delete()
         messages.success(request, f'Federated site "{site_name}" and all its cached projects have been deleted.')
         return redirect('federated_sites')
-    
+
     return render(request, 'console/federated_site_delete_confirm.html', {
         'site': site,
         'cached_projects_count': site.cached_projects.count(),
@@ -3874,12 +3874,12 @@ def federated_projects(request):
     List all cached federated projects
     """
     from search.models import FederatedProject, FederatedSite
-    
+
     # Get filter parameters
     site_filter = request.GET.get('site', '')
-    
+
     projects = FederatedProject.objects.select_related('source_site').all()
-    
+
     selected_site = None
     if site_filter:
         projects = projects.filter(source_site__site_identifier=site_filter)
@@ -3887,15 +3887,15 @@ def federated_projects(request):
             selected_site = FederatedSite.objects.get(site_identifier=site_filter)
         except FederatedSite.DoesNotExist:
             pass
-    
+
     projects = projects.order_by('-publish_datetime')
-    
+
     # Paginate
     projects = paginate(request, projects, 50)
-    
+
     # Get all sites for filter dropdown
     sites = FederatedSite.objects.all().order_by('site_name')
-    
+
     return render(request, 'console/federated_projects.html', {
         'projects': projects,
         'sites': sites,
