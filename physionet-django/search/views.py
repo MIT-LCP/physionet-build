@@ -11,6 +11,51 @@ from django.templatetags.static import static
 from physionet.utility import paginate
 from project.models import PublishedProject, PublishedTopic
 from search import forms
+from search.models import FederatedProject
+
+
+def get_federated_projects(resource_type, search_term):
+    """
+    Search federated projects by resource type and search term.
+    
+    Returns a queryset of FederatedProject objects matching the criteria.
+    """
+    # Map resource_type IDs to string values
+    RESOURCE_TYPE_MAP = {
+        0: 'Database',
+        1: 'Software', 
+        2: 'Challenge',
+        3: 'Model',
+    }
+    
+    # Convert resource_type list to string values
+    resource_type_strings = [RESOURCE_TYPE_MAP.get(rt) for rt in resource_type if rt in RESOURCE_TYPE_MAP]
+    
+    # Start with active sites filter
+    federated_projects = FederatedProject.objects.select_related('source_site').filter(
+        source_site__is_active=True
+    )
+    
+    # Filter by resource type if specified
+    if resource_type_strings:
+        federated_projects = federated_projects.filter(
+            resource_type__in=resource_type_strings
+        )
+    
+    # Apply search term filtering if provided
+    if search_term:
+        search_terms = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
+        query = Q()
+        for term in search_terms:
+            # Search in title, abstract, and topics (JSON field)
+            query |= (
+                Q(title__icontains=term) |
+                Q(abstract__icontains=term) |
+                Q(topics__icontains=term)
+            )
+        federated_projects = federated_projects.filter(query)
+    
+    return federated_projects
 
 
 def topic_search(request):
@@ -159,7 +204,7 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
 
 def content_index(request, resource_type=None):
     """
-    List of all published resources
+    List of all published resources including federated projects
     """
     LABELS = {0: ['Database', 'databases'],
               1: ['Software', 'softwares'],
@@ -199,14 +244,52 @@ def content_index(request, resource_type=None):
     else:
         form_topic = forms.TopicSearchForm()
 
-    # BUILD
+    # BUILD - Get local published projects
     published_projects = get_content(resource_type=resource_type,
                                      orderby=orderby,
                                      direction=direction,
                                      search_term=topic)
+    
+    # Get federated projects
+    federated_projects = get_federated_projects(resource_type=resource_type,
+                                                search_term=topic)
+    
+    # Sort federated projects
+    if orderby == 'publish_datetime':
+        fed_order = 'publish_datetime' if direction == 'asc' else '-publish_datetime'
+        federated_projects = federated_projects.order_by(fed_order)
+    elif orderby == 'title':
+        fed_order = 'title' if direction == 'asc' else '-title'
+        federated_projects = federated_projects.order_by(fed_order)
+    elif orderby == 'main_storage_size':
+        fed_order = 'main_storage_size' if direction == 'asc' else '-main_storage_size'
+        federated_projects = federated_projects.order_by(fed_order)
+    else:
+        # Default to publish_datetime for relevance sorting
+        federated_projects = federated_projects.order_by('-publish_datetime')
+    
+    # Add flag to distinguish federated projects in template
+    # Convert to lists
+    local_projects_list = list(published_projects)
+    federated_projects_list = list(federated_projects)
+    
+    # Mark federated projects with a flag
+    for project in federated_projects_list:
+        project.is_federated = True
+    
+    # Combine both lists
+    all_projects = local_projects_list + federated_projects_list
+    
+    # Apply custom sorting if needed for combined results
+    if orderby == 'publish_datetime':
+        all_projects.sort(key=lambda p: p.publish_datetime, reverse=(direction == 'desc'))
+    elif orderby == 'title':
+        all_projects.sort(key=lambda p: p.title.lower(), reverse=(direction == 'desc'))
+    elif orderby == 'main_storage_size':
+        all_projects.sort(key=lambda p: getattr(p, 'main_storage_size', 0), reverse=(direction == 'desc'))
 
     # PAGINATION
-    projects = paginate(request, published_projects, 10)
+    projects = paginate(request, all_projects, 10)
 
     params = request.GET.copy()
     # Remove the page argument from the querystring if it exists

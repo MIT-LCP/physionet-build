@@ -42,8 +42,8 @@
       {% if projects %}
         <p class="text-muted">
           Showing {{ projects.paginator.count }} project(s)
-          {% if site_filter %}
-            from {{ sites|first:site_filter }}
+          {% if site_filter and selected_site %}
+            from {{ selected_site.site_name }}
           {% endif %}
         </p>
 

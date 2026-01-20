@@ -3879,8 +3879,13 @@ def federated_projects(request):
     
     projects = FederatedProject.objects.select_related('source_site').all()
     
+    selected_site = None
     if site_filter:
         projects = projects.filter(source_site__site_identifier=site_filter)
+        try:
+            selected_site = FederatedSite.objects.get(site_identifier=site_filter)
+        except FederatedSite.DoesNotExist:
+            pass
     
     projects = projects.order_by('-publish_datetime')
     
@@ -3894,4 +3899,5 @@ def federated_projects(request):
         'projects': projects,
         'sites': sites,
         'site_filter': site_filter,
+        'selected_site': selected_site,
     })
