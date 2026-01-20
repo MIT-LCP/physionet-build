@@ -14,6 +14,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='publishedproject',
             name='public_project_uuid',
-            field=models.UUIDField(db_index=True, default=uuid.uuid4, editable=False, help_text='Persistent, public identifier for published projects.', unique=True),
+            field=models.UUIDField(
+                db_index=True,
+                default=uuid.uuid4,
+                editable=False,
+                help_text='Persistent, public identifier for published projects.',
+                unique=True,
+            ),
         ),
     ]

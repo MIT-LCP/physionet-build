@@ -1726,8 +1726,10 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
 
     user = request.user
 
-    if user.is_authenticated and (project.authors.filter(user=user)
-                                   or user == project.editor or user.has_perm('project.change_activeproject')):
+    if (user.is_authenticated
+            and (project.authors.filter(user=user)
+                 or user == project.editor
+                 or user.has_perm('project.change_activeproject'))):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)

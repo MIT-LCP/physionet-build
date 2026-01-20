@@ -624,20 +624,20 @@ class Metadata(models.Model):
         title = self._escape_bibtex(self.title)
 
         bibtex_lines = [
-            f"@article{{{citation_key},",
-            f"  author = {{{author_list}}},",
-            f"  title = {{{{{title}}}}},",
-            f"  journal = {{{{{settings.SITE_NAME}}}}},",
-            f"  year = {{{year}}},",
-            f"  month = {month},",
+            f"@article{{{citation_key},",  # noqa: E231
+            f"  author = {{{author_list}}},",  # noqa: E231
+            f"  title = {{{{{title}}}}},",  # noqa: E231
+            f"  journal = {{{{{settings.SITE_NAME}}}}},",  # noqa: E231
+            f"  year = {{{year}}},",  # noqa: E231
+            f"  month = {month},",  # noqa: E231
         ]
 
         if self.version:
-            bibtex_lines.append(f"  note = {{Version {self.version}}},")
+            bibtex_lines.append(f"  note = {{Version {self.version}}},")  # noqa: E231
 
         if doi:
-            bibtex_lines.append(f"  doi = {{{doi}}},")
-            bibtex_lines.append(f"  url = {{https://doi.org/{doi}}},")
+            bibtex_lines.append(f"  doi = {{{doi}}},")  # noqa: E231
+            bibtex_lines.append(f"  url = {{https://doi.org/{doi}}},")  # noqa: E231
 
         bibtex_lines[-1] = bibtex_lines[-1].rstrip(',')
         bibtex_lines.append("}")
