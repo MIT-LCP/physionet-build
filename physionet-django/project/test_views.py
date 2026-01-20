@@ -1,4 +1,5 @@
 import base64
+from datetime import timedelta
 import html.parser
 import os
 from http import HTTPStatus
@@ -6,12 +7,15 @@ import json
 from unittest import mock
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from project.forms import ContentForm
 from project.models import (
+    AccessLog,
     AccessPolicy,
     ActiveProject,
     Author,
@@ -21,6 +25,7 @@ from project.models import (
     DataAccessRequestReviewer,
     DUASignature,
     License,
+    Log,
     ProjectType,
     PublishedAuthor,
     PublishedProject,
@@ -1792,8 +1797,13 @@ class TestBibTeXCitation(TestMixin):
         self.assertIn('@article{', citations['BibTeX'])
 
 
-class TestFileViewsMetric(TestMixin):
-    """Test the file views metric on published project pages."""
+class TestProjectViewsMetric(TestMixin):
+    """Test the project views metric on published project pages."""
+
+    def setUp(self):
+        """Clear AccessLog data before each test for isolation."""
+        super().setUp()
+        Log.objects.all().delete()
 
     def test_project_views_count_displayed(self):
         """Project views count is displayed on the published project page."""
@@ -1819,3 +1829,104 @@ class TestFileViewsMetric(TestMixin):
                                            args=(project.slug, project.version)))
         self.assertEqual(response.context['project_views_count'], 1)
         self.assertEqual(response.context['all_versions_views_count'], 1)
+
+    def test_metrics_detail_page_accessible(self):
+        """Metrics detail page is publicly accessible."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Metrics')
+        self.assertContains(response, 'Project Views')
+
+    def test_metrics_detail_page_context(self):
+        """Metrics detail page includes required context data."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertIn('project_views_count', response.context)
+        self.assertIn('views_over_time', response.context)
+        self.assertIn('views_by_version', response.context)
+
+    def test_metrics_link_on_project_page(self):
+        """Project page includes link to metrics detail page."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project',
+                                           args=(project.slug, project.version)))
+        self.assertContains(response, 'View Details')
+
+    def test_metrics_detail_with_access_data(self):
+        """Metrics detail page shows correct counts with access data."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user1 = User.objects.get(email='rgmark@mit.edu')
+        user2 = User.objects.get(email='admin@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        # Create access logs for two users
+        AccessLog.objects.create(
+            user=user1,
+            object_id=project.id,
+            content_type=content_type,
+            data=''
+        )
+        AccessLog.objects.create(
+            user=user2,
+            object_id=project.id,
+            content_type=content_type,
+            data=''
+        )
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertEqual(response.context['project_views_count'], 2)
+        self.assertEqual(len(response.context['views_by_version']), 1)
+        self.assertEqual(response.context['views_by_version'][0]['count'], 2)
+
+    def test_unique_viewers_count(self):
+        """AccessLog.unique_viewers_count() returns correct count."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user1 = User.objects.get(email='rgmark@mit.edu')
+        user2 = User.objects.get(email='admin@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        # Create multiple logs for same user
+        AccessLog.objects.create(
+            user=user1, object_id=project.id, content_type=content_type, data='')
+        AccessLog.objects.create(
+            user=user1, object_id=project.id, content_type=content_type, data='')
+        AccessLog.objects.create(
+            user=user2, object_id=project.id, content_type=content_type, data='')
+
+        logs = AccessLog.objects.filter(object_id=project.id, content_type=content_type)
+        self.assertEqual(logs.unique_viewers_count(), 2)
+
+    def test_unique_viewers_by_month(self):
+        """AccessLog.unique_viewers_by_month() counts unique users per month."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user1 = User.objects.get(email='rgmark@mit.edu')
+        user2 = User.objects.get(email='admin@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        now = timezone.now()
+        last_month = now - timedelta(days=35)
+
+        # User1 views in both months (should be counted in both)
+        AccessLog.objects.create(
+            user=user1, object_id=project.id, content_type=content_type, data='')
+        AccessLog.objects.filter(user=user1).update(creation_datetime=last_month)
+        AccessLog.objects.create(
+            user=user1, object_id=project.id, content_type=content_type, data='')
+
+        # User2 views only this month
+        AccessLog.objects.create(
+            user=user2, object_id=project.id, content_type=content_type, data='')
+
+        logs = AccessLog.objects.filter(object_id=project.id, content_type=content_type)
+        views_by_month = logs.unique_viewers_by_month()
+
+        # Total unique viewers across all time is 2
+        self.assertEqual(logs.unique_viewers_count(), 2)
+
+        # Sum of monthly counts is 3 (user1 counted in both months + user2 in current month)
+        total_from_months = sum(m['count'] for m in views_by_month)
+        self.assertEqual(total_from_months, 3)

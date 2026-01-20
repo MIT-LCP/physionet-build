@@ -2013,17 +2013,8 @@ def published_project(request, project_slug, version, subdir=''):
     except AWS.DoesNotExist:
         user_in_access_point_policy = False
 
-    content_type = ContentType.objects.get_for_model(project)
-    project_views_count = AccessLog.objects.filter(
-        object_id=project.id,
-        content_type=content_type
-    ).values('user').distinct().count()
-
-    all_version_ids = PublishedProject.objects.filter(slug=project_slug).values_list('id', flat=True)
-    all_versions_views_count = AccessLog.objects.filter(
-        object_id__in=all_version_ids,
-        content_type=content_type
-    ).values('user').distinct().count()
+    project_views_count = project.view_count()
+    all_versions_views_count = project.view_count(all_versions=True)
 
     context = {
         'project': project,
@@ -2106,6 +2097,21 @@ def published_project(request, project_slug, version, subdir=''):
 
     return render(request, 'project/published_project.html', context,
                   status=status)
+
+
+def published_project_metrics(request, project_slug, version):
+    """
+    Public metrics page for a published project.
+    """
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+
+    return render(request, 'project/published_project_metrics.html', {
+        'project': project,
+        'project_views_count': project.view_count(),
+        'all_versions_views_count': project.view_count(all_versions=True),
+        'views_over_time': project.views_over_time(),
+        'views_by_version': project.views_by_version(),
+    })
 
 
 @login_required

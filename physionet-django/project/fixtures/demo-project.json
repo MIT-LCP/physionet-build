@@ -2488,5 +2488,103 @@
     "object_id": 1,
     "document": "ethics/Ethics_Approval_567b029d-9ea6-41b8-b738-bf45675b24ce.txt"
   }
+},
+{
+  "model": "project.log",
+  "pk": 1,
+  "fields": {
+    "category": "LogCategory.ACCESS",
+    "content_type": ["project", "publishedproject"],
+    "object_id": 2,
+    "user": 1,
+    "data": "",
+    "count": 3,
+    "creation_datetime": "2025-11-15T10:00:00Z",
+    "last_access_datetime": "2025-11-20T14:30:00Z"
+  }
+},
+{
+  "model": "project.log",
+  "pk": 2,
+  "fields": {
+    "category": "LogCategory.ACCESS",
+    "content_type": ["project", "publishedproject"],
+    "object_id": 2,
+    "user": 2,
+    "data": "",
+    "count": 5,
+    "creation_datetime": "2025-11-10T09:00:00Z",
+    "last_access_datetime": "2025-11-25T16:00:00Z"
+  }
+},
+{
+  "model": "project.log",
+  "pk": 3,
+  "fields": {
+    "category": "LogCategory.ACCESS",
+    "content_type": ["project", "publishedproject"],
+    "object_id": 2,
+    "user": 3,
+    "data": "",
+    "count": 2,
+    "creation_datetime": "2025-12-05T11:00:00Z",
+    "last_access_datetime": "2025-12-10T15:00:00Z"
+  }
+},
+{
+  "model": "project.log",
+  "pk": 4,
+  "fields": {
+    "category": "LogCategory.ACCESS",
+    "content_type": ["project", "publishedproject"],
+    "object_id": 2,
+    "user": 4,
+    "data": "",
+    "count": 1,
+    "creation_datetime": "2025-12-20T08:00:00Z",
+    "last_access_datetime": "2025-12-20T08:00:00Z"
+  }
+},
+{
+  "model": "project.log",
+  "pk": 5,
+  "fields": {
+    "category": "LogCategory.ACCESS",
+    "content_type": ["project", "publishedproject"],
+    "object_id": 2,
+    "user": 5,
+    "data": "",
+    "count": 4,
+    "creation_datetime": "2026-01-02T13:00:00Z",
+    "last_access_datetime": "2026-01-10T17:00:00Z"
+  }
+},
+{
+  "model": "project.log",
+  "pk": 6,
+  "fields": {
+    "category": "LogCategory.ACCESS",
+    "content_type": ["project", "publishedproject"],
+    "object_id": 1,
+    "user": 2,
+    "data": "",
+    "count": 2,
+    "creation_datetime": "2025-12-01T10:00:00Z",
+    "last_access_datetime": "2025-12-15T12:00:00Z"
+  }
+},
+{
+  "model": "project.log",
+  "pk": 7,
+  "fields": {
+    "category": "LogCategory.ACCESS",
+    "content_type": ["project", "publishedproject"],
+    "object_id": 1,
+    "user": 3,
+    "data": "",
+    "count": 1,
+    "creation_datetime": "2026-01-05T09:00:00Z",
+    "last_access_datetime": "2026-01-05T09:00:00Z"
+  }
 }
 ]
