@@ -117,6 +117,13 @@ class KhdpAuthCallbackTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('/login/', response.url)
 
+    @override_settings(
+        KHDP_CLIENT_ID='test-client-id',
+        KHDP_CLIENT_SECRET='test-secret',
+        KHDP_TOKEN_URL='https://khdp.example.com/oauth/token',
+        KHDP_USERINFO_URL='https://khdp.example.com/oauth/userinfo',
+        KHDP_LINK_REDIRECT_URI='http://testserver/khdp/',
+    )
     def test_auth_khdp_requires_code_parameter(self):
         """Test that missing authorization code shows error."""
         self.client.force_login(self.user)
@@ -252,7 +259,7 @@ class KhdpAuthCallbackTests(TestCase):
 
         KhdpAccount.objects.create(
             user=other_user,
-            public_uuid='other-user-uuid-123',
+            public_uuid=self.mock_userinfo_response['publicUuid'],
             khdp_user_id='khdp-user-123',  # Same KHDP user ID
             name='Other User',
             affiliation='Other Org',
@@ -298,8 +305,8 @@ class KhdpAuthCallbackTests(TestCase):
         # Create existing KhdpAccount
         existing_account = KhdpAccount.objects.create(
             user=self.user,
-            public_uuid='existing-uuid-123',
-            khdp_user_id='khdp-user-123',
+            public_uuid='khdp-public-uuid-123',
+            khdp_user_id='old-khdp-user-id',
             name='Old Name',
             affiliation='Old Affiliation',
             email='old@khdp.com',
@@ -318,8 +325,8 @@ class KhdpAuthCallbackTests(TestCase):
         mock_post.return_value = mock_post_response
 
         updated_userinfo = {
-            'publicUuid': 'khdp-public-uuid-updated',
-            'userId': 'khdp-user-123',  # Same user ID
+            'publicUuid': 'khdp-public-uuid-123',  # Stable ID
+            'userId': 'khdp-user-NEW',  # userId may change
             'userName': 'Updated Name',
             'affiliation': 'Updated University',
             'mail': 'updated@khdp.com',
@@ -342,6 +349,7 @@ class KhdpAuthCallbackTests(TestCase):
         self.assertEqual(existing_account.affiliation, 'Updated University')
         self.assertEqual(existing_account.email, 'updated@khdp.com')
         self.assertEqual(existing_account.orcid, '0000-0001-9999-8888')
+        self.assertEqual(existing_account.khdp_user_id, 'khdp-user-NEW')
 
     @patch('user.views.requests.post')
     def test_token_exchange_failure(self, mock_post):
@@ -401,8 +409,8 @@ class KhdpAuthCallbackTests(TestCase):
 
     @patch('user.views.requests.post')
     @patch('user.views.requests.get')
-    def test_missing_userid_in_response(self, mock_get, mock_post):
-        """Test handling when userId is missing from KHDP response."""
+    def test_missing_publicuuid_in_response(self, mock_get, mock_post):
+        """Test handling when publicUuid is missing from KHDP response."""
         self.client.force_login(self.user)
 
         session = self.client.session
@@ -415,12 +423,11 @@ class KhdpAuthCallbackTests(TestCase):
         mock_post_response.json.return_value = self.mock_token_response
         mock_post.return_value = mock_post_response
 
-        # Mock userinfo response without userId
+        # Mock userinfo response without publicUuid
         incomplete_userinfo = {
-            'publicUuid': 'khdp-public-uuid-incomplete',
+            'userId': 'khdp-user-999',
             'userName': 'Test User',
             'mail': 'test@khdp.com',
-            # Missing userId
         }
         mock_get_response = Mock()
         mock_get_response.status_code = 200
@@ -432,8 +439,43 @@ class KhdpAuthCallbackTests(TestCase):
         # Should show error message
         messages = list(get_messages(response.wsgi_request))
         self.assertTrue(
-            any('user identifier not found' in str(m).lower() for m in messages)
+            any('public identifier not found' in str(m).lower() for m in messages)
         )
+
+    @patch('user.views.requests.post')
+    @patch('user.views.requests.get')
+    def test_missing_userid_allows_link(self, mock_get, mock_post):
+        """userId may be absent; linking should still succeed using publicUuid."""
+        self.client.force_login(self.user)
+
+        session = self.client.session
+        session['khdp_nonce'] = 'test-nonce-12345678901234567890'
+        session.save()
+
+        mock_post_response = Mock()
+        mock_post_response.status_code = 201
+        mock_post_response.json.return_value = self.mock_token_response
+        mock_post.return_value = mock_post_response
+
+        userinfo = {
+            'publicUuid': 'khdp-public-uuid-missing-userid',
+            'userName': 'No UserId',
+            'affiliation': 'NoID University',
+            'mail': 'nouserid@khdp.com',
+            # Missing userId
+        }
+        mock_get_response = Mock()
+        mock_get_response.status_code = 200
+        mock_get_response.json.return_value = userinfo
+        mock_get.return_value = mock_get_response
+
+        response = self.client.get(reverse('auth_khdp'), {'code': 'test-code'})
+
+        self.assertEqual(response.status_code, 302)
+        account = KhdpAccount.objects.get(user=self.user)
+        self.assertEqual(account.public_uuid, 'khdp-public-uuid-missing-userid')
+        self.assertEqual(account.khdp_user_id, '')
+        self.assertEqual(account.name, 'No UserId')
 
 
 class KhdpModelTests(TestCase):
@@ -493,7 +535,7 @@ class KhdpModelTests(TestCase):
         )
 
         self.assertIn('John Doe', str(account))
-        self.assertIn('khdp-789', str(account))
+        self.assertIn('test-uuid-789', str(account))
 
     def test_one_khdp_account_per_user(self):
         """Test that each user can have only one KHDP account."""
