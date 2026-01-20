@@ -2,7 +2,8 @@ import datetime as dt
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import QuerySet, Manager
+from django.db.models import QuerySet, Manager, Count
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 from physionet.enums import LogCategory
@@ -22,6 +23,22 @@ class AccessLogQuerySet(QuerySet):
     def create(self, **kwargs):
         kwargs['category'] = LogCategory.ACCESS
         return super().create(**kwargs)
+
+    def unique_viewers_count(self):
+        """Count unique users who have viewed."""
+        return self.values('user').distinct().count()
+
+    def unique_viewers_by_month(self):
+        """
+        Count unique viewers per month.
+        A user viewing in multiple months is counted once per month.
+        """
+        return list(
+            self.annotate(month=TruncMonth('creation_datetime'))
+            .values('month')
+            .annotate(count=Count('user', distinct=True))
+            .order_by('month')
+        )
 
     def update_or_create(self, defaults=None, **kwargs):
         user = kwargs.get('user')

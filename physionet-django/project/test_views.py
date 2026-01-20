@@ -1,4 +1,5 @@
 import base64
+from datetime import timedelta
 import html.parser
 import os
 from http import HTTPStatus
@@ -6,12 +7,15 @@ import json
 from unittest import mock
 
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from project.forms import ContentForm
 from project.models import (
+    AccessLog,
     AccessPolicy,
     ActiveProject,
     Author,
@@ -19,7 +23,9 @@ from project.models import (
     CoreProject,
     DataAccessRequest,
     DataAccessRequestReviewer,
+    DUASignature,
     License,
+    Log,
     ProjectType,
     PublishedAuthor,
     PublishedProject,
@@ -734,7 +740,7 @@ class TestAccessPublished(TestMixin):
         # Sign the dua and get file again
         response = self.client.post(reverse('sign_dua',
             args=(project.slug, project.version,)),
-            data={'agree':''})
+            data={'agree': '', 'initials': 'RGM'})
         response = self.client.get(reverse(
             'serve_published_project_file',
             args=(project.slug, project.version, 'SHA256SUMS.txt')))
@@ -951,7 +957,7 @@ class TestAccessPublished(TestMixin):
             self.client.login(username='rgmark@mit.edu', password='Tester11!')
             response = self.client.post(
                 reverse('sign_dua', args=(project.slug, project.version,)),
-                data={'agree': ''})
+                data={'agree': '', 'initials': 'RGM'})
 
             response = self.client.get(url + 'foo/')
             self.assertEqual(response.status_code, 200)
@@ -962,6 +968,90 @@ class TestAccessPublished(TestMixin):
             response = self.client.get(url + '%C3%80')
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response['X-Accel-Redirect'], path + '%C3%80')
+
+
+class TestDUASignatureValidation(TestMixin):
+    """
+    Test DUA signing with initials validation.
+    """
+
+    def test_sign_dua_with_correct_initials(self):
+        """User can sign DUA when typing their correct initials."""
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        response = self.client.post(
+            reverse('sign_dua', args=(project.slug, project.version)),
+            data={'agree': '', 'initials': 'RGM'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(DUASignature.objects.filter(
+            user__email='rgmark@mit.edu', project=project
+        ).exists())
+
+    def test_sign_dua_with_wrong_initials(self):
+        """User cannot sign DUA when typing wrong initials."""
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        response = self.client.post(
+            reverse('sign_dua', args=(project.slug, project.version)),
+            data={'agree': '', 'initials': 'XYZ'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(DUASignature.objects.filter(
+            user__email='rgmark@mit.edu', project=project
+        ).exists())
+        self.assertContains(response, 'do not match')
+
+    def test_sign_dua_with_empty_initials(self):
+        """User cannot sign DUA without entering their initials."""
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        response = self.client.post(
+            reverse('sign_dua', args=(project.slug, project.version)),
+            data={'agree': '', 'initials': ''}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(DUASignature.objects.filter(
+            user__email='rgmark@mit.edu', project=project
+        ).exists())
+        self.assertContains(response, 'This field is required')
+
+    def test_sign_dua_case_insensitive(self):
+        """Initials validation is case-insensitive."""
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        response = self.client.post(
+            reverse('sign_dua', args=(project.slug, project.version)),
+            data={'agree': '', 'initials': 'rgm'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(DUASignature.objects.filter(
+            user__email='rgmark@mit.edu', project=project
+        ).exists())
+
+
+class TestDUASignatureNormalization(TestCase):
+    """
+    Test Unicode normalization for initials comparison.
+    """
+
+    def test_normalize_for_comparison(self):
+        """Test that normalize_for_comparison handles Unicode properly."""
+        normalize = DUASignature.normalize_for_comparison
+
+        # Case insensitivity
+        self.assertEqual(normalize('ABC'), normalize('abc'))
+
+        # German sharp S (ß) casefolds to 'ss'
+        self.assertEqual(normalize('ß'), normalize('ss'))
+
+        # Different Unicode representations of same character
+        # é as single character vs e + combining acute accent
+        self.assertEqual(normalize('é'), normalize('é'))
 
 
 class TestState(TestMixin):
@@ -1611,3 +1701,232 @@ class TestDisplayAuthors(TestMixin):
             self.assertIn(authors[0].get_full_name(), result)
             if project.authors.count() > 1:
                 self.assertIn('et al.', result)
+
+
+class TestBibTeXCitation(TestMixin):
+    """Test the BibTeX citation generation."""
+
+    def test_bibtex_structure(self):
+        """BibTeX output has correct structure."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        bibtex = project.citation_text_bibtex()
+
+        self.assertIn('@article{', bibtex)
+        self.assertIn('author = {', bibtex)
+        self.assertIn('title = {{', bibtex)
+        self.assertIn('journal = {{', bibtex)
+        self.assertIn('year = {', bibtex)
+        self.assertIn('month = ', bibtex)
+        self.assertIn('}', bibtex)
+
+    def test_bibtex_authors_format(self):
+        """Authors are formatted as 'Last, First and Last2, First2'."""
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        bibtex = project.citation_text_bibtex()
+
+        authors = project.authors.all().order_by('display_order')
+        if authors.count() > 1:
+            self.assertIn(' and ', bibtex)
+
+        for author in authors:
+            expected_name = author.get_full_name(reverse=True)
+            self.assertIn(expected_name, bibtex)
+
+    def test_bibtex_doi_and_url(self):
+        """BibTeX includes DOI and URL when available."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        bibtex = project.citation_text_bibtex()
+
+        if project.doi:
+            self.assertIn(f'doi = {{{project.doi}}}', bibtex)
+            self.assertIn(f'url = {{https://doi.org/{project.doi}}}', bibtex)
+
+    def test_bibtex_version_in_note(self):
+        """BibTeX includes version in note field."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        bibtex = project.citation_text_bibtex()
+
+        if project.version:
+            self.assertIn(f'note = {{Version {project.version}}}', bibtex)
+
+    def test_bibtex_citation_key(self):
+        """Citation key uses site name, slug, and version."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        bibtex = project.citation_text_bibtex()
+
+        version_str = project.version if project.version else ''
+        expected_key = f'{settings.SITE_NAME}-{project.slug}-{version_str}'
+        self.assertIn(f'@article{{{expected_key},', bibtex)
+
+    def test_bibtex_special_characters_escaped(self):
+        """Special characters in title are escaped."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        original_title = project.title
+
+        project.title = 'Test & Title with % special _ chars'
+        bibtex = project.citation_text_bibtex()
+        self.assertIn(r'Test \& Title with \% special \_ chars', bibtex)
+
+        project.title = 'Price $100 and {braces} with #hashtag'
+        bibtex = project.citation_text_bibtex()
+        self.assertIn(r'Price \$100 and \{braces\} with \#hashtag', bibtex)
+
+        project.title = original_title
+
+    def test_bibtex_multiword_last_name(self):
+        """Multi-word last names are wrapped in braces."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        author = project.authors.first()
+        original_last_name = author.last_name
+
+        author.last_name = 'Van der Berg'
+        author.save()
+
+        bibtex = project.citation_text_bibtex()
+        self.assertIn('{Van der Berg}', bibtex)
+
+        author.last_name = original_last_name
+        author.save()
+
+    def test_bibtex_in_citation_text_all(self):
+        """BibTeX is included in citation_text_all() output."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        citations = project.citation_text_all()
+
+        self.assertIn('BibTeX', citations)
+        self.assertIn('@article{', citations['BibTeX'])
+
+
+class TestProjectViewsMetric(TestMixin):
+    """Test the project views metric on published project pages."""
+
+    def setUp(self):
+        """Clear AccessLog data before each test for isolation."""
+        super().setUp()
+        Log.objects.all().delete()
+
+    def test_project_views_count_displayed(self):
+        """Project views count is displayed on the published project page."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project',
+                                           args=(project.slug, project.version)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Current Version')
+        self.assertContains(response, 'All Versions')
+        self.assertEqual(response.context['project_views_count'], 0)
+        self.assertEqual(response.context['all_versions_views_count'], 0)
+
+    def test_project_views_increments_on_authenticated_view(self):
+        """Project views count increments when authenticated user views files."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        # First visit creates the AccessLog
+        self.client.get(reverse('published_project',
+                                args=(project.slug, project.version)))
+        # Second visit sees the incremented count
+        response = self.client.get(reverse('published_project',
+                                           args=(project.slug, project.version)))
+        self.assertEqual(response.context['project_views_count'], 1)
+        self.assertEqual(response.context['all_versions_views_count'], 1)
+
+    def test_metrics_detail_page_accessible(self):
+        """Metrics detail page is publicly accessible."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Metrics')
+        self.assertContains(response, 'Project Views')
+
+    def test_metrics_detail_page_context(self):
+        """Metrics detail page includes required context data."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertIn('project_views_count', response.context)
+        self.assertIn('views_over_time', response.context)
+        self.assertIn('views_by_version', response.context)
+
+    def test_metrics_link_on_project_page(self):
+        """Project page includes link to metrics detail page."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project',
+                                           args=(project.slug, project.version)))
+        self.assertContains(response, 'View Details')
+
+    def test_metrics_detail_with_access_data(self):
+        """Metrics detail page shows correct counts with access data."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user1 = User.objects.get(email='rgmark@mit.edu')
+        user2 = User.objects.get(email='admin@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        # Create access logs for two users
+        AccessLog.objects.create(
+            user=user1,
+            object_id=project.id,
+            content_type=content_type,
+            data=''
+        )
+        AccessLog.objects.create(
+            user=user2,
+            object_id=project.id,
+            content_type=content_type,
+            data=''
+        )
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertEqual(response.context['project_views_count'], 2)
+        self.assertEqual(len(response.context['views_by_version']), 1)
+        self.assertEqual(response.context['views_by_version'][0]['count'], 2)
+
+    def test_unique_viewers_count(self):
+        """AccessLog.unique_viewers_count() returns correct count."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user1 = User.objects.get(email='rgmark@mit.edu')
+        user2 = User.objects.get(email='admin@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        # Create multiple logs for same user
+        AccessLog.objects.create(
+            user=user1, object_id=project.id, content_type=content_type, data='')
+        AccessLog.objects.create(
+            user=user1, object_id=project.id, content_type=content_type, data='')
+        AccessLog.objects.create(
+            user=user2, object_id=project.id, content_type=content_type, data='')
+
+        logs = AccessLog.objects.filter(object_id=project.id, content_type=content_type)
+        self.assertEqual(logs.unique_viewers_count(), 2)
+
+    def test_unique_viewers_by_month(self):
+        """AccessLog.unique_viewers_by_month() counts unique users per month."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user1 = User.objects.get(email='rgmark@mit.edu')
+        user2 = User.objects.get(email='admin@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        now = timezone.now()
+        last_month = now - timedelta(days=35)
+
+        # User1 views in both months (should be counted in both)
+        AccessLog.objects.create(
+            user=user1, object_id=project.id, content_type=content_type, data='')
+        AccessLog.objects.filter(user=user1).update(creation_datetime=last_month)
+        AccessLog.objects.create(
+            user=user1, object_id=project.id, content_type=content_type, data='')
+
+        # User2 views only this month
+        AccessLog.objects.create(
+            user=user2, object_id=project.id, content_type=content_type, data='')
+
+        logs = AccessLog.objects.filter(object_id=project.id, content_type=content_type)
+        views_by_month = logs.unique_viewers_by_month()
+
+        # Total unique viewers across all time is 2
+        self.assertEqual(logs.unique_viewers_count(), 2)
+
+        # Sum of monthly counts is 3 (user1 counted in both months + user2 in current month)
+        total_from_months = sum(m['count'] for m in views_by_month)
+        self.assertEqual(total_from_months, 3)

@@ -2013,6 +2013,9 @@ def published_project(request, project_slug, version, subdir=''):
     except AWS.DoesNotExist:
         user_in_access_point_policy = False
 
+    project_views_count = project.view_count()
+    all_versions_views_count = project.view_count(all_versions=True)
+
     context = {
         'project': project,
         'authors': authors,
@@ -2046,6 +2049,8 @@ def published_project(request, project_slug, version, subdir=''):
         'show_platform_wide_citation': show_platform_wide_citation,
         'main_platform_citation': main_platform_citation,
         'user_country_blocked': user_country_blocked,
+        'project_views_count': project_views_count,
+        'all_versions_views_count': all_versions_views_count,
     }
     # The file and directory contents
     if can_view_files:
@@ -2094,6 +2099,21 @@ def published_project(request, project_slug, version, subdir=''):
                   status=status)
 
 
+def published_project_metrics(request, project_slug, version):
+    """
+    Public metrics page for a published project.
+    """
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+
+    return render(request, 'project/published_project_metrics.html', {
+        'project': project,
+        'project_views_count': project.view_count(),
+        'all_versions_views_count': project.view_count(all_versions=True),
+        'views_over_time': project.views_over_time(),
+        'views_by_version': project.views_by_version(),
+    })
+
+
 @login_required
 def sign_dua(request, project_slug, version):
     """
@@ -2121,21 +2141,26 @@ def sign_dua(request, project_slug, version):
 
     license = project.license
     license_content = project.license_content(fmt='html')
+    form = forms.DUASignatureForm(user)
+
     if request.method == 'POST' and 'agree' in request.POST:
-        DUASignature.objects.create(user=user, project=project)
-        if has_s3_credentials() and files_sent_to_S3(project):
-            if (
-                hasattr(user, 'cloud_information')
-                and user.cloud_information is not None
-                and user.cloud_information.aws_verification_datetime is not None
-            ):
-                add_user_to_access_point_policy(project, user)
+        form = forms.DUASignatureForm(user, data=request.POST)
+        if form.is_valid():
+            DUASignature.objects.create(user=user, project=project)
+            if has_s3_credentials() and files_sent_to_S3(project):
+                if (
+                    hasattr(user, 'cloud_information')
+                    and user.cloud_information is not None
+                    and user.cloud_information.aws_verification_datetime is not None
+                ):
+                    add_user_to_access_point_policy(project, user)
 
-        return render(request, 'project/sign_dua_complete.html', {
-            'project':project})
+            return render(request, 'project/sign_dua_complete.html', {
+                'project': project})
 
-    return render(request, 'project/sign_dua.html', {'project':project,
-        'license':license, 'license_content':license_content})
+    return render(request, 'project/sign_dua.html', {
+        'project': project, 'license': license,
+        'license_content': license_content, 'form': form})
 
 
 @login_required

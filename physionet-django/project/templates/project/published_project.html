@@ -24,6 +24,7 @@
 {% block local_js_top %}
   <script src="{% static 'mathjax/MathJax.js' %}?config=MML_HTMLorMML"></script>
   <script src="{% static 'highlight/js/highlight.min.js' %}"></script>
+  <script src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -238,6 +239,26 @@
                   class="fas fa-external-link-alt"></i> {{ project.project_home_page }}</a>
               </p>
             {% endif %}
+          </div>
+        </div>
+
+        <div class="card my-4">
+          <h5 class="card-header">Project Views</h5>
+          <div class="card-body text-center">
+            <div class="d-flex justify-content-around mb-2">
+              <div>
+                <h3 class="mb-0">{{ project_views_count }}</h3>
+                <small class="text-muted">Current Version</small>
+              </div>
+              <div>
+                <h3 class="mb-0">{{ all_versions_views_count }}</h3>
+                <small class="text-muted">All Versions</small>
+              </div>
+            </div>
+            <small class="text-muted mb-0"><em>Project Views by Unique Registered Users</em></small>
+            <div class="mt-2">
+              <a href="{% url 'published_project_metrics' project.slug project.version %}" class="btn btn-sm btn-outline-secondary">View Details</a>
+            </div>
           </div>
         </div>
 

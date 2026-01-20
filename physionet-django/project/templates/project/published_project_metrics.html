@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}
+Metrics for {{ project }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Metrics</h1>
+  <p class="text-muted">{{ project.title }} (v{{ project.version }})</p>
+  <hr>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card text-center mb-4">
+        <h5 class="card-header">Unique Registered Project Views</h5>
+        <div class="card-body">
+          <div class="d-flex justify-content-around mb-2">
+            <div>
+              <h3 class="mb-0">{{ project_views_count }}</h3>
+              <small class="text-muted">Current Version</small>
+            </div>
+            <div>
+              <h3 class="mb-0">{{ all_versions_views_count }}</h3>
+              <small class="text-muted">All Versions</small>
+            </div>
+          </div>
+          <small class="text-muted"><em>Total number of unique registered users who have viewed this project</em></small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if views_by_version|length > 1 %}
+  <h3>Views by Version</h3>
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Version</th>
+          <th>Project Views</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in views_by_version %}
+        <tr>
+          <td>{{ item.version }}</td>
+          <td>{{ item.count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  {% if views_over_time %}
+  <h3>Views Over Time</h3>
+  <div class="table-responsive mb-4">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Unique Viewers</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in views_over_time %}
+        <tr>
+          <td>{{ item.month|date:"F Y" }}</td>
+          <td>{{ item.count }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <hr>
+  <p><a href="{% url 'published_project' project.slug project.version %}">Back to {{ project }}</a></p>
+</div>
+{% endblock %}
