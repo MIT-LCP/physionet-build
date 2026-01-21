@@ -16,7 +16,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.db import IntegrityError, transaction
+from django.db import DatabaseError, IntegrityError, transaction
 from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
 from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
@@ -61,6 +61,7 @@ from user.models import (
     CredentialApplication,
     LegacyCredential,
     Orcid,
+    KhdpAccount,
     User,
     Training,
     TrainingType,
@@ -69,6 +70,9 @@ from user.userfiles import UserFiles
 from user.enums import RequiredField, ActivateUserType
 from physionet.models import StaticPage
 from django.db.models import F
+import requests
+from time import time
+from urllib.parse import urlencode
 
 logger = logging.getLogger(__name__)
 
@@ -1410,3 +1414,214 @@ def view_signed_agreement(request, dua_signature_id):
 
     return render(request, 'user/view_signed_agreement.html',
                   {'user': user, 'signed': signed})
+
+
+@disallow_during_maintenance
+@login_required
+def edit_khdp(request):
+    """
+    KHDP account linking settings page.
+    """
+    if request.method == 'POST' and request.POST.get('request_khdp'):
+        client_id = getattr(settings, 'KHDP_CLIENT_ID', None)
+        khdp_auth_url = getattr(settings, 'KHDP_AUTH_URL', None)
+
+        if not client_id or not khdp_auth_url:
+            logger.error(
+                'KHDP config missing: client_id=%s, khdp_auth_url=%s',
+                bool(client_id), bool(khdp_auth_url),
+            )
+            messages.error(
+                request,
+                'KHDP configuration is incomplete. Please contact support.',
+            )
+            return redirect('edit_khdp')
+
+        # Generate callback URL dynamically using reverse + build_absolute_uri
+        redirect_uri = request.build_absolute_uri(reverse('auth_khdp'))
+
+        # Generate random nonce for security (stored in session for CSRF/session validation)
+        # Note: KHDP does not implement OAuth2 state parameter in callback, so we only use nonce
+        nonce = get_random_string(32)
+
+        # Store nonce in session for CSRF validation
+        request.session['khdp_nonce'] = nonce
+        request.session.modified = True  # Ensure session is saved
+
+        # KHDP expects appId and redirectUrl instead of standard OAuth2 params
+        params = {
+            'appId': client_id,
+            'redirectUrl': redirect_uri,
+            'nonce': nonce,
+        }
+        final_url = f"{khdp_auth_url}?{urlencode(params)}"
+        return redirect(final_url)
+
+    return render(request, 'user/edit_khdp.html')
+
+
+@disallow_during_maintenance
+def auth_khdp(request):
+    """
+    Handle KHDP OAuth callback and link the account.
+
+    Note: KHDP does not return the 'state' parameter in the callback, so we validate
+    CSRF protection through session state instead. The presence of stored state/nonce
+    in the session proves the user initiated the flow from PhysioNet.
+    """
+    # Ensure user is logged in
+    if not request.user.is_authenticated:
+        messages.error(request, 'You must be logged in to link a KHDP account.')
+        return redirect('login')
+
+    # Log all GET parameters for debugging
+    logger.info("KHDP callback received with GET parameters: %s", dict(request.GET))
+
+    # We validate CSRF protection by checking that nonce exists in session
+    # (meaning user initiated the flow from PhysioNet)
+    expected_nonce = request.session.pop('khdp_nonce', None)
+
+    if not expected_nonce:
+        logger.warning(
+            "KHDP callback received but no nonce in session. "
+            "User may not have initiated linking from PhysioNet."
+        )
+        messages.error(request, 'Invalid linking session. Please try linking your account again.')
+        return redirect('edit_khdp')
+
+    # Nonce validation will be done if KHDP returns an ID token in the token response
+
+    client_id = getattr(settings, 'KHDP_CLIENT_ID', None)
+    client_secret = getattr(settings, 'KHDP_CLIENT_SECRET', None)
+    token_url = getattr(settings, 'KHDP_TOKEN_URL', None)
+    userinfo_url = getattr(settings, 'KHDP_USERINFO_URL', None)
+    redirect_uri = getattr(settings, 'KHDP_LINK_REDIRECT_URI', None)
+
+    if not all([client_id, client_secret, token_url, userinfo_url, redirect_uri]):
+        messages.error(request, 'KHDP configuration is incomplete. Please contact support.')
+        return redirect('edit_khdp')
+
+    code = request.GET.get('code')
+    if not code:
+        messages.error(request, 'Missing authorization code from KHDP.')
+        return redirect('edit_khdp')
+
+    # Exchange code for token via direct POST (KHDP expects explicit params)
+    try:
+        payload = {
+            'code': code,
+            'appId': client_id,
+            'secretKey': client_secret,
+        }
+        resp = requests.post(
+            token_url,
+            json=payload,
+            headers={'Content-Type': 'application/json'},
+            timeout=10,
+        )
+        # KHDP returns 201 Created, not 200 OK
+        if resp.status_code not in (200, 201):
+            logger.error("KHDP token exchange failed with status %s: %s", resp.status_code, resp.text)
+            messages.error(request, 'Failed to exchange authorization code with KHDP.')
+            return redirect('edit_khdp')
+        token = resp.json()
+    except (requests.RequestException, ValueError) as e:
+        logger.error("KHDP token exchange exception: %s", str(e), exc_info=True)
+        messages.error(request, 'Failed to exchange authorization code with KHDP.')
+        return redirect('edit_khdp')
+
+    # Validate ID token if present (OpenID Connect)
+    id_token = token.get('id_token') or token.get('idToken')
+    if id_token and expected_nonce:
+        try:
+            import jwt
+            # Decode without verification first to check nonce
+            # Full verification would require JWKS endpoint from KHDP
+            decoded = jwt.decode(id_token, options={"verify_signature": False})
+            token_nonce = decoded.get('nonce')
+
+            if not token_nonce or token_nonce != expected_nonce:
+                logger.warning(
+                    "KHDP nonce validation failed: expected=%s, received=%s",
+                    bool(expected_nonce), bool(token_nonce)
+                )
+                messages.error(request, 'Invalid ID token nonce. Please try linking your account again.')
+                return redirect('edit_khdp')
+        except (jwt.DecodeError, jwt.InvalidTokenError, KeyError) as e:
+            logger.warning("Failed to validate KHDP ID token: %s", str(e))
+            # Don't fail completely if ID token validation fails, but log it
+            # This allows fallback to userinfo endpoint
+
+    # Call userinfo with Bearer token
+    try:
+        access_token = token.get('accessToken') or token.get('access_token')
+        resp = requests.get(
+            userinfo_url,
+            headers={'Authorization': f"Bearer {access_token}"},
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            logger.error("KHDP userinfo failed with status %s: %s", resp.status_code, resp.text)
+            messages.error(request, 'Failed to retrieve KHDP user information.')
+            return redirect('edit_khdp')
+        data = resp.json()
+    except (requests.RequestException, ValueError) as e:
+        logger.error("Error parsing KHDP user information: %s", str(e), exc_info=True)
+        messages.error(request, 'Error parsing KHDP user information.')
+        return redirect('edit_khdp')
+
+    # Extract KHDP user info (publicUuid is the stable identifier)
+    public_uuid = data.get('publicUuid')
+    if not public_uuid:
+        logger.error("KHDP publicUuid not found in response. Available keys: %s", list(data.keys()))
+        messages.error(request, 'KHDP public identifier not found in response.')
+        return redirect('edit_khdp')
+
+    khdp_user_id = data.get('userId') or ''
+
+    # Ensure this KHDP account isn't already linked to someone else
+    existing = KhdpAccount.objects.filter(public_uuid=public_uuid).first()
+    if existing and existing.user != request.user:
+        messages.error(request, 'This KHDP account is already linked to another user.')
+        return redirect('edit_khdp')
+
+    # Get or create the KhdpAccount for this user
+    try:
+        account = KhdpAccount.objects.get(user=request.user)
+    except KhdpAccount.DoesNotExist:
+        account = KhdpAccount(user=request.user)
+
+    # Update fields from KHDP response
+    account.public_uuid = public_uuid
+    account.khdp_user_id = khdp_user_id
+    account.name = data.get('userName', '')
+    account.affiliation = data.get('affiliation', '')
+    account.email = data.get('mail', '')
+    account.orcid = data.get('orcid') or ''
+    physionet_id = data.get('physionetId')
+    account.physionet_id = physionet_id or ''
+
+    # Store OAuth token information
+    account.access_token = access_token or ''
+    account.token_type = token.get('tokenType') or token.get('token_type', '')
+    expires_in = token.get('expires_in', 0)
+    if expires_in:
+        account.token_expiration = time() + int(expires_in)
+
+    try:
+        account.full_clean()
+        account.save()
+        logger.info(
+            "KHDP account linked for user %s (khdp_user_id=%s)",
+            request.user.username,
+            account.khdp_user_id,
+        )
+        messages.success(request, 'Your KHDP account has been linked.')
+    except ValidationError as e:
+        logger.error("KHDP account validation failed: %s", str(e), exc_info=True)
+        messages.error(request, 'Invalid KHDP account data received.')
+    except (IntegrityError, DatabaseError) as e:
+        logger.error("KHDP account save failed: %s", str(e), exc_info=True)
+        messages.error(request, 'Failed to save KHDP account.')
+
+    return redirect('edit_khdp')
