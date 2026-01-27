@@ -2104,13 +2104,16 @@ def published_project_metrics(request, project_slug, version):
     Public metrics page for a published project.
     """
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+    views_over_time = project.views_over_time()
+    tracking_start_date = views_over_time[0]['month'] if views_over_time else None
 
     return render(request, 'project/published_project_metrics.html', {
         'project': project,
         'project_views_count': project.view_count(),
         'all_versions_views_count': project.view_count(all_versions=True),
-        'views_over_time': project.views_over_time(),
+        'views_over_time': views_over_time,
         'views_by_version': project.views_by_version(),
+        'tracking_start_date': tracking_start_date,
     })
 
 
