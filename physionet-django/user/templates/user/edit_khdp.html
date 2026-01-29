@@ -42,12 +42,14 @@
             <li>Affiliation: {{ request.user.khdp.affiliation }}</li>
             <li>Email: {{ request.user.khdp.email }}</li>
         </ul>
+        <button class="btn btn-primary btn-rsp" type="submit" name="remove_khdp" value="make_request">
+            Unlink KHDP Account
+        </button>
     {% else %}
         <p><strong>No KHDP account linked.</strong></p>
+        <button class="btn btn-primary btn-rsp" type="submit" name="request_khdp" value="make_request">
+            Link KHDP Account
+        </button>
     {% endif %}
-
-    <button class="btn btn-primary btn-rsp" type="submit" name="request_khdp" value="make_request">
-        Link KHDP Account
-    </button>
 </form>
 {% endblock %}
