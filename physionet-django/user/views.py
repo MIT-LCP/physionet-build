@@ -1467,6 +1467,7 @@ def edit_khdp(request):
                     request,
                     'No KHDP account currently linked.',
                 )
+            return redirect('edit_khdp')
 
     return render(request, 'user/edit_khdp.html')
 
