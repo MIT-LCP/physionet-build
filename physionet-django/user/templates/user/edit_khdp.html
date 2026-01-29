@@ -21,12 +21,12 @@
     </p>
 
     <ul>
-        <li>userId</li>
-        <li>userName</li>
-        <li>affiliation</li>
-        <li>mail</li>
-        <li>orcid</li>
-        <li>physionetId</li>
+        <li>User ID</li>
+        <li>Username</li>
+        <li>Affiliation</li>
+        <li>Email</li>
+        <li>ORCID</li>
+        <li>PhysioNet ID</li>
     </ul>
 
     <p>
@@ -42,12 +42,13 @@
             <li>Affiliation: {{ request.user.khdp.affiliation }}</li>
             <li>Email: {{ request.user.khdp.email }}</li>
         </ul>
+        <button class="btn btn-primary btn-rsp" type="submit" name="remove_khdp" value="make_request" onclick="return confirm('Are you sure you want to unlink your KHDP account?');">
+            Unlink KHDP Account
+        </button>
     {% else %}
-        <p><strong>No KHDP account linked.</strong></p>
+        <button class="btn btn-primary btn-rsp" type="submit" name="request_khdp" value="make_request">
+            Link KHDP Account
+        </button>
     {% endif %}
-
-    <button class="btn btn-primary btn-rsp" type="submit" name="request_khdp" value="make_request">
-        Link KHDP Account
-    </button>
 </form>
 {% endblock %}
