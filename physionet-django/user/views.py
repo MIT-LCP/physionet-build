@@ -1422,40 +1422,51 @@ def edit_khdp(request):
     """
     KHDP account linking settings page.
     """
-    if request.method == 'POST' and request.POST.get('request_khdp'):
-        client_id = getattr(settings, 'KHDP_CLIENT_ID', None)
-        khdp_auth_url = getattr(settings, 'KHDP_AUTH_URL', None)
+    if request.method == 'POST':
+        if request.POST.get('request_khdp'):
+            client_id = getattr(settings, 'KHDP_CLIENT_ID', None)
+            khdp_auth_url = getattr(settings, 'KHDP_AUTH_URL', None)
 
-        if not client_id or not khdp_auth_url:
-            logger.error(
-                'KHDP config missing: client_id=%s, khdp_auth_url=%s',
-                bool(client_id), bool(khdp_auth_url),
-            )
-            messages.error(
-                request,
-                'KHDP configuration is incomplete. Please contact support.',
-            )
-            return redirect('edit_khdp')
+            if not client_id or not khdp_auth_url:
+                logger.error(
+                    'KHDP config missing: client_id=%s, khdp_auth_url=%s',
+                    bool(client_id), bool(khdp_auth_url),
+                )
+                messages.error(
+                    request,
+                    'KHDP configuration is incomplete. Please contact support.',
+                )
+                return redirect('edit_khdp')
 
-        # Generate callback URL dynamically using reverse + build_absolute_uri
-        redirect_uri = request.build_absolute_uri(reverse('auth_khdp'))
+            # Generate callback URL dynamically using reverse + build_absolute_uri
+            redirect_uri = request.build_absolute_uri(reverse('auth_khdp'))
 
-        # Generate random nonce for security (stored in session for CSRF/session validation)
-        # Note: KHDP does not implement OAuth2 state parameter in callback, so we only use nonce
-        nonce = get_random_string(32)
+            # Generate random nonce for security (stored in session for CSRF/session validation)
+            # Note: KHDP does not implement OAuth2 state parameter in callback, so we only use nonce
+            nonce = get_random_string(32)
 
-        # Store nonce in session for CSRF validation
-        request.session['khdp_nonce'] = nonce
-        request.session.modified = True  # Ensure session is saved
+            # Store nonce in session for CSRF validation
+            request.session['khdp_nonce'] = nonce
+            request.session.modified = True  # Ensure session is saved
 
-        # KHDP expects appId and redirectUrl instead of standard OAuth2 params
-        params = {
-            'appId': client_id,
-            'redirectUrl': redirect_uri,
-            'nonce': nonce,
-        }
-        final_url = f"{khdp_auth_url}?{urlencode(params)}"
-        return redirect(final_url)
+            # KHDP expects appId and redirectUrl instead of standard OAuth2 params
+            params = {
+                'appId': client_id,
+                'redirectUrl': redirect_uri,
+                'nonce': nonce,
+            }
+            final_url = f"{khdp_auth_url}?{urlencode(params)}"
+            return redirect(final_url)
+
+        if request.POST.get('remove_khdp'):
+            try:
+                KhdpAccount.objects.get(user=request.user).delete()
+                messages.success(request, 'Your KHDP account has been unlinked.')
+            except KhdpAccount.DoesNotExist:
+                messages.error(
+                    request,
+                    'Object Does Not Exist Error: tried to unlink an object which does not exist.',
+                )
 
     return render(request, 'user/edit_khdp.html')
 
