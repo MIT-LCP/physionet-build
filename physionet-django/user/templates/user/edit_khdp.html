@@ -42,7 +42,7 @@
             <li>Affiliation: {{ request.user.khdp.affiliation }}</li>
             <li>Email: {{ request.user.khdp.email }}</li>
         </ul>
-        <button class="btn btn-primary btn-rsp" type="submit" name="remove_khdp" value="make_request">
+        <button class="btn btn-primary btn-rsp" type="submit" name="remove_khdp" value="make_request" onclick="return confirm('Are you sure you want to unlink your KHDP account?');">
             Unlink KHDP Account
         </button>
     {% else %}
