@@ -1465,7 +1465,7 @@ def edit_khdp(request):
             except KhdpAccount.DoesNotExist:
                 messages.error(
                     request,
-                    'Object Does Not Exist Error: tried to unlink an object which does not exist.',
+                    'No KHDP account currently linked.',
                 )
 
     return render(request, 'user/edit_khdp.html')
