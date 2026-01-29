@@ -1458,7 +1458,7 @@ def edit_khdp(request):
             final_url = f"{khdp_auth_url}?{urlencode(params)}"
             return redirect(final_url)
 
-        if request.POST.get('remove_khdp'):
+        elif request.POST.get('remove_khdp'):
             try:
                 KhdpAccount.objects.get(user=request.user).delete()
                 messages.success(request, 'Your KHDP account has been unlinked.')
