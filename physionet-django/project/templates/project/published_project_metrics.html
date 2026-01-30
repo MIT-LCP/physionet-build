@@ -27,7 +27,7 @@ Metrics for {{ project }}
               <small class="text-muted">All Versions</small>
             </div>
           </div>
-          <small class="text-muted"><em>Total number of unique registered users who have viewed this project</em></small>
+          <small class="text-muted"><em>Total number of unique registered users who have viewed this project.{% if tracking_start_date %} Views tracked since {{ tracking_start_date|date:"F Y" }}.{% endif %}</em></small>
         </div>
       </div>
     </div>

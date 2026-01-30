@@ -1847,6 +1847,7 @@ class TestProjectViewsMetric(TestMixin):
         self.assertIn('project_views_count', response.context)
         self.assertIn('views_over_time', response.context)
         self.assertIn('views_by_version', response.context)
+        self.assertIn('tracking_start_date', response.context)
 
     def test_metrics_link_on_project_page(self):
         """Project page includes link to metrics detail page."""
@@ -1881,6 +1882,30 @@ class TestProjectViewsMetric(TestMixin):
         self.assertEqual(response.context['project_views_count'], 2)
         self.assertEqual(len(response.context['views_by_version']), 1)
         self.assertEqual(response.context['views_by_version'][0]['count'], 2)
+
+    def test_tracking_start_date_with_views(self):
+        """Tracking start date is set when views exist."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user = User.objects.get(email='rgmark@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        AccessLog.objects.create(
+            user=user,
+            object_id=project.id,
+            content_type=content_type,
+            data=''
+        )
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertIsNotNone(response.context['tracking_start_date'])
+
+    def test_tracking_start_date_without_views(self):
+        """Tracking start date is None when no views exist."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertIsNone(response.context['tracking_start_date'])
 
     def test_unique_viewers_count(self):
         """AccessLog.unique_viewers_count() returns correct count."""
