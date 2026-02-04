@@ -711,6 +711,18 @@ class TestAWSVerification(TestCase):
         '<Message>The specified key does not exist.</Message></Error>'
     )
 
+    def setUp(self):
+        """Create test user for AWS verification tests"""
+        # Delete any existing user with this email to ensure clean state
+        User.objects.filter(email=self.USER_EMAIL).delete()
+
+        # Create fresh user
+        User.objects.create_user(
+            email=self.USER_EMAIL,
+            username='admin',
+            password='Tester11!'
+        )
+
     def get_cloud_information(self):
         user = User.objects.get(email=self.USER_EMAIL)
         cloud_info, _ = CloudInformation.objects.get_or_create(user=user)
@@ -854,3 +866,77 @@ class TestAWSVerification(TestCase):
         self.assertIsNone(cloud_info.aws_userid)
         self.assertIsNone(cloud_info.aws_user_arn)
         self.assertIsNone(cloud_info.aws_verification_datetime)
+
+    @requests_mock.Mocker()
+    def test_verify_already_linked(self, mocker):
+        """
+        Test that AWS identity already linked to another user is rejected
+        """
+        # Create another user with existing AWS identity
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@example.com',
+            password='testpass123',
+        )
+        other_user.is_active = True
+        other_user.save()
+
+        other_cloud_info = CloudInformation.objects.create(user=other_user)
+        other_cloud_info.aws_id = self.AWS_ACCOUNT
+        other_cloud_info.aws_userid = self.AWS_USERID
+        other_cloud_info.aws_user_arn = self.AWS_ARN
+        other_cloud_info.aws_verification_datetime = timezone.now()
+        other_cloud_info.save()
+
+        # Now try to verify with the same AWS identity for our test user
+        self.client.login(username=self.USER_EMAIL, password='Tester11!')
+
+        cloud_info = self.get_cloud_information()
+        cloud_info.aws_id = None
+        cloud_info.aws_userid = None
+        cloud_info.aws_user_arn = None
+        cloud_info.aws_verification_datetime = None
+        cloud_info.save()
+
+        response = self.client.post(
+            reverse('edit_cloud'),
+            data={'save-aws': '', 'aws_identity': self.IDENTITY_JSON},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], reverse('edit_cloud_aws'))
+
+        response = self.client.get(response['location'])
+        self.assertEqual(response.status_code, 200)
+        signed_url = self.mock_s3_presign(response.content.decode())
+
+        # Mock successful S3 verification
+        mocker.get(
+            signed_url, complete_qs=True,
+            status_code=404, text=self.S3_RESPONSE_404,
+        )
+        mocker.get(
+            signed_url.split('?')[0], complete_qs=True,
+            status_code=403, text=self.S3_RESPONSE_403,
+        )
+
+        # Try to submit the verification
+        response = self.client.post(
+            reverse('edit_cloud_aws'),
+            data={'signed_url': signed_url},
+        )
+
+        # Should stay on the same page with an error
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'already linked to another PhysioNet account', response.content)
+
+        # Verify that the current user's cloud info was not updated
+        cloud_info = self.get_cloud_information()
+        self.assertIsNone(cloud_info.aws_id)
+        self.assertIsNone(cloud_info.aws_userid)
+        self.assertIsNone(cloud_info.aws_user_arn)
+        self.assertIsNone(cloud_info.aws_verification_datetime)
+
+        # Verify that the other user's cloud info is still intact
+        other_cloud_info.refresh_from_db()
+        self.assertEqual(other_cloud_info.aws_userid, self.AWS_USERID)
+        self.assertEqual(other_cloud_info.aws_user_arn, self.AWS_ARN)
