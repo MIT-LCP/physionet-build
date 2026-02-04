@@ -166,7 +166,6 @@ urlpatterns = [
     path('event_agreements/<int:pk>/delete/', views.event_agreement_delete, name='event_agreement_delete'),
     path('event_agreements/<int:pk>/new-version/', views.event_agreement_new_version,
          name='event_agreement_new_version'),
-
     # Courses/On Platform Training
     path('courses/', training_views.courses, name='courses'),
     path('courses/<training_slug>/', training_views.course_details, name='course_details'),
@@ -174,6 +173,8 @@ urlpatterns = [
          training_views.download_course, name='download_course_version'),
     path('courses/<training_slug>/archive/<str:version>',
          training_views.archive_course, name='archive_course_version'),
+    # Invite event host
+    path('console/user/manage/<username>/', views.event_invite_host, name='event_invite_host'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)
