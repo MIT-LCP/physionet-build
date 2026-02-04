@@ -7,7 +7,7 @@ from django.conf import settings
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import password_validation
 from django.core.files.uploadedfile import UploadedFile
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import F, Q
 from django.forms.widgets import FileInput
 from django.utils import timezone
@@ -791,6 +791,24 @@ class AWSVerificationForm(forms.Form):
         validate_aws_id(self.aws_account)
         validate_aws_userid(self.aws_userid)
         validate_aws_user_arn(self.aws_user_arn)
+
+        # Check if this AWS identity is already linked to another user
+        existing_userid = CloudInformation.objects.filter(
+            aws_userid=self.aws_userid
+        ).exclude(user=self.user).first()
+        if existing_userid:
+            raise forms.ValidationError(
+                'This AWS identity is already linked to another PhysioNet account.'
+            )
+
+        existing_arn = CloudInformation.objects.filter(
+            aws_user_arn=self.aws_user_arn
+        ).exclude(user=self.user).first()
+        if existing_arn:
+            raise forms.ValidationError(
+                'This AWS identity is already linked to another PhysioNet account.'
+            )
+
         info = check_aws_verification_url(site_domain=self.site_domain,
                                           user_email=self.user.email,
                                           aws_account=self.aws_account,
@@ -806,7 +824,13 @@ class AWSVerificationForm(forms.Form):
         cloud_info.aws_userid = self.cleaned_data['userid']
         cloud_info.aws_user_arn = self.cleaned_data['arn']
         cloud_info.aws_verification_datetime = timezone.now()
-        cloud_info.save()
+
+        try:
+            cloud_info.save()
+        except IntegrityError:
+            raise forms.ValidationError(
+                'This AWS identity is already linked to another PhysioNet account.'
+            )
 
 
 # class ActivationForm(forms.ModelForm):
