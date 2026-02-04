@@ -713,6 +713,10 @@ class TestAWSVerification(TestCase):
 
     def setUp(self):
         """Create test user for AWS verification tests"""
+        # Delete any existing user with this email to ensure clean state
+        User.objects.filter(email=self.USER_EMAIL).delete()
+
+        # Create fresh user
         User.objects.create_user(
             email=self.USER_EMAIL,
             username='admin',
