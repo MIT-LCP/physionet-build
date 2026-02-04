@@ -920,7 +920,7 @@ class TestAWSVerification(TestCase):
             reverse('edit_cloud_aws'),
             data={'signed_url': signed_url},
         )
-        
+
         # Should stay on the same page with an error
         self.assertEqual(response.status_code, 200)
         self.assertIn(b'already linked to another PhysioNet account', response.content)
