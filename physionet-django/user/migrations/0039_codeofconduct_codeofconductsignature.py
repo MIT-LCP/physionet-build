@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import project.modelcomponents.fields
+import project.fields
 import project.validators
 
 
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ('is_active', models.BooleanField(default=False)),
-                ('html_content', project.modelcomponents.fields.SafeHTMLField(default='')),
+                ('html_content', project.fields.SafeHTMLField(default='')),
             ],
             options={
                 'unique_together': {('name', 'version')},

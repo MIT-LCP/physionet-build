@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import project.modelcomponents.fields
+import project.fields
 import project.validators
 
 
@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
                 ('version', models.CharField(default='', max_length=15,
                                              validators=[project.validators.validate_version])),
                 ('is_active', models.BooleanField(default=True)),
-                ('html_content', project.modelcomponents.fields.SafeHTMLField(default='')),
-                ('access_template', project.modelcomponents.fields.SafeHTMLField(default='')),
+                ('html_content', project.fields.SafeHTMLField(default='')),
+                ('access_template', project.fields.SafeHTMLField(default='')),
                 ('creator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
                                               to=settings.AUTH_USER_MODEL)),
             ],

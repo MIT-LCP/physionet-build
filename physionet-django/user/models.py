@@ -23,8 +23,8 @@ from django.utils.text import slugify
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext as _
 
+from project.fields import SafeHTMLField
 from project.modelcomponents.access import AccessPolicy
-from project.modelcomponents.fields import SafeHTMLField
 from project.validators import validate_version
 from user import validators
 from user.userfiles import UserFiles

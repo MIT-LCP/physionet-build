@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
-from project.modelcomponents.fields import SafeHTMLField
+from project.fields import SafeHTMLField
 from project.validators import validate_version
 
 from project.managers.access import DataAccessRequestQuerySet, DataAccessRequestManager

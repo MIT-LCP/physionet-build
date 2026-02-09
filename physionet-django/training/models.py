@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 
-from project.modelcomponents.fields import SafeHTMLField
+from project.fields import SafeHTMLField
 from project.validators import validate_version
 
 

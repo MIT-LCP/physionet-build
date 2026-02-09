@@ -6,7 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.models import Permission
 from events.enums import EventCategory
 from events import validators
-from project.modelcomponents.fields import SafeHTMLField
+from project.fields import SafeHTMLField
 from project.validators import validate_version, validate_slug
 
 

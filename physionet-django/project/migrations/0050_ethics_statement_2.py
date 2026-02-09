@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import project.modelcomponents.fields
+import project.fields
 import project.modelcomponents.metadata
 
 
@@ -33,16 +33,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='activeproject',
             name='ethics_statement',
-            field=project.modelcomponents.fields.SafeHTMLField(blank=True),
+            field=project.fields.SafeHTMLField(blank=True),
         ),
         migrations.AlterField(
             model_name='archivedproject',
             name='ethics_statement',
-            field=project.modelcomponents.fields.SafeHTMLField(blank=True),
+            field=project.fields.SafeHTMLField(blank=True),
         ),
         migrations.AlterField(
             model_name='publishedproject',
             name='ethics_statement',
-            field=project.modelcomponents.fields.SafeHTMLField(blank=True),
+            field=project.fields.SafeHTMLField(blank=True),
         ),
     ]
