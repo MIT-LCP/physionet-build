@@ -41,7 +41,10 @@
                   Not a resubmission
                 {% endif %}
               </td>
-              <td><a class="btn btn-primary btn-sm" href="{% url 'edit_submission' project.slug %}" role="button">Edit Project</a></td>
+              <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'edit_submission' project.slug %}" role="button">Edit Project</a>
+                {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
+              </td>
             </tr>
           {% endfor %}
           </tbody>
@@ -91,6 +94,7 @@
                     {% endif %}
                   </form>
                   <a href="{% url 'submission_info' project.slug %}?tab=archive" class="btn btn-warning btn-sm ml-2" role="button">Archive</a>
+                  {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
                 </div>
               </td>
             </tr>
@@ -129,7 +133,10 @@
               <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.editor_accept_datetime|date }}</td>
-              <td><a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' project.slug %}" role="button">Copyedit Project</a></td>
+              <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' project.slug %}" role="button">Copyedit Project</a>
+                {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
+              </td>
             </tr>
           {% endfor %}
           </tbody>
@@ -170,7 +177,10 @@
               <td>{{ project.editor_accept_datetime|date }}</td>
               <td>{{ project.copyedit_completion_datetime|date }}</td>
               <td>{{ project.latest_reminder|date }}</td>
-              <td><a class="btn btn-primary btn-sm" href="{% url 'awaiting_authors' project.slug %}" role="button">View</a></td>
+              <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'awaiting_authors' project.slug %}" role="button">View</a>
+                {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
+              </td>
             </tr>
           {% endfor %}
           </tbody>
@@ -211,7 +221,49 @@
               <td>{{ project.editor_accept_datetime|date }}</td>
               <td>{{ project.copyedit_completion_datetime|date }}</td>
               <td>{{ project.author_approval_datetime|date }}</td>
-              <td><a class="btn btn-primary btn-sm" href="{% url 'publish_submission' project.slug %}" role="button">Publish Project</a></td>
+              <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'publish_submission' project.slug %}" role="button">Publish Project</a>
+                {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+    {% endif %}
+  </div>
+</div>
+
+{# On hold #}
+<div class="card mb-3">
+  <div class="card-header">
+    On Hold {{ on_hold_projects|task_count_badge|safe }}
+  </div>
+  <div class="card-body">
+    {% if on_hold_projects %}
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Submitting Author</th>
+              <th>Stage</th>
+              <th>Submitted</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for project in on_hold_projects %}
+            <tr>
+              <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
+              <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+              <td>{{ project.submission_status_label }}</td>
+              <td>{{ project.submission_datetime|date }}</td>
+              <td>
+                {% include 'console/includes/hold_toggle_button.html' with project=project action='remove_hold' button_class='btn btn-success btn-sm' button_label='Remove from Hold' %}
+              </td>
             </tr>
           {% endfor %}
           </tbody>
