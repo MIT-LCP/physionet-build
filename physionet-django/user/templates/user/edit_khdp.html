@@ -1,4 +1,5 @@
 {% extends "user/settings.html" %}
+{% load static %}
 
 {% block title %}Edit KHDP{% endblock %}
 
@@ -6,6 +7,7 @@
 <form action="{% url 'edit_khdp' %}" method="post" enctype="multipart/form-data" class="form-signin no-pd">
     {% csrf_token %}
     <h1>Edit KHDP</h1>
+    <hr>
 
     <p>
         Korea Health Data Platform (KHDP) is a secure identity and data platform for global collaborative research.
@@ -14,40 +16,45 @@
         If you do not already have a KHDP account, you can create one on the KHDP website.
     </p>
 
-    <p>
-        If you already have a KHDP account, you can use the button below to link it to your PhysioNet account.
-        When you link your account, KHDP may share the following information with PhysioNet so that we can
-        keep your profiles in sync:
-    </p>
-
-    <ul>
-        <li>User ID</li>
-        <li>Username</li>
-        <li>Affiliation</li>
-        <li>Email</li>
-        <li>ORCID</li>
-        <li>PhysioNet ID</li>
-    </ul>
-
-    <p>
-        Linking your KHDP account may help streamline identity verification and future integrations between
-        PhysioNet and KHDP services.
-    </p>
-
     {% if request.user.khdp %}
-        <p>Your KHDP account is currently linked:</p>
-        <ul>
-            <li>User ID: {{ request.user.khdp.khdp_user_id }}</li>
-            <li>Name: {{ request.user.khdp.name }}</li>
-            <li>Affiliation: {{ request.user.khdp.affiliation }}</li>
-            <li>Email: {{ request.user.khdp.email }}</li>
-        </ul>
+        <div style="margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <img src="{% static "images/KHDP_color.png" %}" alt="KHDP" style="max-width: 90px; height: auto;">
+                <p style="margin: 0;">Your KHDP account is currently linked:</p>
+            </div>
+            <ul>
+                <li>User ID: {{ request.user.khdp.khdp_user_id }}</li>
+                <li>Name: {{ request.user.khdp.name }}</li>
+                <li>Affiliation: {{ request.user.khdp.affiliation }}</li>
+                <li>Email: {{ request.user.khdp.email }}</li>
+            </ul>
+        </div>
         <button class="btn btn-primary btn-rsp" type="submit" name="remove_khdp" value="make_request" onclick="return confirm('Are you sure you want to unlink your KHDP account?');">
-            Unlink KHDP Account
+            <img src="{% static "images/khdp-icon.svg" %}" style="height: 20px; margin-right: 8px; vertical-align: middle;" /> Unlink KHDP Account
         </button>
     {% else %}
+        <p>
+            If you already have a KHDP account, you can use the button below to link it to your PhysioNet account.
+            When you link your account, KHDP may share the following information with PhysioNet so that we can
+            keep your profiles in sync:
+        </p>
+
+        <ul>
+            <li>User ID</li>
+            <li>Username</li>
+            <li>Affiliation</li>
+            <li>Email</li>
+            <li>ORCID</li>
+            <li>PhysioNet ID</li>
+        </ul>
+
+        <p>
+            Linking your KHDP account may help streamline identity verification and future integrations between
+            PhysioNet and KHDP services.
+        </p>
+        
         <button class="btn btn-primary btn-rsp" type="submit" name="request_khdp" value="make_request">
-            Link KHDP Account
+            <img src="{% static "images/khdp-icon.svg" %}" style="height: 20px; margin-right: 8px; vertical-align: middle;" /> Link KHDP Account
         </button>
     {% endif %}
 </form>
