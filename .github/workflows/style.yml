@@ -21,6 +21,7 @@ jobs:
         run: |
           pip install \
               flake8==5.0.4 \
+              flake8-noqa==1.5.0 \
               mccabe==0.7.0 \
               pycodestyle==2.9.1 \
               pyflakes==2.5.0
