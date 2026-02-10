@@ -66,6 +66,7 @@ class TestState(TestMixin):
         # Try to assign editor; this should fail
         self.client.login(username='admin', password='Tester11!')
         self.client.post(reverse('submitted_projects'), data={
+            'assign_editor': '',
             'project': project.id,
             'editor': editor.id,
         })
@@ -77,6 +78,7 @@ class TestState(TestMixin):
         temp_author.delete()
         self.client.login(username='admin', password='Tester11!')
         self.client.post(reverse('submitted_projects'), data={
+            'assign_editor': '',
             'project': project.id,
             'editor': editor.id,
         })
@@ -109,6 +111,7 @@ class TestState(TestMixin):
         # Assign editor1 as initial editor
         self.client.login(username='admin', password='Tester11!')
         self.client.post(reverse('submitted_projects'), data={
+            'assign_editor': '',
             'project': project.id,
             'editor': editor1.id,
         })
@@ -1228,3 +1231,124 @@ class TestAnonymousAccess(TestMixin):
         authors = self.project.authors.all()
         for author in authors:
             self.assertContains(response, author.get_full_name())
+
+
+class TestOnHold(TestMixin):
+    """
+    Test the on-hold functionality for active projects.
+    """
+
+    PROJECT_TITLE = 'MIT-BIH Arrhythmia Database'
+    ADMIN_USER = 'admin'
+    ADMIN_PASSWORD = 'Tester11!'
+    EDITOR_USER = 'amitupreti'
+    EDITOR_PASSWORD = 'Tester11!'
+    NON_EDITOR_USER = 'cindyehlert'
+    NON_EDITOR_PASSWORD = 'Tester11!'
+
+    def _submit_and_assign(self, editor_username=None):
+        """Submit the project and optionally assign an editor."""
+        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        project.submit(author_comments='')
+        if editor_username:
+            editor = User.objects.get(username=editor_username)
+            self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+            self.client.post(reverse('submitted_projects'), data={
+                'assign_editor': '',
+                'project': project.id,
+                'editor': editor.id,
+            })
+            project.refresh_from_db()
+        return project
+
+    def test_place_on_hold_as_admin(self):
+        """Admin can place an unassigned project on hold."""
+        project = self._submit_and_assign()
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        self.client.post(reverse('project_on_hold', args=(project.slug,)), data={
+            'place_on_hold': '',
+        })
+        project.refresh_from_db()
+        self.assertTrue(project.is_on_hold)
+
+    def test_place_on_hold_as_editor(self):
+        """The assigned editor can place their project on hold."""
+        project = self._submit_and_assign(self.EDITOR_USER)
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        self.client.post(reverse('project_on_hold', args=(project.slug,)), data={
+            'place_on_hold': '',
+        })
+        project.refresh_from_db()
+        self.assertTrue(project.is_on_hold)
+
+    def test_place_on_hold_denied_for_non_editor(self):
+        """An editor who is not assigned to the project cannot place it on hold."""
+        project = self._submit_and_assign(self.EDITOR_USER)
+        self.client.login(username=self.NON_EDITOR_USER, password=self.NON_EDITOR_PASSWORD)
+        self.client.post(reverse('project_on_hold', args=(project.slug,)), data={
+            'place_on_hold': '',
+        })
+        project.refresh_from_db()
+        self.assertFalse(project.is_on_hold)
+
+    def test_remove_from_hold(self):
+        """A project can be taken off hold."""
+        project = self._submit_and_assign(self.EDITOR_USER)
+        project.place_on_hold()
+        self.assertTrue(project.is_on_hold)
+
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        self.client.post(reverse('project_on_hold', args=(project.slug,)), data={
+            'remove_from_hold': '',
+        })
+        project.refresh_from_db()
+        self.assertFalse(project.is_on_hold)
+
+    def test_on_hold_preserves_submission_status(self):
+        """Placing on hold does not change the submission status."""
+        project = self._submit_and_assign(self.EDITOR_USER)
+        original_status = project.submission_status
+        project.place_on_hold()
+        project.refresh_from_db()
+        self.assertEqual(project.submission_status, original_status)
+        self.assertTrue(project.is_on_hold)
+
+    def test_on_hold_project_hidden_from_active_tabs(self):
+        """On-hold projects should not appear in the active tab listings."""
+        project = self._submit_and_assign(self.EDITOR_USER)
+        project.place_on_hold()
+
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('submitted_projects'))
+        self.assertNotIn(project, response.context['decision_projects'])
+        self.assertIn(project, response.context['on_hold_projects'])
+
+    def test_removed_from_hold_project_returns_to_active_tab(self):
+        """A project removed from hold should reappear in its active tab."""
+        project = self._submit_and_assign(self.EDITOR_USER)
+        project.place_on_hold()
+        project.remove_from_hold()
+
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('submitted_projects'))
+        self.assertIn(project, response.context['decision_projects'])
+        self.assertNotIn(project, response.context['on_hold_projects'])
+
+    def test_on_hold_shown_on_submission_info(self):
+        """The submission info page should show the on-hold badge."""
+        project = self._submit_and_assign(self.EDITOR_USER)
+        project.place_on_hold()
+
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('submission_info', args=(project.slug,)))
+        self.assertContains(response, 'On Hold')
+
+    def test_editor_home_excludes_on_hold(self):
+        """On-hold projects should be excluded from the editor home active lists."""
+        project = self._submit_and_assign(self.EDITOR_USER)
+        project.place_on_hold()
+
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        response = self.client.get(reverse('editor_home'))
+        self.assertNotIn(project, response.context['decision_projects'])
+        self.assertIn(project, response.context['on_hold_projects'])
