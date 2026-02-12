@@ -76,6 +76,7 @@ from user.models import (
     CodeOfConduct,
     CloudInformation
 )
+from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
@@ -3716,7 +3717,6 @@ def federated_sites(request):
     """
     List all federated sites with their sync status
     """
-    from search.models import FederatedSite, FederationSyncLog
 
     sites = FederatedSite.objects.all().order_by('site_name')
 
@@ -3739,7 +3739,6 @@ def federated_site_add(request):
     """
     Add a new federated site
     """
-    from search.models import FederatedSite
 
     if request.method == 'POST':
         form = forms.FederatedSiteForm(request.POST)
@@ -3749,7 +3748,6 @@ def federated_site_add(request):
                 site_name=form.cleaned_data['site_name'],
                 api_base_url=form.cleaned_data['api_base_url'],
                 is_active=form.cleaned_data['is_active'],
-                api_key=form.cleaned_data['api_key'],
             )
             messages.success(request, f'Federated site "{form.cleaned_data["site_name"]}" has been added.')
             return redirect('federated_sites')
@@ -3771,7 +3769,6 @@ def federated_site_edit(request, site_id):
     """
     Edit an existing federated site
     """
-    from search.models import FederatedSite
 
     site = get_object_or_404(FederatedSite, id=site_id)
 
@@ -3781,7 +3778,6 @@ def federated_site_edit(request, site_id):
             site.site_name = form.cleaned_data['site_name']
             site.api_base_url = form.cleaned_data['api_base_url']
             site.is_active = form.cleaned_data['is_active']
-            site.api_key = form.cleaned_data['api_key']
             site.save()
             messages.success(request, f'Federated site "{site.site_name}" has been updated.')
             return redirect('federated_sites')
@@ -3804,8 +3800,6 @@ def federated_site_detail(request, site_id):
     """
     View details of a federated site including sync history
     """
-
-    from search.models import FederatedSite
 
     site = get_object_or_404(FederatedSite, id=site_id)
 
@@ -3873,7 +3867,6 @@ def federated_projects(request):
     """
     List all cached federated projects
     """
-    from search.models import FederatedProject, FederatedSite
 
     # Get filter parameters
     site_filter = request.GET.get('site', '')

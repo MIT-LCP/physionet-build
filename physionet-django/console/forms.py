@@ -27,6 +27,7 @@ from project.models import (
     exists_project_slug,
     InternalNote,
 )
+from search.models import FederatedSite
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
@@ -1043,7 +1044,6 @@ class FederatedSiteForm(forms.Form):
     """
     Form for adding or editing a federated site
     """
-    from search.models import FederatedSite
 
     site_identifier = forms.SlugField(
         max_length=50,
@@ -1058,20 +1058,13 @@ class FederatedSiteForm(forms.Form):
     api_base_url = forms.URLField(
         max_length=500,
         label='API Base URL',
-        help_text='Base URL for the federation API (e.g., "https://healthdatanexus.ca")'
+        help_text='Base URL for the federation API (e.g., "https://healthdatanexus.ai")'
     )
     is_active = forms.BooleanField(
         required=False,
         initial=True,
         label='Active',
         help_text='Whether to sync data from this site'
-    )
-    api_key = forms.CharField(
-        max_length=200,
-        required=False,
-        label='API Key',
-        help_text='API key for authentication (optional)',
-        widget=forms.PasswordInput(render_value=True)
     )
 
     def __init__(self, *args, **kwargs):
@@ -1083,10 +1076,8 @@ class FederatedSiteForm(forms.Form):
             self.fields['site_name'].initial = self.site_instance.site_name
             self.fields['api_base_url'].initial = self.site_instance.api_base_url
             self.fields['is_active'].initial = self.site_instance.is_active
-            self.fields['api_key'].initial = self.site_instance.api_key
 
     def clean_site_identifier(self):
-        from search.models import FederatedSite
         site_identifier = self.cleaned_data['site_identifier']
 
         # If editing, allow the current identifier

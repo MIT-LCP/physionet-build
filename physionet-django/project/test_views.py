@@ -1739,7 +1739,7 @@ class TestBibTeXCitation(TestMixin):
 
         if project.doi:
             self.assertIn(f'doi = {{{project.doi}}}', bibtex)
-            self.assertIn(f'url = {{https://doi.org/{project.doi}}}', bibtex)  # noqa: E231
+            self.assertIn(f'url = {{https://doi.org/{project.doi}}}', bibtex)
 
     def test_bibtex_version_in_note(self):
         """BibTeX includes version in note field."""
@@ -1756,7 +1756,7 @@ class TestBibTeXCitation(TestMixin):
 
         version_str = project.version if project.version else ''
         expected_key = f'{settings.SITE_NAME}-{project.slug}-{version_str}'
-        self.assertIn(f'@article{{{expected_key},', bibtex)  # noqa: E231
+        self.assertIn(f'@article{{{expected_key},', bibtex)
 
     def test_bibtex_special_characters_escaped(self):
         """Special characters in title are escaped."""

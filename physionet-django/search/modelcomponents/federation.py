@@ -70,13 +70,6 @@ class FederatedSite(models.Model):
         help_text='Status of most recent sync attempt'
     )
 
-    # Authentication (optional)
-    api_key = models.CharField(
-        max_length=200,
-        blank=True,
-        help_text='API key for authentication (optional)'
-    )
-
     # Metadata
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)

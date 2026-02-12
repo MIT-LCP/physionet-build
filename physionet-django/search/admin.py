@@ -15,10 +15,6 @@ class FederatedSiteAdmin(admin.ModelAdmin):
         ('Status', {
             'fields': ('is_active', 'last_sync_status', 'last_sync_datetime')
         }),
-        ('Authentication', {
-            'fields': ('api_key',),
-            'classes': ('collapse',)
-        }),
         ('Metadata', {
             'fields': ('created', 'modified'),
             'classes': ('collapse',)

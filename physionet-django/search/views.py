@@ -9,7 +9,7 @@ from django.http import Http404
 from django.shortcuts import redirect, render, reverse
 from django.templatetags.static import static
 from physionet.utility import paginate
-from project.models import PublishedProject, PublishedTopic
+from project.models import PublishedProject, PublishedTopic, ProjectType
 from search import forms
 from search.models import FederatedProject
 
@@ -20,16 +20,11 @@ def get_federated_projects(resource_type, search_term):
 
     Returns a queryset of FederatedProject objects matching the criteria.
     """
-    # Map resource_type IDs to string values
-    RESOURCE_TYPE_MAP = {
-        0: 'Database',
-        1: 'Software',
-        2: 'Challenge',
-        3: 'Model',
-    }
+    # Map resource_type IDs to string values from database
+    resource_type_map = {pt.id: pt.name for pt in ProjectType.objects.all()}
 
     # Convert resource_type list to string values
-    resource_type_strings = [RESOURCE_TYPE_MAP.get(rt) for rt in resource_type if rt in RESOURCE_TYPE_MAP]
+    resource_type_strings = [resource_type_map.get(rt) for rt in resource_type if rt in resource_type_map]
 
     # Start with active sites filter
     federated_projects = FederatedProject.objects.select_related('source_site').filter(
@@ -44,7 +39,8 @@ def get_federated_projects(resource_type, search_term):
 
     # Apply search term filtering if provided
     if search_term:
-        search_terms = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
+        # Split first, then escape each term to preserve delimiters
+        search_terms = [re.escape(term) for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
         query = Q()
         for term in search_terms:
             # Search in title, abstract, and topics (JSON field)
@@ -115,7 +111,8 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
 
     # Split search term by whitespace or punctuation
     if search_term:
-        search_terms = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
+        # Split first, then escape each term to preserve delimiters
+        search_terms = [re.escape(term) for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
         search_queries = [SearchQuery(term) for term in search_terms]
         search_query = reduce(operator.and_, search_queries)
         query = Q(resource_type__in=resource_type) & Q(search=search_query)
@@ -155,7 +152,8 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
     if len(search_term) == 0:
         query = Q(resource_type__in=resource_type)
     else:
-        search_term = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
+        # Split first, then escape each term to preserve delimiters
+        search_term = [re.escape(term) for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
         query = reduce(operator.or_, (Q(topics__description__iregex=r'{0}{1}{0}'.format(wb,
             item)) for item in search_term))
         query = query | reduce(operator.or_, (Q(abstract__iregex=r'{0}{1}{0}'.format(wb,
@@ -206,11 +204,15 @@ def content_index(request, resource_type=None):
     """
     List of all published resources including federated projects
     """
-    LABELS = {0: ['Database', 'databases'],
-              1: ['Software', 'softwares'],
-              2: ['Challenge', 'challenges'],
-              3: ['Model', 'models'],
-              }
+    # Build labels from database
+    LABELS = {}
+    for pt in ProjectType.objects.all():
+        # Simple pluralization (can be enhanced if needed)
+        if pt.name == 'Software':
+            plural = 'softwares'
+        else:
+            plural = pt.name.lower() + 's'
+        LABELS[pt.id] = [pt.name, plural]
 
     # PROJECT TYPE FILTER
     form_type = forms.ProjectTypeForm()
@@ -269,9 +271,13 @@ def content_index(request, resource_type=None):
         federated_projects = federated_projects.order_by('-publish_datetime')
 
     # Add flag to distinguish federated projects in template
-    # Convert to lists
-    local_projects_list = list(published_projects)
-    federated_projects_list = list(federated_projects)
+    # Limit results per source to prevent memory issues
+    # Users rarely need more than this, and pagination handles display
+    MAX_RESULTS_PER_SOURCE = 500
+
+    # Convert to lists with upper bound
+    local_projects_list = list(published_projects[:MAX_RESULTS_PER_SOURCE])
+    federated_projects_list = list(federated_projects[:MAX_RESULTS_PER_SOURCE])
 
     # Mark federated projects with a flag
     for project in federated_projects_list:
@@ -351,11 +357,21 @@ def charts(request):
             and request.GET['resource_type'] in ['0', '1', '2', '3']):
         resource_type = int(request.GET['resource_type'])
 
-    LABELS = {None: ['Content', 'Projects'],
-              0: ['Database', 'Databases'],
-              1: ['Software', 'Software Projects'],
-              2: ['Challenge', 'Challenges'],
-              3: ['Model', 'Models']}
+    # Build labels from database
+    LABELS = {None: ['Content', 'Projects']}
+    for pt in ProjectType.objects.all():
+        # Proper pluralization for chart labels
+        if pt.name == 'Software':
+            plural = 'Software Projects'
+        elif pt.name == 'Database':
+            plural = 'Databases'
+        elif pt.name == 'Challenge':
+            plural = 'Challenges'
+        elif pt.name == 'Model':
+            plural = 'Models'
+        else:
+            plural = pt.name + 's'
+        LABELS[pt.id] = [pt.name, plural]
 
     main_label, plural_label = LABELS[resource_type]
     return render(request, 'search/charts.html', {

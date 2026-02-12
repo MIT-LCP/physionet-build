@@ -38,7 +38,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         default=uuid.uuid4,
         unique=True,
         editable=False,
-        db_index=True,
         help_text="Persistent, public identifier for published projects.",
     )
     publish_datetime = models.DateTimeField(auto_now_add=True)

@@ -62,17 +62,6 @@
           {% endif %}
         </div>
 
-        <div class="form-group">
-          <label for="{{ form.api_key.id_for_label }}">
-            {{ form.api_key.label }}
-          </label>
-          {{ form.api_key }}
-          <small class="form-text text-muted">{{ form.api_key.help_text }}</small>
-          {% if form.api_key.errors %}
-            <div class="text-danger">{{ form.api_key.errors }}</div>
-          {% endif %}
-        </div>
-
         <div class="mt-4">
           <button type="submit" class="btn btn-primary">
             <i class="fa fa-save"></i> Save

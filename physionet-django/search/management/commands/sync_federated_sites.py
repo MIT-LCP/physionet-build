@@ -200,13 +200,8 @@ class Command(BaseCommand):
         # Fail fast - if request fails, let scheduler retry later
         while next_url:
             # Make API request
-            headers = {}
-            if site.api_key:
-                headers['Authorization'] = f'Bearer {site.api_key}'
-
             response = requests.get(
                 next_url,
-                headers=headers,
                 timeout=timeout
             )
             response.raise_for_status()
