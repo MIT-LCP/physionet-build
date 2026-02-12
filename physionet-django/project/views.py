@@ -1432,8 +1432,8 @@ def project_submission(request, project_slug, **kwargs):
         # Author approves publication
         elif 'approve_publication' in request.POST:
             author = authors.get(user=user)
-            if (request.POST and author.is_submitting
-                    and request.POST['approve_publication'].isnumeric()):
+            if (request.POST and author.is_submitting and
+                request.POST['approve_publication'].isnumeric()):
                 try:
                     author = authors.get(id=request.POST['approve_publication'])
                     LOGGER.info('Submitting author {0} for project {1} is approving\
@@ -1726,10 +1726,8 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
 
     user = request.user
 
-    if (user.is_authenticated
-            and (project.authors.filter(user=user)
-                 or user == project.editor
-                 or user.has_perm('project.change_activeproject'))):
+    if user.is_authenticated and (project.authors.filter(user=user) or
+                                  user == project.editor or user.has_perm('project.change_activeproject')):
         file_path = os.path.join(project.file_root(), full_file_name)
         try:
             attach = ('download' in request.GET)
