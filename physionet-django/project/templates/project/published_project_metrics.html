@@ -6,17 +6,54 @@
 Metrics for {{ project }}
 {% endblock %}
 
+{% block local_js_top %}
+<script src="{% static 'd3/d3.v3.min.js' %}"></script>
+<script src="{% static 'd3/d3.tip.v0.6.3.js' %}"></script>
+{% endblock %}
+
+{% block local_css %}
+<style>
+  #views-chart .axis path,
+  #views-chart .axis line {
+    fill: none;
+    stroke: #333;
+    shape-rendering: crispEdges;
+  }
+  #views-chart .axis text {
+    font-size: 12px;
+  }
+  #views-chart .line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2px;
+  }
+  #views-chart .dot {
+    fill: steelblue;
+    stroke: #fff;
+    stroke-width: 1.5px;
+  }
+  .d3-tip {
+    line-height: 1;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
   <h1>Metrics</h1>
   <p class="text-muted">{{ project.title }} (v{{ project.version }})</p>
   <hr>
 
-  <div class="row">
-    <div class="col-md-6">
-      <div class="card text-center mb-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div id="views-card" class="card text-center mb-4 d-flex justify-content-center" style="min-height: 250px;">
         <h5 class="card-header">Unique Registered Project Views</h5>
-        <div class="card-body">
+        <div class="card-body d-flex flex-column justify-content-center">
           <div class="d-flex justify-content-around mb-2">
             <div>
               <h3 class="mb-0">{{ project_views_count }}</h3>
@@ -31,6 +68,96 @@ Metrics for {{ project }}
         </div>
       </div>
     </div>
+    {% if views_over_time %}
+    <div class="col-md-8 col-lg-6">
+      <div id="views-chart" class="mb-4 d-flex justify-content-center"></div>
+      <script>
+      (function() {
+        var data = {{ chart_data|safe }};
+        var parseDate = d3.time.format('%b %Y').parse;
+        data.forEach(function(d) {
+          d.date = parseDate(d.month);
+        });
+
+        var cardHeight = document.getElementById('views-card').offsetHeight;
+        var margin = {top: 20, right: 20, bottom: 50, left: 50},
+            width = document.getElementById('views-chart').offsetWidth - margin.left - margin.right,
+            height = cardHeight - margin.top - margin.bottom;
+
+        var x = d3.time.scale().range([0, width]);
+        var y = d3.scale.linear().range([height, 0]);
+
+        var xAxis = d3.svg.axis().scale(x).orient('bottom')
+            .tickFormat(d3.time.format('%b %Y'));
+        var yAxis = d3.svg.axis().scale(y).orient('left')
+            .ticks(6).tickFormat(d3.format('d'));
+
+        var line = d3.svg.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.count); });
+
+        var tip = d3.tip()
+            .attr('class', 'd3-tip')
+            .offset([-10, 0])
+            .html(function(d) {
+              return '<strong>' + d.month + '</strong>: ' + d.count + ' viewers';
+            });
+
+        var svg = d3.select('#views-chart').append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom)
+          .append('g')
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+        svg.call(tip);
+
+        var xExtent = d3.extent(data, function(d) { return d.date; });
+        if (data.length === 1) {
+          // Pad single data point by +/- 15 days so the axis has visible range
+          var d0 = new Date(xExtent[0]);
+          xExtent = [new Date(d0.getTime() - 15*86400000), new Date(d0.getTime() + 15*86400000)];
+        }
+        x.domain(xExtent);
+
+        var yMax = d3.max(data, function(d) { return d.count; });
+        y.domain([0, yMax || 1]);
+
+        svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + height + ')')
+            .call(xAxis)
+          .selectAll('text')
+            .attr('transform', 'rotate(-45)')
+            .style('text-anchor', 'end');
+
+        svg.append('g')
+            .attr('class', 'y axis')
+            .call(yAxis)
+          .append('text')
+            .attr('transform', 'rotate(-90)')
+            .attr('x', -height / 2)
+            .attr('y', -margin.left + 14)
+            .style('text-anchor', 'middle')
+            .text('Unique Viewers');
+
+        svg.append('path')
+            .datum(data)
+            .attr('class', 'line')
+            .attr('d', line);
+
+        svg.selectAll('.dot')
+            .data(data)
+          .enter().append('circle')
+            .attr('class', 'dot')
+            .attr('cx', function(d) { return x(d.date); })
+            .attr('cy', function(d) { return y(d.count); })
+            .attr('r', 4)
+            .on('mouseover', tip.show)
+            .on('mouseout', tip.hide);
+      })();
+      </script>
+    </div>
+    {% endif %}
   </div>
 
   {% if views_by_version|length > 1 %}

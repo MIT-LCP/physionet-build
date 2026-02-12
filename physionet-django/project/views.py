@@ -1,4 +1,5 @@
 import datetime as dt
+import json
 import logging
 import os
 
@@ -17,7 +18,6 @@ from django.db.models import Q
 from django.forms import inlineformset_factory, modelformset_factory
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
@@ -40,7 +40,6 @@ from project.models import (
     DataAccessRequestReviewer,
     DUASignature,
     GCPLog,
-    DUA,
     Publication,
     PublishedAuthor,
     PublishedProject,
@@ -62,7 +61,6 @@ from project.cloud.s3 import (
     files_sent_to_S3,
     add_user_to_access_point_policy,
 )
-from django.db.models import F, DateTimeField, ExpressionWrapper
 from physionet.utility import get_client_ip, get_country_code
 from user.awsverification import aws_verification_available
 
@@ -2099,6 +2097,14 @@ def published_project(request, project_slug, version, subdir=''):
                   status=status)
 
 
+def _format_chart_data(views):
+    """Format views-over-time records as JSON for the D3 line chart."""
+    return json.dumps([
+        {'month': v['month'].strftime('%b %Y'), 'count': v['count']}
+        for v in views
+    ])
+
+
 def published_project_metrics(request, project_slug, version):
     """
     Public metrics page for a published project.
@@ -2106,6 +2112,7 @@ def published_project_metrics(request, project_slug, version):
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
     views_over_time = project.views_over_time()
     tracking_start_date = views_over_time[0]['month'] if views_over_time else None
+    chart_data = _format_chart_data(views_over_time)
 
     # Display newest months first, paginated
     views_over_time.reverse()
@@ -2118,6 +2125,7 @@ def published_project_metrics(request, project_slug, version):
         'views_over_time': views_over_time,
         'views_by_version': project.views_by_version(),
         'tracking_start_date': tracking_start_date,
+        'chart_data': chart_data,
     })
 
 
