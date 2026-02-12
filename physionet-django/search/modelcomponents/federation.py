@@ -334,7 +334,7 @@ class FederationSyncLog(models.Model):
         duration = ''
         if self.completed_at:
             delta = self.completed_at - self.started_at
-            duration = f" ({delta.total_seconds():.1f}s)"  # noqa: E231
+            duration = f" ({delta.total_seconds():.1f}s)"
         return f"{self.site.site_name} - {self.status} @ {self.started_at}{duration}"
 
     def get_duration_seconds(self):
