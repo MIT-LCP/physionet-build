@@ -1955,3 +1955,67 @@ class TestProjectViewsMetric(TestMixin):
         # Sum of monthly counts is 3 (user1 counted in both months + user2 in current month)
         total_from_months = sum(m['count'] for m in views_by_month)
         self.assertEqual(total_from_months, 3)
+
+    def test_views_over_time_reverse_ordering(self):
+        """Views over time are displayed newest month first."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user = User.objects.get(email='rgmark@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        now = timezone.now()
+        old_month = now - timedelta(days=60)
+
+        # Create access logs in two different months
+        log1 = AccessLog.objects.create(
+            user=user, object_id=project.id, content_type=content_type, data='')
+        AccessLog.objects.filter(pk=log1.pk).update(creation_datetime=old_month)
+        AccessLog.objects.create(
+            user=user, object_id=project.id, content_type=content_type, data='')
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        page = response.context['views_over_time']
+        months = [item['month'] for item in page]
+        self.assertGreater(months[0], months[1])
+
+    def test_views_over_time_pagination(self):
+        """Views over time are paginated with 12 items per page."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user = User.objects.get(email='rgmark@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        now = timezone.now()
+        # Create access logs spanning 14 months
+        for i in range(14):
+            log = AccessLog.objects.create(
+                user=user, object_id=project.id, content_type=content_type, data='')
+            AccessLog.objects.filter(pk=log.pk).update(
+                creation_datetime=now - timedelta(days=30 * i))
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        page = response.context['views_over_time']
+        self.assertEqual(len(page), 12)
+        self.assertTrue(page.has_next())
+
+    def test_views_over_time_page_parameter(self):
+        """Page 2 returns the remaining older months."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user = User.objects.get(email='rgmark@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        now = timezone.now()
+        # Create access logs spanning 14 months
+        for i in range(14):
+            log = AccessLog.objects.create(
+                user=user, object_id=project.id, content_type=content_type, data='')
+            AccessLog.objects.filter(pk=log.pk).update(
+                creation_datetime=now - timedelta(days=30 * i))
+
+        response = self.client.get(
+            reverse('published_project_metrics',
+                    args=(project.slug, project.version)) + '?page=2')
+        page = response.context['views_over_time']
+        self.assertGreater(len(page), 0)
+        self.assertLessEqual(len(page), 12)
+        self.assertFalse(page.has_next())
