@@ -1369,7 +1369,7 @@ class TestState(TestMixin):
         abstract = project.abstract
 
         # 'Delete' (archive) the project
-        response = self.client.post(
+        self.client.post(
             reverse("project_overview", args=(project.slug,)),
             data={"delete_project": ""},
         )
@@ -1411,7 +1411,7 @@ class TestState(TestMixin):
         self.client.login(username="rgmark@mit.edu", password="Tester11!")
         project = ActiveProject.objects.get(title="MIT-BIH Arrhythmia Database")
         self.assertFalse(project.under_submission())
-        response = self.client.post(
+        self.client.post(
             reverse("project_submission", args=(project.slug,)),
             data={"submit_project": ""},
         )
