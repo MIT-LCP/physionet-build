@@ -165,7 +165,7 @@ def submitted_projects(request):
     List of active submissions. Editors are assigned here.
     """
     user = request.user
-    if request.method == 'POST' and user.has_perm('project.can_assign_editor'):
+    if request.method == 'POST' and 'assign_editor' in request.POST and user.has_perm('project.can_assign_editor'):
         assign_editor_form = forms.AssignEditorForm(request.POST)
         if assign_editor_form.is_valid():
             # Move this into project method
@@ -182,19 +182,21 @@ def submitted_projects(request):
     # Submitted projects
     projects = ActiveProject.objects.filter(submission_status__gt=SubmissionStatus.ARCHIVED).order_by(
         'submission_datetime')
-    # Separate projects by submission status
+    # Separate projects by submission status (exclude projects on hold)
     # Awaiting editor assignment
-    assignment_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_ASSIGNMENT)
+    assignment_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_ASSIGNMENT, is_on_hold=False)
     # Awaiting editor decision
-    decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION)
+    decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION, is_on_hold=False)
     # Awaiting author revisions
-    revision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_RESUBMISSION)
+    revision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_RESUBMISSION, is_on_hold=False)
     # Awaiting editor copyedit
-    copyedit_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_COPYEDIT)
+    copyedit_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_COPYEDIT, is_on_hold=False)
     # Awaiting author approval
-    approval_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_APPROVAL)
+    approval_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_APPROVAL, is_on_hold=False)
     # Awaiting editor publish
-    publish_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_PUBLICATION)
+    publish_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_PUBLICATION, is_on_hold=False)
+    # Projects on hold
+    on_hold_projects = projects.filter(is_on_hold=True)
 
     assign_editor_form = forms.AssignEditorForm()
 
@@ -229,6 +231,7 @@ def submitted_projects(request):
                    'copyedit_projects': copyedit_projects,
                    'approval_projects': approval_projects,
                    'publish_projects': publish_projects,
+                   'on_hold_projects': on_hold_projects,
                    'yesterday': yesterday})
 
 
@@ -240,29 +243,32 @@ def editor_home(request):
     projects = ActiveProject.objects.filter(editor=request.user).order_by(
         'submission_datetime')
 
-    # Awaiting editor decision
-    decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION)
+    # Awaiting editor decision (exclude on hold)
+    decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION, is_on_hold=False)
     # Awaiting author revisions
-    revision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_RESUBMISSION)
+    revision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_RESUBMISSION, is_on_hold=False)
     # Awaiting editor copyedit
-    copyedit_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_COPYEDIT)
+    copyedit_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_COPYEDIT, is_on_hold=False)
     # Awaiting author approval
-    approval_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_APPROVAL)
+    approval_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_APPROVAL, is_on_hold=False)
     # Awaiting editor publish
-    publish_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_PUBLICATION)
+    publish_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_PUBLICATION, is_on_hold=False)
+    # Projects on hold
+    on_hold_projects = projects.filter(is_on_hold=True)
 
     # Time to check if the reminder email can be sent
     yesterday = timezone.now() + timezone.timedelta(days=-1)
 
-    if request.method == "POST" and 'send_reminder' in request.POST:
+    if request.method == "POST":
         try:
-            pid = request.POST.get('send_reminder', '')
-            project = ActiveProject.objects.get(id=pid)
-            notification.edit_decision_notify(request, project,
-                                              project.edit_logs.last(), reminder=True)
-            project.latest_reminder = timezone.now()
-            project.save()
-            messages.success(request, 'The reminder email has been sent.')
+            if 'send_reminder' in request.POST:
+                pid = request.POST.get('send_reminder', '')
+                project = ActiveProject.objects.get(id=pid)
+                notification.edit_decision_notify(request, project,
+                                                  project.edit_logs.last(), reminder=True)
+                project.latest_reminder = timezone.now()
+                project.save()
+                messages.success(request, 'The reminder email has been sent.')
         except (ValueError, ActiveProject.DoesNotExist):
             pass
     return render(request, 'console/editor_home.html',
@@ -271,7 +277,35 @@ def editor_home(request):
                    'copyedit_projects': copyedit_projects,
                    'approval_projects': approval_projects,
                    'publish_projects': publish_projects,
+                   'on_hold_projects': on_hold_projects,
                    'yesterday': yesterday, 'editor_home': True})
+
+
+@console_permission_required('project.change_activeproject')
+def project_on_hold(request, project_slug):
+    """
+    Place a project on hold or remove it from hold.
+    """
+    if request.method != 'POST':
+        raise Http404
+
+    project = get_object_or_404(ActiveProject, slug=project_slug)
+    user = request.user
+
+    # Check permissions: admin or assigned editor
+    if not (user.has_perm('project.can_assign_editor') or project.editor == user):
+        messages.error(request, 'You do not have permission to change the on-hold status of this project.')
+    elif 'place_on_hold' in request.POST:
+        project.place_on_hold()
+        messages.success(request, f'Project "{project.title}" has been placed on hold.')
+    elif 'remove_from_hold' in request.POST:
+        project.remove_from_hold()
+        messages.success(request, f'Project "{project.title}" has been removed from hold.')
+
+    redirect_url = request.POST.get('redirect', '')
+    if redirect_url:
+        return HttpResponseRedirect(redirect_url)
+    return redirect('submitted_projects')
 
 
 def submission_info_redirect(request, project_slug):

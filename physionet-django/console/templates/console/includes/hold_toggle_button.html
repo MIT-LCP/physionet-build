@@ -1,0 +1,13 @@
+<form action="{% url 'project_on_hold' project.slug %}" method="post" class="d-inline">
+  {% csrf_token %}
+  <input type="hidden" name="redirect" value="{{ request.get_full_path }}">
+  {% if action == 'on_hold' %}
+    <button type="submit" name="place_on_hold" class="{{ button_class|default:'btn btn-outline-secondary btn-sm' }}">
+      {{ button_label|default:"Place on Hold" }}
+    </button>
+  {% elif action == 'remove_hold' %}
+    <button type="submit" name="remove_from_hold" class="{{ button_class|default:'btn btn-success btn-sm' }}">
+      {{ button_label|default:"Remove from Hold" }}
+    </button>
+  {% endif %}
+</form>
