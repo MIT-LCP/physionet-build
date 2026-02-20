@@ -1468,6 +1468,8 @@ def user_management(request, username):
 
     groups = user.groups.all()
 
+    is_restricted = user.is_from_restricted_country()
+    
     return render(request, 'console/user_management.html', {'subject': user,
                                                             'profile': user.profile,
                                                             'groups': groups,
@@ -1476,7 +1478,8 @@ def user_management(request, username):
                                                             'training_list': training,
                                                             'credentialing_app': credentialing_app,
                                                             'aws_info': aws_info,
-                                                            'gcp_info': gcp_info})
+                                                            'gcp_info': gcp_info,
+                                                            'is_restricted': is_restricted})
 
 
 @console_permission_required('user.view_user')

@@ -23,6 +23,7 @@ from django.utils.text import slugify
 from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext as _
 
+from physionet.utility import get_country_code
 from project.fields import SafeHTMLField
 from project.modelcomponents.access import AccessPolicy
 from project.validators import validate_version
@@ -464,6 +465,18 @@ class User(AbstractBaseUser, PermissionsMixin):
         except Orcid.DoesNotExist:
             return None
 
+    def is_from_restricted_country(self):
+        """
+        Check if user registered from a geographically restricted country.
+        Returns True if the registration IP is from a blocked region,
+        False otherwise, or None if unable to determine.
+        """
+        if not self.registration_ip:
+            return None
+        
+        country_code = get_country_code(self.registration_ip)
+        return country_code in settings.BLOCKED_REGIONS if country_code else None
+    
     @staticmethod
     def get_users_with_permission(app_label, permission_codename):
         """
