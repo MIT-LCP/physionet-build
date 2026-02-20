@@ -1469,7 +1469,7 @@ def user_management(request, username):
     groups = user.groups.all()
 
     is_restricted = user.is_from_restricted_country()
-    
+
     return render(request, 'console/user_management.html', {'subject': user,
                                                             'profile': user.profile,
                                                             'groups': groups,

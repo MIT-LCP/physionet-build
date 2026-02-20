@@ -473,10 +473,10 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         if not self.registration_ip:
             return None
-        
+
         country_code = get_country_code(self.registration_ip)
         return country_code in settings.BLOCKED_REGIONS if country_code else None
-    
+
     @staticmethod
     def get_users_with_permission(app_label, permission_codename):
         """
