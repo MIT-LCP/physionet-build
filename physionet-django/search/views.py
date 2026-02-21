@@ -4,7 +4,7 @@ import re
 from functools import reduce
 
 from django.conf import settings
-from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
+from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When, F, FloatField
 from django.http import Http404
 from django.shortcuts import redirect, render, reverse
 from django.templatetags.static import static
@@ -66,34 +66,85 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
         SearchQuery,
         SearchRank,
         SearchVector,
+        TrigramSimilarity,
     )
 
-    # Split search term by whitespace or punctuation
+    # Split search term by whitespace or punctuation and clean
     if search_term:
-        search_terms = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
-        search_queries = [SearchQuery(term) for term in search_terms]
+        # Clean and normalize search terms
+        search_terms = [term.strip().lower() for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
+        search_terms = [term for term in search_terms if term]  # Remove empty terms
+
+        # Create search queries with improved matching
+        search_queries = []
+        for term in search_terms:
+            # Create a fuzzy query that matches similar words
+            query = SearchQuery(term, config='english')
+            # Add prefix matching for better partial word matching
+            prefix_query = SearchQuery(term + ':*', config='english')
+            # Add exact phrase matching with higher weight
+            phrase_query = SearchQuery('"' + term + '"', config='english')
+            search_queries.append(query | prefix_query | phrase_query)
+
         search_query = reduce(operator.and_, search_queries)
         query = Q(resource_type__in=resource_type) & Q(search=search_query)
     else:
-        search_query = SearchQuery('')
+        search_query = SearchQuery('', config='english')
         query = Q(resource_type__in=resource_type)
 
-    vector = (SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
-              + SearchVector('topics__description', weight='C'))
+    # Configure search vectors with improved weights and word stemming
+    # Title gets highest weight (A), followed by topics (B), then abstract (C)
+    vector = (SearchVector('title', weight='A', config='english') +
+              SearchVector('topics__description', weight='B', config='english') +
+              SearchVector('abstract', weight='C', config='english'))
 
     # Filter projects by latest version and annotate relevance field
     published_projects = PublishedProject.objects.annotate(search=vector).filter(query, is_latest_version=True)
 
+    # Add trigram similarity for better partial matching
+    if search_term:
+        published_projects = published_projects.annotate(
+            title_similarity=TrigramSimilarity('title', search_term),
+            topic_similarity=TrigramSimilarity('topics__description', search_term),
+            abstract_similarity=TrigramSimilarity('abstract', search_term)
+        )
+
     # get distinct projects with subquery and also include relevance from published_projects
     published_projects = PublishedProject.objects.filter(id__in=published_projects.values('id')).annotate(
-        relevance=SearchRank(vector, search_query)).distinct()
+        relevance=SearchRank(vector, search_query, weights=[0.1, 0.2, 0.4, 1.0])).distinct()
+
+    # Add combined similarity score if search term exists
+    if search_term:
+        published_projects = published_projects.annotate(
+            similarity=Case(
+                When(title_similarity__isnull=False, then=F('title_similarity') * 3),
+                default=Value(0),
+                output_field=FloatField(),
+            ) + Case(
+                When(topic_similarity__isnull=False, then=F('topic_similarity') * 2),
+                default=Value(0),
+                output_field=FloatField(),
+            ) + Case(
+                When(abstract_similarity__isnull=False, then=F('abstract_similarity')),
+                default=Value(0),
+                output_field=FloatField(),
+            )
+        )
 
     # Sorting
     direction = '-' if direction == 'desc' else ''
     order_string = '{}{}'.format(direction, orderby)
 
     if orderby == 'relevance':
-        published_projects = published_projects.order_by('-relevance', '-publish_datetime')
+        if search_term:
+            # Combine search rank with similarity score for better relevance
+            # Give more weight to exact matches and title matches
+            published_projects = published_projects.order_by(
+                (F('relevance') * 0.8 + F('similarity') * 0.2).desc(),
+                '-publish_datetime'
+            )
+        else:
+            published_projects = published_projects.order_by('-publish_datetime')
     else:
         published_projects = published_projects.order_by(order_string, '-relevance')
 
@@ -110,40 +161,59 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
     if len(search_term) == 0:
         query = Q(resource_type__in=resource_type)
     else:
-        search_term = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
-        query = reduce(operator.or_, (Q(topics__description__iregex=r'{0}{1}{0}'.format(wb,
-            item)) for item in search_term))
-        query = query | reduce(operator.or_, (Q(abstract__iregex=r'{0}{1}{0}'.format(wb,
-            item)) for item in search_term))
-        query = query | reduce(operator.or_, (Q(title__iregex=r'{0}{1}{0}'.format(wb,
-            item)) for item in search_term))
-        query = query & Q(resource_type__in=resource_type)
+        # Clean and normalize search terms
+        search_terms = [term.strip().lower() for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
+        search_terms = [term for term in search_terms if term]  # Remove empty terms
+
+        # Build queries with improved matching
+        query = Q(resource_type__in=resource_type)
+        for term in search_terms:
+            # Exact phrase matching
+            phrase_query = Q(title__icontains=term) | Q(abstract__icontains=term) | Q(topics__description__icontains=term)
+            # Word boundary matching
+            word_query = (Q(title__iregex=r'{0}{1}{0}'.format(wb, term)) |
+                         Q(abstract__iregex=r'{0}{1}{0}'.format(wb, term)) |
+                         Q(topics__description__iregex=r'{0}{1}{0}'.format(wb, term)))
+            # Partial word matching
+            partial_query = (Q(title__icontains=term) |
+                           Q(abstract__icontains=term) |
+                           Q(topics__description__icontains=term))
+
+            query = query & (phrase_query | word_query | partial_query)
+
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
         .annotate(relevance=Count('core_project_id'))
         .annotate(has_keys=Value(0, IntegerField()))
     )
 
-    # Relevance
-    for t in search_term:
-        published_projects = published_projects.annotate(
-            has_keys=Case(
-                When(title__iregex=r"{0}{1}{0}".format(wb, t), then=Value(3)),
-                default=Value(0),
-                output_field=IntegerField(),
-            )
-            + Case(
-                When(topics__description__iregex=r"{0}{1}{0}".format(wb, t), then=Value(2)),
-                default=Value(0),
-                output_field=IntegerField(),
-            )
-            + Case(
-                When(abstract__iregex=r"{0}{1}{0}".format(wb, t), then=Value(1)),
-                default=Value(0),
-                output_field=IntegerField(),
-            )
-        ).annotate(has_keys=Sum("has_keys"))
-
+    # Relevance scoring with improved weights
+    if search_term:
+        for term in search_terms:
+            published_projects = published_projects.annotate(
+                has_keys=Case(
+                    # Exact phrase matches in title
+                    When(title__iexact=term, then=Value(5)),
+                    # Word boundary matches in title
+                    When(title__iregex=r"{0}{1}{0}".format(wb, term), then=Value(4)),
+                    # Partial matches in title
+                    When(title__icontains=term, then=Value(3)),
+                    # Exact phrase matches in topics
+                    When(topics__description__iexact=term, then=Value(3)),
+                    # Word boundary matches in topics
+                    When(topics__description__iregex=r"{0}{1}{0}".format(wb, term), then=Value(2)),
+                    # Partial matches in topics
+                    When(topics__description__icontains=term, then=Value(1)),
+                    # Exact phrase matches in abstract
+                    When(abstract__iexact=term, then=Value(2)),
+                    # Word boundary matches in abstract
+                    When(abstract__iregex=r"{0}{1}{0}".format(wb, term), then=Value(1)),
+                    # Partial matches in abstract
+                    When(abstract__icontains=term, then=Value(0.5)),
+                    default=Value(0),
+                    output_field=FloatField(),
+                )
+            ).annotate(has_keys=Sum("has_keys"))
 
     # Sorting
     direction = '-' if direction == 'desc' else ''
