@@ -4,6 +4,7 @@ from django.core.mail import send_mail
 from django.template import loader
 from django.utils import timezone
 
+from notification.models import Notification
 from user.models import AssociatedEmail
 from project.models import AuthorInvitation
 
@@ -71,3 +72,27 @@ class RemoveOutstandingInvites(CronJobBase):
                 timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
                 invitation.project.title, invitation.inviter.email,
                 invitation.email))
+
+
+READ_NOTIFICATION_DAY_LIMIT = 90
+
+
+class CleanOldNotifications(CronJobBase):
+    RUN_EVERY_MINS = 60
+    RETRY_AFTER_FAILURE_MINS = 10
+
+    schedule = Schedule(run_every_mins=RUN_EVERY_MINS,
+        retry_after_failure_mins=RETRY_AFTER_FAILURE_MINS)
+
+    code = 'physionet.CleanOldNotifications'
+
+    def do(self):
+        cutoff = timezone.now() - timezone.timedelta(days=READ_NOTIFICATION_DAY_LIMIT)
+        deleted_count, _ = Notification.objects.filter(
+            is_read=True,
+            created_datetime__lt=cutoff,
+        ).delete()
+        if deleted_count:
+            print('{}: Deleted {} old read notifications'.format(
+                timezone.now().strftime('%Y-%m-%d %H:%M:%S'),
+                deleted_count))
