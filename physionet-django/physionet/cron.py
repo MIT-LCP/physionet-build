@@ -82,7 +82,7 @@ class CleanOldNotifications(CronJobBase):
     RETRY_AFTER_FAILURE_MINS = 10
 
     schedule = Schedule(run_every_mins=RUN_EVERY_MINS,
-        retry_after_failure_mins=RETRY_AFTER_FAILURE_MINS)
+                        retry_after_failure_mins=RETRY_AFTER_FAILURE_MINS)
 
     code = 'physionet.CleanOldNotifications'
 

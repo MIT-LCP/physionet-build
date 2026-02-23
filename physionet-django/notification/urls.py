@@ -20,3 +20,21 @@ TEST_DEFAULTS = {
     'news_id': '1',
     'news_slug': 'cloud-migration',
 }
+
+TEST_CASES = {
+    'notification_list': {
+        '_user_': 'george',
+    },
+    'mark_notification_read': {
+        '_user_': 'george',
+        'notification_id': '1',
+        '_skip_': True,
+    },
+    'mark_all_read': {
+        '_user_': 'george',
+        '_skip_': True,
+    },
+    'unread_count': {
+        '_user_': 'george',
+    },
+}
