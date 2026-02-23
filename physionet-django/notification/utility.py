@@ -1,6 +1,7 @@
 """
 Module for generating notifications
 """
+import logging
 from email.utils import formataddr
 from functools import cache
 from urllib import parse
@@ -12,10 +13,36 @@ from django.template import defaultfilters, loader
 from django.utils import timezone
 from django.urls import reverse
 
+from notification.models import Notification, NotificationType
 import project.models
 import user.models
 
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
+
+logger = logging.getLogger(__name__)
+
+
+def create_notification(recipient, notification_type, message, url='', actor=None):
+    """
+    Create an in-app notification for the given recipient.
+
+    Args:
+        recipient: User instance to receive the notification.
+        notification_type: A NotificationType value.
+        message: Short human-readable description.
+        url: Optional relative URL the notification should link to.
+        actor: Optional User who triggered the notification.
+    """
+    try:
+        return Notification.objects.create(
+            recipient=recipient,
+            notification_type=notification_type,
+            message=message,
+            url=url,
+            actor=actor,
+        )
+    except Exception:
+        logger.exception('Failed to create in-app notification for %s', recipient)
 
 
 def mailto_url(*recipients, **params):
@@ -65,6 +92,7 @@ def get_url_prefix(request, bulk_download=False):
         return 'http://' + hostname
     else:
         return 'https://' + hostname
+
 
 def email_project_info(project):
     """
@@ -155,6 +183,17 @@ def invitation_notify(request, invite_author_form, target_email):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [target_email], fail_silently=False)
 
+    # In-app notification for existing users
+    target_user = user.models.User.objects.filter(email=target_email).first()
+    if target_user:
+        create_notification(
+            recipient=target_user,
+            notification_type=NotificationType.AUTHOR_INVITATION,
+            message='You have been invited to author project: {}'.format(project.title),
+            url=reverse('project_home'),
+            actor=inviter,
+        )
+
 
 def cohost_response_notify(invitation, affected_emails):
     """
@@ -216,6 +255,15 @@ def invitation_response_notify(invitation, affected_emails):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+    submitting_user = project.submitting_author().user
+    create_notification(
+        recipient=submitting_user,
+        notification_type=NotificationType.INVITATION_RESPONSE,
+        message='Authorship invitation {} for project: {}'.format(response, project.title),
+        url=reverse('project_authors', args=(project.slug,)),
+    )
+
+
 def submit_notify(project):
     """
     Notify authors when a project is submitted
@@ -236,6 +284,14 @@ def submit_notify(project):
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
+
+    for author in project.authors.all():
+        create_notification(
+            recipient=author.user,
+            notification_type=NotificationType.PROJECT_SUBMISSION,
+            message='Project submitted: {}'.format(project.title),
+            url=reverse('project_home'),
+        )
 
     # notify editorial team
     if project.core_project.publishedprojects.exists():
@@ -313,6 +369,15 @@ def assign_editor_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+    for author in project.authors.all():
+        create_notification(
+            recipient=author.user,
+            notification_type=NotificationType.EDITOR_ASSIGNMENT,
+            message='Editor assigned to project: {}'.format(project.title),
+            url=reverse('project_home'),
+            actor=project.editor,
+        )
+
 
 def editor_notify_new_project(project, assigner, reassigned=False):
     """
@@ -377,6 +442,16 @@ def edit_decision_notify(request, project, edit_log, reminder=False):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+    # In-app notifications for all authors
+    for author in project.authors.all():
+        create_notification(
+            recipient=author.user,
+            notification_type=NotificationType.EDITOR_DECISION,
+            message=subject,
+            url=reverse('project_home'),
+            actor=project.editor,
+        )
+
 
 def copyedit_complete_notify(request, project, copyedit_log, reminder=False):
     """
@@ -403,6 +478,13 @@ def copyedit_complete_notify(request, project, copyedit_log, reminder=False):
                 })
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                       [person.user.email], fail_silently=False)
+            create_notification(
+                recipient=person.user,
+                notification_type=NotificationType.COPYEDIT,
+                message='Your approval needed to publish: {}'.format(project.title),
+                url=reverse('project_home'),
+                actor=project.editor,
+            )
 
 
 def reopen_copyedit_notify(request, project):
@@ -475,6 +557,18 @@ def publish_notify(request, published_project):
             'notification/email/publish_notify.html', content)
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
+
+    # In-app notifications for all authors
+    project_url = reverse('published_project',
+                          args=(published_project.slug,
+                                published_project.version))
+    for author in published_project.authors.all():
+        create_notification(
+            recipient=author.user,
+            notification_type=NotificationType.PROJECT_PUBLISHED,
+            message='Your project has been published: {}'.format(published_project.title),
+            url=project_url,
+        )
 
     subject = 'A new project has been published: {0}'.format(
         published_project.title)
