@@ -15,7 +15,6 @@ class Migration(migrations.Migration):
             model_name='publishedproject',
             name='public_project_uuid',
             field=models.UUIDField(
-                default=uuid.uuid4,
                 editable=False,
                 help_text='Persistent, public identifier for published projects.',
                 null=True,
