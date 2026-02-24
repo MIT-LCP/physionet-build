@@ -88,6 +88,9 @@ from project.cloud.s3 import (
     has_s3_credentials,
 )
 
+from django.core.management import call_command
+
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -3858,8 +3861,6 @@ def federated_site_sync(request, site_id):
     """
     Trigger a manual sync for a specific site
     """
-    from search.models import FederatedSite
-    from django.core.management import call_command
 
     site = get_object_or_404(FederatedSite, id=site_id)
 
@@ -3883,7 +3884,6 @@ def federated_site_delete(request, site_id):
     """
     Delete a federated site and all its cached projects
     """
-    from search.models import FederatedSite
 
     site = get_object_or_404(FederatedSite, id=site_id)
 
