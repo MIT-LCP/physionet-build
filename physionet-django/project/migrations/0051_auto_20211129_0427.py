@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.db import migrations, models
 
 from project.modelcomponents.access import AccessPolicy
-from project.modelcomponents.fields import SafeHTMLField
+from project.fields import SafeHTMLField
 
 
 def migrate_forward(apps, schema_editor):

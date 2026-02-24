@@ -24,7 +24,7 @@ from django.utils.html import format_html, format_html_join
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.storage import generate_signed_url_helper
-from physionet.utility import serve_file
+from physionet.utility import paginate, serve_file
 from project import forms, utility
 from project.fileviews import display_project_file
 from project.models import (
@@ -2104,13 +2104,20 @@ def published_project_metrics(request, project_slug, version):
     Public metrics page for a published project.
     """
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+    views_over_time = project.views_over_time()
+    tracking_start_date = views_over_time[0]['month'] if views_over_time else None
+
+    # Display newest months first, paginated
+    views_over_time.reverse()
+    views_over_time = paginate(request, views_over_time, 12)
 
     return render(request, 'project/published_project_metrics.html', {
         'project': project,
         'project_views_count': project.view_count(),
         'all_versions_views_count': project.view_count(all_versions=True),
-        'views_over_time': project.views_over_time(),
+        'views_over_time': views_over_time,
         'views_by_version': project.views_by_version(),
+        'tracking_start_date': tracking_start_date,
     })
 
 

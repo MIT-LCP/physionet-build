@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django.db.models.deletion
-import project.modelcomponents.fields
+import project.fields
 import project.validators
 from project.modelcomponents.access import AccessPolicy
 
@@ -100,11 +100,11 @@ class Migration(migrations.Migration):
                 ("is_active", models.BooleanField(default=True)),
                 (
                     "html_content",
-                    project.modelcomponents.fields.SafeHTMLField(default=""),
+                    project.fields.SafeHTMLField(default=""),
                 ),
                 (
                     "access_template",
-                    project.modelcomponents.fields.SafeHTMLField(default=""),
+                    project.fields.SafeHTMLField(default=""),
                 ),
                 (
                     "access_policy",

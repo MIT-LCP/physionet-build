@@ -28,6 +28,9 @@
       <li class="nav-item">
         <a class="nav-link" id="publish-tab" data-toggle="tab" href="#publish" role="tab" aria-controls="publish" aria-selected="false">Awaiting Publication {{ publish_projects|task_count_badge|safe }}</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" id="onhold-tab" data-toggle="tab" href="#onhold" role="tab" aria-controls="onhold" aria-selected="false">On Hold {{ on_hold_projects|task_count_badge|safe }}</a>
+      </li>
     </ul>
   </div>
   <div class="card-body">
@@ -52,7 +55,10 @@
                     <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                     <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                     <td>{{ project.submission_datetime|date }}</td>
-                    <td><a href='#' data-toggle="modal" data-target="#assignModal" onclick="set_project_id('{{ project.id }}','{{ project|escapejs }}')" class="btn btn-primary btn-sm" role="button">Assign Editor</a></td>
+                    <td>
+                      <a href='#' data-toggle="modal" data-target="#assignModal" onclick="set_project_id('{{ project.id }}','{{ project|escapejs }}')" class="btn btn-primary btn-sm" role="button">Assign Editor</a>
+                      {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
+                    </td>
                   </tr>
                 {% endfor %}
                 </tbody>
@@ -123,11 +129,13 @@
                       Not a resubmission
                     {% endif %}
                   </td>
-                  {% if project.editor == user %}
-                    <td><a class="btn btn-primary btn-sm" href="{% url 'edit_submission' project.slug %}" role="button">Edit Project</a></td>
-                  {% else %}
-                    <td><p>Assigned</p></td>
-                  {% endif %}
+                  <td>
+                    {% if project.editor == user %}
+                      <a class="btn btn-primary btn-sm" href="{% url 'edit_submission' project.slug %}" role="button">Edit Project</a>
+                    {% else %}
+                      <p class="mb-0">Assigned</p>
+                    {% endif %}
+                    {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' %}
                   </td>
                 </tr>
               {% endfor %}
@@ -178,6 +186,7 @@
                       {% else %}
                         <button class="btn btn-warning btn-sm ml-2" disabled title="Only the handling editor ({{ project.editor }}) can archive this project" data-toggle="tooltip">Archive</button>
                       {% endif %}
+                      {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
                     </div>
                   </td>
                 </tr>
@@ -212,11 +221,14 @@
                   <td>{{ project.submission_datetime|date }}</td>
                   <td>{{ project.editor_accept_datetime|date }}</td>
                   <td>{{ project.editor }}</td>
-                  {% if project.editor == user %}
-                    <td><a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' project.slug %}" role="button">Copyedit Project</a></td>
-                  {% else %}
-                    <td><p>Assigned</p></td>
-                  {% endif %}
+                  <td>
+                    {% if project.editor == user %}
+                      <a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' project.slug %}" role="button">Copyedit Project</a>
+                    {% else %}
+                      <p class="mb-0">Assigned</p>
+                    {% endif %}
+                    {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' %}
+                  </td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -254,11 +266,15 @@
                   <td>{{ project.latest_reminder|date }}</td>
                   <td>{{ project.editor }}</td>
                   <td>
-                    {% if project.latest_reminder < yesterday %}
-                      <button class="btn btn-primary" name="send_approval_reminder" value="{{ project.id }}" type="submit">Send Reminder Email</button>
-                    {% else %}
-                      <button class="btn btn-primary" name="send_approval_reminder" value="{{ project.id }}" disabled type="submit">Send Reminder Email</button>
-                    {% endif %}
+                    <form action="" method="post" class="d-inline">
+                      {% csrf_token %}
+                      {% if project.latest_reminder < yesterday %}
+                        <button class="btn btn-primary" name="send_approval_reminder" value="{{ project.id }}" type="submit">Send Reminder Email</button>
+                      {% else %}
+                        <button class="btn btn-primary" name="send_approval_reminder" value="{{ project.id }}" disabled type="submit">Send Reminder Email</button>
+                      {% endif %}
+                    </form>
+                    {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
                   </td>
                 </tr>
               {% endfor %}
@@ -296,11 +312,49 @@
                   <td>{{ project.copyedit_completion_datetime|date }}</td>
                   <td>{{ project.author_approval_datetime|date }}</td>
                   <td>{{ project.editor }}</td>
-                  {% if project.editor == user %}
-                    <td><a class="btn btn-primary btn-sm" href="{% url 'publish_submission' project.slug %}" role="button">Publish Project</a></td>
-                  {% else %}
-                    <td><p>Assigned</p></td>
-                  {% endif %}
+                  <td>
+                    {% if project.editor == user %}
+                      <a class="btn btn-primary btn-sm" href="{% url 'publish_submission' project.slug %}" role="button">Publish Project</a>
+                    {% else %}
+                      <p class="mb-0">Assigned</p>
+                    {% endif %}
+                    {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' %}
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
+      </div>
+      {# On hold #}
+      <div class="tab-pane fade" id="onhold" role="tabpanel" aria-labelledby="onhold-tab">
+        {% if on_hold_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitted By</th>
+                  <th>Editor</th>
+                  <th>Stage</th>
+                  <th>Submitted</th>
+                  <th>Manage</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in on_hold_projects %}
+                <tr>
+                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+                  <td>{{ project.editor|default:"Unassigned" }}</td>
+                  <td>{{ project.submission_status_label }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                  <td>
+                    {% include 'console/includes/hold_toggle_button.html' with project=project action='remove_hold' button_class='btn btn-success btn-sm' button_label='Remove from Hold' %}
+                  </td>
                 </tr>
               {% endfor %}
               </tbody>
@@ -316,4 +370,3 @@
 
 
 {% endblock %}
-

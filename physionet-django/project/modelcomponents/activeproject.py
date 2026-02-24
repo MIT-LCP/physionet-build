@@ -165,6 +165,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     "phase" of submission; see SubmissionStatus.
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
+    is_on_hold = models.BooleanField(default=False)
     archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
     archive_reason_text = models.TextField(null=True, blank=True)
 
@@ -291,6 +292,18 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         if clear_files:
             self.clear_files()
+
+    def place_on_hold(self):
+        """Place the submission on hold without changing its status."""
+        if not self.is_on_hold:
+            self.is_on_hold = True
+            self.save(update_fields=['is_on_hold'])
+
+    def remove_from_hold(self):
+        """Remove a submission from on-hold status, returning it to the active queues."""
+        if self.is_on_hold:
+            self.is_on_hold = False
+            self.save(update_fields=['is_on_hold'])
 
     def check_integrity(self):
         """

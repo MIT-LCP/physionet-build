@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="_레이어_1" data-name="레이어_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 64 64">
+  <!-- KHDP Icon -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #fff;
+      }
+
+      .st1 {
+        fill: url(#_무제_그라디언트_205);
+      }
+    </style>
+    <linearGradient id="_무제_그라디언트_205" data-name="무제 그라디언트 205" x1="4.3" y1="16" x2="59.7" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#005caa"/>
+      <stop offset=".5" stop-color="#053b6a"/>
+      <stop offset=".9" stop-color="#0d1923"/>
+      <stop offset="1" stop-color="#101010"/>
+    </linearGradient>
+  </defs>
+  <circle class="st1" cx="32" cy="32" r="32"/>
+  <path class="st0" d="M34.6,49H14.6v-21.5h9.3v12.6h10.7c5.1,0,8.9-3.3,8.9-8.2s-3.8-8.4-8.9-8.4H14.6l5.9-9h14.1c10.5,0,18,7,18,16.9s-7.6,17.6-18,17.6Z"/>
+</svg>

@@ -6,7 +6,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 from django.db.models.fields import DurationField
 
-from project.modelcomponents.fields import SafeHTMLField
+from project.fields import SafeHTMLField
 from user.enums import TrainingStatus, RequiredField
 from user.models import get_training_path
 from user.validators import validate_alphaplusplus

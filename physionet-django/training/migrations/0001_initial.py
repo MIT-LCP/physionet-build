@@ -3,7 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import project.modelcomponents.fields
+import project.fields
 
 
 class Migration(migrations.Migration):
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
                 ('order', models.PositiveIntegerField()),
-                ('description', project.modelcomponents.fields.SafeHTMLField()),
+                ('description', project.fields.SafeHTMLField()),
                 ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='modules',
                                              to='training.course')),
             ],
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
             name='Quiz',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('question', project.modelcomponents.fields.SafeHTMLField()),
+                ('question', project.fields.SafeHTMLField()),
                 ('order', models.PositiveIntegerField()),
                 ('module', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='quizzes',
                                              to='training.module')),
@@ -97,7 +97,7 @@ class Migration(migrations.Migration):
             name='ContentBlock',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('body', project.modelcomponents.fields.SafeHTMLField()),
+                ('body', project.fields.SafeHTMLField()),
                 ('order', models.PositiveIntegerField()),
                 ('module', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contents',
                                              to='training.module')),

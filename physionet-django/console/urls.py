@@ -38,6 +38,9 @@ urlpatterns = [
     path('gcp-signed-urls-logs/<int:pk>/', views.gcp_signed_urls_logs_detail, name='gcp_signed_urls_logs_detail'),
     path('download-signed-urls-logs/<int:pk>/', views.download_signed_urls_logs, name='download_signed_urls_logs'),
 
+    # On hold
+    path('submitted-projects/<project_slug>/on-hold/', views.project_on_hold, name='project_on_hold'),
+
     # Individual edit pages
     path('submitted-projects/<project_slug>/', views.submission_info_redirect, name='submission_info_redirect'),
     path('submitted-projects/<project_slug>/info/', views.submission_info, name='submission_info'),
@@ -215,6 +218,10 @@ TEST_CASES = {
         'pk': 4,
     },
 
+    'project_on_hold': {
+        'project_slug': 'p7TCIMkltNswuOB9FZH1',
+        '_skip_': True,
+    },
     'submission_info_redirect': {
         'project_slug': 'p7TCIMkltNswuOB9FZH1',
     },
