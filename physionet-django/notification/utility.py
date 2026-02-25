@@ -570,6 +570,7 @@ def publish_notify(request, published_project):
             notification_type=NotificationType.PROJECT_PUBLISHED,
             message='Your project has been published: {}'.format(published_project.title),
             url=project_url,
+            actor=request.user,
         )
 
     subject = 'A new project has been published: {0}'.format(
