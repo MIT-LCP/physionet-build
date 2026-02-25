@@ -189,8 +189,6 @@ class LocalProjectFiles(BaseProjectFiles):
                             block = fp.read(h.block_size)
                     outfile.write('{} {}\n'.format(h.hexdigest(), f))
 
-        project.set_storage_info()
-
     def can_make_zip(self):
         return True
 
