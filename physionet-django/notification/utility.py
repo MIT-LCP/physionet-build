@@ -225,7 +225,7 @@ def cohost_response_notify(invitation, affected_emails):
                   [email], fail_silently=False)
 
 
-def invitation_response_notify(invitation, affected_emails):
+def invitation_response_notify(invitation, affected_emails, responding_user=None):
     """
     Notify the submitting author when an invitation to join a project
     is processed.
@@ -261,6 +261,7 @@ def invitation_response_notify(invitation, affected_emails):
         notification_type=NotificationType.INVITATION_RESPONSE,
         message='Authorship invitation {} for project: {}'.format(response, project.title),
         url=reverse('project_authors', args=(project.slug,)),
+        actor=responding_user,
     )
 
 
