@@ -285,12 +285,14 @@ def submit_notify(project):
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
 
+    submitting_author = project.submitting_author().user
     for author in project.authors.all():
         create_notification(
             recipient=author.user,
             notification_type=NotificationType.PROJECT_SUBMISSION,
             message='Project submitted: {}'.format(project.title),
             url=reverse('project_home'),
+            actor=submitting_author,
         )
 
     # notify editorial team
