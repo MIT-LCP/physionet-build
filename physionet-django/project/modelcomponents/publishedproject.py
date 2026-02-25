@@ -168,12 +168,6 @@ class PublishedProject(Metadata, SubmissionInfo):
         else:
             return os.path.join('published-projects', self.slug, self.zip_name())
 
-    def make_checksum_file(self):
-        """
-        Make the checksums file for the main files
-        """
-        return self.files.make_checksum_file(self)
-
     def remove_files(self):
         """
         Remove files of this project

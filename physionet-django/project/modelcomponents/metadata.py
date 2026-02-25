@@ -323,6 +323,12 @@ class Metadata(models.Model):
         fname = os.path.join(self.file_root(), 'LICENSE.txt')
         self.files.fwrite(fname, self.license_content(fmt='text'))
 
+    def make_checksum_file(self):
+        """
+        Make the checksums file for the main files
+        """
+        return self.files.make_checksum_file(self)
+
     def get_directory_content(self, subdir=''):
         """
         Return information for displaying files and directories from
