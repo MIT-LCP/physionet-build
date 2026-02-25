@@ -2,31 +2,73 @@
 
 {% for published_project in projects %}
   <div class="project">
-    <p>{{ published_project.resource_type.id|resource_badge|safe }}
-       {{ published_project.access_policy|access_badge|safe }}
-    </p>
-    <{% firstof content_list_header 'h2' %}><a href="{% url 'published_project' published_project.slug published_project.version %}">{{ published_project.title }}</a></{% firstof content_list_header 'h2' %}>
-    {% if not published_project.is_legacy %}
-      <p class="text-muted card-authors">{{ published_project.display_authors }}</p>
-    {% endif %}
-    <div style="margin-bottom: 1rem;">
-      {% if not published_project.short_description %}
+    {% if published_project.is_federated %}
+      {# Federated Project #}
+      <p>
+        {% if published_project.resource_type %}
+          <span class="badge badge-info">{{ published_project.resource_type }}</span>
+        {% endif %}
+        {% if published_project.access_policy %}
+          <span class="badge badge-secondary">{{ published_project.access_policy }}</span>
+        {% endif %}
+        <span class="badge badge-warning" title="From {{ published_project.source_site.site_name }}">
+          <i class="fa fa-globe"></i> Federated
+        </span>
+      </p>
+      <{% firstof content_list_header 'h2' %}>
+        <a href="{{ published_project.source_url }}" target="_blank" rel="noopener">
+          {{ published_project.title }}
+          <i class="fa fa-external-link-alt fa-sm"></i>
+        </a>
+      </{% firstof content_list_header 'h2' %}>
+      <p class="text-muted card-authors">
+        <small>Source: {{ published_project.source_site.site_name }}</small>
+      </p>
+      <div style="margin-bottom: 1rem;">
         {{ published_project.abstract|safe|truncatechars_html:250 }}
-      {% else %}
-        {{ published_project.short_description }}
+      </div>
+      <p class="text-muted">
+        {% if published_project.topics %}
+          {% for topic in published_project.topics %}
+            <span class="badge badge-light">{{ topic }}</span>
+          {% endfor %}
+        {% endif %}
+      </p>
+      <p class="pub-details">
+        Published: {{ published_project.publish_datetime|date }}.
+        Version: {{ published_project.version }}
+        {% if published_project.doi %}
+          | DOI: {{ published_project.doi }}
+        {% endif %}
+      </p>
+    {% else %}
+      {# Local Published Project #}
+      <p>{{ published_project.resource_type.id|resource_badge|safe }}
+         {{ published_project.access_policy|access_badge|safe }}
+      </p>
+      <{% firstof content_list_header 'h2' %}><a href="{% url 'published_project' published_project.slug published_project.version %}">{{ published_project.title }}</a></{% firstof content_list_header 'h2' %}>
+      {% if not published_project.is_legacy %}
+        <p class="text-muted card-authors">{{ published_project.display_authors }}</p>
       {% endif %}
-    </div>
-    <p class="text-muted">
-      {% for topic in published_project.topics.all %}
-        {{ topic|topic_badge|safe }}
-      {% endfor %}
-    </p>
-    <p class="pub-details">Published: {{ published_project.publish_datetime|date }}.
-      Version: {{ published_project.version }}</p>
-    {% if published_project.files.is_lightwave_supported %}
-      {% can_view_project_files published_project request.user request as user_can_view_project_files %}
-      {% if published_project.has_wfdb and user_can_view_project_files %}
-        <a href="{% url 'lightwave_home' %}?db={{ published_project.slug }}/{{ published_project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a>
+      <div style="margin-bottom: 1rem;">
+        {% if not published_project.short_description %}
+          {{ published_project.abstract|safe|truncatechars_html:250 }}
+        {% else %}
+          {{ published_project.short_description }}
+        {% endif %}
+      </div>
+      <p class="text-muted">
+        {% for topic in published_project.topics.all %}
+          {{ topic|topic_badge|safe }}
+        {% endfor %}
+      </p>
+      <p class="pub-details">Published: {{ published_project.publish_datetime|date }}.
+        Version: {{ published_project.version }}</p>
+      {% if published_project.files.is_lightwave_supported %}
+        {% can_view_project_files published_project request.user request as user_can_view_project_files %}
+        {% if published_project.has_wfdb and user_can_view_project_files %}
+          <a href="{% url 'lightwave_home' %}?db={{ published_project.slug }}/{{ published_project.version }}"><i class="fas fa-chart-line"></i> Visualize waveforms</a>
+        {% endif %}
       {% endif %}
     {% endif %}
     <hr>

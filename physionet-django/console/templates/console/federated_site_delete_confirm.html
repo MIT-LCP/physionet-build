@@ -1,0 +1,51 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Delete Federated Site{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h2>Confirm Deletion</h2>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-danger">
+        <i class="fa fa-exclamation-triangle"></i>
+        <strong>Warning: This action cannot be undone!</strong>
+      </div>
+
+      <p>You are about to delete the following federated site:</p>
+      <ul>
+        <li><strong>Site:</strong> {{ site.site_name }}</li>
+        <li><strong>Identifier:</strong> {{ site.site_identifier }}</li>
+        <li><strong>API URL:</strong> {{ site.api_base_url }}</li>
+        <li><strong>Cached Projects:</strong> {{ cached_projects_count }}</li>
+      </ul>
+
+      <p>
+        This operation will permanently delete:
+      </p>
+      <ul>
+        <li>The federated site configuration</li>
+        <li>All {{ cached_projects_count }} cached project(s) from this site</li>
+        <li>All synchronization logs for this site</li>
+      </ul>
+
+      <div class="alert alert-warning">
+        <i class="fa fa-info-circle"></i>
+        Users will no longer be able to discover projects from this site through federated search.
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">
+          <i class="fa fa-trash"></i> Confirm and Delete
+        </button>
+        <a href="{% url 'federated_site_detail' site.id %}" class="btn btn-secondary">
+          <i class="fa fa-times"></i> Cancel
+        </a>
+      </form>
+    </div>
+  </div>
+{% endblock %}

@@ -1,6 +1,7 @@
 import os
 import shutil
 import datetime
+import uuid
 from distutils.version import StrictVersion
 
 from django.conf import settings
@@ -33,6 +34,12 @@ class PublishedProject(Metadata, SubmissionInfo):
     main_storage_size = models.BigIntegerField(default=0)
     compressed_storage_size = models.BigIntegerField(default=0)
     incremental_storage_size = models.BigIntegerField(default=0)
+    public_project_uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="Persistent, public identifier for published projects.",
+    )
     publish_datetime = models.DateTimeField(auto_now_add=True)
     has_other_versions = models.BooleanField(default=False)
     deprecated_files = models.BooleanField(default=False)
