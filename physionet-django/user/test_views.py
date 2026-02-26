@@ -9,6 +9,8 @@ import shutil
 import time
 from unittest import mock
 
+from background_task.models import Task
+from background_task.tasks import tasks
 import boto3
 from django.conf import settings
 
@@ -180,6 +182,31 @@ class TestMixin(TestCase):
         """
         self.assertEqual(max(m.level for m in response.context['messages']),
             level)
+
+    def assertBackgroundTasks(self, expected_number_of_tasks):
+        """
+        Run pending background tasks and assert that they succeed.
+
+        This method should be called after a test case performs an
+        action (such as submitting a form) that triggers one or more
+        background tasks.  `expected_number_of_tasks` is the number of
+        tasks that we expect to see in the queue.
+
+        All tasks in the queue will then be executed in order, as if
+        they were being run in the background by `manage.py
+        process_tasks`.  (If one task adds additional tasks to the
+        queue, those additional tasks will also be executed,
+        recursively.)
+
+        If any task raises an exception, this method will raise
+        BackgroundTaskError.
+        """
+        self.assertEqual(Task.objects.count(), expected_number_of_tasks)
+        with override_settings(BACKGROUND_TASK_RUN_ASYNC=False):
+            while tasks.run_next_task():
+                failed_task = Task.objects.exclude(last_error='').first()
+                if failed_task is not None:
+                    raise BackgroundTaskError(failed_task)
 
     def make_get_request(self, viewname, reverse_kwargs=None):
         """
@@ -940,3 +967,22 @@ class TestAWSVerification(TestCase):
         other_cloud_info.refresh_from_db()
         self.assertEqual(other_cloud_info.aws_userid, self.AWS_USERID)
         self.assertEqual(other_cloud_info.aws_user_arn, self.AWS_ARN)
+
+
+class BackgroundTaskError(Exception):
+    def __init__(self, task):
+        self.task = task
+        # Extract error details and store as __cause__ so that the
+        # inner traceback(s) are displayed first, followed by the
+        # outer traceback.
+        args, kwargs = task.params()
+        self.__cause__ = Exception(
+            "error in background task:\n"
+            f"  task_name = {task.task_name!r}\n"
+            f"  args = {args!r}\n"
+            f"  kwargs = {kwargs!r}\n\n"
+            f"{task.last_error}"
+        )
+
+    def __str__(self):
+        return f"Task failed: {self.task}"
