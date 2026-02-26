@@ -1,11 +1,14 @@
 from datetime import date
 
-from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.http import Http404, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.db.models import Min, Max
-from django.http import Http404
+from django.views.decorators.http import require_POST
 
-from notification.models import News
+from notification.models import News, Notification
 
 
 def news(request, max_items=20):
@@ -68,3 +71,44 @@ def news_rss(request, max_items=100):
     return render(request, 'notification/news_rss.xml',
                   {'feed_date': feed_date, 'news_pieces': news_pieces},
                   content_type='text/xml; charset=UTF-8')
+
+
+@login_required
+def notification_list(request):
+    notifications = Notification.objects.filter(recipient=request.user)
+    paginator = Paginator(notifications, 25)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'notification/notifications.html', {
+        'page_obj': page_obj,
+    })
+
+
+@login_required
+@require_POST
+def mark_notification_read(request, notification_id):
+    notification = get_object_or_404(
+        Notification, id=notification_id, recipient=request.user
+    )
+    notification.is_read = True
+    notification.save(update_fields=['is_read'])
+    if notification.url:
+        return redirect(notification.url)
+    return redirect('notification_list')
+
+
+@login_required
+@require_POST
+def mark_all_read(request):
+    Notification.objects.filter(
+        recipient=request.user, is_read=False
+    ).update(is_read=True)
+    return redirect('notification_list')
+
+
+@login_required
+def unread_count(request):
+    count = Notification.objects.filter(
+        recipient=request.user, is_read=False
+    ).count()
+    return JsonResponse({'unread_count': count})

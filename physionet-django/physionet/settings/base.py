@@ -143,6 +143,7 @@ REST_FRAMEWORK = {
 CRON_CLASSES = [
     "physionet.cron.RemoveUnverifiedEmails",
     "physionet.cron.RemoveOutstandingInvites",
+    "physionet.cron.CleanOldNotifications",
 ]
 
 ROOT_URLCONF = 'physionet.urls'
@@ -163,7 +164,8 @@ TEMPLATES = [
                 'physionet.context_processors.platform_config',
                 'sso.context_processors.sso_enabled',
                 'physionet.context_processors.cloud_research_environments_config',
-                'physionet.context_processors.homepage_config'
+                'physionet.context_processors.homepage_config',
+                'physionet.context_processors.unread_notification_count'
             ],
             'debug': DEBUG,
         },

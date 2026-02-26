@@ -208,7 +208,8 @@ def process_invitation_response(request, invitation_response_formset):
                 )
 
             notification.invitation_response_notify(invitation,
-                                                    affected_emails)
+                                                    affected_emails,
+                                                    responding_user=user)
             messages.success(
                 request,
                 'The invitation has been {0}.'.format(
