@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 import urllib.parse
 
@@ -7,6 +8,7 @@ from django.conf import settings
 from django.forms import ValidationError
 import requests
 
+LOGGER = logging.getLogger(__name__)
 
 # As of January 2024, boto3 (and older versions of awscli) cannot
 # generate correct signed URLs for arbitrary AWS regions.  Always use
@@ -166,13 +168,21 @@ def check_aws_verification_url(site_domain, user_email,
         # response (because the resource doesn't, in fact, exist.)
         response = session.get(signed_url)
         if response.status_code != 404:
+            LOGGER.info("Response: %s %s (expected 404) for URL <%s>: %s",
+                        response.status_code, response.reason,
+                        response.url, response.content[:10000])
             raise InvalidAWSSignature
 
         # As a sanity check, verify that S3 returns a 403 response if
         # the AWS signature is missing.
         response = session.get(unsigned_url)
         if response.status_code != 403:
+            LOGGER.info("Response: %s %s (expected 403) for URL <%s>: %s",
+                        response.status_code, response.reason,
+                        response.url, response.content[:10000])
             raise BadBucketPolicy
+
+    LOGGER.info("Successful verification for URL <%s>", signed_url)
 
     return {
         'account': aws_account,
