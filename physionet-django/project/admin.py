@@ -87,6 +87,8 @@ admin.site.unregister(CompletedTask)
 
 
 admin.site.register(models.ActiveProject)
+admin.site.register(models.ReviewerInvitation)
+admin.site.register(models.ExternalReview)
 admin.site.register(models.AuthorInvitation)
 admin.site.register(models.CoreProject)
 admin.site.register(models.LegacyProject, LegacyProjectModelAdmin)
