@@ -1,0 +1,21 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+You have been invited by {{ editor }} to review the project entitled "{{ project.title }}" on {{ SITE_NAME }}.
+
+Please review the project and submit your review by {{ deadline }}.
+
+To view the project anonymously, visit the following link:
+{{ anonymous_login_url }}
+
+Passphrase: {{ passphrase }}
+
+To submit your review, visit:
+{{ review_url }}
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

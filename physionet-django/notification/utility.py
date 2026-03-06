@@ -1261,3 +1261,110 @@ def notify_submitting_author(request, project):
     body = loader.render_to_string('notification/email/notify_submitting_author.html', context)
     # Not resend the email if there was an integrity error
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [author.user.email], fail_silently=False)
+
+
+def reviewer_invitation_notify(request, invitation, anonymous_url, passphrase):
+    """
+    Notify a reviewer that they have been invited to review a project.
+    """
+    project = invitation.project
+    subject = 'Invitation to review project: {}'.format(project.title)
+
+    url_prefix = get_url_prefix(request)
+    review_url = url_prefix + reverse(
+        'submit_external_review',
+        args=[project.slug, invitation.id],
+    )
+    anonymous_login_url = url_prefix + reverse(
+        'anonymous_login', args=[anonymous_url]
+    )
+
+    body = loader.render_to_string(
+        'notification/email/reviewer_invitation.html', {
+            'name': invitation.reviewer.get_full_name(),
+            'project': project,
+            'review_url': review_url,
+            'anonymous_login_url': anonymous_login_url,
+            'passphrase': passphrase,
+            'deadline': invitation.review_deadline,
+            'editor': invitation.invited_by.get_full_name(),
+            'signature': settings.EMAIL_SIGNATURE,
+            'project_info': email_project_info(project),
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
+        })
+
+    message = EmailMessage(
+        subject=subject,
+        body=body,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[invitation.reviewer.email],
+        cc=[invitation.invited_by.email],
+    )
+    message.send(fail_silently=False)
+
+
+def reviewer_removed_notify(invitation):
+    """
+    Notify a reviewer that their review is no longer needed.
+    """
+    project = invitation.project
+    subject = 'Review no longer needed: {}'.format(project.title)
+
+    body = loader.render_to_string(
+        'notification/email/reviewer_removed.html', {
+            'name': invitation.reviewer.get_full_name(),
+            'project_title': project.title,
+            'signature': settings.EMAIL_SIGNATURE,
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
+        })
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [invitation.reviewer.email], fail_silently=False)
+
+
+def review_submitted_notify(review):
+    """
+    Notify the editor that a review has been submitted.
+    """
+    invitation = review.invitation
+    project = invitation.project
+    subject = 'External review submitted for project: {}'.format(project.title)
+
+    body = loader.render_to_string(
+        'notification/email/review_submitted.html', {
+            'name': project.editor.get_full_name(),
+            'project': project,
+            'reviewer': invitation.reviewer.get_full_name(),
+            'recommendation': review.get_recommendation_display(),
+            'signature': settings.EMAIL_SIGNATURE,
+            'project_info': email_project_info(project),
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
+        })
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [project.editor.email], fail_silently=False)
+
+
+def all_reviews_complete_notify(project):
+    """
+    Notify the editor that all required reviews have been submitted.
+    """
+    subject = 'All external reviews received for project: {}'.format(
+        project.title)
+
+    body = loader.render_to_string(
+        'notification/email/all_reviews_complete.html', {
+            'name': project.editor.get_full_name(),
+            'project': project,
+            'required_reviews': project.required_reviews,
+            'signature': settings.EMAIL_SIGNATURE,
+            'project_info': email_project_info(project),
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
+        })
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [project.editor.email], fail_silently=False)
