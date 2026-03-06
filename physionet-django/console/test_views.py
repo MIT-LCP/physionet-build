@@ -87,7 +87,7 @@ class TestState(TestMixin):
         })
         project.refresh_from_db()
         self.assertEqual(project.editor, editor)
-        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT)
 
     def test_reassign_editor(self):
         """
@@ -120,7 +120,7 @@ class TestState(TestMixin):
         })
         project.refresh_from_db()
         self.assertEqual(project.editor, editor1)
-        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT)
 
         # Try to reassign to editor2; this should fail
         self.client.login(username=editor1.username, password='Tester11!')
@@ -155,6 +155,8 @@ class TestState(TestMixin):
         project.submit(author_comments='')
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
         self.client.login(username='admin', password='Tester11!')
         # Reject submission
         response = self.client.post(reverse(
@@ -176,6 +178,8 @@ class TestState(TestMixin):
         project.submit(author_comments='')
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
         self.client.login(username='admin', password='Tester11!')
         # Revise with changes
         response = self.client.post(reverse(
@@ -227,6 +231,8 @@ class TestState(TestMixin):
         project.submit(author_comments='')
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
         self.client.login(username='admin', password='Tester11!')
         # Test that the editor cannot copyedit the content yet
         topic = project.topics.all().first()
@@ -328,6 +334,8 @@ class TestState(TestMixin):
         project.assign_editor(editor)
         self.assertEqual(get_project().modified_datetime, timestamp)
 
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
         self.client.login(username='admin', password='Tester11!')
         # Accept submission
         response = self.client.post(
@@ -1328,7 +1336,7 @@ class TestOnHold(TestMixin):
 
         self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
         response = self.client.get(reverse('submitted_projects'))
-        self.assertNotIn(project, response.context['decision_projects'])
+        self.assertNotIn(project, response.context['reviewer_assignment_projects'])
         self.assertIn(project, response.context['on_hold_projects'])
 
     def test_removed_from_hold_project_returns_to_active_tab(self):
@@ -1339,7 +1347,7 @@ class TestOnHold(TestMixin):
 
         self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
         response = self.client.get(reverse('submitted_projects'))
-        self.assertIn(project, response.context['decision_projects'])
+        self.assertIn(project, response.context['reviewer_assignment_projects'])
         self.assertNotIn(project, response.context['on_hold_projects'])
 
     def test_on_hold_shown_on_submission_info(self):
@@ -1358,7 +1366,7 @@ class TestOnHold(TestMixin):
 
         self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
         response = self.client.get(reverse('editor_home'))
-        self.assertNotIn(project, response.context['decision_projects'])
+        self.assertNotIn(project, response.context['reviewer_assignment_projects'])
         self.assertIn(project, response.context['on_hold_projects'])
 
 
