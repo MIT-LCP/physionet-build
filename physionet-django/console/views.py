@@ -43,16 +43,19 @@ from project.models import (
     AccessLog,
     AccessPolicy,
     ActiveProject,
+    AnonymousAccess,
     DataAccess,
     DUA,
     DataAccessRequest,
     DUASignature,
     EditLog,
+    ExternalReview,
     License,
     Publication,
     PublishedAuthor,
     PublishedProject,
     Reference,
+    ReviewerInvitation,
     StorageRequest,
     SubmissionStatus,
     Topic,
@@ -190,6 +193,10 @@ def submitted_projects(request):
     # Separate projects by submission status (exclude projects on hold)
     # Awaiting editor assignment
     assignment_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_ASSIGNMENT, is_on_hold=False)
+    # Awaiting reviewer assignment
+    reviewer_assignment_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT, is_on_hold=False)
+    # Awaiting external review
+    external_review_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_EXTERNAL_REVIEW, is_on_hold=False)
     # Awaiting editor decision
     decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION, is_on_hold=False)
     # Awaiting author revisions
@@ -231,6 +238,8 @@ def submitted_projects(request):
     return render(request, 'console/submitted_projects.html',
                   {'assign_editor_form': assign_editor_form,
                    'assignment_projects': assignment_projects,
+                   'reviewer_assignment_projects': reviewer_assignment_projects,
+                   'external_review_projects': external_review_projects,
                    'decision_projects': decision_projects,
                    'revision_projects': revision_projects,
                    'copyedit_projects': copyedit_projects,
@@ -248,7 +257,11 @@ def editor_home(request):
     projects = ActiveProject.objects.filter(editor=request.user).order_by(
         'submission_datetime')
 
-    # Awaiting editor decision (exclude on hold)
+    # Awaiting reviewer assignment (exclude on hold)
+    reviewer_assignment_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT, is_on_hold=False)
+    # Awaiting external review
+    external_review_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_EXTERNAL_REVIEW, is_on_hold=False)
+    # Awaiting editor decision
     decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION, is_on_hold=False)
     # Awaiting author revisions
     revision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_RESUBMISSION, is_on_hold=False)
@@ -277,7 +290,9 @@ def editor_home(request):
         except (ValueError, ActiveProject.DoesNotExist):
             pass
     return render(request, 'console/editor_home.html',
-                  {'decision_projects': decision_projects,
+                  {'reviewer_assignment_projects': reviewer_assignment_projects,
+                   'external_review_projects': external_review_projects,
+                   'decision_projects': decision_projects,
                    'revision_projects': revision_projects,
                    'copyedit_projects': copyedit_projects,
                    'approval_projects': approval_projects,
@@ -338,6 +353,9 @@ def submission_info_card_params(request,
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=bulk_download)
     notes = project.internal_notes.all().order_by('-created_at')
+    reviewer_invitations = project.reviewer_invitations.filter(
+        is_active=True
+    ).select_related('reviewer', 'review')
 
     return {
         'project': project,
@@ -352,6 +370,7 @@ def submission_info_card_params(request,
         'embargo_form': embargo_form,
         'notes': notes,
         'internal_note_form': internal_note_form,
+        'reviewer_invitations': reviewer_invitations,
     }
 
 
@@ -3921,7 +3940,6 @@ def event_agreement_delete(request, pk):
 
 # ------------------------- Federated Sites Views ------------------------- #
 
-
 @console_permission_required('user.can_view_admin_console')
 def federated_sites(request):
     """
@@ -4102,3 +4120,214 @@ def federated_projects(request):
         'site_filter': site_filter,
         'selected_site': selected_site,
     })
+
+
+@handling_editor
+def initiate_external_review(request, project_slug, *args, **kwargs):
+    """
+    Initiate external review for a project submission.
+    Sets the required number of reviews and changes status.
+    """
+    project = kwargs['project']
+
+    if project.submission_status != SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT:
+        messages.error(request, 'External review can only be initiated for '
+                       'projects awaiting reviewer assignment.')
+        return redirect('submission_info', project_slug=project.slug)
+
+    if request.method == 'POST':
+        form = forms.InitiateExternalReviewForm(request.POST)
+        if form.is_valid():
+            project.required_reviews = form.cleaned_data['required_reviews']
+            project.submission_status = SubmissionStatus.NEEDS_EXTERNAL_REVIEW
+            project.save(update_fields=['required_reviews', 'submission_status'])
+            messages.success(request, 'External review has been initiated.')
+            return redirect('manage_external_review',
+                            project_slug=project.slug)
+    else:
+        form = forms.InitiateExternalReviewForm()
+
+    return render(request, 'console/initiate_external_review.html', {
+        'project': project,
+        'form': form,
+    })
+
+
+@handling_editor
+def manage_external_review(request, project_slug, *args, **kwargs):
+    """
+    View and manage external reviewers for a project.
+    Lists current reviewers and allows inviting new ones.
+    """
+    project = kwargs['project']
+
+    if project.submission_status != SubmissionStatus.NEEDS_EXTERNAL_REVIEW:
+        messages.error(request, 'This project is not in external review.')
+        return redirect('submission_info', project_slug=project.slug)
+
+    invitations = project.reviewer_invitations.filter(
+        is_active=True
+    ).select_related('reviewer', 'review')
+    completed_reviews = invitations.filter(review__isnull=False).count()
+
+    if request.method == 'POST' and 'remove_reviewer' in request.POST:
+        invitation_id = request.POST.get('remove_reviewer')
+        try:
+            invitation = project.reviewer_invitations.get(
+                id=invitation_id, is_active=True, review__isnull=True
+            )
+        except ReviewerInvitation.DoesNotExist:
+            messages.error(request, 'Invalid invitation or review already submitted.')
+        else:
+            invitation.is_active = False
+            invitation.save(update_fields=['is_active'])
+            notification.reviewer_removed_notify(invitation)
+            messages.success(
+                request,
+                f'{invitation.reviewer.get_full_name()} has been removed as a reviewer.'
+            )
+        return redirect('manage_external_review',
+                        project_slug=project.slug)
+
+    if request.method == 'POST':
+        invite_form = forms.InviteReviewerForm(request.POST, project=project)
+        if invite_form.is_valid():
+            reviewer = invite_form.cleaned_data['reviewer_user']
+            existing_invitation = project.reviewer_invitations.filter(
+                is_active=True
+            ).first()
+            # Use the deadline from the first invitation, or a default
+            if existing_invitation:
+                deadline = existing_invitation.review_deadline
+            else:
+                deadline = (timezone.now() + timezone.timedelta(days=30)).date()
+
+            # Generate anonymous access for the project (reuses existing
+            # or creates new). The AnonymousAccess model has a
+            # unique_together on (content_type, object_id), so only one
+            # per project.
+            anonymous_url, passphrase = project.generate_anonymous_access(
+                hide_authors=True
+            )
+            anonymous = project.anonymous.first()
+
+            invitation = ReviewerInvitation.objects.create(
+                project=project,
+                reviewer=reviewer,
+                invited_by=request.user,
+                review_deadline=deadline,
+                anonymous_access=anonymous,
+            )
+            notification.reviewer_invitation_notify(
+                request, invitation, anonymous_url, passphrase
+            )
+            messages.success(
+                request,
+                f'{reviewer.get_full_name()} has been invited to review.'
+            )
+            return redirect('manage_external_review',
+                            project_slug=project.slug)
+    else:
+        invite_form = forms.InviteReviewerForm(project=project)
+
+    return render(request, 'console/manage_external_review.html', {
+        'project': project,
+        'invitations': invitations,
+        'completed_reviews': completed_reviews,
+        'invite_form': invite_form,
+    })
+
+
+@login_required
+def submit_external_review(request, project_slug, invitation_id):
+    """
+    Submit an external review for a project.
+    Only the invited reviewer can access this page.
+    """
+    invitation = get_object_or_404(
+        ReviewerInvitation,
+        id=invitation_id,
+        project__slug=project_slug,
+        is_active=True,
+    )
+
+    if request.user != invitation.reviewer:
+        raise Http404()
+
+    if hasattr(invitation, 'review'):
+        messages.info(request, 'You have already submitted your review.')
+        return redirect('home')
+
+    if request.method == 'POST':
+        form = forms.ExternalReviewForm(request.POST)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.invitation = invitation
+            review.save()
+            invitation.response_datetime = timezone.now()
+            invitation.save(update_fields=['response_datetime'])
+
+            notification.review_submitted_notify(review)
+
+            # Check if all required reviews are in
+            project = invitation.project
+            completed = project.reviewer_invitations.filter(
+                is_active=True, review__isnull=False
+            ).count()
+            if completed >= project.required_reviews:
+                notification.all_reviews_complete_notify(project)
+
+            messages.success(request, 'Your review has been submitted. Thank you for your contribution.')
+            return redirect('home')
+    else:
+        form = forms.ExternalReviewForm()
+
+    return render(request, 'console/submit_external_review.html', {
+        'project': invitation.project,
+        'invitation': invitation,
+        'form': form,
+    })
+
+
+@handling_editor
+def complete_external_review(request, project_slug, *args, **kwargs):
+    """
+    Complete the external review process and return the project to
+    NEEDS_DECISION status.
+    """
+    project = kwargs['project']
+
+    if project.submission_status != SubmissionStatus.NEEDS_EXTERNAL_REVIEW:
+        messages.error(request, 'This project is not in external review.')
+        return redirect('submission_info', project_slug=project.slug)
+
+    if request.method == 'POST':
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save(update_fields=['submission_status'])
+        messages.success(request, 'External review has been completed. '
+                         'You can now make your decision.')
+        return redirect('edit_submission', project_slug=project.slug)
+
+    return redirect('manage_external_review', project_slug=project.slug)
+
+
+@handling_editor
+def skip_external_review(request, project_slug, *args, **kwargs):
+    """
+    Skip external review and move directly to NEEDS_DECISION.
+    """
+    project = kwargs['project']
+
+    if project.submission_status != SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT:
+        messages.error(request, 'This action is only available for projects '
+                       'awaiting reviewer assignment.')
+        return redirect('submission_info', project_slug=project.slug)
+
+    if request.method == 'POST':
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save(update_fields=['submission_status'])
+        messages.success(request, 'External review skipped. '
+                         'You can now make your decision.')
+        return redirect('edit_submission', project_slug=project.slug)
+
+    return redirect('submission_info', project_slug=project.slug)
