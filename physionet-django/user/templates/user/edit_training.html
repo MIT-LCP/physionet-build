@@ -24,6 +24,7 @@
   {% endif %}</p>
 
   <form action="{% url "edit_training" %}" method="post" enctype="multipart/form-data" id="training">
+      {% csrf_token %}
       {% include "descriptive_inline_form_snippet.html" with form=training_form %}
       <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#submit-training">Submit Training</button>
       <div class="modal fade" id="submit-training" tabindex="-1" role="dialog" aria-labelledby="submit-training-modal" aria-hidden="true">
@@ -52,6 +53,7 @@
   {% if take_course_form %}
       <h4>Complete training course on Platform</h4>
   <form action="{% url 'edit_training' %}" method="post" id="on_platform_training">
+    {% csrf_token %}
     {% include "descriptive_inline_form_snippet.html" with form=take_course_form %}
     <button type="button" class="btn btn-primary btn-rsp" data-toggle="modal" data-target="#start-training">Open Training</button>
 
