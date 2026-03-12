@@ -57,6 +57,7 @@
     </div>
     <div class="card-body">
         <form method="post" action="{% url 'static_page_sections' page.pk %}">
+            {% csrf_token %}
             {% include "inline_form_snippet.html" with form=section_form %}
             <button class="btn btn-primary btn-fixed" name="set_legacy_author" type="submit">Create</button>
         </form>
