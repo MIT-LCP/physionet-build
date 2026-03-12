@@ -61,6 +61,7 @@
       <h3>Add an author</h3>
 
       <form method="POST" id="legacy_author_form">
+        {% csrf_token %}
         {% include "inline_form_snippet.html" with form=legacy_author_form %}
         <button class="btn btn-primary btn-fixed" name="set_legacy_author" type="submit">Set author</button>
       </form>
@@ -82,6 +83,7 @@
       {% endfor %}
     {% else %}
       <form method="POST" id="publication_form">
+        {% csrf_token %}
         {% include "inline_form_snippet.html" with form=publication_form %}
         <button class="btn btn-primary btn-fixed" name="set_publication" type="submit">Add publication</button>
       </form>

@@ -18,6 +18,7 @@
 <hr>
 
 <form action="{% url 'project_content' project.slug %}" onsubmit="return validateItems('reference-list', 'description', 'References')" method="post">
+  {% csrf_token %}
   {% if not project.author_editable %}
     <div class="alert alert-form alert-warning alert-dismissible">
       <strong>The project cannot be edited right now.</strong>

@@ -12,6 +12,7 @@
 {% block content %}
 <div class="container">
   <form action="{% url 'create_project' %}" method="post" class="no-pd">
+    {% csrf_token %}
     <h2 class="form-signin-heading">Create New Project</h2>
     {% if warning_message %}
       <hr>

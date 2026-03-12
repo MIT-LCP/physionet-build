@@ -49,6 +49,7 @@
       </div>
       <div class="tab-pane fade" id="content" role="tabpanel" aria-labelledby="content-tab">
         <form action="" method="post">
+          {% csrf_token %}
           <h3>Description</h3>
           {{ description_form.media }}
           {% include "project/content_inline_form_snippet.html" with form=description_form %}
