@@ -20,6 +20,7 @@
 {% endif %}
 
 <form enctype="multipart/form-data" action="{% url 'project_ethics' project.slug %}" method="post" class="no-pd">
+  {% csrf_token %}
   {% include "project/content_inline_form_snippet.html" with form=ethics_form %}
   <p>You may upload supporting documents here. These documents will be reviewed by our editorial staff, but they will not be shared publicly. For further guidance, please refer to our <a href="{% url 'static_view' static_url='publish' %}#author_guidelines" target="_blank">author guidelines</a>.</p>
   {% include 'project/item_list.html' with item="document" item_label=documents_formset.item_label formset=documents_formset form_name=documents_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}  {% if is_submitting and project.author_editable %}
