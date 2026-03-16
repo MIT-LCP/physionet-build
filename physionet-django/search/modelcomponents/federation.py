@@ -10,6 +10,8 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 
+from project.fields import SafeHTMLField
+
 
 class FederatedSite(models.Model):
     """
@@ -183,7 +185,7 @@ class FederatedProject(models.Model):
         max_length=200,
         help_text='Project title'
     )
-    abstract = models.TextField(
+    abstract = SafeHTMLField(
         help_text='Project abstract'
     )
     doi = models.CharField(
