@@ -268,25 +268,21 @@ class Command(BaseCommand):
         if topics is None or topics == []:
             topics = []
 
-        # Sanitize abstract HTML from external site via SafeHTMLField's
-        # built-in cleaner (same bleach config used for local projects)
-        abstract = project_data.get('abstract', '')
-        if abstract:
-            abstract_field = FederatedProject._meta.get_field('abstract')
-            abstract = abstract_field.clean(abstract, None)
-
-        return FederatedProject.objects.create(
+        project = FederatedProject(
             source_site=site,
             public_project_uuid=project_data['public_project_uuid'],
             slug=project_data['slug'],
             version=project_data['version'],
             title=project_data['title'],
-            abstract=abstract,
+            abstract=project_data.get('abstract', ''),
             doi=project_data.get('version_doi') or project_data.get('doi'),
             source_url=project_data['source_url'],
-            resource_type=project_data.get('resource_type'),  # String value from API
-            access_policy=project_data.get('access_policy'),  # String value from API
+            resource_type=project_data.get('resource_type'),
+            access_policy=project_data.get('access_policy'),
             publish_datetime=publish_datetime,
             main_storage_size=project_data.get('main_storage_size', 0),
-            topics=topics,  # Optional, defaults to empty list
+            topics=topics,
         )
+        project.full_clean()
+        project.save()
+        return project

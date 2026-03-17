@@ -6,11 +6,19 @@ where PhysioNet instances can share project metadata to enable unified
 cross-site search functionality.
 """
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 
 from project.fields import SafeHTMLField
+from project.validators import (
+    validate_doi,
+    validate_title,
+    validate_topic,
+    validate_version,
+)
 
 
 class FederatedSite(models.Model):
@@ -148,6 +156,16 @@ class FederatedSite(models.Model):
         return f"{base_url}/api/v1/project/published/{slug}/{version}/"
 
 
+def validate_topics(value):
+    """Validate that topics is a list of strings, each passing validate_topic."""
+    if not isinstance(value, list):
+        raise ValidationError('Topics must be a list.')
+    for entry in value:
+        if not isinstance(entry, str):
+            raise ValidationError('Each topic must be a string.')
+        validate_topic(entry)
+
+
 class FederatedProject(models.Model):
     """
     Cached metadata from remote PhysioNet instances.
@@ -179,10 +197,12 @@ class FederatedProject(models.Model):
     )
     version = models.CharField(
         max_length=15,
+        validators=[validate_version],
         help_text='Project version'
     )
     title = models.CharField(
         max_length=200,
+        validators=[validate_title],
         help_text='Project title'
     )
     abstract = SafeHTMLField(
@@ -192,26 +212,44 @@ class FederatedProject(models.Model):
         max_length=50,
         null=True,
         blank=True,
+        validators=[validate_doi],
         help_text='Digital Object Identifier'
     )
 
     # Remote reference
     source_url = models.URLField(
         max_length=500,
+        validators=[URLValidator(schemes=['http', 'https'])],
         help_text='URL to project page on source site'
     )
 
     # Classification metadata (stored as strings from API)
+    # String values must match the API serializer output (ProjectFieldsMixin)
+    RESOURCE_TYPE_CHOICES = [
+        ('Database', 'Database'),
+        ('Software', 'Software'),
+        ('Challenge', 'Challenge'),
+        ('Model', 'Model'),
+    ]
+    ACCESS_POLICY_CHOICES = [
+        ('Open', 'Open'),
+        ('Restricted', 'Restricted'),
+        ('Credentialed', 'Credentialed'),
+        ('Contributor Review', 'Contributor Review'),
+    ]
+
     resource_type = models.CharField(
         max_length=50,
         null=True,
         blank=True,
+        choices=RESOURCE_TYPE_CHOICES,
         help_text='Resource type (e.g., "Database", "Software")'
     )
     access_policy = models.CharField(
         max_length=50,
         null=True,
         blank=True,
+        choices=ACCESS_POLICY_CHOICES,
         help_text='Access policy (e.g., "Open", "Restricted")'
     )
 
@@ -229,6 +267,7 @@ class FederatedProject(models.Model):
         default=list,
         null=True,
         blank=True,
+        validators=[validate_topics],
         help_text='List of topic tags (e.g., ["ehr", "critical care"])'
     )
 
