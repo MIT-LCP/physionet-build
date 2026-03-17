@@ -45,6 +45,9 @@ urlpatterns = [
     # KHDP linking
     path("settings/khdp/", views.edit_khdp, name="edit_khdp"),
     path("khdp/", views.auth_khdp, name="auth_khdp"),
+    # D2E linking
+    path("settings/d2e/", views.edit_d2e, name="edit_d2e"),
+    path("d2e/callback/", views.auth_d2e, name="auth_d2e"),
     # Current tokens are 20 characters long and consist of 0-9A-Za-z
     # Obsolete tokens are 34 characters long and also include a hyphen
     re_path(
@@ -152,7 +155,8 @@ TEST_CASES = {
     # dynamically-generated token.  Skip these URLs for now.
     "activate_user": {"uidb64": "x", "token": "x", "_skip_": True},
     "reset_password_confirm": {"uidb64": "x", "token": "x", "_skip_": True},
-    # Testing auth_orcid requires a mock oauth server.  Skip this URL.
+    # Testing auth_orcid/auth_d2e requires a mock oauth server.  Skip these URLs.
     "auth_orcid": {"_skip_": True},
     "auth_orcid_login": {"_skip_": True},
+    "auth_d2e": {"_skip_": True},
 }

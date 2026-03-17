@@ -74,6 +74,17 @@ KHDP_CLIENT_ID = config('KHDP_CLIENT_ID', default='')
 KHDP_CLIENT_SECRET = config('KHDP_CLIENT_SECRET', default='')
 KHDP_LINK_REDIRECT_URI = config('KHDP_LINK_REDIRECT_URI', default='')
 
+# D2E (Data2Evidence) OIDC linking config
+D2E_CLIENT_ID = config('D2E_CLIENT_ID', default='')
+D2E_CLIENT_SECRET = config('D2E_CLIENT_SECRET', default='')
+D2E_OIDC_ISSUER = config('D2E_OIDC_ISSUER', default='')
+D2E_AUTH_URL = config('D2E_AUTH_URL', default='')
+D2E_TOKEN_URL = config('D2E_TOKEN_URL', default='')
+D2E_USERINFO_URL = config('D2E_USERINFO_URL', default='')
+D2E_JWKS_URL = config('D2E_JWKS_URL', default='')
+D2E_LINK_REDIRECT_URI = config('D2E_LINK_REDIRECT_URI', default='')
+D2E_SCOPE = config('D2E_SCOPE', default='openid profile email')
+
 # Installed apps
 INSTALLED_APPS = [
     'dal',

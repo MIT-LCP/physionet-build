@@ -2,6 +2,9 @@ from django.http import HttpResponse, JsonResponse
 from oauth2_provider.views.generic import ProtectedResourceView, ScopedProtectedResourceView
 from oauth2_provider.oauth2_backends import get_oauthlib_core
 
+from export.serializers import PublishedProjectSerializer
+from project.models import PublishedProject
+
 
 SCOPES_MAPPING = {
     "profile:read": lambda user: {
@@ -51,6 +54,26 @@ class UserInfoView(ScopedProtectedResourceView):
                 data.update(builder(user))
 
         return JsonResponse(data)
+
+
+class AccessibleProjectsView(ScopedProtectedResourceView):
+    """Returns published projects accessible by the token-holder."""
+    required_scopes = ["data:download"]
+
+    def get(self, request, *args, **kwargs):
+        valid, r = get_oauthlib_core().verify_request(request, scopes=self.required_scopes)
+        if not valid:
+            return JsonResponse({"error": "Invalid or missing token"}, status=403)
+
+        user = r.access_token.user
+        projects = PublishedProject.objects.accessible_by(user)
+        serializer = PublishedProjectSerializer(
+            projects, many=True, context={'request': request}
+        )
+        return JsonResponse({
+            "count": projects.count(),
+            "projects": serializer.data,
+        })
 
 
 class hello(ProtectedResourceView):

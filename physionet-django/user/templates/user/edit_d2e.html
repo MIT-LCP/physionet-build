@@ -1,0 +1,48 @@
+{% extends "user/settings.html" %}
+
+{% block title %}Edit D2E{% endblock %}
+
+{% block main_content %}
+<form action="{% url 'edit_d2e' %}" method="post" enctype="multipart/form-data" class="form-signin no-pd">
+    {% csrf_token %}
+    <h1>Edit D2E</h1>
+    <hr>
+
+    <p>
+        Data2Evidence (D2E) is a healthcare data research platform.
+        Linking your D2E account allows D2E to verify which PhysioNet datasets you have access to.
+    </p>
+
+    {% if request.user.d2e %}
+        <div style="margin-bottom: 20px;">
+            <p>Your D2E account is currently linked:</p>
+            <ul>
+                <li>Name: {{ request.user.d2e.name }}</li>
+                <li>Email: {{ request.user.d2e.email }}</li>
+            </ul>
+        </div>
+        <button class="btn btn-primary btn-rsp" type="submit" name="remove_d2e" value="make_request" onclick="return confirm('Are you sure you want to unlink your D2E account?');">
+            Unlink D2E Account
+        </button>
+    {% else %}
+        <p>
+            If you have a D2E account, you can link it to your PhysioNet account using the button below.
+            When you link your account, the following information will be shared between D2E and PhysioNet:
+        </p>
+
+        <ul>
+            <li>Name</li>
+            <li>Email</li>
+        </ul>
+
+        <p>
+            Linking your D2E account enables D2E to query PhysioNet for the datasets you are approved to access,
+            streamlining your research workflow.
+        </p>
+
+        <button class="btn btn-primary btn-rsp" type="submit" name="request_d2e" value="make_request">
+            Link D2E Account
+        </button>
+    {% endif %}
+</form>
+{% endblock %}

@@ -812,6 +812,41 @@ class KhdpAccount(models.Model):
         return f"KHDP Account: {self.name} ({identifier})"
 
 
+class D2eAccount(models.Model):
+    """Stores D2E (Data2Evidence) OIDC linkage and tokens."""
+
+    user = models.OneToOneField(
+        'user.User',
+        related_name='d2e',
+        on_delete=models.CASCADE,
+    )
+
+    sub = models.CharField(
+        max_length=255,
+        unique=True,
+        help_text='Logto subject identifier',
+    )
+
+    name = models.CharField(max_length=200)
+    email = models.EmailField(max_length=255)
+
+    access_token = models.CharField(max_length=2048, default='', blank=True)
+    refresh_token = models.CharField(max_length=2048, default='', blank=True)
+    token_type = models.CharField(max_length=50, default='', blank=True)
+    token_expiration = models.DecimalField(
+        max_digits=50,
+        decimal_places=40,
+        default=0,
+    )
+    datetime_added = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        default_permissions = ()
+
+    def __str__(self):
+        return f"D2E Account: {self.name} ({self.sub})"
+
+
 class CredentialApplication(models.Model):
     """
     An application to become credentialed

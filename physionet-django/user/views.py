@@ -59,6 +59,7 @@ from user.models import (
     CodeOfConductSignature,
     CloudInformation,
     CredentialApplication,
+    D2eAccount,
     LegacyCredential,
     Orcid,
     KhdpAccount,
@@ -1637,3 +1638,225 @@ def auth_khdp(request):
         messages.error(request, 'Failed to save KHDP account.')
 
     return redirect('edit_khdp')
+
+
+@disallow_during_maintenance
+@login_required
+def edit_d2e(request):
+    """D2E account linking settings page."""
+    if request.method == 'POST':
+        if request.POST.get('request_d2e'):
+            client_id = getattr(settings, 'D2E_CLIENT_ID', None)
+            auth_url = getattr(settings, 'D2E_AUTH_URL', None)
+            scope = getattr(settings, 'D2E_SCOPE', 'openid profile email')
+
+            if not client_id or not auth_url:
+                logger.error(
+                    'D2E config missing: client_id=%s, auth_url=%s',
+                    bool(client_id), bool(auth_url),
+                )
+                messages.error(
+                    request,
+                    'D2E configuration is incomplete. Please contact support.',
+                )
+                return redirect('edit_d2e')
+
+            redirect_uri = request.build_absolute_uri(reverse('auth_d2e'))
+
+            state = get_random_string(32)
+            nonce = get_random_string(32)
+            request.session['d2e_state'] = state
+            request.session['d2e_nonce'] = nonce
+            request.session.modified = True
+
+            params = {
+                'client_id': client_id,
+                'redirect_uri': redirect_uri,
+                'response_type': 'code',
+                'scope': scope,
+                'state': state,
+                'nonce': nonce,
+            }
+            final_url = f"{auth_url}?{urlencode(params)}"
+            return redirect(final_url)
+
+        elif request.POST.get('remove_d2e'):
+            try:
+                D2eAccount.objects.get(user=request.user).delete()
+                messages.success(request, 'Your D2E account has been unlinked.')
+            except D2eAccount.DoesNotExist:
+                messages.error(request, 'No D2E account currently linked.')
+            return redirect('edit_d2e')
+
+    return render(request, 'user/edit_d2e.html')
+
+
+@disallow_during_maintenance
+def auth_d2e(request):
+    """Handle D2E OIDC callback and link the account."""
+    if not request.user.is_authenticated:
+        messages.error(request, 'You must be logged in to link a D2E account.')
+        return redirect('login')
+
+    # Check for error from the OIDC provider
+    error = request.GET.get('error')
+    if error:
+        error_desc = request.GET.get('error_description', error)
+        logger.warning("D2E callback error: %s - %s", error, error_desc)
+        messages.error(request, f'D2E authorization failed: {error_desc}')
+        return redirect('edit_d2e')
+
+    # State validation (CSRF protection)
+    expected_state = request.session.pop('d2e_state', None)
+    expected_nonce = request.session.pop('d2e_nonce', None)
+    received_state = request.GET.get('state')
+
+    if not expected_state or not received_state or expected_state != received_state:
+        logger.warning("D2E state mismatch: expected=%s, received=%s", bool(expected_state), bool(received_state))
+        messages.error(request, 'Invalid linking session. Please try again.')
+        return redirect('edit_d2e')
+
+    client_id = getattr(settings, 'D2E_CLIENT_ID', None)
+    client_secret = getattr(settings, 'D2E_CLIENT_SECRET', None)
+    token_url = getattr(settings, 'D2E_TOKEN_URL', None)
+    userinfo_url = getattr(settings, 'D2E_USERINFO_URL', None)
+    jwks_url = getattr(settings, 'D2E_JWKS_URL', None)
+    redirect_uri = getattr(settings, 'D2E_LINK_REDIRECT_URI', None)
+    issuer = getattr(settings, 'D2E_OIDC_ISSUER', None)
+
+    if not all([client_id, client_secret, token_url]):
+        messages.error(request, 'D2E configuration is incomplete. Please contact support.')
+        return redirect('edit_d2e')
+
+    code = request.GET.get('code')
+    if not code:
+        messages.error(request, 'Missing authorization code from D2E.')
+        return redirect('edit_d2e')
+
+    # Standard OIDC token exchange
+    try:
+        payload = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'redirect_uri': redirect_uri,
+        }
+        resp = requests.post(token_url, data=payload, timeout=10)
+        if resp.status_code != 200:
+            logger.error("D2E token exchange failed: status=%s body=%s", resp.status_code, resp.text)
+            messages.error(request, 'Failed to exchange authorization code with D2E.')
+            return redirect('edit_d2e')
+        token = resp.json()
+    except (requests.RequestException, ValueError) as e:
+        logger.error("D2E token exchange exception: %s", str(e), exc_info=True)
+        messages.error(request, 'Failed to exchange authorization code with D2E.')
+        return redirect('edit_d2e')
+
+    access_token = token.get('access_token', '')
+    refresh_token_value = token.get('refresh_token', '')
+
+    # Try to extract user info from ID token with JWKS verification
+    sub = None
+    user_name = ''
+    user_email = ''
+    id_token_raw = token.get('id_token')
+
+    if id_token_raw and jwks_url:
+        try:
+            import jwt
+            from jwt import PyJWKClient
+
+            jwks_client = PyJWKClient(jwks_url)
+            signing_key = jwks_client.get_signing_key_from_jwt(id_token_raw)
+
+            decode_options = {}
+            decode_kwargs = {
+                'key': signing_key.key,
+                'algorithms': ['RS256', 'ES256'],
+                'audience': client_id,
+            }
+            if issuer:
+                decode_kwargs['issuer'] = issuer
+            else:
+                decode_options['verify_iss'] = False
+
+            if decode_options:
+                decode_kwargs['options'] = decode_options
+
+            decoded = jwt.decode(id_token_raw, **decode_kwargs)
+
+            # Nonce validation
+            if expected_nonce and decoded.get('nonce') != expected_nonce:
+                logger.warning("D2E nonce mismatch")
+                messages.error(request, 'Invalid ID token nonce. Please try again.')
+                return redirect('edit_d2e')
+
+            sub = decoded.get('sub')
+            user_name = decoded.get('name', '')
+            user_email = decoded.get('email', '')
+        except Exception as e:
+            logger.warning("D2E ID token verification failed: %s", str(e))
+            # Fall through to userinfo endpoint
+
+    # Fallback to userinfo if sub not obtained from ID token
+    if not sub and userinfo_url:
+        try:
+            resp = requests.get(
+                userinfo_url,
+                headers={'Authorization': f'Bearer {access_token}'},
+                timeout=10,
+            )
+            if resp.status_code != 200:
+                logger.error("D2E userinfo failed: status=%s body=%s", resp.status_code, resp.text)
+                messages.error(request, 'Failed to retrieve D2E user information.')
+                return redirect('edit_d2e')
+            data = resp.json()
+            sub = data.get('sub')
+            user_name = user_name or data.get('name', '')
+            user_email = user_email or data.get('email', '')
+        except (requests.RequestException, ValueError) as e:
+            logger.error("D2E userinfo exception: %s", str(e), exc_info=True)
+            messages.error(request, 'Error retrieving D2E user information.')
+            return redirect('edit_d2e')
+
+    if not sub:
+        logger.error("D2E sub not found in ID token or userinfo response")
+        messages.error(request, 'D2E subject identifier not found.')
+        return redirect('edit_d2e')
+
+    # Duplicate check
+    existing = D2eAccount.objects.filter(sub=sub).first()
+    if existing and existing.user != request.user:
+        messages.error(request, 'This D2E account is already linked to another user.')
+        return redirect('edit_d2e')
+
+    # Save
+    try:
+        account = D2eAccount.objects.get(user=request.user)
+    except D2eAccount.DoesNotExist:
+        account = D2eAccount(user=request.user)
+
+    account.sub = sub
+    account.name = user_name
+    account.email = user_email
+    account.access_token = access_token
+    account.refresh_token = refresh_token_value
+    account.token_type = token.get('token_type', '')
+    expires_in = token.get('expires_in', 0)
+    if expires_in:
+        account.token_expiration = time() + int(expires_in)
+
+    try:
+        account.full_clean()
+        account.save()
+        logger.info("D2E account linked for user %s (sub=%s)", request.user.username, sub)
+        messages.success(request, 'Your D2E account has been linked.')
+    except ValidationError as e:
+        logger.error("D2E account validation failed: %s", str(e), exc_info=True)
+        messages.error(request, 'Invalid D2E account data received.')
+    except (IntegrityError, DatabaseError) as e:
+        logger.error("D2E account save failed: %s", str(e), exc_info=True)
+        messages.error(request, 'Failed to save D2E account.')
+
+    return redirect('edit_d2e')

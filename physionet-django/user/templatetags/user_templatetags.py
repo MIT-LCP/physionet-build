@@ -16,6 +16,11 @@ def settings_tabs(hide_password_settings: bool):
     if getattr(settings, 'KHDP_CLIENT_ID', None):
         default_tabs.insert(5, 'KHDP')  # Insert after ORCID
 
+    # Only show D2E tab if configured
+    if getattr(settings, 'D2E_CLIENT_ID', None):
+        idx = default_tabs.index('KHDP') + 1 if 'KHDP' in default_tabs else 5
+        default_tabs.insert(idx, 'D2E')
+
     return {'settings_tabs': default_tabs}
 
 
