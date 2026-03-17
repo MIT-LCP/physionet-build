@@ -16,36 +16,91 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='federatedproject',
             name='access_policy',
-            field=models.CharField(blank=True, choices=[('Open', 'Open'), ('Restricted', 'Restricted'), ('Credentialed', 'Credentialed'), ('Contributor Review', 'Contributor Review')], help_text='Access policy (e.g., "Open", "Restricted")', max_length=50, null=True),
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ('Open', 'Open'),
+                    ('Restricted', 'Restricted'),
+                    ('Credentialed', 'Credentialed'),
+                    ('Contributor Review', 'Contributor Review'),
+                ],
+                help_text='Access policy (e.g., "Open", "Restricted")',
+                max_length=50,
+                null=True,
+            ),
         ),
         migrations.AlterField(
             model_name='federatedproject',
             name='doi',
-            field=models.CharField(blank=True, help_text='Digital Object Identifier', max_length=50, null=True, validators=[project.validators.validate_doi]),
+            field=models.CharField(
+                blank=True,
+                help_text='Digital Object Identifier',
+                max_length=50,
+                null=True,
+                validators=[project.validators.validate_doi],
+            ),
         ),
         migrations.AlterField(
             model_name='federatedproject',
             name='resource_type',
-            field=models.CharField(blank=True, choices=[('Database', 'Database'), ('Software', 'Software'), ('Challenge', 'Challenge'), ('Model', 'Model')], help_text='Resource type (e.g., "Database", "Software")', max_length=50, null=True),
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ('Database', 'Database'),
+                    ('Software', 'Software'),
+                    ('Challenge', 'Challenge'),
+                    ('Model', 'Model'),
+                ],
+                help_text='Resource type (e.g., "Database", "Software")',
+                max_length=50,
+                null=True,
+            ),
         ),
         migrations.AlterField(
             model_name='federatedproject',
             name='source_url',
-            field=models.URLField(help_text='URL to project page on source site', max_length=500, validators=[django.core.validators.URLValidator(schemes=['http', 'https'])]),
+            field=models.URLField(
+                help_text='URL to project page on source site',
+                max_length=500,
+                validators=[
+                    django.core.validators.URLValidator(
+                        schemes=['http', 'https']
+                    ),
+                ],
+            ),
         ),
         migrations.AlterField(
             model_name='federatedproject',
             name='title',
-            field=models.CharField(help_text='Project title', max_length=200, validators=[project.validators.validate_title]),
+            field=models.CharField(
+                help_text='Project title',
+                max_length=200,
+                validators=[project.validators.validate_title],
+            ),
         ),
         migrations.AlterField(
             model_name='federatedproject',
             name='topics',
-            field=models.JSONField(blank=True, default=list, help_text='List of topic tags (e.g., ["ehr", "critical care"])', null=True, validators=[search.modelcomponents.federation.validate_topics]),
+            field=models.JSONField(
+                blank=True,
+                default=list,
+                help_text=(
+                    'List of topic tags'
+                    ' (e.g., ["ehr", "critical care"])'
+                ),
+                null=True,
+                validators=[
+                    search.modelcomponents.federation.validate_topics,
+                ],
+            ),
         ),
         migrations.AlterField(
             model_name='federatedproject',
             name='version',
-            field=models.CharField(help_text='Project version', max_length=15, validators=[project.validators.validate_version]),
+            field=models.CharField(
+                help_text='Project version',
+                max_length=15,
+                validators=[project.validators.validate_version],
+            ),
         ),
     ]
