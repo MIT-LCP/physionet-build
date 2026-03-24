@@ -5,7 +5,6 @@ import pdb
 
 
 import requests_mock
-from background_task.tasks import tasks
 from django.contrib.sites.models import Site
 from django.test import TestCase
 from django.test.utils import get_runner
@@ -433,7 +432,7 @@ class TestState(TestMixin):
             data={'slug': custom_slug, 'doi': False, 'make_zip': 1, 'georestricted': False})
 
         # Run background tasks
-        self.assertTrue(bool(tasks.run_next_task()))
+        self.assertBackgroundTasks(1)
 
         self.assertTrue(bool(PublishedProject.objects.filter(slug=custom_slug)))
         self.assertFalse(bool(PublishedProject.objects.filter(slug=project_slug)))
