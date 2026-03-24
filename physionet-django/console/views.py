@@ -194,9 +194,13 @@ def submitted_projects(request):
     # Awaiting editor assignment
     assignment_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_ASSIGNMENT, is_on_hold=False)
     # Awaiting reviewer assignment
-    reviewer_assignment_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT, is_on_hold=False)
+    reviewer_assignment_projects = projects.filter(
+        submission_status=SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT,
+        is_on_hold=False)
     # Awaiting external review
-    external_review_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_EXTERNAL_REVIEW, is_on_hold=False)
+    external_review_projects = projects.filter(
+        submission_status=SubmissionStatus.NEEDS_EXTERNAL_REVIEW,
+        is_on_hold=False)
     # Awaiting editor decision
     decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION, is_on_hold=False)
     # Awaiting author revisions
@@ -258,9 +262,13 @@ def editor_home(request):
         'submission_datetime')
 
     # Awaiting reviewer assignment (exclude on hold)
-    reviewer_assignment_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT, is_on_hold=False)
+    reviewer_assignment_projects = projects.filter(
+        submission_status=SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT,
+        is_on_hold=False)
     # Awaiting external review
-    external_review_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_EXTERNAL_REVIEW, is_on_hold=False)
+    external_review_projects = projects.filter(
+        submission_status=SubmissionStatus.NEEDS_EXTERNAL_REVIEW,
+        is_on_hold=False)
     # Awaiting editor decision
     decision_projects = projects.filter(submission_status=SubmissionStatus.NEEDS_DECISION, is_on_hold=False)
     # Awaiting author revisions
