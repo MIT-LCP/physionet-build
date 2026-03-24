@@ -184,7 +184,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     "phase" of submission; see SubmissionStatus.
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
-    required_reviews = models.PositiveSmallIntegerField(default=0)
+    required_reviews = models.PositiveSmallIntegerField(default=0, null=True)
     is_on_hold = models.BooleanField(default=False)
     archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
     archive_reason_text = models.TextField(null=True, blank=True)
