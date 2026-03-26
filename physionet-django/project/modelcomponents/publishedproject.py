@@ -31,7 +31,6 @@ class PublishedProject(Metadata, SubmissionInfo):
     objects = PublishedProjectManager()
 
     # File storage sizes in bytes
-    main_storage_size = models.BigIntegerField(default=0)
     compressed_storage_size = models.BigIntegerField(default=0)
     incremental_storage_size = models.BigIntegerField(default=0)
     public_project_uuid = models.UUIDField(

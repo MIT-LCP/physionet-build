@@ -88,6 +88,9 @@ class Metadata(models.Model):
     ethics_statement = SafeHTMLField(blank=True)
     required_trainings = models.ManyToManyField('user.TrainingType', related_name='%(class)s')
 
+    # Total size of the project files in bytes
+    main_storage_size = models.BigIntegerField(default=0)
+
     class Meta:
         abstract = True
 
