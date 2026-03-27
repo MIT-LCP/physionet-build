@@ -60,6 +60,7 @@ from project.models import (
     InternalNote
 )
 from project.authorization.access import can_view_project_files
+import project.tasks as project_tasks
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
@@ -867,6 +868,33 @@ def publish_submission(request, project_slug, *args, **kwargs):
                    'editor_home': True,
                    }
                   )
+
+
+@handling_editor
+def update_submission_checksums(request, project_slug, project, **kwargs):
+    """
+    Form handler to refresh checksums and storage information.
+
+    In normal circumstances, the project checksum file should be
+    generated automatically after the editor completes copyediting.
+    In rare cases where this doesn't happen (for old projects that
+    were copyedited before this was implemented, or if the task fails
+    for some reason), the project's handling editor can re-trigger the
+    task manually.
+    """
+    if request.method == 'POST':
+        if any(get_associated_tasks(project)):
+            messages.error(request, 'Project has tasks pending.')
+        else:
+            project_tasks.prepare_active_project_files(
+                project_id=project.id,
+                verbose_name='Prepare project files: {}'.format(project.slug),
+                creator=request.user,
+            )
+            messages.success(request, 'Project checksum task has been scheduled.')
+
+    url = request.POST.get('redirect', reverse('submission_info', args=[project_slug]))
+    return HttpResponseRedirect(url)
 
 
 @console_permission_required('project.change_storagerequest')
