@@ -509,6 +509,18 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return len(authors) == len(authors.filter(
             approval_datetime__isnull=False))
 
+    def checksums_valid(self):
+        """
+        Check whether project files are ready for publication.
+
+        The checksums_valid_datetime field indicates that the
+        prepare_active_project_files task has run successfully and
+        that the project content has not changed since the task
+        started.  If checksums_valid_datetime doesn't equal
+        modified_datetime, then the task needs to be run again.
+        """
+        return self.checksums_valid_datetime == self.modified_datetime
+
     def is_publishable(self):
         """
         Check whether a project may be published
@@ -517,6 +529,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.submission_status == SubmissionStatus.NEEDS_PUBLICATION
             and self.check_integrity()
             and self.all_authors_approved()
+            and self.checksums_valid()
         ):
             return True
         return False
