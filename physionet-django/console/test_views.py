@@ -440,6 +440,7 @@ class TestState(TestMixin):
 
         project = PublishedProject.objects.get(slug=custom_slug,
                                                version=project.version)
+        self.assertEqual(project.submission_slug, project_slug)
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))
