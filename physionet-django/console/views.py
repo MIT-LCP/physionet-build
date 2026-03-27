@@ -846,6 +846,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
 
     publishable = project.is_publishable()
     publish_form = forms.PublishForm(project=project)
+    tasks = [task for task, read_only in get_associated_tasks(project)]
 
     return render(request,
                   'console/publish_submission.html',
@@ -859,6 +860,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
                    force_calculate=True
                    ),
                    'publishable': publishable,
+                   'tasks': tasks,
                    'copyedit_logs': copyedit_logs,
                    'publish_form': publish_form,
                    'max_slug_length': MAX_PROJECT_SLUG_LENGTH,

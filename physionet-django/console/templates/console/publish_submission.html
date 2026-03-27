@@ -44,6 +44,11 @@
     Publish Submission
   </div>
   <div class="card-body">
+    {% for task in tasks %}
+      <div class="alert alert-warning">
+        <strong>Pending task:</strong> {{ task }}
+      </div>
+    {% endfor %}
     <p>
       {% if publishable %}
         The project is ready to publish. You may choose a unique slug of lowercase alphanumerics and hyphens, of length 1-{{ max_slug_length }}. Must begin and end with an alphanumeric. Must not contain consecutive hyphens or end with hyphen number.
