@@ -809,7 +809,15 @@ ALLOWED_ACCESS_POLICIES = config(
 # when programmatically generating access tokens (e.g., via the /settings/tokens).
 OAUTH_CLIENT_APP_NAME = config('OAUTH_CLIENT_APP_NAME', default='')
 
-# OAUTH PROVIDER SCOPES
+# OIDC Provider RSA key for signing ID tokens
+_oidc_key_file = config('OIDC_RSA_KEY_FILE', default='')
+if _oidc_key_file and os.path.isfile(_oidc_key_file):
+    with open(_oidc_key_file) as f:
+        _oidc_rsa_private_key = f.read()
+else:
+    _oidc_rsa_private_key = config('OIDC_RSA_PRIVATE_KEY', default='')
+
+# OAUTH PROVIDER SCOPES AND OIDC CONFIGURATION
 OAUTH2_PROVIDER = {
     "SCOPES": {
         "profile:read": "Read access to user's profile (username, full name)",
@@ -825,7 +833,24 @@ OAUTH2_PROVIDER = {
         "annotations:types:write": "Create/Update/Delete annotation types",
         "annotations:annotations:read": "Read access to annotations",
         "annotations:annotations:write": "Create/Update/Delete annotations",
-    }
+        # Standard OIDC scopes
+        "openid": "OpenID Connect scope",
+        "profile": "Access to user profile information",
+        "email": "Access to user email address",
+    },
+    # OIDC Provider settings (enabled only when an RSA key is configured)
+    "OIDC_ENABLED": bool(_oidc_rsa_private_key),
+    "OIDC_RSA_PRIVATE_KEY": _oidc_rsa_private_key,
+    "OIDC_ISS_ENDPOINT": config('OIDC_ISS_ENDPOINT', default=None),
+    "OIDC_RESPONSE_TYPES_SUPPORTED": [
+        "code",
+        "id_token",
+        "id_token token",
+        "code token",
+        "code id_token",
+        "code id_token token",
+    ],
+    "OAUTH2_VALIDATOR_CLASS": "oauth.validators.CustomOAuth2Validator",
 }
 
 # Path to GeoIP2 database directory

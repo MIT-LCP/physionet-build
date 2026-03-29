@@ -7,6 +7,7 @@ from django.conf.urls import handler404, handler500, include
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import path
+from oauth2_provider.views import ConnectDiscoveryInfoView
 from physionet import views
 from physionet.settings.base import StorageTypes
 
@@ -15,6 +16,8 @@ handler404 = 'physionet.views.error_404'
 handler500 = 'physionet.views.error_500'
 
 urlpatterns = [
+    # OIDC discovery (must be at root per OIDC spec)
+    path('.well-known/openid-configuration', ConnectDiscoveryInfoView.as_view(), name='oidc-root-discovery'),
     # django admin app
     path('admin/', admin.site.urls),
     # management console app

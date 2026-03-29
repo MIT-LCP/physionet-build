@@ -1,5 +1,7 @@
 from django.urls import path, include
 import oauth2_provider.views as oauth2_views
+from oauth2_provider.views import ConnectDiscoveryInfoView, JwksInfoView
+from oauth2_provider.views import UserInfoView as OIDCUserInfoView
 from django.conf import settings
 from oauth.views import hello, UserInfoView
 
@@ -59,5 +61,9 @@ urlpatterns = [
         ),
     ),
     path("hello", hello.as_view(), name="hello"),  # an example resource endpoint
-    path("userinfo", UserInfoView.as_view(), name="userinfo"),
+    path("userinfo", UserInfoView.as_view(), name="userinfo"),  # legacy endpoint
+    # OIDC endpoints
+    path(".well-known/openid-configuration", ConnectDiscoveryInfoView.as_view(), name="oidc-connect-discovery-info"),
+    path("jwks/", JwksInfoView.as_view(), name="jwks-info"),
+    path("userinfo/", OIDCUserInfoView.as_view(), name="oidc-userinfo"),
 ]

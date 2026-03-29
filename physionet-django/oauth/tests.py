@@ -270,3 +270,159 @@ class TestUserInfoScopeValidation(BaseTest):
             self.assertIsInstance(result, dict, f"Scope '{scope}' did not return a dictionary")
             for field, value in result.items():
                 self.assertIsNotNone(field, f"Field name in scope '{scope}' is None")
+
+
+class OIDCBaseTest(BaseTest):
+    """Base test class that configures OIDC settings."""
+
+    @classmethod
+    def setUpClass(cls):
+        from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.hazmat.primitives import serialization
+
+        super().setUpClass()
+        cls._test_rsa_key = rsa.generate_private_key(
+            public_exponent=65537, key_size=2048,
+        )
+        cls.test_rsa_key_pem = cls._test_rsa_key.private_bytes(
+            serialization.Encoding.PEM,
+            serialization.PrivateFormat.TraditionalOpenSSL,
+            serialization.NoEncryption(),
+        ).decode()
+        cls.test_rsa_public_key = cls._test_rsa_key.public_key()
+
+    def setUp(self):
+        super().setUp()
+        self.oauth2_settings.OIDC_ENABLED = True
+        self.oauth2_settings.OIDC_RSA_PRIVATE_KEY = self.test_rsa_key_pem
+        self.oauth2_settings.OIDC_ISS_ENDPOINT = "http://testserver"
+
+    def tearDown(self):
+        self.oauth2_settings.OIDC_ENABLED = False
+        self.oauth2_settings.OIDC_RSA_PRIVATE_KEY = ""
+        self.oauth2_settings.OIDC_ISS_ENDPOINT = None
+        super().tearDown()
+
+
+class TestOIDCDiscovery(OIDCBaseTest):
+    def test_root_discovery_endpoint(self):
+        response = self.client.get("/.well-known/openid-configuration")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["issuer"], "http://testserver")
+        self.assertIn("authorization_endpoint", data)
+        self.assertIn("token_endpoint", data)
+        self.assertIn("userinfo_endpoint", data)
+        self.assertIn("jwks_uri", data)
+        self.assertIn("response_types_supported", data)
+        self.assertIn("id_token_signing_alg_values_supported", data)
+
+    def test_oauth_discovery_endpoint(self):
+        response = self.client.get("/oauth/.well-known/openid-configuration")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["issuer"], "http://testserver")
+
+
+class TestJWKSEndpoint(OIDCBaseTest):
+    def test_jwks_returns_valid_keyset(self):
+        response = self.client.get("/oauth/jwks/")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("keys", data)
+        self.assertGreater(len(data["keys"]), 0)
+
+        key = data["keys"][0]
+        self.assertEqual(key["kty"], "RSA")
+        self.assertIn("n", key)
+        self.assertIn("e", key)
+        self.assertIn("kid", key)
+
+
+class TestOIDCTokenFlow(OIDCBaseTest):
+    def test_openid_scope_returns_id_token(self):
+        """Authorization code flow with openid scope should return an id_token."""
+        self.client.login(username="oauth_test_user", password="123456")
+
+        authcode_data = {
+            "client_id": self.application.client_id,
+            "state": "random_state_string",
+            "scope": "openid profile email",
+            "redirect_uri": "http://example.org",
+            "response_type": "code",
+            "allow": True,
+        }
+
+        response = self.client.post(
+            reverse("oauth2_provider:authorize"), data=authcode_data
+        )
+        query_dict = parse_qs(urlparse(response["Location"]).query)
+        authorization_code = query_dict["code"].pop()
+
+        token_request_data = {
+            "grant_type": "authorization_code",
+            "code": authorization_code,
+            "redirect_uri": "http://example.org",
+        }
+        auth_headers = self.get_basic_auth_header(
+            self.application.client_id, CLEARTEXT_SECRET
+        )
+
+        response = self.client.post(
+            reverse("oauth2_provider:token"), data=token_request_data, **auth_headers
+        )
+        self.assertEqual(response.status_code, 200)
+        token_data = response.json()
+        self.assertIn("id_token", token_data)
+        self.assertIn("access_token", token_data)
+
+        # Decode and verify the ID token
+        import jwt
+
+        id_token = jwt.decode(
+            token_data["id_token"],
+            self.test_rsa_public_key,
+            algorithms=["RS256"],
+            audience=self.application.client_id,
+        )
+        self.assertEqual(id_token["iss"], "http://testserver")
+        self.assertEqual(id_token["sub"], str(self.test_user.public_user_uuid))
+        self.assertEqual(id_token["aud"], self.application.client_id)
+        self.assertIn("exp", id_token)
+        self.assertIn("iat", id_token)
+
+
+class TestOIDCUserInfo(OIDCBaseTest):
+    def test_oidc_userinfo_endpoint(self):
+        """OIDC UserInfo endpoint (with trailing slash) returns standard claims."""
+        self.access_token.scope = "openid profile email"
+        self.access_token.save()
+
+        auth = self._create_authorization_header(self.access_token.token)
+        response = self.client.get("/oauth/userinfo/", HTTP_AUTHORIZATION=auth)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertEqual(data["sub"], str(self.test_user.public_user_uuid))
+        self.assertIn("name", data)
+        self.assertIn("email", data)
+
+    def test_oidc_userinfo_without_token(self):
+        response = self.client.get("/oauth/userinfo/")
+        self.assertIn(response.status_code, [401, 403])
+
+
+class TestLegacyUserInfoUnchanged(OIDCBaseTest):
+    def test_legacy_userinfo_still_works(self):
+        """Legacy /oauth/userinfo (no trailing slash) still returns the old format."""
+        auth = self._create_authorization_header(self.access_token.token)
+        response = self.client.get("/oauth/userinfo", HTTP_AUTHORIZATION=auth)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        # Legacy format uses "username" and "full_name", not OIDC claim names
+        self.assertIn("username", data)
+        self.assertIn("full_name", data)
+        # Should NOT contain OIDC-specific claim names
+        self.assertNotIn("sub", data)
+        self.assertNotIn("preferred_username", data)
