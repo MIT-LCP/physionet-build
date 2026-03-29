@@ -1721,7 +1721,7 @@ def auth_d2e(request):
     token_url = getattr(settings, 'D2E_TOKEN_URL', None)
     userinfo_url = getattr(settings, 'D2E_USERINFO_URL', None)
     jwks_url = getattr(settings, 'D2E_JWKS_URL', None)
-    redirect_uri = getattr(settings, 'D2E_LINK_REDIRECT_URI', None)
+    redirect_uri = request.build_absolute_uri(reverse('auth_d2e'))
     issuer = getattr(settings, 'D2E_OIDC_ISSUER', None)
 
     if not all([client_id, client_secret, token_url]):

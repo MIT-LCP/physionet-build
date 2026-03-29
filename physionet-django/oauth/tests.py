@@ -1,7 +1,7 @@
 import base64
 import random
 import hashlib
-from datetime import timedelta
+from datetime import datetime, timedelta
 import re
 from django.test import TestCase
 from django.utils import timezone
@@ -12,6 +12,7 @@ from urllib.parse import parse_qs, urlparse
 from oauth2_provider.settings import oauth2_settings
 from django.utils.crypto import get_random_string
 from oauth.views import SCOPES_MAPPING
+from project.models import AccessPolicy, CoreProject, ProjectType, PublishedProject
 
 
 Application = get_application_model()
@@ -270,3 +271,56 @@ class TestUserInfoScopeValidation(BaseTest):
             self.assertIsInstance(result, dict, f"Scope '{scope}' did not return a dictionary")
             for field, value in result.items():
                 self.assertIsNotNone(field, f"Field name in scope '{scope}' is None")
+
+
+class TestAccessibleProjectsView(BaseTest):
+    def setUp(self):
+        super().setUp()
+        # Create an access token with the required scope
+        self.data_token = AccessToken.objects.create(
+            user=self.test_user,
+            scope="data:download",
+            expires=timezone.now() + timedelta(seconds=300),
+            token="data-download-token",
+            application=self.application,
+        )
+        # Create an open published project
+        core = CoreProject.objects.create()
+        resource_type, _ = ProjectType.objects.get_or_create(id=0, defaults={'name': 'Data'})
+        self.open_project = PublishedProject.objects.create(
+            slug='test-open',
+            version='1.0.0',
+            title='Test Open Project',
+            resource_type=resource_type,
+            access_policy=AccessPolicy.OPEN,
+            core_project=core,
+            publish_datetime=timezone.make_aware(datetime(2024, 1, 1)),
+        )
+
+    def test_unauthenticated(self):
+        response = self.client.get("/oauth/accessible-projects")
+        self.assertEqual(response.status_code, 403)
+
+    def test_wrong_scope(self):
+        # The default self.access_token has profile:read, not data:download
+        auth = self._create_authorization_header(self.access_token.token)
+        response = self.client.get("/oauth/accessible-projects", HTTP_AUTHORIZATION=auth)
+        self.assertEqual(response.status_code, 403)
+
+    def test_valid_token_returns_projects(self):
+        auth = self._create_authorization_header(self.data_token.token)
+        response = self.client.get("/oauth/accessible-projects", HTTP_AUTHORIZATION=auth)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("count", data)
+        self.assertIn("projects", data)
+        self.assertGreaterEqual(data["count"], 1)
+        slugs = [p["slug"] for p in data["projects"]]
+        self.assertIn("test-open", slugs)
+
+    def test_expired_token(self):
+        self.data_token.expires = timezone.now() - timedelta(seconds=10)
+        self.data_token.save()
+        auth = self._create_authorization_header(self.data_token.token)
+        response = self.client.get("/oauth/accessible-projects", HTTP_AUTHORIZATION=auth)
+        self.assertEqual(response.status_code, 403)
