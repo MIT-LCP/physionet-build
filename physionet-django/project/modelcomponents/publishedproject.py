@@ -40,6 +40,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         editable=False,
         help_text="Persistent, public identifier for published projects.",
     )
+    submission_slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, unique=True)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     has_other_versions = models.BooleanField(default=False)
     deprecated_files = models.BooleanField(default=False)

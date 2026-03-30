@@ -547,6 +547,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             setattr(published_project, field, getattr(self, field))
 
         published_project.slug = slug or self.slug
+        published_project.submission_slug = self.slug
 
         # Create project file root if this is first version or the first
         # version with a different access policy
