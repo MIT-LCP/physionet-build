@@ -196,6 +196,7 @@ class LocalProjectFiles(BaseProjectFiles):
             os.remove(fname)
 
         with open(fname, 'w') as outfile:
+            os.chmod(outfile.fileno(), 0o444)
             for f in sorted_tree_files(project.file_root()):
                 if f != 'SHA256SUMS.txt':
                     h = hashlib.sha256()
