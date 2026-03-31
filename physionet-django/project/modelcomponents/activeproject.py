@@ -30,6 +30,7 @@ from project.modelcomponents.metadata import (
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
+import project.tasks as tasks
 from project.validators import validate_subdir
 
 LOGGER = logging.getLogger(__name__)
@@ -41,6 +42,9 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
     Schedule a background task to set the files as read only.
     If a file starts with a Shebang, then it will be set as executable.
+
+    This function is obsolescent.  It can be deleted once there are no
+    pending tasks that refer to it.
     """
 
     published_project = PublishedProject.objects.get(id=pid)
@@ -661,14 +665,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
                 published_project.required_trainings.set(self.required_trainings.all())
 
-                # Set files read only and make zip file if requested
-                move_files_as_readonly(
+                # Set directories read only to prevent accidental changes
+                tasks.finalize_published_project_files(
                     published_project.id,
-                    self.file_root(),
-                    published_project.file_root(),
-                    make_zip,
-                    verbose_name='Read Only Files - {}'.format(published_project),
+                    verbose_name='Finalize publication: {}'.format(published_project),
                 )
+
+                # Generate zip file, if requested (this can happen in
+                # parallel with finalize_published_project_files)
+                if make_zip:
+                    tasks.create_published_project_zip(
+                        published_project.id,
+                        verbose_name='Create zip archive: {}'.format(published_project),
+                    )
 
                 # Remove the ActiveProject
                 self.delete()

@@ -436,7 +436,7 @@ class TestState(TestMixin):
             data={'slug': custom_slug, 'doi': False, 'make_zip': 1, 'georestricted': False})
 
         # Run background tasks
-        self.assertBackgroundTasks(1)
+        self.assertBackgroundTasks(2)
 
         self.assertTrue(bool(PublishedProject.objects.filter(slug=custom_slug)))
         self.assertFalse(bool(PublishedProject.objects.filter(slug=project_slug)))
