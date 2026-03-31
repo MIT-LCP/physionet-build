@@ -89,6 +89,15 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def chmod_tree_files_readonly(self, path):
+        """Make all files in a tree read-only."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def chmod_tree_subdirs_readonly(self, path):
+        """Make all directories in a tree read-only."""
+
+    @abc.abstractmethod
     def publish_initial(self, active_project, published_project):
         """Operations on files performed before publishing a project."""
         raise NotImplementedError

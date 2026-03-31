@@ -98,6 +98,12 @@ class GCSProjectFiles(BaseProjectFiles):
 
         GCSObject(path).rm()
 
+    def chmod_tree_files_readonly(self, path):
+        return
+
+    def chmod_tree_subdirs_readonly(self, path):
+        return
+
     def download_url(self, project, path):
         return self.raw_url(project, path)
 
