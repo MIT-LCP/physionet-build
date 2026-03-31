@@ -117,7 +117,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         fields
         """
         self.main_storage_size, self.compressed_storage_size = self.storage_used()
-        self.save()
+        self.save(update_fields=['main_storage_size', 'compressed_storage_size'])
 
     def slugged_label(self):
         """
