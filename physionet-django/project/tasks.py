@@ -52,3 +52,23 @@ def prepare_active_project_files(project_id):
             'main_storage_size',
             'checksums_valid_datetime',
         ])
+
+
+@associated_task('project.PublishedProject', 'project_id')
+@background()
+def finalize_published_project_files(project_id):
+    """
+    Make the directories of a published project read-only.
+    """
+    project = models.PublishedProject.objects.get(id=project_id)
+    project.files.chmod_tree_subdirs_readonly(project.file_root())
+
+
+@associated_task('project.PublishedProject', 'project_id')
+@background()
+def create_published_project_zip(project_id):
+    """
+    Generate a ZIP archive of a published project.
+    """
+    project = models.PublishedProject.objects.get(id=project_id)
+    project.make_zip()
