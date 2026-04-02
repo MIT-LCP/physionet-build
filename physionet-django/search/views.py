@@ -1,5 +1,4 @@
 import operator
-import pdb
 import re
 from functools import reduce
 
@@ -120,15 +119,16 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
         search_query = SearchQuery('')
         query = Q(resource_type__in=resource_type)
 
-    vector = (SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
-              + SearchVector('topics__description', weight='C'))
+    match_vector = (SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
+                    + SearchVector('topics__description', weight='C'))
+    
+    # Create a vector without the topics to avoid row multiplication from the M2M join when ranking
+    rank_vector = SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
+    published_projects = PublishedProject.objects.annotate(search=match_vector).filter(query, is_latest_version=True)
 
-    # Filter projects by latest version and annotate relevance field
-    published_projects = PublishedProject.objects.annotate(search=vector).filter(query, is_latest_version=True)
-
-    # get distinct projects with subquery and also include relevance from published_projects
+    # Get distinct projects including relevance annotation
     published_projects = PublishedProject.objects.filter(id__in=published_projects.values('id')).annotate(
-        relevance=SearchRank(vector, search_query)).distinct()
+        relevance=SearchRank(rank_vector, search_query))
 
     # Sorting
     direction = '-' if direction == 'desc' else ''
