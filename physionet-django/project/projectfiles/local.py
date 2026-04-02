@@ -167,7 +167,7 @@ class LocalProjectFiles(BaseProjectFiles):
         )
 
         project.compressed_storage_size = os.path.getsize(fname)
-        project.save()
+        project.save(update_fields=['compressed_storage_size'])
 
     def make_checksum_file(self, project):
         fname = os.path.join(project.file_root(), 'SHA256SUMS.txt')
