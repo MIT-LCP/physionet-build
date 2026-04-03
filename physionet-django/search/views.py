@@ -121,7 +121,7 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
 
     match_vector = (SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
                     + SearchVector('topics__description', weight='C'))
-    
+
     # Create a vector without the topics to avoid row multiplication from the M2M join when ranking
     rank_vector = SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
     published_projects = PublishedProject.objects.annotate(search=match_vector).filter(query, is_latest_version=True)
