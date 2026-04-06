@@ -31,7 +31,11 @@ class LocalProjectFiles(BaseProjectFiles):
         remove_items([path], ignore_missing=False)
 
     def fwrite(self, path, content):
-        with open(path, 'w') as outfile:
+        try:
+            os.unlink(path)
+        except FileNotFoundError:
+            pass
+        with open(path, 'x') as outfile:
             outfile.write(content)
 
     def fput(self, path, file):

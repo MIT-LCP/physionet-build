@@ -23,7 +23,11 @@ class BaseProjectFiles(abc.ABC):
 
     @abc.abstractmethod
     def fwrite(self, path, content):
-        """Write the content of the string at a given path."""
+        """
+        Write the content of the string at a given path.
+
+        The new file replaces any existing file at that path.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod

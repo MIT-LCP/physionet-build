@@ -34,9 +34,6 @@ class GCSProjectFiles(BaseProjectFiles):
 
     def fwrite(self, path, content):
         gcs_object = GCSObject(path)
-        if gcs_object.exists():
-            raise FileExistsError
-
         gcs_object.upload_from_string(content)
 
     def fput(self, path, file):
