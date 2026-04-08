@@ -242,6 +242,7 @@ Q_CLUSTER = {
 
 BACKGROUND_TASK_RUN_ASYNC = True
 MAX_ATTEMPTS = 5
+MAX_RUN_TIME = 9999999999      # 316 years
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
