@@ -4,6 +4,7 @@ After=emperor.uwsgi.service
 
 [Service]
 Environment=DJANGO_SETTINGS_MODULE=physionet.settings.staging
+ExecStartPre=/physionet/python-env/physionet/bin/python /physionet/physionet-build/physionet-django/manage.py unlock_background_tasks
 ExecStart=/physionet/python-env/physionet/bin/python /physionet/physionet-build/physionet-django/manage.py process_tasks --log-std
 StandardError=syslog
 SyslogIdentifier=django-background-tasks
