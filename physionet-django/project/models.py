@@ -1,4 +1,13 @@
-from project.modelcomponents.access import *
+from project.enums import AccessPolicy
+from project.fields import SafeHTMLField
+from project.modelcomponents.anonymousaccess import AnonymousAccess
+from project.modelcomponents.dataaccess import DataAccess
+from project.modelcomponents.dataaccessrequest import DataAccessRequest
+from project.modelcomponents.dataaccessrequestreviewer import DataAccessRequestReviewer
+from project.modelcomponents.dua import DUA
+from project.modelcomponents.duasignature import DUASignature
+from project.modelcomponents.license import License
+
 from project.modelcomponents.activeproject import *
 from project.modelcomponents.authors import *
 from project.modelcomponents.coreproject import *
