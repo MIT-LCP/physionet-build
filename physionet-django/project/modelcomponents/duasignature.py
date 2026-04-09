@@ -9,7 +9,7 @@ class DUASignature(models.Model):
     Log of user signing DUA
     """
     project = models.ForeignKey('project.PublishedProject',
-        on_delete=models.CASCADE)
+                                on_delete=models.CASCADE)
     user = models.ForeignKey('user.User', on_delete=models.CASCADE,
                              related_name='dua_signatures')
     sign_datetime = models.DateTimeField(auto_now_add=True)

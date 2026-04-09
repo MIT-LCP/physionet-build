@@ -16,7 +16,8 @@ class DataAccess(models.Model):
     )
 
     project = models.ForeignKey('project.PublishedProject',
-        related_name='%(class)ss', db_index=True, on_delete=models.CASCADE)
+                                related_name='%(class)ss',
+                                db_index=True, on_delete=models.CASCADE)
     platform = models.PositiveSmallIntegerField(choices=PLATFORM_ACCESS)
     location = models.CharField(max_length=100, null=True)
 

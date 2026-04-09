@@ -32,8 +32,10 @@ class AnonymousAccess(models.Model):
     # Record tracking
     creation_datetime = models.DateTimeField(auto_now_add=True)
     expiration_datetime = models.DateTimeField(null=True)
-    creator = models.ForeignKey('user.User', related_name='anonymous_access_creator',
-        on_delete=models.SET_NULL, null=True, blank=True)
+    creator = models.ForeignKey('user.User',
+                                related_name='anonymous_access_creator',
+                                on_delete=models.SET_NULL,
+                                null=True, blank=True)
 
     class Meta:
         default_permissions = ()
