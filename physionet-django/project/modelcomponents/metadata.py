@@ -9,8 +9,9 @@ from django.db import models
 from django.utils import timezone
 from django.utils.html import escape, format_html, mark_safe
 from html2text import html2text
+from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
-from project.modelcomponents.access import AccessPolicy, AnonymousAccess
+from project.modelcomponents.anonymousaccess import AnonymousAccess
 from project.modelcomponents.authors import Affiliation
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import validate_title, validate_topic, validate_version

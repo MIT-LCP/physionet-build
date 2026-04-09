@@ -18,7 +18,7 @@ from django.utils.html import strip_tags
 
 from console.tasks import associated_task
 from physionet.settings.base import StorageTypes
-from project.modelcomponents.access import AccessPolicy
+from project.enums import AccessPolicy
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
 from project.modelcomponents.metadata import (
     Contact,

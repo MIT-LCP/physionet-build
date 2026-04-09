@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-from project.modelcomponents.access import AccessPolicy
+from project.enums import AccessPolicy
 
 
 def migrate_forward(apps, schema_editor):

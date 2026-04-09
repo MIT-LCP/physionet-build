@@ -24,8 +24,8 @@ from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext as _
 
 from physionet.utility import get_country_code
+from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
-from project.modelcomponents.access import AccessPolicy
 from project.validators import validate_version
 from user import validators
 from user.userfiles import UserFiles
