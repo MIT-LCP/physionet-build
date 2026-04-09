@@ -1,90 +1,13 @@
-from datetime import timedelta
-
-from django.contrib.auth.hashers import check_password, make_password
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils import timezone
-from django.utils.crypto import get_random_string
 from project.fields import SafeHTMLField
 from project.validators import validate_version
 
 from project.enums import AccessPolicy
+from project.modelcomponents.anonymousaccess import AnonymousAccess
 from project.modelcomponents.dataaccess import DataAccess
 from project.modelcomponents.dataaccessrequest import DataAccessRequest
 from project.modelcomponents.dataaccessrequestreviewer import DataAccessRequestReviewer
 from project.modelcomponents.duasignature import DUASignature
-
-
-class AnonymousAccess(models.Model):
-    """
-    Makes it possible to grant anonymous access (without user auth)
-    to a project and its files by authenticating with a passphrase.
-    """
-    # Project GenericFK
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
-    project = GenericForeignKey('content_type', 'object_id')
-
-    # Stores hashed passphrase
-    passphrase = models.CharField(max_length=128)
-
-    # Random url
-    url = models.CharField(max_length=64)
-
-    hide_authors = models.BooleanField(
-        default=False,
-        help_text="When True, author information is hidden for anonymous peer review"
-    )
-
-    # Record tracking
-    creation_datetime = models.DateTimeField(auto_now_add=True)
-    expiration_datetime = models.DateTimeField(null=True)
-    creator = models.ForeignKey('user.User', related_name='anonymous_access_creator',
-        on_delete=models.SET_NULL, null=True, blank=True)
-
-    class Meta:
-        default_permissions = ()
-        unique_together = (("content_type", "object_id"),)
-
-    def generate_access(self):
-        url = self.generate_url()
-        passphrase = self.set_passphrase()
-
-        return url, passphrase
-
-    def generate_url(self):
-        url = get_random_string(64)
-
-        # Has to be unique
-        while AnonymousAccess.objects.filter(url=url).first():
-            url = get_random_string(64)
-
-        # Persist new url
-        self.url = url
-        self.save()
-
-        return url
-
-    def set_passphrase(self):
-        # Generate and encode random password
-        raw = get_random_string(20)
-
-        # Store encoded passphrase
-        self.passphrase = make_password(raw, salt='project.AnonymousAccess')
-        self.save()
-
-        return raw
-
-    def check_passphrase(self, raw_passphrase):
-        """
-        Return a boolean of whether the raw_password was correct. Handles
-        hashing formats behind the scenes.
-        """
-        expire_datetime = self.creation_datetime + timedelta(days=180)
-        isnot_expired = timezone.now() < expire_datetime
-
-        return isnot_expired and check_password(raw_passphrase, self.passphrase)
 
 
 class License(models.Model):
