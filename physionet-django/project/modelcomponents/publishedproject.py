@@ -12,12 +12,9 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from notification.models import News
-from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
 from project.managers.publishedproject import PublishedProjectManager
-from project.modelcomponents.dataaccessrequest import DataAccessRequest
 from project.modelcomponents.dataaccessrequestreviewer import DataAccessRequestReviewer
-from project.modelcomponents.duasignature import DUASignature
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
 from project.modelcomponents.log import AccessLog
