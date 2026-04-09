@@ -812,7 +812,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
         if project.is_publishable() and publish_form.is_valid():
 
             project.georestricted = publish_form.cleaned_data['georestricted']
-            project.save()
+            project.save(update_fields=['georestricted'])
 
             if project.is_new_version:
                 slug = project.get_previous_slug()
