@@ -12,12 +12,14 @@ from django.utils import timezone
 from django.utils.text import slugify
 
 from notification.models import News
+from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
 from project.managers.publishedproject import PublishedProjectManager
-from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
+from project.modelcomponents.dataaccessrequest import DataAccessRequest
+from project.modelcomponents.dataaccessrequestreviewer import DataAccessRequestReviewer
+from project.modelcomponents.duasignature import DUASignature
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
-from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.log import AccessLog
 from project.utility import StorageInfo, clear_directory, get_tree_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
