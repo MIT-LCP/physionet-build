@@ -41,6 +41,7 @@ from project.models import (
     exists_project_slug,
     UploadedDocument,
 )
+from project.typography import autocorrect_punctuation
 from user.models import User, TrainingType
 from user.validators import validate_affiliation
 from django.forms import ModelMultipleChoiceField
@@ -402,6 +403,9 @@ class CreateProjectForm(forms.ModelForm):
         model = ActiveProject
         fields = ('resource_type', 'title', 'abstract')
 
+    def clean_title(self):
+        return autocorrect_punctuation(self.cleaned_data['title'])
+
     def save(self):
         project = super().save(commit=False)
         # Set the core project and slug
@@ -613,6 +617,9 @@ class ContentForm(forms.ModelForm):
         # share the same title
         if self.instance and self.instance.is_new_version:
             self.fields['title'].disabled = True
+
+    def clean_title(self):
+        return autocorrect_punctuation(self.cleaned_data['title'])
 
     def clean_version(self):
         data = self.cleaned_data['version']
