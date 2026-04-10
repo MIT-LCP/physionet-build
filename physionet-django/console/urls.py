@@ -50,6 +50,9 @@ urlpatterns = [
     path('submitted-projects/<project_slug>/awaiting-authors/', views.awaiting_authors, name='awaiting_authors'),
     path('submitted-projects/<project_slug>/publish/', views.publish_submission, name='publish_submission'),
     path('publish-slug-available/<project_slug>/', views.publish_slug_available, name='publish_slug_available'),
+    path('submitted-projects/<project_slug>/update-checksums/',
+         views.update_submission_checksums,
+         name='update_submission_checksums'),
 
     path('storage-requests/', views.storage_requests,
          name='storage_requests'),
@@ -253,6 +256,10 @@ TEST_CASES = {
         '_user_': 'tompollard',
         'project_slug': 'p7TCIMkltNswuOB9FZH1',
         '_query_': {'desired_slug': 'note-parser'},
+    },
+    'update_submission_checksums': {
+        '_user_': 'tompollard',
+        'project_slug': 'p7TCIMkltNswuOB9FZH1',
     },
 
     'credential_applications': [

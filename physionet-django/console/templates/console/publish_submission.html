@@ -44,18 +44,40 @@
     Publish Submission
   </div>
   <div class="card-body">
+    {% for task in tasks %}
+      <div class="alert alert-warning">
+        <strong>Pending task:</strong> {{ task }}
+      </div>
+    {% endfor %}
     <p>
       {% if publishable %}
         The project is ready to publish. You may choose a unique slug of lowercase alphanumerics and hyphens, of length 1-{{ max_slug_length }}. Must begin and end with an alphanumeric. Must not contain consecutive hyphens or end with hyphen number.
+      {% elif not project.checksums_valid %}
+        {% if tasks %}
+          The project will be ready to publish once pending tasks have completed.
+        {% else %}
+          In order to publish this project, the project checksums must be created or updated.
+          <form action="{% url 'update_submission_checksums' project.slug %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="redirect" value="{{ request.get_full_path }}">
+            <button class="btn btn-primary btn-lg"
+                    name="update_checksums" type="submit">
+              <span class="fa fa-cog"></span>
+              Update checksums
+            </button>
+          </form>
+        {% endif %}
       {% else %}
         Something has gone wrong. The project should be publishable at this point but it is not. Please check it.
       {% endif %}
     </p>
-    <form action="" method="post" class="form-signin">
-      {% csrf_token %}
-      {% include "form_snippet.html" with form=publish_form %}
-      <button class="btn btn-success btn-lg" id="publish_submission_button" name="publish_submission" type="submit">Publish Submission</button>
-    </form>
+    {% if publishable %}
+      <form action="" method="post" class="form-signin">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=publish_form %}
+        <button class="btn btn-success btn-lg" id="publish_submission_button" name="publish_submission" type="submit">Publish Submission</button>
+      </form>
+    {% endif %}
   </div>
 </div>
 

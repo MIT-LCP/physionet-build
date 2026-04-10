@@ -358,7 +358,10 @@ class TestState(TestMixin):
             data={'approve_publication':''})
         self.assertEqual(get_project().modified_datetime, timestamp)
 
-        self.assertTrue(ActiveProject.objects.get(id=project.id).is_publishable())
+        # Wait for task to prepare project files
+        self.assertFalse(get_project().is_publishable())
+        self.assertBackgroundTasks(1)
+        self.assertTrue(get_project().is_publishable())
 
         # Reopen copyedit
         self.client.login(username='admin', password='Tester11!')
@@ -379,6 +382,7 @@ class TestState(TestMixin):
             'made_changes': 1,
             'changelog_summary': 'blah blah',
         })
+        self.assertBackgroundTasks(1)
         project.refresh_from_db()
         self.assertFalse(project.copyeditable())
         self.assertFalse(project.is_publishable())
@@ -432,7 +436,7 @@ class TestState(TestMixin):
             data={'slug': custom_slug, 'doi': False, 'make_zip': 1, 'georestricted': False})
 
         # Run background tasks
-        self.assertBackgroundTasks(1)
+        self.assertBackgroundTasks(2)
 
         self.assertTrue(bool(PublishedProject.objects.filter(slug=custom_slug)))
         self.assertFalse(bool(PublishedProject.objects.filter(slug=project_slug)))

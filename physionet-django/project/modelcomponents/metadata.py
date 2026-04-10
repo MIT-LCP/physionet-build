@@ -89,6 +89,9 @@ class Metadata(models.Model):
     ethics_statement = SafeHTMLField(blank=True)
     required_trainings = models.ManyToManyField('user.TrainingType', related_name='%(class)s')
 
+    # Total size of the project files in bytes
+    main_storage_size = models.BigIntegerField(default=0)
+
     class Meta:
         abstract = True
 
@@ -323,6 +326,12 @@ class Metadata(models.Model):
         """
         fname = os.path.join(self.file_root(), 'LICENSE.txt')
         self.files.fwrite(fname, self.license_content(fmt='text'))
+
+    def make_checksum_file(self):
+        """
+        Make the checksums file for the main files
+        """
+        return self.files.make_checksum_file(self)
 
     def get_directory_content(self, subdir=''):
         """

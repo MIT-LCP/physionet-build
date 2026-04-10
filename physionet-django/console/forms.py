@@ -28,6 +28,7 @@ from project.models import (
     InternalNote,
 )
 from search.models import FederatedSite
+import project.tasks as project_tasks
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
@@ -319,9 +320,16 @@ class CopyeditForm(forms.ModelForm):
             project.submission_status = SubmissionStatus.NEEDS_APPROVAL
             project.copyedit_completion_datetime = now
             project.latest_reminder = now
+            project.checksums_valid_datetime = None
             copyedit_log.save()
             project.save()
             project.create_license_file()
+            project_tasks.prepare_active_project_files(
+                project_id=project.id,
+                verbose_name='Prepare project files: {}'.format(project.slug),
+                creator=project.editor,
+                remove_existing_tasks=True,
+            )
             return copyedit_log
 
 

@@ -30,7 +30,6 @@ class PublishedProject(Metadata, SubmissionInfo):
     objects = PublishedProjectManager()
 
     # File storage sizes in bytes
-    main_storage_size = models.BigIntegerField(default=0)
     compressed_storage_size = models.BigIntegerField(default=0)
     incremental_storage_size = models.BigIntegerField(default=0)
     public_project_uuid = models.UUIDField(
@@ -166,12 +165,6 @@ class PublishedProject(Metadata, SubmissionInfo):
             raise Exception('This should not be called by protected projects')
         else:
             return os.path.join('published-projects', self.slug, self.zip_name())
-
-    def make_checksum_file(self):
-        """
-        Make the checksums file for the main files
-        """
-        return self.files.make_checksum_file(self)
 
     def remove_files(self):
         """

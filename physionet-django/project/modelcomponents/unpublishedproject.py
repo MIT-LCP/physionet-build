@@ -34,6 +34,9 @@ class UnpublishedProject(models.Model):
     topics = GenericRelation('project.Topic')
     archive_datetime = models.DateTimeField(null=True, blank=True)
 
+    # Timestamp for which project checksum file was generated.
+    checksums_valid_datetime = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         abstract = True
 
