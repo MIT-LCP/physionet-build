@@ -130,9 +130,44 @@ def validate_title(value):
     """
     Validate titles that start with an alphanumeric character followed by
     characters marked as letters in Unicode along side with the following
-    special characters: ' , * ? : ( ) - + . /
+    special characters:
+
+    ASCII punctuation:
+      ' (APOSTROPHE)
+      , (COMMA)
+      * (ASTERISK)
+      ? (QUESTION MARK)
+      : (COLON)
+      ( (LEFT PARENTHESIS)
+      ) (RIGHT PARENTHESIS)
+      - (HYPHEN-MINUS)
+      + (PLUS SIGN)
+      . (FULL STOP)
+      / (SOLIDUS)
+
+    Unicode apostrophe-like characters:
+      ‘ (LEFT SINGLE QUOTATION MARK)
+      ’ (RIGHT SINGLE QUOTATION MARK)
+      ′ (PRIME)
+
+    Unicode dash-like characters:
+      ‐ (HYPHEN)
+      ‒ (FIGURE DASH)
+      – (EN DASH)
+      — (EM DASH)
+      − (MINUS SIGN)
     """
-    if not re.fullmatch(r'[a-zA-Z0-9][\w \',\*\?:\(\)\-\+\./]+', value):
+    if not re.fullmatch(r'[a-zA-Z0-9]'
+                        r'[\w \',\*\?:\(\)\-\+\./'
+                        '\N{LEFT SINGLE QUOTATION MARK}'
+                        '\N{RIGHT SINGLE QUOTATION MARK}'
+                        '\N{PRIME}'
+                        '\N{HYPHEN}'
+                        '\N{FIGURE DASH}'
+                        '\N{EN DASH}'
+                        '\N{EM DASH}'
+                        '\N{MINUS SIGN}'
+                        ']+', value):
         raise ValidationError("Enter a valid title. This value may contain only letters, numbers, spaces and "
                               "the following characters: ' , * ? : ( ) - + . /")
 
