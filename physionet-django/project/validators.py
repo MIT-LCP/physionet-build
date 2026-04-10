@@ -132,7 +132,7 @@ def validate_title(value):
     characters marked as letters in Unicode along side with the following
     special characters: ' , * ? : ( ) - + . /
     """
-    if not re.fullmatch(r'[a-zA-Z0-9][\w\'*,?:( )-/]+', value):
+    if not re.fullmatch(r'[a-zA-Z0-9][\w \',\*\?:\(\)\-\+\./]+', value):
         raise ValidationError("Enter a valid title. This value may contain only letters, numbers, spaces and "
                               "the following characters: ' , * ? : ( ) - + . /")
 
