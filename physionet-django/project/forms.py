@@ -672,7 +672,7 @@ class DiscoveryForm(forms.ModelForm):
 
     def clean_short_description(self):
         data = self.cleaned_data['short_description']
-        return ' '.join(data.split())
+        return autocorrect_punctuation(' '.join(data.split()))
 
     def save(self, *args, **kwargs):
         result = super().save(*args, **kwargs)
