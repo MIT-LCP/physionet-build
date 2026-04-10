@@ -589,6 +589,14 @@ class TestProjectEditing(TestCase):
         project.refresh_from_db()
         self.assertFalse(project.is_submittable())
 
+        # ASCII punctuation in the title is corrected to Unicode
+        data['title'] = "MIT-BIH Database - Boston's Greatest Hits"
+        response = self.client.post(content_url, data=data)
+        self.assertEqual(response.status_code, 200)
+        project.refresh_from_db()
+        self.assertEqual(project.title,
+                         "MIT-BIH Database – Boston’s Greatest Hits")
+
     def test_reference_order(self):
         """
         Test handling of references with invalid order.
