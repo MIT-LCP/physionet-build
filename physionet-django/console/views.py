@@ -3046,6 +3046,139 @@ def download_signed_urls_logs(request, pk):
     return response
 
 
+# ---------------------- DUA Logs Views ---------------------- #
+
+
+@console_permission_required('project.can_view_access_logs')
+def dua_logs(request):
+    """
+    List credentialed published projects with their DUA signature counts.
+    """
+    projects = PublishedProject.objects.filter(
+        access_policy=AccessPolicy.CREDENTIALED
+    ).annotate(
+        dua_count=Count('duasignature')
+    ).order_by('-publish_datetime')
+
+    q = request.GET.get('q')
+    if q:
+        projects = projects.filter(title__icontains=q)
+
+    projects = paginate(request, projects, 50)
+
+    return render(request, 'console/dua_logs.html', {
+        'projects': projects,
+    })
+
+
+@console_permission_required('project.can_view_access_logs')
+def dua_logs_detail(request, pk):
+    """
+    Show DUA signatures for a specific credentialed project.
+    """
+    project = get_object_or_404(
+        PublishedProject, pk=pk, access_policy=AccessPolicy.CREDENTIALED
+    )
+    signatures = (
+        DUASignature.objects.filter(project=project)
+        .select_related('user__profile')
+        .order_by('-sign_datetime')
+    )
+
+    user = request.GET.get('user')
+    if user:
+        signatures = signatures.filter(user=user)
+
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+    if start_date and end_date:
+        signatures = signatures.filter(
+            sign_datetime__gte=start_date, sign_datetime__lte=end_date
+        )
+
+    signatures = paginate(request, signatures, 50)
+    user_filter_form = UserFilterForm()
+
+    return render(request, 'console/dua_logs_detail.html', {
+        'project': project,
+        'signatures': signatures,
+        'user_filter_form': user_filter_form,
+    })
+
+
+@console_permission_required('project.can_view_access_logs')
+def download_dua_signatures(request, pk):
+    """
+    Download CSV of DUA signatures for a specific project.
+    """
+    project = get_object_or_404(
+        PublishedProject, pk=pk, access_policy=AccessPolicy.CREDENTIALED
+    )
+    headers = ['User', 'Email address', 'Sign datetime']
+
+    signatures = (
+        DUASignature.objects.filter(project=project)
+        .select_related('user__profile')
+        .order_by('-sign_datetime')
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = (
+        f'attachment; filename="project_{pk}_dua_signatures.csv"'
+    )
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for sig in signatures:
+        writer.writerow([
+            sig.user.get_full_name(),
+            sig.user.email,
+            sig.sign_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+        ])
+
+    return response
+
+
+@console_permission_required('project.can_view_access_logs')
+def download_all_dua_signatures(request):
+    """
+    Download CSV of all DUA signatures across all credentialed projects.
+    """
+    headers = [
+        'Project', 'Project slug', 'Version',
+        'User', 'Email address', 'Sign datetime',
+    ]
+
+    signatures = (
+        DUASignature.objects.filter(
+            project__access_policy=AccessPolicy.CREDENTIALED
+        )
+        .select_related('user__profile', 'project')
+        .order_by('project__title', '-sign_datetime')
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = (
+        'attachment; filename="all_dua_signatures.csv"'
+    )
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for sig in signatures:
+        writer.writerow([
+            sig.project.title,
+            sig.project.slug,
+            sig.project.version,
+            sig.user.get_full_name(),
+            sig.user.email,
+            sig.sign_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+        ])
+
+    return response
+
+
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         """

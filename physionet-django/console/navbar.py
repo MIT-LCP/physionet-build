@@ -194,6 +194,7 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('User Logs'), 'user_access_logs'),
         NavLink(_('GCP Logs'), 'gcp_signed_urls_logs',
                 enabled=(settings.STORAGE_TYPE == StorageTypes.GCP)),
+        NavLink(_('DUA Logs'), 'dua_logs'),
     ]),
 
     NavSubmenu(_('Users'), 'users', 'user-check', [
