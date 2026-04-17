@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0095_activeproject_required_reviews'),
+        ('project', '0097_activeproject_required_reviews'),
     ]
 
     operations = [
@@ -24,11 +24,6 @@ class Migration(migrations.Migration):
                     models.DateTimeField(blank=True, null=True)),
                 ('is_active', models.BooleanField(default=True)),
                 ('review_deadline', models.DateField()),
-                ('anonymous_access', models.ForeignKey(
-                    blank=True, null=True,
-                    on_delete=django.db.models.deletion.SET_NULL,
-                    related_name='reviewer_invitations',
-                    to='project.anonymousaccess')),
                 ('invited_by', models.ForeignKey(
                     on_delete=django.db.models.deletion.CASCADE,
                     related_name='sent_reviewer_invitations',

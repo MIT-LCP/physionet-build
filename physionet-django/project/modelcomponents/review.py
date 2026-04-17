@@ -25,13 +25,6 @@ class ReviewerInvitation(models.Model):
     response_datetime = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     review_deadline = models.DateField()
-    anonymous_access = models.ForeignKey(
-        'project.AnonymousAccess',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='reviewer_invitations',
-    )
 
     class Meta:
         default_permissions = ()

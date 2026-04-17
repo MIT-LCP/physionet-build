@@ -4210,24 +4210,14 @@ def manage_external_review(request, project_slug, *args, **kwargs):
             else:
                 deadline = (timezone.now() + timezone.timedelta(days=30)).date()
 
-            # Generate anonymous access for the project (reuses existing
-            # or creates new). The AnonymousAccess model has a
-            # unique_together on (content_type, object_id), so only one
-            # per project.
-            anonymous_url, passphrase = project.generate_anonymous_access(
-                hide_authors=True
-            )
-            anonymous = project.anonymous.first()
-
             invitation = ReviewerInvitation.objects.create(
                 project=project,
                 reviewer=reviewer,
                 invited_by=request.user,
                 review_deadline=deadline,
-                anonymous_access=anonymous,
             )
             notification.reviewer_invitation_notify(
-                request, invitation, anonymous_url, passphrase
+                request, invitation
             )
             messages.success(
                 request,

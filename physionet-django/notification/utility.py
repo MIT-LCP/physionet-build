@@ -1263,7 +1263,7 @@ def notify_submitting_author(request, project):
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [author.user.email], fail_silently=False)
 
 
-def reviewer_invitation_notify(request, invitation, anonymous_url, passphrase):
+def reviewer_invitation_notify(request, invitation):
     """
     Notify a reviewer that they have been invited to review a project.
     """
@@ -1275,8 +1275,8 @@ def reviewer_invitation_notify(request, invitation, anonymous_url, passphrase):
         'submit_external_review',
         args=[project.slug, invitation.id],
     )
-    anonymous_login_url = url_prefix + reverse(
-        'anonymous_login', args=[anonymous_url]
+    project_preview_url = url_prefix + reverse(
+        'project_preview', args=[project.slug]
     )
 
     body = loader.render_to_string(
@@ -1284,8 +1284,7 @@ def reviewer_invitation_notify(request, invitation, anonymous_url, passphrase):
             'name': invitation.reviewer.get_full_name(),
             'project': project,
             'review_url': review_url,
-            'anonymous_login_url': anonymous_login_url,
-            'passphrase': passphrase,
+            'project_preview_url': project_preview_url,
             'deadline': invitation.review_deadline,
             'editor': invitation.invited_by.get_full_name(),
             'signature': settings.EMAIL_SIGNATURE,

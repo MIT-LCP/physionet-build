@@ -1866,6 +1866,36 @@ class TestExternalReview(TestMixin):
         self.assertEqual(project.submission_status,
                          SubmissionStatus.NEEDS_DECISION)
 
+    def test_reviewer_can_access_project_preview(self):
+        """An invited reviewer can access the project preview page."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+        self._invite_reviewer(project, reviewer.email)
+
+        self.client.login(username=self.REVIEWER_USER,
+                          password=self.REVIEWER_PASSWORD)
+        response = self.client.get(
+            reverse('project_preview', args=(project.slug,)),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['hide_authors'])
+        self.assertTrue(response.context['is_reviewer'])
+
+    @prevent_request_warnings
+    def test_non_reviewer_cannot_access_project_preview(self):
+        """A user who is not a reviewer or author cannot access preview."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+
+        # Log in as a user who is not an author, editor, or reviewer
+        self.client.login(username=self.REVIEWER_USER,
+                          password=self.REVIEWER_PASSWORD)
+        response = self.client.get(
+            reverse('project_preview', args=(project.slug,)),
+        )
+        self.assertEqual(response.status_code, 403)
+
     def test_complete_review_wrong_status(self):
         """Cannot complete review if project is not in external review."""
         project = self._submit_and_assign()
