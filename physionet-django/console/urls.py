@@ -316,10 +316,10 @@ TEST_CASES = {
     # DUA Logs: pk must be a credentialed project
     'dua_logs_detail': {
         # id of a PublishedProject with access_policy=CREDENTIALED
-        'pk': 2,
+        'pk': 1,
     },
     'download_dua_signatures': {
-        'pk': 2,
+        'pk': 1,
     },
 
     # Broken views: POST required for no reason
