@@ -1,3 +1,5 @@
+import csv
+import io
 import json
 import logging
 import os
@@ -11,10 +13,12 @@ from django.test.utils import get_runner
 from django.urls import reverse
 from events.models import EventAgreement
 from project.models import (
+    AccessPolicy,
     ActiveProject,
     AnonymousAccess,
     Author,
     AuthorInvitation,
+    DUASignature,
     License,
     PublishedProject,
     StorageRequest,
@@ -1356,3 +1360,208 @@ class TestOnHold(TestMixin):
         response = self.client.get(reverse('editor_home'))
         self.assertNotIn(project, response.context['decision_projects'])
         self.assertIn(project, response.context['on_hold_projects'])
+
+
+class TestDUALogs(TestMixin):
+    """Test DUA Logs console views."""
+
+    ADMIN_USER = 'admin'
+    ADMIN_PASSWORD = 'Tester11!'
+    REGULAR_USER = 'rgmark'
+    REGULAR_PASSWORD = 'Tester11!'
+
+    def setUp(self):
+        super().setUp()
+        self.credentialed_project = PublishedProject.objects.get(
+            slug='demoeicu', access_policy=AccessPolicy.CREDENTIALED
+        )
+        self.admin = User.objects.get(username=self.ADMIN_USER)
+        self.regular_user = User.objects.get(username=self.REGULAR_USER)
+
+        # Track pre-existing signatures before adding test data
+        self.pre_existing_count = DUASignature.objects.filter(
+            project=self.credentialed_project
+        ).count()
+
+        # Create DUA signatures inline (Option B)
+        self.sig1 = DUASignature.objects.create(
+            project=self.credentialed_project,
+            user=self.admin,
+        )
+        self.sig2 = DUASignature.objects.create(
+            project=self.credentialed_project,
+            user=self.regular_user,
+        )
+
+    # View access tests
+
+    def test_dua_logs_list(self):
+        """GET the DUA logs list page returns 200 and shows credentialed projects."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('dua_logs'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'console/dua_logs.html')
+        # The credentialed project should appear in the list
+        self.assertContains(response, self.credentialed_project.title)
+
+    def test_dua_logs_list_only_credentialed(self):
+        """Only credentialed projects appear on the DUA logs page."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('dua_logs'))
+        projects = response.context['projects']
+        for project in projects:
+            self.assertEqual(project.access_policy, AccessPolicy.CREDENTIALED)
+
+    def test_dua_logs_list_shows_counts(self):
+        """The list page annotates projects with their DUA signature count."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('dua_logs'))
+        projects = response.context['projects']
+        project = [p for p in projects if p.pk == self.credentialed_project.pk][0]
+        self.assertEqual(project.dua_count, self.pre_existing_count + 2)
+
+    def test_dua_logs_search(self):
+        """Search filter narrows results by title."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        # Search with matching term
+        response = self.client.get(reverse('dua_logs'), {'q': 'eicu'})
+        self.assertContains(response, self.credentialed_project.title)
+        # Search with non-matching term
+        response = self.client.get(reverse('dua_logs'), {'q': 'nonexistent'})
+        self.assertNotContains(response, self.credentialed_project.title)
+
+    def test_dua_logs_detail(self):
+        """GET the detail page for a credentialed project returns 200."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(
+            reverse('dua_logs_detail', args=[self.credentialed_project.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'console/dua_logs_detail.html')
+        self.assertContains(response, self.admin.email)
+        self.assertContains(response, self.regular_user.email)
+
+    @prevent_request_warnings
+    def test_dua_logs_detail_non_credentialed_404(self):
+        """Requesting detail for a non-credentialed project returns 404."""
+        open_project = PublishedProject.objects.filter(
+            access_policy=AccessPolicy.OPEN
+        ).first()
+        self.assertIsNotNone(open_project)
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(
+            reverse('dua_logs_detail', args=[open_project.pk])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_dua_logs_detail_filter_by_user(self):
+        """Filtering by user shows only that user's signatures."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(
+            reverse('dua_logs_detail', args=[self.credentialed_project.pk]),
+            {'user': self.admin.pk}
+        )
+        self.assertEqual(response.status_code, 200)
+        signatures = response.context['signatures']
+        self.assertEqual(signatures.paginator.count, 1)
+
+    # CSV download tests
+
+    def test_download_dua_signatures_csv(self):
+        """Per-project CSV download contains correct headers and data."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(
+            reverse('download_dua_signatures', args=[self.credentialed_project.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/csv')
+        self.assertIn('project_', response['Content-Disposition'])
+
+        content = response.content.decode('utf-8')
+        reader = csv.reader(io.StringIO(content))
+        rows = list(reader)
+
+        self.assertEqual(rows[0], ['User', 'Email address', 'Sign datetime'])
+        self.assertEqual(len(rows), self.pre_existing_count + 2 + 1)  # +1 for header
+        emails_in_csv = {row[1] for row in rows[1:]}
+        self.assertIn(self.admin.email, emails_in_csv)
+        self.assertIn(self.regular_user.email, emails_in_csv)
+
+    def test_download_dua_signatures_csv_empty(self):
+        """CSV for a project with no signatures has only the header row."""
+        DUASignature.objects.filter(project=self.credentialed_project).delete()
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(
+            reverse('download_dua_signatures', args=[self.credentialed_project.pk])
+        )
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        reader = csv.reader(io.StringIO(content))
+        rows = list(reader)
+        self.assertEqual(len(rows), 1)  # header only
+
+    def test_download_all_dua_signatures_csv(self):
+        """Bulk CSV download contains correct headers and all signature data."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('download_all_dua_signatures'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'text/csv')
+        self.assertIn('all_dua_signatures', response['Content-Disposition'])
+
+        content = response.content.decode('utf-8')
+        reader = csv.reader(io.StringIO(content))
+        rows = list(reader)
+
+        self.assertEqual(
+            rows[0],
+            ['Project', 'Project slug', 'Version',
+             'User', 'Email address', 'Sign datetime']
+        )
+        # At least our 2 test signatures
+        self.assertGreaterEqual(len(rows), 3)
+
+    @prevent_request_warnings
+    def test_download_dua_signatures_non_credentialed_404(self):
+        """CSV download for a non-credentialed project returns 404."""
+        open_project = PublishedProject.objects.filter(
+            access_policy=AccessPolicy.OPEN
+        ).first()
+        self.assertIsNotNone(open_project)
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(
+            reverse('download_dua_signatures', args=[open_project.pk])
+        )
+        self.assertEqual(response.status_code, 404)
+
+    # Permission tests
+
+    def test_dua_logs_anonymous_redirects(self):
+        """Anonymous users are redirected from DUA logs pages."""
+        self.client.logout()
+        for url_name in ['dua_logs', 'download_all_dua_signatures']:
+            response = self.client.get(reverse(url_name))
+            self.assertNotEqual(response.status_code, 200)
+
+    def test_dua_logs_unprivileged_denied(self):
+        """A user without can_view_access_logs permission gets 403."""
+        self.client.login(username=self.REGULAR_USER, password=self.REGULAR_PASSWORD)
+        response = self.client.get(reverse('dua_logs'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_dua_logs_detail_unprivileged_denied(self):
+        """A user without can_view_access_logs permission gets 403 on detail."""
+        self.client.login(username=self.REGULAR_USER, password=self.REGULAR_PASSWORD)
+        response = self.client.get(
+            reverse('dua_logs_detail', args=[self.credentialed_project.pk])
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_download_unprivileged_denied(self):
+        """A user without can_view_access_logs permission gets 403 on CSV downloads."""
+        self.client.login(username=self.REGULAR_USER, password=self.REGULAR_PASSWORD)
+        for url_name, args in [
+            ('download_dua_signatures', [self.credentialed_project.pk]),
+            ('download_all_dua_signatures', []),
+        ]:
+            response = self.client.get(reverse(url_name, args=args))
+            self.assertEqual(response.status_code, 403)

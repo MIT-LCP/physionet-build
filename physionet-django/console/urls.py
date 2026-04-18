@@ -38,6 +38,12 @@ urlpatterns = [
     path('gcp-signed-urls-logs/<int:pk>/', views.gcp_signed_urls_logs_detail, name='gcp_signed_urls_logs_detail'),
     path('download-signed-urls-logs/<int:pk>/', views.download_signed_urls_logs, name='download_signed_urls_logs'),
 
+    # DUA Logs
+    path('dua-logs/', views.dua_logs, name='dua_logs'),
+    path('dua-logs/<int:pk>/', views.dua_logs_detail, name='dua_logs_detail'),
+    path('download-dua-signatures/<int:pk>/', views.download_dua_signatures, name='download_dua_signatures'),
+    path('download-all-dua-signatures/', views.download_all_dua_signatures, name='download_all_dua_signatures'),
+
     # On hold
     path('submitted-projects/<project_slug>/on-hold/', views.project_on_hold, name='project_on_hold'),
 
@@ -306,6 +312,15 @@ TEST_CASES = {
     'event_agreement_detail': {'_skip_': True},
     'event_agreement_delete': {'_skip_': True},
     'event_agreement_new_version': {'_skip_': True},
+
+    # DUA Logs: pk must be a credentialed project
+    'dua_logs_detail': {
+        # id of a PublishedProject with access_policy=CREDENTIALED
+        'pk': 1,
+    },
+    'download_dua_signatures': {
+        'pk': 1,
+    },
 
     # Broken views: POST required for no reason
     'users_list_search': {'group': 'all', '_skip_': True},
