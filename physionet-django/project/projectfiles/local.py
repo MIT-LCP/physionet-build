@@ -31,7 +31,11 @@ class LocalProjectFiles(BaseProjectFiles):
         remove_items([path], ignore_missing=False)
 
     def fwrite(self, path, content):
-        with open(path, 'w') as outfile:
+        try:
+            os.unlink(path)
+        except FileNotFoundError:
+            pass
+        with open(path, 'x') as outfile:
             outfile.write(content)
 
     def fput(self, path, file):
@@ -112,6 +116,23 @@ class LocalProjectFiles(BaseProjectFiles):
     def rmtree(self, path):
         shutil.rmtree(path)
 
+    def chmod_tree_files_readonly(self, path):
+        for (directory, subdirs, files) in os.walk(path, onerror=_raise):
+            subdirs.sort()
+            files.sort()
+            for name in files:
+                with open(os.path.join(directory, name), 'rb') as file:
+                    fline = file.read(2)
+                    if fline == b'#!':
+                        os.chmod(file.fileno(), 0o555)
+                    else:
+                        os.chmod(file.fileno(), 0o444)
+
+    def chmod_tree_subdirs_readonly(self, path):
+        for (directory, subdirs, files) in os.walk(path, onerror=_raise):
+            os.chmod(directory, 0o555)
+            subdirs.sort()
+
     def publish_initial(self, active_project, published_project):
         if not os.path.isdir(published_project.project_file_root()):
             os.mkdir(published_project.project_file_root())
@@ -167,7 +188,7 @@ class LocalProjectFiles(BaseProjectFiles):
         )
 
         project.compressed_storage_size = os.path.getsize(fname)
-        project.save()
+        project.save(update_fields=['compressed_storage_size'])
 
     def make_checksum_file(self, project):
         fname = os.path.join(project.file_root(), 'SHA256SUMS.txt')
@@ -175,6 +196,7 @@ class LocalProjectFiles(BaseProjectFiles):
             os.remove(fname)
 
         with open(fname, 'w') as outfile:
+            os.chmod(outfile.fileno(), 0o444)
             for f in sorted_tree_files(project.file_root()):
                 if f != 'SHA256SUMS.txt':
                     h = hashlib.sha256()
@@ -184,8 +206,6 @@ class LocalProjectFiles(BaseProjectFiles):
                             h.update(block)
                             block = fp.read(h.block_size)
                     outfile.write('{} {}\n'.format(h.hexdigest(), f))
-
-        project.set_storage_info()
 
     def can_make_zip(self):
         return True
@@ -204,3 +224,7 @@ class LocalProjectFiles(BaseProjectFiles):
 
     def serve_file_field(self, field):
         return serve_file(field.path, attach=False)
+
+
+def _raise(exc):
+    raise exc

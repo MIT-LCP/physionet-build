@@ -1,0 +1,51 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Sync Federated Site{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h2>Confirm Synchronization</h2>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-warning">
+        <i class="fa fa-exclamation-triangle"></i>
+        <strong>Are you sure you want to sync this site?</strong>
+      </div>
+
+      <p>You are about to synchronize metadata from:</p>
+      <ul>
+        <li><strong>Site:</strong> {{ site.site_name }} ({{ site.site_identifier }})</li>
+        <li><strong>API URL:</strong> {{ site.api_base_url }}</li>
+        <li><strong>Current Cached Projects:</strong> {{ site.cached_projects.count }}</li>
+      </ul>
+
+      <p>
+        This operation will:
+      </p>
+      <ul>
+        <li>Fetch all published projects from the remote site's API</li>
+        <li>Delete all existing cached projects for this site</li>
+        <li>Create fresh copies of all projects from the API response</li>
+        <li>Log the synchronization results</li>
+      </ul>
+
+      <div class="alert alert-info">
+        <i class="fa fa-info-circle"></i>
+        The sync may take several minutes depending on the number of projects.
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+          <i class="fa fa-sync"></i> Confirm and Sync
+        </button>
+        <a href="{% url 'federated_site_detail' site.id %}" class="btn btn-secondary">
+          <i class="fa fa-times"></i> Cancel
+        </a>
+      </form>
+    </div>
+  </div>
+{% endblock %}

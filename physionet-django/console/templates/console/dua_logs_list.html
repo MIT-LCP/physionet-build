@@ -1,0 +1,8 @@
+{% for project in projects %}
+    <tr>
+        <td><a href="{% url 'published_project' project.slug project.version %}">{{ project }}</a></td>
+        <td>{{ project.publish_datetime }}</td>
+        <td>{{ project.dua_count }}</td>
+        <td><a href="{% url 'dua_logs_detail' project.id %}" class="btn btn-sm btn-primary" role="button">View</a></td>
+    </tr>
+{% endfor %}

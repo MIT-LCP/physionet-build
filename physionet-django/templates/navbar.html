@@ -72,6 +72,19 @@
           <span class="visually-hidden">Search {{ SITE_NAME }}</span>
         </button>
         {% if user.is_authenticated %}
+          <a href="{% url 'notification_list' %}" class="circle-button mr-2 position-relative"
+             title="Notifications">
+            {% if unread_notification_count > 0 %}
+              <i class="bi bi-bell-fill"></i>
+              <span class="badge bg-danger rounded-pill position-absolute"
+                    style="top: -2px; right: -2px; font-size: 0.65rem;">
+                {{ unread_notification_count }}
+              </span>
+            {% else %}
+              <i class="bi bi-bell"></i>
+            {% endif %}
+            <span class="visually-hidden">Notifications</span>
+          </a>
           <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray"
                   popovertarget="nav__user_popup"
                   title="Account: {{ user }}">

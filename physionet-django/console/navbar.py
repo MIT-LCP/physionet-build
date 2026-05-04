@@ -160,6 +160,8 @@ CONSOLE_NAV_MENU = NavMenu([
 
     NavSubmenu(_('Cloud'), 'cloud', 'cloud', [
         NavLink(_('Mirrors'), 'cloud_mirrors'),
+        NavLink(_('Federated Sites'), 'federated_sites'),
+        NavLink(_('Federated Projects'), 'federated_projects'),
     ]),
 
     NavSubmenu(_('Identity check'), 'identity', 'hand-paper', [
@@ -192,6 +194,7 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('User Logs'), 'user_access_logs'),
         NavLink(_('GCP Logs'), 'gcp_signed_urls_logs',
                 enabled=(settings.STORAGE_TYPE == StorageTypes.GCP)),
+        NavLink(_('DUA Logs'), 'dua_logs'),
     ]),
 
     NavSubmenu(_('Users'), 'users', 'user-check', [

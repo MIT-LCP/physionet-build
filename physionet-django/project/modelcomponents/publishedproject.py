@@ -1,6 +1,7 @@
 import os
 import shutil
 import datetime
+import uuid
 from distutils.version import StrictVersion
 
 from django.conf import settings
@@ -13,10 +14,9 @@ from django.utils.text import slugify
 from notification.models import News
 from project.fields import SafeHTMLField
 from project.managers.publishedproject import PublishedProjectManager
-from project.modelcomponents.access import DataAccessRequest, DataAccessRequestReviewer, DUASignature
+from project.modelcomponents.dataaccessrequestreviewer import DataAccessRequestReviewer
 from project.modelcomponents.metadata import Metadata, PublishedTopic
 from project.modelcomponents.submission import SubmissionInfo
-from project.modelcomponents.access import AccessPolicy
 from project.modelcomponents.log import AccessLog
 from project.utility import StorageInfo, clear_directory, get_tree_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug, validate_subdir
@@ -30,9 +30,15 @@ class PublishedProject(Metadata, SubmissionInfo):
     objects = PublishedProjectManager()
 
     # File storage sizes in bytes
-    main_storage_size = models.BigIntegerField(default=0)
     compressed_storage_size = models.BigIntegerField(default=0)
     incremental_storage_size = models.BigIntegerField(default=0)
+    public_project_uuid = models.UUIDField(
+        default=uuid.uuid4,
+        unique=True,
+        editable=False,
+        help_text="Persistent, public identifier for published projects.",
+    )
+    submission_slug = models.SlugField(max_length=MAX_PROJECT_SLUG_LENGTH, unique=True)
     publish_datetime = models.DateTimeField(auto_now_add=True)
     has_other_versions = models.BooleanField(default=False)
     deprecated_files = models.BooleanField(default=False)
@@ -109,7 +115,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         fields
         """
         self.main_storage_size, self.compressed_storage_size = self.storage_used()
-        self.save()
+        self.save(update_fields=['main_storage_size', 'compressed_storage_size'])
 
     def slugged_label(self):
         """
@@ -159,12 +165,6 @@ class PublishedProject(Metadata, SubmissionInfo):
             raise Exception('This should not be called by protected projects')
         else:
             return os.path.join('published-projects', self.slug, self.zip_name())
-
-    def make_checksum_file(self):
-        """
-        Make the checksums file for the main files
-        """
-        return self.files.make_checksum_file(self)
 
     def remove_files(self):
         """

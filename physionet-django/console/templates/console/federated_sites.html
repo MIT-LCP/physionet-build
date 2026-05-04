@@ -1,0 +1,129 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Federated Sites{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <div class="card-header">
+      <h2>Federated Sites</h2>
+      <p class="text-muted">Manage PhysioNet instances that share project metadata for federated search</p>
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <a href="{% url 'federated_site_add' %}" class="btn btn-primary">
+          <i class="fa fa-plus"></i> Add New Site
+        </a>
+      </div>
+
+      {% if sites_with_logs %}
+        <table class="table table-bordered table-hover">
+          <thead>
+            <tr>
+              <th>Site Name</th>
+              <th>Identifier</th>
+              <th>API Base URL</th>
+              <th>Status</th>
+              <th>Last Sync</th>
+              <th>Sync Status</th>
+              <th>Cached Projects</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in sites_with_logs %}
+              {% with site=item.site log=item.latest_log %}
+                <tr>
+                  <td>
+                    <a href="{% url 'federated_site_detail' site.id %}">
+                      <strong>{{ site.site_name }}</strong>
+                    </a>
+                  </td>
+                  <td><code>{{ site.site_identifier }}</code></td>
+                  <td>
+                    <small>{{ site.api_base_url|truncatechars:50 }}</small>
+                  </td>
+                  <td>
+                    {% if site.is_active %}
+                      <span class="badge badge-success">Active</span>
+                    {% else %}
+                      <span class="badge badge-secondary">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if site.last_sync_datetime %}
+                      <small>{{ site.last_sync_datetime|date:"Y-m-d H:i" }}</small>
+                    {% else %}
+                      <span class="text-muted">Never</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if site.last_sync_status == 'success' %}
+                      <span class="badge badge-success">Success</span>
+                    {% elif site.last_sync_status == 'failed' %}
+                      <span class="badge badge-danger">Failed</span>
+                    {% elif site.last_sync_status == 'in_progress' %}
+                      <span class="badge badge-info">In Progress</span>
+                    {% else %}
+                      <span class="badge badge-secondary">Never Synced</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge badge-info">{{ site.cached_projects.count }}</span>
+                  </td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <a href="{% url 'federated_site_detail' site.id %}" 
+                         class="btn btn-sm btn-info" title="View Details">
+                        <i class="fa fa-eye"></i>
+                      </a>
+                      <a href="{% url 'federated_site_edit' site.id %}" 
+                         class="btn btn-sm btn-warning" title="Edit">
+                        <i class="fa fa-edit"></i>
+                      </a>
+                      <a href="{% url 'federated_site_sync' site.id %}" 
+                         class="btn btn-sm btn-primary" title="Sync Now">
+                        <i class="fa fa-sync"></i>
+                      </a>
+                      <a href="{% url 'federated_site_delete' site.id %}" 
+                         class="btn btn-sm btn-danger" title="Delete">
+                        <i class="fa fa-trash"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              {% endwith %}
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="alert alert-info">
+          <i class="fa fa-info-circle"></i> No federated sites configured yet. 
+          <a href="{% url 'federated_site_add' %}">Add your first site</a> to enable federated search.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <h3>About Federated Sites</h3>
+    </div>
+    <div class="card-body">
+      <p>
+        Federated sites allow multiple PhysioNet instances to share project metadata for unified search. 
+        Each site periodically syncs metadata from registered peers via their REST API.
+      </p>
+      <ul>
+        <li><strong>Active:</strong> Sites marked as active will be included in automatic sync jobs</li>
+        <li><strong>Sync Status:</strong> Shows the result of the most recent synchronization attempt</li>
+        <li><strong>Cached Projects:</strong> Number of projects cached locally from this site</li>
+      </ul>
+      <p>
+        To manually sync a site, click the <i class="fa fa-sync"></i> icon or run: 
+        <code>python manage.py sync_federated_sites --site &lt;identifier&gt;</code>
+      </p>
+    </div>
+  </div>
+{% endblock %}

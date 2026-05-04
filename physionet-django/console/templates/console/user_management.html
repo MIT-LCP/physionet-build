@@ -112,6 +112,24 @@
   {% endfor %}
 
   <br />
+  <h3>Georestriction</h3>
+  <hr>
+  <div class="row mb-1">
+    <div class="col-md-3">
+      Restricted:
+    </div>
+    <div class="col-md-9">
+      {% if is_restricted is None %}
+        Unknown (no registration IP)
+      {% elif is_restricted %}
+        True
+      {% else %}
+        False
+      {% endif %}
+    </div>
+  </div>
+
+  <br />
   <h3>Permission groups</h3>
   <hr>
     <div class="row mb-1">

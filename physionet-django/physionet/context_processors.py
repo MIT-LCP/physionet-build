@@ -1,6 +1,7 @@
 from django.conf import settings
 from physionet.models import FrontPageButton
 
+from notification.models import Notification
 from project.models import (
     AccessPolicy,
     SubmissionStatus,
@@ -49,3 +50,12 @@ def homepage_config(request):
         "SITE_HEADER_LOGO": settings.SITE_HEADER_LOGO,
         "SITE_FOOTER_LOGO": settings.SITE_FOOTER_LOGO,
     }
+
+
+def unread_notification_count(request):
+    if hasattr(request, 'user') and request.user.is_authenticated:
+        count = Notification.objects.filter(
+            recipient=request.user, is_read=False
+        ).count()
+        return {'unread_notification_count': count}
+    return {'unread_notification_count': 0}

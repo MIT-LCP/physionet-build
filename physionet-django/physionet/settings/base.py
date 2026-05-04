@@ -144,6 +144,7 @@ REST_FRAMEWORK = {
 CRON_CLASSES = [
     "physionet.cron.RemoveUnverifiedEmails",
     "physionet.cron.RemoveOutstandingInvites",
+    "physionet.cron.CleanOldNotifications",
 ]
 
 ROOT_URLCONF = 'physionet.urls'
@@ -164,7 +165,8 @@ TEMPLATES = [
                 'physionet.context_processors.platform_config',
                 'sso.context_processors.sso_enabled',
                 'physionet.context_processors.cloud_research_environments_config',
-                'physionet.context_processors.homepage_config'
+                'physionet.context_processors.homepage_config',
+                'physionet.context_processors.unread_notification_count'
             ],
             'debug': DEBUG,
         },
@@ -237,8 +239,11 @@ Q_CLUSTER = {
     'label': 'Django Q2',
 }
 
-# Django background tasks max attempts
+# Background tasks
+
+BACKGROUND_TASK_RUN_ASYNC = True
 MAX_ATTEMPTS = 5
+MAX_RUN_TIME = 9999999999      # 316 years
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/

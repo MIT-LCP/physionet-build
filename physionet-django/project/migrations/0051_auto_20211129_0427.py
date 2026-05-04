@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.db import migrations, models
 
-from project.modelcomponents.access import AccessPolicy
+from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
 
 

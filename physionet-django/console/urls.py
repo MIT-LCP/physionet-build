@@ -38,6 +38,12 @@ urlpatterns = [
     path('gcp-signed-urls-logs/<int:pk>/', views.gcp_signed_urls_logs_detail, name='gcp_signed_urls_logs_detail'),
     path('download-signed-urls-logs/<int:pk>/', views.download_signed_urls_logs, name='download_signed_urls_logs'),
 
+    # DUA Logs
+    path('dua-logs/', views.dua_logs, name='dua_logs'),
+    path('dua-logs/<int:pk>/', views.dua_logs_detail, name='dua_logs_detail'),
+    path('download-dua-signatures/<int:pk>/', views.download_dua_signatures, name='download_dua_signatures'),
+    path('download-all-dua-signatures/', views.download_all_dua_signatures, name='download_all_dua_signatures'),
+
     # On hold
     path('submitted-projects/<project_slug>/on-hold/', views.project_on_hold, name='project_on_hold'),
 
@@ -50,6 +56,9 @@ urlpatterns = [
     path('submitted-projects/<project_slug>/awaiting-authors/', views.awaiting_authors, name='awaiting_authors'),
     path('submitted-projects/<project_slug>/publish/', views.publish_submission, name='publish_submission'),
     path('publish-slug-available/<project_slug>/', views.publish_slug_available, name='publish_slug_available'),
+    path('submitted-projects/<project_slug>/update-checksums/',
+         views.update_submission_checksums,
+         name='update_submission_checksums'),
 
     path('storage-requests/', views.storage_requests,
          name='storage_requests'),
@@ -189,6 +198,15 @@ urlpatterns = [
     path('partners/<int:pk>/suspend/', views.partner_suspend, name='partner_suspend'),
     path('partners/<int:pk>/reactivate/', views.partner_reactivate, name='partner_reactivate'),
     path('partners/<int:pk>/revoke/', views.partner_revoke, name='partner_revoke'),
+
+    # Federated Sites
+    path('federated-sites/', views.federated_sites, name='federated_sites'),
+    path('federated-sites/add/', views.federated_site_add, name='federated_site_add'),
+    path('federated-sites/<int:site_id>/', views.federated_site_detail, name='federated_site_detail'),
+    path('federated-sites/<int:site_id>/edit/', views.federated_site_edit, name='federated_site_edit'),
+    path('federated-sites/<int:site_id>/sync/', views.federated_site_sync, name='federated_site_sync'),
+    path('federated-sites/<int:site_id>/delete/', views.federated_site_delete, name='federated_site_delete'),
+    path('federated-projects/', views.federated_projects, name='federated_projects'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)
@@ -205,6 +223,7 @@ TEST_DEFAULTS = {
     'news_slug': 'cloud-migration',
     'version': '1.0',
     'training_slug': 'world-101-introduction-to-continents-and-countries',
+    'site_id': 1,
 }
 TEST_CASES = {
     'published_projects_by_slug': {
@@ -255,6 +274,10 @@ TEST_CASES = {
         '_user_': 'tompollard',
         'project_slug': 'p7TCIMkltNswuOB9FZH1',
         '_query_': {'desired_slug': 'note-parser'},
+    },
+    'update_submission_checksums': {
+        '_user_': 'tompollard',
+        'project_slug': 'p7TCIMkltNswuOB9FZH1',
     },
 
     'credential_applications': [
@@ -311,6 +334,15 @@ TEST_CASES = {
     'partner_suspend': {'_skip_': True},
     'partner_reactivate': {'_skip_': True},
     'partner_revoke': {'_skip_': True},
+
+    # DUA Logs: pk must be a credentialed project
+    'dua_logs_detail': {
+        # id of a PublishedProject with access_policy=CREDENTIALED
+        'pk': 1,
+    },
+    'download_dua_signatures': {
+        'pk': 1,
+    },
 
     # Broken views: POST required for no reason
     'users_list_search': {'group': 'all', '_skip_': True},

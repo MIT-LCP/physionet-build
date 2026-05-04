@@ -1,2 +1,36 @@
 [
+    {
+        "model": "search.federatedsite",
+        "pk": 1,
+        "fields": {
+            "site_identifier": "demo-federated-site",
+            "site_name": "Demo Federated Site",
+            "api_base_url": "https://demo.example.com",
+            "is_active": true,
+            "last_sync_datetime": null,
+            "last_sync_status": "never",
+            "created": "2024-01-01T00:00:00Z",
+            "modified": "2024-01-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "search.federatedproject",
+        "pk": 1,
+        "fields": {
+            "source_site": 1,
+            "public_project_uuid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+            "slug": "demoeicu",
+            "version": "2.0.0",
+            "title": "Demo eICU Collaborative Research Database",
+            "abstract": "The eICU Collaborative Research Database is a large multi-center critical care database.",
+            "doi": "10.13026/G2F309",
+            "source_url": "https://demo.example.com/content/demoeicu/2.0.0/",
+            "resource_type": "Database",
+            "access_policy": "Credentialed",
+            "publish_datetime": "2018-12-17T21:11:17.040Z",
+            "main_storage_size": 3195,
+            "topics": ["critical care", "eicu"],
+            "last_fetched": "2024-01-01T00:00:00Z"
+        }
+    }
 ]

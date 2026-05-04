@@ -23,7 +23,11 @@ class BaseProjectFiles(abc.ABC):
 
     @abc.abstractmethod
     def fwrite(self, path, content):
-        """Write the content of the string at a given path."""
+        """
+        Write the content of the string at a given path.
+
+        The new file replaces any existing file at that path.
+        """
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -83,6 +87,15 @@ class BaseProjectFiles(abc.ABC):
     def rmtree(self, path):
         """Recursively delete a directory tree."""
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def chmod_tree_files_readonly(self, path):
+        """Make all files in a tree read-only."""
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def chmod_tree_subdirs_readonly(self, path):
+        """Make all directories in a tree read-only."""
 
     @abc.abstractmethod
     def publish_initial(self, active_project, published_project):

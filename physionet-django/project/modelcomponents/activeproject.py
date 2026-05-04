@@ -18,7 +18,7 @@ from django.utils.html import strip_tags
 
 from console.tasks import associated_task
 from physionet.settings.base import StorageTypes
-from project.modelcomponents.access import AccessPolicy
+from project.enums import AccessPolicy
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
 from project.modelcomponents.metadata import (
     Contact,
@@ -30,6 +30,7 @@ from project.modelcomponents.metadata import (
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
+import project.tasks as tasks
 from project.validators import validate_subdir
 
 LOGGER = logging.getLogger(__name__)
@@ -41,6 +42,9 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
     """
     Schedule a background task to set the files as read only.
     If a file starts with a Shebang, then it will be set as executable.
+
+    This function is obsolescent.  It can be deleted once there are no
+    pending tasks that refer to it.
     """
 
     published_project = PublishedProject.objects.get(id=pid)
@@ -509,6 +513,18 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         return len(authors) == len(authors.filter(
             approval_datetime__isnull=False))
 
+    def checksums_valid(self):
+        """
+        Check whether project files are ready for publication.
+
+        The checksums_valid_datetime field indicates that the
+        prepare_active_project_files task has run successfully and
+        that the project content has not changed since the task
+        started.  If checksums_valid_datetime doesn't equal
+        modified_datetime, then the task needs to be run again.
+        """
+        return self.checksums_valid_datetime == self.modified_datetime
+
     def is_publishable(self):
         """
         Check whether a project may be published
@@ -517,6 +533,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.submission_status == SubmissionStatus.NEEDS_PUBLICATION
             and self.check_integrity()
             and self.all_authors_approved()
+            and self.checksums_valid()
         ):
             return True
         return False
@@ -547,6 +564,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             setattr(published_project, field, getattr(self, field))
 
         published_project.slug = slug or self.slug
+        published_project.submission_slug = self.slug
 
         # Create project file root if this is first version or the first
         # version with a different access policy
@@ -647,14 +665,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
                 published_project.required_trainings.set(self.required_trainings.all())
 
-                # Set files read only and make zip file if requested
-                move_files_as_readonly(
+                # Set directories read only to prevent accidental changes
+                tasks.finalize_published_project_files(
                     published_project.id,
-                    self.file_root(),
-                    published_project.file_root(),
-                    make_zip,
-                    verbose_name='Read Only Files - {}'.format(published_project),
+                    verbose_name='Finalize publication: {}'.format(published_project),
                 )
+
+                # Generate zip file, if requested (this can happen in
+                # parallel with finalize_published_project_files)
+                if make_zip:
+                    tasks.create_published_project_zip(
+                        published_project.id,
+                        verbose_name='Create zip archive: {}'.format(published_project),
+                    )
 
                 # Remove the ActiveProject
                 self.delete()

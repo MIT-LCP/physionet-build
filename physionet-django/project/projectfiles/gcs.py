@@ -34,9 +34,6 @@ class GCSProjectFiles(BaseProjectFiles):
 
     def fwrite(self, path, content):
         gcs_object = GCSObject(path)
-        if gcs_object.exists():
-            raise FileExistsError
-
         gcs_object.upload_from_string(content)
 
     def fput(self, path, file):
@@ -100,6 +97,12 @@ class GCSProjectFiles(BaseProjectFiles):
         path = self._dir_path(path)
 
         GCSObject(path).rm()
+
+    def chmod_tree_files_readonly(self, path):
+        return
+
+    def chmod_tree_subdirs_readonly(self, path):
+        return
 
     def download_url(self, project, path):
         return self.raw_url(project, path)

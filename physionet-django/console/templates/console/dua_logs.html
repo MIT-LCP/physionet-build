@@ -1,0 +1,59 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}DUA Logs{% endblock %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
+{% endblock %}
+
+{% block content %}
+ <script src="{% static 'console/js/generic-filter.js' %}"></script>
+ <div class="card mb-3">
+  <div class="card-header">
+    DUA Logs - Credentialed Projects <span class="badge badge-pill badge-info">{{ projects.paginator.count }}</span>
+  </div>
+  <div class="card-body">
+    <a href="{% url 'download_all_dua_signatures' %}" class="btn btn-md btn-success">Download All DUA Signatures CSV</a>
+    <hr>
+    <div class="row">
+      <div class="col-sm-12">
+        <label class="font-weight-bold" for="searchbox">Search for project:</label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <input id="searchbox" type="search" oninput="search();" placeholder="Search...">
+      </div>
+    </div>
+    <div class="table-responsive" id="searchitems">
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Publish Datetime</th>
+            <th>Signed DUAs</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% include "console/dua_logs_list.html" %}
+        </tbody>
+      </table>
+      {% include "console/pagination.html" with pagination=projects %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}
+  <script>
+    const search = () => {
+      const filters = {
+        q: $('#searchbox').val()
+      }
+      filter("{% url 'dua_logs' %}", filters)
+    }
+  </script>
+{% endblock %}

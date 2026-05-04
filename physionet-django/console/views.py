@@ -62,6 +62,7 @@ from project.models import (
     InternalNote
 )
 from project.authorization.access import can_view_project_files
+import project.tasks as project_tasks
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
 from project.views import get_file_forms, get_project_file_info, process_files_post
@@ -78,6 +79,7 @@ from user.models import (
     CodeOfConduct,
     CloudInformation
 )
+from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
@@ -88,6 +90,9 @@ from project.cloud.s3 import (
     check_s3_bucket_exists,
     has_s3_credentials,
 )
+
+from django.core.management import call_command
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -810,7 +815,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
         if project.is_publishable() and publish_form.is_valid():
 
             project.georestricted = publish_form.cleaned_data['georestricted']
-            project.save()
+            project.save(update_fields=['georestricted'])
 
             if project.is_new_version:
                 slug = project.get_previous_slug()
@@ -844,6 +849,7 @@ def publish_submission(request, project_slug, *args, **kwargs):
 
     publishable = project.is_publishable()
     publish_form = forms.PublishForm(project=project)
+    tasks = [task for task, read_only in get_associated_tasks(project)]
 
     return render(request,
                   'console/publish_submission.html',
@@ -857,12 +863,40 @@ def publish_submission(request, project_slug, *args, **kwargs):
                    force_calculate=True
                    ),
                    'publishable': publishable,
+                   'tasks': tasks,
                    'copyedit_logs': copyedit_logs,
                    'publish_form': publish_form,
                    'max_slug_length': MAX_PROJECT_SLUG_LENGTH,
                    'editor_home': True,
                    }
                   )
+
+
+@handling_editor
+def update_submission_checksums(request, project_slug, project, **kwargs):
+    """
+    Form handler to refresh checksums and storage information.
+
+    In normal circumstances, the project checksum file should be
+    generated automatically after the editor completes copyediting.
+    In rare cases where this doesn't happen (for old projects that
+    were copyedited before this was implemented, or if the task fails
+    for some reason), the project's handling editor can re-trigger the
+    task manually.
+    """
+    if request.method == 'POST':
+        if any(get_associated_tasks(project)):
+            messages.error(request, 'Project has tasks pending.')
+        else:
+            project_tasks.prepare_active_project_files(
+                project_id=project.id,
+                verbose_name='Prepare project files: {}'.format(project.slug),
+                creator=request.user,
+            )
+            messages.success(request, 'Project checksum task has been scheduled.')
+
+    url = request.POST.get('redirect', reverse('submission_info', args=[project_slug]))
+    return HttpResponseRedirect(url)
 
 
 @console_permission_required('project.change_storagerequest')
@@ -1470,6 +1504,8 @@ def user_management(request, username):
 
     groups = user.groups.all()
 
+    is_restricted = user.is_from_restricted_country()
+
     return render(request, 'console/user_management.html', {'subject': user,
                                                             'profile': user.profile,
                                                             'groups': groups,
@@ -1478,7 +1514,8 @@ def user_management(request, username):
                                                             'training_list': training,
                                                             'credentialing_app': credentialing_app,
                                                             'aws_info': aws_info,
-                                                            'gcp_info': gcp_info})
+                                                            'gcp_info': gcp_info,
+                                                            'is_restricted': is_restricted})
 
 
 @console_permission_required('user.view_user')
@@ -3011,6 +3048,139 @@ def download_signed_urls_logs(request, pk):
     return response
 
 
+# ---------------------- DUA Logs Views ---------------------- #
+
+
+@console_permission_required('project.can_view_access_logs')
+def dua_logs(request):
+    """
+    List credentialed published projects with their DUA signature counts.
+    """
+    projects = PublishedProject.objects.filter(
+        access_policy=AccessPolicy.CREDENTIALED
+    ).annotate(
+        dua_count=Count('duasignature')
+    ).order_by('-publish_datetime')
+
+    q = request.GET.get('q')
+    if q:
+        projects = projects.filter(title__icontains=q)
+
+    projects = paginate(request, projects, 50)
+
+    return render(request, 'console/dua_logs.html', {
+        'projects': projects,
+    })
+
+
+@console_permission_required('project.can_view_access_logs')
+def dua_logs_detail(request, pk):
+    """
+    Show DUA signatures for a specific credentialed project.
+    """
+    project = get_object_or_404(
+        PublishedProject, pk=pk, access_policy=AccessPolicy.CREDENTIALED
+    )
+    signatures = (
+        DUASignature.objects.filter(project=project)
+        .select_related('user__profile')
+        .order_by('-sign_datetime')
+    )
+
+    user = request.GET.get('user')
+    if user:
+        signatures = signatures.filter(user=user)
+
+    start_date = request.GET.get('startDate')
+    end_date = request.GET.get('endDate')
+    if start_date and end_date:
+        signatures = signatures.filter(
+            sign_datetime__gte=start_date, sign_datetime__lte=end_date
+        )
+
+    signatures = paginate(request, signatures, 50)
+    user_filter_form = UserFilterForm()
+
+    return render(request, 'console/dua_logs_detail.html', {
+        'project': project,
+        'signatures': signatures,
+        'user_filter_form': user_filter_form,
+    })
+
+
+@console_permission_required('project.can_view_access_logs')
+def download_dua_signatures(request, pk):
+    """
+    Download CSV of DUA signatures for a specific project.
+    """
+    project = get_object_or_404(
+        PublishedProject, pk=pk, access_policy=AccessPolicy.CREDENTIALED
+    )
+    headers = ['User', 'Email address', 'Sign datetime']
+
+    signatures = (
+        DUASignature.objects.filter(project=project)
+        .select_related('user__profile')
+        .order_by('-sign_datetime')
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = (
+        f'attachment; filename="project_{pk}_dua_signatures.csv"'
+    )
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for sig in signatures:
+        writer.writerow([
+            sig.user.get_full_name(),
+            sig.user.email,
+            sig.sign_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+        ])
+
+    return response
+
+
+@console_permission_required('project.can_view_access_logs')
+def download_all_dua_signatures(request):
+    """
+    Download CSV of all DUA signatures across all credentialed projects.
+    """
+    headers = [
+        'Project', 'Project slug', 'Version',
+        'User', 'Email address', 'Sign datetime',
+    ]
+
+    signatures = (
+        DUASignature.objects.filter(
+            project__access_policy=AccessPolicy.CREDENTIALED
+        )
+        .select_related('user__profile', 'project')
+        .order_by('project__title', '-sign_datetime')
+    )
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = (
+        'attachment; filename="all_dua_signatures.csv"'
+    )
+
+    writer = csv.writer(response)
+    writer.writerow(headers)
+
+    for sig in signatures:
+        writer.writerow([
+            sig.project.title,
+            sig.project.slug,
+            sig.project.version,
+            sig.user.get_full_name(),
+            sig.user.email,
+            sig.sign_datetime.strftime('%m/%d/%Y, %I:%M:%S %p'),
+        ])
+
+    return response
+
+
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         """
@@ -3975,3 +4145,188 @@ def partner_revoke(request, pk):
         form = PartnerSuspendForm()
     return render(request, "console/partners/suspend_form.html",
                   {"form": form, "partner": partner, "action": "revoke"})
+
+
+# ------------------------- Federated Sites Views ------------------------- #
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_sites(request):
+    """
+    List all federated sites with their sync status
+    """
+
+    sites = FederatedSite.objects.all().order_by('site_name')
+
+    # Get latest sync log for each site
+    sites_with_logs = []
+    for site in sites:
+        latest_log = site.sync_logs.first()  # Already ordered by -started_at
+        sites_with_logs.append({
+            'site': site,
+            'latest_log': latest_log,
+        })
+
+    return render(request, 'console/federated_sites.html', {
+        'sites_with_logs': sites_with_logs,
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_add(request):
+    """
+    Add a new federated site
+    """
+
+    if request.method == 'POST':
+        form = forms.FederatedSiteForm(request.POST)
+        if form.is_valid():
+            FederatedSite.objects.create(
+                site_identifier=form.cleaned_data['site_identifier'],
+                site_name=form.cleaned_data['site_name'],
+                api_base_url=form.cleaned_data['api_base_url'],
+                is_active=form.cleaned_data['is_active'],
+            )
+            messages.success(request, f'Federated site "{form.cleaned_data["site_name"]}" has been added.')
+            return redirect('federated_sites')
+        else:
+            for _, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+    else:
+        form = forms.FederatedSiteForm()
+
+    return render(request, 'console/federated_site_form.html', {
+        'form': form,
+        'action': 'Add',
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_edit(request, site_id):
+    """
+    Edit an existing federated site
+    """
+
+    site = get_object_or_404(FederatedSite, id=site_id)
+
+    if request.method == 'POST':
+        form = forms.FederatedSiteForm(request.POST, instance=site)
+        if form.is_valid():
+            site.site_name = form.cleaned_data['site_name']
+            site.api_base_url = form.cleaned_data['api_base_url']
+            site.is_active = form.cleaned_data['is_active']
+            site.save()
+            messages.success(request, f'Federated site "{site.site_name}" has been updated.')
+            return redirect('federated_sites')
+        else:
+            for _, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+    else:
+        form = forms.FederatedSiteForm(instance=site)
+
+    return render(request, 'console/federated_site_form.html', {
+        'form': form,
+        'site': site,
+        'action': 'Edit',
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_detail(request, site_id):
+    """
+    View details of a federated site including sync history
+    """
+
+    site = get_object_or_404(FederatedSite, id=site_id)
+
+    # Get sync logs for this site
+    sync_logs = site.sync_logs.all()[:20]  # Last 20 syncs
+
+    # Get cached projects count
+    cached_projects_count = site.cached_projects.count()
+
+    return render(request, 'console/federated_site_detail.html', {
+        'site': site,
+        'sync_logs': sync_logs,
+        'cached_projects_count': cached_projects_count,
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_sync(request, site_id):
+    """
+    Trigger a manual sync for a specific site
+    """
+
+    site = get_object_or_404(FederatedSite, id=site_id)
+
+    if request.method == 'POST':
+        try:
+            # Call the sync management command for this specific site
+            call_command('sync_federated_sites', site=site.site_identifier, verbosity=0)
+            messages.success(request, f'Sync initiated for "{site.site_name}". Check the sync logs for results.')
+        except Exception as e:
+            messages.error(request, f'Sync failed: {str(e)}')
+
+        return redirect('federated_site_detail', site_id=site_id)
+
+    return render(request, 'console/federated_site_sync_confirm.html', {
+        'site': site,
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_site_delete(request, site_id):
+    """
+    Delete a federated site and all its cached projects
+    """
+
+    site = get_object_or_404(FederatedSite, id=site_id)
+
+    if request.method == 'POST':
+        site_name = site.site_name
+        site.delete()
+        messages.success(request, f'Federated site "{site_name}" and all its cached projects have been deleted.')
+        return redirect('federated_sites')
+
+    return render(request, 'console/federated_site_delete_confirm.html', {
+        'site': site,
+        'cached_projects_count': site.cached_projects.count(),
+    })
+
+
+@console_permission_required('user.can_view_admin_console')
+def federated_projects(request):
+    """
+    List all cached federated projects
+    """
+
+    # Get filter parameters
+    site_filter = request.GET.get('site', '')
+
+    projects = FederatedProject.objects.select_related('source_site').all()
+
+    selected_site = None
+    if site_filter:
+        projects = projects.filter(source_site__site_identifier=site_filter)
+        try:
+            selected_site = FederatedSite.objects.get(site_identifier=site_filter)
+        except FederatedSite.DoesNotExist:
+            pass
+
+    projects = projects.order_by('-publish_datetime')
+
+    # Paginate
+    projects = paginate(request, projects, 50)
+
+    # Get all sites for filter dropdown
+    sites = FederatedSite.objects.all().order_by('site_name')
+
+    return render(request, 'console/federated_projects.html', {
+        'projects': projects,
+        'sites': sites,
+        'site_filter': site_filter,
+        'selected_site': selected_site,
+    })

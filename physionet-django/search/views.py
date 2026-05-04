@@ -1,5 +1,4 @@
 import operator
-import pdb
 import re
 from functools import reduce
 
@@ -9,8 +8,49 @@ from django.http import Http404
 from django.shortcuts import redirect, render, reverse
 from django.templatetags.static import static
 from physionet.utility import paginate
-from project.models import PublishedProject, PublishedTopic
+from project.models import PublishedProject, PublishedTopic, ProjectType
 from search import forms
+from search.models import FederatedProject
+
+
+def get_federated_projects(resource_type, search_term):
+    """
+    Search federated projects by resource type and search term.
+
+    Returns a queryset of FederatedProject objects matching the criteria.
+    """
+    # Map resource_type IDs to string values from database
+    resource_type_map = {pt.id: pt.name for pt in ProjectType.objects.all()}
+
+    # Convert resource_type list to string values
+    resource_type_strings = [resource_type_map.get(rt) for rt in resource_type if rt in resource_type_map]
+
+    # Start with active sites filter
+    federated_projects = FederatedProject.objects.select_related('source_site').filter(
+        source_site__is_active=True
+    )
+
+    # Filter by resource type if specified
+    if resource_type_strings:
+        federated_projects = federated_projects.filter(
+            resource_type__in=resource_type_strings
+        )
+
+    # Apply search term filtering if provided
+    if search_term:
+        # Split first, then escape each term to preserve delimiters
+        search_terms = [re.escape(term) for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
+        query = Q()
+        for term in search_terms:
+            # Search in title, abstract, and topics (JSON field)
+            query |= (
+                Q(title__icontains=term)
+                | Q(abstract__icontains=term)
+                | Q(topics__icontains=term)
+            )
+        federated_projects = federated_projects.filter(query)
+
+    return federated_projects
 
 
 def topic_search(request):
@@ -70,7 +110,8 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
 
     # Split search term by whitespace or punctuation
     if search_term:
-        search_terms = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
+        # Split first, then escape each term to preserve delimiters
+        search_terms = [re.escape(term) for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
         search_queries = [SearchQuery(term) for term in search_terms]
         search_query = reduce(operator.and_, search_queries)
         query = Q(resource_type__in=resource_type) & Q(search=search_query)
@@ -78,15 +119,16 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
         search_query = SearchQuery('')
         query = Q(resource_type__in=resource_type)
 
-    vector = (SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
-              + SearchVector('topics__description', weight='C'))
+    match_vector = (SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
+                    + SearchVector('topics__description', weight='C'))
 
-    # Filter projects by latest version and annotate relevance field
-    published_projects = PublishedProject.objects.annotate(search=vector).filter(query, is_latest_version=True)
+    # Create a vector without the topics to avoid row multiplication from the M2M join when ranking
+    rank_vector = SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
+    published_projects = PublishedProject.objects.annotate(search=match_vector).filter(query, is_latest_version=True)
 
-    # get distinct projects with subquery and also include relevance from published_projects
+    # Get distinct projects including relevance annotation
     published_projects = PublishedProject.objects.filter(id__in=published_projects.values('id')).annotate(
-        relevance=SearchRank(vector, search_query)).distinct()
+        relevance=SearchRank(rank_vector, search_query))
 
     # Sorting
     direction = '-' if direction == 'desc' else ''
@@ -110,7 +152,8 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
     if len(search_term) == 0:
         query = Q(resource_type__in=resource_type)
     else:
-        search_term = re.split(r'\s*[\;\,\s]\s*', re.escape(search_term))
+        # Split first, then escape each term to preserve delimiters
+        search_term = [re.escape(term) for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
         query = reduce(operator.or_, (Q(topics__description__iregex=r'{0}{1}{0}'.format(wb,
             item)) for item in search_term))
         query = query | reduce(operator.or_, (Q(abstract__iregex=r'{0}{1}{0}'.format(wb,
@@ -159,13 +202,17 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
 
 def content_index(request, resource_type=None):
     """
-    List of all published resources
+    List of all published resources including federated projects
     """
-    LABELS = {0: ['Database', 'databases'],
-              1: ['Software', 'softwares'],
-              2: ['Challenge', 'challenges'],
-              3: ['Model', 'models'],
-              }
+    # Build labels from database
+    LABELS = {}
+    for pt in ProjectType.objects.all():
+        # Simple pluralization (can be enhanced if needed)
+        if pt.name == 'Software':
+            plural = 'softwares'
+        else:
+            plural = pt.name.lower() + 's'
+        LABELS[pt.id] = [pt.name, plural]
 
     # PROJECT TYPE FILTER
     form_type = forms.ProjectTypeForm()
@@ -199,14 +246,56 @@ def content_index(request, resource_type=None):
     else:
         form_topic = forms.TopicSearchForm()
 
-    # BUILD
+    # BUILD - Get local published projects
     published_projects = get_content(resource_type=resource_type,
                                      orderby=orderby,
                                      direction=direction,
                                      search_term=topic)
 
+    # Get federated projects
+    federated_projects = get_federated_projects(resource_type=resource_type,
+                                                search_term=topic)
+
+    # Sort federated projects
+    if orderby == 'publish_datetime':
+        fed_order = 'publish_datetime' if direction == 'asc' else '-publish_datetime'
+        federated_projects = federated_projects.order_by(fed_order)
+    elif orderby == 'title':
+        fed_order = 'title' if direction == 'asc' else '-title'
+        federated_projects = federated_projects.order_by(fed_order)
+    elif orderby == 'main_storage_size':
+        fed_order = 'main_storage_size' if direction == 'asc' else '-main_storage_size'
+        federated_projects = federated_projects.order_by(fed_order)
+    else:
+        # Default to publish_datetime for relevance sorting
+        federated_projects = federated_projects.order_by('-publish_datetime')
+
+    # Add flag to distinguish federated projects in template
+    # Limit results per source to prevent memory issues
+    # Users rarely need more than this, and pagination handles display
+    MAX_RESULTS_PER_SOURCE = 500
+
+    # Convert to lists with upper bound
+    local_projects_list = list(published_projects[:MAX_RESULTS_PER_SOURCE])
+    federated_projects_list = list(federated_projects[:MAX_RESULTS_PER_SOURCE])
+
+    # Mark federated projects with a flag
+    for project in federated_projects_list:
+        project.is_federated = True
+
+    # Combine both lists
+    all_projects = local_projects_list + federated_projects_list
+
+    # Apply custom sorting if needed for combined results
+    if orderby == 'publish_datetime':
+        all_projects.sort(key=lambda p: p.publish_datetime, reverse=(direction == 'desc'))
+    elif orderby == 'title':
+        all_projects.sort(key=lambda p: p.title.lower(), reverse=(direction == 'desc'))
+    elif orderby == 'main_storage_size':
+        all_projects.sort(key=lambda p: getattr(p, 'main_storage_size', 0), reverse=(direction == 'desc'))
+
     # PAGINATION
-    projects = paginate(request, published_projects, 10)
+    projects = paginate(request, all_projects, 10)
 
     params = request.GET.copy()
     # Remove the page argument from the querystring if it exists
@@ -264,15 +353,25 @@ def charts(request):
     """
     resource_type = None
 
-    if ('resource_type' in request.GET and
-            request.GET['resource_type'] in ['0', '1', '2', '3']):
+    if ('resource_type' in request.GET
+            and request.GET['resource_type'] in ['0', '1', '2', '3']):
         resource_type = int(request.GET['resource_type'])
 
-    LABELS = {None: ['Content', 'Projects'],
-              0: ['Database', 'Databases'],
-              1: ['Software', 'Software Projects'],
-              2: ['Challenge', 'Challenges'],
-              3: ['Model', 'Models']}
+    # Build labels from database
+    LABELS = {None: ['Content', 'Projects']}
+    for pt in ProjectType.objects.all():
+        # Proper pluralization for chart labels
+        if pt.name == 'Software':
+            plural = 'Software Projects'
+        elif pt.name == 'Database':
+            plural = 'Databases'
+        elif pt.name == 'Challenge':
+            plural = 'Challenges'
+        elif pt.name == 'Model':
+            plural = 'Models'
+        else:
+            plural = pt.name + 's'
+        LABELS[pt.id] = [pt.name, plural]
 
     main_label, plural_label = LABELS[resource_type]
     return render(request, 'search/charts.html', {
