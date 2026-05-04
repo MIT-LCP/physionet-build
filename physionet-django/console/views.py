@@ -22,7 +22,9 @@ from django.db.models import Count, DurationField, F, Q, Prefetch
 from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory
 from django.forms.models import model_to_dict
-from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
+from django.db import transaction
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
+from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -3740,3 +3742,236 @@ def event_agreement_delete(request, pk):
         messages.success(request, "The Event Agreement has been deleted.")
 
     return redirect("event_agreement_list")
+
+
+# ------------------------- OAuth Partners ------------------------- #
+
+
+@console_permission_required('oauth.change_partner')
+def partner_list(request):
+    from oauth.models import Partner
+    partners = Partner.objects.select_related("application").order_by("organization_name")
+    status_filter = request.GET.get("status")
+    if status_filter:
+        partners = partners.filter(status=status_filter)
+    return render(request, "console/partners/list.html", {
+        "partners": partners,
+        "status_filter": status_filter,
+        "Status": Partner.Status,
+    })
+
+
+@console_permission_required('oauth.change_partner')
+def partner_new(request):
+    from oauth.forms import PartnerCreateForm
+    from oauth.models import Partner
+    from oauth2_provider.models import get_application_model
+    Application = get_application_model()
+
+    if request.method == "POST":
+        form = PartnerCreateForm(request.POST)
+        if form.is_valid():
+            # Opt the partner in to RS256 ID-token signing if they need OIDC.
+            # Without this, /oauth/token/ raises ImproperlyConfigured for any
+            # request including the openid scope.
+            allowed_scopes = form.cleaned_data["allowed_scopes"]
+            algorithm = (
+                Application.RS256_ALGORITHM
+                if "openid" in allowed_scopes
+                else Application.NO_ALGORITHM
+            )
+            with transaction.atomic():
+                application = Application(
+                    name=form.cleaned_data["organization_name"][:255],
+                    redirect_uris=form.cleaned_data["redirect_uris"],
+                    user=request.user,
+                    client_type=Application.CLIENT_CONFIDENTIAL,
+                    authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+                    algorithm=algorithm,
+                )
+                cleartext_secret = application.client_secret  # captured BEFORE save (DOT may hash on save in newer versions)
+                application.save()
+                partner = Partner.objects.create(
+                    application=application,
+                    organization_name=form.cleaned_data["organization_name"],
+                    contact_name=form.cleaned_data["contact_name"],
+                    contact_email=form.cleaned_data["contact_email"],
+                    agreement_signed_date=form.cleaned_data["agreement_signed_date"],
+                    post_logout_redirect_uris=form.cleaned_data["post_logout_redirect_uris"],
+                    allowed_scopes=allowed_scopes,
+                    created_by=request.user,
+                )
+            request.session["_partner_one_time_secret"] = cleartext_secret
+            return redirect(reverse("partner_detail", args=[partner.pk]) + "?show_secret=1")
+    else:
+        form = PartnerCreateForm()
+    return render(request, "console/partners/new.html", {"form": form})
+
+
+@console_permission_required('oauth.change_partner')
+def partner_detail(request, pk):
+    from oauth.models import Partner
+    partner = get_object_or_404(Partner, pk=pk)
+    one_time_secret = None
+    if request.GET.get("show_secret") == "1":
+        one_time_secret = request.session.pop("_partner_one_time_secret", None)
+    return render(request, "console/partners/detail.html", {
+        "partner": partner,
+        "one_time_secret": one_time_secret,
+        "Status": Partner.Status,
+    })
+
+
+@console_permission_required('oauth.change_partner')
+def partner_edit(request, pk):
+    from oauth.forms import PartnerEditForm
+    from oauth.models import Partner
+    partner = get_object_or_404(Partner, pk=pk)
+    if request.method == "POST":
+        form = PartnerEditForm(request.POST, instance=partner)
+        if form.is_valid():
+            form.save()
+            return redirect("partner_detail", pk=partner.pk)
+    else:
+        form = PartnerEditForm(instance=partner)
+    return render(request, "console/partners/edit.html",
+                  {"form": form, "partner": partner})
+
+
+@console_permission_required('oauth.change_partner')
+def partner_scopes(request, pk):
+    from oauth.forms import PartnerScopesForm
+    from oauth.models import Partner
+    from oauth2_provider.models import get_application_model
+    Application = get_application_model()
+
+    partner = get_object_or_404(Partner, pk=pk)
+    if request.method == "POST":
+        form = PartnerScopesForm(request.POST, instance=partner)
+        if form.is_valid():
+            form.save()
+            # Keep the Application's signing algorithm in sync with whether
+            # the partner now needs OIDC; otherwise /oauth/token/ will either
+            # fail (no algorithm) or sign tokens nobody asked for.
+            needs_oidc = "openid" in (partner.allowed_scopes or [])
+            target_alg = (
+                Application.RS256_ALGORITHM if needs_oidc else Application.NO_ALGORITHM
+            )
+            if partner.application.algorithm != target_alg:
+                partner.application.algorithm = target_alg
+                partner.application.save(update_fields=["algorithm"])
+            return redirect("partner_detail", pk=partner.pk)
+    else:
+        form = PartnerScopesForm(instance=partner)
+    return render(request, "console/partners/scopes_form.html",
+                  {"form": form, "partner": partner})
+
+
+@console_permission_required('oauth.change_partner')
+def partner_redirect_uris(request, pk):
+    from oauth.forms import PartnerRedirectURIsForm
+    from oauth.models import Partner
+    partner = get_object_or_404(Partner, pk=pk)
+    if request.method == "POST":
+        form = PartnerRedirectURIsForm(request.POST)
+        if form.is_valid():
+            partner.application.redirect_uris = form.cleaned_data["redirect_uris"]
+            partner.application.save()
+            partner.post_logout_redirect_uris = form.cleaned_data["post_logout_redirect_uris"]
+            partner.save()
+            return redirect("partner_detail", pk=partner.pk)
+    else:
+        form = PartnerRedirectURIsForm(initial={
+            "redirect_uris": partner.application.redirect_uris,
+            "post_logout_redirect_uris": partner.post_logout_redirect_uris,
+        })
+    return render(request, "console/partners/redirect_uris_form.html",
+                  {"form": form, "partner": partner})
+
+
+@console_permission_required('oauth.change_partner')
+@require_POST
+def partner_rotate_secret(request, pk):
+    from oauth.models import Partner
+    from oauth2_provider.generators import generate_client_secret
+    from oauth2_provider.models import get_access_token_model, get_refresh_token_model
+    AccessToken = get_access_token_model()
+    RefreshToken = get_refresh_token_model()
+
+    partner = get_object_or_404(Partner, pk=pk)
+    new_secret = generate_client_secret()
+    partner.application.client_secret = new_secret
+    partner.application.save()
+    AccessToken.objects.filter(application=partner.application).delete()
+    RefreshToken.objects.filter(application=partner.application).delete()
+    request.session["_partner_one_time_secret"] = new_secret
+    return redirect(reverse("partner_detail", args=[partner.pk]) + "?show_secret=1")
+
+
+@console_permission_required('oauth.change_partner')
+def partner_suspend(request, pk):
+    from oauth.forms import PartnerSuspendForm
+    from oauth.models import Partner
+    partner = get_object_or_404(Partner, pk=pk)
+    if partner.status == Partner.Status.REVOKED:
+        return HttpResponseBadRequest("Cannot suspend a revoked partner.")
+    if request.method == "POST":
+        form = PartnerSuspendForm(request.POST)
+        if form.is_valid():
+            partner.status = Partner.Status.SUSPENDED
+            partner.status_reason = form.cleaned_data["status_reason"]
+            partner.status_changed_at = timezone.now()
+            partner.save()
+            if form.cleaned_data["revoke_active_tokens"]:
+                from oauth2_provider.models import get_access_token_model, get_refresh_token_model
+                get_access_token_model().objects.filter(
+                    application=partner.application,
+                ).delete()
+                get_refresh_token_model().objects.filter(
+                    application=partner.application,
+                ).delete()
+            return redirect("partner_detail", pk=partner.pk)
+    else:
+        form = PartnerSuspendForm()
+    return render(request, "console/partners/suspend_form.html",
+                  {"form": form, "partner": partner, "action": "suspend"})
+
+
+@console_permission_required('oauth.change_partner')
+@require_POST
+def partner_reactivate(request, pk):
+    from oauth.models import Partner
+    partner = get_object_or_404(Partner, pk=pk)
+    if partner.status != Partner.Status.SUSPENDED:
+        return HttpResponseBadRequest("Only suspended partners can be reactivated.")
+    partner.status = Partner.Status.ACTIVE
+    partner.status_reason = ""
+    partner.status_changed_at = timezone.now()
+    partner.save()
+    return redirect("partner_detail", pk=partner.pk)
+
+
+@console_permission_required('oauth.change_partner')
+def partner_revoke(request, pk):
+    from oauth.forms import PartnerSuspendForm
+    from oauth.models import Partner
+    partner = get_object_or_404(Partner, pk=pk)
+    if request.method == "POST":
+        form = PartnerSuspendForm(request.POST)
+        if form.is_valid():
+            partner.status = Partner.Status.REVOKED
+            partner.status_reason = form.cleaned_data["status_reason"]
+            partner.status_changed_at = timezone.now()
+            partner.save()
+            from oauth2_provider.models import get_access_token_model, get_refresh_token_model
+            get_access_token_model().objects.filter(
+                application=partner.application,
+            ).delete()
+            get_refresh_token_model().objects.filter(
+                application=partner.application,
+            ).delete()
+            return redirect("partner_detail", pk=partner.pk)
+    else:
+        form = PartnerSuspendForm()
+    return render(request, "console/partners/suspend_form.html",
+                  {"form": form, "partner": partner, "action": "revoke"})

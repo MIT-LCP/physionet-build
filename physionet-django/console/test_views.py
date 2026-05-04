@@ -1352,3 +1352,227 @@ class TestOnHold(TestMixin):
         response = self.client.get(reverse('editor_home'))
         self.assertNotIn(project, response.context['decision_projects'])
         self.assertIn(project, response.context['on_hold_projects'])
+
+
+class TestPartnersConsole(TestMixin):
+    """
+    Test the /console/partners/ admin workflow: list, create, detail,
+    edit, scope and redirect-uri editing, secret rotation, and the
+    suspend/reactivate/revoke lifecycle transitions.
+    """
+
+    ADMIN_USER = 'admin'
+    ADMIN_PASSWORD = 'Tester11!'
+    NON_ADMIN_USER = 'aewj'
+    NON_ADMIN_PASSWORD = 'Tester11!'
+
+    def _make_partner(self, organization_name="Acme", status=None,
+                      allowed_scopes=None, redirect_uris="http://example.org"):
+        """Create a fresh Application + Partner pair without conflicting on OneToOne."""
+        from oauth2_provider.models import get_application_model
+        from oauth.models import Partner
+        Application = get_application_model()
+        admin = User.objects.get(username=self.ADMIN_USER)
+        application = Application.objects.create(
+            name=organization_name[:255],
+            redirect_uris=redirect_uris,
+            user=admin,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            client_secret="cleartext-test-secret-1234567890",
+        )
+        partner = Partner.objects.create(
+            application=application,
+            organization_name=organization_name,
+            contact_email="contact@example.org",
+            allowed_scopes=allowed_scopes if allowed_scopes is not None
+                                          else ["openid", "profile", "email"],
+            created_by=admin,
+        )
+        if status is not None:
+            partner.status = status
+            partner.save()
+        return partner
+
+    def test_partner_list_requires_permission(self):
+        """A non-admin user is denied access to the partner list."""
+        self.client.login(username=self.NON_ADMIN_USER, password=self.NON_ADMIN_PASSWORD)
+        response = self.client.get(reverse('partner_list'))
+        self.assertIn(response.status_code, (302, 403))
+
+    def test_partner_list_renders_for_admin(self):
+        """An admin user can render the partner list page."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('partner_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'console/partners/list.html')
+
+    def test_create_partner_creates_application_and_partner(self):
+        """Submitting the new-partner form creates an Application and a Partner."""
+        from oauth.models import Partner
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.post(reverse('partner_new'), data={
+            'organization_name': 'Acme Corp',
+            'contact_name': 'Alice',
+            'contact_email': 'alice@acme.test',
+            'agreement_signed_date': '2025-01-01',
+            'redirect_uris': 'https://acme.test/callback',
+            'post_logout_redirect_uris': '',
+            'allowed_scopes': ['openid', 'profile', 'email'],
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('show_secret=1', response.url)
+        partner = Partner.objects.get(organization_name='Acme Corp')
+        self.assertEqual(partner.contact_name, 'Alice')
+        self.assertEqual(partner.application.redirect_uris, 'https://acme.test/callback')
+        self.assertEqual(partner.allowed_scopes, ['openid', 'profile', 'email'])
+
+    def test_create_partner_rejects_invalid_redirect_uri(self):
+        """A non-http(s) redirect URI causes the form to re-render with an error."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.post(reverse('partner_new'), data={
+            'organization_name': 'Bad Corp',
+            'contact_name': '',
+            'contact_email': '',
+            'agreement_signed_date': '',
+            'redirect_uris': 'javascript:alert(1)',
+            'post_logout_redirect_uris': '',
+            'allowed_scopes': ['openid'],
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'must be http://')
+
+    def test_secret_shown_once_after_creation(self):
+        """The one-time secret is shown on detail with show_secret=1, then cleared."""
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        self.client.post(reverse('partner_new'), data={
+            'organization_name': 'OneTime Corp',
+            'contact_name': '',
+            'contact_email': '',
+            'agreement_signed_date': '',
+            'redirect_uris': 'https://onetime.test/callback',
+            'post_logout_redirect_uris': '',
+            'allowed_scopes': ['openid'],
+        })
+        from oauth.models import Partner
+        partner = Partner.objects.get(organization_name='OneTime Corp')
+        url = reverse('partner_detail', args=[partner.pk]) + '?show_secret=1'
+        first = self.client.get(url)
+        self.assertEqual(first.status_code, 200)
+        self.assertContains(first, 'shown once')
+        # Second visit no longer renders the secret block.
+        second = self.client.get(url)
+        self.assertNotContains(second, 'shown once')
+
+    def test_detail_view_renders_partner_data(self):
+        """Detail view shows org name and client_id."""
+        partner = self._make_partner(organization_name='Detail Co')
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.get(reverse('partner_detail', args=[partner.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Detail Co')
+        self.assertContains(response, partner.application.client_id)
+
+    def test_edit_view_updates_org_fields(self):
+        """Posting the edit form updates organisation fields."""
+        partner = self._make_partner(organization_name='Old Name')
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.post(reverse('partner_edit', args=[partner.pk]), data={
+            'organization_name': 'New Name',
+            'contact_name': 'Bob',
+            'contact_email': 'bob@new.test',
+            'agreement_signed_date': '2025-02-02',
+        })
+        self.assertEqual(response.status_code, 302)
+        partner.refresh_from_db()
+        self.assertEqual(partner.organization_name, 'New Name')
+        self.assertEqual(str(partner.agreement_signed_date), '2025-02-02')
+
+    def test_scopes_view_rejects_unknown_scope(self):
+        """Posting an unknown scope re-renders the form and leaves data unchanged."""
+        partner = self._make_partner(allowed_scopes=['openid', 'profile'])
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.post(reverse('partner_scopes', args=[partner.pk]), data={
+            'allowed_scopes': ['openid', 'not-a-real-scope'],
+        })
+        self.assertEqual(response.status_code, 200)
+        partner.refresh_from_db()
+        self.assertEqual(partner.allowed_scopes, ['openid', 'profile'])
+
+    def test_rotate_secret_invalidates_active_tokens(self):
+        """Rotating the client secret deletes active access tokens."""
+        from datetime import timedelta
+        from django.utils import timezone as dj_timezone
+        from oauth2_provider.models import get_access_token_model
+        AccessToken = get_access_token_model()
+
+        partner = self._make_partner(organization_name='Rotate Co')
+        admin = User.objects.get(username=self.ADMIN_USER)
+        AccessToken.objects.create(
+            user=admin,
+            scope='openid',
+            expires=dj_timezone.now() + timedelta(seconds=300),
+            token='to-be-revoked',
+            application=partner.application,
+        )
+        self.assertEqual(AccessToken.objects.filter(application=partner.application).count(), 1)
+
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.post(reverse('partner_rotate_secret', args=[partner.pk]))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(AccessToken.objects.filter(application=partner.application).count(), 0)
+
+    def test_suspend_records_reason_and_status(self):
+        """Suspend transitions the partner and records a reason and timestamp."""
+        from oauth.models import Partner
+        partner = self._make_partner(organization_name='Suspend Co')
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.post(reverse('partner_suspend', args=[partner.pk]), data={
+            'status_reason': 'misuse',
+        })
+        self.assertEqual(response.status_code, 302)
+        partner.refresh_from_db()
+        self.assertEqual(partner.status, Partner.Status.SUSPENDED)
+        self.assertEqual(partner.status_reason, 'misuse')
+        self.assertIsNotNone(partner.status_changed_at)
+
+    def test_reactivate_only_works_on_suspended(self):
+        """Reactivate is rejected for revoked partners but works for suspended ones."""
+        from oauth.models import Partner
+        partner = self._make_partner(status=Partner.Status.REVOKED)
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.post(reverse('partner_reactivate', args=[partner.pk]))
+        self.assertEqual(response.status_code, 400)
+
+        partner2 = self._make_partner(organization_name='Reactivate Co',
+                                      status=Partner.Status.SUSPENDED)
+        response = self.client.post(reverse('partner_reactivate', args=[partner2.pk]))
+        self.assertEqual(response.status_code, 302)
+        partner2.refresh_from_db()
+        self.assertEqual(partner2.status, Partner.Status.ACTIVE)
+
+    def test_revoke_is_terminal(self):
+        """After revoke, a subsequent reactivate attempt is rejected."""
+        from oauth.models import Partner
+        partner = self._make_partner(organization_name='Revoke Co')
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.post(reverse('partner_revoke', args=[partner.pk]), data={
+            'status_reason': 'breach',
+        })
+        self.assertEqual(response.status_code, 302)
+        partner.refresh_from_db()
+        self.assertEqual(partner.status, Partner.Status.REVOKED)
+
+        response = self.client.post(reverse('partner_reactivate', args=[partner.pk]))
+        self.assertEqual(response.status_code, 400)
+
+    def test_redirect_uris_view_validates_format(self):
+        """Posting an invalid URI to the redirect-uris view shows a validation error."""
+        partner = self._make_partner(organization_name='URI Co')
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        response = self.client.post(reverse('partner_redirect_uris', args=[partner.pk]), data={
+            'redirect_uris': 'javascript:alert(1)',
+            'post_logout_redirect_uris': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'must be http://')

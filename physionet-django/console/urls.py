@@ -177,6 +177,18 @@ urlpatterns = [
          training_views.download_course, name='download_course_version'),
     path('courses/<training_slug>/archive/<str:version>',
          training_views.archive_course, name='archive_course_version'),
+
+    # OAuth Partners
+    path('partners/', views.partner_list, name='partner_list'),
+    path('partners/new/', views.partner_new, name='partner_new'),
+    path('partners/<int:pk>/', views.partner_detail, name='partner_detail'),
+    path('partners/<int:pk>/edit/', views.partner_edit, name='partner_edit'),
+    path('partners/<int:pk>/scopes/', views.partner_scopes, name='partner_scopes'),
+    path('partners/<int:pk>/redirect-uris/', views.partner_redirect_uris, name='partner_redirect_uris'),
+    path('partners/<int:pk>/rotate-secret/', views.partner_rotate_secret, name='partner_rotate_secret'),
+    path('partners/<int:pk>/suspend/', views.partner_suspend, name='partner_suspend'),
+    path('partners/<int:pk>/reactivate/', views.partner_reactivate, name='partner_reactivate'),
+    path('partners/<int:pk>/revoke/', views.partner_revoke, name='partner_revoke'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)
@@ -289,6 +301,16 @@ TEST_CASES = {
     'event_agreement_detail': {'_skip_': True},
     'event_agreement_delete': {'_skip_': True},
     'event_agreement_new_version': {'_skip_': True},
+
+    # OAuth Partners (no demo data; covered by TestPartnersConsole)
+    'partner_detail': {'_skip_': True},
+    'partner_edit': {'_skip_': True},
+    'partner_scopes': {'_skip_': True},
+    'partner_redirect_uris': {'_skip_': True},
+    'partner_rotate_secret': {'_skip_': True},
+    'partner_suspend': {'_skip_': True},
+    'partner_reactivate': {'_skip_': True},
+    'partner_revoke': {'_skip_': True},
 
     # Broken views: POST required for no reason
     'users_list_search': {'group': 'all', '_skip_': True},

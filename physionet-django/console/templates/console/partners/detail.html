@@ -1,0 +1,95 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Partner: {{ partner.organization_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>{{ partner.organization_name }}</h2>
+    <a href="{% url 'partner_list' %}" class="btn btn-link">Back to list</a>
+  </div>
+
+  {% if one_time_secret %}
+    <div class="alert alert-warning">
+      <strong>Client secret (shown once)</strong>
+      <p>Copy this now. It will not be shown again. Store it securely.</p>
+      <pre id="one-time-secret">{{ one_time_secret }}</pre>
+      <small>Hint: select the value above and copy to clipboard.</small>
+    </div>
+  {% endif %}
+
+  <div class="card mb-3">
+    <div class="card-header"><strong>Organisation</strong></div>
+    <div class="card-body">
+      <dl class="row mb-0">
+        <dt class="col-sm-3">Name</dt><dd class="col-sm-9">{{ partner.organization_name }}</dd>
+        <dt class="col-sm-3">Contact name</dt><dd class="col-sm-9">{{ partner.contact_name|default:"-" }}</dd>
+        <dt class="col-sm-3">Contact email</dt><dd class="col-sm-9">{{ partner.contact_email|default:"-" }}</dd>
+        <dt class="col-sm-3">Agreement signed</dt><dd class="col-sm-9">{{ partner.agreement_signed_date|default:"-" }}</dd>
+      </dl>
+      <a href="{% url 'partner_edit' partner.pk %}" class="btn btn-sm btn-outline-primary mt-2">Edit organisation</a>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header"><strong>Credentials</strong></div>
+    <div class="card-body">
+      <p><strong>Client ID:</strong> <code>{{ partner.application.client_id }}</code></p>
+      <form method="post" action="{% url 'partner_rotate_secret' partner.pk %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-sm btn-warning"
+                onclick="return confirm('Rotating will invalidate the current secret and revoke active access tokens. Continue?');">
+          Rotate secret
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header"><strong>Allowed scopes</strong></div>
+    <div class="card-body">
+      {% if partner.allowed_scopes %}
+        <ul class="mb-2">
+          {% for scope in partner.allowed_scopes %}<li><code>{{ scope }}</code></li>{% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted">No scope allow-list set (legacy: all configured scopes allowed).</p>
+      {% endif %}
+      <a href="{% url 'partner_scopes' partner.pk %}" class="btn btn-sm btn-outline-primary">Edit scopes</a>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header"><strong>Redirect URIs</strong></div>
+    <div class="card-body">
+      <p><strong>Login (redirect_uris):</strong></p>
+      <pre>{{ partner.application.redirect_uris }}</pre>
+      <p><strong>Post-logout:</strong></p>
+      <pre>{{ partner.post_logout_redirect_uris|default:"(none)" }}</pre>
+      <a href="{% url 'partner_redirect_uris' partner.pk %}" class="btn btn-sm btn-outline-primary">Edit redirect URIs</a>
+    </div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-header"><strong>Lifecycle</strong></div>
+    <div class="card-body">
+      <p><strong>Status:</strong> {{ partner.get_status_display }}</p>
+      {% if partner.status_reason %}<p><strong>Reason:</strong> {{ partner.status_reason }}</p>{% endif %}
+      {% if partner.status_changed_at %}<p><strong>Changed at:</strong> {{ partner.status_changed_at }}</p>{% endif %}
+
+      {% if partner.status == Status.ACTIVE %}
+        <a href="{% url 'partner_suspend' partner.pk %}" class="btn btn-warning">Suspend</a>
+        <a href="{% url 'partner_revoke' partner.pk %}" class="btn btn-danger">Revoke</a>
+      {% elif partner.status == Status.SUSPENDED %}
+        <form method="post" action="{% url 'partner_reactivate' partner.pk %}" class="d-inline">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success">Reactivate</button>
+        </form>
+        <a href="{% url 'partner_revoke' partner.pk %}" class="btn btn-danger">Revoke</a>
+      {% elif partner.status == Status.REVOKED %}
+        <p class="text-muted">Revoked partners cannot be reactivated.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

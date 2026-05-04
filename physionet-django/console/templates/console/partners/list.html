@@ -1,0 +1,48 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}OAuth Partners{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>OAuth Partners</h2>
+    <a href="{% url 'partner_new' %}" class="btn btn-primary">New Partner</a>
+  </div>
+
+  <form method="get" class="form-inline mb-3">
+    <label class="mr-2" for="status">Filter by status:</label>
+    <select name="status" id="status" class="form-control mr-2" onchange="this.form.submit()">
+      <option value="">All</option>
+      {% for value, label in Status.choices %}
+        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <noscript><button type="submit" class="btn btn-secondary">Filter</button></noscript>
+  </form>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Organisation</th>
+        <th>Client ID</th>
+        <th>Contact</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for partner in partners %}
+        <tr>
+          <td>{{ partner.organization_name }}</td>
+          <td><code>{{ partner.application.client_id }}</code></td>
+          <td>{{ partner.contact_email|default:"-" }}</td>
+          <td>{{ partner.get_status_display }}</td>
+          <td><a class="btn btn-sm btn-outline-primary" href="{% url 'partner_detail' partner.pk %}">View</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted">No partners found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

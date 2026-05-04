@@ -1,18 +1,21 @@
 from oauth2_provider.oauth2_validators import OAuth2Validator
 
+from oauth.models import Partner
+from user.models import AssociatedEmail
+
 
 class CustomOAuth2Validator(OAuth2Validator):
     """
-    Custom validator that provides PhysioNet-specific OIDC claims
-    via get_additional_claims (for ID tokens) and get_userinfo_claims
-    (for the UserInfo endpoint).
+    Provide PhysioNet-specific OIDC claims for ID tokens and the UserInfo
+    endpoint, keyed off the granted OAuth2 scopes.
     """
 
     def _get_sub(self, user):
+        """Return the stable subject identifier for an OIDC token."""
         return str(user.public_user_uuid)
 
     def _build_claims(self, user, scopes):
-        """Build claims dict filtered by the granted scopes."""
+        """Build the claim set for a user filtered by the granted scopes."""
         claims = {"sub": self._get_sub(user)}
 
         if "profile" in scopes or "profile:read" in scopes:
@@ -28,7 +31,7 @@ class CustomOAuth2Validator(OAuth2Validator):
         if "email" in scopes or "email:read" in scopes:
             try:
                 primary_email = user.get_primary_email()
-            except Exception:
+            except AssociatedEmail.DoesNotExist:
                 primary_email = None
             if primary_email:
                 claims["email"] = primary_email.email
@@ -50,16 +53,51 @@ class CustomOAuth2Validator(OAuth2Validator):
 
         return claims
 
+    def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
+        """Enforce per-partner scope allowlist on top of DOT's global SCOPES check."""
+        if not super().validate_scopes(client_id, scopes, client, request, *args, **kwargs):
+            return False
+        partner = getattr(client, 'partner', None)
+        if partner is None:
+            return True  # Application predates Partner model; legacy compat
+        if not partner.allowed_scopes:
+            return True  # empty list = wildcard, intentional for legacy
+        return set(scopes).issubset(set(partner.allowed_scopes))
+
+    def validate_client_id(self, client_id, request, *args, **kwargs):
+        """Reject /authorize for suspended/revoked partners before the consent screen."""
+        if not super().validate_client_id(client_id, request, *args, **kwargs):
+            return False
+        partner = getattr(request.client, 'partner', None)
+        if partner and partner.status != Partner.Status.ACTIVE:
+            return False
+        return True
+
+    def authenticate_client(self, request, *args, **kwargs):
+        """Block client authentication for suspended/revoked partners at /token, /introspect, /revoke-token."""
+        if not super().authenticate_client(request, *args, **kwargs):
+            return False
+        partner = getattr(request.client, 'partner', None)
+        if partner and partner.status != Partner.Status.ACTIVE:
+            return False
+        return True
+
     def get_additional_claims(self, request):
-        """Called by DOT when generating ID tokens."""
+        """Return the additional claims to embed in the ID token."""
         if not request.user:
             return {}
         scopes = set(getattr(request, 'scopes', []) or [])
         return self._build_claims(request.user, scopes)
 
     def get_userinfo_claims(self, request):
-        """Called by DOT for the OIDC UserInfo endpoint."""
-        claims = super().get_userinfo_claims(request)
-        if hasattr(request, 'user') and request.user:
-            claims["sub"] = self._get_sub(request.user)
-        return claims
+        """Return the claims served from the OIDC UserInfo endpoint.
+
+        Bypasses DOT's default oidc_claim_scope filter so PhysioNet-specific
+        scopes (institution:read, credentialing:read, orcid:read,
+        public_id:read, profile:read, email:read) propagate through; DOT's
+        filter only knows about its built-in OIDC standard claims.
+        """
+        if not (hasattr(request, 'user') and request.user):
+            return super().get_userinfo_claims(request)
+        scopes = set(getattr(request, 'scopes', []) or [])
+        return self._build_claims(request.user, scopes)
