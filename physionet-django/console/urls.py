@@ -199,6 +199,11 @@ urlpatterns = [
     path('partners/<int:pk>/reactivate/', views.partner_reactivate, name='partner_reactivate'),
     path('partners/<int:pk>/revoke/', views.partner_revoke, name='partner_revoke'),
 
+    # Entitlement-check API logs (Layer 3 usage metrics)
+    path('entitlement-check-logs/',
+         views.entitlement_check_logs,
+         name='entitlement_check_logs'),
+
     # Federated Sites
     path('federated-sites/', views.federated_sites, name='federated_sites'),
     path('federated-sites/add/', views.federated_site_add, name='federated_site_add'),
@@ -334,6 +339,7 @@ TEST_CASES = {
     'partner_suspend': {'_skip_': True},
     'partner_reactivate': {'_skip_': True},
     'partner_revoke': {'_skip_': True},
+    'entitlement_check_logs': {'_skip_': True},
 
     # DUA Logs: pk must be a credentialed project
     'dua_logs_detail': {

@@ -1,0 +1,37 @@
+{% extends "console/base_console.html" %}
+{% block title %}Entitlement Check Logs{% endblock %}
+
+{% block content %}
+<h1>Entitlement Check Logs</h1>
+
+<h2>Calls per partner (last 500)</h2>
+<table class="table table-sm">
+  <thead><tr><th>Partner (OAuth client)</th><th>Calls</th></tr></thead>
+  <tbody>
+    {% for partner, count in partner_counts %}
+      <tr><td>{{ partner }}</td><td>{{ count }}</td></tr>
+    {% empty %}
+      <tr><td colspan="2">No calls yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Recent checks</h2>
+<table class="table table-sm">
+  <thead>
+    <tr><th>When</th><th>User</th><th>Project</th><th>Data</th></tr>
+  </thead>
+  <tbody>
+    {% for log in logs %}
+      <tr>
+        <td>{{ log.creation_datetime|date:"Y-m-d H:i" }}</td>
+        <td>{{ log.user.username }}</td>
+        <td>{{ log.project|default:"—" }}</td>
+        <td><code>{{ log.data }}</code></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">No logs.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

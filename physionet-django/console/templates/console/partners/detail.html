@@ -91,5 +91,36 @@
       {% endif %}
     </div>
   </div>
+
+  <div class="card mt-4">
+    <div class="card-header">
+      <strong>Entitlement check API usage</strong>
+      <span class="badge badge-secondary">{{ entitlement_check_total }} total</span>
+    </div>
+    <div class="card-body">
+      {% if recent_entitlement_logs %}
+        <table class="table table-sm">
+          <thead>
+            <tr><th>When</th><th>User</th><th>Project</th><th>Data</th></tr>
+          </thead>
+          <tbody>
+            {% for log in recent_entitlement_logs %}
+              <tr>
+                <td>{{ log.creation_datetime|date:"Y-m-d H:i" }}</td>
+                <td>{{ log.user.username }}</td>
+                <td>{{ log.project|default:"—" }}</td>
+                <td><code>{{ log.data }}</code></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="text-muted small">Showing the most recent 25.
+          <a href="{% url 'entitlement_check_logs' %}">View all entitlement check logs &rarr;</a>
+        </p>
+      {% else %}
+        <p class="text-muted">This partner has not made any entitlement check calls yet.</p>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}
