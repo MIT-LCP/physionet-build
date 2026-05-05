@@ -2307,7 +2307,7 @@ def editorial_stats(request):
 
     for y in stats:
         y_durations = sub_ed.filter(publish_datetime__year=y)
-        days = [d.days for d in y_durations if d.days >= 0]
+        days = [d.days for d in y_durations if d is not None and d.days >= 0]
         try:
             stats[y].append(median(days))
         except StatisticsError:
@@ -2319,7 +2319,7 @@ def editorial_stats(request):
 
     for y in stats:
         y_durations = sub_pub.filter(publish_datetime__year=y)
-        days = [d.days for d in y_durations if d.days >= 0]
+        days = [d.days for d in y_durations if d is not None and d.days >= 0]
         try:
             stats[y].append(median(days))
         except StatisticsError:
