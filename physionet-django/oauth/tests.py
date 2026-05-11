@@ -1004,7 +1004,7 @@ class TestLegacyPartnerBackfill(TestCase):
         """Import and call the data migration's backfill function."""
         import importlib
         from django.apps import apps as django_apps
-        migration = importlib.import_module("oauth.migrations.0001_initial")
+        migration = importlib.import_module("oauth.migrations.0003_backfill_legacy_partners")
         migration.backfill_legacy_partners(django_apps, None)
 
     def test_backfill_creates_legacy_partner_for_application(self):

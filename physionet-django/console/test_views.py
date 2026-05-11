@@ -1393,8 +1393,9 @@ class TestPartnersConsole(TestMixin):
             application=application,
             organization_name=organization_name,
             contact_email="contact@example.org",
-            allowed_scopes=allowed_scopes if allowed_scopes is not None
-                                          else ["openid", "profile", "email"],
+            allowed_scopes=(
+                allowed_scopes if allowed_scopes is not None else ["openid", "profile", "email"]
+            ),
             created_by=admin,
         )
         if status is not None:

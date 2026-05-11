@@ -88,21 +88,23 @@ class CustomOAuth2Validator(OAuth2Validator):
     def is_pkce_required(self, client_id, *args, **kwargs):
         """Allow per-partner PKCE opt-out.
 
-        OAuth 2.1 / RFC 9700 require PKCE; honor that globally. A partner can
-        flip Partner.requires_pkce off when the upstream IdP can't send a
-        code_challenge.
-
-        oauthlib's authorization_code grant calls this with
-        (client_id, request); DOT's parent only accepts (client_id).
-        Accept and forward variadic args so both call sites work.
+        OAuth 2.1 / RFC 9700 require PKCE; the global PKCE_REQUIRED setting
+        (default True) is honored first. When the global says "require",
+        an individual partner with Partner.requires_pkce=False can still
+        opt out — used when the upstream IdP can't send a code_challenge.
+        When the global says "don't require" (typically dev/test), nobody
+        requires it.
         """
+        global_required = super().is_pkce_required(client_id, *args, **kwargs)
+        if not global_required:
+            return False
         try:
             app = Application.objects.get(client_id=client_id)
         except Application.DoesNotExist:
-            return super().is_pkce_required(client_id)
+            return True
         partner = getattr(app, 'partner', None)
         if partner is None:
-            return super().is_pkce_required(client_id)
+            return True
         return partner.requires_pkce
 
     def get_additional_claims(self, request):

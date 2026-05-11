@@ -114,4 +114,9 @@ TEST_CASES = {
     'lightwave_server_compat': {
         '_skip_': lambda: (shutil.which('sandboxed-lightwave') is None),
     },
+    # OIDC discovery is gated by OIDCOnlyMixin (returns 404 unless an
+    # OIDC RSA key is configured). Skip when OIDC isn't enabled.
+    'oidc-root-discovery': {
+        '_skip_': lambda: not settings.OAUTH2_PROVIDER.get('OIDC_ENABLED', False),
+    },
 }

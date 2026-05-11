@@ -5,11 +5,11 @@ from oauth.models import Partner
 
 
 class PartnerCreateForm(forms.Form):
-    organization_name         = forms.CharField(max_length=200)
-    contact_name              = forms.CharField(max_length=200, required=False)
-    contact_email             = forms.EmailField(required=False)
-    agreement_signed_date     = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
-    redirect_uris             = forms.CharField(
+    organization_name = forms.CharField(max_length=200)
+    contact_name = forms.CharField(max_length=200, required=False)
+    contact_email = forms.EmailField(required=False)
+    agreement_signed_date = forms.DateField(required=False, widget=forms.DateInput(attrs={"type": "date"}))
+    redirect_uris = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 3}),
         help_text="One URI per line.",
     )
@@ -18,12 +18,12 @@ class PartnerCreateForm(forms.Form):
         required=False,
         help_text="One URI per line. Optional.",
     )
-    allowed_scopes            = forms.MultipleChoiceField(
+    allowed_scopes = forms.MultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
         choices=[],
         required=False,
     )
-    requires_pkce             = forms.BooleanField(
+    requires_pkce = forms.BooleanField(
         required=False,
         initial=True,
         label="Require PKCE",
@@ -99,7 +99,7 @@ class PartnerScopesForm(forms.ModelForm):
 
 
 class PartnerRedirectURIsForm(forms.Form):
-    redirect_uris             = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}))
+    redirect_uris = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}))
     post_logout_redirect_uris = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False)
 
     def clean_redirect_uris(self):
@@ -122,5 +122,5 @@ class PartnerRedirectURIsForm(forms.Form):
 
 
 class PartnerSuspendForm(forms.Form):
-    status_reason        = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}))
+    status_reason = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}))
     revoke_active_tokens = forms.BooleanField(required=False, initial=False)

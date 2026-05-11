@@ -23,7 +23,14 @@ from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory
 from django.forms.models import model_to_dict
 from django.db import transaction
-from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
+from django.http import (
+    Http404,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseRedirect,
+    JsonResponse,
+    StreamingHttpResponse,
+)
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -3959,7 +3966,8 @@ def partner_new(request):
                     authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
                     algorithm=algorithm,
                 )
-                cleartext_secret = application.client_secret  # captured BEFORE save (DOT may hash on save in newer versions)
+                # Captured BEFORE save: DOT may hash the secret on save in newer versions.
+                cleartext_secret = application.client_secret
                 application.save()
                 partner = Partner.objects.create(
                     application=application,

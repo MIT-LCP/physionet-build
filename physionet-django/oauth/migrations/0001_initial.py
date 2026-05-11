@@ -5,28 +5,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
-def backfill_legacy_partners(apps, schema_editor):
-    """For every existing Application, create a 'Legacy: <client_id>' Partner."""
-    Application = apps.get_model(settings.OAUTH2_PROVIDER_APPLICATION_MODEL)
-    Partner = apps.get_model('oauth', 'Partner')
-    for app in Application.objects.all():
-        Partner.objects.get_or_create(
-            application=app,
-            defaults={
-                'organization_name': f'Legacy: {app.client_id}',
-                'allowed_scopes': [],
-                'status': 'active',
-                'created_by': None,
-            },
-        )
-
-
-def remove_legacy_partners(apps, schema_editor):
-    """Reverse: delete only legacy rows; keep admin-created Partners."""
-    Partner = apps.get_model('oauth', 'Partner')
-    Partner.objects.filter(organization_name__startswith='Legacy: ').delete()
-
-
 class Migration(migrations.Migration):
 
     initial = True
@@ -47,16 +25,15 @@ class Migration(migrations.Migration):
                 ('agreement_signed_date', models.DateField(blank=True, null=True)),
                 ('allowed_scopes', models.JSONField(blank=True, default=list)),
                 ('post_logout_redirect_uris', models.TextField(blank=True)),
-                ('status', models.CharField(choices=[('active', 'Active'), ('suspended', 'Suspended'), ('revoked', 'Revoked')], default='active', max_length=20)),
+                ('status', models.CharField(choices=[('active', 'Active'), ('suspended', 'Suspended'), ('revoked', 'Revoked')], default='active', max_length=20)),  # noqa: E501
                 ('status_reason', models.TextField(blank=True)),
                 ('status_changed_at', models.DateTimeField(blank=True, null=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('application', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='partner', to=settings.OAUTH2_PROVIDER_APPLICATION_MODEL)),
-                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),
+                ('application', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='partner', to=settings.OAUTH2_PROVIDER_APPLICATION_MODEL)),  # noqa: E501
+                ('created_by', models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='+', to=settings.AUTH_USER_MODEL)),  # noqa: E501
             ],
             options={
                 'ordering': ['organization_name'],
             },
         ),
-        migrations.RunPython(backfill_legacy_partners, remove_legacy_partners),
     ]

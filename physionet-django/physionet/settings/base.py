@@ -815,6 +815,7 @@ ALLOWED_ACCESS_POLICIES = config(
 # when programmatically generating access tokens (e.g., via the /settings/tokens).
 OAUTH_CLIENT_APP_NAME = config('OAUTH_CLIENT_APP_NAME', default='')
 
+
 def load_oidc_provider_config(get_env):
     """
     Load and validate the OIDC provider settings from a get_env(name, default)
