@@ -1,7 +1,7 @@
 from django.urls import path, include
 import oauth2_provider.views as oauth2_views
 from django.conf import settings
-from oauth.views import hello, UserInfoView
+from oauth.views import hello, UserInfoView, DatasetAccessView
 
 # OAuth2 provider endpoints
 oauth2_endpoint_views = [
@@ -60,4 +60,5 @@ urlpatterns = [
     ),
     path("hello", hello.as_view(), name="hello"),  # an example resource endpoint
     path("userinfo", UserInfoView.as_view(), name="userinfo"),
+    path("dataset-access/", DatasetAccessView.as_view(), name="oauth-dataset-access"),
 ]
