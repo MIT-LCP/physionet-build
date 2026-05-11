@@ -1,6 +1,8 @@
 from django.http import HttpResponse, JsonResponse
 from oauth2_provider.views.generic import ProtectedResourceView, ScopedProtectedResourceView
 from oauth2_provider.oauth2_backends import get_oauthlib_core
+from project.models import PublishedProject
+from project.authorization.access import can_access_project
 
 
 SCOPES_MAPPING = {
@@ -56,3 +58,59 @@ class UserInfoView(ScopedProtectedResourceView):
 class hello(ProtectedResourceView):
     def get(self, request, *args, **kwargs):
         return HttpResponse('Hello, OAuth2!')
+
+
+class DatasetAccessView(ScopedProtectedResourceView):
+    """
+    Returns dataset access information for a given project based on
+    the scopes associated with the provided OAuth2 token.
+
+    Requires the "credentialing:read" scope.
+
+    Accepts "slug" and "version" as query parameters and returns whether
+    the authenticated user has access to the specified version of the dataset.
+    """
+
+    required_scopes = ["credentialing:read"]
+
+    def get(self, request, *args, **kwargs):
+        valid, r = get_oauthlib_core().verify_request(
+            request, scopes=self.required_scopes
+        )
+        if not valid:
+            return JsonResponse(
+                {"error": "Invalid or missing token, or insufficient scope."},
+                status=403,
+            )
+
+        slug = request.GET.get("slug", "").strip()
+        version = request.GET.get("version", "").strip()
+
+        if not slug or not version:
+            return JsonResponse(
+                {"error": "Both 'slug' and 'version' query parameters are required."},
+                status=400,
+            )
+
+        try:
+            project = PublishedProject.objects.get(slug=slug, version=version)
+        except PublishedProject.DoesNotExist:
+            return JsonResponse(
+                {
+                    "has_access": False,
+                    "slug": slug,
+                    "version": version,
+                },
+                status=404,
+            )
+
+        user = r.access_token.user
+        has_access = can_access_project(project, user, request)
+
+        return JsonResponse(
+            {
+                "has_access": has_access,
+                "slug": slug,
+                "version": version,
+            }
+        )
