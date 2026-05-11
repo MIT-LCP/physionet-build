@@ -3969,6 +3969,7 @@ def partner_new(request):
                     agreement_signed_date=form.cleaned_data["agreement_signed_date"],
                     post_logout_redirect_uris=form.cleaned_data["post_logout_redirect_uris"],
                     allowed_scopes=allowed_scopes,
+                    requires_pkce=form.cleaned_data.get("requires_pkce", True),
                     created_by=request.user,
                 )
             request.session["_partner_one_time_secret"] = cleartext_secret

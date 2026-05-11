@@ -205,6 +205,8 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('Administrators'), 'users', view_args=['admin']),
     ]),
 
+    NavLink(_('Partners'), 'partner_list', 'id-card'),
+
     NavLink(_('Featured Content'), 'featured_content', 'star'),
 
     NavSubmenu(_('Guidelines'), 'guidelines', 'book', [

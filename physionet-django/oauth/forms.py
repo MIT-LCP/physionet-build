@@ -23,6 +23,16 @@ class PartnerCreateForm(forms.Form):
         choices=[],
         required=False,
     )
+    requires_pkce             = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Require PKCE",
+        help_text=(
+            "Require PKCE (code_challenge) on /authorize. Disable only when "
+            "the partner cannot send a code_challenge (e.g. an upstream "
+            "federator acting as the OAuth client)."
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -54,9 +64,19 @@ class PartnerCreateForm(forms.Form):
 class PartnerEditForm(forms.ModelForm):
     class Meta:
         model = Partner
-        fields = ("organization_name", "contact_name", "contact_email", "agreement_signed_date")
+        fields = (
+            "organization_name", "contact_name", "contact_email",
+            "agreement_signed_date", "requires_pkce",
+        )
         widgets = {
             "agreement_signed_date": forms.DateInput(attrs={"type": "date"}),
+        }
+        help_texts = {
+            "requires_pkce": (
+                "Require PKCE (code_challenge) on /authorize. Disable only when "
+                "the partner cannot send a code_challenge (e.g. an upstream "
+                "federator acting as the OAuth client)."
+            ),
         }
 
 

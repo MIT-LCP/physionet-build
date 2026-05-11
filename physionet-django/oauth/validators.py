@@ -1,7 +1,10 @@
+from oauth2_provider.models import get_application_model
 from oauth2_provider.oauth2_validators import OAuth2Validator
 
 from oauth.models import Partner
 from user.models import AssociatedEmail
+
+Application = get_application_model()
 
 
 class CustomOAuth2Validator(OAuth2Validator):
@@ -81,6 +84,26 @@ class CustomOAuth2Validator(OAuth2Validator):
         if partner and partner.status != Partner.Status.ACTIVE:
             return False
         return True
+
+    def is_pkce_required(self, client_id, *args, **kwargs):
+        """Allow per-partner PKCE opt-out.
+
+        OAuth 2.1 / RFC 9700 require PKCE; honor that globally. A partner can
+        flip Partner.requires_pkce off when the upstream IdP can't send a
+        code_challenge.
+
+        oauthlib's authorization_code grant calls this with
+        (client_id, request); DOT's parent only accepts (client_id).
+        Accept and forward variadic args so both call sites work.
+        """
+        try:
+            app = Application.objects.get(client_id=client_id)
+        except Application.DoesNotExist:
+            return super().is_pkce_required(client_id)
+        partner = getattr(app, 'partner', None)
+        if partner is None:
+            return super().is_pkce_required(client_id)
+        return partner.requires_pkce
 
     def get_additional_claims(self, request):
         """Return the additional claims to embed in the ID token."""

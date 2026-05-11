@@ -29,6 +29,11 @@ class Partner(models.Model):
     # because DOT 2.2.0's swappable Application has no equivalent field.
     post_logout_redirect_uris = models.TextField(blank=True)
 
+    # PKCE is required by default (OAuth 2.1 / RFC 9700). Some upstream
+    # federators act as the OAuth client without sending a code_challenge;
+    # opt those partners out here rather than disabling PKCE globally.
+    requires_pkce         = models.BooleanField(default=True)
+
     status                = models.CharField(
                                 max_length=20,
                                 choices=Status.choices,
