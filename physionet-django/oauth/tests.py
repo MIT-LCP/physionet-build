@@ -307,11 +307,22 @@ class OIDCBaseTest(BaseTest):
 
         # Enable OIDC via override_settings so the change is rolled back even
         # if a test fails mid-run, instead of leaking into sibling tests.
+        # OAUTH2_SERVER_CLASS is set explicitly because DOT only swaps to the
+        # OIDC server class via a conditional fallback in oauth2_settings,
+        # which is brittle across class-scoped override cycles.
+        # ALWAYS_RELOAD_OAUTHLIB_CORE bypasses DOT's class-level cache of the
+        # built server instance (OAuthLibMixin._oauthlib_core), which is
+        # populated on the first /authorize or /token call in the process. If
+        # an earlier test hit those endpoints while OIDC was disabled, the
+        # cached server is the non-OIDC one and would silently drop id_token
+        # from the token response here even though OIDC is now enabled.
         oidc_overrides = {
             **settings.OAUTH2_PROVIDER,
             "OIDC_ENABLED": True,
             "OIDC_RSA_PRIVATE_KEY": cls.test_rsa_key_pem,
             "OIDC_ISS_ENDPOINT": "http://testserver",
+            "OAUTH2_SERVER_CLASS": "oauthlib.openid.Server",
+            "ALWAYS_RELOAD_OAUTHLIB_CORE": True,
         }
         cls._settings_override = override_settings(OAUTH2_PROVIDER=oidc_overrides)
         cls._settings_override.enable()
@@ -1004,7 +1015,7 @@ class TestLegacyPartnerBackfill(TestCase):
         """Import and call the data migration's backfill function."""
         import importlib
         from django.apps import apps as django_apps
-        migration = importlib.import_module("oauth.migrations.0001_initial")
+        migration = importlib.import_module("oauth.migrations.0003_backfill_legacy_partners")
         migration.backfill_legacy_partners(django_apps, None)
 
     def test_backfill_creates_legacy_partner_for_application(self):

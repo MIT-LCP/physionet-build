@@ -1,7 +1,10 @@
+from oauth2_provider.models import get_application_model
 from oauth2_provider.oauth2_validators import OAuth2Validator
 
 from oauth.models import Partner
 from user.models import AssociatedEmail
+
+Application = get_application_model()
 
 
 class CustomOAuth2Validator(OAuth2Validator):
@@ -81,6 +84,28 @@ class CustomOAuth2Validator(OAuth2Validator):
         if partner and partner.status != Partner.Status.ACTIVE:
             return False
         return True
+
+    def is_pkce_required(self, client_id, *args, **kwargs):
+        """Allow per-partner PKCE opt-out.
+
+        OAuth 2.1 / RFC 9700 require PKCE; the global PKCE_REQUIRED setting
+        (default True) is honored first. When the global says "require",
+        an individual partner with Partner.requires_pkce=False can still
+        opt out — used when the upstream IdP can't send a code_challenge.
+        When the global says "don't require" (typically dev/test), nobody
+        requires it.
+        """
+        global_required = super().is_pkce_required(client_id, *args, **kwargs)
+        if not global_required:
+            return False
+        try:
+            app = Application.objects.get(client_id=client_id)
+        except Application.DoesNotExist:
+            return True
+        partner = getattr(app, 'partner', None)
+        if partner is None:
+            return True
+        return partner.requires_pkce
 
     def get_additional_claims(self, request):
         """Return the additional claims to embed in the ID token."""

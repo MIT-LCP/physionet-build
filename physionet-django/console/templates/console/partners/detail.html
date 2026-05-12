@@ -26,6 +26,7 @@
         <dt class="col-sm-3">Contact name</dt><dd class="col-sm-9">{{ partner.contact_name|default:"-" }}</dd>
         <dt class="col-sm-3">Contact email</dt><dd class="col-sm-9">{{ partner.contact_email|default:"-" }}</dd>
         <dt class="col-sm-3">Agreement signed</dt><dd class="col-sm-9">{{ partner.agreement_signed_date|default:"-" }}</dd>
+        <dt class="col-sm-3">Requires PKCE</dt><dd class="col-sm-9">{{ partner.requires_pkce|yesno:"Yes,No" }}</dd>
       </dl>
       <a href="{% url 'partner_edit' partner.pk %}" class="btn btn-sm btn-outline-primary mt-2">Edit organisation</a>
     </div>
