@@ -108,6 +108,7 @@ INSTALLED_APPS = [
     'django_sass',
     'events',
     'oauth',
+    'entitlements',
     'annotation'
 ]
 
@@ -138,7 +139,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-    ]
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'entitlement_check': '600/hour',
+    },
 }
 
 CRON_CLASSES = [

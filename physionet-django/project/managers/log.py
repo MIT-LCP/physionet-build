@@ -66,6 +66,17 @@ class AccessLogQuerySet(QuerySet):
         return instance, created
 
 
+class EntitlementCheckLogManager(Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(category=LogCategory.ENTITLEMENT_CHECK)
+
+
+class EntitlementCheckLogQuerySet(QuerySet):
+    def create(self, **kwargs):
+        kwargs['category'] = LogCategory.ENTITLEMENT_CHECK
+        return super().create(**kwargs)
+
+
 class GCPLogQuerySet(QuerySet):
     def create(self, **kwargs):
         kwargs['category'] = LogCategory.GCP

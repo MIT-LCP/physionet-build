@@ -36,6 +36,8 @@ urlpatterns = [
     path('', include('search.urls')),
     # export app
     path('api/', include('export.urls')),
+    # entitlements app: partner-facing dataset access verification API
+    path('api/', include('entitlements.urls')),
     # annotation app
     path("api/", include("annotation.urls")),
     # oauth app

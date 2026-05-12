@@ -3,14 +3,17 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
 from physionet.enums import LogCategory
-from project.managers.log import AccessLogQuerySet, GCPLogQuerySet, AccessLogManager, GCPLogManager
+from project.managers.log import (
+    AccessLogQuerySet, GCPLogQuerySet, AccessLogManager, GCPLogManager,
+    EntitlementCheckLogQuerySet, EntitlementCheckLogManager,
+)
 
 
 class Log(models.Model):
     """Base model for different log types"""
     category = models.CharField(max_length=64, choices=LogCategory.choices(), editable=False)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
     project = GenericForeignKey('content_type', 'object_id')
     user = models.ForeignKey('user.User', on_delete=models.CASCADE, related_name='logs')
     data = models.TextField(max_length=512)
@@ -22,7 +25,8 @@ class Log(models.Model):
         default_permissions = ()
 
     def __str__(self):
-        return f'[{self.category}] {self.project} - {self.user}'
+        target = self.project if self.project is not None else 'aggregate'
+        return f'[{self.category}] {target} - {self.user}'
 
     def get_data(self):
         return self.data.split(';')
@@ -40,6 +44,15 @@ class AccessLog(Log):
 class GCPLog(Log):
     """Proxy model for GCP logs"""
     objects = GCPLogManager.from_queryset(GCPLogQuerySet)()
+
+    class Meta:
+        default_permissions = ()
+        proxy = True
+
+
+class EntitlementCheckLog(Log):
+    """Proxy model for entitlement-check API audit logs."""
+    objects = EntitlementCheckLogManager.from_queryset(EntitlementCheckLogQuerySet)()
 
     class Meta:
         default_permissions = ()

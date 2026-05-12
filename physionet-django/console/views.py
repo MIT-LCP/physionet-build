@@ -57,6 +57,7 @@ from project.models import (
     DataAccessRequest,
     DUASignature,
     EditLog,
+    EntitlementCheckLog,
     License,
     Publication,
     PublishedAuthor,
@@ -3994,10 +3995,20 @@ def partner_detail(request, pk):
     one_time_secret = None
     if request.GET.get("show_secret") == "1":
         one_time_secret = request.session.pop("_partner_one_time_secret", None)
+    recent_entitlement_logs = (
+        EntitlementCheckLog.objects
+        .filter(data__contains=f'partner_id={partner.pk};')
+        .order_by('-creation_datetime')[:25]
+    )
+    entitlement_check_total = EntitlementCheckLog.objects.filter(
+        data__contains=f'partner_id={partner.pk};'
+    ).count()
     return render(request, "console/partners/detail.html", {
         "partner": partner,
         "one_time_secret": one_time_secret,
         "Status": Partner.Status,
+        "recent_entitlement_logs": recent_entitlement_logs,
+        "entitlement_check_total": entitlement_check_total,
     })
 
 
@@ -4154,6 +4165,28 @@ def partner_revoke(request, pk):
         form = PartnerSuspendForm()
     return render(request, "console/partners/suspend_form.html",
                   {"form": form, "partner": partner, "action": "revoke"})
+
+
+@console_permission_required('oauth.change_partner')
+def entitlement_check_logs(request):
+    """Console page: recent entitlement-check API calls across all partners."""
+    from collections import Counter
+    logs = (
+        EntitlementCheckLog.objects.select_related('user')
+        .order_by('-creation_datetime')[:500]
+    )
+    counter = Counter()
+    for log in logs:
+        for piece in log.data.split(';'):
+            if piece.startswith('partner_org='):
+                counter[piece.split('=', 1)[1]] += 1
+                break
+    partner_counts = sorted(counter.items(), key=lambda kv: -kv[1])
+    return render(
+        request,
+        'console/entitlement_check_logs.html',
+        {'logs': logs, 'partner_counts': partner_counts},
+    )
 
 
 # ------------------------- Federated Sites Views ------------------------- #
