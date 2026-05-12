@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='log',
             name='category',
-            field=models.CharField(choices=[('ACCESS', 'Access'), ('GCP', 'GCP'), ('ENTITLEMENT_CHECK', 'Entitlement Check')], editable=False, max_length=64),
+            field=models.CharField(choices=[('ACCESS', 'Access'), ('GCP', 'GCP'), ('ENTITLEMENT_CHECK', 'Entitlement Check')], editable=False, max_length=64),  # noqa: E501
         ),
     ]

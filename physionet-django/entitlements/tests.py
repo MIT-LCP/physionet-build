@@ -2,7 +2,9 @@ from datetime import timedelta
 
 from django.apps import apps
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.test import TestCase
+from django.test.utils import override_settings
 from django.utils import timezone
 
 from oauth.models import Partner
@@ -422,9 +424,6 @@ class EntitlementCheckLoggingTest(TestCase):
         self.assertEqual(self.EntitlementCheckLog.objects.count(), before)
 
 
-from django.test.utils import override_settings
-
-
 @override_settings(
     REST_FRAMEWORK={
         'DEFAULT_AUTHENTICATION_CLASSES': [
@@ -479,9 +478,6 @@ class EntitlementCheckThrottleTest(TestCase):
         self.assertEqual(self.client.get(url, params, **hdr1).status_code, 429)
         # token2 should still work — independent bucket
         self.assertEqual(self.client.get(url, params, **hdr2).status_code, 200)
-
-
-from django.contrib.auth.models import Permission
 
 
 class EntitlementConsolePageTest(TestCase):
