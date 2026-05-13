@@ -2325,6 +2325,33 @@ def editorial_stats(request):
         except StatisticsError:
             stats[y].append(None)
 
+    # Submission to decision  for all projects (published + active)
+    all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all()]
+
+    # Calculate durations by decision year
+    sub_dec_by_year = {}
+    for project_set in all_projects:
+        for project in project_set:
+            for log in project.edit_log_history():
+                if log.decision_datetime and project.submission_datetime:
+                    duration = log.decision_datetime - project.submission_datetime
+                    if duration.days >= 0:
+                        yr = log.decision_datetime.year
+                        if yr not in sub_dec_by_year:
+                            sub_dec_by_year[yr] = []
+                        sub_dec_by_year[yr].append(duration.days)
+
+    # Add median submission-to-decision per year to stats
+    # Include years not already in stats (e.g. active projects with no published project)
+    for y in sorted(set(list(stats.keys()) + list(sub_dec_by_year.keys()))):
+        if y not in stats:
+            stats[y] = [0, None, None]  # no published projects that year
+        days = sub_dec_by_year.get(y, [])
+        try:
+            stats[y].append(median(days))
+        except StatisticsError:
+            stats[y].append(None)
+
     return render(request, 'console/editorial_stats.html', {
                   'submenu': 'editorial', 'stats': stats})
 
