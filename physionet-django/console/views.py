@@ -2445,8 +2445,42 @@ def submission_stats(request):
             except AttributeError:
                 pass
 
+    # Aggregate counts per year (last 6 years)
+    current_year = datetime.today().year
+    yearly_stats = OrderedDict()
+    for y in range(current_year - 5, current_year + 1):
+        yearly_stats[y] = [0, 0, 0, 0, 0]
+
+    for project_set in all_projects:
+        for project in project_set:
+            create_yr = project.creation_datetime.year
+            if create_yr in yearly_stats:
+                yearly_stats[create_yr][0] += 1
+
+            for log in project.edit_log_history():
+                sub_yr = log.submission_datetime.year
+                if sub_yr in yearly_stats:
+                    if log.is_resubmission:
+                        yearly_stats[sub_yr][2] += 1
+                    else:
+                        yearly_stats[sub_yr][1] += 1
+                try:
+                    if log.decision == 0 and log.decision_datetime is not None:
+                        rej_yr = log.decision_datetime.year
+                        if rej_yr in yearly_stats:
+                            yearly_stats[rej_yr][4] += 1
+                except AttributeError:
+                    pass
+
+            try:
+                pub_yr = project.publish_datetime.year
+                if pub_yr in yearly_stats:
+                    yearly_stats[pub_yr][3] += 1
+            except AttributeError:
+                pass
+
     return render(request, 'console/submission_stats.html',
-                  {'submenu': 'submission', 'stats': stats})
+                  {'submenu': 'submission', 'stats': stats, 'yearly_stats': yearly_stats})
 
 
 @console_permission_required('project.can_view_stats')
