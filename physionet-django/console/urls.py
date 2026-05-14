@@ -123,6 +123,7 @@ urlpatterns = [
     path('downloads/', views.downloads, name='downloads'),
     path('download/users/', views.download_users, name='download_users'),
     path('download/projects/', views.download_projects, name='download_projects'),
+    path('download/projects_view_counts/', views.download_projects_view_counts, name='download_projects_view_counts'),
     path('download/published_authors/', views.download_published_authors, name='download_published_authors'),
 
     # redirects
