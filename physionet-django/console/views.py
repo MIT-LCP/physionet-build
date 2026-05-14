@@ -2663,6 +2663,40 @@ def download_projects(request):
 
 
 @console_permission_required('user.change_credentialapplication')
+def download_projects_view_counts(request):
+    """
+    Delivers a CSV file containing unique registered project views per published project.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="projects_views_counts.csv"'
+
+    writer = csv.writer(response, quoting=csv.QUOTE_ALL)
+    writer.writerow(["title",
+                     "project_slug",
+                     "resource_type",
+                     "DOI (latest version)",
+                     "current_version",
+                     "count_current_version",
+                     "count_all_versions",
+                     ])
+
+    projects = PublishedProject.objects.filter(is_latest_version=True)
+
+    for project in projects:
+        project_data = [project.title,
+                        project.slug,
+                        project.resource_type.name,
+                        f"https://doi.org/{project.core_project.doi}" if project.core_project.doi else None,
+                        project.version,
+                        project.view_count(),
+                        project.view_count(all_versions=True),
+                        ]
+
+        writer.writerow(project_data)
+    return response
+
+
+@console_permission_required('user.change_credentialapplication')
 def download_published_authors(request):
     """
     Delivers a CSV file containing data on published authors.
