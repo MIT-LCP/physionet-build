@@ -87,6 +87,7 @@ from project.cloud.s3 import (
     get_bucket_name,
     check_s3_bucket_exists,
     has_s3_credentials,
+    delete_project_files_from_s3,
 )
 
 from django.core.management import call_command
@@ -1165,6 +1166,15 @@ def manage_published_project(request, project_slug, version):
                 messages.error(request, 'Project has tasks pending.')
             else:
                 aws_bucket_management(request, project, user)
+        elif 'aws-delete-project-files' in request.POST and has_s3_credentials():
+            if any(get_associated_tasks(project, read_only=False)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                delete_project_files_from_s3(project)
+                messages.success(request, 'The project files have been deleted from S3.')
+                # Redirect is required after deletion to avoid rendering the page with
+                # a stale AWS instance that no longer has a primary key in the database.
+                return redirect('manage_published_project', project_slug=project_slug, version=version)
         elif 'platform' in request.POST:
             data_access_form = forms.DataAccessForm(project=project, data=request.POST)
             if data_access_form.is_valid():
