@@ -88,6 +88,8 @@ from project.cloud.s3 import (
     check_s3_bucket_exists,
     has_s3_credentials,
     delete_project_files_from_s3,
+    disable_project_access_in_s3,
+    restore_project_access_in_s3,
 )
 
 from django.core.management import call_command
@@ -1174,6 +1176,21 @@ def manage_published_project(request, project_slug, version):
                 messages.success(request, 'The project files have been deleted from S3.')
                 # Redirect is required after deletion to avoid rendering the page with
                 # a stale AWS instance that no longer has a primary key in the database.
+                return redirect('manage_published_project', project_slug=project_slug, version=version)
+        elif 'aws-disable-access' in request.POST and has_s3_credentials():
+            if any(get_associated_tasks(project, read_only=False)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                disable_project_access_in_s3(project)
+                messages.success(request, 'Access to project files has been disabled.')
+                # Redirect required to avoid rendering with stale AWS instance
+                return redirect('manage_published_project', project_slug=project_slug, version=version)
+        elif 'aws-restore-access' in request.POST and has_s3_credentials():
+            if any(get_associated_tasks(project, read_only=False)):
+                messages.error(request, 'Project has tasks pending.')
+            else:
+                restore_project_access_in_s3(project)
+                messages.success(request, 'Access to project files has been restored.')
                 return redirect('manage_published_project', project_slug=project_slug, version=version)
         elif 'platform' in request.POST:
             data_access_form = forms.DataAccessForm(project=project, data=request.POST)
