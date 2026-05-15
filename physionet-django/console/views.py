@@ -2409,7 +2409,7 @@ def submission_stats(request):
         if cur_year not in stats:
             stats[cur_year] = OrderedDict()
         month = datetime(cur_year, cur_month, 1).strftime("%B")
-        stats[cur_year][month] = [0, 0, 0, 0]
+        stats[cur_year][month] = [0, 0, 0, 0, 0]
         cur_month -= 1
         if cur_month == 0:
             cur_month = 12
@@ -2435,6 +2435,13 @@ def submission_stats(request):
                         stats[sub_date_yr][sub_date_mo][2] += 1
                     else:
                         stats[sub_date_yr][sub_date_mo][1] += 1
+
+                # Get times when projects were rejected, if applicable
+                if log.decision == 0 and log.decision_datetime:
+                    reject_yr = log.decision_datetime.year
+                    reject_mo = log.decision_datetime.strftime("%B")
+                    if reject_yr in stats and reject_mo in stats[reject_yr]:
+                        stats[reject_yr][reject_mo][4] += 1
 
             # Get times when projects were published, if applicable
             try:
