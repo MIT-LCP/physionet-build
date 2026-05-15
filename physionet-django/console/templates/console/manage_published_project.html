@@ -448,7 +448,7 @@
                 {% endif %}
               </button>
               {% if project.aws.sent_files %}
-                <button class="btn btn-primary"
+                <button class="btn btn-danger"
                         name="aws-delete-project-files" value="{{ project.slug }}"
                         {% if aws_upload_pending or rw_tasks %}
                           disabled="disabled"
