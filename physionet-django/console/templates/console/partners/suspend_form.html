@@ -1,0 +1,35 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}{{ action|title }} Partner: {{ partner.organization_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2>{{ action|title }} partner: {{ partner.organization_name }}</h2>
+
+  {% if action == "revoke" %}
+    <div class="alert alert-danger">
+      <strong>Warning:</strong> Revocation is terminal. The partner cannot be reactivated.
+    </div>
+  {% else %}
+    <div class="alert alert-warning">
+      Suspending the partner blocks new authorisation requests. You may also revoke active access tokens.
+    </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn {% if action == 'revoke' %}btn-danger{% else %}btn-warning{% endif %}">
+      Confirm {{ action }}
+    </button>
+    <a href="{% url 'partner_detail' partner.pk %}" class="btn btn-link">Cancel</a>
+  </form>
+</div>
+{% endblock %}

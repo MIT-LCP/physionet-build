@@ -7,6 +7,7 @@ from django.conf.urls import handler404, handler500, include
 from django.contrib import admin
 from django.http import HttpResponse
 from django.urls import path
+from oauth.views import PhysioNetDiscoveryView
 from physionet import views
 from physionet.settings.base import StorageTypes
 
@@ -15,6 +16,8 @@ handler404 = 'physionet.views.error_404'
 handler500 = 'physionet.views.error_500'
 
 urlpatterns = [
+    # OIDC discovery (must be at root per OIDC spec)
+    path('.well-known/openid-configuration', PhysioNetDiscoveryView.as_view(), name='oidc-root-discovery'),
     # django admin app
     path('admin/', admin.site.urls),
     # management console app
@@ -110,5 +113,10 @@ TEST_DEFAULTS = {
 TEST_CASES = {
     'lightwave_server_compat': {
         '_skip_': lambda: (shutil.which('sandboxed-lightwave') is None),
+    },
+    # OIDC discovery is gated by OIDCOnlyMixin (returns 404 unless an
+    # OIDC RSA key is configured). Skip when OIDC isn't enabled.
+    'oidc-root-discovery': {
+        '_skip_': lambda: not settings.OAUTH2_PROVIDER.get('OIDC_ENABLED', False),
     },
 }

@@ -1,0 +1,23 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Edit Scopes: {{ partner.organization_name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2>Allowed scopes: {{ partner.organization_name }}</h2>
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}
+      <div class="form-group">
+        <label>{{ field.label }}</label>
+        {{ field }}
+        {{ field.errors }}
+      </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{% url 'partner_detail' partner.pk %}" class="btn btn-link">Cancel</a>
+  </form>
+</div>
+{% endblock %}

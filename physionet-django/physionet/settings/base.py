@@ -16,6 +16,7 @@ import os
 import sys
 
 from decouple import config, UndefinedValueError
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -814,7 +815,57 @@ ALLOWED_ACCESS_POLICIES = config(
 # when programmatically generating access tokens (e.g., via the /settings/tokens).
 OAUTH_CLIENT_APP_NAME = config('OAUTH_CLIENT_APP_NAME', default='')
 
-# OAUTH PROVIDER SCOPES
+
+def load_oidc_provider_config(get_env):
+    """
+    Load and validate the OIDC provider settings from a get_env(name, default)
+    callable (e.g. python-decouple's `config`). Returns a dict suitable for
+    merging into OAUTH2_PROVIDER, or raises ImproperlyConfigured if the
+    operator has misconfigured the provider.
+    """
+    key_file = get_env('OIDC_RSA_KEY_FILE', '')
+    if key_file:
+        if not os.path.isfile(key_file):
+            raise ImproperlyConfigured(
+                f"OIDC_RSA_KEY_FILE is set to {key_file!r} but no such file exists."
+            )
+        with open(key_file) as f:
+            private_key = f.read()
+    else:
+        private_key = get_env('OIDC_RSA_PRIVATE_KEY', '')
+
+    # Rotated-out keys are published in JWKS so RPs can verify tokens issued under
+    # the previous active key during the rotation overlap window.
+    inactive_files = [
+        p.strip() for p in get_env('OIDC_RSA_INACTIVE_KEY_FILES', '').split(',') if p.strip()
+    ]
+    inactive_keys = []
+    for path in inactive_files:
+        if not os.path.isfile(path):
+            raise ImproperlyConfigured(
+                f"OIDC_RSA_INACTIVE_KEY_FILES references {path!r} but no such file exists."
+            )
+        with open(path) as f:
+            inactive_keys.append(f.read())
+
+    iss_endpoint = get_env('OIDC_ISS_ENDPOINT', '')
+    if private_key and not iss_endpoint:
+        raise ImproperlyConfigured(
+            "OIDC is enabled (RSA key configured) but OIDC_ISS_ENDPOINT is not set. "
+            "It must be the canonical public host with no path component "
+            "(e.g. https://physionet.org), since the discovery view appends the "
+            "/oauth/... path itself. Including the path produces double-prefixed "
+            "URLs in the discovery doc."
+        )
+
+    return {
+        "OIDC_ENABLED": bool(private_key),
+        "OIDC_RSA_PRIVATE_KEY": private_key,
+        "OIDC_RSA_PRIVATE_KEYS_INACTIVE": inactive_keys,
+        "OIDC_ISS_ENDPOINT": iss_endpoint,
+    }
+
+
 OAUTH2_PROVIDER = {
     "SCOPES": {
         "profile:read": "Read access to user's profile (username, full name)",
@@ -830,8 +881,20 @@ OAUTH2_PROVIDER = {
         "annotations:types:write": "Create/Update/Delete annotation types",
         "annotations:annotations:read": "Read access to annotations",
         "annotations:annotations:write": "Create/Update/Delete annotations",
-    }
+        "openid": "Sign you in to PhysioNet",
+        "profile": "Your basic profile (name, username)",
+        "email": "Your primary email address",
+    },
+    **load_oidc_provider_config(config),
+    # Implicit and hybrid response types leak tokens via URL fragments; both
+    # are deprecated by OAuth 2.1 / RFC 9700 §2.1.2.
+    "OIDC_RESPONSE_TYPES_SUPPORTED": ["code"],
+    "OAUTH2_VALIDATOR_CLASS": "oauth.validators.CustomOAuth2Validator",
 }
+
+# DOT's Application model is swappable; declaring the default explicitly lets
+# our oauth.Partner FK to it resolve cleanly during migrations.
+OAUTH2_PROVIDER_APPLICATION_MODEL = "oauth2_provider.Application"
 
 # Path to GeoIP2 database directory
 GEOIP_PATH = config('GEOIP_PATH', default=None)
