@@ -88,6 +88,7 @@ from project.cloud.s3 import (
     check_s3_bucket_exists,
     has_s3_credentials,
     delete_project_files_from_s3,
+    create_s3_resource,
 )
 
 from django.core.management import call_command
@@ -1027,6 +1028,31 @@ def send_files_to_aws(pid):
     if project.compressed_storage_size:
         project.aws.sent_zip = True
     project.aws.save()
+
+
+@associated_task(PublishedProject, 'pid')
+@background()
+def delete_project_files_task(pid):
+    """
+    Background task to delete project files from S3.
+    Called after access has already been revoked synchronously.
+    """
+    project = PublishedProject.objects.get(id=pid)
+
+    s3 = create_s3_resource()
+    bucket_name = get_bucket_name(project)
+    prefix = f"{project.slug}/{project.version}/"
+    bucket = s3.Bucket(bucket_name)
+    bucket.objects.filter(Prefix=prefix).delete()
+
+    # Delete zip file if it was uploaded
+    if project.aws.sent_zip:
+        zip_key = os.path.join(f"{project.slug}/", project.zip_name(legacy=False))
+        bucket.Object(zip_key).delete()
+
+    # Delete the AWS record from the database
+    project.aws.sent_zip = False
+    project.aws.delete()
 
 
 @console_permission_required('project.change_publishedproject')
