@@ -10,7 +10,6 @@ import botocore
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import Q
-
 from project.authorization.access import can_view_project_files
 from project.models import PublishedProject, AWS, AccessPolicy, AWSAccessPoint, AWSAccessPointUser
 from user.models import (
@@ -1573,48 +1572,32 @@ def create_s3_server_access_log_bucket():
 
 
 def delete_project_files_from_s3(project):
+    # Import here to avoid circular import
+    from console.views import delete_project_files_task
     """
-    Delete all files under the project's prefix from its S3 bucket.
-
-    Args:
-        project (PublishedProject): The project whose files will be deleted.
+    Immediately revoke access by deleting access points,
+    set project.aws.sent_files = False, then schedule
+    file deletion as a background task.
     """
     if not check_s3_bucket_exists(project):
         return
-    s3 = create_s3_resource()
-    bucket_name = get_bucket_name(project)
-    prefix = f"{project.slug}/{project.version}/"
-    bucket = s3.Bucket(bucket_name)
-    bucket.objects.filter(Prefix=prefix).delete()
 
-    # Delete zip file if it was uploaded
-    if project.aws.sent_zip:
-        zip_key = os.path.join(f"{project.slug}/", project.zip_name(legacy=False))
-        bucket.Object(zip_key).delete()
-
+    # Delete access points first to immediately revoke access
     if project.aws.is_private:
-        delete_project_access_points(project)
-    else:
-        project.aws.delete()
+        s3control = create_s3_control_client()
+        for ap in project.aws.access_points.all():
+            s3control.delete_access_point(
+                AccountId=settings.AWS_ACCOUNT_ID,
+                Name=ap.name
+            )
+        project.aws.access_points.all().delete()
 
+    # Mark sent_files flag to False before deletion starts
+    project.aws.sent_files = False
+    project.aws.save()
 
-def delete_project_access_points(project):
-    """
-    Delete all S3 access points associated with a project and remove
-    the corresponding AWS records from the database.
-
-    Args:
-        project (PublishedProject): The project whose access points
-        will be deleted.
-    """
-    s3control = create_s3_control_client()
-
-    for ap in project.aws.access_points.all():
-        s3control.delete_access_point(
-            AccountId=settings.AWS_ACCOUNT_ID,
-            Name=ap.name
-        )
-
-    # Deletes AWS, AWSAccessPoint, and AWSAccessPointUser
-    # from our database as well via CASCADE
-    project.aws.delete()
+    # Schedule file deletion as a background task
+    delete_project_files_task(
+        project.id,
+        verbose_name='Delete S3 files - {}'.format(project)
+    )
