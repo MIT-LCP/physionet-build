@@ -61,7 +61,7 @@ class AWS(models.Model):
     sent_files = models.BooleanField(default=False)
     creation_datetime = models.DateTimeField(auto_now_add=True)
     finished_datetime = models.DateTimeField(null=True)
-    access_disabled = models.BooleanField(default=False)
+    access_disabled = models.BooleanField(default=False, null=True)
 
     class Meta:
         default_permissions = ()
