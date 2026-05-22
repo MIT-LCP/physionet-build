@@ -20,6 +20,8 @@ from project.cloud.s3 import (
     get_bucket_name,
     has_s3_credentials,
     upload_project_to_S3,
+    disable_project_access_in_s3,
+    restore_project_access_in_s3,
 )
 from project.models import (
     AWS,
@@ -408,3 +410,107 @@ class TestS3(TestMixin):
                 user.dua_signatures.create(project=project)
 
         return users
+
+    def test_disable_project_access(self):
+        """
+        Test that disabling access deletes access points from S3 and
+        sets access_disabled=True without deleting project files.
+        """
+        create_s3_server_access_log_bucket()
+
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+
+        # Create users and upload project
+        _ = self.create_example_users(
+            project=project, count=5, aws_verified=True, signed_dua=True
+        )
+        aws = AWS.objects.create(
+            project=project,
+            bucket_name=get_bucket_name(project),
+            is_private=True,
+        )
+        upload_project_to_S3(project)
+        aws.sent_files = True
+        aws.save()
+
+        self.assertGreater(aws.access_points.count(), 0)
+        self.assertFalse(aws.access_disabled)
+
+        # Disable access
+        disable_project_access_in_s3(project)
+
+        aws.refresh_from_db()
+        self.assertEqual(aws.access_points.count(), 0)
+        self.assertTrue(aws.access_disabled)
+
+        # Files should still exist in S3
+        self.assertTrue(check_s3_bucket_exists(project))
+        self.assert_project_files_uploaded([project])
+
+    def test_restore_project_access(self):
+        """
+        Test that restoring access recreates access points and clears access_disabled.
+        """
+        create_s3_server_access_log_bucket()
+
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+
+        users = self.create_example_users(
+            project=project, count=5, aws_verified=True, signed_dua=True
+        )
+        aws = AWS.objects.create(
+            project=project,
+            bucket_name=get_bucket_name(project),
+            is_private=True,
+        )
+        upload_project_to_S3(project)
+        aws.sent_files = True
+        aws.save()
+
+        # Disable then restore
+        disable_project_access_in_s3(project)
+
+        aws.refresh_from_db()
+        self.assertTrue(aws.access_disabled)
+        self.assertEqual(aws.access_points.count(), 0)
+
+        restore_project_access_in_s3(project)
+
+        aws.refresh_from_db()
+        self.assertFalse(aws.access_disabled)
+        self.assertGreater(aws.access_points.count(), 0)
+        self.assert_project_users_authorized(project, users)
+
+    def test_disable_access_blocks_enable_aws_access(self):
+        """
+        Test that a user cannot enable AWS access when access_disabled=True.
+        """
+        create_s3_server_access_log_bucket()
+
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+
+        users = self.create_example_users(
+            project=project, count=2, aws_verified=True, signed_dua=True
+        )
+        aws = AWS.objects.create(
+            project=project,
+            bucket_name=get_bucket_name(project),
+            is_private=True,
+        )
+        upload_project_to_S3(project)
+        aws.sent_files = True
+        aws.save()
+
+        disable_project_access_in_s3(project)
+
+        # User tries to enable AWS access — should be blocked
+        user = users[0]
+        self.client.force_login(user)
+        self.client.post(
+            reverse('enable_aws_access', args=(project.slug, project.version))
+        )
+
+        aws.refresh_from_db()
+        # Access points should still be empty
+        self.assertEqual(aws.access_points.count(), 0)
+        self.assertTrue(aws.access_disabled)
