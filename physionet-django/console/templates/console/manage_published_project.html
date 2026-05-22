@@ -458,16 +458,18 @@
                     Delete files
                 </button>
                 {% if project.aws.is_private %}
-                  {% if project.aws.access_points.exists %}
-                    <button class="btn btn-warning"
-                            name="aws-disable-access" value="{{ project.slug }}"
-                            {% if aws_upload_pending or rw_tasks %}
-                              disabled="disabled"
-                            {% endif %}
-                            type="submit">
-                        <span class="fa fa-lock"></span>
-                        Disable access
-                    </button>
+                  {% if not project.aws.access_disabled %}
+                    {% if project.aws.access_points.exists %}
+                      <button class="btn btn-warning"
+                              name="aws-disable-access" value="{{ project.slug }}"
+                              {% if aws_upload_pending or rw_tasks %}
+                                disabled="disabled"
+                              {% endif %}
+                              type="submit">
+                          <span class="fa fa-lock"></span>
+                          Disable access
+                      </button>
+                    {% endif %}
                   {% else %}
                     <button class="btn btn-success"
                             name="aws-restore-access" value="{{ project.slug }}"
