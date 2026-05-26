@@ -1,15 +1,6 @@
 from django.http import HttpResponse, JsonResponse
 from oauth2_provider.views.generic import ProtectedResourceView, ScopedProtectedResourceView
 from oauth2_provider.oauth2_backends import get_oauthlib_core
-from oauth2_provider.views import ConnectDiscoveryInfoView
-
-
-class PhysioNetDiscoveryView(ConnectDiscoveryInfoView):
-    def get(self, request, *args, **kwargs):
-        response = super().get(request, *args, **kwargs)
-        if response.status_code == 200:
-            response["Access-Control-Allow-Origin"] = "*"
-        return response
 
 
 SCOPES_MAPPING = {

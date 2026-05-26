@@ -840,12 +840,12 @@ def load_oidc_provider_config(get_env):
         p.strip() for p in get_env('OIDC_RSA_INACTIVE_KEY_FILES', '').split(',') if p.strip()
     ]
     inactive_keys = []
-    for path in inactive_files:
-        if not os.path.isfile(path):
+    for key_path in inactive_files:
+        if not os.path.isfile(key_path):
             raise ImproperlyConfigured(
-                f"OIDC_RSA_INACTIVE_KEY_FILES references {path!r} but no such file exists."
+                f"OIDC_RSA_INACTIVE_KEY_FILES references {key_path!r} but no such file exists."
             )
-        with open(path) as f:
+        with open(key_path) as f:
             inactive_keys.append(f.read())
 
     iss_endpoint = get_env('OIDC_ISS_ENDPOINT', '')
@@ -890,8 +890,7 @@ OAUTH2_PROVIDER = {
     # are deprecated by OAuth 2.1 / RFC 9700 §2.1.2.
     "OIDC_RESPONSE_TYPES_SUPPORTED": ["code"],
     "OAUTH2_VALIDATOR_CLASS": "oauth.validators.CustomOAuth2Validator",
-    "PKCE_REQUIRED": config('OIDC_PKCE_REQUIRED', default=True, cast=bool),
-    "ALWAYS_RELOAD_OAUTHLIB_CORE": True,
+    "PKCE_REQUIRED": config('OAUTH2_PKCE_REQUIRED', default=True, cast=bool),
 }
 
 # Path to GeoIP2 database directory

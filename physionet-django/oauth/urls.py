@@ -3,7 +3,7 @@ import oauth2_provider.views as oauth2_views
 from django.conf import settings
 from oauth2_provider.views import JwksInfoView
 from oauth2_provider.views import UserInfoView as OIDCUserInfoView
-from oauth.views import hello, UserInfoView, PhysioNetDiscoveryView
+from oauth.views import hello, UserInfoView
 
 # OAuth2 provider endpoints. The OIDC userinfo and JWKS endpoints live here so
 # DOT's discovery view (which does reverse("oauth2_provider:user-info") /
@@ -69,5 +69,4 @@ urlpatterns = [
     # oidc/ to avoid silently rejecting legacy tokens sent to /oauth/userinfo/.
     path("userinfo", UserInfoView.as_view(), name="userinfo"),
     path("userinfo/", UserInfoView.as_view()),
-    path(".well-known/openid-configuration", PhysioNetDiscoveryView.as_view(), name="oidc-connect-discovery-info"),
 ]

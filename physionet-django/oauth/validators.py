@@ -51,7 +51,7 @@ class CustomOAuth2Validator(OAuth2Validator):
         return claims
 
     def get_additional_claims(self, request):
-        if not request.user:
+        if not (hasattr(request, 'user') and request.user):
             return {}
         scopes = set(getattr(request, 'scopes', []) or [])
         return self._build_claims(request.user, scopes)
