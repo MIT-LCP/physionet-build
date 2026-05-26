@@ -177,7 +177,7 @@ WSGI_APPLICATION = 'physionet.wsgi.application'
 
 # Session management
 
-SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
 
 # Absolute timeout
 try:
@@ -815,6 +815,7 @@ ALLOWED_ACCESS_POLICIES = config(
 # when programmatically generating access tokens (e.g., via the /settings/tokens).
 OAUTH_CLIENT_APP_NAME = config('OAUTH_CLIENT_APP_NAME', default='')
 
+
 def load_oidc_provider_config(get_env):
     """
     Load and validate the OIDC provider settings from a get_env(name, default)
@@ -889,6 +890,8 @@ OAUTH2_PROVIDER = {
     # are deprecated by OAuth 2.1 / RFC 9700 §2.1.2.
     "OIDC_RESPONSE_TYPES_SUPPORTED": ["code"],
     "OAUTH2_VALIDATOR_CLASS": "oauth.validators.CustomOAuth2Validator",
+    "PKCE_REQUIRED": config('OIDC_PKCE_REQUIRED', default=True, cast=bool),
+    "ALWAYS_RELOAD_OAUTHLIB_CORE": True,
 }
 
 # Path to GeoIP2 database directory
