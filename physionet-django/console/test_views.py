@@ -1,5 +1,6 @@
 import csv
 import io
+import datetime
 import json
 import logging
 import os
@@ -8,6 +9,7 @@ import pdb
 
 import requests_mock
 from django.contrib.sites.models import Site
+from django.core import mail
 from django.test import TestCase
 from django.test.utils import get_runner
 from django.urls import reverse
@@ -19,8 +21,10 @@ from project.models import (
     Author,
     AuthorInvitation,
     DUASignature,
+    ExternalReview,
     License,
     PublishedProject,
+    ReviewerInvitation,
     StorageRequest,
     SubmissionStatus,
 )
@@ -87,7 +91,7 @@ class TestState(TestMixin):
         })
         project.refresh_from_db()
         self.assertEqual(project.editor, editor)
-        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT)
 
     def test_reassign_editor(self):
         """
@@ -120,7 +124,7 @@ class TestState(TestMixin):
         })
         project.refresh_from_db()
         self.assertEqual(project.editor, editor1)
-        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_DECISION)
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT)
 
         # Try to reassign to editor2; this should fail
         self.client.login(username=editor1.username, password='Tester11!')
@@ -155,6 +159,8 @@ class TestState(TestMixin):
         project.submit(author_comments='')
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
         self.client.login(username='admin', password='Tester11!')
         # Reject submission
         response = self.client.post(reverse(
@@ -176,6 +182,8 @@ class TestState(TestMixin):
         project.submit(author_comments='')
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
         self.client.login(username='admin', password='Tester11!')
         # Revise with changes
         response = self.client.post(reverse(
@@ -227,6 +235,8 @@ class TestState(TestMixin):
         project.submit(author_comments='')
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
         self.client.login(username='admin', password='Tester11!')
         # Test that the editor cannot copyedit the content yet
         topic = project.topics.all().first()
@@ -328,6 +338,8 @@ class TestState(TestMixin):
         project.assign_editor(editor)
         self.assertEqual(get_project().modified_datetime, timestamp)
 
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
         self.client.login(username='admin', password='Tester11!')
         # Accept submission
         response = self.client.post(
@@ -1328,7 +1340,7 @@ class TestOnHold(TestMixin):
 
         self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
         response = self.client.get(reverse('submitted_projects'))
-        self.assertNotIn(project, response.context['decision_projects'])
+        self.assertNotIn(project, response.context['reviewer_assignment_projects'])
         self.assertIn(project, response.context['on_hold_projects'])
 
     def test_removed_from_hold_project_returns_to_active_tab(self):
@@ -1339,7 +1351,7 @@ class TestOnHold(TestMixin):
 
         self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
         response = self.client.get(reverse('submitted_projects'))
-        self.assertIn(project, response.context['decision_projects'])
+        self.assertIn(project, response.context['reviewer_assignment_projects'])
         self.assertNotIn(project, response.context['on_hold_projects'])
 
     def test_on_hold_shown_on_submission_info(self):
@@ -1358,7 +1370,7 @@ class TestOnHold(TestMixin):
 
         self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
         response = self.client.get(reverse('editor_home'))
-        self.assertNotIn(project, response.context['decision_projects'])
+        self.assertNotIn(project, response.context['reviewer_assignment_projects'])
         self.assertIn(project, response.context['on_hold_projects'])
 
 
@@ -1565,3 +1577,333 @@ class TestDUALogs(TestMixin):
         ]:
             response = self.client.get(reverse(url_name, args=args))
             self.assertEqual(response.status_code, 403)
+
+
+class TestExternalReview(TestMixin):
+    """
+    Test the external review workflow for project submissions.
+    """
+
+    PROJECT_TITLE = 'MIT-BIH Arrhythmia Database'
+    ADMIN_USER = 'admin'
+    ADMIN_PASSWORD = 'Tester11!'
+    EDITOR_USER = 'amitupreti'
+    EDITOR_PASSWORD = 'Tester11!'
+    REVIEWER_USER = 'george'
+    REVIEWER_PASSWORD = 'Tester11!'
+
+    def _submit_and_assign(self):
+        """Submit the project and assign an editor."""
+        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        project.submit(author_comments='')
+        editor = User.objects.get(username=self.EDITOR_USER)
+        self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)
+        self.client.post(reverse('submitted_projects'), data={
+            'assign_editor': '',
+            'project': project.id,
+            'editor': editor.id,
+        })
+        project.refresh_from_db()
+        self.assertEqual(project.submission_status,
+                         SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT)
+        return project
+
+    def _initiate_review(self, project, required_reviews=2):
+        """Initiate external review for a project."""
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        self.client.post(
+            reverse('initiate_external_review', args=(project.slug,)),
+            data={
+                'required_reviews': required_reviews,
+                'review_deadline': (datetime.date.today()
+                                    + datetime.timedelta(days=30)).isoformat(),
+            },
+        )
+        project.refresh_from_db()
+        return project
+
+    def _invite_reviewer(self, project, reviewer_email):
+        """Invite a reviewer to the project."""
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        response = self.client.post(
+            reverse('manage_external_review', args=(project.slug,)),
+            data={'reviewer_email': reviewer_email},
+        )
+        return response
+
+    def test_initiate_external_review(self):
+        """Initiating external review changes status to NEEDS_EXTERNAL_REVIEW."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project, required_reviews=2)
+        self.assertEqual(project.submission_status,
+                         SubmissionStatus.NEEDS_EXTERNAL_REVIEW)
+        self.assertEqual(project.required_reviews, 2)
+
+    def test_initiate_review_wrong_status(self):
+        """Cannot initiate review if project is not awaiting reviewer assignment."""
+        project = self._submit_and_assign()
+        project.submission_status = SubmissionStatus.NEEDS_DECISION
+        project.save()
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        self.client.post(
+            reverse('initiate_external_review', args=(project.slug,)),
+            data={
+                'required_reviews': 2,
+                'review_deadline': (datetime.date.today()
+                                    + datetime.timedelta(days=30)).isoformat(),
+            },
+        )
+        project.refresh_from_db()
+        self.assertEqual(project.submission_status,
+                         SubmissionStatus.NEEDS_DECISION)
+
+    def test_skip_external_review(self):
+        """Skipping external review moves project to NEEDS_DECISION."""
+        project = self._submit_and_assign()
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        self.client.post(
+            reverse('skip_external_review', args=(project.slug,)),
+        )
+        project.refresh_from_db()
+        self.assertEqual(project.submission_status,
+                         SubmissionStatus.NEEDS_DECISION)
+
+    def test_invite_reviewer(self):
+        """Inviting a reviewer creates an invitation and sends an email."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+
+        mail.outbox.clear()
+        self._invite_reviewer(project, reviewer.email)
+
+        self.assertTrue(
+            ReviewerInvitation.objects.filter(
+                project=project, reviewer=reviewer, is_active=True
+            ).exists()
+        )
+        # An invitation email should have been sent
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(reviewer.email, mail.outbox[0].to)
+
+    def test_invite_reviewer_cc_editor(self):
+        """The invitation email should CC the editor."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+        editor = User.objects.get(username=self.EDITOR_USER)
+
+        mail.outbox.clear()
+        self._invite_reviewer(project, reviewer.email)
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(editor.email, mail.outbox[0].cc)
+
+    def test_invite_author_as_reviewer_rejected(self):
+        """Cannot invite a project author as a reviewer."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        author = project.authors.first().user
+
+        self._invite_reviewer(project, author.email)
+
+        self.assertFalse(
+            ReviewerInvitation.objects.filter(
+                project=project, reviewer=author
+            ).exists()
+        )
+
+    def test_invite_duplicate_reviewer_rejected(self):
+        """Cannot invite the same reviewer twice."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+
+        self._invite_reviewer(project, reviewer.email)
+        initial_count = ReviewerInvitation.objects.filter(
+            project=project, reviewer=reviewer, is_active=True
+        ).count()
+
+        self._invite_reviewer(project, reviewer.email)
+        self.assertEqual(
+            ReviewerInvitation.objects.filter(
+                project=project, reviewer=reviewer, is_active=True
+            ).count(),
+            initial_count,
+        )
+
+    def test_remove_reviewer(self):
+        """Removing a reviewer deactivates the invitation."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+        self._invite_reviewer(project, reviewer.email)
+
+        invitation = ReviewerInvitation.objects.get(
+            project=project, reviewer=reviewer
+        )
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        self.client.post(
+            reverse('manage_external_review', args=(project.slug,)),
+            data={'remove_reviewer': invitation.id},
+        )
+
+        invitation.refresh_from_db()
+        self.assertFalse(invitation.is_active)
+
+    @prevent_request_warnings
+    def test_submit_review(self):
+        """A reviewer can submit a review for their invitation."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+        self._invite_reviewer(project, reviewer.email)
+
+        invitation = ReviewerInvitation.objects.get(
+            project=project, reviewer=reviewer
+        )
+        self.client.login(username=self.REVIEWER_USER,
+                          password=self.REVIEWER_PASSWORD)
+        self.client.post(
+            reverse('submit_external_review',
+                    args=(project.slug, invitation.id)),
+            data={
+                'recommendation': 2,
+                'comments_to_editor': 'Looks good overall.',
+                'comments_to_author': 'Minor issues to address.',
+            },
+        )
+
+        self.assertTrue(
+            ExternalReview.objects.filter(invitation=invitation).exists()
+        )
+        review = ExternalReview.objects.get(invitation=invitation)
+        self.assertEqual(review.recommendation, 2)
+
+    @prevent_request_warnings
+    def test_submit_review_redirects_to_home(self):
+        """After submitting, the reviewer is redirected to home (not console)."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+        self._invite_reviewer(project, reviewer.email)
+
+        invitation = ReviewerInvitation.objects.get(
+            project=project, reviewer=reviewer
+        )
+        self.client.login(username=self.REVIEWER_USER,
+                          password=self.REVIEWER_PASSWORD)
+        response = self.client.post(
+            reverse('submit_external_review',
+                    args=(project.slug, invitation.id)),
+            data={
+                'recommendation': 1,
+                'comments_to_editor': 'Accept.',
+                'comments_to_author': 'Well done.',
+            },
+        )
+        self.assertRedirects(response, reverse('home'))
+
+    @prevent_request_warnings
+    def test_submit_review_already_submitted(self):
+        """Revisiting the submit page after submission redirects to home."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+        self._invite_reviewer(project, reviewer.email)
+
+        invitation = ReviewerInvitation.objects.get(
+            project=project, reviewer=reviewer
+        )
+        self.client.login(username=self.REVIEWER_USER,
+                          password=self.REVIEWER_PASSWORD)
+        self.client.post(
+            reverse('submit_external_review',
+                    args=(project.slug, invitation.id)),
+            data={
+                'recommendation': 1,
+                'comments_to_editor': 'Accept.',
+                'comments_to_author': 'Well done.',
+            },
+        )
+        # Try to access the review page again
+        response = self.client.get(
+            reverse('submit_external_review',
+                    args=(project.slug, invitation.id)),
+        )
+        self.assertRedirects(response, reverse('home'))
+
+    @prevent_request_warnings
+    def test_wrong_user_cannot_submit_review(self):
+        """A user who is not the invited reviewer gets a 404."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+        self._invite_reviewer(project, reviewer.email)
+
+        invitation = ReviewerInvitation.objects.get(
+            project=project, reviewer=reviewer
+        )
+        # Log in as a different user
+        self.client.login(username=self.ADMIN_USER,
+                          password=self.ADMIN_PASSWORD)
+        response = self.client.get(
+            reverse('submit_external_review',
+                    args=(project.slug, invitation.id)),
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_complete_external_review(self):
+        """Completing external review moves project to NEEDS_DECISION."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        self.client.post(
+            reverse('complete_external_review', args=(project.slug,)),
+        )
+        project.refresh_from_db()
+        self.assertEqual(project.submission_status,
+                         SubmissionStatus.NEEDS_DECISION)
+
+    def test_reviewer_can_access_project_preview(self):
+        """An invited reviewer can access the project preview page."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+        reviewer = User.objects.get(username=self.REVIEWER_USER)
+        self._invite_reviewer(project, reviewer.email)
+
+        self.client.login(username=self.REVIEWER_USER,
+                          password=self.REVIEWER_PASSWORD)
+        response = self.client.get(
+            reverse('project_preview', args=(project.slug,)),
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['hide_authors'])
+        self.assertTrue(response.context['is_reviewer'])
+
+    @prevent_request_warnings
+    def test_non_reviewer_cannot_access_project_preview(self):
+        """A user who is not a reviewer or author cannot access preview."""
+        project = self._submit_and_assign()
+        project = self._initiate_review(project)
+
+        # Log in as a user who is not an author, editor, or reviewer
+        self.client.login(username=self.REVIEWER_USER,
+                          password=self.REVIEWER_PASSWORD)
+        response = self.client.get(
+            reverse('project_preview', args=(project.slug,)),
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_complete_review_wrong_status(self):
+        """Cannot complete review if project is not in external review."""
+        project = self._submit_and_assign()
+        self.client.login(username=self.EDITOR_USER, password=self.EDITOR_PASSWORD)
+        self.client.post(
+            reverse('complete_external_review', args=(project.slug,)),
+        )
+        project.refresh_from_db()
+        # Status should remain unchanged
+        self.assertEqual(project.submission_status,
+                         SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT)

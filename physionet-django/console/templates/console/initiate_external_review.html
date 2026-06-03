@@ -1,0 +1,38 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Initiate External Review - {{ project }}{% endblock %}
+
+{% block content %}
+<h1>Initiate External Review</h1>
+<hr>
+<div class="card mb-3">
+  <div class="card-header">
+    External Review Setup
+  </div>
+  <div class="card-body">
+    <p>You are about to send <strong>{{ project.title }}</strong> for external peer review.</p>
+    <p>Set the number of reviews required and a deadline for reviewers.</p>
+    <form action="" method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="id_required_reviews">{{ form.required_reviews.label }}</label>
+        {{ form.required_reviews }}
+        {% if form.required_reviews.errors %}
+        <div class="text-danger">{{ form.required_reviews.errors }}</div>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label for="id_review_deadline">{{ form.review_deadline.label }}</label>
+        {{ form.review_deadline }}
+        {% if form.review_deadline.errors %}
+        <div class="text-danger">{{ form.review_deadline.errors }}</div>
+        {% endif %}
+      </div>
+      <button class="btn btn-primary" type="submit">Initiate External Review</button>
+      <a class="btn btn-secondary" href="{% url 'submission_info' project.slug %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

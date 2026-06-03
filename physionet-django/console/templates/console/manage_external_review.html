@@ -1,0 +1,118 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Manage External Review - {{ project }}{% endblock %}
+
+{% block content %}
+<h1>Manage External Review</h1>
+<hr>
+<div class="card mb-3">
+  <div class="card-header">
+    Review Progress
+  </div>
+  <div class="card-body">
+    <p><strong>Project:</strong> {{ project.title }}</p>
+    <p><strong>Reviews received:</strong> {{ completed_reviews }} of {{ project.required_reviews }} required</p>
+
+    <h5 class="mt-4">Invited Reviewers</h5>
+    {% if invitations %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Reviewer</th>
+          <th>Invited</th>
+          <th>Deadline</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in invitations %}
+        <tr>
+          <td>{{ inv.reviewer.get_full_name }} ({{ inv.reviewer.email }})</td>
+          <td>{{ inv.invitation_datetime|date }}</td>
+          <td>{{ inv.review_deadline|date }}</td>
+          <td>
+            {% if inv.review %}
+              <span class="badge badge-success">Submitted {{ inv.review.submitted_datetime|date }}</span>
+            {% else %}
+              <span class="badge badge-warning">Pending</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if not inv.review %}
+            <form action="" method="post" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" name="remove_reviewer" value="{{ inv.id }}"
+                      class="btn btn-sm btn-danger"
+                      onclick="return confirm('Remove this reviewer? They will be notified by email.');">
+                Remove
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>No reviewers have been invited yet.</p>
+    {% endif %}
+
+    <h5 class="mt-4">Invite a Reviewer</h5>
+    <form action="" method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="id_reviewer_email">{{ invite_form.reviewer_email.label }}</label>
+        {{ invite_form.reviewer_email }}
+        {% if invite_form.reviewer_email.errors %}
+        <div class="text-danger">{{ invite_form.reviewer_email.errors }}</div>
+        {% endif %}
+      </div>
+      <button class="btn btn-primary" type="submit">Invite Reviewer</button>
+      <small class="form-text text-muted">An email invitation will be sent to the reviewer.</small>
+    </form>
+
+    {% if invitations %}
+    <hr>
+    <h5 class="mt-4">Submitted Reviews</h5>
+    {% for inv in invitations %}
+      {% if inv.review %}
+      <div class="card mb-3">
+        <div class="card-header">
+          Review by {{ inv.reviewer.get_full_name }} - {{ inv.review.submitted_datetime|date }}
+        </div>
+        <div class="card-body">
+          <p><strong>Recommendation:</strong> {{ inv.review.get_recommendation_display }}</p>
+          {% if inv.review.quality_of_writing %}
+          <p><strong>Quality of Writing:</strong> {{ inv.review.get_quality_of_writing_display }}</p>
+          {% endif %}
+          {% if inv.review.significance %}
+          <p><strong>Significance:</strong> {{ inv.review.get_significance_display }}</p>
+          {% endif %}
+          {% if inv.review.technical_validity %}
+          <p><strong>Technical Validity:</strong> {{ inv.review.get_technical_validity_display }}</p>
+          {% endif %}
+          <h6>Comments to Editor (private)</h6>
+          <p>{{ inv.review.comments_to_editor|linebreaks }}</p>
+          <h6>Comments to Author</h6>
+          <p>{{ inv.review.comments_to_author|linebreaks }}</p>
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    <hr>
+    <form action="{% url 'complete_external_review' project.slug %}" method="post">
+      {% csrf_token %}
+      <button class="btn btn-success" type="submit"
+              onclick="return confirm('Complete external review and return to editor decision?');">
+        Complete External Review
+      </button>
+    </form>
+  </div>
+</div>
+<p><a href="{% url 'submission_info' project.slug %}">Return to submission info</a></p>
+{% endblock %}

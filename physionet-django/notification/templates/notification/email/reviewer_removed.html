@@ -1,0 +1,11 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ name }},
+
+This is to inform you that your review of the project entitled "{{ project_title }}" on {{ SITE_NAME }} is no longer needed.
+
+Thank you for your willingness to help.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

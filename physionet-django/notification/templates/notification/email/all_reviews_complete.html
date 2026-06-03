@@ -1,0 +1,13 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+All {{ required_reviews }} required external review{{ required_reviews|pluralize }} for the project entitled "{{ project.title }}" have been submitted on {{ SITE_NAME }}.
+
+You can now view the reviews and complete the external review process to make your editorial decision.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

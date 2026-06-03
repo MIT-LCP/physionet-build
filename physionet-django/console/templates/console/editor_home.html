@@ -10,6 +10,88 @@
   <p class="lead">Welcome to your editor home.</p>
 </div>
 
+{# Awaiting reviewer assignment #}
+<div class="card mb-3">
+  <div class="card-header">
+    Awaiting Reviewer Assignment {{ reviewer_assignment_projects|task_count_badge|safe }}
+  </div>
+  <div class="card-body">
+    {% if reviewer_assignment_projects %}
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Submitting Author</th>
+              <th>Submitted</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for project in reviewer_assignment_projects %}
+            <tr>
+              <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
+              <td><a href="{% url 'user_management' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+              <td>{{ project.submission_datetime|date }}</td>
+              <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'initiate_external_review' project.slug %}" role="button">Invite Reviewers</a>
+                <form action="{% url 'skip_external_review' project.slug %}" method="post" class="d-inline">
+                  {% csrf_token %}
+                  <button class="btn btn-secondary btn-sm ml-1" type="submit">Skip to Decision</button>
+                </form>
+                {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+    {% endif %}
+  </div>
+</div>
+
+{# Awaiting external review #}
+<div class="card mb-3">
+  <div class="card-header">
+    Awaiting External Review {{ external_review_projects|task_count_badge|safe }}
+  </div>
+  <div class="card-body">
+    {% if external_review_projects %}
+      <div class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Submitting Author</th>
+              <th>Submitted</th>
+              <th>Reviews</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for project in external_review_projects %}
+            <tr>
+              <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
+              <td><a href="{% url 'user_management' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+              <td>{{ project.submission_datetime|date }}</td>
+              <td>{{ project.reviewer_invitations.all|length }} invited</td>
+              <td>
+                <a class="btn btn-primary btn-sm" href="{% url 'manage_external_review' project.slug %}" role="button">Manage Reviews</a>
+                {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+    {% endif %}
+  </div>
+</div>
+
 {# Awaiting editor decision #}
 <div class="card mb-3">
   <div class="card-header">
