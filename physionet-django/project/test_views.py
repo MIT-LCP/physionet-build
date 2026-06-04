@@ -1,5 +1,6 @@
 import base64
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 import html.parser
 import os
 from http import HTTPStatus
@@ -1990,7 +1991,7 @@ class TestProjectViewsMetric(TestMixin):
             log = AccessLog.objects.create(
                 user=user, object_id=project.id, content_type=content_type, data='')
             AccessLog.objects.filter(pk=log.pk).update(
-                creation_datetime=now - timedelta(days=30 * i))
+                creation_datetime=now - relativedelta(months=i))
 
         response = self.client.get(reverse('published_project_metrics',
                                            args=(project.slug, project.version)))
@@ -2010,7 +2011,7 @@ class TestProjectViewsMetric(TestMixin):
             log = AccessLog.objects.create(
                 user=user, object_id=project.id, content_type=content_type, data='')
             AccessLog.objects.filter(pk=log.pk).update(
-                creation_datetime=now - timedelta(days=30 * i))
+                creation_datetime=now - relativedelta(months=i))
 
         response = self.client.get(
             reverse('published_project_metrics',

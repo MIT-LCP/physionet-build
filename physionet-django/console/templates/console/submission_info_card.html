@@ -28,6 +28,13 @@
         <a class="nav-link" id="doi-tab" data-toggle="tab" href="#doi" role="tab" aria-controls="doi" aria-selected="false">DOIs</a>
       </li>
       {% endif %}
+      {% if reviewer_invitations %}
+      <li class="nav-item">
+        <a class="nav-link" id="external-reviews-tab" data-toggle="tab" href="#external-reviews" role="tab" aria-controls="external-reviews" aria-selected="false">External Reviews
+          {{ reviewer_invitations|task_count_badge|safe }}
+        </a>
+      </li>
+      {% endif %}
       <li class="nav-item">
         <a class="nav-link" id="notes-tab" data-toggle="tab" href="#notes" role="tab" aria-controls="notes" aria-selected="false">Internal notes
           {{ notes|task_count_badge|safe }}
@@ -73,7 +80,28 @@
         <p><a class="btn btn-lg btn-primary" href="{% url 'project_preview' project.slug %}?Admin=True" role="button">
           View Project Preview</a>
           <button class="btn btn-lg btn-primary" onclick="copyToClipboard('{{ author_emails }}')">Copy Author Emails</button>
+          {% if project.submission_status == 15 and project.editor == user %}
+          <a class="btn btn-lg btn-info" href="{% url 'initiate_external_review' project.slug %}" role="button">
+            Invite External Reviewers</a>
+          <form action="{% url 'skip_external_review' project.slug %}" method="post" class="d-inline">
+            {% csrf_token %}
+            <button class="btn btn-lg btn-secondary" type="submit">Skip to Decision</button>
+          </form>
+          {% endif %}
+          {% if project.submission_status == 25 and project.editor == user %}
+          <a class="btn btn-lg btn-info" href="{% url 'manage_external_review' project.slug %}" role="button">
+            Manage External Review</a>
+          {% endif %}
         </p>
+        {% if project.submission_status == 25 %}
+        <div class="alert alert-info">
+          <strong>External Review in Progress:</strong>
+          {{ project.reviewer_invitations.all|length }} reviewer{{ project.reviewer_invitations.all|length|pluralize }} invited.
+          {% if project.editor == user %}
+          <a href="{% url 'manage_external_review' project.slug %}">View details</a>
+          {% endif %}
+        </div>
+        {% endif %}
         {% if user == project.editor or user.has_access_to_admin_console %}
         <p>To Download all the files use this command:<br>wget -r -N -c -np --user {{ user }} --ask-password {{ bulk_url_prefix }}{% url 'serve_active_project_file_editor' project.slug '' %}</p>
         {% endif %}
@@ -149,6 +177,53 @@
           {% endif %}
         </form>
       </div>
+
+      {# External Reviews #}
+      {% if reviewer_invitations %}
+      <div class="tab-pane fade" id="external-reviews" role="tabpanel" aria-labelledby="external-reviews-tab">
+        <p><strong>Required reviews:</strong> {{ project.required_reviews }}</p>
+        {% for inv in reviewer_invitations %}
+        <div class="card mb-3">
+          <div class="card-header">
+            {{ inv.reviewer.get_full_name }} ({{ inv.reviewer.email }})
+            — Deadline: {{ inv.review_deadline|date }}
+            {% if inv.review %}
+              <span class="badge badge-success">Submitted {{ inv.review.submitted_datetime|date }}</span>
+            {% else %}
+              <span class="badge badge-warning">Pending</span>
+            {% endif %}
+          </div>
+          {% if inv.review %}
+          <div class="card-body">
+            <p><strong>Recommendation:</strong> {{ inv.review.get_recommendation_display }}</p>
+            {% if inv.review.quality_of_writing %}
+            <p><strong>Quality of Writing:</strong> {{ inv.review.get_quality_of_writing_display }}</p>
+            {% endif %}
+            {% if inv.review.significance %}
+            <p><strong>Significance:</strong> {{ inv.review.get_significance_display }}</p>
+            {% endif %}
+            {% if inv.review.technical_validity %}
+            <p><strong>Technical Validity:</strong> {{ inv.review.get_technical_validity_display }}</p>
+            {% endif %}
+            <h6>Comments to Editor (private)</h6>
+            <div class="border rounded p-2 mb-2">{{ inv.review.comments_to_editor|linebreaks }}</div>
+            <h6>Comments to Author</h6>
+            <div class="border rounded p-2">{{ inv.review.comments_to_author|linebreaks }}</div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+        {% if project.submission_status == 25 and project.editor == user %}
+        <form action="{% url 'complete_external_review' project.slug %}" method="post">
+          {% csrf_token %}
+          <button class="btn btn-success" type="submit"
+                  onclick="return confirm('Complete external review and move to editor decision?');">
+            Complete External Review
+          </button>
+        </form>
+        {% endif %}
+      </div>
+      {% endif %}
 
       {# Notes #}
       <div class="tab-pane fade" id="notes" role="tabpanel" aria-labelledby="notes-tab">

@@ -1,0 +1,16 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+An external review has been submitted for the project entitled "{{ project.title }}" on {{ SITE_NAME }}.
+
+Reviewer: {{ reviewer }}
+Recommendation: {{ recommendation }}
+
+You can view the full review in the console.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

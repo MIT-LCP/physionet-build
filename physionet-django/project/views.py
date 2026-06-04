@@ -52,6 +52,7 @@ from project.models import (
     AWS,
 )
 from project.modelcomponents.activeproject import ArchiveReason
+from project.modelcomponents.review import ReviewerInvitation
 from project.authorization.access import can_view_project_files, can_access_project
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
@@ -78,8 +79,8 @@ def project_auth(auth_mode=0, post_auth_mode=0):
     - 0 : the user must be an author.
     - 1 : the user must be the submitting author.
     - 2 : the user must be an author or have permission to edit all ActiveProjects.
-    - 3 : the user must be an author or have permission to edit all ActiveProjects.
-          or be authenticated with a passphrase
+    - 3 : the user must be an author or have permission to edit all ActiveProjects,
+          or be authenticated with a passphrase, or be an active reviewer
 
     post_auth_mode is one of the following and applies only to post:
     - 0 : no additional check
@@ -117,6 +118,16 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             is_author = not user.is_anonymous and bool(authors.filter(user=user))
             is_submitting = (user == authors.get(is_submitting=True).user)
 
+            # Check if user is an active reviewer for this project
+            is_reviewer = (
+                not user.is_anonymous
+                and ReviewerInvitation.objects.filter(
+                    project=project, reviewer=user, is_active=True
+                ).exists()
+            )
+            if is_reviewer:
+                hide_authors = True
+
             # Authentication
             if auth_mode == 0:
                 allow = is_author
@@ -125,7 +136,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             elif auth_mode == 2:
                 allow = is_author or user.has_perm('project.change_activeproject')
             elif auth_mode == 3:
-                allow = has_passphrase or is_author or user.has_perm('project.change_activeproject')
+                allow = has_passphrase or is_author or is_reviewer or user.has_perm('project.change_activeproject')
             else:
                 allow = False
 
@@ -152,6 +163,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 kwargs['is_submitting'] = is_submitting
                 kwargs['has_passphrase'] = has_passphrase
                 kwargs['hide_authors'] = hide_authors
+                kwargs['is_reviewer'] = is_reviewer
                 return base_view(request, *args, **kwargs)
             raise PermissionDenied()
         return view_wrapper
@@ -1290,9 +1302,10 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
     file_warning = get_project_file_warning(display_files, display_dirs, subdir)
 
-    # Flag for anonymous access
+    # Flag for anonymous access / reviewer access
     has_passphrase = kwargs['has_passphrase']
     hide_authors = kwargs['hide_authors']
+    is_reviewer = kwargs['is_reviewer']
 
     return render(
         request,
@@ -1320,6 +1333,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
             'parent_projects': parent_projects,
             'has_passphrase': has_passphrase,
             'hide_authors': hide_authors,
+            'is_reviewer': is_reviewer,
             'is_lightwave_supported': project.files.is_lightwave_supported(),
             'show_platform_wide_citation': show_platform_wide_citation,
             'main_platform_citation': main_platform_citation,

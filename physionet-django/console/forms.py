@@ -18,6 +18,7 @@ from project.models import (
     DataAccess,
     DUA,
     EditLog,
+    ExternalReview,
     License,
     PublishedAffiliation,
     PublishedAuthor,
@@ -1096,3 +1097,94 @@ class FederatedSiteForm(forms.Form):
         if FederatedSite.objects.filter(site_identifier=site_identifier).exists():
             raise forms.ValidationError('A site with this identifier already exists.')
         return site_identifier
+
+
+class InitiateExternalReviewForm(forms.Form):
+    """
+    Form to initiate external review for a project submission.
+    """
+    required_reviews = forms.IntegerField(
+        min_value=1,
+        max_value=10,
+        label='Number of required reviews',
+        widget=forms.NumberInput(attrs={'class': 'form-control'}),
+    )
+    review_deadline = forms.DateField(
+        label='Review deadline',
+        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+    )
+
+    def clean_review_deadline(self):
+        deadline = self.cleaned_data['review_deadline']
+        if deadline <= timezone.now().date():
+            raise forms.ValidationError('The deadline must be in the future.')
+        return deadline
+
+
+class InviteReviewerForm(forms.Form):
+    """
+    Form to invite a reviewer by email address.
+    """
+    reviewer_email = forms.EmailField(
+        label='Reviewer email',
+        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+    )
+
+    def __init__(self, *args, project=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+    def clean_reviewer_email(self):
+        email = self.cleaned_data['reviewer_email']
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise forms.ValidationError(
+                'No PhysioNet account found with this email address.'
+            )
+        if self.project and self.project.authors.filter(user=user).exists():
+            raise forms.ValidationError(
+                'This user is an author of the project.'
+            )
+        if self.project and self.project.reviewer_invitations.filter(
+            reviewer=user, is_active=True
+        ).exists():
+            raise forms.ValidationError(
+                'This reviewer has already been invited.'
+            )
+        self.cleaned_data['reviewer_user'] = user
+        return email
+
+
+class ExternalReviewForm(forms.ModelForm):
+    """
+    Form for an external reviewer to submit their review.
+    """
+    class Meta:
+        model = ExternalReview
+        fields = (
+            'recommendation',
+            'comments_to_editor',
+            'comments_to_author',
+            'quality_of_writing',
+            'significance',
+            'technical_validity',
+        )
+        widgets = {
+            'recommendation': forms.Select(attrs={'class': 'form-control'}),
+            'comments_to_editor': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 5}
+            ),
+            'comments_to_author': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 5}
+            ),
+            'quality_of_writing': forms.Select(attrs={'class': 'form-control'}),
+            'significance': forms.Select(attrs={'class': 'form-control'}),
+            'technical_validity': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['quality_of_writing'].required = False
+        self.fields['significance'].required = False
+        self.fields['technical_validity'].required = False

@@ -1,8 +1,6 @@
 import base64
-import random
 import hashlib
 from datetime import timedelta
-import re
 from django.test import TestCase
 from django.utils import timezone
 from user.models import User
@@ -12,6 +10,8 @@ from urllib.parse import parse_qs, urlparse
 from oauth2_provider.settings import oauth2_settings
 from django.utils.crypto import get_random_string
 from oauth.views import SCOPES_MAPPING
+from project.models import PublishedProject, AccessPolicy, CoreProject, ProjectType
+from unittest.mock import patch
 
 
 Application = get_application_model()
@@ -270,3 +270,131 @@ class TestUserInfoScopeValidation(BaseTest):
             self.assertIsInstance(result, dict, f"Scope '{scope}' did not return a dictionary")
             for field, value in result.items():
                 self.assertIsNotNone(field, f"Field name in scope '{scope}' is None")
+
+
+class TestDatasetAccessView(BaseTest):
+    """
+    Tests for GET /oauth/dataset-access/
+
+    The endpoint requires the ``credentialing:read`` scope and accepts
+    ``?slug=<slug>&version=<version>`` query parameters.  It delegates
+    access-checking to ``project.authorization.access.can_access_project``,
+    so the tests mock that function rather than reproducing the full
+    DUA / credentialing process.
+    """
+
+    def setUp(self):
+        super().setUp()
+
+        self.open_project = PublishedProject.objects.create(
+            slug="demoeicu",
+            version="1.0",
+            title="Demo Open Dataset",
+            access_policy=AccessPolicy.OPEN,
+            resource_type=ProjectType.objects.get(id=0),
+            submission_slug="demoeicu",
+            core_project=CoreProject.objects.create(),
+        )
+        self.credentialed_project = PublishedProject.objects.create(
+            slug="mimiciv",
+            version="3.1",
+            title="MIMIC-IV",
+            access_policy=AccessPolicy.CREDENTIALED,
+            resource_type=ProjectType.objects.get(id=0),
+            submission_slug="mimiciv",
+            core_project=CoreProject.objects.create(),
+        )
+
+        self.credentialing_token = AccessToken.objects.create(
+            user=self.test_user,
+            scope="credentialing:read",
+            expires=timezone.now() + timedelta(seconds=300),
+            token="credentialing-token-key",
+            application=self.application,
+        )
+
+    # Authentication
+    def test_no_token_returns_403(self):
+        response = self.client.get(
+            "/oauth/dataset-access/", {"slug": "demoeicu", "version": "1.0"}
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_wrong_scope_returns_403(self):
+        """A token with only profile:read must be rejected (needs credentialing:read)."""
+        auth = self._create_authorization_header(self.access_token.token)
+        response = self.client.get(
+            "/oauth/dataset-access/",
+            {"slug": "demoeicu", "version": "1.0"},
+            HTTP_AUTHORIZATION=auth,
+        )
+        self.assertEqual(response.status_code, 403)
+
+    # Parameter validation
+    def test_missing_slug_returns_400(self):
+        auth = self._create_authorization_header(self.credentialing_token.token)
+        response = self.client.get(
+            "/oauth/dataset-access/", {"version": "1.0"}, HTTP_AUTHORIZATION=auth
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
+
+    def test_missing_version_returns_400(self):
+        auth = self._create_authorization_header(self.credentialing_token.token)
+        response = self.client.get(
+            "/oauth/dataset-access/", {"slug": "demoeicu"}, HTTP_AUTHORIZATION=auth
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("error", response.json())
+
+    # Project lookup
+    def test_nonexistent_project_returns_404(self):
+        auth = self._create_authorization_header(self.credentialing_token.token)
+        response = self.client.get(
+            "/oauth/dataset-access/",
+            {"slug": "does-not-exist", "version": "9.9"},
+            HTTP_AUTHORIZATION=auth,
+        )
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(response.json()["has_access"])
+
+    # Access checks — mock can_access_project
+    def test_open_project_user_has_access(self):
+        auth = self._create_authorization_header(self.credentialing_token.token)
+        with patch("oauth.views.can_access_project", return_value=True):
+            response = self.client.get(
+                "/oauth/dataset-access/",
+                {"slug": "demoeicu", "version": "1.0"},
+                HTTP_AUTHORIZATION=auth,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["has_access"])
+        self.assertEqual(data["slug"], "demoeicu")
+        self.assertEqual(data["version"], "1.0")
+
+    def test_credentialed_project_access_denied(self):
+        auth = self._create_authorization_header(self.credentialing_token.token)
+        with patch("oauth.views.can_access_project", return_value=False):
+            response = self.client.get(
+                "/oauth/dataset-access/",
+                {"slug": "mimiciv", "version": "3.1"},
+                HTTP_AUTHORIZATION=auth,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["has_access"])
+
+    def test_response_echoes_slug_and_version(self):
+        auth = self._create_authorization_header(self.credentialing_token.token)
+        with patch("oauth.views.can_access_project", return_value=True):
+            response = self.client.get(
+                "/oauth/dataset-access/",
+                {"slug": "mimiciv", "version": "3.1"},
+                HTTP_AUTHORIZATION=auth,
+            )
+
+        data = response.json()
+        self.assertEqual(data["slug"], "mimiciv")
+        self.assertEqual(data["version"], "3.1")

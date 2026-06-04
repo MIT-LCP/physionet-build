@@ -17,6 +17,7 @@
           <th>Submitted</th>
           <th>Resubmitted</th>
           <th>Published</th>
+          <th>Rejected</th>
         </tr>
         {% for year, month_list in stats.items%}
           {% for month, val in month_list.items%}
@@ -31,6 +32,7 @@
             <td>{{ val.1 }}</td>
             <td>{{ val.2 }}</td>
             <td>{{ val.3 }}</td>
+            <td>{{ val.4 }}</td>
           </tr>
           {% endfor %}
         {% endfor %}
