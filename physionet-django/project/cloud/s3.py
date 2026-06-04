@@ -1572,13 +1572,13 @@ def create_s3_server_access_log_bucket():
 
 
 def delete_project_files_from_s3(project):
-    # Import here to avoid circular import
-    from console.views import delete_project_files_task
     """
     Immediately revoke access by deleting access points,
     set project.aws.sent_files = False, then schedule
     file deletion as a background task.
     """
+    # Import here to avoid circular import
+    from console.views import delete_project_files_task
     if not check_s3_bucket_exists(project):
         return
 
