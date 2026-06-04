@@ -1197,7 +1197,7 @@ def manage_published_project(request, project_slug, version):
                 messages.error(request, 'Project has tasks pending.')
             else:
                 delete_project_files_from_s3(project)
-                messages.success(request, 'The project files have been deleted from S3.')
+                messages.success(request, 'The project files are being deleted from S3')
                 # Redirect is required after deletion to avoid rendering the page with
                 # a stale AWS instance that no longer has a primary key in the database.
                 return redirect('manage_published_project', project_slug=project_slug, version=version)
