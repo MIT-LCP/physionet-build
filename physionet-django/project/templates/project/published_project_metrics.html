@@ -33,6 +33,55 @@ Metrics for {{ project }}
     </div>
   </div>
 
+  {% if scholar_data %}
+  <h3>Scholar Data Metrics</h3>
+  <div class="alert alert-info">
+    <small>
+      These metrics are provided by <a href="https://scholardata.io" target="_blank" rel="noopener">Scholar Data</a>
+      as part of the <a href="https://www.challenge.gov/challenge/s-index/" target="_blank" rel="noopener">NIH S-Index Challenge</a>.
+      They are experimental and currently being evaluated for potential integration.
+    </small>
+  </div>
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card text-center mb-4">
+        <h5 class="card-header">Citations</h5>
+        <div class="card-body">
+          <h3 class="mb-0">{{ scholar_data.totalCitations }}</h3>
+          <small class="text-muted">Total scholarly citations</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center mb-4">
+        <h5 class="card-header">Mentions</h5>
+        <div class="card-body">
+          <h3 class="mb-0">{{ scholar_data.totalMentions }}</h3>
+          <small class="text-muted">Non-academic references</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center mb-4">
+        <h5 class="card-header">FUJI Score</h5>
+        <div class="card-body">
+          <h3 class="mb-0">{{ scholar_data.fujiScore.score|floatformat:1 }}</h3>
+          <small class="text-muted">FAIR assessment (v{{ scholar_data.fujiScore.metricVersion }})</small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center mb-4">
+        <h5 class="card-header">D-Index</h5>
+        <div class="card-body">
+          <h3 class="mb-0">{{ scholar_data.latestDIndex.score|floatformat:1 }}</h3>
+          <small class="text-muted">Dataset impact index ({{ scholar_data.latestDIndex.year }})</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   {% if views_by_version|length > 1 %}
   <h3>Views by Version</h3>
   <div class="table-responsive mb-4">
