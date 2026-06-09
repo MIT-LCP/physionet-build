@@ -1,6 +1,25 @@
+from django.core.exceptions import ImproperlyConfigured
+from oauth2_provider.models import AbstractApplication
 from oauth2_provider.oauth2_validators import OAuth2Validator
 
 from user.models import AssociatedEmail
+
+# Claims PhysioNet issues in ID tokens and at /oauth/oidc/userinfo. Kept in sync
+# with the keys _build_claims() can produce; advertised via get_discovery_claims().
+OIDC_SUPPORTED_CLAIMS = [
+    "sub",
+    "name",
+    "given_name",
+    "family_name",
+    "preferred_username",
+    "website",
+    "email",
+    "email_verified",
+    "affiliation",
+    "is_credentialed",
+    "orcid",
+    "public_user_uuid",
+]
 
 
 class CustomOAuth2Validator(OAuth2Validator):
@@ -67,3 +86,27 @@ class CustomOAuth2Validator(OAuth2Validator):
             return super().get_userinfo_claims(request)
         scopes = set(getattr(request, 'scopes', []) or [])
         return self._build_claims(request.user, scopes)
+
+    def get_discovery_claims(self, request):
+        """
+        Advertise the claims PhysioNet actually issues. DOT's default returns
+        only ["sub"] here because our get_additional_claims() takes a request
+        (so it isn't treated as request-agnostic), which understates what ID
+        tokens and /oauth/oidc/userinfo return.
+        """
+        return list(OIDC_SUPPORTED_CLAIMS)
+
+    def finalize_id_token(self, id_token, token, token_handler, request):
+        """
+        Fail with an actionable message when an application requests the
+        'openid' scope without RS256 configured. Otherwise DOT reaches
+        Application.jwk_key and raises the opaque "This application does not
+        support signed tokens".
+        """
+        if request.client.algorithm != AbstractApplication.RS256_ALGORITHM:
+            raise ImproperlyConfigured(
+                f"OAuth application {request.client.name!r} requested the "
+                "'openid' scope but is not configured for signed tokens. Set "
+                "the application algorithm to RS256 for OIDC."
+            )
+        return super().finalize_id_token(id_token, token, token_handler, request)
