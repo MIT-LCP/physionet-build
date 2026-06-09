@@ -112,15 +112,28 @@ class SubmissionStatus(IntEnum):
     ---------------------------------------------------
     The project has been submitted, but has no editor assigned.  A
     managing editor may assign the project to an editor, which moves
-    it to NEEDS_DECISION.
+    it to NEEDS_REVIEWER_ASSIGNMENT.
+
+    15: NEEDS_REVIEWER_ASSIGNMENT ("Awaiting Reviewer Assignment")
+    --------------------------------------------------------------
+    An editor has been assigned.  The editor may invite external
+    reviewers, which moves the project to NEEDS_EXTERNAL_REVIEW;
+    or may skip external review and move directly to NEEDS_DECISION.
 
     20: NEEDS_DECISION ("Awaiting Decision")
     ----------------------------------------
-    An editor has been assigned and needs to review the project.  The
+    The editor reviews the project (and any external reviews).  The
     editor may accept the project, which moves it to NEEDS_COPYEDIT;
     may request resubmission, which moves the project to
     NEEDS_RESUBMISSION; or may reject the project, which sets the
     status of the ActiveProject to "Archived".
+
+    25: NEEDS_EXTERNAL_REVIEW ("Awaiting External Review")
+    ------------------------------------------------------
+    The editor has sent the project for external peer review.  External
+    reviewers submit structured reviews.  When the editor is satisfied,
+    they complete the external review, moving the project to
+    NEEDS_DECISION.
 
     30: NEEDS_RESUBMISSION ("Awaiting Author Revisions")
     -------------------------------------------------
@@ -152,7 +165,9 @@ class SubmissionStatus(IntEnum):
     UNSUBMITTED = 0
     ARCHIVED = 5
     NEEDS_ASSIGNMENT = 10
+    NEEDS_REVIEWER_ASSIGNMENT = 15
     NEEDS_DECISION = 20
+    NEEDS_EXTERNAL_REVIEW = 25
     NEEDS_RESUBMISSION = 30
     NEEDS_COPYEDIT = 40
     NEEDS_APPROVAL = 50
@@ -169,6 +184,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     "phase" of submission; see SubmissionStatus.
     """
     submission_status = models.PositiveSmallIntegerField(default=0)
+    required_reviews = models.PositiveSmallIntegerField(default=0, null=True)
     is_on_hold = models.BooleanField(default=False)
     archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
     archive_reason_text = models.TextField(null=True, blank=True)
@@ -190,7 +206,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         SubmissionStatus.UNSUBMITTED: 'Not submitted.',
         SubmissionStatus.ARCHIVED: 'Archived.',
         SubmissionStatus.NEEDS_ASSIGNMENT: 'Awaiting editor assignment.',
+        SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT: 'Awaiting reviewer assignment.',
         SubmissionStatus.NEEDS_DECISION: 'Awaiting editor decision.',
+        SubmissionStatus.NEEDS_EXTERNAL_REVIEW: 'Awaiting external review.',
         SubmissionStatus.NEEDS_RESUBMISSION: 'Revisions requested.',
         SubmissionStatus.NEEDS_COPYEDIT: 'Submission accepted; awaiting editor copyedits.',
         SubmissionStatus.NEEDS_APPROVAL: 'Awaiting authors to approve publication.',
@@ -433,10 +451,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     def assign_editor(self, editor):
         """
         Assign an editor to the project and set the submission status to the
-        edit stage.
+        reviewer assignment stage.
         """
         self.editor = editor
-        self.submission_status = SubmissionStatus.NEEDS_DECISION
+        self.submission_status = SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT
         self.editor_assignment_datetime = timezone.now()
         self.save()
 

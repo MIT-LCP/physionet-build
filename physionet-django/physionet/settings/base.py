@@ -893,6 +893,10 @@ OAUTH2_PROVIDER = {
     "PKCE_REQUIRED": config('OAUTH2_PKCE_REQUIRED', default=True, cast=bool),
 }
 
+# ScholarData API for external dataset metrics
+ENABLE_SCHOLAR_DATA_API = config('ENABLE_SCHOLAR_DATA_API', default=False, cast=bool)
+SCHOLAR_DATA_API_URL = config('SCHOLAR_DATA_API_URL', default='https://scholardata.io/api/v1')
+
 # Path to GeoIP2 database directory
 GEOIP_PATH = config('GEOIP_PATH', default=None)
 

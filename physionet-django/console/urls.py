@@ -44,6 +44,18 @@ urlpatterns = [
     path('download-dua-signatures/<int:pk>/', views.download_dua_signatures, name='download_dua_signatures'),
     path('download-all-dua-signatures/', views.download_all_dua_signatures, name='download_all_dua_signatures'),
 
+    # External review
+    path('submitted-projects/<project_slug>/external-review/initiate/',
+         views.initiate_external_review, name='initiate_external_review'),
+    path('submitted-projects/<project_slug>/external-review/',
+         views.manage_external_review, name='manage_external_review'),
+    path('submitted-projects/<project_slug>/external-review/<int:invitation_id>/submit/',
+         views.submit_external_review, name='submit_external_review'),
+    path('submitted-projects/<project_slug>/external-review/complete/',
+         views.complete_external_review, name='complete_external_review'),
+    path('submitted-projects/<project_slug>/external-review/skip/',
+         views.skip_external_review, name='skip_external_review'),
+
     # On hold
     path('submitted-projects/<project_slug>/on-hold/', views.project_on_hold, name='project_on_hold'),
 
@@ -227,6 +239,27 @@ TEST_CASES = {
         'pk': 4,
     },
 
+    'initiate_external_review': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        '_skip_': True,
+    },
+    'manage_external_review': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        '_skip_': True,
+    },
+    'submit_external_review': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        'invitation_id': 1,
+        '_skip_': True,
+    },
+    'complete_external_review': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        '_skip_': True,
+    },
+    'skip_external_review': {
+        'project_slug': 'xxxxxxxxxxxxxxxxxxxx',
+        '_skip_': True,
+    },
     'project_on_hold': {
         'project_slug': 'p7TCIMkltNswuOB9FZH1',
         '_skip_': True,

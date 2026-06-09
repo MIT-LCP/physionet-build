@@ -2,6 +2,7 @@ import datetime as dt
 import logging
 import os
 
+import requests
 import notification.utility as notification
 from dal import autocomplete
 from django.conf import settings
@@ -11,6 +12,7 @@ from django.contrib.auth.views import redirect_to_login
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -52,6 +54,7 @@ from project.models import (
     AWS,
 )
 from project.modelcomponents.activeproject import ArchiveReason
+from project.modelcomponents.review import ReviewerInvitation
 from project.authorization.access import can_view_project_files, can_access_project
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
@@ -78,8 +81,8 @@ def project_auth(auth_mode=0, post_auth_mode=0):
     - 0 : the user must be an author.
     - 1 : the user must be the submitting author.
     - 2 : the user must be an author or have permission to edit all ActiveProjects.
-    - 3 : the user must be an author or have permission to edit all ActiveProjects.
-          or be authenticated with a passphrase
+    - 3 : the user must be an author or have permission to edit all ActiveProjects,
+          or be authenticated with a passphrase, or be an active reviewer
 
     post_auth_mode is one of the following and applies only to post:
     - 0 : no additional check
@@ -117,6 +120,16 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             is_author = not user.is_anonymous and bool(authors.filter(user=user))
             is_submitting = (user == authors.get(is_submitting=True).user)
 
+            # Check if user is an active reviewer for this project
+            is_reviewer = (
+                not user.is_anonymous
+                and ReviewerInvitation.objects.filter(
+                    project=project, reviewer=user, is_active=True
+                ).exists()
+            )
+            if is_reviewer:
+                hide_authors = True
+
             # Authentication
             if auth_mode == 0:
                 allow = is_author
@@ -125,7 +138,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             elif auth_mode == 2:
                 allow = is_author or user.has_perm('project.change_activeproject')
             elif auth_mode == 3:
-                allow = has_passphrase or is_author or user.has_perm('project.change_activeproject')
+                allow = has_passphrase or is_author or is_reviewer or user.has_perm('project.change_activeproject')
             else:
                 allow = False
 
@@ -152,6 +165,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 kwargs['is_submitting'] = is_submitting
                 kwargs['has_passphrase'] = has_passphrase
                 kwargs['hide_authors'] = hide_authors
+                kwargs['is_reviewer'] = is_reviewer
                 return base_view(request, *args, **kwargs)
             raise PermissionDenied()
         return view_wrapper
@@ -1290,9 +1304,10 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     files_panel_url = reverse('preview_files_panel', args=(project.slug,))
     file_warning = get_project_file_warning(display_files, display_dirs, subdir)
 
-    # Flag for anonymous access
+    # Flag for anonymous access / reviewer access
     has_passphrase = kwargs['has_passphrase']
     hide_authors = kwargs['hide_authors']
+    is_reviewer = kwargs['is_reviewer']
 
     return render(
         request,
@@ -1320,6 +1335,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
             'parent_projects': parent_projects,
             'has_passphrase': has_passphrase,
             'hide_authors': hide_authors,
+            'is_reviewer': is_reviewer,
             'is_lightwave_supported': project.files.is_lightwave_supported(),
             'show_platform_wide_citation': show_platform_wide_citation,
             'main_platform_citation': main_platform_citation,
@@ -2100,6 +2116,30 @@ def published_project(request, project_slug, version, subdir=''):
                   status=status)
 
 
+def fetch_scholar_data(doi):
+    """
+    Fetch external dataset statistics from the ScholarData API.
+
+    Returns the parsed JSON dict on success, or None on any failure.
+    Results are cached for 24 hours, keyed by DOI.
+    """
+    cache_key = f'scholar_data:{doi}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    try:
+        url = f'{settings.SCHOLAR_DATA_API_URL}/datasets/by-doi'
+        response = requests.get(url, params={'doi': doi}, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+    except Exception:
+        return None
+
+    cache.set(cache_key, data, 86400)
+    return data
+
+
 def published_project_metrics(request, project_slug, version):
     """
     Public metrics page for a published project.
@@ -2112,6 +2152,10 @@ def published_project_metrics(request, project_slug, version):
     views_over_time.reverse()
     views_over_time = paginate(request, views_over_time, 12)
 
+    scholar_data = None
+    if settings.ENABLE_SCHOLAR_DATA_API and project.doi:
+        scholar_data = fetch_scholar_data(project.doi)
+
     return render(request, 'project/published_project_metrics.html', {
         'project': project,
         'project_views_count': project.view_count(),
@@ -2119,6 +2163,7 @@ def published_project_metrics(request, project_slug, version):
         'views_over_time': views_over_time,
         'views_by_version': project.views_by_version(),
         'tracking_start_date': tracking_start_date,
+        'scholar_data': scholar_data,
     })
 
 

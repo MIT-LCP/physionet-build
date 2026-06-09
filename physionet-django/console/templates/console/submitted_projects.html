@@ -14,6 +14,12 @@
         </li>
       {% endif %}
       <li class="nav-item">
+        <a class="nav-link" id="reviewer-assignment-tab" data-toggle="tab" href="#reviewer-assignment" role="tab" aria-controls="reviewer-assignment" aria-selected="false">Awaiting Reviewer Assignment {{ reviewer_assignment_projects|task_count_badge|safe }}</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="external-review-tab" data-toggle="tab" href="#external-review" role="tab" aria-controls="external-review" aria-selected="false">Awaiting External Review {{ external_review_projects|task_count_badge|safe }}</a>
+      </li>
+      <li class="nav-item">
         <a class="nav-link" id="decision-tab" data-toggle="tab" href="#decision" role="tab" aria-controls="decision" aria-selected="false">Awaiting Decision {{ decision_projects|task_count_badge|safe }}</a>
       </li>
       <li class="nav-item">
@@ -100,6 +106,88 @@
           {% endif %}
         </div>
       {% endif %}
+      {# Awaiting reviewer assignment #}
+      <div class="tab-pane fade" id="reviewer-assignment" role="tabpanel" aria-labelledby="reviewer-assignment-tab">
+        {% if reviewer_assignment_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitted By</th>
+                  <th>Editor</th>
+                  <th>Submitted</th>
+                  <th>Manage</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in reviewer_assignment_projects %}
+                <tr>
+                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+                  <td>{{ project.editor }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                  <td>
+                    {% if project.editor == user %}
+                      <a class="btn btn-primary btn-sm" href="{% url 'initiate_external_review' project.slug %}" role="button">Invite Reviewers</a>
+                      <form action="{% url 'skip_external_review' project.slug %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button class="btn btn-secondary btn-sm ml-1" type="submit">Skip to Decision</button>
+                      </form>
+                    {% else %}
+                      <p class="mb-0">Assigned</p>
+                    {% endif %}
+                    {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' %}
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
+      </div>
+      {# Awaiting external review #}
+      <div class="tab-pane fade" id="external-review" role="tabpanel" aria-labelledby="external-review-tab">
+        {% if external_review_projects %}
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Submitted By</th>
+                  <th>Editor</th>
+                  <th>Submitted</th>
+                  <th>Reviews</th>
+                  <th>Manage</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for project in external_review_projects %}
+                <tr>
+                  <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
+                  <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
+                  <td>{{ project.editor }}</td>
+                  <td>{{ project.submission_datetime|date }}</td>
+                  <td>{{ project.reviewer_invitations.all|length }} invited</td>
+                  <td>
+                    {% if project.editor == user %}
+                      <a class="btn btn-primary btn-sm" href="{% url 'manage_external_review' project.slug %}" role="button">Manage Reviews</a>
+                    {% else %}
+                      <p class="mb-0">Assigned</p>
+                    {% endif %}
+                    {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' %}
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p><i class="fas fa-check" style="color:green"></i> No projects to show.</p>
+        {% endif %}
+      </div>
       {# Awaiting decision #}
       <div class="tab-pane fade" id="decision" role="tabpanel" aria-labelledby="decision-tab">
         {% if decision_projects %}

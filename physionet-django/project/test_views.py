@@ -1,14 +1,17 @@
 import base64
 from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 import html.parser
 import os
 from http import HTTPStatus
 import json
 from unittest import mock
 
+import requests
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -1990,7 +1993,7 @@ class TestProjectViewsMetric(TestMixin):
             log = AccessLog.objects.create(
                 user=user, object_id=project.id, content_type=content_type, data='')
             AccessLog.objects.filter(pk=log.pk).update(
-                creation_datetime=now - timedelta(days=30 * i))
+                creation_datetime=now - relativedelta(months=i))
 
         response = self.client.get(reverse('published_project_metrics',
                                            args=(project.slug, project.version)))
@@ -2010,7 +2013,7 @@ class TestProjectViewsMetric(TestMixin):
             log = AccessLog.objects.create(
                 user=user, object_id=project.id, content_type=content_type, data='')
             AccessLog.objects.filter(pk=log.pk).update(
-                creation_datetime=now - timedelta(days=30 * i))
+                creation_datetime=now - relativedelta(months=i))
 
         response = self.client.get(
             reverse('published_project_metrics',
@@ -2019,3 +2022,131 @@ class TestProjectViewsMetric(TestMixin):
         self.assertGreater(len(page), 0)
         self.assertLessEqual(len(page), 12)
         self.assertFalse(page.has_next())
+
+
+class TestScholarDataIntegration(TestMixin):
+    """Test the ScholarData API integration on the metrics page."""
+
+    SCHOLAR_DATA_RESPONSE = {
+        'datasetId': 12463514,
+        'totalCitations': 42,
+        'totalMentions': 0,
+        'fujiScore': {
+            'score': 85,
+            'evaluationDate': '2026-01-02T00:25:27.000Z',
+            'metricVersion': '0.8',
+            'softwareVersion': '3.5.1',
+        },
+        'latestDIndex': {
+            'score': 7,
+            'year': 2025,
+        },
+    }
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+        self.project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        self.metrics_url = reverse(
+            'published_project_metrics',
+            args=(self.project.slug, self.project.version),
+        )
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=False)
+    def test_api_not_called_when_disabled(self):
+        """ScholarData API is not called when ENABLE_SCHOLAR_DATA_API is False."""
+        with mock.patch('project.views.requests.get') as mock_get:
+            response = self.client.get(self.metrics_url)
+        mock_get.assert_not_called()
+        self.assertIsNone(response.context['scholar_data'])
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_api_called_when_enabled_with_doi(self):
+        """ScholarData API is called when enabled and project has a DOI."""
+        self.project.doi = '10.1234/test'
+        self.project.save()
+
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = self.SCHOLAR_DATA_RESPONSE
+        mock_response.raise_for_status = mock.Mock()
+
+        with mock.patch('project.views.requests.get', return_value=mock_response) as mock_get:
+            response = self.client.get(self.metrics_url)
+
+        mock_get.assert_called_once()
+        self.assertEqual(response.context['scholar_data'], self.SCHOLAR_DATA_RESPONSE)
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_api_not_called_without_doi(self):
+        """ScholarData API is not called when project has no DOI."""
+        self.project.doi = ''
+        self.project.save()
+
+        with mock.patch('project.views.requests.get') as mock_get:
+            response = self.client.get(self.metrics_url)
+
+        mock_get.assert_not_called()
+        self.assertIsNone(response.context['scholar_data'])
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_graceful_degradation_on_api_error(self):
+        """Metrics page renders normally when ScholarData API returns an error."""
+        self.project.doi = '10.1234/test'
+        self.project.save()
+
+        with mock.patch('project.views.requests.get', side_effect=requests.ConnectionError):
+            response = self.client.get(self.metrics_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context['scholar_data'])
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_graceful_degradation_on_timeout(self):
+        """Metrics page renders normally when ScholarData API times out."""
+        self.project.doi = '10.1234/test'
+        self.project.save()
+
+        with mock.patch('project.views.requests.get', side_effect=requests.Timeout):
+            response = self.client.get(self.metrics_url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.context['scholar_data'])
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_scholar_data_in_template(self):
+        """Scholar data values appear in the rendered template."""
+        self.project.doi = '10.1234/test'
+        self.project.save()
+
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = self.SCHOLAR_DATA_RESPONSE
+        mock_response.raise_for_status = mock.Mock()
+
+        with mock.patch('project.views.requests.get', return_value=mock_response):
+            response = self.client.get(self.metrics_url)
+
+        self.assertContains(response, 'Total scholarly citations')
+        self.assertContains(response, '42')
+        self.assertContains(response, 'FUJI Score')
+        self.assertContains(response, '85')
+        self.assertContains(response, 'D-Index')
+        self.assertContains(response, '7')
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_caching(self):
+        """Second request uses cached data instead of calling the API again."""
+        self.project.doi = '10.1234/test'
+        self.project.save()
+
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = self.SCHOLAR_DATA_RESPONSE
+        mock_response.raise_for_status = mock.Mock()
+
+        with mock.patch('project.views.requests.get', return_value=mock_response) as mock_get:
+            self.client.get(self.metrics_url)
+            self.client.get(self.metrics_url)
+
+        mock_get.assert_called_once()

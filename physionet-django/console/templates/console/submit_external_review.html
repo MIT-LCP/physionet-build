@@ -1,0 +1,66 @@
+{% extends "console/base_console.html" %}
+
+{% load static %}
+
+{% block title %}Submit Review - {{ project }}{% endblock %}
+
+{% block content %}
+<h1>External Review</h1>
+<hr>
+<div class="card mb-3">
+  <div class="card-header">
+    Review for: {{ project.title }}
+  </div>
+  <div class="card-body">
+    <p><strong>Deadline:</strong> {{ invitation.review_deadline|date }}</p>
+    {% if invitation.anonymous_access %}
+    <p><a class="btn btn-sm btn-info" href="{% url 'anonymous_login' invitation.anonymous_access.url %}" target="_blank">
+      View Project (Anonymous Access)</a></p>
+    {% endif %}
+
+    <form action="" method="post">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="id_recommendation">{{ form.recommendation.label }}*</label>
+        {{ form.recommendation }}
+        {% if form.recommendation.errors %}
+        <div class="text-danger">{{ form.recommendation.errors }}</div>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label for="id_comments_to_editor">{{ form.comments_to_editor.label }}*</label>
+        <small class="form-text text-muted">Private comments visible only to the editor.</small>
+        {{ form.comments_to_editor }}
+        {% if form.comments_to_editor.errors %}
+        <div class="text-danger">{{ form.comments_to_editor.errors }}</div>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label for="id_comments_to_author">{{ form.comments_to_author.label }}*</label>
+        <small class="form-text text-muted">Comments that may be shared with the author.</small>
+        {{ form.comments_to_author }}
+        {% if form.comments_to_author.errors %}
+        <div class="text-danger">{{ form.comments_to_author.errors }}</div>
+        {% endif %}
+      </div>
+      <h5 class="mt-4">Optional Ratings</h5>
+      <div class="form-group">
+        <label for="id_quality_of_writing">{{ form.quality_of_writing.label }}</label>
+        {{ form.quality_of_writing }}
+      </div>
+      <div class="form-group">
+        <label for="id_significance">{{ form.significance.label }}</label>
+        {{ form.significance }}
+      </div>
+      <div class="form-group">
+        <label for="id_technical_validity">{{ form.technical_validity.label }}</label>
+        {{ form.technical_validity }}
+      </div>
+      <button class="btn btn-primary" type="submit"
+              onclick="return confirm('Submit your review? This cannot be changed after submission.');">
+        Submit Review
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
