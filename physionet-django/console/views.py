@@ -93,6 +93,7 @@ from project.cloud.s3 import (
     delete_project_files_from_s3,
     disable_project_access_in_s3,
     restore_project_access_in_s3,
+    create_s3_resource,
 )
 
 from django.core.management import call_command
@@ -1058,6 +1059,31 @@ def send_files_to_aws(pid):
     project.aws.save()
 
 
+@associated_task(PublishedProject, 'pid')
+@background()
+def delete_project_files_task(pid):
+    """
+    Background task to delete project files from S3.
+    Called after access has already been revoked synchronously.
+    """
+    project = PublishedProject.objects.get(id=pid)
+
+    s3 = create_s3_resource()
+    bucket_name = get_bucket_name(project)
+    prefix = f"{project.slug}/{project.version}/"
+    bucket = s3.Bucket(bucket_name)
+    bucket.objects.filter(Prefix=prefix).delete()
+
+    # Delete zip file if it was uploaded
+    if project.aws.sent_zip:
+        zip_key = os.path.join(f"{project.slug}/", project.zip_name(legacy=False))
+        bucket.Object(zip_key).delete()
+
+    # Delete the AWS record from the database
+    project.aws.sent_zip = False
+    project.aws.delete()
+
+
 @console_permission_required('project.change_publishedproject')
 def manage_doi_request(request, project):
     """
@@ -1200,7 +1226,7 @@ def manage_published_project(request, project_slug, version):
                 messages.error(request, 'Project has tasks pending.')
             else:
                 delete_project_files_from_s3(project)
-                messages.success(request, 'The project files have been deleted from S3.')
+                messages.success(request, 'The project files are being deleted from S3')
                 # Redirect is required after deletion to avoid rendering the page with
                 # a stale AWS instance that no longer has a primary key in the database.
                 return redirect('manage_published_project', project_slug=project_slug, version=version)
