@@ -447,6 +447,17 @@
                   Upload files
                 {% endif %}
               </button>
+              {% if project.aws.sent_files %}
+                <button class="btn btn-primary"
+                        name="aws-delete-project-files" value="{{ project.slug }}"
+                        {% if aws_upload_pending or rw_tasks %}
+                          disabled="disabled"
+                        {% endif %}
+                        type="submit">
+                    <span class="fa fa-trash"></span>
+                    Delete project files
+                </button>
+              {% endif %}
             </p>
           </form>
         {% endif %}

@@ -10,7 +10,6 @@ import botocore
 from botocore.exceptions import ClientError
 from django.conf import settings
 from django.db.models import Q
-
 from project.authorization.access import can_view_project_files
 from project.models import PublishedProject, AWS, AccessPolicy, AWSAccessPoint, AWSAccessPointUser
 from user.models import (
@@ -1569,4 +1568,36 @@ def create_s3_server_access_log_bucket():
                 ],
             }
         ),
+    )
+
+
+def delete_project_files_from_s3(project):
+    """
+    Immediately revoke access by deleting access points,
+    set project.aws.sent_files = False, then schedule
+    file deletion as a background task.
+    """
+    # Import here to avoid circular import
+    from console.views import delete_project_files_task
+    if not check_s3_bucket_exists(project):
+        return
+
+    # Delete access points first to immediately revoke access
+    if project.aws.is_private:
+        s3control = create_s3_control_client()
+        for ap in project.aws.access_points.all():
+            s3control.delete_access_point(
+                AccountId=settings.AWS_ACCOUNT_ID,
+                Name=ap.name
+            )
+        project.aws.access_points.all().delete()
+
+    # Mark sent_files flag to False before deletion starts
+    project.aws.sent_files = False
+    project.aws.save()
+
+    # Schedule file deletion as a background task
+    delete_project_files_task(
+        project.id,
+        verbose_name='Delete S3 files - {}'.format(project)
     )
