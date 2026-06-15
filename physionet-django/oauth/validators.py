@@ -75,6 +75,20 @@ class CustomOAuth2Validator(OAuth2Validator):
         scopes = set(getattr(request, 'scopes', []) or [])
         return self._build_claims(request.user, scopes)
 
+    def get_oidc_claims(self, token, token_handler, request):
+        """
+        Bypass DOT's default oidc_claim_scope filter for ID token claims.
+        DOT builds the ID token from get_oidc_claims(), which drops any claim
+        whose name isn't in its built-in oidc_claim_scope map, so PhysioNet
+        claims (affiliation, is_credentialed, orcid, public_user_uuid) never
+        reach the ID token. _build_claims() already restricts each claim to
+        its granted scope, so we can return it directly.
+        """
+        if not (hasattr(request, 'user') and request.user):
+            return super().get_oidc_claims(token, token_handler, request)
+        scopes = set(getattr(request, 'scopes', []) or [])
+        return self._build_claims(request.user, scopes)
+
     def get_userinfo_claims(self, request):
         """
         Bypass DOT's default oidc_claim_scope filter so PhysioNet-specific

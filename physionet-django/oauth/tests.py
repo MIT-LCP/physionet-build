@@ -423,6 +423,33 @@ class TestOIDCValidator(BaseTest):
         ]:
             self.assertIn(expected, claims)
 
+    def test_oidc_claims_include_custom_scopes(self):
+        """
+        get_oidc_claims() (used to build the ID token) returns PhysioNet-specific
+        claims for their granted scopes, instead of being stripped by DOT's
+        default oidc_claim_scope filter which only knows standard OIDC claims.
+        """
+        validator = CustomOAuth2Validator()
+        request = SimpleNamespace(
+            user=self.test_user,
+            scopes=["institution:read", "public_id:read"],
+        )
+        claims = validator.get_oidc_claims(None, None, request)
+        self.assertEqual(claims["affiliation"], self.test_user.profile.affiliation)
+        self.assertEqual(
+            str(claims["public_user_uuid"]), str(self.test_user.public_user_uuid)
+        )
+
+    def test_oidc_claims_respect_granted_scopes(self):
+        """
+        Claims whose scope wasn't granted are not included in the ID token.
+        """
+        validator = CustomOAuth2Validator()
+        request = SimpleNamespace(user=self.test_user, scopes=["public_id:read"])
+        claims = validator.get_oidc_claims(None, None, request)
+        self.assertIn("public_user_uuid", claims)
+        self.assertNotIn("affiliation", claims)
+
     def test_finalize_id_token_requires_rs256(self):
         """
         Issuing an ID token for an application that isn't configured for RS256
