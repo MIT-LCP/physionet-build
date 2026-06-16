@@ -1,6 +1,8 @@
 import base64
 import hashlib
 from datetime import timedelta
+from types import SimpleNamespace
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 from django.utils import timezone
 from user.models import User
@@ -10,6 +12,7 @@ from urllib.parse import parse_qs, urlparse
 from oauth2_provider.settings import oauth2_settings
 from django.utils.crypto import get_random_string
 from oauth.views import SCOPES_MAPPING
+from oauth.validators import CustomOAuth2Validator
 from project.models import PublishedProject, AccessPolicy, CoreProject, ProjectType
 from unittest.mock import patch
 
@@ -398,3 +401,63 @@ class TestDatasetAccessView(BaseTest):
         data = response.json()
         self.assertEqual(data["slug"], "mimiciv")
         self.assertEqual(data["version"], "3.1")
+
+
+class TestOIDCValidator(BaseTest):
+    """
+    Tests for CustomOAuth2Validator's OIDC behaviour: the advertised discovery
+    claims and the RS256 requirement for signing ID tokens.
+    """
+
+    def test_discovery_claims_match_supported(self):
+        """
+        get_discovery_claims() advertises every claim PhysioNet can issue, not
+        just DOT's default ["sub"].
+        """
+        validator = CustomOAuth2Validator()
+        claims = validator.get_discovery_claims(request=None)
+        for expected in [
+            "sub", "name", "given_name", "family_name", "preferred_username",
+            "website", "email", "email_verified", "affiliation",
+            "is_credentialed", "orcid", "public_user_uuid",
+        ]:
+            self.assertIn(expected, claims)
+
+    def test_oidc_claims_include_custom_scopes(self):
+        """
+        get_oidc_claims() (used to build the ID token) returns PhysioNet-specific
+        claims for their granted scopes, instead of being stripped by DOT's
+        default oidc_claim_scope filter which only knows standard OIDC claims.
+        """
+        validator = CustomOAuth2Validator()
+        request = SimpleNamespace(
+            user=self.test_user,
+            scopes=["institution:read", "public_id:read"],
+        )
+        claims = validator.get_oidc_claims(None, None, request)
+        self.assertEqual(claims["affiliation"], self.test_user.profile.affiliation)
+        self.assertEqual(
+            str(claims["public_user_uuid"]), str(self.test_user.public_user_uuid)
+        )
+
+    def test_oidc_claims_respect_granted_scopes(self):
+        """
+        Claims whose scope wasn't granted are not included in the ID token.
+        """
+        validator = CustomOAuth2Validator()
+        request = SimpleNamespace(user=self.test_user, scopes=["public_id:read"])
+        claims = validator.get_oidc_claims(None, None, request)
+        self.assertIn("public_user_uuid", claims)
+        self.assertNotIn("affiliation", claims)
+
+    def test_finalize_id_token_requires_rs256(self):
+        """
+        Issuing an ID token for an application that isn't configured for RS256
+        fails with an actionable message instead of DOT's opaque error.
+        """
+        validator = CustomOAuth2Validator()
+        # Applications default to NO_ALGORITHM ("") unless set to RS256.
+        self.assertNotEqual(self.application.algorithm, "RS256")
+        request = SimpleNamespace(client=self.application)
+        with self.assertRaisesRegex(ImproperlyConfigured, "RS256"):
+            validator.finalize_id_token({}, None, None, request)

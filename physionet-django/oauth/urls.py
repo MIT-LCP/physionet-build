@@ -1,13 +1,19 @@
 from django.urls import path, include
 import oauth2_provider.views as oauth2_views
 from django.conf import settings
+from oauth2_provider.views import JwksInfoView
+from oauth2_provider.views import UserInfoView as OIDCUserInfoView
 from oauth.views import hello, UserInfoView, DatasetAccessView
 
-# OAuth2 provider endpoints
+# OAuth2 provider endpoints. The OIDC userinfo and JWKS endpoints live here so
+# DOT's discovery view (which does reverse("oauth2_provider:user-info") /
+# reverse("oauth2_provider:jwks-info")) can resolve them inside the namespace.
 oauth2_endpoint_views = [
     path("authorize/", oauth2_views.AuthorizationView.as_view(), name="authorize"),
     path("token/", oauth2_views.TokenView.as_view(), name="token"),
     path("revoke-token/", oauth2_views.RevokeTokenView.as_view(), name="revoke-token"),
+    path("jwks/", JwksInfoView.as_view(), name="jwks-info"),
+    path("oidc/userinfo", OIDCUserInfoView.as_view(), name="user-info"),
 ]
 
 if settings.DEBUG:
@@ -58,7 +64,10 @@ urlpatterns = [
             (oauth2_endpoint_views, "oauth2_provider"), namespace="oauth2_provider"
         ),
     ),
-    path("hello", hello.as_view(), name="hello"),  # an example resource endpoint
+    path("hello", hello.as_view(), name="hello"),
+    # Both slash forms route to the legacy view; OIDC userinfo lives under
+    # oidc/ to avoid silently rejecting legacy tokens sent to /oauth/userinfo/.
     path("userinfo", UserInfoView.as_view(), name="userinfo"),
+    path("userinfo/", UserInfoView.as_view()),
     path("dataset-access/", DatasetAccessView.as_view(), name="oauth-dataset-access"),
 ]
