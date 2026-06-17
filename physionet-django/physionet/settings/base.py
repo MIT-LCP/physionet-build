@@ -738,6 +738,8 @@ ENABLE_CLOUD_RESEARCH_ENVIRONMENTS = config('ENABLE_CLOUD_RESEARCH_ENVIRONMENTS'
 
 if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
     CLOUD_RESEARCH_ENVIRONMENTS_API_URL = config('CLOUD_RESEARCH_ENVIRONMENTS_API_URL')
+    # Client-side poll interval (ms) for live status updates on the research environments page.
+    RESEARCH_ENVIRONMENTS_POLL_INTERVAL_MS = config('RESEARCH_ENVIRONMENTS_POLL_INTERVAL_MS', default=30000, cast=int)
     INSTALLED_APPS.append('environment.apps.EnvironmentConfig')
 
 
