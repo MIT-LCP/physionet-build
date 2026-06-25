@@ -2115,6 +2115,11 @@ def training_process(request, pk):
             if questions_formset.is_valid():
                 questions_formset.save()
 
+                training_review_form = forms.TrainingReviewForm(data=request.POST)
+                if training_review_form.is_valid():
+                    training.reviewer_comments = training_review_form.cleaned_data['reviewer_comments']
+                    training.save(update_fields=['reviewer_comments'])
+
                 training.accept(reviewer=request.user)
 
                 messages.success(request, 'The training was approved.')
@@ -2136,6 +2141,11 @@ def training_process(request, pk):
 
             if questions_formset.is_valid():
                 questions_formset.save()
+
+                training_review_form = forms.TrainingReviewForm(data=request.POST)
+                if training_review_form.is_valid():
+                    training.reviewer_comments = training_review_form.cleaned_data['reviewer_comments']
+                    training.save(update_fields=['reviewer_comments'])
 
                 training.accept(reviewer=request.user)
 
