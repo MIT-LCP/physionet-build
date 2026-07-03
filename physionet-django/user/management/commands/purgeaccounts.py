@@ -3,17 +3,9 @@ import logging
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from user.models import User, AssociatedEmail, Profile
+from user.models import User, AssociatedEmail
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _display_name(user):
-    # Accounts created without a Profile must stay purgeable, not crash the run.
-    try:
-        return user.get_full_name()
-    except Profile.DoesNotExist:
-        return '(no profile)'
 
 
 class Command(BaseCommand):
@@ -30,7 +22,7 @@ class Command(BaseCommand):
         for user in user_list:
             deleted.append("\n - Username: {0}\n   Email: {1}\n   Full Name: "
                            "{2}".format(user.username, user.email,
-                                        _display_name(user)))
+                                        user.get_full_name(ignore_missing_profile=True)))
             user.delete()
 
         if deleted:
@@ -46,7 +38,7 @@ class Command(BaseCommand):
         for associated_email in associated_email_list:
             deleted.append("\n - Email: {0}\n   Belonged to: {1}\n   Username:"
                            " {2}".format(associated_email.email,
-                                         _display_name(associated_email.user),
+                                         associated_email.user.get_full_name(ignore_missing_profile=True),
                                          associated_email.user.username))
             associated_email.delete()
 

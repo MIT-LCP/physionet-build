@@ -389,8 +389,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         ]
 
     # Mandatory methods for default authentication backend
-    def get_full_name(self):
-        return self.profile.get_full_name()
+    def get_full_name(self, ignore_missing_profile=False):
+        try:
+            return self.profile.get_full_name()
+        except Profile.DoesNotExist:
+            if ignore_missing_profile:
+                return ''
+            raise
 
     def get_short_name(self):
         return self.profile.first_names
