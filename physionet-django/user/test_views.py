@@ -537,6 +537,21 @@ class TestPublic(TestMixin):
         self.assertEqual(num_active_accounts,
                          User.objects.filter(is_active=True).count())
 
+    def test_purgeaccounts_missing_profile(self):
+        """Unactivated accounts with no Profile are still purged."""
+        orphan = User.objects.create(username='orphan', email='orphan@mit.edu')
+        normal = User.objects.create(username='normal', email='normal@mit.edu')
+        Profile.objects.create(user=normal, first_names='Normal', last_name='User')
+
+        for user in (orphan, normal):
+            user.join_date += datetime.timedelta(days=-30)
+            user.save()
+
+        call_command('purgeaccounts')
+
+        self.assertFalse(User.objects.filter(id=orphan.id).exists())
+        self.assertFalse(User.objects.filter(id=normal.id).exists())
+
 
 class TrainingTestCase(TestCase):
     @classmethod
