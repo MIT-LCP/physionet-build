@@ -11,11 +11,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='affiliation',
             name='country',
-            field=models.CharField(blank=True, default='', max_length=2),
+            field=models.CharField(blank=True, default='', max_length=2, null=True),
         ),
         migrations.AddField(
             model_name='publishedaffiliation',
             name='country',
-            field=models.CharField(blank=True, default='', max_length=2),
+            field=models.CharField(blank=True, default='', max_length=2, null=True),
         ),
     ]

@@ -58,7 +58,7 @@ class Affiliation(models.Model):
     MAX_AFFILIATIONS = 3
     name = models.CharField(max_length=MAX_LENGTH,
                             validators=[validate_affiliation])
-    country = models.CharField(max_length=2, blank=True, default='')
+    country = models.CharField(max_length=2, blank=True, null=True, default='')
     author = models.ForeignKey('project.Author', related_name='affiliations',
         on_delete=models.CASCADE)
 
@@ -78,7 +78,7 @@ class PublishedAffiliation(models.Model):
     Affiliations belonging to a published author
     """
     name = models.CharField(max_length=202, validators=[validate_affiliation])
-    country = models.CharField(max_length=2, blank=True, default='')
+    country = models.CharField(max_length=2, blank=True, null=True, default='')
     author = models.ForeignKey('project.PublishedAuthor',
         related_name='affiliations', on_delete=models.CASCADE)
 

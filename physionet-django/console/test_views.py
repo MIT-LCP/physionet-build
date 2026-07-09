@@ -10,6 +10,7 @@ import pdb
 import requests_mock
 from django.contrib.sites.models import Site
 from django.core import mail
+from django.db.models import Q
 from django.test import TestCase
 from django.test.utils import get_runner
 from django.urls import reverse
@@ -37,7 +38,9 @@ LOGGER = logging.getLogger(__name__)
 
 def _fill_missing_affiliation_countries(project, country='US'):
     for author in project.authors.all():
-        author.affiliations.filter(country='').update(country=country)
+        author.affiliations.filter(
+            Q(country='') | Q(country__isnull=True)
+        ).update(country=country)
 
 
 class TestState(TestMixin):

@@ -13,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db.models import Q
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -76,7 +77,9 @@ def _parse_html_form_fields(content):
 
 def _fill_missing_affiliation_countries(project, country='US'):
     for author in project.authors.all():
-        author.affiliations.filter(country='').update(country=country)
+        author.affiliations.filter(
+            Q(country='') | Q(country__isnull=True)
+        ).update(country=country)
 
 
 class TestAccessPresubmission(TestMixin):

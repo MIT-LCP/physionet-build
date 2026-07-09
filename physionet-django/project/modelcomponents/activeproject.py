@@ -10,6 +10,7 @@ from background_task import background
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
+from django.db.models import Q
 from django.db.models.fields.files import FieldFile
 from django.forms.utils import ErrorList
 from django.urls import reverse
@@ -350,7 +351,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.integrity_errors.append('Author {0} has not fill in name'.format(author.user.username))
             if not author.affiliations.all():
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
-            elif author.affiliations.filter(country='').exists():
+            elif author.affiliations.filter(Q(country='') | Q(country__isnull=True)).exists():
                 self.integrity_errors.append(
                     'Author {0} has not filled in affiliation countries'.format(
                         author.user.username
