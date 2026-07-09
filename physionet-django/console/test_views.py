@@ -62,7 +62,7 @@ class TestState(TestMixin):
             user=editor,
             display_order=project.authors.count() + 1,
         )
-        temp_author.affiliations.create(name='MIT')
+        temp_author.affiliations.create(name='MIT', country='US')
 
         # Submit project
         self.assertTrue(project.is_submittable())
@@ -107,7 +107,7 @@ class TestState(TestMixin):
             user=editor2,
             display_order=project.authors.count() + 1,
         )
-        temp_author.affiliations.create(name='MIT')
+        temp_author.affiliations.create(name='MIT', country='US')
 
         # Submit project
         self.assertTrue(project.is_submittable())
@@ -322,6 +322,8 @@ class TestState(TestMixin):
         Author approves publication
         """
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        for author in project.authors.all():
+            author.affiliations.filter(country='').update(country='US')
 
         def get_project():
             return ActiveProject.objects.get(id=project.id)
@@ -461,6 +463,10 @@ class TestState(TestMixin):
         project = PublishedProject.objects.get(slug=custom_slug,
                                                version=project.version)
         self.assertEqual(project.submission_slug, project_slug)
+        published_affiliation = project.authors.get(
+            user__username='rgmark'
+        ).affiliations.first()
+        self.assertEqual(published_affiliation.country, 'US')
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))

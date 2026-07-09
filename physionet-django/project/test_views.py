@@ -205,6 +205,24 @@ class TestAccessPresubmission(TestMixin):
         self.assertMessage(response, 25)
         self.assertEqual(project.corresponding_author().user.username, 'aewj')
 
+        author = project.authors.get(user__username='rgmark')
+        author.affiliations.all().delete()
+        response = self.client.post(
+            reverse('project_authors', args=(project.slug,)),
+            data={
+                'edit_affiliations': '',
+                'affiliations-TOTAL_FORMS': '1',
+                'affiliations-INITIAL_FORMS': '0',
+                'affiliations-MIN_NUM_FORMS': '0',
+                'affiliations-MAX_NUM_FORMS': '3',
+                'affiliations-0-name': 'MIT',
+                'affiliations-0-country': 'US',
+            }
+        )
+        self.assertMessage(response, 25)
+        affiliation = author.affiliations.get(name='MIT')
+        self.assertEqual(affiliation.country, 'US')
+
     @prevent_request_warnings
     def test_project_access(self):
         """
@@ -1204,6 +1222,7 @@ class TestInteraction(TestMixin):
                 'form-TOTAL_FORMS': ['1'], 'form-MAX_NUM_FORMS': ['1000'],
                 'form-0-response': [str(inv_response)], 'form-MIN_NUM_FORMS': ['0'],
                 'form-0-affiliation': ['MIT' if inv_response else ''],
+                'form-0-affiliation_country': ['US' if inv_response else ''],
                 'form-INITIAL_FORMS': ['1'],
                 'form-0-id': [str(iid)], 'invitation_response': [str(iid)]
             }
