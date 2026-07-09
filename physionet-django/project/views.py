@@ -572,10 +572,12 @@ def edit_affiliation(request, project_slug, **kwargs):
     else:
         raise Http404()
 
-    AffiliationFormSet = inlineformset_factory(parent_model=Author,
+    AffiliationFormSet = inlineformset_factory(
+        parent_model=Author,
         model=Affiliation, form=forms.AffiliationForm, extra=extra_forms,
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
-        formset=forms.AffiliationFormSet, validate_max=True)
+        formset=forms.AffiliationFormSet, validate_max=True,
+    )
     formset = AffiliationFormSet(instance=author)
     edit_url = reverse('edit_affiliation', args=[project.slug])
 
@@ -594,10 +596,12 @@ def project_authors(request, project_slug, **kwargs):
         ('user', 'project', 'authors', 'is_submitting'))
 
     author = authors.get(user=user)
-    AffiliationFormSet = inlineformset_factory(parent_model=Author,
+    AffiliationFormSet = inlineformset_factory(
+        parent_model=Author,
         model=Affiliation, form=forms.AffiliationForm, extra=0,
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
-        formset = forms.AffiliationFormSet, validate_max=True)
+        formset=forms.AffiliationFormSet, validate_max=True,
+    )
     affiliation_formset = AffiliationFormSet(instance=author)
 
     if is_submitting:
