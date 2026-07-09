@@ -35,6 +35,11 @@ from user.test_views import TestMixin, prevent_request_warnings
 LOGGER = logging.getLogger(__name__)
 
 
+def _fill_missing_affiliation_countries(project, country='US'):
+    for author in project.authors.all():
+        author.affiliations.filter(country='').update(country=country)
+
+
 class TestState(TestMixin):
     """
     Test that all objects are in their intended states, during and
@@ -55,6 +60,7 @@ class TestState(TestMixin):
         Assign an editor
         """
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        _fill_missing_affiliation_countries(project)
         editor = User.objects.get(username='amitupreti')
 
         # Add editor as a project author
@@ -98,6 +104,7 @@ class TestState(TestMixin):
         Assign an editor, then reassign it
         """
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        _fill_missing_affiliation_countries(project)
         editor1 = User.objects.get(username='cindyehlert')
         editor2 = User.objects.get(username='amitupreti')
 
@@ -156,6 +163,7 @@ class TestState(TestMixin):
         Edit a project, rejecting it.
         """
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        _fill_missing_affiliation_countries(project)
         project.submit(author_comments='')
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
@@ -179,6 +187,7 @@ class TestState(TestMixin):
         Edit a project. Request resubmission, then accept.
         """
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        _fill_missing_affiliation_countries(project)
         project.submit(author_comments='')
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
@@ -232,6 +241,7 @@ class TestState(TestMixin):
         Copyedit a project
         """
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        _fill_missing_affiliation_countries(project)
         project.submit(author_comments='')
         editor = User.objects.get(username='admin')
         project.assign_editor(editor)
@@ -322,8 +332,7 @@ class TestState(TestMixin):
         Author approves publication
         """
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
-        for author in project.authors.all():
-            author.affiliations.filter(country='').update(country='US')
+        _fill_missing_affiliation_countries(project)
 
         def get_project():
             return ActiveProject.objects.get(id=project.id)
@@ -1275,6 +1284,7 @@ class TestOnHold(TestMixin):
     def _submit_and_assign(self, editor_username=None):
         """Submit the project and optionally assign an editor."""
         project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        _fill_missing_affiliation_countries(project)
         project.submit(author_comments='')
         if editor_username:
             editor = User.objects.get(username=editor_username)
@@ -1601,6 +1611,7 @@ class TestExternalReview(TestMixin):
     def _submit_and_assign(self):
         """Submit the project and assign an editor."""
         project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        _fill_missing_affiliation_countries(project)
         project.submit(author_comments='')
         editor = User.objects.get(username=self.EDITOR_USER)
         self.client.login(username=self.ADMIN_USER, password=self.ADMIN_PASSWORD)

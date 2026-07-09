@@ -74,6 +74,11 @@ def _parse_html_form_fields(content):
     return fields
 
 
+def _fill_missing_affiliation_countries(project, country='US'):
+    for author in project.authors.all():
+        author.affiliations.filter(country='').update(country=country)
+
+
 class TestAccessPresubmission(TestMixin):
     """
     Test that certain views or content in their various states can only
@@ -531,13 +536,17 @@ class TestProjectEditing(TestCase):
     PASSWORD = 'Tester11!'
     PROJECT_TITLE = 'MIT-BIH Arrhythmia Database'
 
+    def setUp(self):
+        self.project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        _fill_missing_affiliation_countries(self.project)
+
     def test_content(self):
         """
         Test editing the project page content.
         """
         self.client.login(username=self.AUTHOR, password=self.PASSWORD)
 
-        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        project = self.project
         self.assertTrue(project.is_submittable())
 
         content_url = reverse('project_content', args=(project.slug,))
@@ -616,7 +625,7 @@ class TestProjectEditing(TestCase):
         """
         self.client.login(username=self.AUTHOR, password=self.PASSWORD)
 
-        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        project = self.project
         self.assertEqual(project.references.count(), 0)
         self.assertTrue(project.is_submittable())
 
@@ -1081,6 +1090,13 @@ class TestState(TestMixin):
     after review/publication state transitions.
 
     """
+    def setUp(self):
+        super().setUp()
+        self.project = ActiveProject.objects.get(
+            title='MIT-BIH Arrhythmia Database'
+        )
+        _fill_missing_affiliation_countries(self.project)
+
     def test_create_archive(self):
         """
         Create and archive a project
