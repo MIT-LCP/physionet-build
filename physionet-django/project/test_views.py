@@ -13,7 +13,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db.models import Q
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -73,13 +72,6 @@ def _parse_html_form_fields(content):
 
     Parser().feed(content)
     return fields
-
-
-def _fill_missing_affiliation_countries(project, country='US'):
-    for author in project.authors.all():
-        author.affiliations.filter(
-            Q(country='') | Q(country__isnull=True)
-        ).update(country=country)
 
 
 class TestAccessPresubmission(TestMixin):
@@ -539,17 +531,13 @@ class TestProjectEditing(TestCase):
     PASSWORD = 'Tester11!'
     PROJECT_TITLE = 'MIT-BIH Arrhythmia Database'
 
-    def setUp(self):
-        self.project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
-        _fill_missing_affiliation_countries(self.project)
-
     def test_content(self):
         """
         Test editing the project page content.
         """
         self.client.login(username=self.AUTHOR, password=self.PASSWORD)
 
-        project = self.project
+        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
         self.assertTrue(project.is_submittable())
 
         content_url = reverse('project_content', args=(project.slug,))
@@ -628,7 +616,7 @@ class TestProjectEditing(TestCase):
         """
         self.client.login(username=self.AUTHOR, password=self.PASSWORD)
 
-        project = self.project
+        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
         self.assertEqual(project.references.count(), 0)
         self.assertTrue(project.is_submittable())
 
@@ -1093,13 +1081,6 @@ class TestState(TestMixin):
     after review/publication state transitions.
 
     """
-    def setUp(self):
-        super().setUp()
-        self.project = ActiveProject.objects.get(
-            title='MIT-BIH Arrhythmia Database'
-        )
-        _fill_missing_affiliation_countries(self.project)
-
     def test_create_archive(self):
         """
         Create and archive a project

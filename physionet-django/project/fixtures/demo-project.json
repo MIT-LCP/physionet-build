@@ -4,6 +4,7 @@
   "pk": 1,
   "fields": {
     "name": "Massachusetts Institute of Technology",
+    "country": "US",
     "author": 1
   }
 },
@@ -12,6 +13,7 @@
   "pk": 2,
   "fields": {
     "name": "Harvard University",
+    "country": "US",
     "author": 1
   }
 },
@@ -20,6 +22,7 @@
   "pk": 3,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
+    "country": "US",
     "author": 1
   }
 },
@@ -28,6 +31,7 @@
   "pk": 4,
   "fields": {
     "name": "Massachusetts Institute of Technology",
+    "country": "US",
     "author": 2
   }
 },
@@ -36,6 +40,7 @@
   "pk": 5,
   "fields": {
     "name": "Harvard University",
+    "country": "US",
     "author": 2
   }
 },
@@ -44,6 +49,7 @@
   "pk": 6,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
+    "country": "US",
     "author": 2
   }
 },
@@ -52,6 +58,7 @@
   "pk": 7,
   "fields": {
     "name": "Massachusetts Institute of Technology",
+    "country": "US",
     "author": 5
   }
 },
@@ -60,6 +67,7 @@
   "pk": 8,
   "fields": {
     "name": "Harvard University",
+    "country": "US",
     "author": 5
   }
 },
@@ -68,6 +76,7 @@
   "pk": 9,
   "fields": {
     "name": "Beth Israel Deaconess Medical Center",
+    "country": "US",
     "author": 5
   }
 },
@@ -76,6 +85,7 @@
   "pk": 11,
   "fields": {
     "name": "Massachusetts Institute of Technology",
+    "country": "US",
     "author": 4
   }
 },
@@ -84,6 +94,7 @@
   "pk": 16,
   "fields": {
     "name": "MIT",
+    "country": "US",
     "author": 6
   }
 },
@@ -92,6 +103,7 @@
   "pk": 17,
   "fields": {
     "name": "MIT",
+    "country": "US",
     "author": 11
   }
 },
@@ -100,6 +112,7 @@
   "pk": 18,
   "fields": {
     "name": "MIT",
+    "country": "US",
     "author": 12
   }
 },
@@ -108,6 +121,7 @@
   "pk": 19,
   "fields": {
     "name": "MIT",
+    "country": "US",
     "author": 13
   }
 },
@@ -116,6 +130,7 @@
   "pk": 1,
   "fields": {
     "name": "Massachusetts Institute of Technology",
+    "country": "US",
     "author": 1
   }
 },
@@ -124,6 +139,7 @@
   "pk": 2,
   "fields": {
     "name": "Massachusetts Institute of Technology",
+    "country": "US",
     "author": 2
   }
 },
@@ -132,6 +148,7 @@
   "pk": 3,
   "fields": {
     "name": "Massachusetts Institute of Technology",
+    "country": "US",
     "author": 3
   }
 },
@@ -140,6 +157,7 @@
   "pk": 4,
   "fields": {
     "name": "MIT",
+    "country": "US",
     "author": 5
   }
 },
@@ -148,6 +166,7 @@
   "pk": 5,
   "fields": {
     "name": "MIT",
+    "country": "US",
     "author": 6
   }
 },
@@ -156,6 +175,7 @@
   "pk": 6,
   "fields": {
     "name": "MIT",
+    "country": "US",
     "author": 7
   }
 },
