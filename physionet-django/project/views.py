@@ -455,7 +455,7 @@ def edit_affiliations(request, affiliation_formset):
     """
     if affiliation_formset.is_valid():
         affiliation_formset.save()
-        messages.success(request, 'Your author affiliations have been updated')
+        messages.success(request, 'Your author institutions have been updated')
         return True
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
