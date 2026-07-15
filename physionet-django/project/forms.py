@@ -41,7 +41,7 @@ from project.models import (
     exists_project_slug,
     UploadedDocument,
 )
-from user.models import User, TrainingType
+from user.models import COUNTRIES, User, TrainingType
 from user.validators import validate_affiliation
 from django.forms import ModelMultipleChoiceField
 
@@ -491,8 +491,11 @@ class NewProjectVersionForm(forms.ModelForm):
                 corresponding_email=corresponding_email)
 
             for p_affiliation in p_author.affiliations.all():
-                Affiliation.objects.create(name=p_affiliation.name,
-                    author=author)
+                Affiliation.objects.create(
+                    name=p_affiliation.name,
+                    country=p_affiliation.country,
+                    author=author,
+                )
 
         # Other related objects
         for p_reference in self.latest_project.references.order_by('order'):
@@ -673,18 +676,37 @@ class DiscoveryForm(forms.ModelForm):
         return result
 
 
+COUNTRY_CHOICES_WITH_BLANK = (('', '---------'),) + COUNTRIES
+
+
+class AffiliationForm(forms.ModelForm):
+    country = forms.ChoiceField(
+        choices=COUNTRY_CHOICES_WITH_BLANK,
+        label='Country',
+        required=True,
+    )
+
+    class Meta:
+        model = Affiliation
+        fields = ('name', 'country')
+        labels = {'name': 'Institution'}
+
+
 class AffiliationFormSet(forms.BaseInlineFormSet):
     """
     Formset for adding an author's affiliations
     """
     form_name = 'affiliations'
-    item_label = 'Affiliations'
+    item_label = 'Institutions'
     max_forms = Affiliation.MAX_AFFILIATIONS
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.max_forms = AffiliationFormSet.max_forms
-        self.help_text = 'Institutions you are affiliated with. Maximum of {}.'.format(self.max_forms)
+        self.help_text = (
+            'Institutions you are affiliated with and the country for each '
+            'institution. Maximum of {}.'
+        ).format(self.max_forms)
 
     def clean(self):
         """
@@ -705,7 +727,7 @@ class AffiliationFormSet(forms.BaseInlineFormSet):
             if 'name' in form.cleaned_data:
                 name = form.cleaned_data['name']
                 if name in names:
-                    raise forms.ValidationError('Affiliation names must be unique.')
+                    raise forms.ValidationError('Institution names must be unique.')
                 names.append(name)
 
 
@@ -1065,9 +1087,14 @@ class InvitationResponseForm(forms.ModelForm):
 
     affiliation = forms.CharField(max_length=Affiliation.MAX_LENGTH,
                                   validators=[validate_affiliation],
-                                  label=('Your affiliation (displayed '
+                                  label=('Your institution (displayed '
                                          'when the project is published)'),
                                   required=False)
+    affiliation_country = forms.ChoiceField(
+        choices=COUNTRY_CHOICES_WITH_BLANK,
+        label='Country',
+        required=False,
+    )
 
     def clean(self):
         """
@@ -1090,10 +1117,15 @@ class InvitationResponseForm(forms.ModelForm):
 
             if not cleaned_data.get('affiliation'):
                 raise forms.ValidationError(
-                    'You must specify your affiliation.'
+                    'You must specify your institution.'
+                )
+            if not cleaned_data.get('affiliation_country'):
+                raise forms.ValidationError(
+                    'You must specify your country.'
                 )
 
         return cleaned_data
+
 
 class AnonymousAccessLoginForm(forms.ModelForm):
     """

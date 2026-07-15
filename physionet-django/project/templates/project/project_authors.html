@@ -162,12 +162,12 @@
 {% endif %}
 <br>
 
-<h3>Your Affiliations</h3>
-<p>Set up to three affiliations for your author profile. Note: these fields are not tied to your user profile.</p>
-<form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd" onsubmit="return validateItems('affiliation-list', 'name', 'Affiliations')">
+<h3>Your Institutions</h3>
+<p>Set up to three institutions for your author profile. Note: these fields are not tied to your user profile.</p>
+<form action="{% url 'project_authors' project.slug %}" method="post" class="form-signin no-pd" onsubmit="return validateItems('affiliation-list', 'name', 'Institutions')">
   {% csrf_token %}
   {% include 'project/item_list.html' with item="affiliation" item_label=affiliation_formset.item_label formset=affiliation_formset form_name=affiliation_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
-  <button class="btn btn-primary btn-rsp" name="edit_affiliations" type="submit">Set Affiliations</button>
+  <button class="btn btn-primary btn-rsp" name="edit_affiliations" type="submit">Set Institutions</button>
 </form>
 <hr>
 <br>

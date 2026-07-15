@@ -4,7 +4,11 @@ from django.db import models
 from django.utils import timezone
 
 from project.modelcomponents.generic import BaseInvitation
+from user.models import COUNTRIES
 from user.validators import validate_affiliation
+
+
+COUNTRY_NAMES = dict(COUNTRIES)
 
 
 class AuthorInvitation(BaseInvitation):
@@ -54,6 +58,7 @@ class Affiliation(models.Model):
     MAX_AFFILIATIONS = 3
     name = models.CharField(max_length=MAX_LENGTH,
                             validators=[validate_affiliation])
+    country = models.CharField(max_length=2, blank=True, null=True, default='')
     author = models.ForeignKey('project.Author', related_name='affiliations',
         on_delete=models.CASCADE)
 
@@ -61,18 +66,31 @@ class Affiliation(models.Model):
         default_permissions = ()
         unique_together = (('name', 'author'),)
 
+    def display_name(self):
+        country = COUNTRY_NAMES.get(self.country)
+        if country:
+            return '{}, {}'.format(self.name, country)
+        return self.name
+
 
 class PublishedAffiliation(models.Model):
     """
     Affiliations belonging to a published author
     """
     name = models.CharField(max_length=202, validators=[validate_affiliation])
+    country = models.CharField(max_length=2, blank=True, null=True, default='')
     author = models.ForeignKey('project.PublishedAuthor',
         related_name='affiliations', on_delete=models.CASCADE)
 
     class Meta:
         default_permissions = ()
         unique_together = (('name', 'author'),)
+
+    def display_name(self):
+        country = COUNTRY_NAMES.get(self.country)
+        if country:
+            return '{}, {}'.format(self.name, country)
+        return self.name
 
 
 class BaseAuthor(models.Model):
@@ -174,7 +192,9 @@ class Author(BaseAuthor):
         self.username = user.username
 
         if set_affiliations:
-            self.text_affiliations = [a.name for a in self.affiliations.all()]
+            self.text_affiliations = [
+                a.display_name() for a in self.affiliations.all()
+            ]
 
 
 class PublishedAuthor(BaseAuthor):
@@ -211,7 +231,9 @@ class PublishedAuthor(BaseAuthor):
         self.name = self.get_full_name()
         self.username = self.user.username
         self.email = self.user.email
-        self.text_affiliations = [a.name for a in self.affiliations.all()]
+        self.text_affiliations = [
+            a.display_name() for a in self.affiliations.all()
+        ]
 
     def initialed_name(self, commas=True, periods=True):
 

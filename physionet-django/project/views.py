@@ -219,6 +219,9 @@ def process_invitation_response(request, invitation_response_formset):
                 Affiliation.objects.create(
                     author=author,
                     name=invitation_response_form.cleaned_data['affiliation'],
+                    country=invitation_response_form.cleaned_data[
+                        'affiliation_country'
+                    ],
                 )
 
             notification.invitation_response_notify(invitation,
@@ -302,7 +305,7 @@ def project_home(request):
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
     invitation_response_formset.form_kwargs['initial'] = {
-        'affiliation': user.profile.affiliation
+        'affiliation': user.profile.affiliation,
     }
 
     data_access_requests = DataAccessRequest.objects.filter(
@@ -452,7 +455,7 @@ def edit_affiliations(request, affiliation_formset):
     """
     if affiliation_formset.is_valid():
         affiliation_formset.save()
-        messages.success(request, 'Your author affiliations have been updated')
+        messages.success(request, 'Your author institutions have been updated')
         return True
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
@@ -569,10 +572,12 @@ def edit_affiliation(request, project_slug, **kwargs):
     else:
         raise Http404()
 
-    AffiliationFormSet = inlineformset_factory(parent_model=Author,
-        model=Affiliation, fields=('name',), extra=extra_forms,
+    AffiliationFormSet = inlineformset_factory(
+        parent_model=Author,
+        model=Affiliation, form=forms.AffiliationForm, extra=extra_forms,
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
-        formset=forms.AffiliationFormSet, validate_max=True)
+        formset=forms.AffiliationFormSet, validate_max=True,
+    )
     formset = AffiliationFormSet(instance=author)
     edit_url = reverse('edit_affiliation', args=[project.slug])
 
@@ -591,10 +596,12 @@ def project_authors(request, project_slug, **kwargs):
         ('user', 'project', 'authors', 'is_submitting'))
 
     author = authors.get(user=user)
-    AffiliationFormSet = inlineformset_factory(parent_model=Author,
-        model=Affiliation, fields=('name',), extra=0,
+    AffiliationFormSet = inlineformset_factory(
+        parent_model=Author,
+        model=Affiliation, form=forms.AffiliationForm, extra=0,
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
-        formset = forms.AffiliationFormSet, validate_max=True)
+        formset=forms.AffiliationFormSet, validate_max=True,
+    )
     affiliation_formset = AffiliationFormSet(instance=author)
 
     if is_submitting:
@@ -1280,7 +1287,9 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     corresponding_author = authors.get(is_corresponding=True)
-    corresponding_author.text_affiliations = ', '.join(a.name for a in corresponding_author.affiliations.all())
+    corresponding_author.text_affiliations = ', '.join(
+        a.display_name() for a in corresponding_author.affiliations.all()
+    )
 
     references = project.references.all().order_by('order')
     publication = project.publications.all().first()
