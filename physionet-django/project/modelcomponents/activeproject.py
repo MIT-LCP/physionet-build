@@ -351,9 +351,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.integrity_errors.append('Author {0} has not fill in name'.format(author.user.username))
             if not author.affiliations.all():
                 self.integrity_errors.append('Author {0} has not filled in affiliations'.format(author.user.username))
-            elif author.affiliations.filter(Q(country='') | Q(country__isnull=True)).exists():
+            elif (
+                    self.submission_status == SubmissionStatus.UNSUBMITTED
+                    and author.affiliations.filter(
+                        Q(country='') | Q(country__isnull=True)
+                    ).exists()):
                 self.integrity_errors.append(
-                    'Author {0} has not filled in affiliation countries'.format(
+                    'Author {0} has not filled in institution countries'.format(
                         author.user.username
                     )
                 )
