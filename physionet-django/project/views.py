@@ -58,6 +58,7 @@ from project.modelcomponents.review import ReviewerInvitation
 from project.authorization.access import can_view_project_files, can_access_project
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
+from user.enums import TrainingStatus
 from user.forms import AssociatedEmailChoiceForm
 from user.models import AssociatedEmail, CloudInformation, CredentialApplication, Training
 from project.cloud.s3 import (
@@ -1997,6 +1998,15 @@ def published_project(request, project_slug, version, subdir=''):
         else Training.objects.get_valid().filter(training_type__in=project.required_trainings.all(), user=user).count()
         == project.required_trainings.count()
     )
+    has_training_under_review = (
+        False
+        if not user.is_authenticated
+        else Training.objects.filter(
+            status=TrainingStatus.REVIEW,
+            training_type__in=project.required_trainings.all(),
+            user=user,
+        ).exists()
+    )
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
@@ -2056,6 +2066,7 @@ def published_project(request, project_slug, version, subdir=''):
         'has_accepted_access_request': has_accepted_access_request,
         'requires_training': requires_training,
         'has_required_training': has_required_training,
+        'has_training_under_review': has_training_under_review,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
         'latest_version': latest_version,

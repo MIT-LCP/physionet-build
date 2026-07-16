@@ -19,13 +19,19 @@
           <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
         {% endif %}
         {% if requires_training and not has_required_training %}
-          <li>complete required training:</li>
-          <ul>
-            {% for required_training in project.required_trainings.all %}
-              <li><a href="{% url 'published_project_required_training' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
-            {% endfor %}
-            You may submit your training <a href="{% url 'edit_training' %}">here</a>.
-          </ul>
+          {% if has_training_under_review %}
+            <li>
+              Have your submitted training report approved. You can view its status on the <a href="{% url 'edit_certification' %}">Certification</a> page.
+            </li>
+          {% else %}
+            <li>complete required training:</li>
+            <ul>
+              {% for required_training in project.required_trainings.all %}
+                <li><a href="{% url 'published_project_required_training' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
+              {% endfor %}
+            </ul>
+            <li>You may submit your training <a href="{% url 'edit_training' %}">here</a>.</li>
+          {% endif %}
         {% endif %}
         {% if not has_signed_dua %}
           <li>
@@ -37,13 +43,19 @@
           <li>be a <a href="{% url 'edit_credentialing' %}">credentialed user</a></li>
         {% endif %}
         {% if requires_training and not has_required_training %}
-          <li>complete required training:</li>
-          <ul>
-            {% for required_training in project.required_trainings.all %}
-              <li><a href="{% url 'published_project_required_training' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
-            {% endfor %}
-            You may submit your training <a href="{% url 'edit_training' %}">here</a>.
-          </ul>
+          {% if has_training_under_review %}
+            <li>
+              Have your submitted training report approved. You can view its status on the <a href="{% url 'edit_certification' %}">Certification</a> page.
+            </li>
+          {% else %}
+            <li>complete required training:</li>
+            <ul>
+              {% for required_training in project.required_trainings.all %}
+                <li><a href="{% url 'published_project_required_training' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
+              {% endfor %}
+            </ul>
+            <li>You may submit your training <a href="{% url 'edit_training' %}">here</a>.</li>
+          {% endif %}
         {% endif %}
         {% if not has_accepted_access_request %}
           <li>
