@@ -1,5 +1,4 @@
 import bleach
-from bleach.css_sanitizer import CSSSanitizer
 from django import forms
 from django.conf import settings
 from django.contrib.admin.widgets import AdminTextareaWidget
@@ -50,7 +49,7 @@ class SafeHTMLField(models.TextField):
     # The following CSS properties may be set via inline styles (but
     # only on elements for which the 'style' attribute itself is
     # permitted.)
-    _css_sanitizer = CSSSanitizer(allowed_css_properties=['text-align'])
+    _allowed_css_properties = ['text-align']
 
     def __init__(self, config_name='default', strip=False,
                  strip_comments=True, **kwargs):
@@ -72,8 +71,18 @@ class SafeHTMLField(models.TextField):
                     if (tag, attr) not in self._attribute_blacklist:
                         attrs[tag].append(attr)
 
+        try:
+            from bleach.css_sanitizer import CSSSanitizer
+            css_kwargs = {
+                'css_sanitizer': CSSSanitizer(
+                    allowed_css_properties=self._allowed_css_properties,
+                ),
+            }
+        except ImportError:
+            css_kwargs = {'styles': self._allowed_css_properties}
+
         self._cleaner = bleach.Cleaner(tags=tags, attributes=attrs,
-                                       css_sanitizer=self._css_sanitizer,
+                                       **css_kwargs,
                                        protocols=self._protocols,
                                        strip=strip,
                                        strip_comments=strip_comments)
