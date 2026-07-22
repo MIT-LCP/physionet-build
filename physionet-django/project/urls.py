@@ -133,7 +133,7 @@ TEST_CASES = {
         '_query_': {'subdir': 'notes'},
     },
     'serve_document': {
-        'file_name': 'ethics/Ethics_Approval_567b029d-9ea6-41b8-b738-bf45675b24ce.txt',
+        'file_name': 'Ethics_Approval_567b029d-9ea6-41b8-b738-bf45675b24ce.txt',
     },
     'published_project_request_access': {
         # missing DataAccess in demo
