@@ -118,7 +118,7 @@
         <h5>Uploaded Documents</h5>
         {% if project.uploaded_documents.all %}
           {% for uploaded_document in project.uploaded_documents.all %}
-            <p class="card_text"><a href="{% url 'serve_document' uploaded_document.document|filename %}" target="_blank">{{ uploaded_document.document_type }}</a></p>
+            <p class="card_text"><a href="{% url 'serve_active_project_ethics_doc' project.slug uploaded_document.document|filename %}" target="_blank">{{ uploaded_document.document_type }}</a></p>
           {% endfor %}
         {% else %}
           <p class="card_text">No documents were provided.</p>
