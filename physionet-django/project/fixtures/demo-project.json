@@ -2517,6 +2517,19 @@
   }
 },
 {
+  "model": "project.uploadeddocument",
+  "pk": 2,
+  "fields": {
+    "document_type": 1,
+    "content_type": [
+      "project",
+      "activeproject"
+    ],
+    "object_id": 2,
+    "document": "ethics/Ethics_Approval_ab1282e9-26e2-4e2d-a48c-42dfa02738a1.txt"
+  }
+},
+{
   "model": "project.log",
   "pk": 1,
   "fields": {

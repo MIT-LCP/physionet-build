@@ -72,7 +72,11 @@ urlpatterns = [
     path('<project_slug>/submission/', views.project_submission, name='project_submission'),
     path('<project_slug>/ethics/', views.project_ethics, name='project_ethics'),
     path('<project_slug>/ethics/edit-document/', views.edit_ethics, name='edit_ethics'),
-    path('ethics/<path:file_name>/', views.serve_document, name='serve_document'),
+    path(
+        '<project_slug>/ethics/doc/<doc_name>',
+        views.serve_active_project_ethics_doc,
+        name='serve_active_project_ethics_doc',
+    ),
     path(
         '<project_slug>/view-required-trainings/',
         views.project_required_trainings_preview,
@@ -93,6 +97,9 @@ urlpatterns = [
         views.generate_signed_url,
         name='generate_signed_url',
     ),
+
+    # deprecated
+    path('ethics/<path:file_name>/', views.serve_document, name='serve_document'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)
@@ -102,6 +109,7 @@ TEST_DEFAULTS = {
     'subdir': 'notes',
     'file_name': 'notes/notes.txt',
     'full_file_name': 'notes/notes.txt',
+    'doc_name': 'Ethics_Approval_ab1282e9-26e2-4e2d-a48c-42dfa02738a1.txt',
 }
 TEST_CASES = {
     'new_project_version': {
@@ -133,7 +141,7 @@ TEST_CASES = {
         '_query_': {'subdir': 'notes'},
     },
     'serve_document': {
-        'file_name': 'ethics/Ethics_Approval_567b029d-9ea6-41b8-b738-bf45675b24ce.txt',
+        'file_name': 'Ethics_Approval_567b029d-9ea6-41b8-b738-bf45675b24ce.txt',
     },
     'published_project_request_access': {
         # missing DataAccess in demo

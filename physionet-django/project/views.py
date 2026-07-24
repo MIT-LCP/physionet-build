@@ -1606,16 +1606,30 @@ def edit_ethics(request, project_slug, **kwargs):
 
 @login_required
 def serve_document(request, file_name):
-    projects = ActiveProject.objects.filter(Q(authors__user=request.user) | Q(editor=request.user)).values_list(
-        'id', flat=True
+    """
+    View an uploaded ethics document of an active project.
+    This view is deprecated.  Do not use it.
+    """
+    try:
+        document = UploadedDocument.objects.get(document=('ethics/' + file_name))
+    except UploadedDocument.DoesNotExist:
+        raise PermissionDenied
+    return serve_active_project_ethics_doc(
+        request,
+        project_slug=document.project.slug,
+        doc_name=file_name,
     )
+
+
+@project_auth(auth_mode=2)
+def serve_active_project_ethics_doc(request, project, doc_name, **kwargs):
+    """
+    View an uploaded ethics document of an active project.
+    """
     uploaded_document = get_object_or_404(
-        UploadedDocument.objects.filter(
-            object_id__in=projects, content_type=ContentType.objects.get_for_model(ActiveProject)
-        ),
-        document__iendswith=file_name,
+        project.uploaded_documents.filter(document=('ethics/' + doc_name))
     )
-    return ProjectFiles().serve_file_field(uploaded_document.document)
+    return project.files.serve_file_field(uploaded_document.document)
 
 
 @login_required
