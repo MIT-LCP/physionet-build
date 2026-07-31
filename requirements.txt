@@ -576,9 +576,9 @@ grpcio==1.53.2 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:f3761f9a6817e32898eaa5aecd0b0ad69d0c68ab45ea7bf206e8dc4548f025f0 \
     --hash=sha256:f7e66d8b31ef2bada7029275debbe12c97397ec7ac70a659837a7b8a6a9dc916 \
     --hash=sha256:f9f7c0dd17f24e1774cc3a8df738246772994e853c28b28ed6ba7711ccf0abb4
-hdn-research-environment==3.2.21 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:1603f633067b6766342aa3b1c05c30f7b3ec18e43ddaddb27029016e3ab6e767 \
-    --hash=sha256:1884e94b54d3289e1b34653fb0458075b1013b48dcde4aac2bbd0c1146ad6084
+hdn-research-environment==3.2.22 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:40ec3dba96df772ed6cd1ce49ea10ac442ffdcfaff775315327b49482d037305 \
+    --hash=sha256:a2bb5450e07caceba7d1541affcde7b116977ca6af07128a8bd2c72850959cd5
 html2text==2018.1.9 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:490db40fe5b2cd79c461cf56be4d39eb8ca68191ae41ba3ba79f6cb05b7dd662 \
     --hash=sha256:627514fb30e7566b37be6900df26c2c78a030cc9e6211bda604d8181233bcdd4
