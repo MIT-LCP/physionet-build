@@ -106,6 +106,8 @@ oldrev=$(git rev-parse --verify "$oldrevname^{commit}")
 # Generate a pretty name for the "current" revision
 currevname=$(git describe --all --always --dirty)
 
+PYTHON=${PYTHON:-python3}
+
 ################################################################
 # Functions for reporting test results
 
@@ -245,7 +247,7 @@ export PATH=$venvdir/bin:$PATH
         prereq_cmd tar -xzf "$cachefile" -C "$venvdir"
     else
         prereq_cmd virtualenv --quiet --quiet \
-                   --no-download -ppython3 "$venvdir"
+                   --no-download -p"$PYTHON" "$venvdir"
         prereq_cmd pip3 install --require-hashes \
                    -r "$olddir/requirements.txt"
         if [ -n "$venvcachedir" ]; then
