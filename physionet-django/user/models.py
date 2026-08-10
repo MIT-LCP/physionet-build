@@ -429,7 +429,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         Get the primary associated email
         """
-        return self.associated_emails.get(is_primary_email=True)
+        try:
+            return self.associated_emails.get(is_primary_email=True)
+        except ObjectDoesNotExist:
+            # Broken invariant (no primary flag set): fall back to the
+            # address on the user record instead of crashing every caller.
+            logger.error('User %s has no primary associated email',
+                         self.username)
+            return self.associated_emails.filter(email=self.email).first()
 
     def get_names(self):
         return self.profile.get_names()
@@ -572,6 +579,13 @@ class AssociatedEmail(models.Model):
 
     class Meta:
         default_permissions = ()
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=Q(is_primary_email=True),
+                name='unique_primary_email_per_user',
+            ),
+        ]
 
     def __str__(self):
         return self.email
@@ -615,12 +629,16 @@ def update_associated_emails(sender, **kwargs):
     """
     user = kwargs['instance']
     if not kwargs['created'] and kwargs['update_fields'] and 'email' in kwargs['update_fields']:
-        old_primary_email = AssociatedEmail.objects.get(user=user, is_primary_email=True)
-        new_primary_email = AssociatedEmail.objects.get(user=user, email=user.email)
-        old_primary_email.is_primary_email = False
-        new_primary_email.is_primary_email = True
-        old_primary_email.save()
-        new_primary_email.save()
+        with transaction.atomic():
+            new_primary_email = AssociatedEmail.objects.filter(
+                user=user, email=user.email)
+            if new_primary_email.exists():
+                # Demote before promoting to satisfy the partial unique
+                # constraint; the transaction makes the swap all-or-nothing.
+                AssociatedEmail.objects.filter(
+                    user=user, is_primary_email=True).exclude(
+                    email=user.email).update(is_primary_email=False)
+                new_primary_email.update(is_primary_email=True)
 
 
 def photo_path(instance, filename):

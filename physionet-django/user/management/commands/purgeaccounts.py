@@ -32,7 +32,8 @@ class Command(BaseCommand):
         LOGGER.info("Total accounts removed {}".format(len(deleted)))
 
         associated_email_list = AssociatedEmail.objects.filter(
-            is_verified=False, added_date__lt=limit, user__is_active=True)
+            is_verified=False, is_primary_email=False, added_date__lt=limit,
+            user__is_active=True)
         deleted = []
 
         for associated_email in associated_email_list:
