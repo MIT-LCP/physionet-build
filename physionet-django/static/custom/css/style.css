@@ -336,6 +336,8 @@ body .main {
   border-radius: 0.5rem;
   position: absolute;
   top: var(--nav-height);
+  /* anchor() needs the invoker as anchor; position-anchor's initial value no longer opts in implicitly */
+  position-anchor: auto;
   left: anchor(left);
   background-color: white;
   padding: 0.75rem;
