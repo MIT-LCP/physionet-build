@@ -571,18 +571,18 @@ tags = ["django-taggit"]
 
 [[package]]
 name = "django-background-tasks-updated"
-version = "1.2.7"
+version = "1.2.8.post1"
 description = "Database backed asynchronous task queue"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "django-background-tasks-updated-1.2.7.tar.gz", hash = "sha256:b8cdb115350e7c4706dd1ae8061df7d9d7827906c8563c6228abbf0867236954"},
-    {file = "django_background_tasks_updated-1.2.7-py3-none-any.whl", hash = "sha256:d137c095e174c28e85aceb9c5071af22572d41f134a85ead22eb102b33027625"},
+    {file = "django_background_tasks_updated-1.2.8.post1-py3-none-any.whl", hash = "sha256:c796f1cb9b5de3474d349b5f17a556b174d020affe2f5e281315729a81f40296"},
+    {file = "django_background_tasks_updated-1.2.8.post1.tar.gz", hash = "sha256:956c2cc565d2f27f167068fae20feb4a8cfd08b2b4d51500fa73ec66a68bc91d"},
 ]
 
 [package.dependencies]
-Django = ">=3.2.12"
+Django = ">=4.0"
 six = "*"
 
 [[package]]
@@ -2943,4 +2943,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "9f3a0d21f6177aa6bf102f4e72d0ad7f1c4b4cad4aa628bfa05ec335950fbb0c"
+content-hash = "b4bee71153549eab6478011c1917a6879f720cea889c6f0e92e27f7011e93dca"
