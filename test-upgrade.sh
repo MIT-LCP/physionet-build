@@ -266,12 +266,14 @@ export PATH=$venvdir/bin:$PATH
 
     msg_testing "Installing new requirements"
     if ! cmp -s "$olddir/requirements.txt" "$topdir/requirements.txt"; then
-        cachefile=$venvcachedir/$old_reqs_hash-$new_reqs_hash.tar.gz
+        prereq_cmd rm -rf "$venvdir"
+        cachefile=$venvcachedir/$new_reqs_hash.tar.gz
         if [ -n "$venvcachedir" ] && [ -f "$cachefile" ]; then
-            prereq_cmd rm -rf "$venvdir"
             prereq_cmd mkdir "$venvdir"
             prereq_cmd tar -xzf "$cachefile" -C "$venvdir"
         else
+            prereq_cmd virtualenv --quiet --quiet \
+                       --no-download -ppython3 "$venvdir"
             prereq_cmd pip3 install --require-hashes \
                        -r "$topdir/requirements.txt"
             if [ -n "$venvcachedir" ]; then
