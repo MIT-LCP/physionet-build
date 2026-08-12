@@ -2099,25 +2099,6 @@ files = [
 crypto = ["cryptography (>=3.4.0)"]
 
 [[package]]
-name = "pyopenssl"
-version = "24.3.0"
-description = "Python wrapper module around the OpenSSL library"
-optional = false
-python-versions = ">=3.7"
-groups = ["main"]
-files = [
-    {file = "pyOpenSSL-24.3.0-py3-none-any.whl", hash = "sha256:e474f5a473cd7f92221cc04976e48f4d11502804657a08a989fb3be5514c904a"},
-    {file = "pyopenssl-24.3.0.tar.gz", hash = "sha256:49f7a019577d834746bc55c5fce6ecbcec0f2b4ec5ce1cf43a9a173b8138bb36"},
-]
-
-[package.dependencies]
-cryptography = ">=41.0.5,<45"
-
-[package.extras]
-docs = ["sphinx (!=5.2.0,!=5.2.0.post0,!=7.2.5)", "sphinx_rtd_theme"]
-test = ["pretend", "pytest (>=3.0.1)", "pytest-rerunfailures"]
-
-[[package]]
 name = "pyparsing"
 version = "2.4.7"
 description = "Python parsing module"
@@ -2944,4 +2925,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "ed16e11269e74270f731feac80cad9f73ab3debc9754e2b9284bf7a67fca5340"
+content-hash = "c91ab6ac17987e0db99dd45182e4decd686826bc46ab59b624a7d84511b1cd51"

@@ -25,7 +25,6 @@ Pillow = "^12.2.0"
 python-decouple = "^3.1"
 renameat2 = { version = "0.4.4", platform = "linux" }
 uWSGI = "2.0.31"
-pyOpenSSL = "^24.0.0"
 google-api-python-client = "^2.177.0"
 psycopg2 = "^2.9.5"
 oauthlib = "^3.2.2"
