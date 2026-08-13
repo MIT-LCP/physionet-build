@@ -70,12 +70,13 @@ def validate_name(value):
 
 def validate_affiliation(value):
     """
-    Validate affiliation that start with an alphabetical characters
+    Validate affiliation that start with an alphanumeric character
     followed by alphanumeric, spaces, underscores, hyphens, and apostrophes
     and the following special characters: ,()/&.
     """
-    if not re.fullmatch(r'[a-zA-Z][\w\',()/&. -]+', value) or '..' in value:
-        raise ValidationError('Letters, numbers, spaces, apostrophes, underscores and [,()/&.-] characters only. Must begin with a letter.')
+    if not re.fullmatch(r'[a-zA-Z0-9][\w\',()/&. -]+', value) or '..' in value:
+        raise ValidationError('Letters, numbers, spaces, apostrophes, underscores and [,()/&.-] '
+                              'characters only. Must begin with a letter or number.')
 
 
 def validate_location(value):
