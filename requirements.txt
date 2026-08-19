@@ -470,7 +470,7 @@ frozenlist==1.7.0 ; python_version >= "3.11" and python_version < "4.0" \
 geoip2==5.1.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:445a058995ad5bb3e665ae716413298d4383b1fb38d372ad59b9b405f6b0ca19 \
     --hash=sha256:ee3f87f0ce9325eb6484fe18cbd9771a03d0a2bad1dd156fa3584fafa562d39a
-google-api-core[grpc]==2.25.1 ; python_version >= "3.11" and python_version < "4.0" \
+google-api-core==2.25.1 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:8a2a56c1fef82987a524371f99f3bd0143702fecc670c72e600c1cda6bf8dbb7 \
     --hash=sha256:d2aaa0b13c78c61cb3f4282c464c046e45fbd75755683c9c525e6e8f7ed0a5e8
 google-api-python-client==2.177.0 ; python_version >= "3.11" and python_version < "4.0" \
@@ -586,9 +586,9 @@ grpcio==1.83.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:f5e822a7e7d03282f6ad225e710493c48b9057a353358344a5f7c42b2b37618d \
     --hash=sha256:f5f410d7c2903eabb34789dfd6342eef04af1ad459943936b7e09a9f5bd417b9 \
     --hash=sha256:fba099b716e73512d61b97f71ea3c31a72abb36904036e316bf4dd148ca8dcc8
-hdn-research-environment==3.2.24 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:31514662919b09ee24adede2efd8613f74c2baaa1cb817708162008800520d50 \
-    --hash=sha256:5092b6e5d3b4c202d614c5302e3cc3d7dbfff9faeae1ec37e26b1509b7ab67da
+hdn-research-environment==3.2.25 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:151fccabea3c58dbbf278ad0013c10335656b5150a177982f3321d83dec55025 \
+    --hash=sha256:6b876dfd288c3ad30aa0c2f78bd75051b264ea0b6b2c31725b5acec3ebaeb8ba
 html2text==2018.1.9 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:490db40fe5b2cd79c461cf56be4d39eb8ca68191ae41ba3ba79f6cb05b7dd662 \
     --hash=sha256:627514fb30e7566b37be6900df26c2c78a030cc9e6211bda604d8181233bcdd4
