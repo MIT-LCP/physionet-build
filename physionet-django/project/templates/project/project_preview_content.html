@@ -1,12 +1,18 @@
 {% for section in project.content_sections %}
-  {% if section.body %}
+  {% if section.body and section.html_id == 'acknowledgements' and hide_authors %}
     <h2 id="{{ section.html_id }}">{{ section.title }}</h2>
+    <p>
+      <em>Acknowledgements hidden.</em>
+    </p>
+    <hr>
+  {% elif section.body %}
+<h2 id="{{ section.html_id }}">{{ section.title }}</h2>
     {{ section.body|safe }}
-    <hr>
+<hr>
   {% elif section.required %}
-    <h2 id="{{ section.html_id }}">{{ section.title }}</h2>
-    <p style="color:red"><strong>* Required field missing</strong></p>
-    <hr>
+<h2 id="{{ section.html_id }}">{{ section.title }}</h2>
+<p style="color:red"><strong>* Required field missing</strong></p>
+<hr>
   {% endif %}
 {% endfor %}
 
@@ -15,3 +21,5 @@
   {% include "project/reference_list.html" %}
   <hr>
 {% endif %}
+
+
