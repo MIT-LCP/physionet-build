@@ -81,16 +81,18 @@
   {% endif %}
     {% if show_platform_wide_citation %}
       <p>
-        <strong>Please include the standard citation for {{ SITE_NAME }}:</strong>
-        <a href="#citationModalPlatform" data-toggle="modal">(show more options)</a>
-          <br><span>{{ main_platform_citation }}</span>
+        <strong>Please include the standard citation for {{ SITE_NAME }}: </strong>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#citationModalPlatform" title="View citation formats"><i class="bi bi-quote"></i> Cite</button>
+        {% if platform_citations.BibTeX %}<button type="button" class="btn btn-sm btn-outline-secondary ml-1" title="Copy BibTeX" onclick="copyToClipboard(document.getElementById('bibtex-data-platform').value); this.innerHTML='<i class=\'bi bi-check\'></i> Copied'; var btn=this; setTimeout(function(){ btn.innerHTML='<i class=\'bi bi-clipboard\'></i> Copy BibTeX'; }, 2000);"><i class="bi bi-clipboard"></i> Copy BibTeX</button>{% endif %}
+        <br><span>{{ main_platform_citation }}</span>
       </p>
+      {% if platform_citations.BibTeX %}<textarea id="bibtex-data-platform" style="display:none;">{{ platform_citations.BibTeX }}</textarea>{% endif %}
     {% endif %}
 
   {% include 'modal_start.html' with id_name='citationModalPlatform' title='Cite' %}
   <table><tbody>
     {% for style, citation in platform_citations.items %}
-        {% if citation != None %}
+        {% if citation != None and style != 'BibTeX' %}
           <tr>
             <th>{{ style }}</th>
             <td>{{ citation }}</td>
@@ -98,6 +100,13 @@
         {% endif %}
     {% endfor %}
   </tbody></table>
+  {% if platform_citations.BibTeX %}
+  <div class="mt-3">
+    <strong>BibTeX</strong>
+    <button class="btn btn-sm btn-outline-secondary ml-2" onclick="copyToClipboard(document.getElementById('bibtex-data-platform').value); var btn=this; btn.textContent='Copied!'; setTimeout(function(){ btn.textContent='Copy'; }, 2000)">Copy</button>
+    <pre class="mt-2 p-2 border rounded" style="white-space: pre-wrap; background-color: #f8f9fa;">{{ platform_citations.BibTeX }}</pre>
+  </div>
+  {% endif %}
   {% include 'modal_end.html' %}
 
 </div>
