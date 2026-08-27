@@ -6,13 +6,13 @@
     </p>
     <hr>
   {% elif section.body %}
-<h2 id="{{ section.html_id }}">{{ section.title }}</h2>
+    <h2 id="{{ section.html_id }}">{{ section.title }}</h2>
     {{ section.body|safe }}
-<hr>
+    <hr>
   {% elif section.required %}
-<h2 id="{{ section.html_id }}">{{ section.title }}</h2>
-<p style="color:red"><strong>* Required field missing</strong></p>
-<hr>
+    <h2 id="{{ section.html_id }}">{{ section.title }}</h2>
+    <p style="color:red"><strong>* Required field missing</strong></p>
+    <hr>
   {% endif %}
 {% endfor %}
 
@@ -21,5 +21,3 @@
   {% include "project/reference_list.html" %}
   <hr>
 {% endif %}
-
-
