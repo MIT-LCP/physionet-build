@@ -1424,5 +1424,7 @@ class UploadAgreementForm(forms.ModelForm):
         agreement = super().save(commit=False)
         agreement.author = self.author
         agreement.accepted = True
+        # Reset the timestamp so it reflects the latest acceptance
+        agreement.accepted_datetime = None
         agreement.save()
         return agreement

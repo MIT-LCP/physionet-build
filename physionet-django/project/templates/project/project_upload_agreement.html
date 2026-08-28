@@ -33,62 +33,60 @@
     <p>You can now proceed to upload files to your project.</p>
     <a href="{% url 'project_files' project.slug %}" class="btn btn-primary">Go to Project Files</a>
   </div>
-{% else %}
-  <div class="card">
-    <div class="card-body">
-      <form method="post">
-        {% csrf_token %}
-        
-        <p><strong>Please check all that apply:</strong></p>
-        
-        <div class="form-group">
-          <div class="form-check">
-            {{ upload_agreement_form.no_human_subjects }}
-            <label class="form-check-label" for="{{ upload_agreement_form.no_human_subjects.id_for_label }}">
-              {{ upload_agreement_form.no_human_subjects.label }}
-            </label>
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <div class="form-check">
-            {{ upload_agreement_form.derived_data }}
-            <label class="form-check-label" for="{{ upload_agreement_form.derived_data.id_for_label }}">
-              {{ upload_agreement_form.derived_data.label }}
-            </label>
-            {% if upload_agreement_form.derived_data.help_text %}
-              <small class="form-text text-muted">{{ upload_agreement_form.derived_data.help_text }}</small>
-            {% endif %}
-          </div>
-        </div>
-        
-        <div class="form-group">
-          <div class="form-check">
-            {{ upload_agreement_form.human_subjects_deidentified }}
-            <label class="form-check-label" for="{{ upload_agreement_form.human_subjects_deidentified.id_for_label }}">
-              {{ upload_agreement_form.human_subjects_deidentified.label }}
-            </label>
-          </div>
-        </div>
-        
-        {% if upload_agreement_form.non_field_errors %}
-          <div class="alert alert-danger">
-            {{ upload_agreement_form.non_field_errors }}
-          </div>
-        {% endif %}
-        
-        <hr>
-        
-        <div class="btn-container-rsp">
-          <button type="submit" class="btn btn-success btn-rsp" {% if not editable %}disabled{% endif %}>
-            <i class="fa fa-check"></i> I Agree
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
 {% endif %}
 
+<div class="card">
+  <div class="card-body">
+    <form method="post">
+      {% csrf_token %}
 
+      <p><strong>Please check all that apply:</strong></p>
+
+      <div class="form-group">
+        <div class="form-check">
+          {{ upload_agreement_form.no_human_subjects }}
+          <label class="form-check-label" for="{{ upload_agreement_form.no_human_subjects.id_for_label }}">
+            {{ upload_agreement_form.no_human_subjects.label }}
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-check">
+          {{ upload_agreement_form.derived_data }}
+          <label class="form-check-label" for="{{ upload_agreement_form.derived_data.id_for_label }}">
+            {{ upload_agreement_form.derived_data.label }}
+          </label>
+          {% if upload_agreement_form.derived_data.help_text %}
+            <small class="form-text text-muted">{{ upload_agreement_form.derived_data.help_text }}</small>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="form-check">
+          {{ upload_agreement_form.human_subjects_deidentified }}
+          <label class="form-check-label" for="{{ upload_agreement_form.human_subjects_deidentified.id_for_label }}">
+            {{ upload_agreement_form.human_subjects_deidentified.label }}
+          </label>
+        </div>
+      </div>
+
+      {% if upload_agreement_form.non_field_errors %}
+        <div class="alert alert-danger">
+          {{ upload_agreement_form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <hr>
+
+      <div class="btn-container-rsp">
+        <button type="submit" class="btn btn-success btn-rsp" {% if not editable %}disabled{% endif %}>
+          <i class="fa fa-check"></i> {% if existing_agreement and existing_agreement.accepted %}Update Agreement{% else %}I Agree{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
 {% endblock %}
