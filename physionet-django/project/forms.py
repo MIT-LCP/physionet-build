@@ -93,12 +93,19 @@ class TransferAuthorForm(forms.Form):
         self.fields['transfer_author'].queryset = authors
 
     def transfer(self):
+        old_author = self.project.submitting_author()
         new_author = self.cleaned_data['transfer_author']
 
         # Assign the new submitting author
         self.project.authors.update(is_submitting=False)
         new_author.is_submitting = True
         new_author.save()
+
+        # Invalidate any existing upload agreement since the submitting author changed
+        # The new submitting author will need to accept a new agreement
+        if hasattr(old_author, 'upload_agreement'):
+            old_author.upload_agreement.accepted = False
+            old_author.upload_agreement.save()
 
 
 class ActiveProjectFilesForm(forms.Form):

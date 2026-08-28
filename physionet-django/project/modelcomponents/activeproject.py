@@ -27,6 +27,7 @@ from project.modelcomponents.metadata import (
     PublishedReference,
     UploadedDocument,
 )
+from project.modelcomponents.uploadagreement import UploadAgreement
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
@@ -392,6 +393,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if self.access_policy in {AccessPolicy.CREDENTIALED,
                                   AccessPolicy.CONTRIBUTOR_REVIEW} and self.required_trainings is None:
             self.integrity_errors.append('You have to choose a required training.')
+
+        # Upload agreement (only check during author-editable phases)
+        if self.author_editable():
+            try:
+                agreement = self.submitting_author().upload_agreement
+                if not agreement.accepted:
+                    self.integrity_errors.append('You must accept the upload agreement before submitting.')
+            except UploadAgreement.DoesNotExist:
+                self.integrity_errors.append('You must accept the upload agreement before submitting.')
 
         if self.integrity_errors:
             return False

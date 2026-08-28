@@ -1147,6 +1147,12 @@ def process_files_post(request, project):
         raise ServiceUnavailable()
 
     if 'upload_files' in request.POST:
+        # Check if upload agreement has been accepted
+        agreement = getattr(project.submitting_author(), 'upload_agreement', None)
+        if not agreement or not agreement.accepted:
+            messages.error(request, 'You must accept the upload agreement before uploading files.')
+            return ''
+
         form = forms.UploadFilesForm(project=project, data=request.POST,
             files=request.FILES)
         subdir = process_items(request, form)
@@ -1226,6 +1232,10 @@ def project_files(request, project_slug, subdir='', **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
+    submitting_author = project.submitting_author()
+    agreement = getattr(submitting_author, 'upload_agreement', None)
+    has_accepted_agreement = agreement is not None and agreement.accepted
+
     return render(
         request,
         'project/project_files.html',
@@ -1253,6 +1263,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'maintenance_message': maintenance_message,
             'is_lightwave_supported': project.files.is_lightwave_supported(),
             'storage_type': settings.STORAGE_TYPE,
+            'has_accepted_agreement': has_accepted_agreement,
         },
     )
 

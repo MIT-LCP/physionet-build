@@ -17,7 +17,7 @@
 {% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">6. Project Files</h2>
+<h2 class="form-signin-heading">7. Project Files</h2>
 <hr>
 {% include "about/files.html" %}
 <br>
@@ -33,6 +33,16 @@
 {% elif maintenance_message %}
   <div class="alert alert-form alert-warning alert-dismissible">
     {{ maintenance_message }}
+  </div>
+{% endif %}
+
+{% if is_submitting and not has_accepted_agreement %}
+  <div class="alert alert-form alert-danger alert-dismissible">
+    <strong>Upload Agreement Required!</strong>
+    <p>You must accept the upload agreement before you can upload files to this project.</p>
+    <a href="{% url 'project_upload_agreement' project.slug %}" class="btn btn-primary">
+      <i class="fa fa-file-signature"></i> Accept Upload Agreement
+    </a>
   </div>
 {% endif %}
 <div class="card">
