@@ -73,6 +73,17 @@
           {% else %}
             <br>Embargo: none
           {% endif %}
+          <br>Upload Agreement:
+          {% if upload_agreement and upload_agreement.accepted %}
+            <span class="badge badge-success">Accepted</span> ({{ upload_agreement.accepted_datetime|date }})
+            <ul class="mb-0">
+              {% if upload_agreement.no_human_subjects %}<li>No human subjects data</li>{% endif %}
+              {% if upload_agreement.derived_data %}<li>Derived from de-identified datasets</li>{% endif %}
+              {% if upload_agreement.human_subjects_deidentified %}<li>Human subjects data (de-identified)</li>{% endif %}
+            </ul>
+          {% else %}
+            <span class="badge badge-danger">Not accepted</span>
+          {% endif %}
         </p>
         <p class="card-text">
           Description: {{ project.short_description }}

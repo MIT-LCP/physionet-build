@@ -367,6 +367,8 @@ def submission_info_card_params(request,
         is_active=True
     ).select_related('reviewer', 'review')
 
+    upload_agreement = getattr(project.submitting_author(), 'upload_agreement', None)
+
     return {
         'project': project,
         'authors': authors,
@@ -381,6 +383,7 @@ def submission_info_card_params(request,
         'notes': notes,
         'internal_note_form': internal_note_form,
         'reviewer_invitations': reviewer_invitations,
+        'upload_agreement': upload_agreement,
     }
 
 
