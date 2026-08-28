@@ -34,6 +34,7 @@ from project.models import (
     PublishedProject,
     StorageRequest,
     SubmissionStatus,
+    UploadAgreement,
     AWS
 )
 from user.models import User
@@ -449,6 +450,14 @@ class TestProjectCreation(TestMixin):
         response = self.client.get(
             reverse('project_overview', args=(project.slug,)))
         self.assertEqual(response.status_code, 200)
+
+        # Create an upload agreement for the new project so file uploads work
+        submitting_author = project.authors.get(is_submitting=True)
+        UploadAgreement.objects.create(
+            author=submitting_author,
+            accepted=True,
+            no_human_subjects=True
+        )
 
         # Upload a file
         response = self.client.post(
