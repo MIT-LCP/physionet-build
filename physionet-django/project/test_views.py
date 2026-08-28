@@ -41,7 +41,8 @@ from user.test_views import TestMixin, prevent_request_warnings
 
 PROJECT_VIEWS = [
     'project_overview', 'project_authors', 'project_content',
-    'project_access', 'project_discovery', 'project_files',
+    'project_access', 'project_discovery', 'project_ethics',
+    'project_upload_agreement', 'project_files',
     'project_proofread', 'project_preview', 'project_submission'
 ]
 

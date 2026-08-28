@@ -921,6 +921,51 @@ def project_discovery(request, project_slug, **kwargs):
          'remove_item_url':edit_url, 'is_submitting':is_submitting})
 
 
+@project_auth(auth_mode=0, post_auth_mode=2)
+def project_upload_agreement(request, project_slug, **kwargs):
+    """
+    Page to accept the upload agreement
+    """
+    project, is_submitting = (kwargs[k] for k in ('project', 'is_submitting'))
+
+    if is_submitting and project.author_editable():
+        editable = True
+    else:
+        editable = False
+
+    submitting_author = project.submitting_author()
+    existing_agreement = getattr(submitting_author, 'upload_agreement', None)
+
+    if request.method == 'POST':
+        upload_agreement_form = forms.UploadAgreementForm(author=submitting_author,
+                                                          data=request.POST,
+                                                          instance=existing_agreement)
+
+        if upload_agreement_form.is_valid():
+            upload_agreement_form.save()
+            messages.success(request, 'Upload agreement has been accepted.')
+            return redirect('project_files', project_slug=project.slug)
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        # Get existing agreement or create new form
+        upload_agreement_form = forms.UploadAgreementForm(author=submitting_author,
+                                                          instance=existing_agreement)
+
+    # Disable form fields if not editable
+    if not editable:
+        for field_name in upload_agreement_form.fields:
+            upload_agreement_form.fields[field_name].widget.attrs['disabled'] = 'disabled'
+
+    return render(request, 'project/project_upload_agreement.html', {
+        'project': project,
+        'upload_agreement_form': upload_agreement_form,
+        'existing_agreement': existing_agreement,
+        'is_submitting': is_submitting,
+        'editable': editable,
+    })
+
+
 class ProjectAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         qs = PublishedProject.objects.all()

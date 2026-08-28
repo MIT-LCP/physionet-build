@@ -1,0 +1,94 @@
+{% extends "project/project.html" %}
+
+{% block title %}Upload Agreement - {{ project }}{% endblock %}
+
+{% load static %}
+
+{% block main_content %}
+<h2 class="form-signin-heading">6. Upload Agreement</h2>
+<hr>
+
+<div class="alert alert-info">
+  <h4>Upload Agreement</h4>
+  <p>By clicking "I Agree" and uploading files to {{ SITE_NAME }}, you agree that:</p>
+  <ul>
+    <li>You are the original creator, or copyright holder, or you have permission from the creators and copyright holders to share these files.</li>
+    <li>These files do not contain information that could identify individual human subjects.</li>
+  </ul>
+</div>
+
+{% if not project.author_editable %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>The project cannot be edited right now.</strong>
+  </div>
+{% elif not is_submitting %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>Only the submitting author may accept the upload agreement.</strong>
+  </div>
+{% endif %}
+
+{% if existing_agreement and existing_agreement.accepted %}
+  <div class="alert alert-success">
+    <strong>Upload agreement accepted on {{ existing_agreement.accepted_datetime|date:"F j, Y" }} at {{ existing_agreement.accepted_datetime|time:"g:i A" }}.</strong>
+    <p>You can now proceed to upload files to your project.</p>
+    <a href="{% url 'project_files' project.slug %}" class="btn btn-primary">Go to Project Files</a>
+  </div>
+{% else %}
+  <div class="card">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        
+        <p><strong>Please check all that apply:</strong></p>
+        
+        <div class="form-group">
+          <div class="form-check">
+            {{ upload_agreement_form.no_human_subjects }}
+            <label class="form-check-label" for="{{ upload_agreement_form.no_human_subjects.id_for_label }}">
+              {{ upload_agreement_form.no_human_subjects.label }}
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div class="form-check">
+            {{ upload_agreement_form.derived_data }}
+            <label class="form-check-label" for="{{ upload_agreement_form.derived_data.id_for_label }}">
+              {{ upload_agreement_form.derived_data.label }}
+            </label>
+            {% if upload_agreement_form.derived_data.help_text %}
+              <small class="form-text text-muted">{{ upload_agreement_form.derived_data.help_text }}</small>
+            {% endif %}
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div class="form-check">
+            {{ upload_agreement_form.human_subjects_deidentified }}
+            <label class="form-check-label" for="{{ upload_agreement_form.human_subjects_deidentified.id_for_label }}">
+              {{ upload_agreement_form.human_subjects_deidentified.label }}
+            </label>
+          </div>
+        </div>
+        
+        {% if upload_agreement_form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ upload_agreement_form.non_field_errors }}
+          </div>
+        {% endif %}
+        
+        <hr>
+        
+        <div class="btn-container-rsp">
+          <button type="submit" class="btn btn-success btn-rsp" {% if not editable %}disabled{% endif %}>
+            <i class="fa fa-check"></i> I Agree
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endif %}
+
+
+
+{% endblock %}
