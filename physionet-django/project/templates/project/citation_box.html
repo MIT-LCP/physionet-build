@@ -15,7 +15,7 @@
         <strong>{% if publication %}Additionally, when {% else %}When {% endif %}using this resource, please cite: </strong>
         <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#citationModal" title="View citation formats"><i class="bi bi-quote"></i> Cite</button>
         {% if citations.BibTeX %}<button type="button" class="btn btn-sm btn-outline-secondary ml-1" title="Copy BibTeX" onclick="copyToClipboard(document.getElementById('bibtex-data').value); this.innerHTML='<i class=\'bi bi-check\'></i> Copied'; var btn=this; setTimeout(function(){ btn.innerHTML='<i class=\'bi bi-clipboard\'></i> Copy BibTeX'; }, 2000);"><i class="bi bi-clipboard"></i> Copy BibTeX</button>{% endif %}
-        <br><span>{{ citations.APA }}</span>
+        <br><span>{{ citations.APA|urlize }}</span>
       </p>
       {% if citations.BibTeX %}<textarea id="bibtex-data" style="display:none;">{{ citations.BibTeX }}</textarea>{% endif %}
 
@@ -25,7 +25,7 @@
           {% if style != 'BibTeX' %}
           <tr>
             <th>{{ style }}</th>
-            <td>{{ citation }}</td>
+            <td>{{ citation|urlize }}</td>
           </tr>
           {% endif %}
         {% endfor %}
@@ -45,7 +45,7 @@
         <strong>When using this resource, please cite: </strong>
         <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#citationModal" title="View citation formats"><i class="bi bi-quote"></i> Cite</button>
         {% if citations.BibTeX %}<button type="button" class="btn btn-sm btn-outline-secondary ml-1" title="Copy BibTeX" onclick="copyToClipboard(document.getElementById('bibtex-data-2').value); this.innerHTML='<i class=\'bi bi-check\'></i> Copied'; var btn=this; setTimeout(function(){ btn.innerHTML='<i class=\'bi bi-clipboard\'></i> Copy BibTeX'; }, 2000);"><i class="bi bi-clipboard"></i> Copy BibTeX</button>{% endif %}
-        <br><span>{{ citations.APA }}</span>
+        <br><span>{{ citations.APA|urlize }}</span>
       </p>
       {% if citations.BibTeX %}<textarea id="bibtex-data-2" style="display:none;">{{ citations.BibTeX }}</textarea>{% endif %}
 
@@ -55,7 +55,7 @@
           {% if style != 'BibTeX' %}
           <tr>
             <th>{{ style }}</th>
-            <td>{{ citation }}</td>
+            <td>{{ citation|urlize }}</td>
           </tr>
           {% endif %}
         {% endfor %}
@@ -84,7 +84,7 @@
         <strong>Please include the standard citation for {{ SITE_NAME }}: </strong>
         <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#citationModalPlatform" title="View citation formats"><i class="bi bi-quote"></i> Cite</button>
         {% if platform_citations.BibTeX %}<button type="button" class="btn btn-sm btn-outline-secondary ml-1" title="Copy BibTeX" onclick="copyToClipboard(document.getElementById('bibtex-data-platform').value); this.innerHTML='<i class=\'bi bi-check\'></i> Copied'; var btn=this; setTimeout(function(){ btn.innerHTML='<i class=\'bi bi-clipboard\'></i> Copy BibTeX'; }, 2000);"><i class="bi bi-clipboard"></i> Copy BibTeX</button>{% endif %}
-        <br><span>{{ main_platform_citation }}</span>
+        <br><span>{{ main_platform_citation|urlize }}</span>
       </p>
       {% if platform_citations.BibTeX %}<textarea id="bibtex-data-platform" style="display:none;">{{ platform_citations.BibTeX }}</textarea>{% endif %}
     {% endif %}
@@ -95,7 +95,7 @@
         {% if citation != None and style != 'BibTeX' %}
           <tr>
             <th>{{ style }}</th>
-            <td>{{ citation }}</td>
+            <td>{{ citation|urlize }}</td>
           </tr>
         {% endif %}
     {% endfor %}
