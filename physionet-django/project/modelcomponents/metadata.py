@@ -157,8 +157,8 @@ class Metadata(models.Model):
     def get_platform_citation(self):
         """
         Returns the information needed to generate the standard platform
-        citation in multiple formats (MLA, APA, Chicago, Harvard, and
-        Vancouver).
+        citation in multiple formats (MLA, APA, Chicago, Harvard,
+        Vancouver, and BibTeX).
 
         1. MLA (8th edition) [https://owl.purdue.edu/owl/research_and_citation/
                               mla_style/mla_formatting_and_style_guide/

@@ -1299,7 +1299,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
-    main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
+    main_platform_citation = next((v for k, v in platform_citations.items() if v is not None and k != 'BibTeX'), '')
     passes_checks = project.check_integrity()
 
     if passes_checks:
@@ -1978,7 +1978,7 @@ def published_project(request, project_slug, version, subdir=''):
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
-    main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
+    main_platform_citation = next((v for k, v in platform_citations.items() if v is not None and k != 'BibTeX'), '')
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
