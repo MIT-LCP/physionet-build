@@ -340,28 +340,28 @@
             </li>
           {% endif %}
 
-          {% if has_s3_credentials and project.aws.sent_files %}
-          {% if s3_uri %}
-            <li>
-              Download the files using AWS command line tools:
-              <pre class="shell-command">aws s3 sync {{ s3_uri }} DESTINATION</pre>
-            </li>
-          {% elif show_aws_configuration_link %}
-            <li>
-              To download the files using AWS command line tools, first
-              <a href="{% url 'edit_cloud' %}">configure your AWS credentials</a>.
-            </li>
-          {% elif not user_in_access_point_policy %}
-            <li>
-              Click to access the files using AWS command line tools:
-              <form method="post" action="{% url 'enable_aws_access' project.slug project.version %}">
-                {% csrf_token %}
-                <button class="btn btn-primary btn-fixed" type="submit">
-                  Enable AWS access
-                </button>
-              </form>
-            </li>
-          {% endif %}
+          {% if has_s3_credentials and project.aws.sent_files and not project.aws.access_disabled %}
+            {% if s3_uri %}
+              <li>
+                Download the files using AWS command line tools:
+                <pre class="shell-command">aws s3 sync {{ s3_uri }} DESTINATION</pre>
+              </li>
+            {% elif show_aws_configuration_link %}
+              <li>
+                To download the files using AWS command line tools, first
+                <a href="{% url 'edit_cloud' %}">configure your AWS credentials</a>.
+              </li>
+            {% elif not user_in_access_point_policy %}
+              <li>
+                Click to access the files using AWS command line tools:
+                <form method="post" action="{% url 'enable_aws_access' project.slug project.version %}">
+                  {% csrf_token %}
+                  <button class="btn btn-primary btn-fixed" type="submit">
+                    Enable AWS access
+                  </button>
+                </form>
+              </li>
+            {% endif %}
           {% endif %}
 
         </ul>

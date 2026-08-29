@@ -2228,6 +2228,7 @@ def sign_dua(request, project_slug, version):
                     hasattr(user, 'cloud_information')
                     and user.cloud_information is not None
                     and user.cloud_information.aws_verification_datetime is not None
+                    and not project.aws.access_disabled
                 ):
                     add_user_to_access_point_policy(project, user)
 
@@ -2402,6 +2403,10 @@ def enable_aws_access(request, project_slug, version):
     # Verify if the user has access to the project
     if not can_view_project_files(project, user, request):
         messages.error(request, 'You do not have permission to access this project.')
+        return redirect('published_project', project_slug=project_slug, version=version)
+
+    # Block if access has been explicitly disabled by an admin
+    if hasattr(project, 'aws') and project.aws.access_disabled:
         return redirect('published_project', project_slug=project_slug, version=version)
 
     if request.method == 'POST':
