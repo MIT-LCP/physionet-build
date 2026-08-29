@@ -19,27 +19,6 @@ from oauth2_provider.views.generic import (
 import uuid
 
 
-class AnnotationCollectionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AnnotationCollection
-        fields = [
-            "id",
-            "slug",
-            "name",
-            "description",
-            "created_by",
-            "created_datetime",
-            "updated_datetime",
-        ]
-        read_only_fields = ["created_by", "created_datetime", "updated_datetime"]
-
-    def create(self, validated_data):
-        request = self.context.get("request")
-        if request and request.user and request.user.is_authenticated:
-            validated_data["created_by"] = request.user
-        return super().create(validated_data)
-
-
 class AnnotationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnnotationType
@@ -112,13 +91,17 @@ class AnnotationSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         if instance.location:
             if instance.location.location_type == "text_span":  # TextSpanLocation
-                data["location"] = TextSpanLocationSerializer(instance.location).data
+                data["location"] = TextSpanLocationSerializer(
+                    instance.location.textspanlocation
+                ).data
             elif instance.location.location_type == "timeseries_interval":
                 data["location"] = TimeseriesIntervalLocationSerializer(
-                    instance.location
+                    instance.location.timeseriesintervallocation
                 ).data
             elif instance.location.location_type == "image_bbox":  # ImageBBoxLocation
-                data["location"] = ImageBBoxLocationSerializer(instance.location).data
+                data["location"] = ImageBBoxLocationSerializer(
+                    instance.location.imagebboxlocation
+                ).data
             else:
                 raise serializers.ValidationError(
                     f"Unknown location_type: {instance.location.location_type}"
@@ -175,3 +158,27 @@ class AnnotationSerializer(serializers.ModelSerializer):
                         '{location_data.get('location_type')}'"
             )
         return data
+
+
+class AnnotationCollectionSerializer(serializers.ModelSerializer):
+    annotations = AnnotationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = AnnotationCollection
+        fields = [
+            "id",
+            "slug",
+            "name",
+            "description",
+            "annotations",
+            "created_by",
+            "created_datetime",
+            "updated_datetime",
+        ]
+        read_only_fields = ["created_by", "created_datetime", "updated_datetime"]
+
+    def create(self, validated_data):
+        request = self.context.get("request")
+        if request and request.user and request.user.is_authenticated:
+            validated_data["created_by"] = request.user
+        return super().create(validated_data)
