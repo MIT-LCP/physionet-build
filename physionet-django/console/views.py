@@ -2440,15 +2440,15 @@ def credentialing_stats(request):
         except (AttributeError, StatisticsError):
             stats[y]['time_to_ref'] = None
 
-    # Time taken for the reference to respond
+    # Time taken for the reference to respond (in hours)
     time_to_reply = apps.annotate(tm=Cast(F('reference_response_datetime')
                                   - F('reference_contact_datetime'),
                                   DurationField())).values_list('tm', flat=True)
     for y in stats:
         durations = time_to_reply.filter(application_datetime__year=y)
         try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_reply'] = median(days)
+            hours = [round(d.total_seconds() / 3600, 2) for d in durations if d and d.total_seconds() >= 0]
+            stats[y]['time_to_reply'] = median(hours)
         except (AttributeError, StatisticsError):
             stats[y]['time_to_reply'] = None
 
