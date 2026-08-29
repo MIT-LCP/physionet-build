@@ -89,7 +89,7 @@
   "pk": 6,
   "fields": {
     "password": "pbkdf2_sha256$150000$6e8RyzxeUEDC$XjhKiSVwTTucKJIvpC2gYWL/6jCeSBWuZQRMSe8bm3g=",
-    "email": "eula_easley@fake_gmail.com",
+    "email": "eula_easley@mit.edu",
     "username": "eulaeasley",
     "join_date": "2020-03-29",
     "last_login": null,
@@ -3438,7 +3438,7 @@
     "user": [
       "eulaeasley"
     ],
-    "email": "eula_easley@fake_gmail.com",
+    "email": "eula_easley@mit.edu",
     "is_primary_email": true,
     "added_date": "2020-03-29T21:51:08.458Z",
     "verification_date": "2020-03-29T21:51:08.458Z",
