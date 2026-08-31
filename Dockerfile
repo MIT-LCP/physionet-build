@@ -23,6 +23,7 @@ WORKDIR /code
 COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false \
+    && poetry config installer.modern-installation false \
     && poetry install --no-root \
     && rm -rf /root/.cache/pypoetry /root/.cache/pip
 
