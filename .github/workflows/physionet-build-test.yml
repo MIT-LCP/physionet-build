@@ -69,8 +69,9 @@ jobs:
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           source $VIRTUAL_ENV/bin/activate
           if [ ${{matrix.pip3}} = 'poetry' ]; then
-            pip3 install poetry
+            pip3 install "poetry<2"
             poetry config virtualenvs.create false
+            poetry config installer.modern-installation false
             poetry install --no-root
           else
             pip3 install -r requirements.txt

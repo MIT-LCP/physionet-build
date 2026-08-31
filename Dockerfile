@@ -16,13 +16,14 @@ RUN wget https://github.com/bemoody/lightwave/archive/0.73.tar.gz -O lightwave.t
     && (cd lightwave-* && make sandboxed-lightwave && mkdir -p /usr/local/bin && install -m 4755 sandboxed-lightwave /usr/local/bin) \
     && rm -rf lightwave*
 
-RUN pip install poetry \
+RUN pip install "poetry<2" \
     && rm -rf /root/.cache/pip
 
 WORKDIR /code
 COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false \
+    && poetry config installer.modern-installation false \
     && poetry install --no-root \
     && rm -rf /root/.cache/pypoetry /root/.cache/pip
 
