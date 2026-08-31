@@ -321,8 +321,9 @@ cryptography==44.0.1 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:f4daefc971c2d1f82f03097dc6f216744a6cd2ac0f04c68fb935ea2ba2a0d420 \
     --hash=sha256:f51f5705ab27898afda1aaa430f34ad90dc117421057782022edf0600bec5f14 \
     --hash=sha256:fd0ee90072861e276b0ff08bd627abec29e32a53b2be44e41dbcdf87cbee2b00
-django-autocomplete-light==3.9.4 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:0f6da75c1c7186698b867a467a8cdb359f0513fdd8e09288a0c2fb018ae3d94e
+django-autocomplete-light==4.0.3 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:1b0dc31aee64cc084358129df60954c05ab7132657873eebc0612e3160307057 \
+    --hash=sha256:e36a7c570f914cfd793568eea3eb2646da4b64f6d1cd3bea8878cc8b20a18f3f
 django-background-tasks-updated==1.2.8.post1 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:956c2cc565d2f27f167068fae20feb4a8cfd08b2b4d51500fa73ec66a68bc91d \
     --hash=sha256:c796f1cb9b5de3474d349b5f17a556b174d020affe2f5e281315729a81f40296

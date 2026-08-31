@@ -552,20 +552,20 @@ bcrypt = ["bcrypt"]
 
 [[package]]
 name = "django-autocomplete-light"
-version = "3.9.4"
+version = "4.0.3"
 description = "Fresh autocompletes for Django"
 optional = false
-python-versions = "*"
+python-versions = ">=3.11"
 groups = ["main"]
 files = [
-    {file = "django-autocomplete-light-3.9.4.tar.gz", hash = "sha256:0f6da75c1c7186698b867a467a8cdb359f0513fdd8e09288a0c2fb018ae3d94e"},
+    {file = "django_autocomplete_light-4.0.3-py3-none-any.whl", hash = "sha256:e36a7c570f914cfd793568eea3eb2646da4b64f6d1cd3bea8878cc8b20a18f3f"},
+    {file = "django_autocomplete_light-4.0.3.tar.gz", hash = "sha256:1b0dc31aee64cc084358129df60954c05ab7132657873eebc0612e3160307057"},
 ]
 
 [package.dependencies]
-six = "*"
+django = ">=4.2"
 
 [package.extras]
-genericm2m = ["django-generic-m2m"]
 gfk = ["django-querysetsequence (>=0.11)"]
 nested = ["django-nested-admin (>=3.0.21)"]
 tags = ["django-taggit"]
@@ -2925,4 +2925,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.11"
-content-hash = "f7676ffc606f03ecb7d6c618d57474ef3d7add37bc4cd0e25eb8820b87aacc92"
+content-hash = "1a6d6ce71e9879fe8b15a5403e519d10abec809e9f6a7c140b0d3efb884baaf8"
