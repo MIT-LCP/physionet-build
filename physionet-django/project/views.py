@@ -1088,6 +1088,13 @@ def project_files_panel(request, project_slug, **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
+    submitting_author = project.submitting_author()
+    agreement = getattr(submitting_author, 'upload_agreement', None)
+    has_accepted_agreement = (
+        is_editor
+        or (agreement is not None and agreement.accepted)
+    )
+
     return render(
         request,
         'project/edit_files_panel.html',
@@ -1110,6 +1117,7 @@ def project_files_panel(request, project_slug, **kwargs):
             'is_submitting': is_submitting,
             'is_editor': is_editor,
             'files_editable': files_editable,
+            'has_accepted_agreement': has_accepted_agreement,
             'max_files_per_upload': settings.DATA_UPLOAD_MAX_NUMBER_FILES,
             'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         },
@@ -1202,7 +1210,11 @@ def project_files(request, project_slug, subdir='', **kwargs):
             # process the file manipulation post
             subdir = process_files_post(request, project)
 
+    is_editor = request.user == project.editor
+
     if is_submitting and project.author_editable():
+        files_editable = True
+    elif is_editor and project.copyeditable():
         files_editable = True
     else:
         files_editable = False
@@ -1234,7 +1246,10 @@ def project_files(request, project_slug, subdir='', **kwargs):
 
     submitting_author = project.submitting_author()
     agreement = getattr(submitting_author, 'upload_agreement', None)
-    has_accepted_agreement = agreement is not None and agreement.accepted
+    has_accepted_agreement = (
+        is_editor
+        or (agreement is not None and agreement.accepted)
+    )
 
     return render(
         request,
