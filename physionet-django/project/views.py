@@ -1155,11 +1155,13 @@ def process_files_post(request, project):
         raise ServiceUnavailable()
 
     if 'upload_files' in request.POST:
-        # Check if upload agreement has been accepted
-        agreement = getattr(project.submitting_author(), 'upload_agreement', None)
-        if not agreement or not agreement.accepted:
-            messages.error(request, 'You must accept the upload agreement before uploading files.')
-            return ''
+        # Check if upload agreement has been accepted (editors are exempt)
+        is_editor = request.user == project.editor
+        if not is_editor:
+            agreement = getattr(project.submitting_author(), 'upload_agreement', None)
+            if not agreement or not agreement.accepted:
+                messages.error(request, 'You must accept the upload agreement before uploading files.')
+                return ''
 
         form = forms.UploadFilesForm(project=project, data=request.POST,
             files=request.FILES)
