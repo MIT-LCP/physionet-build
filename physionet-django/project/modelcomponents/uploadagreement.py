@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils import timezone
 
 
 class UploadAgreement(models.Model):
@@ -69,8 +68,3 @@ class UploadAgreement(models.Model):
             f"{'Accepted' if self.accepted else 'Pending'}"
         )
 
-    def save(self, *args, **kwargs):
-        # If this is being marked as accepted, set the timestamp
-        if self.accepted and not self.accepted_datetime:
-            self.accepted_datetime = timezone.now()
-        super().save(*args, **kwargs)
