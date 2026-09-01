@@ -13,6 +13,7 @@ from django.core import mail
 from django.test import TestCase
 from django.test.utils import get_runner
 from django.urls import reverse
+from console.forms import CredentialReviewForm
 from events.models import EventAgreement
 from project.models import (
     AccessPolicy,
@@ -33,6 +34,14 @@ from physionet.models import FrontPageButton, StaticPage
 from user.test_views import TestMixin, prevent_request_warnings
 
 LOGGER = logging.getLogger(__name__)
+
+
+class TestCredentialReviewForm(TestCase):
+    def test_reviewer_comments_max_length(self):
+        form = CredentialReviewForm(data={'reviewer_comments': 'x' * 501})
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('reviewer_comments', form.errors)
 
 
 class TestState(TestMixin):
