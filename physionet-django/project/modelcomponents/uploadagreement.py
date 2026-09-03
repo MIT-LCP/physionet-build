@@ -58,7 +58,8 @@ class UploadAgreement(models.Model):
                     | models.Q(derived_data=True)
                     | models.Q(human_subjects_deidentified=True)
                 ),
-                name='at_least_one_data_type_selected'
+                name='at_least_one_data_type_selected',
+                violation_error_message='Please select at least one option that applies to your project.',
             )
         ]
 

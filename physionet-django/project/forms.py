@@ -1405,21 +1405,6 @@ class UploadAgreementForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.author = author
 
-    def clean(self):
-        cleaned_data = super().clean()
-
-        # At least one checkbox must be selected
-        if not any([
-            cleaned_data.get('no_human_subjects'),
-            cleaned_data.get('derived_data'),
-            cleaned_data.get('human_subjects_deidentified'),
-        ]):
-            raise forms.ValidationError(
-                'Please select at least one option that applies to your project.'
-            )
-
-        return cleaned_data
-
     def save(self):
         agreement = super().save(commit=False)
         agreement.author = self.author

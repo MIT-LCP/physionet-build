@@ -79,6 +79,7 @@ class Migration(migrations.Migration):
                     _connector='OR',
                 ),
                 name='at_least_one_data_type_selected',
+                violation_error_message='Please select at least one option that applies to your project.',
             ),
         ),
     ]
