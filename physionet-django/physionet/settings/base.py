@@ -14,6 +14,7 @@ import fcntl
 import logging.config
 import os
 import sys
+from datetime import datetime
 
 from decouple import config, UndefinedValueError
 from django.core.exceptions import ImproperlyConfigured
@@ -753,6 +754,15 @@ EMAIL_SIGNATURE = config('EMAIL_SIGNATURE')
 FOOTER_MANAGED_BY = config('FOOTER_MANAGED_BY')
 FOOTER_SUPPORTED_BY = config('FOOTER_SUPPORTED_BY')
 FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)
+
+# Projects created before this date are exempt from the upload agreement
+# requirement. Set to a datetime string (e.g. '2026-10-01T00:00:00Z') or
+# leave unset to require the agreement for all projects.
+_upload_agreement_start = config('UPLOAD_AGREEMENT_START_DATE', default=None)
+UPLOAD_AGREEMENT_START_DATE = (
+    datetime.fromisoformat(_upload_agreement_start)
+    if _upload_agreement_start else None
+)
 
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
 COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)

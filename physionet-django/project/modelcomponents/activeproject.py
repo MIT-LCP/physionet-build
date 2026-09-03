@@ -329,7 +329,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.save(update_fields=['is_on_hold'])
 
     def upload_agreement_accepted(self):
-        """Check whether the submitting author has accepted the upload agreement."""
+        """Check whether the submitting author has accepted the upload agreement.
+
+        Projects created before UPLOAD_AGREEMENT_START_DATE are exempt.
+        """
+        start_date = settings.UPLOAD_AGREEMENT_START_DATE
+        if start_date and self.creation_datetime < start_date:
+            return True
         agreement = getattr(self.submitting_author(), 'upload_agreement', None)
         return agreement is not None and agreement.accepted
 
