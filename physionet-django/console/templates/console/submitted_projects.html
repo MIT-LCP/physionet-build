@@ -7,7 +7,7 @@
 {% block content %}
 <div class="card">
   <div class="card-header">
-    <ul class="nav nav-tabs card-header-tabs">
+    <ul class="nav nav-tabs">
       {% if perms.project.can_assign_editor %}
         <li class="nav-item">
           <a class="nav-link active" id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="true">Awaiting Editor Assignment {{ assignment_projects|task_count_badge|safe }}</a>
