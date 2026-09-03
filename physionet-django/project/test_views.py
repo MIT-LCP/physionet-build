@@ -532,6 +532,98 @@ class TestProjectCreation(TestMixin):
         self.assertGreater(quota.bytes_used, num_bytes)
 
 
+class TestUploadAgreement(TestMixin):
+    """
+    Test the upload agreement requirement for file uploads.
+    """
+
+    def test_upload_blocked_without_agreement(self):
+        """
+        Upload should be rejected if the submitting author has no agreement.
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        # Ensure no agreement exists
+        UploadAgreement.objects.filter(
+            author=project.submitting_author()
+        ).delete()
+
+        response = self.client.post(
+            reverse('project_files', args=(project.slug,)),
+            data={
+                'upload_files': '',
+                'subdir': '',
+                'file_field': SimpleUploadedFile('testfile.txt', b'test'),
+            })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            os.path.exists(os.path.join(project.file_root(), 'testfile.txt'))
+        )
+
+    def test_upload_allowed_with_agreement(self):
+        """
+        Upload should succeed when the submitting author has accepted.
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        UploadAgreement.objects.update_or_create(
+            author=project.submitting_author(),
+            defaults={'accepted': True, 'no_human_subjects': True},
+        )
+
+        response = self.client.post(
+            reverse('project_files', args=(project.slug,)),
+            data={
+                'upload_files': '',
+                'subdir': '',
+                'file_field': SimpleUploadedFile('testfile.txt', b'test'),
+            })
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            os.path.exists(os.path.join(project.file_root(), 'testfile.txt'))
+        )
+
+    def test_non_submitting_author_no_warning(self):
+        """
+        Non-submitting authors should not see the upload agreement warning.
+        """
+        project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
+
+        # Ensure no agreement exists
+        UploadAgreement.objects.filter(
+            author=project.submitting_author()
+        ).delete()
+
+        # Login as non-submitting coauthor
+        self.client.login(username='aewj@mit.edu', password='Tester11!')
+        response = self.client.get(
+            reverse('project_files', args=(project.slug,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Upload Agreement Required!')
+
+    def test_agreement_form_requires_checkbox(self):
+        """
+        Submitting the agreement form with no checkboxes selected should fail.
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        author = project.submitting_author()
+
+        # Remove any existing agreement
+        UploadAgreement.objects.filter(author=author).delete()
+
+        response = self.client.post(
+            reverse('project_upload_agreement', args=(project.slug,)),
+            data={})
+        self.assertEqual(response.status_code, 200)
+        # Agreement should not have been created
+        self.assertFalse(
+            UploadAgreement.objects.filter(author=author).exists()
+        )
+
+
 class TestProjectEditing(TestCase):
     """
     Tests for the submitting author to edit the project information.
