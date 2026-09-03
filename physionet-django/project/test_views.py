@@ -708,7 +708,7 @@ class TestAccessPublished(TestMixin):
     Published projects.
 
     """
-    def test_pending_training_does_not_hide_other_requirements(self):
+    def test_pending_training_requirements(self):
         project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
         user = User.objects.get(email='rgmark@mit.edu')
         reviewed_training = TrainingType.objects.create(name='Reviewed training')
@@ -729,7 +729,7 @@ class TestAccessPublished(TestMixin):
         self.assertContains(response, outstanding_training.name)
         self.assertNotContains(response, 'Have your submitted training report approved.')
 
-    def test_all_pending_trainings_under_review(self):
+    def test_all_trainings_under_review(self):
         project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
         user = User.objects.get(email='rgmark@mit.edu')
         first_training = TrainingType.objects.create(name='First training')
