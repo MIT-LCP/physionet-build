@@ -927,11 +927,7 @@ def project_upload_agreement(request, project_slug, **kwargs):
     Page to accept the upload agreement
     """
     project, is_submitting = (kwargs[k] for k in ('project', 'is_submitting'))
-
-    if is_submitting and project.author_editable():
-        editable = True
-    else:
-        editable = False
+    editable = is_submitting and project.author_editable()
 
     submitting_author = project.submitting_author()
     existing_agreement = getattr(submitting_author, 'upload_agreement', None)
