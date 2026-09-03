@@ -58,7 +58,6 @@ from project.modelcomponents.review import ReviewerInvitation
 from project.authorization.access import can_view_project_files, can_access_project
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
-from user.enums import TrainingStatus
 from user.forms import AssociatedEmailChoiceForm
 from user.models import AssociatedEmail, CloudInformation, CredentialApplication, Training
 from project.cloud.s3 import (
@@ -2004,8 +2003,7 @@ def published_project(request, project_slug, version, subdir=''):
             training_type__in=project.required_trainings.all(), user=user
         ).values('training_type_id')
         missing_training_types = project.required_trainings.exclude(id__in=valid_training_type_ids)
-        under_review_training_type_ids = Training.objects.filter(
-            status=TrainingStatus.REVIEW,
+        under_review_training_type_ids = Training.objects.get_review().filter(
             training_type__in=missing_training_types,
             user=user,
         ).values('training_type_id')
