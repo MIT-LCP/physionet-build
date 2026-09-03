@@ -1466,6 +1466,86 @@ def archived_submissions(request):
                   {'projects': projects})
 
 
+PROJECT_SEARCH_BUCKETS = {
+    'unsubmitted': (ActiveProject, SubmissionStatus.UNSUBMITTED, 'creation_datetime',
+                    'console/project_search_list.html'),
+    'submitted': (ActiveProject, None, 'submission_datetime',
+                  'console/project_search_list.html'),
+    'published': (PublishedProject, None, '-publish_datetime',
+                  'console/published_projects_list.html'),
+    'archived': (ActiveProject, SubmissionStatus.ARCHIVED, 'creation_datetime',
+                 'console/archived_submissions_list.html'),
+}
+
+# Mirrors the status/hold buckets built in submitted_projects(), so the
+# tab badge counts can be updated live while searching that page.
+SUBMITTED_STATUS_BUCKETS = {
+    'assignment': SubmissionStatus.NEEDS_ASSIGNMENT,
+    'reviewer_assignment': SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT,
+    'external_review': SubmissionStatus.NEEDS_EXTERNAL_REVIEW,
+    'decision': SubmissionStatus.NEEDS_DECISION,
+    'revision': SubmissionStatus.NEEDS_RESUBMISSION,
+    'copyedit': SubmissionStatus.NEEDS_COPYEDIT,
+    'approval': SubmissionStatus.NEEDS_APPROVAL,
+    'publish': SubmissionStatus.NEEDS_PUBLICATION,
+}
+
+
+def _project_search_filter(projects, search_field):
+    """
+    Filter a project queryset by a free-text search term, across title,
+    resource type, and author name/username/email.
+    """
+    if not search_field:
+        return projects
+    author_q = (Q(authors__user__username__icontains=search_field)
+                | Q(authors__user__profile__first_names__icontains=search_field)
+                | Q(authors__user__profile__last_name__icontains=search_field)
+                | Q(authors__user__email__icontains=search_field))
+    return projects.filter(
+        Q(title__icontains=search_field)
+        | Q(resource_type__name__icontains=search_field)
+        | author_q
+    ).distinct()
+
+
+@console_permission_required('project.change_activeproject')
+def project_search(request, bucket):
+    """
+    Search projects within one of the console project-list buckets:
+    unsubmitted, submitted, published, or archived.
+    """
+    if request.method != 'POST' or bucket not in PROJECT_SEARCH_BUCKETS:
+        raise Http404()
+
+    search_field = request.POST['search']
+    model, status, order, template = PROJECT_SEARCH_BUCKETS[bucket]
+
+    if bucket == 'submitted':
+        base = model.objects.filter(submission_status__gt=SubmissionStatus.ARCHIVED)
+    elif status is not None:
+        base = model.objects.filter(submission_status=status)
+    else:
+        base = model.objects.all()
+
+    matched = _project_search_filter(base, search_field)
+
+    if bucket == 'submitted':
+        # The submitted-projects page keeps its existing tab tables and
+        # just shows/hides rows by id, so only the matching ids and the
+        # per-tab counts (for the badges) are needed here.
+        counts = {key: matched.filter(submission_status=value, is_on_hold=False).count()
+                  for key, value in SUBMITTED_STATUS_BUCKETS.items()}
+        counts['on_hold'] = matched.filter(is_on_hold=True).count()
+        return JsonResponse({'ids': list(matched.values_list('id', flat=True)), 'counts': counts})
+
+    projects = matched.order_by(order)
+    if len(search_field) == 0:
+        projects = paginate(request, projects, 50)
+
+    return render(request, template, {'projects': projects, 'bucket': bucket})
+
+
 @console_permission_required('user.view_user')
 def users(request, group='all'):
     """

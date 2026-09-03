@@ -9,6 +9,9 @@
 {% endblock %}
 
 {% block content %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'console/js/search-console.js' %}"></script>
+
 <div class="card mb-3">
   <div class="card-header">
     {% if project_slug %}
@@ -21,35 +24,13 @@
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>History</th>
-            <th>Version</th>
-            <th>Submitted By</th>
-            <th>Editor</th>
-            <th>Created</th>
-            <th>Published</th>
-            <th>Manage</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for project in projects %}
-          <tr>
-            <td><a href="{% url 'published_project' project.slug project.version %}">{{ project.title }}</a></td>
-            <td>{% if project.is_legacy %}Legacy{% else %}<a href="{% url 'published_submission_history' project.slug project.version %}">View History</a>{% endif %}</td>
-            <td>{{ project.version }}</td>
-            <td>{% if project.is_legacy %}Legacy{% else %}<a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}{% endif %}</td>
-            <td>{{ project.editor }}</td>
-            <td>{{ project.creation_datetime|date }}</td>
-            <td>{{ project.publish_datetime|date }}</td>
-            <td><a href="{% url 'manage_published_project' project.slug project.version %}" class="btn btn-sm btn-primary" role="button">Manage</a></td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% include "console/pagination.html" with pagination=projects %}
+    <input
+        type="search"
+        data-search-url="{% url 'project_search' bucket='published' %}"
+        oninput="search(this.dataset.searchUrl, this.value);"
+        placeholder="Search..."
+    >      
+    {% include "console/published_projects_list.html" %}
     </div>
   </div>
 </div>
