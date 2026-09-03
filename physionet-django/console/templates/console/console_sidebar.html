@@ -1,0 +1,40 @@
+{% load static %}
+{% load console_templatetags %}
+<aside class="console-sidebar" id="consoleSidebar">
+  <nav>
+    <ul class="console-sidebar-nav" id="sideAccordion">
+      {% console_nav_menu_items request as nav_menu_items %}
+      {% for item in nav_menu_items %}
+      {% if item.subitems %}
+      <li class="console-sidebar-item">
+        <a id="nav_{{ item.name }}_dropdown"
+          class="console-sidebar-link console-sidebar-link-collapse drop {{ item.active|yesno:',collapsed' }}" data-toggle="collapse"
+          data-target="#nav_{{ item.name }}_components" data-parent="#sideAccordion"
+          aria-expanded="{{ item.active|yesno:'true,false' }}" href="#">
+          {% if item.icon %}
+          <i class="fa fa-fw fa-{{ item.icon }} console-sidebar-icon"></i>
+          {% endif %}
+          <span class="console-sidebar-text">{{ item.title }}</span>
+        </a>
+        <ul class="console-sidebar-sub collapse {{ item.active|yesno:'show,' }}" id="nav_{{ item.name }}_components">
+          {% for subitem in item.subitems %}
+          <li class="console-sidebar-item {{ subitem.active|yesno:'active,' }}">
+            <a id="nav_{{ subitem.name }}" class="console-sidebar-link" href="{{ subitem.url }}">{{ subitem.title }}</a>
+          </li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% else %}
+      <li class="console-sidebar-item {{ item.active|yesno:'active,' }}">
+        <a id="nav_{{ item.name }}" class="console-sidebar-link" href="{{ item.url }}">
+          {% if item.icon %}
+          <i class="fa fa-fw fa-{{ item.icon }} console-sidebar-icon"></i>
+          {% endif %}
+          <span class="console-sidebar-text">{{ item.title }}</span>
+        </a>
+      </li>
+      {% endif %}
+      {% endfor %}
+    </ul>
+  </nav>
+</aside>
