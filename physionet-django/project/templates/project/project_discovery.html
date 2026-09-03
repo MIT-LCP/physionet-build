@@ -1,6 +1,7 @@
 {% extends "project/project.html" %}
 
 {% load static %}
+{% load project_templatetags %}
 
 {% block title %}Project Discovery - {{ project }}{% endblock %}
 
@@ -10,7 +11,7 @@
 {% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">4. Project Discovery</h2>
+<h2 class="form-signin-heading">{% project_step_header 'discovery' %}</h2>
 <hr>
 {% include 'about/discovery.html' %}
 {% if not project.author_editable %}

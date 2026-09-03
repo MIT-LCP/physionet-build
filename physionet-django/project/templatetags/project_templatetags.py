@@ -209,6 +209,33 @@ def call_method(obj, method_name, *args):
     return method(*args)
 
 
+PROJECT_SETTINGS_STEPS = [
+    ('authors', 'Authors'),
+    ('content', 'Content'),
+    ('access', 'Access'),
+    ('discovery', 'Discovery'),
+    ('ethics', 'Ethics'),
+    ('upload_agreement', 'Upload Agreement'),
+    ('files', 'Files'),
+    ('proofread', 'Proofread'),
+]
+
+
+@register.simple_tag(name='project_settings_steps')
+def project_settings_steps():
+    """Return the ordered list of project settings steps."""
+    return PROJECT_SETTINGS_STEPS
+
+
+@register.simple_tag(name='project_step_header')
+def project_step_header(key):
+    """Return the step heading string (e.g. '7. Files') for a given key."""
+    for i, (k, label) in enumerate(PROJECT_SETTINGS_STEPS, 1):
+        if k == key:
+            return f'{i}. {label}'
+    return key
+
+
 @register.simple_tag(name='can_view_project_files')
 def can_view_project_files(project, user, request=None):
     return can_view_project_files_func(project, user, request)

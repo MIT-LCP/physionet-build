@@ -3,9 +3,10 @@
 {% block title %}Upload Agreement - {{ project }}{% endblock %}
 
 {% load static %}
+{% load project_templatetags %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">6. Upload Agreement</h2>
+<h2 class="form-signin-heading">{% project_step_header 'upload_agreement' %}</h2>
 <hr>
 
 <div class="alert alert-info">
