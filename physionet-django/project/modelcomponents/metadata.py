@@ -457,8 +457,7 @@ class Metadata(models.Model):
             style_format = ('{author}. "{title}" (version {version}). '
                             '<i>{platform_name}</i> ({year}). {rrid}')
 
-            doi_format = (' <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>')
+            doi_format = ' https://doi.org/{doi}'
 
             if (len(authors) == 1):
                 all_authors = authors[0].get_full_name(reverse=True)
@@ -475,8 +474,7 @@ class Metadata(models.Model):
             style_format = ('{author} ({year}). {title} (version '
                             '{version}). <i>{platform_name}</i>. {rrid}')
 
-            doi_format = (' <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>')
+            doi_format = ' https://doi.org/{doi}'
 
             if (len(authors) == 1):
                 all_authors = authors[0].initialed_name()
@@ -500,8 +498,7 @@ class Metadata(models.Model):
             style_format = ('{author}. "{title}" (version {version}). '
                             '<i>{platform_name}</i> ({year}). {rrid}')
 
-            doi_format = (' <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>')
+            doi_format = ' https://doi.org/{doi}'
 
             if (len(authors) == 1):
                 all_authors = authors[0].get_full_name(reverse=True)
@@ -517,9 +514,7 @@ class Metadata(models.Model):
             style_format = ("{author} ({year}) '{title}' (version "
                             "{version}), <i>{platform_name}</i>. {rrid}")
 
-            doi_format = (" Available at: "
-                          "<a href='https://doi.org/{doi}'>"
-                          "https://doi.org/{doi}</a>")
+            doi_format = ' Available at: https://doi.org/{doi}'
 
             if (len(authors) == 1):
                 all_authors = authors[0].initialed_name()
@@ -534,9 +529,7 @@ class Metadata(models.Model):
             style_format = ('{author}. {title} (version {version}). '
                             '{platform_name}. {year}. {rrid}')
 
-            doi_format = (' Available from: '
-                          '<a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>')
+            doi_format = ' Available from: https://doi.org/{doi}'
 
             all_authors = ', '.join(a.initialed_name(commas=False,
                                     periods=False) for a in authors)
