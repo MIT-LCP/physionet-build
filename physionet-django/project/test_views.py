@@ -729,6 +729,32 @@ class TestAccessPublished(TestMixin):
         self.assertContains(response, outstanding_training.name)
         self.assertNotContains(response, 'Have your submitted training report approved.')
 
+    def test_all_pending_trainings_under_review(self):
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        user = User.objects.get(email='rgmark@mit.edu')
+        first_training = TrainingType.objects.create(name='First training')
+        second_training = TrainingType.objects.create(name='Second training')
+        project.required_trainings.set([first_training, second_training])
+        Training.objects.create(
+            user=user,
+            slug='first-training',
+            training_type=first_training,
+            status=TrainingStatus.REVIEW,
+            reviewer_comments='',
+        )
+        Training.objects.create(
+            user=user,
+            slug='second-training',
+            training_type=second_training,
+            status=TrainingStatus.REVIEW,
+            reviewer_comments='',
+        )
+        self.client.login(username=user.username, password='Tester11!')
+
+        response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+
+        self.assertContains(response, 'Have your submitted training report approved.')
+
     @prevent_request_warnings
     def test_credentialed(self):
         """
