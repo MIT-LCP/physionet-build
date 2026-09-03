@@ -1,7 +1,7 @@
 {% if requires_training and not has_required_training %}
   {% if has_training_under_review %}
     <li>
-      Have your submitted training report approved. You can view its status on the <a href="{% url 'edit_certification' %}">Certification</a> page.
+      Your training report is under review. You can check its status on the <a href="{% url 'edit_certification' %}">Certification</a> page.
     </li>
   {% else %}
     <li>complete required training:</li>

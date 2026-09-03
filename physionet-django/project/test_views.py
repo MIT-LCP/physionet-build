@@ -727,7 +727,7 @@ class TestAccessPublished(TestMixin):
 
         self.assertContains(response, reviewed_training.name)
         self.assertContains(response, outstanding_training.name)
-        self.assertNotContains(response, 'Have your submitted training report approved.')
+        self.assertNotContains(response, 'Your training report is under review.')
 
     def test_all_trainings_under_review(self):
         project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
@@ -753,7 +753,7 @@ class TestAccessPublished(TestMixin):
 
         response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
 
-        self.assertContains(response, 'Have your submitted training report approved.')
+        self.assertContains(response, 'Your training report is under review.')
 
     @prevent_request_warnings
     def test_credentialed(self):
