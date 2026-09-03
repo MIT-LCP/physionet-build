@@ -328,6 +328,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.is_on_hold = False
             self.save(update_fields=['is_on_hold'])
 
+    def upload_agreement_accepted(self):
+        """Check whether the submitting author has accepted the upload agreement."""
+        agreement = getattr(self.submitting_author(), 'upload_agreement', None)
+        return agreement is not None and agreement.accepted
+
     def check_integrity(self):
         """
         Run integrity tests on metadata fields and return whether the
@@ -395,13 +400,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.integrity_errors.append('You have to choose a required training.')
 
         # Upload agreement (only check during author-editable phases)
-        if self.author_editable():
-            try:
-                agreement = self.submitting_author().upload_agreement
-                if not agreement.accepted:
-                    self.integrity_errors.append('You must accept the upload agreement before submitting.')
-            except UploadAgreement.DoesNotExist:
-                self.integrity_errors.append('You must accept the upload agreement before submitting.')
+        if self.author_editable() and not self.upload_agreement_accepted():
+            self.integrity_errors.append('You must accept the upload agreement before submitting.')
 
         if self.integrity_errors:
             return False

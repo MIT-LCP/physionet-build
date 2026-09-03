@@ -1088,12 +1088,7 @@ def project_files_panel(request, project_slug, **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
-    submitting_author = project.submitting_author()
-    agreement = getattr(submitting_author, 'upload_agreement', None)
-    has_accepted_agreement = (
-        is_editor
-        or (agreement is not None and agreement.accepted)
-    )
+    has_accepted_agreement = is_editor or project.upload_agreement_accepted()
 
     return render(
         request,
@@ -1156,12 +1151,9 @@ def process_files_post(request, project):
 
     if 'upload_files' in request.POST:
         # Check if upload agreement has been accepted (editors are exempt)
-        is_editor = request.user == project.editor
-        if not is_editor:
-            agreement = getattr(project.submitting_author(), 'upload_agreement', None)
-            if not agreement or not agreement.accepted:
-                messages.error(request, 'You must accept the upload agreement before uploading files.')
-                return ''
+        if request.user != project.editor and not project.upload_agreement_accepted():
+            messages.error(request, 'You must accept the upload agreement before uploading files.')
+            return ''
 
         form = forms.UploadFilesForm(project=project, data=request.POST,
             files=request.FILES)
@@ -1246,12 +1238,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
-    submitting_author = project.submitting_author()
-    agreement = getattr(submitting_author, 'upload_agreement', None)
-    has_accepted_agreement = (
-        is_editor
-        or (agreement is not None and agreement.accepted)
-    )
+    has_accepted_agreement = is_editor or project.upload_agreement_accepted()
 
     return render(
         request,
