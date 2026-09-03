@@ -41,6 +41,9 @@ from project.models import (
     exists_project_slug,
     UploadedDocument,
     UploadAgreement,
+    NO_HUMAN_SUBJECTS_LABEL,
+    DERIVED_DATA_LABEL,
+    HUMAN_SUBJECTS_DEIDENTIFIED_LABEL,
 )
 from user.models import COUNTRIES, User, TrainingType
 from user.validators import validate_affiliation
@@ -1379,17 +1382,12 @@ class UploadAgreementForm(forms.ModelForm):
             'human_subjects_deidentified',
         )
         labels = {
-            'no_human_subjects': (
-                'This project does not contain any data derived from human subjects.'
-            ),
+            'no_human_subjects': NO_HUMAN_SUBJECTS_LABEL,
             'derived_data': (
-                'This project contains data derived from other de-identified datasets '
-                f'published on {settings.SITE_NAME} or elsewhere.'
+                DERIVED_DATA_LABEL.rstrip('.')
+                + f' published on {settings.SITE_NAME} or elsewhere.'
             ),
-            'human_subjects_deidentified': (
-                'This project contains data obtained from human subjects, and all '
-                'personally identifiable information has been removed.'
-            ),
+            'human_subjects_deidentified': HUMAN_SUBJECTS_DEIDENTIFIED_LABEL,
         }
         help_texts = {
             'derived_data': (

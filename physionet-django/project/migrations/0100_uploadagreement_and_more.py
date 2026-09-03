@@ -33,14 +33,14 @@ class Migration(migrations.Migration):
                     default=False,
                     help_text=(
                         'This project does not contain any data derived '
-                        'from human subjects'
+                        'from human subjects.'
                     ),
                 )),
                 ('derived_data', models.BooleanField(
                     default=False,
                     help_text=(
                         'This project contains data derived from other '
-                        'de-identified datasets'
+                        'de-identified datasets.'
                     ),
                 )),
                 ('human_subjects_deidentified', models.BooleanField(
@@ -48,7 +48,7 @@ class Migration(migrations.Migration):
                     help_text=(
                         'This project contains data obtained from human '
                         'subjects, and all personally identifiable '
-                        'information has been removed'
+                        'information has been removed.'
                     ),
                 )),
                 ('created_datetime', models.DateTimeField(

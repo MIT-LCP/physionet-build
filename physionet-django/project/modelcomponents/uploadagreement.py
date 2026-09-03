@@ -1,6 +1,19 @@
 from django.db import models
 
 
+# Labels for the data type checkboxes, used by both the model and the form.
+NO_HUMAN_SUBJECTS_LABEL = (
+    'This project does not contain any data derived from human subjects.'
+)
+DERIVED_DATA_LABEL = (
+    'This project contains data derived from other de-identified datasets.'
+)
+HUMAN_SUBJECTS_DEIDENTIFIED_LABEL = (
+    'This project contains data obtained from human subjects, and all '
+    'personally identifiable information has been removed.'
+)
+
+
 class UploadAgreement(models.Model):
     """
     Model to track upload agreements for projects.
@@ -27,20 +40,17 @@ class UploadAgreement(models.Model):
     # Data type options (at least one must be selected)
     no_human_subjects = models.BooleanField(
         default=False,
-        help_text='This project does not contain any data derived from human subjects'
+        help_text=NO_HUMAN_SUBJECTS_LABEL,
     )
 
     derived_data = models.BooleanField(
         default=False,
-        help_text='This project contains data derived from other de-identified datasets'
+        help_text=DERIVED_DATA_LABEL,
     )
 
     human_subjects_deidentified = models.BooleanField(
         default=False,
-        help_text=(
-            'This project contains data obtained from human subjects, and all '
-            'personally identifiable information has been removed'
-        )
+        help_text=HUMAN_SUBJECTS_DEIDENTIFIED_LABEL,
     )
 
     # Metadata
