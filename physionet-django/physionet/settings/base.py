@@ -14,7 +14,7 @@ import fcntl
 import logging.config
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 from decouple import config, UndefinedValueError
 from django.core.exceptions import ImproperlyConfigured
@@ -759,10 +759,13 @@ FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)
 # requirement. Set to a datetime string (e.g. '2026-10-01T00:00:00Z') or
 # leave unset to require the agreement for all projects.
 _upload_agreement_start = config('UPLOAD_AGREEMENT_START_DATE', default=None)
-UPLOAD_AGREEMENT_START_DATE = (
-    datetime.fromisoformat(_upload_agreement_start)
-    if _upload_agreement_start else None
-)
+if _upload_agreement_start:
+    _parsed = datetime.fromisoformat(_upload_agreement_start)
+    if _parsed.tzinfo is None:
+        _parsed = _parsed.replace(tzinfo=timezone.utc)
+    UPLOAD_AGREEMENT_START_DATE = _parsed
+else:
+    UPLOAD_AGREEMENT_START_DATE = None
 
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
 COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)
