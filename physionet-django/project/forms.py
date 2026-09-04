@@ -96,7 +96,6 @@ class TransferAuthorForm(forms.Form):
         self.fields['transfer_author'].queryset = authors
 
     def transfer(self):
-        old_author = self.project.submitting_author()
         new_author = self.cleaned_data['transfer_author']
 
         # Assign the new submitting author
