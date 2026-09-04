@@ -27,7 +27,6 @@ from project.modelcomponents.metadata import (
     PublishedReference,
     UploadedDocument,
 )
-from project.modelcomponents.uploadagreement import UploadAgreement
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
