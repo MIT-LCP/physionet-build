@@ -1,41 +1,53 @@
 {% extends "console/base_console.html" %}
 
+{% load static %}
+
 {% block title %}Submitted Projects{% endblock %}
 
 {% load console_templatetags %}
 
 {% block content %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'console/js/search-console.js' %}"></script>
+
 <div class="card">
   <div class="card-header">
+    <input
+      type="search"
+      data-search-url="{% url 'project_search' bucket='submitted' %}"
+      oninput="searchSubmitted(this.dataset.searchUrl, this.value);"
+      placeholder="Search..."
+      class="mb-2"
+    >
     <ul class="nav nav-tabs">
       {% if perms.project.can_assign_editor %}
         <li class="nav-item">
-          <a class="nav-link active" id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="true">Awaiting Editor Assignment {{ assignment_projects|task_count_badge|safe }}</a>
+          <a class="nav-link active" id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="true">Awaiting Editor Assignment <span id="badge-assignment" data-original="{{ assignment_projects|length }}">{{ assignment_projects|task_count_badge|safe }}</span></a>
         </li>
       {% endif %}
       <li class="nav-item">
-        <a class="nav-link" id="reviewer-assignment-tab" data-toggle="tab" href="#reviewer-assignment" role="tab" aria-controls="reviewer-assignment" aria-selected="false">Awaiting Reviewer Assignment {{ reviewer_assignment_projects|task_count_badge|safe }}</a>
+        <a class="nav-link" id="reviewer-assignment-tab" data-toggle="tab" href="#reviewer-assignment" role="tab" aria-controls="reviewer-assignment" aria-selected="false">Awaiting Reviewer Assignment <span id="badge-reviewer_assignment" data-original="{{ reviewer_assignment_projects|length }}">{{ reviewer_assignment_projects|task_count_badge|safe }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="external-review-tab" data-toggle="tab" href="#external-review" role="tab" aria-controls="external-review" aria-selected="false">Awaiting External Review {{ external_review_projects|task_count_badge|safe }}</a>
+        <a class="nav-link" id="external-review-tab" data-toggle="tab" href="#external-review" role="tab" aria-controls="external-review" aria-selected="false">Awaiting External Review <span id="badge-external_review" data-original="{{ external_review_projects|length }}">{{ external_review_projects|task_count_badge|safe }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="decision-tab" data-toggle="tab" href="#decision" role="tab" aria-controls="decision" aria-selected="false">Awaiting Decision {{ decision_projects|task_count_badge|safe }}</a>
+        <a class="nav-link" id="decision-tab" data-toggle="tab" href="#decision" role="tab" aria-controls="decision" aria-selected="false">Awaiting Decision <span id="badge-decision" data-original="{{ decision_projects|length }}">{{ decision_projects|task_count_badge|safe }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="revision-tab" data-toggle="tab" href="#revision" role="tab" aria-controls="revision" aria-selected="false">Awaiting Author Revisions {{ revision_projects|task_count_badge|safe }}</span></a>
+        <a class="nav-link" id="revision-tab" data-toggle="tab" href="#revision" role="tab" aria-controls="revision" aria-selected="false">Awaiting Author Revisions <span id="badge-revision" data-original="{{ revision_projects|length }}">{{ revision_projects|task_count_badge|safe }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="copyedit-tab" data-toggle="tab" href="#copyedit" role="tab" aria-controls="copyedit" aria-selected="false">Awaiting Copyedit {{ copyedit_projects|task_count_badge|safe }}</a>
+        <a class="nav-link" id="copyedit-tab" data-toggle="tab" href="#copyedit" role="tab" aria-controls="copyedit" aria-selected="false">Awaiting Copyedit <span id="badge-copyedit" data-original="{{ copyedit_projects|length }}">{{ copyedit_projects|task_count_badge|safe }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="approval-tab" data-toggle="tab" href="#approval" role="tab" aria-controls="approval" aria-selected="false">Awaiting Author Approval {{ approval_projects|task_count_badge|safe }}</a>
+        <a class="nav-link" id="approval-tab" data-toggle="tab" href="#approval" role="tab" aria-controls="approval" aria-selected="false">Awaiting Author Approval <span id="badge-approval" data-original="{{ approval_projects|length }}">{{ approval_projects|task_count_badge|safe }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="publish-tab" data-toggle="tab" href="#publish" role="tab" aria-controls="publish" aria-selected="false">Awaiting Publication {{ publish_projects|task_count_badge|safe }}</a>
+        <a class="nav-link" id="publish-tab" data-toggle="tab" href="#publish" role="tab" aria-controls="publish" aria-selected="false">Awaiting Publication <span id="badge-publish" data-original="{{ publish_projects|length }}">{{ publish_projects|task_count_badge|safe }}</span></a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" id="onhold-tab" data-toggle="tab" href="#onhold" role="tab" aria-controls="onhold" aria-selected="false">On Hold {{ on_hold_projects|task_count_badge|safe }}</a>
+        <a class="nav-link" id="onhold-tab" data-toggle="tab" href="#onhold" role="tab" aria-controls="onhold" aria-selected="false">On Hold <span id="badge-on_hold" data-original="{{ on_hold_projects|length }}">{{ on_hold_projects|task_count_badge|safe }}</span></a>
       </li>
     </ul>
   </div>
@@ -57,7 +69,7 @@
                 </thead>
                 <tbody>
                 {% for project in assignment_projects %}
-                  <tr>
+                  <tr data-project-id="{{ project.id }}">
                     <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                     <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                     <td>{{ project.submission_datetime|date }}</td>
@@ -122,7 +134,7 @@
               </thead>
               <tbody>
               {% for project in reviewer_assignment_projects %}
-                <tr>
+                <tr data-project-id="{{ project.id }}">
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.editor }}</td>
@@ -165,7 +177,7 @@
               </thead>
               <tbody>
               {% for project in external_review_projects %}
-                <tr>
+                <tr data-project-id="{{ project.id }}">
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.editor }}</td>
@@ -205,7 +217,7 @@
               </thead>
               <tbody>
               {% for project in decision_projects %}
-                <tr>
+                <tr data-project-id="{{ project.id }}">
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.editor }}</td>
@@ -252,7 +264,7 @@
               </thead>
               <tbody>
               {% for project in revision_projects %}
-                <tr>
+                <tr data-project-id="{{ project.id }}">
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.submission_datetime|date }}</td>
@@ -303,7 +315,7 @@
               </thead>
               <tbody>
               {% for project in copyedit_projects %}
-                <tr>
+                <tr data-project-id="{{ project.id }}">
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
@@ -345,7 +357,7 @@
               </thead>
               <tbody>
               {% for project in approval_projects %}
-                <tr>
+                <tr data-project-id="{{ project.id }}">
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
@@ -392,7 +404,7 @@
               </thead>
               <tbody>
               {% for project in publish_projects %}
-                <tr>
+                <tr data-project-id="{{ project.id }}">
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author.user.username }}</a> - {{ project.submitting_author.user.email }}</td>
                   <td>{{ project.submission_datetime|date }}</td>
@@ -434,7 +446,7 @@
               </thead>
               <tbody>
               {% for project in on_hold_projects %}
-                <tr>
+                <tr data-project-id="{{ project.id }}">
                   <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.editor|default:"Unassigned" }}</td>
