@@ -532,6 +532,7 @@ class TestProjectCreation(TestMixin):
         self.assertGreater(quota.bytes_used, num_bytes)
 
 
+@override_settings(UPLOAD_AGREEMENT_START_DATE=None)
 class TestUploadAgreement(TestMixin):
     """
     Test the upload agreement requirement for file uploads.
