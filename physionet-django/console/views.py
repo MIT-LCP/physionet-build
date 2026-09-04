@@ -719,6 +719,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
          'editor_home': True,
          'is_editor': True,
          'files_editable': True,
+         'has_accepted_agreement': True,
          'copyedit_form': copyedit_form,
          'copyedit_logs': copyedit_logs,
          'add_item_url': edit_url,

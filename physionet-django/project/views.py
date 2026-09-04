@@ -1200,14 +1200,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             # process the file manipulation post
             subdir = process_files_post(request, project)
 
-    is_editor = request.user == project.editor
-
-    if is_submitting and project.author_editable():
-        files_editable = True
-    elif is_editor and project.copyeditable():
-        files_editable = True
-    else:
-        files_editable = False
+    files_editable = is_submitting and project.author_editable()
 
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         maintenance_message = settings.SYSTEM_MAINTENANCE_MESSAGE or (
@@ -1234,7 +1227,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
-    has_accepted_agreement = is_editor or project.upload_agreement_accepted()
+    has_accepted_agreement = project.upload_agreement_accepted()
 
     return render(
         request,
