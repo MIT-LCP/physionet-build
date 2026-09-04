@@ -36,7 +36,8 @@ from project.models import (
     SubmissionStatus,
     AWS
 )
-from user.models import User
+from user.enums import TrainingStatus
+from user.models import Training, TrainingType, User
 from user.test_views import TestMixin, prevent_request_warnings
 
 PROJECT_VIEWS = [
@@ -707,6 +708,53 @@ class TestAccessPublished(TestMixin):
     Published projects.
 
     """
+    def test_pending_training_requirements(self):
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        user = User.objects.get(email='rgmark@mit.edu')
+        reviewed_training = TrainingType.objects.create(name='Reviewed training')
+        outstanding_training = TrainingType.objects.create(name='Outstanding training')
+        project.required_trainings.set([reviewed_training, outstanding_training])
+        Training.objects.create(
+            user=user,
+            slug='reviewed-training',
+            training_type=reviewed_training,
+            status=TrainingStatus.REVIEW,
+            reviewer_comments='',
+        )
+        self.client.login(username=user.username, password='Tester11!')
+
+        response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+
+        self.assertContains(response, reviewed_training.name)
+        self.assertContains(response, outstanding_training.name)
+        self.assertNotContains(response, 'Your training report is under review.')
+
+    def test_all_trainings_under_review(self):
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        user = User.objects.get(email='rgmark@mit.edu')
+        first_training = TrainingType.objects.create(name='First training')
+        second_training = TrainingType.objects.create(name='Second training')
+        project.required_trainings.set([first_training, second_training])
+        Training.objects.create(
+            user=user,
+            slug='first-training',
+            training_type=first_training,
+            status=TrainingStatus.REVIEW,
+            reviewer_comments='',
+        )
+        Training.objects.create(
+            user=user,
+            slug='second-training',
+            training_type=second_training,
+            status=TrainingStatus.REVIEW,
+            reviewer_comments='',
+        )
+        self.client.login(username=user.username, password='Tester11!')
+
+        response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+
+        self.assertContains(response, 'Your training report is under review.')
+
     @prevent_request_warnings
     def test_credentialed(self):
         """

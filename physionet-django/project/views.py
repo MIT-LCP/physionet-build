@@ -2011,6 +2011,19 @@ def published_project(request, project_slug, version, subdir=''):
         else Training.objects.get_valid().filter(training_type__in=project.required_trainings.all(), user=user).count()
         == project.required_trainings.count()
     )
+    has_training_under_review = False
+    if user.is_authenticated:
+        valid_training_type_ids = Training.objects.get_valid().filter(
+            training_type__in=project.required_trainings.all(), user=user
+        ).values('training_type_id')
+        missing_training_types = project.required_trainings.exclude(id__in=valid_training_type_ids)
+        under_review_training_type_ids = Training.objects.get_review().filter(
+            training_type__in=missing_training_types,
+            user=user,
+        ).values('training_type_id')
+        has_training_under_review = missing_training_types.exists() and not missing_training_types.exclude(
+            id__in=under_review_training_type_ids
+        ).exists()
     current_site = get_current_site(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=True)
     all_project_versions = PublishedProject.objects.filter(slug=project_slug).order_by('version_order')
@@ -2070,6 +2083,7 @@ def published_project(request, project_slug, version, subdir=''):
         'has_accepted_access_request': has_accepted_access_request,
         'requires_training': requires_training,
         'has_required_training': has_required_training,
+        'has_training_under_review': has_training_under_review,
         'current_site': current_site,
         'bulk_url_prefix': bulk_url_prefix,
         'latest_version': latest_version,

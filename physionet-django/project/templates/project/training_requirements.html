@@ -1,0 +1,15 @@
+{% if requires_training and not has_required_training %}
+  {% if has_training_under_review %}
+    <li>
+      Your training report is under review. You can check its status on the <a href="{% url 'edit_certification' %}">Certification</a> page.
+    </li>
+  {% else %}
+    <li>complete required training:</li>
+    <ul>
+      {% for required_training in project.required_trainings.all %}
+        <li><a href="{% url 'published_project_required_training' project.slug project.version %}#{{ required_training.pk }}">{{ required_training.name }}</a></li>
+      {% endfor %}
+    </ul>
+    <li>You may submit your training <a href="{% url 'edit_training' %}">here</a>.</li>
+  {% endif %}
+{% endif %}
