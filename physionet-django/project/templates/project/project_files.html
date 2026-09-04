@@ -36,7 +36,7 @@
   </div>
 {% endif %}
 
-{% if is_submitting and not has_accepted_agreement %}
+{% if is_submitting and not can_upload_files %}
   <div class="alert alert-form alert-danger alert-dismissible">
     <strong>Upload Agreement Required!</strong>
     <p>You must accept the upload agreement before you can upload files to this project.</p>

@@ -1084,8 +1084,6 @@ def project_files_panel(request, project_slug, **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
-    has_accepted_agreement = is_editor or project.upload_agreement_accepted()
-
     return render(
         request,
         'project/edit_files_panel.html',
@@ -1108,7 +1106,7 @@ def project_files_panel(request, project_slug, **kwargs):
             'is_submitting': is_submitting,
             'is_editor': is_editor,
             'files_editable': files_editable,
-            'has_accepted_agreement': has_accepted_agreement,
+            'can_upload_files': project.can_upload_files(request.user),
             'max_files_per_upload': settings.DATA_UPLOAD_MAX_NUMBER_FILES,
             'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         },
@@ -1146,8 +1144,7 @@ def process_files_post(request, project):
         raise ServiceUnavailable()
 
     if 'upload_files' in request.POST:
-        # Check if upload agreement has been accepted (editors are exempt)
-        if request.user != project.editor and not project.upload_agreement_accepted():
+        if not project.can_upload_files(request.user):
             messages.error(request, 'You must accept the upload agreement before uploading files.')
             return ''
 
@@ -1227,8 +1224,6 @@ def project_files(request, project_slug, subdir='', **kwargs):
      move_items_form, delete_items_form) = get_file_forms(
          project=project, subdir=subdir, display_dirs=display_dirs)
 
-    has_accepted_agreement = project.upload_agreement_accepted()
-
     return render(
         request,
         'project/project_files.html',
@@ -1256,7 +1251,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'maintenance_message': maintenance_message,
             'is_lightwave_supported': project.files.is_lightwave_supported(),
             'storage_type': settings.STORAGE_TYPE,
-            'has_accepted_agreement': has_accepted_agreement,
+            'can_upload_files': project.can_upload_files(request.user),
         },
     )
 

@@ -5,7 +5,7 @@
   <div class="big-toolbar">
     <span class="big-toolbar-left">
       <button id="upload-files-button" type="button" class="btn btn-success"
-              {% if not has_accepted_agreement %}disabled title="You must accept the upload agreement first"{% else %}data-toggle="modal" data-target="#upload-files-modal" onclick="prepareUpload()"{% endif %}>
+              {% if not can_upload_files %}disabled title="You must accept the upload agreement first"{% else %}data-toggle="modal" data-target="#upload-files-modal" onclick="prepareUpload()"{% endif %}>
         <i class="fa fa-arrow-circle-up"></i> Upload Files
       </button>
       <button id="create-folder-button" type="button" class="btn btn-success" data-toggle="modal" data-target="#create-folder-modal" onclick="prepareCreate()">

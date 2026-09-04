@@ -341,6 +341,17 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         agreement = getattr(self.submitting_author(), 'upload_agreement', None)
         return agreement is not None and agreement.accepted
 
+    def can_upload_files(self, user):
+        """Check whether the given user is allowed to upload files.
+
+        Editors are exempt from the upload agreement requirement
+        during copyediting. All other users must have an accepted
+        upload agreement.
+        """
+        if user == self.editor:
+            return self.copyeditable()
+        return self.upload_agreement_accepted()
+
     def check_integrity(self):
         """
         Run integrity tests on metadata fields and return whether the
