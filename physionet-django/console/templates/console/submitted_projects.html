@@ -12,7 +12,6 @@
 
 <div class="card">
   <div class="card-header">
-    <ul class="nav nav-tabs">
     <input
       type="search"
       data-search-url="{% url 'project_search' bucket='submitted' %}"
@@ -20,7 +19,7 @@
       placeholder="Search..."
       class="mb-2"
     >
-    <ul class="nav nav-tabs card-header-tabs">
+    <ul class="nav nav-tabs">
       {% if perms.project.can_assign_editor %}
         <li class="nav-item">
           <a class="nav-link active" id="assignment-tab" data-toggle="tab" href="#assignment" role="tab" aria-controls="assignment" aria-selected="true">Awaiting Editor Assignment <span id="badge-assignment" data-original="{{ assignment_projects|length }}">{{ assignment_projects|task_count_badge|safe }}</span></a>
@@ -53,7 +52,6 @@
     </ul>
   </div>
   <div class="card-body">
-    <!-- <div id="submitted-search-results" style="display:none;"></div> -->
     {# Awaiting editor assignment #}
     <div class="tab-content">
       {% if perms.project.can_assign_editor %}
@@ -254,7 +252,7 @@
           <div class="table-responsive">
             <table class="table table-bordered">
               <thead>
-                <tr >
+                <tr>
                   <th>Project</th>
                   <th>Submitted By</th>
                   <th>Submitted</th>

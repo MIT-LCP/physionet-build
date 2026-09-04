@@ -82,13 +82,11 @@ function searchSubmitted(url, value) {
 
             // Update badge counts and colors
             $.each(data.counts, function (key, count) {
-                // var badge = $('#badge-' + key).find('.badge');
                 var badgeWrapper = $('#badge-' + key);
                 var badge = badgeWrapper.find('.badge');
                 var original = parseInt(badgeWrapper.data('original'));
                 badge.text(count);
                 badge.removeClass('badge-info badge-danger')
-                    //  .addClass(count > 0 ? 'badge-danger': 'badge-info');
                 if (count > 0) {
                     // Results found for this search
                     badge.addClass('badge-danger');
@@ -98,7 +96,7 @@ function searchSubmitted(url, value) {
                 } else {
                     // Had projects originally but none match the search
                     badge.addClass('badge-info');
-            }
+                }
             });
         });
 

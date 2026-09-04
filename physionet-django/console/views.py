@@ -1518,7 +1518,7 @@ def project_search(request, bucket):
     if request.method != 'POST' or bucket not in PROJECT_SEARCH_BUCKETS:
         raise Http404()
 
-    search_field = request.POST['search']
+    search_field = request.POST.get('search', '')
     model, status, order, template = PROJECT_SEARCH_BUCKETS[bucket]
 
     if bucket == 'submitted':
