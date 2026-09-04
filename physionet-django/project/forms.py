@@ -40,6 +40,10 @@ from project.models import (
     Topic,
     exists_project_slug,
     UploadedDocument,
+    UploadAgreement,
+    NO_HUMAN_SUBJECTS_LABEL,
+    DERIVED_DATA_FORM_LABEL,
+    HUMAN_SUBJECTS_DEIDENTIFIED_LABEL,
 )
 from user.models import COUNTRIES, User, TrainingType
 from user.validators import validate_affiliation
@@ -1357,3 +1361,44 @@ class UploadedDocumentFormSet(BaseGenericInlineFormSet):
             "Statements on ethics approval should appear here. "
             "Your statement will be included in the public project description."
         )
+
+
+class UploadAgreementForm(forms.ModelForm):
+    """
+    Form for accepting the upload agreement
+    """
+    class Meta:
+        model = UploadAgreement
+        fields = (
+            'no_human_subjects',
+            'derived_data',
+            'human_subjects_deidentified',
+        )
+        labels = {
+            'no_human_subjects': NO_HUMAN_SUBJECTS_LABEL,
+            'derived_data': DERIVED_DATA_FORM_LABEL.format(
+                site_name=settings.SITE_NAME,
+            ),
+            'human_subjects_deidentified': HUMAN_SUBJECTS_DEIDENTIFIED_LABEL,
+        }
+        help_texts = {
+            'derived_data': (
+                'You will need to cite these datasets in your project description, '
+                'and explain how you created the derived data. Even if you are using '
+                'data previously published elsewhere, we expect you to take all '
+                'reasonable steps to ensure the files you are uploading are free of '
+                'personally identifiable information.'
+            ),
+        }
+
+    def __init__(self, author, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.author = author
+
+    def save(self):
+        agreement = super().save(commit=False)
+        agreement.author = self.author
+        agreement.accepted = True
+        agreement.accepted_datetime = timezone.now()
+        agreement.save()
+        return agreement

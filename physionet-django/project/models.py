@@ -19,3 +19,4 @@ from project.modelcomponents.storage import *
 from project.modelcomponents.submission import *
 from project.modelcomponents.log import *
 from project.modelcomponents.review import *
+from project.modelcomponents.uploadagreement import *

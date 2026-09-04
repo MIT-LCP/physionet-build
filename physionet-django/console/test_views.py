@@ -28,6 +28,7 @@ from project.models import (
     ReviewerInvitation,
     StorageRequest,
     SubmissionStatus,
+    UploadAgreement,
 )
 from user.models import User
 from physionet.models import FrontPageButton, StaticPage
@@ -539,6 +540,16 @@ class TestState(TestMixin):
             response = self.client.post(
                 reverse('new_project_version', args=(self.PROJECT_SLUG,)),
                 data={'version': version})
+
+            # Create upload agreement for the new project version
+            new_project = ActiveProject.objects.get(title=self.PROJECT_TITLE, version=version)
+            submitting_author = new_project.authors.get(is_submitting=True)
+            UploadAgreement.objects.create(
+                author=submitting_author,
+                accepted=True,
+                no_human_subjects=True
+            )
+
             self.test_publish()
 
         # Sort the list of version numbers

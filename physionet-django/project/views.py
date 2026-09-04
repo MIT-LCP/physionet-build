@@ -921,6 +921,47 @@ def project_discovery(request, project_slug, **kwargs):
          'remove_item_url':edit_url, 'is_submitting':is_submitting})
 
 
+@project_auth(auth_mode=0, post_auth_mode=2)
+def project_upload_agreement(request, project_slug, **kwargs):
+    """
+    Page to accept the upload agreement
+    """
+    project, is_submitting = (kwargs[k] for k in ('project', 'is_submitting'))
+    editable = is_submitting and project.author_editable()
+
+    submitting_author = project.submitting_author()
+    existing_agreement = getattr(submitting_author, 'upload_agreement', None)
+
+    if request.method == 'POST':
+        upload_agreement_form = forms.UploadAgreementForm(author=submitting_author,
+                                                          data=request.POST,
+                                                          instance=existing_agreement)
+
+        if upload_agreement_form.is_valid():
+            upload_agreement_form.save()
+            messages.success(request, 'Upload agreement has been accepted.')
+            return redirect('project_files', project_slug=project.slug)
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        # Get existing agreement or create new form
+        upload_agreement_form = forms.UploadAgreementForm(author=submitting_author,
+                                                          instance=existing_agreement)
+
+    # Disable form fields if not editable
+    if not editable:
+        for field_name in upload_agreement_form.fields:
+            upload_agreement_form.fields[field_name].widget.attrs['disabled'] = 'disabled'
+
+    return render(request, 'project/project_upload_agreement.html', {
+        'project': project,
+        'upload_agreement_form': upload_agreement_form,
+        'existing_agreement': existing_agreement,
+        'is_submitting': is_submitting,
+        'editable': editable,
+    })
+
+
 class ProjectAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         qs = PublishedProject.objects.all()
@@ -1065,6 +1106,7 @@ def project_files_panel(request, project_slug, **kwargs):
             'is_submitting': is_submitting,
             'is_editor': is_editor,
             'files_editable': files_editable,
+            'can_upload_files': project.can_upload_files(request.user),
             'max_files_per_upload': settings.DATA_UPLOAD_MAX_NUMBER_FILES,
             'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         },
@@ -1102,6 +1144,10 @@ def process_files_post(request, project):
         raise ServiceUnavailable()
 
     if 'upload_files' in request.POST:
+        if not project.can_upload_files(request.user):
+            messages.error(request, 'You must accept the upload agreement before uploading files.')
+            return ''
+
         form = forms.UploadFilesForm(project=project, data=request.POST,
             files=request.FILES)
         subdir = process_items(request, form)
@@ -1151,10 +1197,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             # process the file manipulation post
             subdir = process_files_post(request, project)
 
-    if is_submitting and project.author_editable():
-        files_editable = True
-    else:
-        files_editable = False
+    files_editable = is_submitting and project.author_editable()
 
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         maintenance_message = settings.SYSTEM_MAINTENANCE_MESSAGE or (
@@ -1208,6 +1251,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'maintenance_message': maintenance_message,
             'is_lightwave_supported': project.files.is_lightwave_supported(),
             'storage_type': settings.STORAGE_TYPE,
+            'can_upload_files': project.can_upload_files(request.user),
         },
     )
 

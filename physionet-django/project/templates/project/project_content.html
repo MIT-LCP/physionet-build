@@ -1,6 +1,7 @@
 {% extends "project/project.html" %}
 
 {% load static %}
+{% load project_templatetags %}
 
 {% block title %}Project Content - {{ project }}{% endblock %}
 
@@ -11,7 +12,7 @@
 {% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">2. Project Content</h2>
+<h2 class="form-signin-heading">{% project_step_header 'content' %}</h2>
 <hr>
 <p>Describe the context of your resource, the organization of its files, and how it is to be reused.</p>
 <p>Please adhere to the standards specified in the helpstrings. Required fields are indicated by a <a style="color:red">*</a>.</p>

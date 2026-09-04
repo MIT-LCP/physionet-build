@@ -367,6 +367,8 @@ def submission_info_card_params(request,
         is_active=True
     ).select_related('reviewer', 'review')
 
+    upload_agreement = getattr(project.submitting_author(), 'upload_agreement', None)
+
     return {
         'project': project,
         'authors': authors,
@@ -381,6 +383,7 @@ def submission_info_card_params(request,
         'notes': notes,
         'internal_note_form': internal_note_form,
         'reviewer_invitations': reviewer_invitations,
+        'upload_agreement': upload_agreement,
     }
 
 
@@ -716,6 +719,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
          'editor_home': True,
          'is_editor': True,
          'files_editable': True,
+         'can_upload_files': project.can_upload_files(request.user),
          'copyedit_form': copyedit_form,
          'copyedit_logs': copyedit_logs,
          'add_item_url': edit_url,

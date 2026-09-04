@@ -77,6 +77,7 @@ urlpatterns = [
         views.serve_active_project_ethics_doc,
         name='serve_active_project_ethics_doc',
     ),
+    path('<project_slug>/upload-agreement/', views.project_upload_agreement, name='project_upload_agreement'),
     path(
         '<project_slug>/view-required-trainings/',
         views.project_required_trainings_preview,
