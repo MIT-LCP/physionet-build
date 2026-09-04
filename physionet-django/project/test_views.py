@@ -664,7 +664,7 @@ class TestUploadAgreement(TestMixin):
         response = self.client.get(
             reverse('copyedit_submission', args=(project.slug,)))
         self.assertEqual(response.status_code, 200)
-        self.assertNotContains(response, 'disabled title="You must accept the upload agreement first"')
+        self.assertContains(response, 'data-target="#upload-files-modal"')
 
     @override_settings(UPLOAD_AGREEMENT_START_DATE=timezone.now() + timedelta(days=1))
     def test_project_exempt_before_start_date(self):
