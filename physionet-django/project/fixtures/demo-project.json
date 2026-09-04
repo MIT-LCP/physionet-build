@@ -2844,9 +2844,9 @@
     "author": 1,
     "accepted": true,
     "accepted_datetime": "2018-09-04T17:26:24.820Z",
-    "no_human_subjects": true,
+    "no_human_subjects": false,
     "derived_data": false,
-    "human_subjects_deidentified": false,
+    "human_subjects_deidentified": true,
     "created_datetime": "2018-09-04T17:26:24.820Z",
     "updated_datetime": "2018-09-04T17:26:24.820Z"
   }
@@ -2858,9 +2858,9 @@
     "author": 2,
     "accepted": true,
     "accepted_datetime": "2018-09-04T17:26:24.820Z",
-    "no_human_subjects": true,
+    "no_human_subjects": false,
     "derived_data": false,
-    "human_subjects_deidentified": false,
+    "human_subjects_deidentified": true,
     "created_datetime": "2018-09-04T17:26:24.820Z",
     "updated_datetime": "2018-09-04T17:26:24.820Z"
   }
@@ -2872,9 +2872,9 @@
     "author": 5,
     "accepted": true,
     "accepted_datetime": "2018-09-04T17:26:24.820Z",
-    "no_human_subjects": true,
+    "no_human_subjects": false,
     "derived_data": false,
-    "human_subjects_deidentified": false,
+    "human_subjects_deidentified": true,
     "created_datetime": "2018-09-04T17:26:24.820Z",
     "updated_datetime": "2018-09-04T17:26:24.820Z"
   }
