@@ -230,10 +230,11 @@ def project_settings_steps():
 @register.simple_tag(name='project_step_header')
 def project_step_header(key):
     """Return the step heading string (e.g. '7. Files') for a given key."""
-    for i, (k, label) in enumerate(PROJECT_SETTINGS_STEPS, 1):
-        if k == key:
-            return f'{i}. {label}'
-    return key
+    steps = dict((k, (i, label)) for i, (k, label) in enumerate(PROJECT_SETTINGS_STEPS, 1))
+    if key not in steps:
+        raise KeyError(f"Unknown project step: {key!r}")
+    i, label = steps[key]
+    return f'{i}. {label}'
 
 
 @register.simple_tag(name='can_view_project_files')
