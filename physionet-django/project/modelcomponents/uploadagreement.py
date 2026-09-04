@@ -8,6 +8,10 @@ NO_HUMAN_SUBJECTS_LABEL = (
 DERIVED_DATA_LABEL = (
     'This project contains data derived from other de-identified datasets.'
 )
+DERIVED_DATA_FORM_LABEL = (
+    'This project contains data derived from other de-identified datasets '
+    'published on {site_name} or elsewhere.'
+)
 HUMAN_SUBJECTS_DEIDENTIFIED_LABEL = (
     'This project contains data obtained from human subjects, and all '
     'personally identifiable information has been removed.'
@@ -72,6 +76,17 @@ class UploadAgreement(models.Model):
                 violation_error_message='Please select at least one option that applies to your project.',
             )
         ]
+
+    def selected_data_types(self):
+        """Return the labels of the selected data type checkboxes."""
+        labels = []
+        if self.no_human_subjects:
+            labels.append(NO_HUMAN_SUBJECTS_LABEL)
+        if self.derived_data:
+            labels.append(DERIVED_DATA_LABEL)
+        if self.human_subjects_deidentified:
+            labels.append(HUMAN_SUBJECTS_DEIDENTIFIED_LABEL)
+        return labels
 
     def __str__(self):
         return (

@@ -42,7 +42,7 @@ from project.models import (
     UploadedDocument,
     UploadAgreement,
     NO_HUMAN_SUBJECTS_LABEL,
-    DERIVED_DATA_LABEL,
+    DERIVED_DATA_FORM_LABEL,
     HUMAN_SUBJECTS_DEIDENTIFIED_LABEL,
 )
 from user.models import COUNTRIES, User, TrainingType
@@ -1377,9 +1377,8 @@ class UploadAgreementForm(forms.ModelForm):
         )
         labels = {
             'no_human_subjects': NO_HUMAN_SUBJECTS_LABEL,
-            'derived_data': (
-                DERIVED_DATA_LABEL.rstrip('.')
-                + f' published on {settings.SITE_NAME} or elsewhere.'
+            'derived_data': DERIVED_DATA_FORM_LABEL.format(
+                site_name=settings.SITE_NAME,
             ),
             'human_subjects_deidentified': HUMAN_SUBJECTS_DEIDENTIFIED_LABEL,
         }
