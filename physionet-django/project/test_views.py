@@ -539,7 +539,8 @@ class TestUploadAgreement(TestMixin):
 
     def test_upload_blocked_without_agreement(self):
         """
-        Upload should be rejected if the submitting author has no agreement.
+        Upload should be rejected with a specific message if the
+        submitting author has no agreement.
         """
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
@@ -556,7 +557,7 @@ class TestUploadAgreement(TestMixin):
                 'subdir': '',
                 'file_field': SimpleUploadedFile('testfile.txt', b'test'),
             })
-        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'You must accept the upload agreement')
         self.assertFalse(
             os.path.exists(os.path.join(project.file_root(), 'testfile.txt'))
         )
@@ -585,6 +586,22 @@ class TestUploadAgreement(TestMixin):
             os.path.exists(os.path.join(project.file_root(), 'testfile.txt'))
         )
 
+    def test_warning_shown_for_submitting_author(self):
+        """
+        Submitting author should see the upload agreement warning when
+        no agreement exists.
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        UploadAgreement.objects.filter(
+            author=project.submitting_author()
+        ).delete()
+
+        response = self.client.get(
+            reverse('project_files', args=(project.slug,)))
+        self.assertContains(response, 'Upload Agreement Required!')
+
     def test_non_submitting_author_no_warning(self):
         """
         Non-submitting authors should not see the upload agreement warning.
@@ -605,7 +622,8 @@ class TestUploadAgreement(TestMixin):
 
     def test_agreement_form_requires_checkbox(self):
         """
-        Submitting the agreement form with no checkboxes selected should fail.
+        Submitting the agreement form with no checkboxes selected should
+        show a validation error.
         """
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
@@ -617,10 +635,108 @@ class TestUploadAgreement(TestMixin):
         response = self.client.post(
             reverse('project_upload_agreement', args=(project.slug,)),
             data={})
-        self.assertEqual(response.status_code, 200)
-        # Agreement should not have been created
+        self.assertContains(response, 'Please select at least one option')
         self.assertFalse(
             UploadAgreement.objects.filter(author=author).exists()
+        )
+
+    def test_editor_can_upload_during_copyedit(self):
+        """
+        The handling editor should be able to upload files during
+        copyediting, without needing an upload agreement.
+        """
+        from project.modelcomponents.submission import CopyeditLog
+
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        editor = User.objects.get(username='admin')
+
+        # Set up project for copyediting
+        project.submission_status = SubmissionStatus.NEEDS_COPYEDIT
+        project.editor = editor
+        project.save()
+
+        CopyeditLog.objects.create(
+            content_type=ContentType.objects.get_for_model(ActiveProject),
+            object_id=project.pk,
+        )
+
+        self.client.login(username='admin@mit.edu', password='Tester11!')
+        response = self.client.get(
+            reverse('copyedit_submission', args=(project.slug,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'disabled title="You must accept the upload agreement first"')
+
+    @override_settings(UPLOAD_AGREEMENT_START_DATE=timezone.now() + timedelta(days=1))
+    def test_project_exempt_before_start_date(self):
+        """
+        Projects created before UPLOAD_AGREEMENT_START_DATE should be
+        exempt from the upload agreement requirement.
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        # Ensure no agreement exists
+        UploadAgreement.objects.filter(
+            author=project.submitting_author()
+        ).delete()
+
+        # Project was created in the past, start date is in the future
+        self.assertTrue(project.upload_agreement_accepted())
+
+        response = self.client.post(
+            reverse('project_files', args=(project.slug,)),
+            data={
+                'upload_files': '',
+                'subdir': '',
+                'file_field': SimpleUploadedFile('testfile.txt', b'test'),
+            })
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(
+            os.path.exists(os.path.join(project.file_root(), 'testfile.txt'))
+        )
+
+    @override_settings(UPLOAD_AGREEMENT_START_DATE=timezone.make_aware(
+        timezone.datetime(2000, 1, 1)))
+    def test_project_not_exempt_after_start_date(self):
+        """
+        Projects created after UPLOAD_AGREEMENT_START_DATE should
+        require the upload agreement.
+        """
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        # Ensure no agreement exists
+        UploadAgreement.objects.filter(
+            author=project.submitting_author()
+        ).delete()
+
+        # Project was created after the start date
+        self.assertFalse(project.upload_agreement_accepted())
+
+        response = self.client.post(
+            reverse('project_files', args=(project.slug,)),
+            data={
+                'upload_files': '',
+                'subdir': '',
+                'file_field': SimpleUploadedFile('testfile.txt', b'test'),
+            })
+        self.assertContains(response, 'You must accept the upload agreement')
+
+    def test_check_integrity_requires_agreement(self):
+        """
+        check_integrity should report an error when the upload
+        agreement has not been accepted.
+        """
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+
+        UploadAgreement.objects.filter(
+            author=project.submitting_author()
+        ).delete()
+
+        project.check_integrity()
+        self.assertIn(
+            'You must accept the upload agreement before submitting.',
+            project.integrity_errors
         )
 
 
