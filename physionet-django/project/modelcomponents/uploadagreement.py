@@ -78,4 +78,3 @@ class UploadAgreement(models.Model):
             f"Upload Agreement for {self.author} - "
             f"{'Accepted' if self.accepted else 'Pending'}"
         )
-
