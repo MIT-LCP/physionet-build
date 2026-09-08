@@ -628,7 +628,9 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
         send_file_to_s3(s3, bucket_name, s3_key, zip_file_path, existing_file)
 
 
-def send_file_to_s3(s3, bucket_name, key, file_path, existing_file=None):
+def send_file_to_s3(s3, bucket_name, key, file_path, existing_file=None,
+                    previous_bucket_name=None, previous_s3_key=None,
+                    previous_file=None):
     """
     Upload a local file to an AWS S3 bucket.
 
@@ -648,11 +650,22 @@ def send_file_to_s3(s3, bucket_name, key, file_path, existing_file=None):
     """
     if existing_file is not None and existing_file.match_path(file_path):
         return
-    s3.upload_file(
-        Filename=file_path,
-        Bucket=bucket_name,
-        Key=key,
-    )
+
+    if previous_file is not None and previous_file.match_path(file_path):
+        s3.copy(
+            CopySource={
+                'Bucket': previous_bucket_name,
+                'Key': previous_s3_key,
+            },
+            Bucket=bucket_name,
+            Key=key,
+        )
+    else:
+        s3.upload_file(
+            Filename=file_path,
+            Bucket=bucket_name,
+            Key=key,
+        )
 
 
 def get_aws_accounts_for_access_point(access_point_name):
