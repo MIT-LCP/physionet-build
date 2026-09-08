@@ -1446,7 +1446,7 @@ def create_s3_access_point(project, access_point_name, bucket_name, account_id):
     return access_point
 
 
-def upload_project_to_S3(project):
+def upload_project_to_S3(project, previous_project=None):
     """
         Upload project files to an S3 bucket and configure access policies.
 
@@ -1490,7 +1490,16 @@ def upload_project_to_S3(project):
     )
     folder_path = project.file_root()
     s3_prefix = f"{project.slug}/{project.version}/"
-    send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
+
+    if previous_project is None:
+        previous_bucket_name = previous_s3_prefix = None
+    else:
+        previous_bucket_name = get_bucket_name(previous_project)
+        previous_s3_prefix = f"{previous_project.slug}/{previous_project.version}/"
+
+    send_files_to_s3(folder_path, s3_prefix, bucket_name, project,
+                     previous_bucket_name=previous_bucket_name,
+                     previous_s3_prefix=previous_s3_prefix)
     if project.access_policy == AccessPolicy.OPEN and not project.georestricted:
         update_open_bucket_policy(project, bucket_name)
     else:
