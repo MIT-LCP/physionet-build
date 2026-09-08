@@ -1033,8 +1033,9 @@ def send_files_to_gcp(pid):
 
 
 @associated_task(PublishedProject, "pid", read_only=True)
+@associated_task(PublishedProject, "previous_pid", read_only=True)
 @background()
-def send_files_to_aws(pid):
+def send_files_to_aws(pid, previous_pid=None):
     """
     Upload project files to AWS S3 buckets.
 
@@ -1052,8 +1053,14 @@ def send_files_to_aws(pid):
     - Verify that AWS credentials and configurations are correctly set
     up for the S3 client.
     """
+
     project = PublishedProject.objects.get(id=pid)
-    upload_project_to_S3(project)
+    if previous_pid is None:
+        previous_project = None
+    else:
+        previous_project = PublishedProject.objects.get(id=previous_pid)
+
+    upload_project_to_S3(project, previous_project=previous_project)
     project.aws.sent_files = True
     project.aws.finished_datetime = timezone.now()
     if project.compressed_storage_size:
