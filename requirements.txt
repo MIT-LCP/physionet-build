@@ -374,9 +374,9 @@ django-tinymce==4.1.0 ; python_version >= "3.11" and python_version < "4.0" \
 django==4.2.30 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:4d07aaf1c62f9984842b67c2874ebbf7056a17be253860299b93ae1881faad65 \
     --hash=sha256:4ebc7a434e3819db6cf4b399fb5b3f536310a30e8486f08b66886840be84b37c
-djangorestframework==3.15.2 ; python_version >= "3.11" and python_version < "4.0" \
-    --hash=sha256:2b8871b062ba1aefc2de01f773875441a961fefbf79f5eed1e32b2f096944b20 \
-    --hash=sha256:36fe88cd2d6c6bec23dca9804bab2ba5517a8bb9d8f47ebc68981b56840107ad
+djangorestframework==3.17.2 ; python_version >= "3.11" and python_version < "4.0" \
+    --hash=sha256:89ed713b6dc83e1539f214b7d10808ae19bb8511004beba886225da6d5c9dafa \
+    --hash=sha256:cb0546a7415d5b46c04e0f4fe0a54b2109f4fdd5e83ca773c8c6183a6493d042
 frozenlist==1.7.0 ; python_version >= "3.11" and python_version < "4.0" \
     --hash=sha256:04fb24d104f425da3540ed83cbfc31388a586a7696142004c577fa61c6298c3f \
     --hash=sha256:05579bf020096fe05a764f1f84cd104a12f78eaab68842d036772dc6d4870b4b \
