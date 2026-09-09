@@ -65,7 +65,9 @@ from user.models import (
     User,
     Training,
     TrainingType,
+    CITIGroupMapping,
 )
+from user.tasks import run_citi_api_verification
 from user.userfiles import UserFiles
 from user.enums import RequiredField, ActivateUserType
 from physionet.models import StaticPage
@@ -1115,7 +1117,9 @@ def edit_training(request):
             data=request.POST, training_type=request.POST.get("training_type"), auto_id="op_%s"
         )
         if training_form.is_valid():
-            training_form.save()
+            training = training_form.save()
+            if CITIGroupMapping.objects.filter(training_type=training.training_type).exists():
+                run_citi_api_verification(training.id)
             messages.success(request, "The training has been submitted successfully.")
             training_application_request(request, training_form)
             training_form = forms.TrainingForm(user=request.user)
