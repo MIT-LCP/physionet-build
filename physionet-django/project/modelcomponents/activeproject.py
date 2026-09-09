@@ -640,11 +640,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 # in the published project
                 published_project.update_internal_links(old_project=self)
 
+                published_project.is_latest_version = False
+
                 published_project.save()
 
                 # If this is a new version, all version fields have to be updated
-                if self.is_new_version:
-                    published_project.set_version_order()
+                published_project.set_version_order()
 
                 # Same content, different objects.
                 for reference in self.references.all().order_by('order'):

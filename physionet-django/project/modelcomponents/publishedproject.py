@@ -344,7 +344,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         for index, version in enumerate(sorted_versions):
             tmp = published_projects.get(version=version)
             tmp.version_order = index
-            tmp.has_other_versions = True
+            tmp.has_other_versions = len(sorted_versions) > 1
             tmp.is_latest_version = False
             if sorted_versions[-1] == version:
                 tmp.is_latest_version = True
