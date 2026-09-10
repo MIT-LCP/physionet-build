@@ -9,7 +9,7 @@ def create_citi_group_mapping(apps, schema_editor):
     CITIGroupMapping = apps.get_model('user', 'CITIGroupMapping')
 
     try:
-        citi_type = TrainingType.objects.get(pk=1)
+        citi_type = TrainingType.objects.get(name='CITI Data or Specimens Only Research')
         CITIGroupMapping.objects.get_or_create(
             citi_group_id=43007,
             defaults={
