@@ -12,9 +12,12 @@ from django.utils import timezone
 
 from user import citi_training_module as citi
 from user.citi_training_module import (
+    CITICompletionResult,
+    CITILookupResult,
     find_matching_completion,
     lookup_citi_completions_for_user,
-    serialize_completions,
+    parse_completions_xml,
+    parse_member_profile_xml,
     verify_training_via_citi_api,
 )
 from user.enums import RequiredField, TrainingStatus
@@ -230,18 +233,20 @@ class TestUtils(unittest.TestCase):
 
     def test_get_member_profile(self, mocker):
         mocker.register_uri('POST', soap_request_url, text=fake_xml_memberid, additional_matcher=match_member_email)
-        profile = citi.get_member_profile('tester@mit.edu')
+        profile, raw_xml = citi.get_member_profile('tester@mit.edu')
         self.assertIsNotNone(profile)
         self.assertEqual(profile['intMemberID'], '12102652')
         self.assertEqual(profile['strFirstII'], 'Smith')
         self.assertEqual(profile['strLastII'], 'John')
         self.assertEqual(profile['strUsernameII'], 'fakeusername')
         self.assertEqual(profile['strInstEmail'], 'tester@mit.edu')
+        self.assertEqual(raw_xml, fake_xml_memberid)
 
     def test_get_member_profile_not_found(self, mocker):
         mocker.register_uri('POST', soap_request_url, text=fake_xml_no_member, additional_matcher=match_member_email)
-        profile = citi.get_member_profile('unknown@example.com')
+        profile, raw_xml = citi.get_member_profile('unknown@example.com')
         self.assertIsNone(profile)
+        self.assertEqual(raw_xml, fake_xml_no_member)
 
     def test_get_memberid_not_found(self, mocker):
         mocker.register_uri('POST', soap_request_url, text=fake_xml_no_member, additional_matcher=match_member_email)
@@ -252,11 +257,13 @@ class TestUtils(unittest.TestCase):
         mocker.register_uri('POST', soap_request_url, text=fake_xml_memberid, additional_matcher=match_member_email)
         mocker.register_uri('POST', soap_request_url, text=fake_xml_courseinfo,
                             additional_matcher=match_member_courseinfo)
-        course_info, member_id, member_profile = citi.get_citiprogram_completion('tester@mit.edu')
-        self.assertEqual(member_id, '12102652')
-        self.assertEqual(member_profile['strFirstII'], 'Smith')
-        self.assertEqual(member_profile['strLastII'], 'John')
-        self.assertEqual(member_profile['strInstEmail'], 'tester@mit.edu')
+        result = citi.get_citiprogram_completion('tester@mit.edu')
+        self.assertEqual(result.member_id, '12102652')
+        self.assertEqual(result.member_profile['strFirstII'], 'Smith')
+        self.assertEqual(result.member_profile['strLastII'], 'John')
+        self.assertEqual(result.member_profile['strInstEmail'], 'tester@mit.edu')
+        self.assertEqual(result.member_profile_xml, fake_xml_memberid)
+        self.assertEqual(result.completions_xml, fake_xml_courseinfo)
         list_courses = [
             {
                 'FirstName': 'John',
@@ -283,7 +290,7 @@ class TestUtils(unittest.TestCase):
                 )
             }
         ]
-        self.assertEqual(course_info, list_courses)
+        self.assertEqual(result.completions, list_courses)
 
 
 def make_completion(group_id='43007', group_name='Data or Specimens Only Research',
@@ -374,48 +381,81 @@ class TestLookupCITICompletionsForUser(TestCase):
     @patch('user.citi_training_module.get_citiprogram_completion')
     def test_success(self, mock_get):
         completions = [make_completion()]
-        mock_get.return_value = (completions, '12345', {'strFirstII': 'Test', 'strLastII': 'User'})
+        mock_get.return_value = CITICompletionResult(
+            completions=completions, member_id='12345',
+            member_profile={'strFirstII': 'Test', 'strLastII': 'User'},
+            member_profile_xml='<member_xml/>', completions_xml='<completions_xml/>',
+        )
 
-        email_used, results, member_id, member_profile, error = lookup_citi_completions_for_user(self.user)
-        self.assertEqual(email_used, 'citiuser@example.com')
-        self.assertEqual(len(results), 1)
-        self.assertEqual(member_id, '12345')
-        self.assertIsNone(error)
+        result = lookup_citi_completions_for_user(self.user)
+        self.assertEqual(result.email_used, 'citiuser@example.com')
+        self.assertEqual(len(result.completions), 1)
+        self.assertEqual(result.member_id, '12345')
+        self.assertEqual(result.member_profile_xml, '<member_xml/>')
+        self.assertEqual(result.completions_xml, '<completions_xml/>')
+        self.assertIsNone(result.error)
 
     @patch('user.citi_training_module.get_citiprogram_completion')
     def test_no_completions(self, mock_get):
-        mock_get.return_value = ([], None, None)
+        mock_get.return_value = CITICompletionResult()
 
-        email_used, results, member_id, member_profile, error = lookup_citi_completions_for_user(self.user)
-        self.assertIsNone(email_used)
-        self.assertEqual(results, [])
-        self.assertIn('No CITI training records found', error)
+        result = lookup_citi_completions_for_user(self.user)
+        self.assertIsNone(result.email_used)
+        self.assertEqual(result.completions, [])
+        self.assertIn('No CITI training records found', result.error)
 
     @patch('user.citi_training_module.get_citiprogram_completion')
     def test_api_error(self, mock_get):
         mock_get.side_effect = requests.RequestException('Connection timeout')
 
-        email_used, results, member_id, member_profile, error = lookup_citi_completions_for_user(self.user)
-        self.assertIsNone(email_used)
-        self.assertIn('Error communicating with CITI API', error)
+        result = lookup_citi_completions_for_user(self.user)
+        self.assertIsNone(result.email_used)
+        self.assertIn('Error communicating with CITI API', result.error)
 
     def test_no_verified_emails(self):
         user2 = User.objects.create(username='noemails', email='noemails@example.com')
         Profile.objects.create(user=user2, first_names='No', last_name='Emails')
 
-        email_used, results, member_id, member_profile, error = lookup_citi_completions_for_user(user2)
-        self.assertIsNone(email_used)
-        self.assertIn('No verified emails', error)
+        result = lookup_citi_completions_for_user(user2)
+        self.assertIsNone(result.email_used)
+        self.assertIn('No verified emails', result.error)
 
 
-class TestSerializeCompletions(TestCase):
-    def test_serializes_datetimes(self):
-        now = timezone.now()
-        completions = [{'dtePassed': now, 'intScore': '95'}]
-        result = serialize_completions(completions)
+class TestParseMemberProfileXml(TestCase):
+    def test_parses_valid_xml(self):
+        result = parse_member_profile_xml(fake_xml_memberid)
+        self.assertIsNotNone(result)
+        self.assertEqual(result['intMemberID'], '12102652')
+        self.assertEqual(result['strFirstII'], 'Smith')
+        self.assertEqual(result['strLastII'], 'John')
+        self.assertEqual(result['strInstEmail'], 'tester@mit.edu')
+
+    def test_returns_none_for_empty_string(self):
+        self.assertIsNone(parse_member_profile_xml(''))
+
+    def test_returns_none_for_no_member(self):
+        self.assertIsNone(parse_member_profile_xml(fake_xml_no_member))
+
+    def test_returns_none_for_invalid_xml(self):
+        self.assertIsNone(parse_member_profile_xml('not xml'))
+
+
+class TestParseCompletionsXml(TestCase):
+    def test_parses_valid_xml(self):
+        result = parse_completions_xml(fake_xml_courseinfo)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['MemberID'], '12102652')
+        self.assertEqual(result[0]['intGroupID'], '43007')
+        self.assertEqual(result[0]['strGroup'], 'Data or Specimens Only Research')
         self.assertEqual(result[0]['intScore'], '95')
+        # Dates are returned as strings in the parsing helpers
         self.assertIsInstance(result[0]['dtePassed'], str)
-        self.assertIn('T', result[0]['dtePassed'])
+
+    def test_returns_empty_for_empty_string(self):
+        self.assertEqual(parse_completions_xml(''), [])
+
+    def test_returns_empty_for_invalid_xml(self):
+        self.assertEqual(parse_completions_xml('not xml'), [])
 
 
 class TestVerifyTrainingViaCITIAPI(TestCase):
@@ -444,7 +484,11 @@ class TestVerifyTrainingViaCITIAPI(TestCase):
             completion_report_id='77777',
         )
         member_profile = {'strFirstII': 'Verify', 'strLastII': 'User', 'strmemberEmail': 'verifyuser@example.com'}
-        mock_lookup.return_value = ('verifyuser@example.com', [completion], '12345', member_profile, None)
+        mock_lookup.return_value = CITILookupResult(
+            email_used='verifyuser@example.com', completions=[completion],
+            member_id='12345', member_profile=member_profile,
+            member_profile_xml=fake_xml_memberid, completions_xml=fake_xml_courseinfo,
+        )
 
         training = Training.objects.create(
             training_type=self.training_type,
@@ -457,17 +501,15 @@ class TestVerifyTrainingViaCITIAPI(TestCase):
         self.assertEqual(verification.lookup_email, 'verifyuser@example.com')
         self.assertEqual(verification.member_id, '12345')
         self.assertEqual(verification.completion_report_id, '77777')
-        self.assertIsNotNone(verification.completion_data)
-        self.assertIn('completions', verification.completion_data)
-        self.assertIn('member_profile', verification.completion_data)
+        self.assertEqual(verification.member_profile_xml, fake_xml_memberid)
+        self.assertEqual(verification.completions_xml, fake_xml_courseinfo)
         self.assertEqual(verification.api_error, '')
 
     @patch('user.citi_training_module.lookup_citi_completions_for_user')
     def test_stores_error_on_failure(self, mock_lookup):
 
-        mock_lookup.return_value = (
-            None, [], None, None,
-            'No CITI training records found for any of your verified emails.',
+        mock_lookup.return_value = CITILookupResult(
+            error='No CITI training records found for any of your verified emails.',
         )
 
         training = Training.objects.create(
@@ -479,7 +521,8 @@ class TestVerifyTrainingViaCITIAPI(TestCase):
 
         verification = CITIVerification.objects.get(training=training)
         self.assertIn('No CITI training records found', verification.api_error)
-        self.assertIsNone(verification.completion_data)
+        self.assertEqual(verification.member_profile_xml, '')
+        self.assertEqual(verification.completions_xml, '')
 
     @patch('user.citi_training_module.lookup_citi_completions_for_user')
     def test_handles_api_exception(self, mock_lookup):
@@ -559,17 +602,8 @@ class TestTrainingProcessCITIRendering(TestCase):
             'lookup_email': 'citirenduser@example.com',
             'member_id': '12345',
             'completion_report_id': '77777',
-            'completion_data': {
-                'completions': serialize_completions([make_completion(
-                    group_id=str(self.TEST_GROUP_ID),
-                    completion_report_id='77777',
-                )]),
-                'member_profile': {
-                    'strFirstII': 'Render', 'strLastII': 'User',
-                    'strUsernameII': 'renderuser', 'strmemberEmail': 'citirenduser@example.com',
-                    'strInstEmail': '', 'dteAffiliated': '2020-01-01',
-                },
-            },
+            'member_profile_xml': fake_xml_memberid,
+            'completions_xml': fake_xml_courseinfo,
         })
         self.client.force_login(self.admin)
         url = reverse('training_process', kwargs={'pk': training.pk})
@@ -603,9 +637,7 @@ class TestTrainingProcessCITIRendering(TestCase):
         training = self._create_training(verification_kwargs={
             'lookup_email': 'citirenduser@example.com',
             'member_id': '12345',
-            'completion_data': {
-                'completions': serialize_completions([make_completion(group_id=str(self.TEST_GROUP_ID))]),
-            },
+            'completions_xml': fake_xml_courseinfo,
         })
         self.client.force_login(self.admin)
         url = reverse('training_process', kwargs={'pk': training.pk})
@@ -617,9 +649,7 @@ class TestTrainingProcessCITIRendering(TestCase):
         training = self._create_training(verification_kwargs={
             'lookup_email': 'removed@example.com',
             'member_id': '12345',
-            'completion_data': {
-                'completions': serialize_completions([make_completion(group_id=str(self.TEST_GROUP_ID))]),
-            },
+            'completions_xml': fake_xml_courseinfo,
         })
         self.client.force_login(self.admin)
         url = reverse('training_process', kwargs={'pk': training.pk})

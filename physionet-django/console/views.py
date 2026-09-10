@@ -84,6 +84,7 @@ from user.models import (
 )
 from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
+from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
 from project.cloud.s3 import (
@@ -2271,9 +2272,9 @@ def training_process(request, pk):
 
     verification = getattr(training, 'citi_verification', None)
 
-    if verification and verification.completion_data:
-        citi_api_data = verification.completion_data.get('completions', [])
-        citi_member_profile = verification.completion_data.get('member_profile')
+    if verification and (verification.member_profile_xml or verification.completions_xml):
+        citi_api_data = parse_completions_xml(verification.completions_xml) or None
+        citi_member_profile = parse_member_profile_xml(verification.member_profile_xml)
     else:
         citi_api_data = None
         citi_member_profile = None

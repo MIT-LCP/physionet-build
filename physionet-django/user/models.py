@@ -1356,7 +1356,8 @@ class CITIVerification(models.Model):
     lookup_email = models.EmailField(blank=True, default='')
     member_id = models.CharField(max_length=32, blank=True, default='')
     completion_report_id = models.CharField(max_length=32, blank=True, default='')
-    completion_data = models.JSONField(null=True, blank=True)
+    member_profile_xml = models.TextField(blank=True, default='')
+    completions_xml = models.TextField(blank=True, default='')
     api_error = models.CharField(max_length=512, blank=True, default='')
 
     class Meta:

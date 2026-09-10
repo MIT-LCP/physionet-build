@@ -40,7 +40,8 @@ class Migration(migrations.Migration):
                 ('lookup_email', models.EmailField(blank=True, default='', max_length=254)),
                 ('member_id', models.CharField(blank=True, default='', max_length=32)),
                 ('completion_report_id', models.CharField(blank=True, default='', max_length=32)),
-                ('completion_data', models.JSONField(blank=True, null=True)),
+                ('member_profile_xml', models.TextField(blank=True, default='')),
+                ('completions_xml', models.TextField(blank=True, default='')),
                 ('api_error', models.CharField(blank=True, default='', max_length=512)),
                 (
                     'training',
