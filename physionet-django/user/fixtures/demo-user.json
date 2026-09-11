@@ -21309,5 +21309,27 @@
         "is_active": true,
         "html_content": "<p>This is a sample CoC.</p>"
     }
+},
+{
+    "model": "user.citigroupmapping",
+    "pk": 1,
+    "fields": {
+        "citi_group_id": 43007,
+        "training_type": 1,
+        "citi_group_name": "Data or Specimens Only Research"
+    }
+},
+{
+    "model": "user.citiverification",
+    "pk": 1,
+    "fields": {
+        "training": 2,
+        "lookup_email": "admin@mit.edu",
+        "member_id": "12102652",
+        "completion_report_id": "34125",
+        "member_profile_xml": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<soap:Envelope\n    xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n    <soap:Body>\n        <GetInstMemberByEmailResponse\n            xmlns=\"https://webservices.citiprogram.org/\">\n            <GetInstMemberByEmailResult>\n                <diffgr:diffgram\n                    xmlns:msdata=\"urn:schemas-microsoft-com:xml-msdata\"\n                    xmlns:diffgr=\"urn:schemas-microsoft-com:xml-diffgram-v1\">\n                    <NewDataSet xmlns=\"\">\n                    <CRS diffgr:id=\"CRS1\" msdata:rowOrder=\"0\">\n                        <intMemberID>12102652</intMemberID>\n                        <strLastII>John</strLastII>\n                        <strFirstII>Smith</strFirstII>\n                        <strUsernameII>fakeusername</strUsernameII>\n                        <strmemberEmail />\n                        <strInstEmail>admin@mit.edu</strInstEmail>\n                        <dteAdded>03/12/23</dteAdded>\n                        <dteAffiliated>03/13/23</dteAffiliated>\n                    </CRS>\n                    </NewDataSet>\n                </diffgr:diffgram>\n            </GetInstMemberByEmailResult>\n            </GetInstMemberByEmailResponse>\n    </soap:Body>\n</soap:Envelope>",
+        "completions_xml": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<soap:Envelope\n    xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\"\n    xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n    <soap:Body>\n        <GetMemberCoursesbyIDResponse\n            xmlns=\"https://webservices.citiprogram.org/\">\n            <GetMemberCoursesbyIDResult>\n                <diffgr:diffgram\n                    xmlns:msdata=\"urn:schemas-microsoft-com:xml-msdata\"\n                    xmlns:diffgr=\"urn:schemas-microsoft-com:xml-diffgram-v1\">\n                    <NewDataSet xmlns=\"\">\n                        <CRSMEMBERID diffgr:id=\"CRSMEMBERID1\" msdata:rowOrder=\"0\">\n                        <CR_InstitutionID>1912</CR_InstitutionID>\n                        <MemberID>12102652</MemberID>\n                        <InstitutionUserName />\n                        <FirstName>John</FirstName>\n                        <LastName>Smith</LastName>\n                        <memberEmail>admin@mit.edu</memberEmail>\n                        <AddedMember>2023-03-12T23:25:15.747-04:00</AddedMember>\n                        <strCompletionReport>Human Research</strCompletionReport>\n                        <intGroupID>43007</intGroupID>\n                        <strGroup>Data or Specimens Only Research</strGroup>\n                        <intStageID>106240</intStageID>\n                        <intStageNumber>1</intStageNumber>\n                        <strStage>Basic Course</strStage>\n                        <intCompletionReportID>34125</intCompletionReportID>\n                        <intMemberStageID>54899005</intMemberStageID>\n                        <dtePassed>2023-03-13T17:03:34.18-04:00</dtePassed>\n                        <intScore>95</intScore>\n                        <intPassingScore>90</intPassingScore>\n                        <dteExpiration>2026-03-13T17:03:34.18-04:00</dteExpiration>\n                        </CRSMEMBERID>\n                    </NewDataSet>\n                </diffgr:diffgram>\n        </GetMemberCoursesbyIDResult>\n        </GetMemberCoursesbyIDResponse>\n    </soap:Body>\n</soap:Envelope>",
+        "api_error": ""
+    }
 }
 ]

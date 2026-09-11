@@ -77,11 +77,14 @@ from user.models import (
     Training,
     TrainingType,
     TrainingQuestion,
+    CITIGroupMapping,
+    CITIVerification,
     CodeOfConduct,
     CloudInformation
 )
 from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
+from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
 from project.cloud.s3 import (
@@ -2256,7 +2259,33 @@ def training_process(request, pk):
         questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
         training_review_form = forms.TrainingReviewForm()
 
-    training_info_from_pdf = services.get_info_from_certificate_pdf(training)
+    # PDF document info
+    if training.completion_report:
+        parsed_training_pdf = services.get_info_from_certificate_pdf(training)
+    else:
+        parsed_training_pdf = None
+
+    # CITI API verification data (populated at submission time)
+    show_citi_verification = CITIGroupMapping.objects.filter(
+        training_type=training.training_type
+    ).exists()
+
+    verification = getattr(training, 'citi_verification', None)
+
+    if verification and (verification.member_profile_xml or verification.completions_xml):
+        citi_api_data = parse_completions_xml(verification.completions_xml) or None
+        citi_member_profile = parse_member_profile_xml(verification.member_profile_xml)
+    else:
+        citi_api_data = None
+        citi_member_profile = None
+
+    citi_email_still_verified = (
+        verification
+        and verification.lookup_email
+        and training.user.associated_emails.filter(
+            email=verification.lookup_email, is_verified=True
+        ).exists()
+    )
 
     return render(
         request,
@@ -2265,7 +2294,12 @@ def training_process(request, pk):
             'training': training,
             'questions_formset': questions_formset,
             'training_review_form': training_review_form,
-            'parsed_training_pdf': training_info_from_pdf,
+            'parsed_training_pdf': parsed_training_pdf,
+            'show_citi_verification': show_citi_verification,
+            'citi_verification': verification,
+            'citi_api_data': citi_api_data,
+            'citi_member_profile': citi_member_profile,
+            'citi_email_still_verified': citi_email_still_verified,
         },
     )
 
