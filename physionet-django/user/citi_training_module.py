@@ -165,6 +165,12 @@ def get_member_profile(email):
 
     root, raw_xml = send_request(xml_payload=payload)
 
+    # A valid response always contains a NewDataSet element, even when
+    # the member is not found. If it's missing, the credentials are
+    # likely invalid.
+    if root.find('.//{NewDataSet}') is None and root.find('.//NewDataSet') is None:
+        raise ValueError('CITI API response missing NewDataSet element; check API credentials.')
+
     memberid = root.find('.//intMemberID')
     if memberid is None:
         return None, raw_xml

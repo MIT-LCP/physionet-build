@@ -203,6 +203,34 @@ def match_member_courseinfo(request):
     return ('<GetMemberCoursesbyID' in request.text)
 
 
+fake_xml_bad_credentials = """<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope
+    xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Body>
+        <GetInstMemberByEmailResponse
+            xmlns="https://webservices.citiprogram.org/">
+            <GetInstMemberByEmailResult>
+                <xs:schema id="NewDataSet"
+                    xmlns=""
+                    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+                    <xs:element name="NewDataSet" msdata:IsDataSet="true"
+                        msdata:UseCurrentLocale="true">
+                        <xs:complexType>
+                            <xs:choice minOccurs="0" maxOccurs="unbounded" />
+                        </xs:complexType>
+                    </xs:element>
+                </xs:schema>
+                <diffgr:diffgram
+                    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+                    xmlns:diffgr="urn:schemas-microsoft-com:xml-diffgram-v1" />
+            </GetInstMemberByEmailResult>
+        </GetInstMemberByEmailResponse>
+    </soap:Body>
+</soap:Envelope>"""
+
 fake_xml_no_member = """<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope
     xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
@@ -247,6 +275,13 @@ class TestUtils(unittest.TestCase):
         profile, raw_xml = citi.get_member_profile('unknown@example.com')
         self.assertIsNone(profile)
         self.assertEqual(raw_xml, fake_xml_no_member)
+
+    def test_get_member_profile_bad_credentials(self, mocker):
+        mocker.register_uri('POST', soap_request_url, text=fake_xml_bad_credentials,
+                            additional_matcher=match_member_email)
+        with self.assertRaises(ValueError) as ctx:
+            citi.get_member_profile('test@example.com')
+        self.assertIn('check API credentials', str(ctx.exception))
 
     def test_get_memberid_not_found(self, mocker):
         mocker.register_uri('POST', soap_request_url, text=fake_xml_no_member, additional_matcher=match_member_email)
