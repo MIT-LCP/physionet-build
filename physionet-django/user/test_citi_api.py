@@ -555,6 +555,18 @@ class TestVerifyTrainingViaCITIAPI(TestCase):
 
         self.assertFalse(CITIVerification.objects.filter(training=training).exists())
 
+    @patch('user.citi_training_module.lookup_citi_completions_for_user')
+    def test_skips_when_citi_not_configured(self, mock_lookup):
+        training = Training.objects.create(
+            training_type=self.training_type,
+            user=self.user,
+            status=TrainingStatus.REVIEW,
+        )
+        with self.settings(CITI_USERNAME='', CITI_PASSWORD='pass', CITI_SOAP_URL='http://example.com'):
+            verify_training_via_citi_api(training)
+        mock_lookup.assert_not_called()
+        self.assertFalse(CITIVerification.objects.filter(training=training).exists())
+
 
 class TestTrainingProcessCITIRendering(TestCase):
     """Smoke tests that training_process.html renders for each CITI card state."""

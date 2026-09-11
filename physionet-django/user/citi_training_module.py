@@ -349,6 +349,10 @@ def verify_training_via_citi_api(training):
     Failure does not block the PDF-based submission.
     """
 
+    # Skip if CITI API credentials are not configured
+    if not all([settings.CITI_USERNAME, settings.CITI_PASSWORD, settings.CITI_SOAP_URL]):
+        return
+
     # Only run for training types that have CITI group mappings
     if not CITIGroupMapping.objects.filter(training_type=training.training_type).exists():
         return
