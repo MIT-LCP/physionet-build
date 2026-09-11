@@ -6,7 +6,7 @@ import requests
 import requests_mock
 
 from django.conf import settings
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -493,6 +493,7 @@ class TestParseCompletionsXml(TestCase):
         self.assertEqual(parse_completions_xml('not xml'), [])
 
 
+@override_settings(CITI_USERNAME='testuser', CITI_PASSWORD='testpass', CITI_SOAP_URL='https://test.citiprogram.org')
 class TestVerifyTrainingViaCITIAPI(TestCase):
     TEST_GROUP_ID = 99902
 
