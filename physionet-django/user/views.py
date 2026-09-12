@@ -1114,7 +1114,7 @@ def edit_training(request):
             training_type=request.POST.get("training_type"),
         )
         take_course_form = CourseForm(
-            data=request.POST, training_type=request.POST.get("training_type"), auto_id="op_%s"
+            training_type=request.POST.get("training_type"), auto_id="op_%s"
         )
         if training_form.is_valid():
             training = training_form.save()
@@ -1122,7 +1122,7 @@ def edit_training(request):
                 run_citi_api_verification(training.id)
             messages.success(request, "The training has been submitted successfully.")
             training_application_request(request, training_form)
-            training_form = forms.TrainingForm(user=request.user)
+            return redirect('edit_training_detail', training.id)
         else:
             messages.error(request, "Invalid submission. Check the errors below.")
     else:

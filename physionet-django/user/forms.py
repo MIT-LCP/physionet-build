@@ -12,6 +12,7 @@ from django.db.models import F, Q
 from django.forms.widgets import FileInput
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.urls import reverse
 from django.utils.html import mark_safe
 from django.utils.translation import gettext_lazy
 from physionet.utility import validate_pdf_file_type
@@ -919,6 +920,23 @@ class TrainingForm(forms.ModelForm):
         )
 
         if data['training_type'] not in available_training_types:
+            existing = Training.objects.filter(
+                user=self.user,
+                training_type=data['training_type'],
+            ).filter(
+                Q(status=TrainingStatus.REVIEW)
+                | Q(status=TrainingStatus.ACCEPTED, training_type__valid_duration__isnull=True)
+                | Q(
+                    status=TrainingStatus.ACCEPTED,
+                    process_datetime__gte=timezone.now() - F('training_type__valid_duration'),
+                )
+            ).first()
+            if existing:
+                url = reverse('edit_training_detail', args=[existing.pk])
+                raise forms.ValidationError(mark_safe(
+                    f'You already have a submission of this type. '
+                    f'<a href="{url}">View your submission</a>.'
+                ))
             raise forms.ValidationError('You have already submitted a training of this type.')
 
         # Check if the uploaded file is a PDF
