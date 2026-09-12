@@ -617,7 +617,7 @@ class TrainingTestCase(TestCase):
     def test_submit_new_training_valid(self):
         self.client.force_login(user=self.user)
 
-        response = self.client.post(self.training_url, self.training_payload_valid)
+        response = self.client.post(self.training_url, self.training_payload_valid, follow=True)
         messages = list(response.context['messages'])
 
         self.assertEqual(response.status_code, 200)
