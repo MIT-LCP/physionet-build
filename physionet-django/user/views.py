@@ -1114,7 +1114,7 @@ def edit_training(request):
             training_type=request.POST.get("training_type"),
         )
         take_course_form = CourseForm(
-            data=request.POST, training_type=request.POST.get("training_type"), auto_id="op_%s"
+            training_type=request.POST.get("training_type"), auto_id="op_%s"
         )
         if training_form.is_valid():
             training = training_form.save()
