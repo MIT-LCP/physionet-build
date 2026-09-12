@@ -1167,8 +1167,9 @@ def edit_training(request):
         ("expired", training_qs.get_expired()),
         ("rejected", training_qs.get_rejected()),
     ]:
-        if qs.exists():
-            training_by_status[label] = qs
+        items = list(qs)
+        if items:
+            training_by_status[label] = items
 
     return render(
         request,
