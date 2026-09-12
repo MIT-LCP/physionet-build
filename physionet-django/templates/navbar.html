@@ -23,7 +23,7 @@
       <div class="nav__links align-items-center">
         {% for page in static_pg %}
           {% if page.nav_bar %}
-            <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
+            <a href="{{ page.url }}" class="nav-link{% if request.path == page.url %} nav-link--active{% endif %}">{{ page.title }}</a>
           {% endif %}
         {% endfor %}
 
@@ -180,7 +180,7 @@
             aria-label="Menu">
       {% for page in static_pg %}
         {% if page.nav_bar %}
-          <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
+          <a href="{{ page.url }}" class="nav-link{% if request.path == page.url %} nav-link--active{% endif %}">{{ page.title }}</a>
         {% endif %}
       {% endfor %}
       <hr>

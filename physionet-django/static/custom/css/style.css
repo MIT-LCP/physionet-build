@@ -313,6 +313,10 @@ body .main {
   background-color: var(--rose-100);
   color: var(--primary-color);
 }
+.modern-ui .nav-link--active {
+  background-color: var(--rose-100);
+  color: var(--primary-color);
+}
 .modern-ui a:has(.nav-link:hover) {
   text-decoration: none;
 }
