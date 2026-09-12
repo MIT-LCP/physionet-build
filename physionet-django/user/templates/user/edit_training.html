@@ -19,10 +19,10 @@
       <div class="mb-3">
         <h5>{{ status|capfirst }}</h5>
         <ul class="list-group list-group-flush">
-          {% for course in group %}
+          {% for training in group %}
             <li class="list-group-item d-flex align-items-center justify-content-between">
-              <div>{{ course.training_type.name }}</div>
-              <a href="{% url 'edit_training_detail' course.id %}" class="btn btn-sm btn-primary" role="button">View</a>
+              <div>{{ training.training_type.name }}</div>
+              <a href="{% url 'edit_training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a>
             </li>
           {% endfor %}
         </ul>
