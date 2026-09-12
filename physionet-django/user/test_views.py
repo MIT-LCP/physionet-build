@@ -984,6 +984,15 @@ class TestAWSVerification(TestCase):
         self.assertEqual(other_cloud_info.aws_user_arn, self.AWS_ARN)
 
 
+class TestCertificationRedirect(TestCase):
+    """Test that the certification page redirects to the training page."""
+
+    def test_certification_redirects_to_training(self):
+        self.client.login(username='admin@mit.edu', password='Tester11!')
+        response = self.client.get(reverse('edit_certification'))
+        self.assertRedirects(response, reverse('edit_training'))
+
+
 class BackgroundTaskError(Exception):
     def __init__(self, task):
         self.task = task
