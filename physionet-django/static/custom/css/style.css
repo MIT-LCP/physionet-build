@@ -362,12 +362,14 @@ body .main {
   gap: 1rem;
   border-radius: 0.5rem;
 }
-.modern-ui .nav-sublink:hover {
+.modern-ui .nav-sublink:hover,
+.modern-ui .nav-sublink--active {
   background-color: var(--rose-100);
   text-decoration: none;
   color: var(--secondary-color);
 }
-.modern-ui .nav-sublink:hover .nav-sublink__icon {
+.modern-ui .nav-sublink:hover .nav-sublink__icon,
+.modern-ui .nav-sublink--active .nav-sublink__icon {
   background-color: var(--rose-100);
 }
 .modern-ui .nav-sublink__text {
