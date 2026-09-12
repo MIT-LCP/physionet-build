@@ -89,8 +89,7 @@
           {% url 'user_settings' as settings_url %}
           {% url 'project_home' as projects_url %}
           {% url 'console_home' as console_url %}
-          {% url 'research_environments' as re_url %}
-          <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray{% if request.path|startswith:settings_url or request.path|startswith:projects_url or request.path|startswith:event_url or request.path|startswith:console_url or request.path|startswith:re_url %} nav-link--active{% endif %}"
+          <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray{% if request.path|startswith:settings_url or request.path|startswith:projects_url or request.path|startswith:event_url or request.path|startswith:console_url %} nav-link--active{% endif %}"
                   popovertarget="nav__user_popup"
                   title="Account: {{ user }}">
             {% if user.has_access_to_admin_console %}
@@ -119,6 +118,7 @@
               {% endif %}
               {% if user.is_authenticated %}
                 {% if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS %}
+                  {% url 'research_environments' as re_url %}
                   <a class="nav-sublink{% if request.path|startswith:re_url %} nav-sublink--active{% endif %}" href="{{ re_url }}">
                     <div class="nav-sublink__icon">
                       <img src="{% static 'images/icons/environments.png' %}" alt="" height="32px" />

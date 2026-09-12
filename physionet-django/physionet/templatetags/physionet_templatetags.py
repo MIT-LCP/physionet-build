@@ -19,4 +19,6 @@ def underscore(str_var):
 @register.filter
 def startswith(value, prefix):
     """Return True if the string value starts with the given prefix."""
+    if not prefix:
+        return False
     return str(value).startswith(str(prefix))
