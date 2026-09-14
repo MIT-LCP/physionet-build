@@ -290,12 +290,12 @@ class TestDatasetAccessView(BaseTest):
         super().setUp()
 
         self.open_project = PublishedProject.objects.create(
-            slug="demoeicu",
+            slug="demo-mimiciv",
             version="1.0",
             title="Demo Open Dataset",
             access_policy=AccessPolicy.OPEN,
             resource_type=ProjectType.objects.get(id=0),
-            submission_slug="demoeicu",
+            submission_slug="demo-mimiciv",
             core_project=CoreProject.objects.create(),
         )
         self.credentialed_project = PublishedProject.objects.create(
@@ -319,7 +319,7 @@ class TestDatasetAccessView(BaseTest):
     # Authentication
     def test_no_token_returns_403(self):
         response = self.client.get(
-            "/oauth/dataset-access/", {"slug": "demoeicu", "version": "1.0"}
+            "/oauth/dataset-access/", {"slug": "demo-mimiciv", "version": "1.0"}
         )
         self.assertEqual(response.status_code, 403)
 
@@ -328,7 +328,7 @@ class TestDatasetAccessView(BaseTest):
         auth = self._create_authorization_header(self.access_token.token)
         response = self.client.get(
             "/oauth/dataset-access/",
-            {"slug": "demoeicu", "version": "1.0"},
+            {"slug": "demo-mimiciv", "version": "1.0"},
             HTTP_AUTHORIZATION=auth,
         )
         self.assertEqual(response.status_code, 403)
@@ -345,7 +345,7 @@ class TestDatasetAccessView(BaseTest):
     def test_missing_version_returns_400(self):
         auth = self._create_authorization_header(self.credentialing_token.token)
         response = self.client.get(
-            "/oauth/dataset-access/", {"slug": "demoeicu"}, HTTP_AUTHORIZATION=auth
+            "/oauth/dataset-access/", {"slug": "demo-mimiciv"}, HTTP_AUTHORIZATION=auth
         )
         self.assertEqual(response.status_code, 400)
         self.assertIn("error", response.json())
@@ -367,14 +367,14 @@ class TestDatasetAccessView(BaseTest):
         with patch("oauth.views.can_access_project", return_value=True):
             response = self.client.get(
                 "/oauth/dataset-access/",
-                {"slug": "demoeicu", "version": "1.0"},
+                {"slug": "demo-mimiciv", "version": "1.0"},
                 HTTP_AUTHORIZATION=auth,
             )
 
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue(data["has_access"])
-        self.assertEqual(data["slug"], "demoeicu")
+        self.assertEqual(data["slug"], "demo-mimiciv")
         self.assertEqual(data["version"], "1.0")
 
     def test_credentialed_project_access_denied(self):

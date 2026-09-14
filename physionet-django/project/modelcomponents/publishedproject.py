@@ -78,6 +78,18 @@ class PublishedProject(Metadata, SubmissionInfo):
             ('can_view_stats', 'Can view stats')
         ]
         ordering = ('title', 'version_order')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['core_project'],
+                condition=models.Q(is_latest_version=True),
+                name='single_latest_version_per_core_project',
+            ),
+            models.UniqueConstraint(
+                fields=['slug'],
+                condition=models.Q(is_latest_version=True),
+                name='single_latest_version_per_slug',
+            ),
+        ]
 
     def __str__(self):
         return ('{0} v{1}'.format(self.title, self.version))
@@ -332,7 +344,7 @@ class PublishedProject(Metadata, SubmissionInfo):
         for index, version in enumerate(sorted_versions):
             tmp = published_projects.get(version=version)
             tmp.version_order = index
-            tmp.has_other_versions = True
+            tmp.has_other_versions = len(sorted_versions) > 1
             tmp.is_latest_version = False
             if sorted_versions[-1] == version:
                 tmp.is_latest_version = True
