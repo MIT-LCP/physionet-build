@@ -67,6 +67,7 @@ from user.models import (
     TrainingType,
     CITIGroupMapping,
 )
+from console.tasks import enqueue_task
 from user.tasks import run_citi_api_verification
 from user.userfiles import UserFiles
 from user.enums import RequiredField, ActivateUserType
@@ -1119,7 +1120,7 @@ def edit_training(request):
         if training_form.is_valid():
             training = training_form.save()
             if CITIGroupMapping.objects.filter(training_type=training.training_type).exists():
-                run_citi_api_verification(training.id)
+                enqueue_task(run_citi_api_verification, training.id)
             messages.success(request, "The training has been submitted successfully.")
             training_application_request(request, training_form)
             return redirect('edit_training_detail', training.id)

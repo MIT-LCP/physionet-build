@@ -1578,6 +1578,7 @@ def delete_project_files_from_s3(project):
     file deletion as a background task.
     """
     # Import here to avoid circular import
+    from console.tasks import enqueue_task
     from console.views import delete_project_files_task
     if not check_s3_bucket_exists(project):
         return
@@ -1597,7 +1598,8 @@ def delete_project_files_from_s3(project):
     project.aws.save()
 
     # Schedule file deletion as a background task
-    delete_project_files_task(
+    enqueue_task(
+        delete_project_files_task,
         project.id,
-        verbose_name='Delete S3 files - {}'.format(project)
+        task_name='Delete S3 files - {}'.format(project),
     )

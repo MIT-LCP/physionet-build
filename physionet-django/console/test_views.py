@@ -385,7 +385,6 @@ class TestState(TestMixin):
         self.assertEqual(get_project().modified_datetime, timestamp)
 
         # Wait for task to prepare project files
-        self.assertFalse(get_project().is_publishable())
         self.assertBackgroundTasks(1)
         self.assertTrue(get_project().is_publishable())
 

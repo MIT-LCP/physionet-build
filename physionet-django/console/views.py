@@ -9,7 +9,7 @@ from statistics import StatisticsError, median
 import notification.utility as notification
 from notification.utility import archive_notify
 from background_task import background
-from console.tasks import associated_task, get_associated_tasks
+from console.tasks import associated_task, enqueue_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
@@ -922,10 +922,10 @@ def update_submission_checksums(request, project_slug, project, **kwargs):
         if any(get_associated_tasks(project)):
             messages.error(request, 'Project has tasks pending.')
         else:
-            project_tasks.prepare_active_project_files(
-                project_id=project.id,
-                verbose_name='Prepare project files: {}'.format(project.slug),
-                creator=request.user,
+            enqueue_task(
+                project_tasks.prepare_active_project_files,
+                project.id,
+                task_name='Prepare project files: {}'.format(project.slug),
             )
             messages.success(request, 'Project checksum task has been scheduled.')
 
@@ -1185,9 +1185,10 @@ def manage_published_project(request, project_slug, version):
             elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
                 raise ServiceUnavailable()
             else:
-                make_checksum_background(
-                    pid=project.id,
-                    verbose_name='Making checksum file - {}'.format(project))
+                enqueue_task(
+                    make_checksum_background,
+                    project.id,
+                    task_name='Making checksum file - {}'.format(project))
                 messages.success(
                     request, 'The files checksum list has been scheduled.')
         elif 'make_zip' in request.POST:
@@ -1196,9 +1197,10 @@ def manage_published_project(request, project_slug, version):
             elif settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
                 raise ServiceUnavailable()
             else:
-                make_zip_background(
-                    pid=project.id,
-                    verbose_name='Making zip file - {}'.format(project))
+                enqueue_task(
+                    make_zip_background,
+                    project.id,
+                    task_name='Making zip file - {}'.format(project))
                 messages.success(
                     request, 'The zip of the main files has been scheduled.')
         elif 'deprecate_files' in request.POST and not project.deprecated_files:
@@ -1279,8 +1281,8 @@ def manage_published_project(request, project_slug, version):
     rw_tasks = [task for (task, read_only) in tasks if not read_only]
 
     task_names = [task.task_name for (task, read_only) in tasks]
-    gcp_upload_pending = (send_files_to_gcp.name in task_names)
-    aws_upload_pending = (send_files_to_aws.name in task_names)
+    gcp_upload_pending = (send_files_to_gcp.task_name in task_names)
+    aws_upload_pending = (send_files_to_aws.task_name in task_names)
 
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request)
@@ -1328,7 +1330,7 @@ def gcp_bucket_management(request, project, user):
     Create the database object and cloud bucket if they do not exist, and send
     the files to the bucket.
     """
-    if any(get_associated_tasks(project, name=send_files_to_gcp.name)):
+    if any(get_associated_tasks(project, name=send_files_to_gcp.task_name)):
         messages.info(request, 'Project is already scheduled to be uploaded.')
         return
 
@@ -1365,7 +1367,7 @@ def gcp_bucket_management(request, project, user):
             messages.success(request, "The access group for project {0} was \
                 successfully added.".format(project))
 
-    send_files_to_gcp(project.id, verbose_name='GCP - {}'.format(project), creator=user)
+    enqueue_task(send_files_to_gcp, project.id, task_name='GCP - {}'.format(project))
 
 
 @console_permission_required('project.change_publishedproject')
@@ -1388,7 +1390,7 @@ def aws_bucket_management(request, project, user):
     - Ensure that AWS credentials and configurations are correctly set
     up for the S3 client.
     """
-    if any(get_associated_tasks(project, name=send_files_to_aws.name)):
+    if any(get_associated_tasks(project, name=send_files_to_aws.task_name)):
         messages.info(request, 'Project is already scheduled to be uploaded.')
         return
 
@@ -1403,7 +1405,7 @@ def aws_bucket_management(request, project, user):
             project=project, bucket_name=bucket_name, is_private=is_private
         )
 
-    send_files_to_aws(project.id, verbose_name='AWS - {}'.format(project), creator=user)
+    enqueue_task(send_files_to_aws, project.id, task_name='AWS - {}'.format(project))
 
 
 @console_permission_required('project.change_publishedproject')

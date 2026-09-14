@@ -1,7 +1,10 @@
+import importlib
 import inspect
 import json
 
 from background_task.models import Task, task_failed, task_rescheduled
+from django_q.models import OrmQ
+from django_q.tasks import async_task
 from django.dispatch import receiver
 
 import notification.utility as notification
@@ -43,9 +46,9 @@ def associated_task(model, param, *, read_only=False, field='pk'):
     Decorator for tasks that are associated with model instances.
 
     The decorated function should be a background task function (i.e.,
-    a TaskProxy object), where one of the parameters to that function
-    refers to a field in the given model ('pk', i.e., the model's
-    primary key, by default.)
+    a TaskProxy object from @background()), where one of the
+    parameters to that function refers to a field in the given model
+    ('pk', i.e., the model's primary key, by default.)
 
     - model is either a Model class or its label.
     - field is the name of a field defined in that class.
@@ -77,6 +80,10 @@ def associated_task(model, param, *, read_only=False, field='pk'):
         task_name = task_proxy.name
         function = task_proxy.task_function
 
+        # Store task_name on the proxy so callers can use
+        # task_proxy.task_name (consistent with django-q2 conventions)
+        task_proxy.task_name = task_name
+
         # Determine index of the given parameter (so that we can
         # identify task instances regardless of whether they are
         # invoked in positional or keyword style)
@@ -100,13 +107,92 @@ def associated_task(model, param, *, read_only=False, field='pk'):
     return decorate
 
 
+def _run_task(func_name, *args, **kwargs):
+    """
+    Resolve a task function by its dotted path and execute it.
+
+    This is used as the entry point for django-q2 async_task() calls.
+    The indirection avoids pickling issues with functions wrapped by
+    @background() (whose module-level name is a TaskProxy, not the
+    underlying function).
+    """
+    module_path, attr_name = func_name.rsplit('.', 1)
+    module = importlib.import_module(module_path)
+    func = getattr(module, attr_name)
+    # Unwrap @background() TaskProxy to get the real function
+    if hasattr(func, 'task_function'):
+        func = func.task_function
+    return func(*args, **kwargs)
+
+
+class _TaskInfo:
+    """Simple wrapper to expose task_name and a string representation."""
+    def __init__(self, task_name, args, kwargs):
+        self.task_name = task_name
+        self.args = args
+        self.kwargs = kwargs
+
+    def __str__(self):
+        return f'{self.task_name}({self.args}, {self.kwargs})'
+
+
+def _unpack_ormq(ormq_obj):
+    """
+    Extract (func, args, kwargs) from an OrmQ entry.
+
+    django-q2 stores the task payload as a signed/pickled dict.
+    If the task was dispatched via _run_task, unwrap to get the
+    real function name and arguments.
+    """
+    try:
+        from django_q.signing import SignedPackage
+        task_dict = SignedPackage.loads(ormq_obj.payload)
+    except Exception:
+        return None, (), {}
+    func = task_dict.get('func', '')
+    args = task_dict.get('args', ())
+    kwargs = task_dict.get('kwargs', {})
+    # Unwrap _run_task dispatcher: first arg is the real func name
+    if func == _run_task and args:
+        func = args[0]
+        args = args[1:]
+    return func, args, kwargs
+
+
+def _match_params(args, kwargs, param_info, instance):
+    """
+    Check whether (args, kwargs) match the given instance for any of
+    the parameter associations in param_info.  Yields (task_info_or_task,
+    ro_flag) for each match.
+    """
+    for (field_name, param_name, param_index, ro_flag) in param_info:
+        value = getattr(instance, field_name)
+        matched = False
+        try:
+            if value == args[param_index]:
+                matched = True
+        except (TypeError, IndexError):
+            pass
+        try:
+            if value == kwargs[param_name]:
+                matched = True
+        except KeyError:
+            pass
+        if matched:
+            yield ro_flag
+
+
 def get_associated_tasks(instance, *, read_only=None, name=None):
     """
     Find pending tasks associated with a model instance.
 
+    This function checks both the legacy django-background-tasks queue
+    (Task model) and the django-q2 queue (OrmQ model).
+
     This function returns an iterator whose members are 2-tuples
-    (task, read_only).  task is a Task object; read_only is the flag
-    passed to the associated_task decorator.
+    (task_info, read_only).  task_info is a Task object (for legacy
+    tasks) or a _TaskInfo object (for django-q2 tasks); read_only is
+    the flag passed to the associated_task decorator.
 
     If read_only is True, return only "read-only" tasks.  If read_only
     is False, return only "read-write" tasks.
@@ -118,6 +204,9 @@ def get_associated_tasks(instance, *, read_only=None, name=None):
 
     model = type(instance)._meta.label
 
+    if model not in _model_tasks:
+        return
+
     if name is None:
         # Consider all possible task_names that might be associated with
         # this object.
@@ -125,8 +214,15 @@ def get_associated_tasks(instance, *, read_only=None, name=None):
     else:
         task_names = [name]
 
+    # Build a list of pending django-q2 tasks (func, args, kwargs)
+    q2_pending = []
+    for ormq_obj in OrmQ.objects.all():
+        func, args, kwargs = _unpack_ormq(ormq_obj)
+        if func:
+            q2_pending.append((func, args, kwargs))
+
     for task_name in task_names:
-        param_info = _model_tasks[model][task_name]
+        param_info = _model_tasks[model].get(task_name, [])
 
         # If we are only interested in read-only tasks, skip checking
         # read-write parameters, and vice versa.
@@ -135,26 +231,97 @@ def get_associated_tasks(instance, *, read_only=None, name=None):
         if not param_info:
             continue
 
-        # Scan all pending tasks with this task_name.
-        tasks = Task.objects.filter(task_name=task_name)
-        for task in tasks:
-            # Parse the given task's arguments (stored in task_params
-            # as a JSON string) and check whether they match the given
-            # instance.
+        # Check legacy django-background-tasks queue
+        legacy_tasks = Task.objects.filter(task_name=task_name)
+        for task in legacy_tasks:
             (args, kwargs) = json.loads(task.task_params)
-            for (field, param, param_index, ro_flag) in param_info:
-                value = getattr(instance, field)
-                try:
-                    if value == args[param_index]:
-                        yield (task, ro_flag)
-                except (TypeError, IndexError):
-                    pass
-                try:
-                    if value == kwargs[param]:
-                        yield (task, ro_flag)
-                except KeyError:
-                    pass
+            for ro_flag in _match_params(args, kwargs, param_info, instance):
+                yield (task, ro_flag)
 
+        # Check django-q2 queue
+        for (func, args, kwargs) in q2_pending:
+            if func != task_name:
+                continue
+            for ro_flag in _match_params(args, kwargs, param_info, instance):
+                task_info = _TaskInfo(task_name, args, kwargs)
+                yield (task_info, ro_flag)
+
+
+_RUN_TASK_FUNC_NAME = f'{__name__}._run_task'
+
+
+def _unwrap_run_task(func, args):
+    """
+    If func is the _run_task dispatcher, extract the real function name
+    and arguments.  Returns (func_name, real_args).
+    """
+    if func == _RUN_TASK_FUNC_NAME and args:
+        return args[0], args[1:]
+    return func, args
+
+
+def task_completion_hook(task):
+    """
+    Hook called by django-q2 when a task finishes.
+
+    Notifies admins when a task has failed.
+    """
+    if not task.success:
+        func_name, task_args = _unwrap_run_task(task.func, task.args)
+        notification.task_failed_notify(
+            name=task.name or '',
+            attempts=task.attempt_count,
+            last_error=task.result if isinstance(task.result, str) else str(task.result),
+            date_time=task.stopped,
+            task_name=func_name,
+            task_params=str(task_args) if task_args else '',
+        )
+
+
+def enqueue_task(func, *args, task_name=None, remove_existing=False,
+                 **kwargs):
+    """
+    Enqueue a function as a django-q2 async task.
+
+    func should be a @background() TaskProxy or a plain function.  The
+    actual function will be resolved and dispatched via django-q2's
+    async_task.
+
+    If remove_existing is True, delete any matching pending tasks from
+    both the legacy Task queue and the django-q2 OrmQ queue before
+    enqueuing the new one.
+    """
+    # Resolve the dotted function name
+    if hasattr(func, 'task_function'):
+        # It's a @background() TaskProxy
+        func_name = func.name
+    else:
+        func_name = f'{func.__module__}.{func.__qualname__}'
+
+    if remove_existing:
+        # Remove from legacy django-background-tasks queue
+        Task.objects.filter(task_name=func_name).delete()
+
+        # Remove from django-q2 queue
+        for ormq_obj in OrmQ.objects.all():
+            queued_func, _, _ = _unpack_ormq(ormq_obj)
+            if queued_func == func_name:
+                ormq_obj.delete()
+
+    # Dispatch via _run_task to avoid pickling issues with
+    # @background()-wrapped functions (TaskProxy objects).
+    return async_task(
+        _run_task, func_name, *args,
+        task_name=task_name,
+        hook='console.tasks.task_completion_hook',
+        **kwargs,
+    )
+
+
+# Legacy django-background-tasks signal handlers.
+# These handle notifications for tasks still draining through the old
+# process_tasks daemon.  They can be removed once django-background-tasks
+# is fully removed.
 
 @receiver(task_rescheduled, sender=Task)
 def task_rescheduled_handler(sender, **kwargs):

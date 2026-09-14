@@ -589,6 +589,7 @@ RUNNING_TEST_SUITE = (len(sys.argv) > 1 and sys.argv[1] == 'test')
 JSON_LOGGING = config('JSON_LOGGING', default=False, cast=bool)
 
 if RUNNING_TEST_SUITE:
+    Q_CLUSTER['sync'] = True
     _logfile = open(os.path.join(BASE_DIR, 'test.log'), 'w')
 elif JSON_LOGGING:
     _logfile = sys.stdout

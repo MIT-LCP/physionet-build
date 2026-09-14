@@ -16,7 +16,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
 
-from console.tasks import associated_task
+from console.tasks import associated_task, enqueue_task
 from physionet.settings.base import StorageTypes
 from project.enums import AccessPolicy
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
@@ -717,17 +717,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.required_trainings.set(self.required_trainings.all())
 
                 # Set directories read only to prevent accidental changes
-                tasks.finalize_published_project_files(
+                enqueue_task(
+                    tasks.finalize_published_project_files,
                     published_project.id,
-                    verbose_name='Finalize publication: {}'.format(published_project),
+                    task_name='Finalize publication: {}'.format(published_project),
                 )
 
                 # Generate zip file, if requested (this can happen in
                 # parallel with finalize_published_project_files)
                 if make_zip:
-                    tasks.create_published_project_zip(
+                    enqueue_task(
+                        tasks.create_published_project_zip,
                         published_project.id,
-                        verbose_name='Create zip archive: {}'.format(published_project),
+                        task_name='Create zip archive: {}'.format(published_project),
                     )
 
                 # Remove the ActiveProject

@@ -66,7 +66,10 @@ class UserAdmin(DefaultUserAdmin):
 
     def render_change_form(self, request, context, *args, **kwargs):
         context['adminform'].form.fields['user_permissions'].queryset = Permission.objects.exclude(
-            content_type__app_label__in=('auth', 'admin', 'background_task', 'contenttypes', 'sessions', 'sites')
+            content_type__app_label__in=(
+                'auth', 'admin', 'background_task', 'django_q',
+                'contenttypes', 'sessions', 'sites',
+            )
         )
         return super().render_change_form(request, context, *args, **kwargs)
 
@@ -74,7 +77,10 @@ class UserAdmin(DefaultUserAdmin):
 class GroupAdmin(DefaultGroupAdmin):
     def render_change_form(self, request, context, *args, **kwargs):
         context['adminform'].form.fields['permissions'].queryset = Permission.objects.exclude(
-            content_type__app_label__in=('auth', 'admin', 'background_task', 'contenttypes', 'sessions', 'sites')
+            content_type__app_label__in=(
+                'auth', 'admin', 'background_task', 'django_q',
+                'contenttypes', 'sessions', 'sites',
+            )
         )
         return super().render_change_form(request, context, *args, **kwargs)
 
