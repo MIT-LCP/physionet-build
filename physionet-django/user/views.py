@@ -1158,35 +1158,37 @@ def edit_training(request):
                 message = f"Your {training.training_type.name} training will expire in {days_until_expiry} days."
                 messages.warning(request, message)
 
+    training_qs = Training.objects.select_related("training_type").filter(user=request.user)
+    training_by_status = {}
+    for label, qs in [
+        ("under review", training_qs.get_review()),
+        ("in progress", training_qs.get_in_progress()),
+        ("active", training_qs.get_valid()),
+        ("expired", training_qs.get_expired()),
+        ("rejected", training_qs.get_rejected()),
+    ]:
+        items = list(qs)
+        if items:
+            training_by_status[label] = items
+
     return render(
         request,
         "user/edit_training.html",
-        {"training_form": training_form, "ticket_system_url": ticket_system_url, "take_course_form": take_course_form},
+        {
+            "training_form": training_form,
+            "ticket_system_url": ticket_system_url,
+            "take_course_form": take_course_form,
+            "training_by_status": training_by_status,
+        },
     )
 
 
 @login_required
 def edit_certification(request):
     """
-    Certifications page.
+    Certifications page. Redirects to the training page.
     """
-    training = (
-        Training.objects.select_related("training_type")
-        .filter(user=request.user)
-    )
-    training_by_status = {
-        "under review": training.get_review(),
-        "in progress": training.get_in_progress(),
-        "active": training.get_valid(),
-        "expired": training.get_expired(),
-        "rejected": training.get_rejected(),
-    }
-
-    return render(
-        request,
-        "user/edit_certification.html",
-        {"training_by_status": training_by_status},
-    )
+    return redirect("edit_training")
 
 
 @login_required
