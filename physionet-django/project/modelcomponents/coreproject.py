@@ -42,6 +42,20 @@ class CoreProject(models.Model):
         """
         return self.publishedprojects.filter().order_by('version_order')
 
+    def latest_published_version(self):
+        """
+        Find the latest published version (if any).
+        """
+        # There should never be more than one "latest" version.
+        try:
+            return self.publishedprojects.only(
+                'slug',
+                'version',
+                'core_project',
+            ).get(is_latest_version=True)
+        except PublishedProject.DoesNotExist:
+            return None
+
     @property
     def total_published_size(self):
         """

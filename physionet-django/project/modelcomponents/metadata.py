@@ -294,7 +294,7 @@ class Metadata(models.Model):
             e.set_quality_assurance_results()
         copyedit_logs = self.copyedit_log_history()
         # The last published version. May be None.
-        latest_version = self.core_project.publishedprojects.all().last()
+        latest_version = self.core_project.latest_published_version()
         return authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version
 
     def license_content(self, fmt):

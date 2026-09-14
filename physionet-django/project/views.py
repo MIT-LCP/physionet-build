@@ -2018,7 +2018,7 @@ def published_project(request, project_slug, version, subdir=''):
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
     user = request.user
-    _, _, _, _, _, latest_version = project.info_card()
+    latest_version = project.core_project.latest_published_version()
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())

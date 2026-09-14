@@ -362,7 +362,7 @@ def submission_info_card_params(request,
     submission_info.html
     """
     authors, author_emails = project.get_author_info(include_emails=True)
-    latest_version = project.core_project.publishedprojects.all().last()
+    latest_version = project.core_project.latest_published_version()
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=bulk_download)
     notes = project.internal_notes.all().order_by('-created_at')
