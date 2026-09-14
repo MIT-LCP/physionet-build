@@ -313,6 +313,11 @@ body .main {
   background-color: var(--rose-100);
   color: var(--primary-color);
 }
+.modern-ui .nav-link--active,
+.modern-ui .nav-link--gray.nav-link--active {
+  background-color: var(--rose-100);
+  color: var(--primary-color);
+}
 .modern-ui a:has(.nav-link:hover) {
   text-decoration: none;
 }
@@ -358,12 +363,14 @@ body .main {
   gap: 1rem;
   border-radius: 0.5rem;
 }
-.modern-ui .nav-sublink:hover {
+.modern-ui .nav-sublink:hover,
+.modern-ui .nav-sublink--active {
   background-color: var(--rose-100);
   text-decoration: none;
   color: var(--secondary-color);
 }
-.modern-ui .nav-sublink:hover .nav-sublink__icon {
+.modern-ui .nav-sublink:hover .nav-sublink__icon,
+.modern-ui .nav-sublink--active .nav-sublink__icon {
   background-color: var(--rose-100);
 }
 .modern-ui .nav-sublink__text {
