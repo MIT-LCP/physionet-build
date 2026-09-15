@@ -82,7 +82,7 @@ class Migration(migrations.Migration):
             name='TrainingQuestion',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('answer', models.NullBooleanField()),
+                ('answer', models.BooleanField(null=True)),
                 ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='user.Question')),
                 (
                     'training',
