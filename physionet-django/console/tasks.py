@@ -1,13 +1,17 @@
 import importlib
 import inspect
 import json
+import logging
 
 from background_task.models import Task, task_failed, task_rescheduled
 from django_q.models import OrmQ
+from django_q.signing import SignedPackage
 from django_q.tasks import async_task
 from django.dispatch import receiver
 
 import notification.utility as notification
+
+logger = logging.getLogger(__name__)
 
 _model_tasks = {}
 
@@ -144,11 +148,7 @@ def _unpack_ormq(ormq_obj):
     If the task was dispatched via _run_task, unwrap to get the
     real function name and arguments.
     """
-    try:
-        from django_q.signing import SignedPackage
-        task_dict = SignedPackage.loads(ormq_obj.payload)
-    except Exception:
-        return None, (), {}
+    task_dict = SignedPackage.loads(ormq_obj.payload)
     func = task_dict.get('func', '')
     args = task_dict.get('args', ())
     kwargs = task_dict.get('kwargs', {})
@@ -204,9 +204,6 @@ def get_associated_tasks(instance, *, read_only=None, name=None):
 
     model = type(instance)._meta.label
 
-    if model not in _model_tasks:
-        return
-
     if name is None:
         # Consider all possible task_names that might be associated with
         # this object.
@@ -222,7 +219,7 @@ def get_associated_tasks(instance, *, read_only=None, name=None):
             q2_pending.append((func, args, kwargs))
 
     for task_name in task_names:
-        param_info = _model_tasks[model].get(task_name, [])
+        param_info = _model_tasks[model][task_name]
 
         # If we are only interested in read-only tasks, skip checking
         # read-write parameters, and vice versa.
@@ -313,7 +310,12 @@ def enqueue_task(func, *args, task_name=None, remove_existing=False,
 
         # Remove from django-q2 queue (match on func name and args)
         for ormq_obj in OrmQ.objects.all():
-            queued_func, queued_args, queued_kwargs = _unpack_ormq(ormq_obj)
+            try:
+                queued_func, queued_args, queued_kwargs = _unpack_ormq(ormq_obj)
+            except Exception:
+                logger.warning("Failed to unpack OrmQ entry %s",
+                               ormq_obj.pk, exc_info=True)
+                continue
             if (queued_func == func_name
                     and tuple(queued_args) == tuple(args)
                     and queued_kwargs == kwargs):
