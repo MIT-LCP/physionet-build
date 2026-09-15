@@ -261,16 +261,14 @@ def _unwrap_run_task(func, args):
 
 def task_completion_hook(task):
     """
-    Hook called by django-q2 when a task finishes (or fails an attempt).
+    Hook called by django-q2 when a task finishes.
 
-    Notifies admins only after the final attempt has failed, matching
-    the legacy django-background-tasks behavior which sent one email
-    after all retries were exhausted.
+    Notifies admins when a task has failed.  With the effectively
+    infinite retry (timeout/retry ~317 years), a failed task is
+    acknowledged immediately (ack_failures=True) and never re-queued,
+    so there is only ever one attempt per failure.
     """
     if not task.success:
-        max_attempts = settings.Q_CLUSTER.get('max_attempts', 1)
-        if task.attempt_count < max_attempts:
-            return
         func_name, task_args = _unwrap_run_task(task.func, task.args)
         notification.task_failed_notify(
             name=task.name or '',
