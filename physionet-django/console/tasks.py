@@ -321,6 +321,13 @@ def enqueue_task(func, *args, task_name=None, remove_existing=False,
                     and queued_kwargs == kwargs):
                 ormq_obj.delete()
 
+    # django-q2's Task.name is max_length=100.  If the label exceeds
+    # that, save_task raises DataError and silently swallows it, which
+    # means no Task row is created, the hook never fires, and admins
+    # are never notified of failures.  Truncate to be safe.
+    if task_name and len(task_name) > 100:
+        task_name = task_name[:97] + '...'
+
     # Dispatch via _run_task to avoid pickling issues with
     # @background()-wrapped functions (TaskProxy objects).
     return async_task(
