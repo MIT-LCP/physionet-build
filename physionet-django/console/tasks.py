@@ -162,8 +162,8 @@ def _unpack_ormq(ormq_obj):
 def _match_params(args, kwargs, param_info, instance):
     """
     Check whether (args, kwargs) match the given instance for any of
-    the parameter associations in param_info.  Yields (task_info_or_task,
-    ro_flag) for each match.
+    the parameter associations in param_info.  Yields ro_flag for each
+    match.
     """
     for (field_name, param_name, param_index, ro_flag) in param_info:
         value = getattr(instance, field_name)
@@ -287,9 +287,11 @@ def enqueue_task(func, *args, task_name=None, remove_existing=False,
     actual function will be resolved and dispatched via django-q2's
     async_task.
 
-    If remove_existing is True, delete any matching pending tasks from
-    both the legacy Task queue and the django-q2 OrmQ queue before
-    enqueuing the new one.
+    If remove_existing is True, delete any pending tasks with the same
+    function name and arguments from both the legacy Task queue and the
+    django-q2 OrmQ queue before enqueuing the new one.  This matches
+    the legacy django-background-tasks behavior, which keyed on a hash
+    of the task name and parameters.
     """
     # Resolve the dotted function name
     if hasattr(func, 'task_function'):
@@ -299,13 +301,22 @@ def enqueue_task(func, *args, task_name=None, remove_existing=False,
         func_name = f'{func.__module__}.{func.__qualname__}'
 
     if remove_existing:
-        # Remove from legacy django-background-tasks queue
-        Task.objects.filter(task_name=func_name).delete()
+        # Remove from legacy django-background-tasks queue.
+        # The legacy system keyed on a hash of task_name + params,
+        # so we replicate that by computing the same hash.
+        from hashlib import sha1
+        task_params = json.dumps((args, kwargs), sort_keys=True)
+        task_hash = sha1(
+            f'{func_name}{task_params}'.encode('utf-8')
+        ).hexdigest()
+        Task.objects.filter(task_hash=task_hash).delete()
 
-        # Remove from django-q2 queue
+        # Remove from django-q2 queue (match on func name and args)
         for ormq_obj in OrmQ.objects.all():
-            queued_func, _, _ = _unpack_ormq(ormq_obj)
-            if queued_func == func_name:
+            queued_func, queued_args, queued_kwargs = _unpack_ormq(ormq_obj)
+            if (queued_func == func_name
+                    and tuple(queued_args) == tuple(args)
+                    and queued_kwargs == kwargs):
                 ormq_obj.delete()
 
     # Dispatch via _run_task to avoid pickling issues with
