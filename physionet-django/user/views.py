@@ -1120,7 +1120,10 @@ def edit_training(request):
         if training_form.is_valid():
             training = training_form.save()
             if CITIGroupMapping.objects.filter(training_type=training.training_type).exists():
-                enqueue_task(run_citi_api_verification, training.id)
+                enqueue_task(
+                    run_citi_api_verification, training.id,
+                    task_name='CITI API verification: training {}'.format(training.id),
+                )
             messages.success(request, "The training has been submitted successfully.")
             training_application_request(request, training_form)
             return redirect('edit_training_detail', training.id)

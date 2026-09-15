@@ -2,8 +2,10 @@ import importlib
 import inspect
 import json
 import logging
+from hashlib import sha1
 
 from background_task.models import Task, task_failed, task_rescheduled
+from django.conf import settings
 from django_q.models import OrmQ
 from django_q.signing import SignedPackage
 from django_q.tasks import async_task
@@ -259,11 +261,16 @@ def _unwrap_run_task(func, args):
 
 def task_completion_hook(task):
     """
-    Hook called by django-q2 when a task finishes.
+    Hook called by django-q2 when a task finishes (or fails an attempt).
 
-    Notifies admins when a task has failed.
+    Notifies admins only after the final attempt has failed, matching
+    the legacy django-background-tasks behavior which sent one email
+    after all retries were exhausted.
     """
     if not task.success:
+        max_attempts = settings.Q_CLUSTER.get('max_attempts', 1)
+        if task.attempt_count < max_attempts:
+            return
         func_name, task_args = _unwrap_run_task(task.func, task.args)
         notification.task_failed_notify(
             name=task.name or '',
@@ -301,7 +308,6 @@ def enqueue_task(func, *args, task_name=None, remove_existing=False,
         # Remove from legacy django-background-tasks queue.
         # The legacy system keyed on a hash of task_name + params,
         # so we replicate that by computing the same hash.
-        from hashlib import sha1
         task_params = json.dumps((args, kwargs), sort_keys=True)
         task_hash = sha1(
             f'{func_name}{task_params}'.encode('utf-8')
