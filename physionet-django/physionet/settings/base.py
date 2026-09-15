@@ -231,8 +231,8 @@ USE_TZ = True
 Q_CLUSTER = {
     'name': 'Django_ORM',
     'workers': 4,
-    'timeout': 120,
-    'retry': 600,
+    'timeout': 9999999999,
+    'retry': 10000000000,
     'max_attempts': 5,
     'queue_limit': 100,
     'bulk': 10,
