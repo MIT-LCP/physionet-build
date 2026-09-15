@@ -11,6 +11,7 @@ from unittest import mock
 
 from background_task.models import Task
 from background_task.tasks import tasks
+from console.tasks import _unwrap_run_task
 from django_q.models import Task as DjangoQTask
 import boto3
 from django.conf import settings
@@ -184,23 +185,42 @@ class TestMixin(TestCase):
         self.assertEqual(max(m.level for m in response.context['messages']),
             level)
 
+    # Watermark for tracking how many DjangoQTask rows have already
+    # been verified by previous assertBackgroundTasks calls within the
+    # same test method.  Reset to 0 at the start of each test by
+    # Django's TestCase transaction rollback (which empties the table).
+    _task_watermark = 0
+
     def assertBackgroundTasks(self, expected_number_of_tasks):
         """
-        Assert that background tasks have executed successfully.
+        Assert that exactly `expected_number_of_tasks` new background
+        tasks have been created (and, in sync mode, executed) since the
+        last call to this method within the current test.
 
         With django-q2 in sync mode (Q_CLUSTER['sync'] = True), tasks
-        execute inline during async_task().  This method checks the
-        django-q2 Task result table for the expected number of
-        completed tasks and verifies that none of them failed.
+        execute inline during async_task() and failures re-raise at
+        the call site.  This method verifies the expected count and
+        advances a watermark so that successive calls within the same
+        test don't re-inspect earlier tasks.
 
-        If any task raised an exception, this method will raise
-        BackgroundTaskError.
+        Note: this relies on TestCase wrapping each test in a
+        transaction that is rolled back, so the DjangoQTask table is
+        empty at the start of each test.  It would not be reliable in
+        a TransactionTestCase subclass.
         """
-        recent_tasks = DjangoQTask.objects.order_by('-started')[:expected_number_of_tasks]
-        self.assertEqual(len(recent_tasks), expected_number_of_tasks)
-        for task in recent_tasks:
+        total = DjangoQTask.objects.count()
+        new_tasks = total - self._task_watermark
+        self.assertEqual(
+            new_tasks, expected_number_of_tasks,
+            f"Expected {expected_number_of_tasks} new background task(s), "
+            f"but found {new_tasks} (total={total}, watermark={self._task_watermark})"
+        )
+        # Check for failures among the new tasks (meaningful when sync
+        # mode is disabled, since sync mode re-raises at the call site)
+        for task in DjangoQTask.objects.order_by('started')[self._task_watermark:]:
             if not task.success:
                 raise BackgroundTaskError(task)
+        self._task_watermark = total
 
     def make_get_request(self, viewname, reverse_kwargs=None):
         """
@@ -1018,7 +1038,6 @@ class BackgroundTaskError(Exception):
         # Extract error details and store as __cause__ so that the
         # inner traceback(s) are displayed first, followed by the
         # outer traceback.
-        from console.tasks import _unwrap_run_task
         func_name, task_args = _unwrap_run_task(task.func, task.args)
         self.__cause__ = Exception(
             "error in background task:\n"
