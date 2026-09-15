@@ -2,7 +2,6 @@ import importlib
 import inspect
 import json
 import logging
-from hashlib import sha1
 
 from background_task.models import Task, task_failed, task_rescheduled
 from django.conf import settings
@@ -304,13 +303,22 @@ def enqueue_task(func, *args, task_name=None, remove_existing=False,
 
     if remove_existing:
         # Remove from legacy django-background-tasks queue.
-        # The legacy system keyed on a hash of task_name + params,
-        # so we replicate that by computing the same hash.
-        task_params = json.dumps((args, kwargs), sort_keys=True)
-        task_hash = sha1(
-            f'{func_name}{task_params}'.encode('utf-8')
-        ).hexdigest()
-        Task.objects.filter(task_hash=task_hash).delete()
+        # Legacy tasks were enqueued with keyword arguments (e.g.
+        # project_id=5) while enqueue_task receives positional args,
+        # so we can't rely on the task_hash matching.  Instead,
+        # compare the argument values directly.  Only delete unlocked
+        # tasks (locked_at__isnull=True) to avoid killing a running
+        # task.
+        arg_values = set(args)
+        arg_values.update(kwargs.values())
+        for task in Task.objects.filter(
+            task_name=func_name, locked_at__isnull=True
+        ):
+            legacy_args, legacy_kwargs = json.loads(task.task_params)
+            legacy_values = set(legacy_args)
+            legacy_values.update(legacy_kwargs.values())
+            if arg_values == legacy_values:
+                task.delete()
 
         # Remove from django-q2 queue (match on func name and args)
         for ormq_obj in OrmQ.objects.all():
