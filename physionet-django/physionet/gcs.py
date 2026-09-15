@@ -1,7 +1,7 @@
 import os
 
 from django.conf import settings
-from django.core.files.storage import get_storage_class
+from django.utils.module_loading import import_string
 from physionet.settings.base import StorageTypes
 from storages.backends.gcloud import GoogleCloudStorage
 
@@ -215,7 +215,7 @@ class GCSObject:
         path="test-bucket" -> raise GCSObjectException
         """
         if storage_klass is None:
-            storage_klass = settings.DEFAULT_FILE_STORAGE
+            storage_klass = settings.STORAGES["default"]["BACKEND"]
 
         add_slash = path.endswith('/')
         path = os.path.normpath(path).split('/', 1)
@@ -231,7 +231,7 @@ class GCSObject:
                 object_name += '/'
 
         return (
-            get_storage_class(storage_klass)(bucket_name=bucket_name),
+            import_string(storage_klass)(bucket_name=bucket_name),
             object_name,
         )
 

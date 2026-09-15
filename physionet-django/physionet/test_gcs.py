@@ -19,8 +19,10 @@ GCS_HOST = config('GCS_HOST', default=None)
 )
 @override_settings(
     STORAGE_TYPE=StorageTypes.GCP,
-    DEFAULT_FILE_STORAGE='physionet.storage.MediaStorage',
-    STATICFILES_STORAGE='physionet.storage.StaticStorage',
+    STORAGES={
+        "default": {"BACKEND": "physionet.storage.MediaStorage"},
+        "staticfiles": {"BACKEND": "physionet.storage.StaticStorage"},
+    },
     GCP_STORAGE_BUCKET_NAME='physionet-media',
     GCP_STATIC_BUCKET_NAME='physionet-static',
     GS_PROJECT_ID='test_project_id',
