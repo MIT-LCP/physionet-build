@@ -277,11 +277,12 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(raw_xml, fake_xml_no_member)
 
     def test_get_member_profile_bad_credentials(self, mocker):
+        """Bad credentials return the same empty response as 'member not found'."""
         mocker.register_uri('POST', soap_request_url, text=fake_xml_bad_credentials,
                             additional_matcher=match_member_email)
-        with self.assertRaises(ValueError) as ctx:
-            citi.get_member_profile('test@example.com')
-        self.assertIn('check API credentials', str(ctx.exception))
+        profile, raw_xml = citi.get_member_profile('test@example.com')
+        self.assertIsNone(profile)
+        self.assertEqual(raw_xml, fake_xml_bad_credentials)
 
     def test_get_memberid_not_found(self, mocker):
         mocker.register_uri('POST', soap_request_url, text=fake_xml_no_member, additional_matcher=match_member_email)
