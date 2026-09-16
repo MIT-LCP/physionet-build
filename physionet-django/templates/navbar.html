@@ -160,18 +160,18 @@
                   </div>
                 </a>
               {% endif %}
-              <form id="nav_logout_form" class="d-none" method="post" action="{% url 'logout' %}">
+              <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
+                <button type="submit" class="nav-sublink">
+                  <div class="nav-sublink__icon">
+                    <img src="{% static 'images/icons/logout.png' %}" alt="" height="32px" />
+                  </div>
+                  <div class="nav-sublink__text">
+                    <span class="nav-sublink__title">Logout</span>
+                    <span class="nav-sublink__description">Exit your account securely and return to the homepage.</span>
+                  </div>
+                </button>
               </form>
-              <a class="nav-sublink" href="#" onclick="document.getElementById('nav_logout_form').submit(); return false;">
-                <div class="nav-sublink__icon">
-                  <img src="{% static 'images/icons/logout.png' %}" alt="" height="32px" />
-                </div>
-                <div class="nav-sublink__text">
-                  <span class="nav-sublink__title">Logout</span>
-                  <span class="nav-sublink__description">Exit your account securely and return to the homepage.</span>
-                </div>
-              </a>
             </div>
           </dialog>
         {% else %}
