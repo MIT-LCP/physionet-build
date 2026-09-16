@@ -44,13 +44,13 @@ def convert_date_time(str_date_time):
 
     Args:
         str_date_time (str): A string representing a date and time in the format
-            'YYYY-MM-DDTHH:MM:SS.ssssss±HH:MM', where ±HH:MM is the time zone offset.
+            'YYYY-MM-DDTHH:MM:SS[.ssssss]±HH:MM', where the fractional seconds
+            are optional and ±HH:MM is the time zone offset.
 
     Returns:
         datetime: A datetime object corresponding to the input string.
     """
-    datetime_object = datetime.strptime(str_date_time, '%Y-%m-%dT%H:%M:%S.%f%z')
-    return datetime_object
+    return datetime.fromisoformat(str_date_time)
 
 
 def send_request(xml_payload):
