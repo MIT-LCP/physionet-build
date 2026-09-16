@@ -1,0 +1,9 @@
+<meta name="citation_title" content="{{ project.title }}">
+{% for author in authors %}
+  <meta name="citation_author" content="{{ author.last_name }}, {{ author.first_names }}">
+{% endfor %}
+<meta name="citation_publication_date" content="{{ project.publish_datetime|date:'Y/n/j' }}">
+{% if project.doi %}
+  <meta name="citation_doi" content="{{ project.doi }}">
+{% endif %}
+<meta name="citation_technical_report_institution" content="{{ SITE_NAME }}">
