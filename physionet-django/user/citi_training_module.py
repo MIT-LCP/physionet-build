@@ -165,11 +165,13 @@ def get_member_profile(email):
 
     root, raw_xml = send_request(xml_payload=payload)
 
-    # A valid response always contains a NewDataSet element, even when
-    # the member is not found. If it's missing, the credentials are
-    # likely invalid.
-    if root.find('.//{NewDataSet}') is None and root.find('.//NewDataSet') is None:
-        raise ValueError('CITI API response missing NewDataSet element; check API credentials.')
+    # A valid response contains the GetInstMemberByEmailResult element,
+    # even when no member is found (the diffgram will simply be empty).
+    # Note: the API returns the same empty structure for invalid
+    # credentials, so we cannot distinguish auth errors from "not found".
+    ns = 'https://webservices.citiprogram.org/'
+    if root.find('.//{%s}GetInstMemberByEmailResult' % ns) is None:
+        raise ValueError('CITI API: unexpected response format.')
 
     memberid = root.find('.//intMemberID')
     if memberid is None:
@@ -261,7 +263,7 @@ def lookup_citi_completions_for_user(user):
                     member_profile_xml=result.member_profile_xml,
                     completions_xml=result.completions_xml,
                 )
-        except (requests.RequestException, ET.ParseError) as e:
+        except (requests.RequestException, ET.ParseError, ValueError) as e:
             logger.error('CITI API error for email %s: %s', email, str(e))
             last_error = str(e)
 

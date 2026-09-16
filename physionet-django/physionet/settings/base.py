@@ -333,6 +333,10 @@ DATACITE_USER = config('DATACITE_USER', default='')
 DATACITE_PASS = config('DATACITE_PASS', default='')
 
 # Tags for the CITISOAPService API
+# Note: the CITI API returns the same empty response for invalid credentials
+# as for a valid "member not found" lookup, so credential errors cannot be
+# detected automatically. To verify credentials, look up a known member email
+# using get_member_profile() in a Django shell and confirm results are returned.
 CITI_USERNAME = config('CITI_USERNAME', default='')
 CITI_PASSWORD = config('CITI_PASSWORD', default='')
 CITI_SOAP_URL = config('CITI_SOAP_URL', default='')
