@@ -362,6 +362,19 @@ body .main {
   display: flex;
   gap: 1rem;
   border-radius: 0.5rem;
+  width: 100%;
+  cursor: pointer;
+}
+.nav-sublinks form {
+  display: contents;
+}
+button.nav-sublink {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
 }
 .modern-ui .nav-sublink:hover,
 .modern-ui .nav-sublink--active {
@@ -419,7 +432,7 @@ body .main {
   border-radius: 50rem;
   background-color: var(--light-color);
 }
-.modern-ui .nav__actions form {
+.modern-ui .nav__actions > form {
   flex-grow: 1;
   display: none;
 }
@@ -485,7 +498,7 @@ body .main {
 .modern-ui .nav--search .nav__actions {
   width: 100%;
 }
-.modern-ui .nav--search .nav__actions form {
+.modern-ui .nav--search .nav__actions > form {
   display: block;
 }
 .modern-ui .nav--search .nav__links {
