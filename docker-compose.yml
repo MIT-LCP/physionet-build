@@ -61,7 +61,7 @@ services:
     depends_on:
       - gcs
   db:
-    image: postgres:13-alpine
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: physionet
       POSTGRES_PASSWORD: password
