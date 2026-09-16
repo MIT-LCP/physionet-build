@@ -155,4 +155,7 @@ TEST_CASES = {
     # Testing auth_orcid requires a mock oauth server.  Skip this URL.
     "auth_orcid": {"_skip_": True},
     "auth_orcid_login": {"_skip_": True},
+    # Django 5.0+ LogoutView only accepts POST requests.
+    # Logout is tested via test_integration.TestAuth.test_logout.
+    "logout": {"_skip_": True},
 }

@@ -72,7 +72,10 @@
               Admin Console
             </a>
           {% endif %}
-          <a id="nav_logout" class="dropdown-item" href="{% url 'logout' %}">
+          <form id="nav_logout_form_legacy" class="d-none" method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+          </form>
+          <a id="nav_logout" class="dropdown-item" href="#" onclick="document.getElementById('nav_logout_form_legacy').submit(); return false;">
             Logout
           </a>
         </div>
