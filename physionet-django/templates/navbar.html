@@ -160,7 +160,10 @@
                   </div>
                 </a>
               {% endif %}
-              <a class="nav-sublink" href="{% url 'logout' %}">
+              <form id="nav_logout_form" class="d-none" method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+              </form>
+              <a class="nav-sublink" href="#" onclick="document.getElementById('nav_logout_form').submit(); return false;">
                 <div class="nav-sublink__icon">
                   <img src="{% static 'images/icons/logout.png' %}" alt="" height="32px" />
                 </div>
