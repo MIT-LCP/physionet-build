@@ -14,6 +14,7 @@ urlpatterns = [
     path("settings/profile/", views.edit_profile, name="edit_profile"),
     path("settings/emails/", views.edit_emails, name="edit_emails"),
     path("settings/username/", views.edit_username, name="edit_username"),
+    path("settings/communications/", views.edit_communications, name="edit_communications"),
     path("settings/cloud/", views.edit_cloud, name="edit_cloud"),
     path("settings/cloud/aws/", views.edit_cloud_aws, name="edit_cloud_aws"),
     path("settings/orcid/", views.edit_orcid, name="edit_orcid"),

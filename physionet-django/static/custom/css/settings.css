@@ -90,6 +90,10 @@ input::placeholder {
     padding-right: 30px;
   }
 
+  .sett-side:last-child{
+    padding-left: 30px;
+  }
+
   .form-control.email{
     padding-right: 10px;
   }

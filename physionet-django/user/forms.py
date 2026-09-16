@@ -305,6 +305,29 @@ class ProfileForm(forms.ModelForm):
         super(ProfileForm, self).save()
 
 
+class CommunicationsForm(forms.ModelForm):
+    """
+    For editing communication preferences
+    """
+    newsletter = forms.BooleanField(
+        required=False,
+        label='Subscribe to our newsletter for updates on events, challenges, and community news',
+        widget=forms.CheckboxInput(attrs={'class': 'custom-control-input'}))
+    review_volunteer = forms.BooleanField(
+        required=False,
+        label='Volunteer to review project submissions',
+        widget=forms.CheckboxInput(attrs={'class': 'custom-control-input'}))
+
+    class Meta:
+        model = Profile
+        fields = ('newsletter', 'review_volunteer')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.instance.user.is_credentialed:
+            self.fields['review_volunteer'].disabled = True
+
+
 class RegistrationForm(forms.ModelForm):
     """A form for creating new users. Includes all the required
     fields, plus a repeated password.

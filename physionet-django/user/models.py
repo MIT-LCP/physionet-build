@@ -714,6 +714,12 @@ class Profile(models.Model):
     photo = models.ImageField(upload_to=photo_path, blank=True, null=True,
                               validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'],
                                                                  'Allowed filetypes are png and jpg only.')])
+    newsletter = models.BooleanField(
+        default=False,
+        help_text='Whether the user has opted in to receive the newsletter.')
+    review_volunteer = models.BooleanField(
+        default=False,
+        help_text='Whether the user has volunteered to review data submissions.')
 
     MAX_PHOTO_SIZE = 2 * 1024 ** 2
 

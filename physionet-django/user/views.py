@@ -506,6 +506,24 @@ def edit_profile(request):
 
 
 @login_required
+def edit_communications(request):
+    """
+    Edit communication preferences
+    """
+    profile = request.user.profile
+    form = forms.CommunicationsForm(instance=profile)
+
+    if request.method == 'POST':
+        form = forms.CommunicationsForm(data=request.POST, instance=profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your communication preferences have been updated.')
+            form = forms.CommunicationsForm(instance=profile)
+
+    return render(request, 'user/edit_communications.html', {'form': form})
+
+
+@login_required
 def edit_tokens(request):
     """
     View for users to manage their personal API access tokens.

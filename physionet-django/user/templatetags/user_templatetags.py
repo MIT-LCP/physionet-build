@@ -7,7 +7,7 @@ register = template.Library()
 
 @register.inclusion_tag('user/settings_tabs.html', takes_context=True)
 def settings_tabs(context, hide_password_settings: bool):
-    default_tabs = ['Profile', 'Emails', 'Username', 'Cloud', 'ORCID', 'Credentialing', 'Training',
+    default_tabs = ['Profile', 'Emails', 'Username', 'Communications', 'Cloud', 'ORCID', 'Credentialing', 'Training',
                     'Agreements']
     if not hide_password_settings:
         default_tabs.insert(1, 'Password')

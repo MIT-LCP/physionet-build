@@ -1,0 +1,28 @@
+{% extends "user/settings.html" %}
+
+{% block title %}Communications{% endblock %}
+
+{% block main_content %}
+<form action="{% url 'edit_communications' %}" method="post" class="form-signin no-pd">
+  <h1 class="form-signin-heading">Communications</h1>
+  <hr>
+  {% csrf_token %}
+  {% for field in form.visible_fields %}
+  <div class="form-group{% if field.field.disabled %} text-muted{% endif %}">
+    <div class="custom-control custom-checkbox">
+      {{ field }}
+      <label class="custom-control-label" for="{{ field.id_for_label }}">
+        {{ field.label }}
+      </label>
+    </div>
+    {% if field.field.disabled %}
+    <small class="form-text mt-1">
+      This option is available to credentialed users.
+      <a href="{% url 'edit_credentialing' %}">Apply for credentialing</a>.
+    </small>
+    {% endif %}
+  </div>
+  {% endfor %}
+  <button class="btn btn-primary btn-rsp" type="submit">Save Changes</button>
+</form>
+{% endblock %}
