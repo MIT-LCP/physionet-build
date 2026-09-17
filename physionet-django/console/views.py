@@ -1613,16 +1613,16 @@ def user_management(request, username):
     if request.method == 'POST' and 'update_permission_groups' in request.POST:
         if not request.user.has_perm('user.change_user'):
             raise PermissionDenied
-        if 'event_host' in request.POST:
-            event_host_group, _ = Group.objects.get_or_create(name='Event Host')
-            event_host_group.permissions.add(*Permission.objects.filter(
+        if 'host' in request.POST:
+            host_group, _ = Group.objects.get_or_create(name='host')
+            host_group.permissions.add(*Permission.objects.filter(
                 content_type__app_label='events',
                 content_type__model='event',
                 codename__in=['add_event', 'view_event_menu'],
             ))
-            user.groups.add(event_host_group)
+            user.groups.add(host_group)
         else:
-            user.groups.remove(*Group.objects.filter(name='Event Host'))
+            user.groups.remove(*Group.objects.filter(name='host'))
         messages.success(request, 'Permission groups updated.')
         return redirect('user_management', username=user.username)
 
@@ -1668,14 +1668,14 @@ def user_management(request, username):
     credentialing_app = CredentialApplication.objects.filter(user=user).order_by("application_datetime")
 
     groups = user.groups.all()
-    has_event_host_permission = groups.filter(name='Event Host').exists()
+    has_host_permission = groups.filter(name='host').exists()
 
     is_restricted = user.is_from_restricted_country()
 
     return render(request, 'console/user_management.html', {'subject': user,
                                                             'profile': user.profile,
                                                             'groups': groups,
-                                                            'has_event_host_permission': has_event_host_permission,
+                                                            'has_host_permission': has_host_permission,
                                                             'emails': emails,
                                                             'projects': projects,
                                                             'training_list': training,

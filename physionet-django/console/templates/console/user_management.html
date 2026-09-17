@@ -155,8 +155,8 @@
         {% csrf_token %}
         <div class="col-md-9">
           <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" name="event_host" id="event-host-permission"{% if has_event_host_permission %} checked{% endif %}>
-            <label class="form-check-label" for="event-host-permission">Event Host</label>
+            <input class="form-check-input" type="checkbox" name="host" id="host-permission"{% if has_host_permission %} checked{% endif %}>
+            <label class="form-check-label" for="host-permission">Host</label>
           </div>
           <button type="submit" name="update_permission_groups" class="btn btn-primary">Update permission groups</button>
         </div>
