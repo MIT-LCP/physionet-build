@@ -47,18 +47,18 @@ class TestCredentialReviewForm(TestCase):
 
 
 class TestUserManagement(TestMixin):
-    def test_update_event_host_permission(self):
+    def test_update_host_permission(self):
         self.client.login(username='admin', password='Tester11!')
         user = User.objects.get(username='rgmark')
-        Group.objects.filter(name='Event Host').delete()
+        Group.objects.filter(name='host').delete()
 
         response = self.client.post(
             reverse('user_management', args=(user.username,)),
-            {'event_host': 'on', 'update_permission_groups': ''},
+            {'host': 'on', 'update_permission_groups': ''},
         )
 
         self.assertRedirects(response, reverse('user_management', args=(user.username,)))
-        self.assertTrue(user.groups.filter(name='Event Host').exists())
+        self.assertTrue(user.groups.filter(name='host').exists())
         self.assertTrue(user.has_perm('events.add_event'))
         self.assertTrue(user.has_perm('events.view_event_menu'))
 
@@ -68,7 +68,7 @@ class TestUserManagement(TestMixin):
         )
 
         self.assertRedirects(response, reverse('user_management', args=(user.username,)))
-        self.assertFalse(user.groups.filter(name='Event Host').exists())
+        self.assertFalse(user.groups.filter(name='host').exists())
 
 
 class TestState(TestMixin):
