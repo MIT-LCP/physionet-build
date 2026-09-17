@@ -14,7 +14,7 @@ from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
@@ -1609,6 +1609,23 @@ def user_management(request, username):
     Admin page for managing an individual user account.
     """
     user = get_object_or_404(User, username__iexact=username)
+
+    if request.method == 'POST' and 'update_permission_groups' in request.POST:
+        if not request.user.has_perm('user.change_user'):
+            raise PermissionDenied
+        if 'event_host' in request.POST:
+            event_host_group, _ = Group.objects.get_or_create(name='Event Host')
+            event_host_group.permissions.add(*Permission.objects.filter(
+                content_type__app_label='events',
+                content_type__model='event',
+                codename__in=['add_event', 'view_event_menu'],
+            ))
+            user.groups.add(event_host_group)
+        else:
+            user.groups.remove(*Group.objects.filter(name='Event Host'))
+        messages.success(request, 'Permission groups updated.')
+        return redirect('user_management', username=user.username)
+
     try:
         aws_info = CloudInformation.objects.get(user=user).aws_id
     except CloudInformation.DoesNotExist:
@@ -1651,12 +1668,14 @@ def user_management(request, username):
     credentialing_app = CredentialApplication.objects.filter(user=user).order_by("application_datetime")
 
     groups = user.groups.all()
+    has_event_host_permission = groups.filter(name='Event Host').exists()
 
     is_restricted = user.is_from_restricted_country()
 
     return render(request, 'console/user_management.html', {'subject': user,
                                                             'profile': user.profile,
                                                             'groups': groups,
+                                                            'has_event_host_permission': has_event_host_permission,
                                                             'emails': emails,
                                                             'projects': projects,
                                                             'training_list': training,
