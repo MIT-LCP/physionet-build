@@ -45,18 +45,24 @@ django-cors-headers = "^3.14.0"
 pyjwt = "^2.13.0"
 jsonschema = "^4.0.0"
 
-[tool.poetry.group.dev.dependencies]
-coverage = "^7.2.3"
-django-coverage-plugin = "^3.1.0"
-django-debug-toolbar = "^5.1.0"
-moto = { version = "^5.0.14", extras = ["s3", "s3control"] }
-requests = "^2.32.4"
-requests-mock = "^1.7.0"
-selenium = "^3.141.0"
+[dependency-groups]
+dev = [
+   "coverage                    == 7.*, >= 7.2.3",
+   "django-coverage-plugin      == 3.*, >= 3.1.0",
+   "django-debug-toolbar        == 5.*, >= 5.1.0",
+   "moto[s3,s3control]          == 5.*, >= 5.0.14",
+   "requests                    == 2.*, >= 2.32.4",
+   "requests-mock               == 1.*, >= 1.7.0",
+   "selenium                    == 3.*, >= 3.141.0",
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.packages]]
+include = "**"
+from = "physionet-django"
 
 [tool.codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file
