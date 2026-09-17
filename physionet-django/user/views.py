@@ -187,7 +187,8 @@ class SSOLoginView(auth_views.LoginView):
 
 
 class LogoutView(auth_views.LogoutView):
-    pass
+    def get(self, request, *args, **kwargs):
+        return render(request, 'user/logout_confirm.html')
 
 
 class CustomPasswordResetForm(PasswordResetForm):
