@@ -1601,3 +1601,75 @@ def delete_project_files_from_s3(project):
         project.id,
         verbose_name='Delete S3 files - {}'.format(project)
     )
+
+
+def delete_project_access_points(project):
+    """
+    Delete all S3 access points associated with a project and remove
+    the corresponding AWS records from the database.
+
+    Args:
+        project (PublishedProject): The project whose access points
+        will be deleted.
+    """
+    s3control = create_s3_control_client()
+
+    for ap in project.aws.access_points.all():
+        s3control.delete_access_point(
+            AccountId=settings.AWS_ACCOUNT_ID,
+            Name=ap.name
+        )
+
+    # Deletes AWS, AWSAccessPoint, and AWSAccessPointUser
+    # from our database as well via CASCADE
+    project.aws.delete()
+
+
+def disable_project_access_in_s3(project):
+    """
+    Temporarily disable access to a private project by deleting its S3 access points
+    without removing the project files from the bucket. Sets
+    access_disabled=True to prevent users from re-enabling access.
+
+    For public projects, per-project access cannot be disabled without deleting
+    the files, since the bucket policy applies to the entire bucket.
+
+    Args:
+        project (PublishedProject): The project whose access will be disabled.
+    """
+    if not project.aws.is_private:
+        return
+    if not check_s3_bucket_exists(project):
+        return
+
+    s3control = create_s3_control_client()
+    for ap in project.aws.access_points.all():
+        s3control.delete_access_point(
+            AccountId=settings.AWS_ACCOUNT_ID,
+            Name=ap.name
+        )
+    # Only delete AWSAccessPoint records, not the AWS instance itself
+    project.aws.access_points.all().delete()
+
+    # Set explicit flag to prevent users from re-enabling access
+    project.aws.access_disabled = True
+    project.aws.save()
+
+
+def restore_project_access_in_s3(project):
+    """
+    Restore access to a private project by recreating its S3 access points
+    and clearing the access_disabled flag.
+
+    Args:
+        project (PublishedProject): The project whose access will be restored.
+    """
+    if not project.aws.is_private:
+        return
+    if not check_s3_bucket_exists(project):
+        return
+
+    initialize_access_points(project)
+
+    project.aws.access_disabled = False
+    project.aws.save()
