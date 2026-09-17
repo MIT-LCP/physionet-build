@@ -187,6 +187,8 @@ class SSOLoginView(auth_views.LoginView):
 
 
 class LogoutView(auth_views.LogoutView):
+    http_method_names = ['get', 'post', 'options']
+
     def get(self, request, *args, **kwargs):
         return render(request, 'user/logout_confirm.html')
 
