@@ -8,6 +8,7 @@ import pdb
 
 
 import requests_mock
+from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core import mail
 from django.test import TestCase
@@ -43,6 +44,31 @@ class TestCredentialReviewForm(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn('reviewer_comments', form.errors)
+
+
+class TestUserManagement(TestMixin):
+    def test_update_host_permission(self):
+        self.client.login(username='admin', password='Tester11!')
+        user = User.objects.get(username='rgmark')
+        Group.objects.filter(name='host').delete()
+
+        response = self.client.post(
+            reverse('user_management', args=(user.username,)),
+            {'host': 'on', 'update_permission_groups': ''},
+        )
+
+        self.assertRedirects(response, reverse('user_management', args=(user.username,)))
+        self.assertTrue(user.groups.filter(name='host').exists())
+        self.assertTrue(user.has_perm('events.add_event'))
+        self.assertTrue(user.has_perm('events.view_event_menu'))
+
+        response = self.client.post(
+            reverse('user_management', args=(user.username,)),
+            {'update_permission_groups': ''},
+        )
+
+        self.assertRedirects(response, reverse('user_management', args=(user.username,)))
+        self.assertFalse(user.groups.filter(name='host').exists())
 
 
 class TestState(TestMixin):
