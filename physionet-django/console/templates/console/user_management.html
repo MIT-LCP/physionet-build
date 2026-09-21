@@ -150,6 +150,17 @@
         </div>
         {% endif %}
     </div>
+    {% if perms.user.change_user %}
+        <form method="post" class="row mb-1">
+          {% csrf_token %}
+          <div class="col-md-9">
+            <div class="mb-2">                                                                                                                             
+              <label><input type="checkbox" name="host" id="host-permission"{% if has_host_permission %} checked{% endif %}> Host</label>                  
+            </div>
+            <button type="submit" name="update_permission_groups" class="btn btn-primary">Update permission groups</button>
+          </div>
+        </form>
+    {% endif %}
 
   <br />
   <h3>Projects</h3>
