@@ -1603,28 +1603,6 @@ def delete_project_files_from_s3(project):
     )
 
 
-def delete_project_access_points(project):
-    """
-    Delete all S3 access points associated with a project and remove
-    the corresponding AWS records from the database.
-
-    Args:
-        project (PublishedProject): The project whose access points
-        will be deleted.
-    """
-    s3control = create_s3_control_client()
-
-    for ap in project.aws.access_points.all():
-        s3control.delete_access_point(
-            AccountId=settings.AWS_ACCOUNT_ID,
-            Name=ap.name
-        )
-
-    # Deletes AWS, AWSAccessPoint, and AWSAccessPointUser
-    # from our database as well via CASCADE
-    project.aws.delete()
-
-
 def disable_project_access_in_s3(project):
     """
     Temporarily disable access to a private project by deleting its S3 access points
