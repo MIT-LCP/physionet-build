@@ -1,0 +1,8 @@
+Dear Colleague,
+
+{{ inviter_name }} has invited you to join team "{{ team.name }}" for the challenge "{{ challenge.slug }}" on {{ SITE_NAME }}.
+
+To respond to this invitation, please visit:
+{{ url_prefix }}{% url 'challenge_detail' challenge.slug %}
+
+{{ signature }}

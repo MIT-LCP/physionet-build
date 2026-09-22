@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Team Invitation - {{ challenge.published_project.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include "message_snippet.html" %}
+
+  <h1>Team Invitation</h1>
+  <h4 class="text-muted">{{ challenge.published_project.title }}</h4>
+
+  <div class="card mt-3">
+    <div class="card-body">
+      <p>You have been invited to join team <strong>{{ invitation.team.name }}</strong>
+         by {{ invitation.invited_by.get_full_name }}.</p>
+
+      <form method="post">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=form %}
+        <button type="submit" class="btn btn-primary mt-3">Respond</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

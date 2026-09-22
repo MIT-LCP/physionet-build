@@ -31,6 +31,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 SECRET_KEY = config('SECRET_KEY')
 ENABLE_SSO = config('ENABLE_SSO', default=False, cast=bool)
 ENABLE_LIGHTWAVE = config('ENABLE_LIGHTWAVE', default=True, cast=bool)
+ENABLE_CHALLENGES = config('ENABLE_CHALLENGES', default=False, cast=bool)
 SSO_REMOTE_USER_HEADER = config('SSO_REMOTE_USER_HEADER', default='HTTP_REMOTE_USER')
 SSO_LOGIN_BUTTON_TEXT = config('SSO_LOGIN_BUTTON_TEXT', default='Login')
 PRIVACY_POLICY_HTML = config('PRIVACY_POLICY_HTML', default=None)
@@ -117,6 +118,9 @@ if ENABLE_SSO:
 
 if ENABLE_LIGHTWAVE:
     INSTALLED_APPS += ['lightwave']
+
+if ENABLE_CHALLENGES:
+    INSTALLED_APPS += ['challenge']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -927,3 +931,10 @@ if BLOCKED_REGIONS and any(region != 'localhost' for region in BLOCKED_REGIONS):
             "BLOCKED_REGIONS is set to block real countries, but GEOIP_PATH is not configured. "
             "Please set GEOIP_PATH to the directory containing your GeoIP2 database files."
         )
+
+# Challenge platform settings
+CHALLENGE_GCP_PROJECT_ID = config('CHALLENGE_GCP_PROJECT_ID', default='')
+CHALLENGE_GCP_REGION = config('CHALLENGE_GCP_REGION', default='us-central1')
+CHALLENGE_STAGING_BUCKET = config('CHALLENGE_STAGING_BUCKET', default='')
+CHALLENGE_HIDDEN_DATA_BUCKET = config('CHALLENGE_HIDDEN_DATA_BUCKET', default='')
+CHALLENGE_MAX_ARCHIVE_SIZE_MB = config('CHALLENGE_MAX_ARCHIVE_SIZE_MB', default=100, cast=int)

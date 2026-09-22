@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Invite to Team - {{ challenge.published_project.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include "message_snippet.html" %}
+
+  <h1>Invite Team Member</h1>
+  <h4 class="text-muted">{{ challenge.published_project.title }} - {{ participant.team.name }}</h4>
+
+  <div class="card mt-3">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=form %}
+        <button type="submit" class="btn btn-primary mt-3">Send Invitation</button>
+        <a href="{% url 'challenge_team' challenge.slug %}" class="btn btn-secondary mt-3">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

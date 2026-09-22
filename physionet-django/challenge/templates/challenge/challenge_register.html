@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - {{ challenge.published_project.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include "message_snippet.html" %}
+
+  <h1>Register for Challenge</h1>
+  <h4 class="text-muted">{{ challenge.published_project.title }}</h4>
+
+  <div class="card mt-3">
+    <div class="card-body">
+      <p>By registering, you agree to the challenge rules and terms.</p>
+      {% if challenge.rules %}
+      <p><a href="{% url 'challenge_rules' challenge.slug %}">View Rules</a></p>
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">Confirm Registration</button>
+        <a href="{% url 'challenge_detail' challenge.slug %}" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
