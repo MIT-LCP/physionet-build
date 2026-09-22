@@ -19,6 +19,11 @@ class NotificationType(models.IntegerChoices):
     COHOST_INVITATION = 10, 'Cohost invitation'
     COHOST_RESPONSE = 11, 'Cohost response'
     GENERIC = 12, 'Generic'
+    CHALLENGE_SUBMISSION_COMPLETE = 13, 'Challenge submission complete'
+    CHALLENGE_SUBMISSION_FAILED = 14, 'Challenge submission failed'
+    CHALLENGE_TEAM_INVITATION = 15, 'Challenge team invitation'
+    CHALLENGE_TEAM_RESPONSE = 16, 'Challenge team response'
+    CHALLENGE_PHASE_CHANGE = 17, 'Challenge phase change'
 
 
 class Notification(models.Model):

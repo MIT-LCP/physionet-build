@@ -1,0 +1,8 @@
+Your submission to the challenge "{{ challenge.slug }}" has failed.
+
+Submission ID: {{ submission.pk }}
+Error: {{ submission.error_message }}
+
+View details: {{ url_prefix }}{% url 'challenge_submission_detail' challenge.slug submission.pk %}
+
+{{ signature }}

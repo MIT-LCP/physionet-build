@@ -96,6 +96,9 @@ if settings.ENABLE_SSO:
 if settings.ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
     urlpatterns.append(path('environments/', include('environment.urls')))
 
+if getattr(settings, 'ENABLE_CHALLENGES', False):
+    urlpatterns.append(path('challenges/', include('challenge.urls')))
+
 if settings.DEBUG:
     import debug_toolbar
 

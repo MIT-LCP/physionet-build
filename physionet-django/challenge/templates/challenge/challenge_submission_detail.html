@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Submission #{{ submission.pk }} - {{ challenge.published_project.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include "message_snippet.html" %}
+
+  <h1>Submission #{{ submission.pk }}</h1>
+  <h4 class="text-muted">{{ challenge.published_project.title }}</h4>
+
+  <div class="card mt-3">
+    <div class="card-body">
+      <dl class="row">
+        <dt class="col-sm-3">Status</dt>
+        <dd class="col-sm-9">
+          <span class="badge badge-{% if submission.status == 'completed' %}success{% elif submission.status == 'failed' or submission.status == 'timed_out' %}danger{% elif submission.status == 'cancelled' %}secondary{% else %}info{% endif %}">
+            {{ submission.get_status_display }}
+          </span>
+        </dd>
+
+        <dt class="col-sm-3">Submitted by</dt>
+        <dd class="col-sm-9">{{ submission.submitted_by.get_full_name }}</dd>
+
+        {% if submission.team %}
+        <dt class="col-sm-3">Team</dt>
+        <dd class="col-sm-9">{{ submission.team.name }}</dd>
+        {% endif %}
+
+        <dt class="col-sm-3">Submitted</dt>
+        <dd class="col-sm-9">{{ submission.created_datetime|date:"N j, Y H:i:s" }}</dd>
+
+        {% if submission.started_datetime %}
+        <dt class="col-sm-3">Started</dt>
+        <dd class="col-sm-9">{{ submission.started_datetime|date:"N j, Y H:i:s" }}</dd>
+        {% endif %}
+
+        {% if submission.completed_datetime %}
+        <dt class="col-sm-3">Completed</dt>
+        <dd class="col-sm-9">{{ submission.completed_datetime|date:"N j, Y H:i:s" }}</dd>
+        {% endif %}
+
+        {% if submission.description %}
+        <dt class="col-sm-3">Description</dt>
+        <dd class="col-sm-9">{{ submission.description }}</dd>
+        {% endif %}
+
+        {% if submission.error_message %}
+        <dt class="col-sm-3">Error</dt>
+        <dd class="col-sm-9"><pre>{{ submission.error_message }}</pre></dd>
+        {% endif %}
+      </dl>
+    </div>
+  </div>
+
+  {% if scores %}
+  <div class="card mt-3">
+    <div class="card-header"><h4>Scores</h4></div>
+    <div class="card-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+            <th>Dataset</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for score in scores %}
+          <tr>
+            <td>{{ score.metric_name }}</td>
+            <td>{{ score.value }}</td>
+            <td>{{ score.get_dataset_display }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="mt-3">
+    <a href="{% url 'challenge_my_submissions' challenge.slug %}" class="btn btn-secondary">Back to Submissions</a>
+  </div>
+</div>
+{% endblock %}

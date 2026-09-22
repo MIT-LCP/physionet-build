@@ -1,0 +1,7 @@
+Dear {{ name }},
+
+The challenge "{{ challenge.slug }}" has transitioned from {{ old_phase }} to {{ new_phase }}.
+
+View the challenge: {{ url_prefix }}{% url 'challenge_detail' challenge.slug %}
+
+{{ signature }}
