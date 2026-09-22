@@ -1,0 +1,146 @@
+{% extends "project/project.html" %}
+
+{% load static %}
+{% load project_templatetags %}
+
+{% block title %}Challenge Config - {{ project }}{% endblock %}
+
+{% block main_content %}
+<h2 class="form-signin-heading">{% project_step_header 'challenge_config' project %}</h2>
+<hr>
+<p>Configure the competition mechanics for your challenge: schedule, submission limits, container specification, and evaluation settings.</p>
+<hr>
+
+{% if not project.author_editable %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>The project cannot be edited right now.</strong>
+  </div>
+{% elif not is_submitting %}
+  <div class="alert alert-form alert-warning alert-dismissible">
+    <strong>Only the submitting author may edit the challenge configuration.</strong>
+  </div>
+{% endif %}
+
+<form action="{% url 'project_challenge_config' project.slug %}" method="post" class="no-pd">
+  {% csrf_token %}
+
+  <h4>Schedule</h4>
+  <hr>
+  {% for field in challenge_config_form %}
+    {% if field.name == 'registration_open_datetime' or field.name == 'start_datetime' or field.name == 'end_datetime' %}
+    <div class="form-group row">
+      <label class="col-md-3" for="{{ field.id_for_label }}">
+        {{ field.label }}
+        {% if field.help_text %}
+        <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ field.help_text|safe }}" data-html="true" style="cursor: pointer;"></i>
+        {% endif %}
+      </label>
+      <div class="col-md-9">
+        {{ field }}
+        {% for error in field.errors %}
+          <div class="alert alert-danger"><strong>{{ error|escape }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  <h4>Submission Limits</h4>
+  <hr>
+  {% for field in challenge_config_form %}
+    {% if field.name == 'max_submissions_per_day' or field.name == 'max_total_submissions' or field.name == 'teams_enabled' %}
+    <div class="form-group row">
+      <label class="col-md-3" for="{{ field.id_for_label }}">
+        {{ field.label }}
+        {% if field.help_text %}
+        <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ field.help_text|safe }}" data-html="true" style="cursor: pointer;"></i>
+        {% endif %}
+      </label>
+      <div class="col-md-9">
+        {{ field }}
+        {% for error in field.errors %}
+          <div class="alert alert-danger"><strong>{{ error|escape }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  <h4>Container Specification</h4>
+  <hr>
+  {% for field in challenge_config_form %}
+    {% if field.name == 'base_image' or field.name == 'entrypoint_command' or field.name == 'max_runtime_seconds' or field.name == 'max_memory_mb' or field.name == 'gpu_enabled' or field.name == 'gpu_type' or field.name == 'cpu_count' %}
+    <div class="form-group row">
+      <label class="col-md-3" for="{{ field.id_for_label }}">
+        {{ field.label }}
+        {% if field.help_text %}
+        <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ field.help_text|safe }}" data-html="true" style="cursor: pointer;"></i>
+        {% endif %}
+      </label>
+      <div class="col-md-9">
+        {{ field }}
+        {% for error in field.errors %}
+          <div class="alert alert-danger"><strong>{{ error|escape }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  <h4>Evaluation</h4>
+  <hr>
+  {% for field in challenge_config_form %}
+    {% if field.name == 'primary_metric_name' or field.name == 'primary_metric_sort' or field.name == 'additional_metrics' or field.name == 'input_format' or field.name == 'output_format' %}
+    <div class="form-group row">
+      <label class="col-md-3" for="{{ field.id_for_label }}">
+        {{ field.label }}
+        {% if field.help_text %}
+        <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ field.help_text|safe }}" data-html="true" style="cursor: pointer;"></i>
+        {% endif %}
+      </label>
+      <div class="col-md-9">
+        {{ field }}
+        {% for error in field.errors %}
+          <div class="alert alert-danger"><strong>{{ error|escape }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  <h4>Data Paths</h4>
+  <hr>
+  <p>Specify the paths within the project files where the evaluation script and hidden test data are located. Upload these files using the Files tab.</p>
+  {% for field in challenge_config_form %}
+    {% if field.name == 'evaluation_script_path' or field.name == 'hidden_test_data_path' %}
+    <div class="form-group row">
+      <label class="col-md-3" for="{{ field.id_for_label }}">
+        {{ field.label }}
+        {% if field.help_text %}
+        <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ field.help_text|safe }}" data-html="true" style="cursor: pointer;"></i>
+        {% endif %}
+      </label>
+      <div class="col-md-9">
+        {{ field }}
+        {% for error in field.errors %}
+          <div class="alert alert-danger"><strong>{{ error|escape }}</strong></div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  {% for error in challenge_config_form.non_field_errors %}
+    <div class="alert alert-danger"><strong>{{ error|escape }}</strong></div>
+  {% endfor %}
+
+  {% if is_submitting and project.author_editable %}
+  <hr>
+  <button class="btn btn-primary btn-rsp" type="submit">Save Challenge Configuration</button>
+  {% endif %}
+</form>
+{% endblock %}
+
+{% block local_js_bottom %}
+<script src="{% static 'custom/js/enable-popover.js' %}"></script>
+{% endblock %}

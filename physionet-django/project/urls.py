@@ -70,6 +70,7 @@ urlpatterns = [
     path('<project_slug>/view-dua/', views.project_dua_preview, name='project_dua_preview'),
     path('<project_slug>/integrity/', views.check_integrity, name='check_integrity'),
     path('<project_slug>/submission/', views.project_submission, name='project_submission'),
+    path('<project_slug>/challenge-config/', views.project_challenge_config, name='project_challenge_config'),
     path('<project_slug>/ethics/', views.project_ethics, name='project_ethics'),
     path('<project_slug>/ethics/edit-document/', views.edit_ethics, name='edit_ethics'),
     path(
@@ -123,6 +124,9 @@ TEST_CASES = {
     'published_submission_history': {
         'project_slug': 'demoeicu',
         'version': '2.0.0',
+    },
+    'project_challenge_config': {
+        '_skip_': True,
     },
     'edit_affiliation': {
         '_query_': {'add_first': 1},
