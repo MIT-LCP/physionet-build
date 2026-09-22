@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Challenges{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include "message_snippet.html" %}
+  <div class="jumbotron">
+    <h1>Challenges</h1>
+    <p class="lead">Compete in data science and biomedical challenges.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Active Challenges</h2>
+    </div>
+    <ul class="list-group list-group-flush">
+      {% for challenge in challenges %}
+      <li class="list-group-item">
+        <h3><a href="{% url 'challenge_detail' challenge.slug %}">{{ challenge.published_project.title }}</a></h3>
+        <p class="text-muted">
+          <small>Organizer: {{ challenge.organizer.get_full_name }}</small><br>
+          <small>Phase: {{ challenge.get_phase_display }}</small><br>
+          {% if challenge.start_datetime %}
+          <small>Start: {{ challenge.start_datetime|date }}</small><br>
+          {% endif %}
+          {% if challenge.end_datetime %}
+          <small>End: {{ challenge.end_datetime|date }}</small><br>
+          {% endif %}
+        </p>
+        <a href="{% url 'challenge_detail' challenge.slug %}" class="btn btn-sm btn-primary">View Challenge</a>
+      </li>
+      {% empty %}
+      <div class="card-body text-center">
+        <p class="card-text">No active challenges at this time.</p>
+      </div>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}

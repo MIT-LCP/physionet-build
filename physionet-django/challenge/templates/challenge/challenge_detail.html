@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ challenge.published_project.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include "message_snippet.html" %}
+
+  <h1>{{ challenge.published_project.title }}</h1>
+  <p class="text-muted">
+    Organized by {{ challenge.organizer.get_full_name }} |
+    Phase: <strong>{{ challenge.get_phase_display }}</strong>
+  </p>
+
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <h5 class="card-title">Participants</h5>
+          <p class="display-4">{{ participant_count }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <h5 class="card-title">Submissions</h5>
+          <p class="display-4">{{ submission_count }}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <h5 class="card-title">Status</h5>
+          <p class="display-4">{{ challenge.get_phase_display }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% if challenge.published_project.abstract %}
+  <div class="card mb-3">
+    <div class="card-header"><h4>Description</h4></div>
+    <div class="card-body">
+      {{ challenge.published_project.abstract|safe }}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if challenge.evaluation_description %}
+  <div class="card mb-3">
+    <div class="card-header"><h4>Evaluation</h4></div>
+    <div class="card-body">
+      {{ challenge.evaluation_description|safe }}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if challenge.prizes %}
+  <div class="card mb-3">
+    <div class="card-header"><h4>Prizes</h4></div>
+    <div class="card-body">
+      {{ challenge.prizes|safe }}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="mt-3">
+    {% if not participant and challenge.is_registration_open %}
+    <a href="{% url 'challenge_register' challenge.slug %}" class="btn btn-success">Register</a>
+    {% endif %}
+    {% if participant %}
+    <a href="{% url 'challenge_submit' challenge.slug %}" class="btn btn-primary">Submit</a>
+    <a href="{% url 'challenge_my_submissions' challenge.slug %}" class="btn btn-secondary">My Submissions</a>
+    {% if challenge.teams_enabled %}
+    <a href="{% url 'challenge_team' challenge.slug %}" class="btn btn-info">Team</a>
+    {% endif %}
+    {% endif %}
+    <a href="{% url 'challenge_leaderboard' challenge.slug %}" class="btn btn-outline-primary">Leaderboard</a>
+    <a href="{% url 'challenge_rules' challenge.slug %}" class="btn btn-outline-secondary">Rules</a>
+    {% if request.user == challenge.organizer or perms.challenge.manage_challenge %}
+    <a href="{% url 'challenge_manage' challenge.slug %}" class="btn btn-warning">Manage</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
