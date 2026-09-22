@@ -6,7 +6,7 @@
 {% block title %}Project Ethics - {{ project }}{% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">{% project_step_header 'ethics' %}</h2>
+<h2 class="form-signin-heading">{% project_step_header 'ethics' project %}</h2>
 <hr>
 <p>Please provide an ethics statement following the <a href="{% url 'static_view' static_url='publish' %}#author_guidelines" target="_blank">author guidelines</a>. Statements on ethics approval should appear here. Your statement will be included in the public project description. </p>
 

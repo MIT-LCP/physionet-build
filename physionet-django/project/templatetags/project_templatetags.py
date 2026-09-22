@@ -215,22 +215,32 @@ PROJECT_SETTINGS_STEPS = [
     ('access', 'Access'),
     ('discovery', 'Discovery'),
     ('ethics', 'Ethics'),
+    ('challenge_config', 'Challenge Config'),
     ('upload_agreement', 'Upload Agreement'),
     ('files', 'Files'),
     ('proofread', 'Proofread'),
 ]
 
 
+def _get_steps(project=None):
+    """Return settings steps, filtering out challenge_config for non-challenge projects."""
+    steps = list(PROJECT_SETTINGS_STEPS)
+    if project is None or getattr(project, 'resource_type_id', None) != 2:
+        steps = [(k, l) for k, l in steps if k != 'challenge_config']
+    return steps
+
+
 @register.simple_tag(name='project_settings_steps')
-def project_settings_steps():
+def project_settings_steps(project=None):
     """Return the ordered list of project settings steps."""
-    return PROJECT_SETTINGS_STEPS
+    return _get_steps(project)
 
 
 @register.simple_tag(name='project_step_header')
-def project_step_header(key):
+def project_step_header(key, project=None):
     """Return the step heading string (e.g. '7. Files') for a given key."""
-    steps = dict((k, (i, label)) for i, (k, label) in enumerate(PROJECT_SETTINGS_STEPS, 1))
+    current_steps = _get_steps(project)
+    steps = dict((k, (i, label)) for i, (k, label) in enumerate(current_steps, 1))
     if key not in steps:
         raise KeyError(f"Unknown project step: {key!r}")
     i, label = steps[key]
