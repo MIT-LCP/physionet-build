@@ -1622,10 +1622,14 @@ def disable_project_access_in_s3(project):
 
     s3control = create_s3_control_client()
     for ap in project.aws.access_points.all():
-        s3control.delete_access_point(
-            AccountId=settings.AWS_ACCOUNT_ID,
-            Name=ap.name
-        )
+        try:
+            s3control.delete_access_point(
+                AccountId=settings.AWS_ACCOUNT_ID,
+                Name=ap.name
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] != 'NoSuchAccessPoint':
+                raise
     # Only delete AWSAccessPoint records, not the AWS instance itself
     project.aws.access_points.all().delete()
 
