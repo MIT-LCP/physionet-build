@@ -422,6 +422,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if self.author_editable() and not self.upload_agreement_accepted():
             self.integrity_errors.append('You must accept the upload agreement before submitting.')
 
+        # Challenge-specific validation
+        if self.resource_type_id == 2:
+            if not hasattr(self, 'challenge_config'):
+                self.integrity_errors.append('Missing challenge configuration.')
+            else:
+                config = self.challenge_config
+                if not config.start_datetime:
+                    self.integrity_errors.append('Challenge start date is required.')
+                if not config.end_datetime:
+                    self.integrity_errors.append('Challenge end date is required.')
+                if not config.primary_metric_name:
+                    self.integrity_errors.append('Primary metric name is required.')
+
         if self.integrity_errors:
             return False
         else:
@@ -728,6 +741,37 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     tasks.create_published_project_zip(
                         published_project.id,
                         verbose_name='Create zip archive: {}'.format(published_project),
+                    )
+
+                # Create Challenge + SubmissionSpec from config
+                if self.resource_type_id == 2 and hasattr(self, 'challenge_config'):
+                    config = self.challenge_config
+                    from challenge.models import Challenge, SubmissionSpec
+                    challenge = Challenge.objects.create(
+                        published_project=published_project,
+                        slug=published_project.slug,
+                        organizer=self.submitting_author().user,
+                        registration_open_datetime=config.registration_open_datetime,
+                        start_datetime=config.start_datetime,
+                        end_datetime=config.end_datetime,
+                        max_submissions_per_day=config.max_submissions_per_day,
+                        max_total_submissions=config.max_total_submissions,
+                        teams_enabled=config.teams_enabled,
+                    )
+                    SubmissionSpec.objects.create(
+                        challenge=challenge,
+                        base_image=config.base_image,
+                        entrypoint_command=config.entrypoint_command,
+                        max_runtime_seconds=config.max_runtime_seconds,
+                        max_memory_mb=config.max_memory_mb,
+                        gpu_enabled=config.gpu_enabled,
+                        gpu_type=config.gpu_type,
+                        cpu_count=config.cpu_count,
+                        input_format=config.input_format,
+                        output_format=config.output_format,
+                        primary_metric_name=config.primary_metric_name,
+                        primary_metric_sort=config.primary_metric_sort,
+                        additional_metrics=config.additional_metrics,
                     )
 
                 # Remove the ActiveProject
