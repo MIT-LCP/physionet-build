@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit - {{ challenge.published_project.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% include "message_snippet.html" %}
+
+  <h1>Submit Code</h1>
+  <h4 class="text-muted">{{ challenge.published_project.title }}</h4>
+
+  <div class="card mt-3">
+    <div class="card-body">
+      <p>
+        Submissions today: {{ today_count }} / {{ challenge.max_submissions_per_day }}<br>
+        Total submissions: {{ total_count }} / {{ challenge.max_total_submissions }}
+      </p>
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% include "form_snippet.html" with form=form %}
+        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+        <a href="{% url 'challenge_detail' challenge.slug %}" class="btn btn-secondary mt-3">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

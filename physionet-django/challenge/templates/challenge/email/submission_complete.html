@@ -1,0 +1,10 @@
+Your submission to the challenge "{{ challenge.slug }}" has been scored successfully.
+
+Submission ID: {{ submission.pk }}
+{% for score in scores %}
+{{ score.metric_name }}: {{ score.value }}
+{% endfor %}
+
+View your results: {{ url_prefix }}{% url 'challenge_submission_detail' challenge.slug submission.pk %}
+
+{{ signature }}
