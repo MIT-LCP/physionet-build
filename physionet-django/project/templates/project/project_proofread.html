@@ -5,7 +5,7 @@
 {% block title %}Project Proofread - {{ project }}{% endblock %}
 
 {% block main_content %}
-<h2 class="form-signin-heading">{% project_step_header 'proofread' %}</h2>
+<h2 class="form-signin-heading">{% project_step_header 'proofread' project %}</h2>
 <hr>
 {% include "about/proofread.html" %}
 
