@@ -1555,6 +1555,42 @@ def project_submission(request, project_slug, **kwargs):
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
+def project_challenge_config(request, project_slug, **kwargs):
+    project = kwargs['project']
+    is_submitting = kwargs['is_submitting']
+
+    if project.resource_type_id != 2:
+        raise Http404
+
+    editable = is_submitting and project.author_editable()
+
+    from challenge.models import ChallengeConfiguration
+    from challenge.forms import ChallengeConfigurationForm
+
+    config, _ = ChallengeConfiguration.objects.get_or_create(active_project=project)
+
+    if request.method == 'POST':
+        form = ChallengeConfigurationForm(data=request.POST, instance=config, editable=editable)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Challenge configuration has been updated.')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        form = ChallengeConfigurationForm(instance=config, editable=editable)
+
+    return render(
+        request,
+        'project/project_challenge_config.html',
+        {
+            'project': project,
+            'challenge_config_form': form,
+            'is_submitting': is_submitting,
+        },
+    )
+
+
+@project_auth(auth_mode=0, post_auth_mode=2)
 def project_ethics(request, project_slug, **kwargs):
     project = kwargs['project']
     is_submitting = kwargs['is_submitting']
