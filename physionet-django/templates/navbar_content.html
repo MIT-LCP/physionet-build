@@ -72,9 +72,12 @@
               Admin Console
             </a>
           {% endif %}
-          <a id="nav_logout" class="dropdown-item" href="{% url 'logout' %}">
-            Logout
-          </a>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button id="nav_logout" type="submit" class="dropdown-item">
+              Logout
+            </button>
+          </form>
         </div>
       {% else %}
           {% if sso_enabled %}

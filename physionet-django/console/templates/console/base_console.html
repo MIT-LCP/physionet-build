@@ -5,7 +5,10 @@
   <head>
     <title>{% block title %}{% endblock %}</title>
     {% include "base_css.html" %}
-    <link rel="stylesheet" type="text/css" href="{% static 'console/css/console.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'fonts/inter-local.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap/bootstrap-icons/bootstrap-icons.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'custom/css/style.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'console/css/console.css' %}?v=16"/>
     <link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}"/>
     <noscript><link rel="stylesheet" type="text/css" href="{% static 'console/css/console-noscript.css' %}"/></noscript>
     {% block local_css %}{% endblock %}
@@ -15,15 +18,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
 
-  <body class="fixed-nav sticky-footer bg-dark">
-    {% include "console/console_navbar.html" %}
-    {# Main Content rectangle #}
-    <div class="content-wrapper">
-      <div class="container-fluid">
-        {% include "message_snippet.html" %}
-        {% block content %}{% endblock %}
+  <body class="modern-ui">
+    {# Modern top navbar - same as front page #}
+    {% include "navbar.html" %}
+    <div class="nav-spacer"></div>
+
+    <div class="console-layout">
+      {# Sidebar #}
+      {% include "console/console_sidebar.html" %}
+
+      {# Main content #}
+      <div class="console-content">
+        <div class="console-content-inner">
+          {% include "message_snippet.html" %}
+          {% block content %}{% endblock %}
+        </div>
       </div>
     </div>
+
     {% include 'footer.html' %}
     {% include "base_js_bottom.html" %}
     {% block local_js_bottom %}{% endblock %}

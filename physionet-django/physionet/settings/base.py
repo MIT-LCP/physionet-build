@@ -14,8 +14,10 @@ import fcntl
 import logging.config
 import os
 import sys
+from datetime import datetime, timezone
 
 from decouple import config, UndefinedValueError
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -176,7 +178,7 @@ WSGI_APPLICATION = 'physionet.wsgi.application'
 
 # Session management
 
-SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=True, cast=bool)
 
 # Absolute timeout
 try:
@@ -216,8 +218,6 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'America/New_York'
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
@@ -333,6 +333,10 @@ DATACITE_USER = config('DATACITE_USER', default='')
 DATACITE_PASS = config('DATACITE_PASS', default='')
 
 # Tags for the CITISOAPService API
+# Note: the CITI API returns the same empty response for invalid credentials
+# as for a valid "member not found" lookup, so credential errors cannot be
+# detected automatically. To verify credentials, look up a known member email
+# using get_member_profile() in a Django shell and confirm results are returned.
 CITI_USERNAME = config('CITI_USERNAME', default='')
 CITI_PASSWORD = config('CITI_PASSWORD', default='')
 CITI_SOAP_URL = config('CITI_SOAP_URL', default='')
@@ -725,8 +729,10 @@ GCP_STORAGE_BUCKET_NAME = config('GCP_MEDIA_BUCKET_NAME')
 GCP_STATIC_BUCKET_NAME = config('GCP_STATIC_BUCKET_NAME')
 
 if STORAGE_TYPE == StorageTypes.GCP:
-    DEFAULT_FILE_STORAGE = 'physionet.storage.MediaStorage'
-    STATICFILES_STORAGE = 'physionet.storage.StaticStorage'
+    STORAGES = {
+        "default": {"BACKEND": "physionet.storage.MediaStorage"},
+        "staticfiles": {"BACKEND": "physionet.storage.StaticStorage"},
+    }
     GCP_BUCKET_LOCATION = config('GCP_BUCKET_LOCATION')
     GS_PROJECT_ID = config('GCP_PROJECT_ID')
 
@@ -737,6 +743,8 @@ ENABLE_CLOUD_RESEARCH_ENVIRONMENTS = config('ENABLE_CLOUD_RESEARCH_ENVIRONMENTS'
 
 if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
     CLOUD_RESEARCH_ENVIRONMENTS_API_URL = config('CLOUD_RESEARCH_ENVIRONMENTS_API_URL')
+    # Client-side poll interval (ms) for live status updates on the research environments page.
+    RESEARCH_ENVIRONMENTS_POLL_INTERVAL_MS = config('RESEARCH_ENVIRONMENTS_POLL_INTERVAL_MS', default=30000, cast=int)
     INSTALLED_APPS.append('environment.apps.EnvironmentConfig')
 
 
@@ -750,6 +758,18 @@ EMAIL_SIGNATURE = config('EMAIL_SIGNATURE')
 FOOTER_MANAGED_BY = config('FOOTER_MANAGED_BY')
 FOOTER_SUPPORTED_BY = config('FOOTER_SUPPORTED_BY')
 FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)
+
+# Projects created before this date are exempt from the upload agreement
+# requirement. Set to a datetime string (e.g. '2026-10-01T00:00:00Z') or
+# leave unset to require the agreement for all projects.
+_upload_agreement_start = config('UPLOAD_AGREEMENT_START_DATE', default=None)
+if _upload_agreement_start:
+    _parsed = datetime.fromisoformat(_upload_agreement_start)
+    if _parsed.tzinfo is None:
+        _parsed = _parsed.replace(tzinfo=timezone.utc)
+    UPLOAD_AGREEMENT_START_DATE = _parsed
+else:
+    UPLOAD_AGREEMENT_START_DATE = None
 
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
 COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)
@@ -771,6 +791,7 @@ PLATFORM_WIDE_CITATION = {
     'CHICAGO': config('PLATFORM_WIDE_CITATION_CHICAGO', default=None),
     'HARVARD': config('PLATFORM_WIDE_CITATION_HARVARD', default=None),
     'VANCOUVER': config('PLATFORM_WIDE_CITATION_VANCOUVER', default=None),
+    'BibTeX': config('PLATFORM_WIDE_CITATION_BIBTEX', default=None),
 }
 
 SOURCE_CODE_REPOSITORY_LINK = config('SOURCE_CODE_REPOSITORY_LINK',
@@ -814,7 +835,57 @@ ALLOWED_ACCESS_POLICIES = config(
 # when programmatically generating access tokens (e.g., via the /settings/tokens).
 OAUTH_CLIENT_APP_NAME = config('OAUTH_CLIENT_APP_NAME', default='')
 
-# OAUTH PROVIDER SCOPES
+
+def load_oidc_provider_config(get_env):
+    """
+    Load and validate the OIDC provider settings from a get_env(name, default)
+    callable (e.g. python-decouple's `config`). Returns a dict suitable for
+    merging into OAUTH2_PROVIDER, or raises ImproperlyConfigured if the
+    operator has misconfigured the provider.
+    """
+    key_file = get_env('OIDC_RSA_KEY_FILE', '')
+    if key_file:
+        if not os.path.isfile(key_file):
+            raise ImproperlyConfigured(
+                f"OIDC_RSA_KEY_FILE is set to {key_file!r} but no such file exists."
+            )
+        with open(key_file) as f:
+            private_key = f.read()
+    else:
+        private_key = get_env('OIDC_RSA_PRIVATE_KEY', '')
+
+    # Rotated-out keys are published in JWKS so RPs can verify tokens issued under
+    # the previous active key during the rotation overlap window.
+    inactive_files = [
+        p.strip() for p in get_env('OIDC_RSA_INACTIVE_KEY_FILES', '').split(',') if p.strip()
+    ]
+    inactive_keys = []
+    for key_path in inactive_files:
+        if not os.path.isfile(key_path):
+            raise ImproperlyConfigured(
+                f"OIDC_RSA_INACTIVE_KEY_FILES references {key_path!r} but no such file exists."
+            )
+        with open(key_path) as f:
+            inactive_keys.append(f.read())
+
+    iss_endpoint = get_env('OIDC_ISS_ENDPOINT', '')
+    if private_key and not iss_endpoint:
+        raise ImproperlyConfigured(
+            "OIDC is enabled (RSA key configured) but OIDC_ISS_ENDPOINT is not set. "
+            "It must be the canonical public host with no path component "
+            "(e.g. https://physionet.org), since the discovery view appends the "
+            "/oauth/... path itself. Including the path produces double-prefixed "
+            "URLs in the discovery doc."
+        )
+
+    return {
+        "OIDC_ENABLED": bool(private_key),
+        "OIDC_RSA_PRIVATE_KEY": private_key,
+        "OIDC_RSA_PRIVATE_KEYS_INACTIVE": inactive_keys,
+        "OIDC_ISS_ENDPOINT": iss_endpoint,
+    }
+
+
 OAUTH2_PROVIDER = {
     "SCOPES": {
         "profile:read": "Read access to user's profile (username, full name)",
@@ -830,7 +901,16 @@ OAUTH2_PROVIDER = {
         "annotations:types:write": "Create/Update/Delete annotation types",
         "annotations:annotations:read": "Read access to annotations",
         "annotations:annotations:write": "Create/Update/Delete annotations",
-    }
+        "openid": "Sign you in to PhysioNet",
+        "profile": "Your basic profile (name, username)",
+        "email": "Your primary email address",
+    },
+    **load_oidc_provider_config(config),
+    # Implicit and hybrid response types leak tokens via URL fragments; both
+    # are deprecated by OAuth 2.1 / RFC 9700 §2.1.2.
+    "OIDC_RESPONSE_TYPES_SUPPORTED": ["code"],
+    "OAUTH2_VALIDATOR_CLASS": "oauth.validators.CustomOAuth2Validator",
+    "PKCE_REQUIRED": config('OAUTH2_PKCE_REQUIRED', default=True, cast=bool),
 }
 
 # ScholarData API for external dataset metrics

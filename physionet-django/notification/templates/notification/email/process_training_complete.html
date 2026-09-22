@@ -15,6 +15,11 @@ Dear {{ applicant_name }},
 If you are able to address the issue(s), please resubmit your training at: {{ url_prefix }}{% url 'edit_training' %}.
 
 {% elif training.status.name == "ACCEPTED" %}We are pleased to say that your "{{ training.training_type.name }}" training was approved.
+{% if include_comments and training.reviewer_comments %}
+
+We also wanted to share these comments from the reviewer:
+{{ training.reviewer_comments }}
+{% endif %}
 {% if training.user.is_credentialed and example_project %}
 You are now able to access protected databases upon agreeing to the terms of usage. For example, you can access {{ example_project.title }} by following the steps below:
 

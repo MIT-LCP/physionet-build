@@ -14,3 +14,11 @@ def get_static_page():
 def underscore(str_var):
     str_under = str_var.replace(' ', '_')
     return str_under
+
+
+@register.filter
+def startswith(value, prefix):
+    """Return True if the string value starts with the given prefix."""
+    if not prefix:
+        return False
+    return str(value).startswith(str(prefix))

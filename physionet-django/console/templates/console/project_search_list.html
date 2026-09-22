@@ -1,0 +1,33 @@
+<div id="searchitems">
+  <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+    <thead>
+      <tr>
+        <th>Project</th>
+        <th>Submitted By</th>
+        <th>Status</th>
+        <th>Created</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for project in projects %}
+      <tr>
+        <td>
+          {% if bucket == 'submitted' %}
+          <a href="{% url 'submission_info' project.slug %}">{{ project.title }}</a>
+          {% else %}
+          <a href="{% url 'project_preview' project.slug %}?Admin=True">{{ project.title }}</a>
+          {% endif %}
+        </td>
+        <td>
+          {% if project.submitting_author %}
+          <a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a>
+          {% endif %}
+        </td>
+        <td>{{ project.submission_status_label }}</td>
+        <td>{{ project.creation_datetime|date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% include "console/pagination.html" with pagination=projects %}
+</div>

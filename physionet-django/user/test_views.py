@@ -537,6 +537,21 @@ class TestPublic(TestMixin):
         self.assertEqual(num_active_accounts,
                          User.objects.filter(is_active=True).count())
 
+    def test_purgeaccounts_missing_profile(self):
+        """Unactivated accounts with no Profile are still purged."""
+        orphan = User.objects.create(username='orphan', email='orphan@mit.edu')
+        normal = User.objects.create(username='normal', email='normal@mit.edu')
+        Profile.objects.create(user=normal, first_names='Normal', last_name='User')
+
+        for user in (orphan, normal):
+            user.join_date += datetime.timedelta(days=-30)
+            user.save()
+
+        call_command('purgeaccounts')
+
+        self.assertFalse(User.objects.filter(id=orphan.id).exists())
+        self.assertFalse(User.objects.filter(id=normal.id).exists())
+
 
 class TrainingTestCase(TestCase):
     @classmethod
@@ -599,10 +614,35 @@ class TrainingTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_training_page_shows_submissions_by_status(self):
+        self.client.force_login(user=self.user)
+
+        response = self.client.get(self.training_url)
+
+        self.assertIn('training_by_status', response.context)
+        training_by_status = response.context['training_by_status']
+        # The default training has status REVIEW and required_field DOCUMENT,
+        # so it should appear under "under review".
+        self.assertIn('under review', training_by_status)
+        self.assertIn(self.training, training_by_status['under review'])
+        # Empty status groups should be filtered out.
+        self.assertNotIn('active', training_by_status)
+        self.assertNotIn('expired', training_by_status)
+        self.assertNotIn('rejected', training_by_status)
+
+    def test_training_page_no_submissions(self):
+        # A user with no trainings should see an empty dict.
+        self.client.force_login(user=self.admin)
+
+        response = self.client.get(self.training_url)
+
+        self.assertEqual(response.context['training_by_status'], {})
+        self.assertContains(response, "You haven't submitted any training yet.")
+
     def test_submit_new_training_valid(self):
         self.client.force_login(user=self.user)
 
-        response = self.client.post(self.training_url, self.training_payload_valid)
+        response = self.client.post(self.training_url, self.training_payload_valid, follow=True)
         messages = list(response.context['messages'])
 
         self.assertEqual(response.status_code, 200)
@@ -967,6 +1007,15 @@ class TestAWSVerification(TestCase):
         other_cloud_info.refresh_from_db()
         self.assertEqual(other_cloud_info.aws_userid, self.AWS_USERID)
         self.assertEqual(other_cloud_info.aws_user_arn, self.AWS_ARN)
+
+
+class TestCertificationRedirect(TestCase):
+    """Test that the certification page redirects to the training page."""
+
+    def test_certification_redirects_to_training(self):
+        self.client.login(username='admin@mit.edu', password='Tester11!')
+        response = self.client.get(reverse('edit_certification'))
+        self.assertRedirects(response, reverse('edit_training'))
 
 
 class BackgroundTaskError(Exception):

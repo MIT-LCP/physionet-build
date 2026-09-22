@@ -11,7 +11,26 @@
     {% else %}
     <p>You can complete the training on a third-party platform and upload the training.</p>
     {% endif %}
-    <h6>You can view the status of your training submissions on the <a href="{% url 'edit_certification' %}">Certification</a> page.</h6>
+  <hr>
+
+  <h4>Your training submissions</h4>
+  {% if training_by_status %}
+    {% for status, group in training_by_status.items %}
+      <div class="mb-3">
+        <h5>{{ status|capfirst }}</h5>
+        <ul class="list-group list-group-flush">
+          {% for training in group %}
+            <li class="list-group-item d-flex align-items-center justify-content-between">
+              <div>{{ training.training_type.name }}</div>
+              <a href="{% url 'edit_training_detail' training.id %}" class="btn btn-sm btn-primary" role="button">View</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>You haven't submitted any training yet.</p>
+  {% endif %}
   <hr>
 
   <h4>Submit evidence of a completed Training</h4>
@@ -20,6 +39,8 @@
   <p>For CITI training, please refer to our <a href="{% url "citi_course" %}" target="_blank">step-by-step instructions</a> and
     be sure to <strong>upload the training report</strong>, not the certificate. Please ensure that you complete the "Data or
     Specimens Only Research" course (<strong>with HIPAA module</strong>).
+    To speed up the approval process, add the email address associated with your
+    <strong>CITI member profile</strong> (the one you log in with) as a verified email on your {{ SITE_NAME }} account.
   {% if ticket_system_url %}To raise a support request, please <a href="{{ ticket_system_url }}">click here</a>.
   {% endif %}</p>
 

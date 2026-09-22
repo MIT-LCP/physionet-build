@@ -219,6 +219,9 @@ def process_invitation_response(request, invitation_response_formset):
                 Affiliation.objects.create(
                     author=author,
                     name=invitation_response_form.cleaned_data['affiliation'],
+                    country=invitation_response_form.cleaned_data[
+                        'affiliation_country'
+                    ],
                 )
 
             notification.invitation_response_notify(invitation,
@@ -302,7 +305,7 @@ def project_home(request):
     invitation_response_formset = InvitationResponseFormSet(
         queryset=AuthorInvitation.get_user_invitations(user))
     invitation_response_formset.form_kwargs['initial'] = {
-        'affiliation': user.profile.affiliation
+        'affiliation': user.profile.affiliation,
     }
 
     data_access_requests = DataAccessRequest.objects.filter(
@@ -452,7 +455,7 @@ def edit_affiliations(request, affiliation_formset):
     """
     if affiliation_formset.is_valid():
         affiliation_formset.save()
-        messages.success(request, 'Your author affiliations have been updated')
+        messages.success(request, 'Your author institutions have been updated')
         return True
     else:
         messages.error(request, 'Submission unsuccessful. See form for errors.')
@@ -569,10 +572,12 @@ def edit_affiliation(request, project_slug, **kwargs):
     else:
         raise Http404()
 
-    AffiliationFormSet = inlineformset_factory(parent_model=Author,
-        model=Affiliation, fields=('name',), extra=extra_forms,
+    AffiliationFormSet = inlineformset_factory(
+        parent_model=Author,
+        model=Affiliation, form=forms.AffiliationForm, extra=extra_forms,
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
-        formset=forms.AffiliationFormSet, validate_max=True)
+        formset=forms.AffiliationFormSet, validate_max=True,
+    )
     formset = AffiliationFormSet(instance=author)
     edit_url = reverse('edit_affiliation', args=[project.slug])
 
@@ -591,10 +596,12 @@ def project_authors(request, project_slug, **kwargs):
         ('user', 'project', 'authors', 'is_submitting'))
 
     author = authors.get(user=user)
-    AffiliationFormSet = inlineformset_factory(parent_model=Author,
-        model=Affiliation, fields=('name',), extra=0,
+    AffiliationFormSet = inlineformset_factory(
+        parent_model=Author,
+        model=Affiliation, form=forms.AffiliationForm, extra=0,
         max_num=forms.AffiliationFormSet.max_forms, can_delete=False,
-        formset = forms.AffiliationFormSet, validate_max=True)
+        formset=forms.AffiliationFormSet, validate_max=True,
+    )
     affiliation_formset = AffiliationFormSet(instance=author)
 
     if is_submitting:
@@ -914,6 +921,47 @@ def project_discovery(request, project_slug, **kwargs):
          'remove_item_url':edit_url, 'is_submitting':is_submitting})
 
 
+@project_auth(auth_mode=0, post_auth_mode=2)
+def project_upload_agreement(request, project_slug, **kwargs):
+    """
+    Page to accept the upload agreement
+    """
+    project, is_submitting = (kwargs[k] for k in ('project', 'is_submitting'))
+    editable = is_submitting and project.author_editable()
+
+    submitting_author = project.submitting_author()
+    existing_agreement = getattr(submitting_author, 'upload_agreement', None)
+
+    if request.method == 'POST':
+        upload_agreement_form = forms.UploadAgreementForm(author=submitting_author,
+                                                          data=request.POST,
+                                                          instance=existing_agreement)
+
+        if upload_agreement_form.is_valid():
+            upload_agreement_form.save()
+            messages.success(request, 'Upload agreement has been accepted.')
+            return redirect('project_files', project_slug=project.slug)
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        # Get existing agreement or create new form
+        upload_agreement_form = forms.UploadAgreementForm(author=submitting_author,
+                                                          instance=existing_agreement)
+
+    # Disable form fields if not editable
+    if not editable:
+        for field_name in upload_agreement_form.fields:
+            upload_agreement_form.fields[field_name].widget.attrs['disabled'] = 'disabled'
+
+    return render(request, 'project/project_upload_agreement.html', {
+        'project': project,
+        'upload_agreement_form': upload_agreement_form,
+        'existing_agreement': existing_agreement,
+        'is_submitting': is_submitting,
+        'editable': editable,
+    })
+
+
 class ProjectAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         qs = PublishedProject.objects.all()
@@ -1058,6 +1106,7 @@ def project_files_panel(request, project_slug, **kwargs):
             'is_submitting': is_submitting,
             'is_editor': is_editor,
             'files_editable': files_editable,
+            'can_upload_files': project.can_upload_files(request.user),
             'max_files_per_upload': settings.DATA_UPLOAD_MAX_NUMBER_FILES,
             'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
         },
@@ -1095,6 +1144,10 @@ def process_files_post(request, project):
         raise ServiceUnavailable()
 
     if 'upload_files' in request.POST:
+        if not project.can_upload_files(request.user):
+            messages.error(request, 'You must accept the upload agreement before uploading files.')
+            return ''
+
         form = forms.UploadFilesForm(project=project, data=request.POST,
             files=request.FILES)
         subdir = process_items(request, form)
@@ -1144,10 +1197,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             # process the file manipulation post
             subdir = process_files_post(request, project)
 
-    if is_submitting and project.author_editable():
-        files_editable = True
-    else:
-        files_editable = False
+    files_editable = is_submitting and project.author_editable()
 
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         maintenance_message = settings.SYSTEM_MAINTENANCE_MESSAGE or (
@@ -1201,6 +1251,7 @@ def project_files(request, project_slug, subdir='', **kwargs):
             'maintenance_message': maintenance_message,
             'is_lightwave_supported': project.files.is_lightwave_supported(),
             'storage_type': settings.STORAGE_TYPE,
+            'can_upload_files': project.can_upload_files(request.user),
         },
     )
 
@@ -1280,7 +1331,9 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     authors = project.get_author_info()
     invitations = project.authorinvitations.filter(is_active=True)
     corresponding_author = authors.get(is_corresponding=True)
-    corresponding_author.text_affiliations = ', '.join(a.name for a in corresponding_author.affiliations.all())
+    corresponding_author.text_affiliations = ', '.join(
+        a.display_name() for a in corresponding_author.affiliations.all()
+    )
 
     references = project.references.all().order_by('order')
     publication = project.publications.all().first()
@@ -1290,7 +1343,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
-    main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
+    main_platform_citation = next((v for k, v in platform_citations.items() if v is not None and k != 'BibTeX'), '')
     passes_checks = project.check_integrity()
 
     if passes_checks:
@@ -1597,16 +1650,30 @@ def edit_ethics(request, project_slug, **kwargs):
 
 @login_required
 def serve_document(request, file_name):
-    projects = ActiveProject.objects.filter(Q(authors__user=request.user) | Q(editor=request.user)).values_list(
-        'id', flat=True
+    """
+    View an uploaded ethics document of an active project.
+    This view is deprecated.  Do not use it.
+    """
+    try:
+        document = UploadedDocument.objects.get(document=('ethics/' + file_name))
+    except UploadedDocument.DoesNotExist:
+        raise PermissionDenied
+    return serve_active_project_ethics_doc(
+        request,
+        project_slug=document.project.slug,
+        doc_name=file_name,
     )
+
+
+@project_auth(auth_mode=2)
+def serve_active_project_ethics_doc(request, project, doc_name, **kwargs):
+    """
+    View an uploaded ethics document of an active project.
+    """
     uploaded_document = get_object_or_404(
-        UploadedDocument.objects.filter(
-            object_id__in=projects, content_type=ContentType.objects.get_for_model(ActiveProject)
-        ),
-        document__iendswith=file_name,
+        project.uploaded_documents.filter(document=('ethics/' + doc_name))
     )
-    return ProjectFiles().serve_file_field(uploaded_document.document)
+    return project.files.serve_file_field(uploaded_document.document)
 
 
 @login_required
@@ -1951,11 +2018,11 @@ def published_project(request, project_slug, version, subdir=''):
     # derived_projects = project.derived_publishedprojects.all()
     data_access = DataAccess.objects.filter(project=project)
     user = request.user
-    _, _, _, _, _, latest_version = project.info_card()
+    latest_version = project.core_project.latest_published_version()
     citations = project.citation_text_all()
     platform_citations = project.get_platform_citation()
     show_platform_wide_citation = any(platform_citations.values())
-    main_platform_citation = next((item for item in platform_citations.values() if item is not None), '')
+    main_platform_citation = next((v for k, v in platform_citations.items() if v is not None and k != 'BibTeX'), '')
 
     # Anonymous access authentication
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)

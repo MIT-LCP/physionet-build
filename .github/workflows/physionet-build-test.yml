@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         pip3: ['poetry', 'requirements.txt']
-        container: ['debian:12']
+        container: ['debian:12', 'debian:13']
     steps:
 
       - name: Update packages
@@ -69,8 +69,9 @@ jobs:
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
           source $VIRTUAL_ENV/bin/activate
           if [ ${{matrix.pip3}} = 'poetry' ]; then
-            pip3 install poetry
+            pip3 install "poetry<2"
             poetry config virtualenvs.create false
+            poetry config installer.modern-installation false
             poetry install --no-root
           else
             pip3 install -r requirements.txt
@@ -94,7 +95,7 @@ jobs:
 
       - name: Install and setup lightwave
         run: |
-          wget https://github.com/bemoody/lightwave/archive/0.72.tar.gz -O lightwave.tar.gz
+          wget https://github.com/bemoody/lightwave/archive/0.73.tar.gz -O lightwave.tar.gz
           tar -xf lightwave.tar.gz
           (cd lightwave-* && make CGIDIR=/usr/local/bin sandboxed-server)
 

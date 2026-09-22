@@ -17,6 +17,7 @@ urlpatterns = [
     path('published-projects/<project_slug>/', views.published_projects,
          name='published_projects_by_slug'),
     path('archived-submissions/', views.archived_submissions, name='archived_submissions'),
+    path('projects/search/<bucket>/', views.project_search, name='project_search'),
     path('project-access-manage/<pid>/', views.project_access_manage,
          name='project_access_manage'),
     path('published-projects/<project_slug>/<version>/',
@@ -357,6 +358,7 @@ TEST_CASES = {
 
     # Broken views: POST required for no reason
     'users_list_search': {'group': 'all', '_skip_': True},
+    'project_search': {'bucket': 'unsubmitted', '_skip_': True},
     'known_references_search': {'_skip_': True},
     'news_search': {'_skip_': True},
 }

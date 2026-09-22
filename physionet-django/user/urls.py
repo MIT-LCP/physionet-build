@@ -155,4 +155,7 @@ TEST_CASES = {
     # Testing auth_orcid requires a mock oauth server.  Skip this URL.
     "auth_orcid": {"_skip_": True},
     "auth_orcid_login": {"_skip_": True},
+    # Logout POST is tested via test_integration.TestAuth.test_logout.
+    # GET /logout/ shows a confirmation page.
+    "logout": {},
 }

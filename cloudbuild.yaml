@@ -1,0 +1,26 @@
+# Automated image build: on push to the primary branch (dev), Cloud Build runs
+# this config, builds the physionet/HDN image, tags it with the commit SHA, and
+# pushes it to Artifact Registry. The trigger runs as
+# image-builder@healthdatanexus-dev (artifactregistry.writer on the repo).
+#
+# Deploying a built image is a separate step: point the dev deploy pipeline's
+# _TF_VAR_HDN_IMAGE_TAG at the SHA and run it (CI here, not CD).
+substitutions:
+  _IMAGE: northamerica-northeast2-docker.pkg.dev/healthdatanexus-dev/physionet/core
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - -t
+      - ${_IMAGE}:$COMMIT_SHA
+      - -t
+      - ${_IMAGE}:latest
+      - .
+images:
+  - ${_IMAGE}:$COMMIT_SHA
+  - ${_IMAGE}:latest
+timeout: 3600s
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: E2_HIGHCPU_8

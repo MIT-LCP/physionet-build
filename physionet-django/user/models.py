@@ -389,8 +389,13 @@ class User(AbstractBaseUser, PermissionsMixin):
         ]
 
     # Mandatory methods for default authentication backend
-    def get_full_name(self):
-        return self.profile.get_full_name()
+    def get_full_name(self, ignore_missing_profile=False):
+        try:
+            return self.profile.get_full_name()
+        except Profile.DoesNotExist:
+            if ignore_missing_profile:
+                return ''
+            raise
 
     def get_short_name(self):
         return self.profile.first_names
@@ -1251,6 +1256,18 @@ class TrainingRegex(models.Model):
         return self.name
 
 
+class CITIGroupMapping(models.Model):
+    training_type = models.ForeignKey(TrainingType, related_name='citi_group_mappings', on_delete=models.CASCADE)
+    citi_group_id = models.IntegerField(unique=True)
+    citi_group_name = models.CharField(max_length=256, blank=True)
+
+    class Meta:
+        default_permissions = ()
+
+    def __str__(self):
+        return f'{self.citi_group_name} ({self.citi_group_id})'
+
+
 class Training(models.Model):
     slug = models.SlugField(max_length=20, unique=True)
     training_type = models.ForeignKey(TrainingType, on_delete=models.CASCADE)
@@ -1332,6 +1349,22 @@ class Training(models.Model):
 
     def is_review(self):
         return self.status == TrainingStatus.REVIEW
+
+
+class CITIVerification(models.Model):
+    training = models.OneToOneField(Training, on_delete=models.CASCADE, related_name='citi_verification')
+    lookup_email = models.EmailField(blank=True, default='')
+    member_id = models.CharField(max_length=32, blank=True, default='')
+    completion_report_id = models.CharField(max_length=32, blank=True, default='')
+    member_profile_xml = models.TextField(blank=True, default='')
+    completions_xml = models.TextField(blank=True, default='')
+    api_error = models.CharField(max_length=512, blank=True, default='')
+
+    class Meta:
+        default_permissions = ()
+
+    def __str__(self):
+        return f'CITI verification for training {self.training_id}'
 
 
 class TrainingQuestion(models.Model):

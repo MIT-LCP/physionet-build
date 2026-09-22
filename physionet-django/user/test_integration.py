@@ -41,7 +41,7 @@ class TestAuth(TestCase):
             'Federer')
 
     def test_logout(self):
-        response = self.client.get(reverse('logout'))
+        response = self.client.post(reverse('logout'))
         self.assertRedirects(response, reverse('home'))
         self.assertNotIn('_auth_user_id', self.client.session)
 

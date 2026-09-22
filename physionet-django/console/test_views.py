@@ -8,11 +8,13 @@ import pdb
 
 
 import requests_mock
+from django.contrib.auth.models import Group
 from django.contrib.sites.models import Site
 from django.core import mail
 from django.test import TestCase
 from django.test.utils import get_runner
 from django.urls import reverse
+from console.forms import CredentialReviewForm
 from events.models import EventAgreement
 from project.models import (
     AccessPolicy,
@@ -27,12 +29,46 @@ from project.models import (
     ReviewerInvitation,
     StorageRequest,
     SubmissionStatus,
+    UploadAgreement,
 )
 from user.models import User
 from physionet.models import FrontPageButton, StaticPage
 from user.test_views import TestMixin, prevent_request_warnings
 
 LOGGER = logging.getLogger(__name__)
+
+
+class TestCredentialReviewForm(TestCase):
+    def test_reviewer_comments_max_length(self):
+        form = CredentialReviewForm(data={'reviewer_comments': 'x' * 501})
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('reviewer_comments', form.errors)
+
+
+class TestUserManagement(TestMixin):
+    def test_update_host_permission(self):
+        self.client.login(username='admin', password='Tester11!')
+        user = User.objects.get(username='rgmark')
+        Group.objects.filter(name='host').delete()
+
+        response = self.client.post(
+            reverse('user_management', args=(user.username,)),
+            {'host': 'on', 'update_permission_groups': ''},
+        )
+
+        self.assertRedirects(response, reverse('user_management', args=(user.username,)))
+        self.assertTrue(user.groups.filter(name='host').exists())
+        self.assertTrue(user.has_perm('events.add_event'))
+        self.assertTrue(user.has_perm('events.view_event_menu'))
+
+        response = self.client.post(
+            reverse('user_management', args=(user.username,)),
+            {'update_permission_groups': ''},
+        )
+
+        self.assertRedirects(response, reverse('user_management', args=(user.username,)))
+        self.assertFalse(user.groups.filter(name='host').exists())
 
 
 class TestState(TestMixin):
@@ -62,7 +98,7 @@ class TestState(TestMixin):
             user=editor,
             display_order=project.authors.count() + 1,
         )
-        temp_author.affiliations.create(name='MIT')
+        temp_author.affiliations.create(name='MIT', country='US')
 
         # Submit project
         self.assertTrue(project.is_submittable())
@@ -107,7 +143,7 @@ class TestState(TestMixin):
             user=editor2,
             display_order=project.authors.count() + 1,
         )
-        temp_author.affiliations.create(name='MIT')
+        temp_author.affiliations.create(name='MIT', country='US')
 
         # Submit project
         self.assertTrue(project.is_submittable())
@@ -461,6 +497,10 @@ class TestState(TestMixin):
         project = PublishedProject.objects.get(slug=custom_slug,
                                                version=project.version)
         self.assertEqual(project.submission_slug, project_slug)
+        published_affiliation = project.authors.get(
+            user__username='rgmark'
+        ).affiliations.first()
+        self.assertEqual(published_affiliation.country, 'US')
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))
@@ -526,6 +566,16 @@ class TestState(TestMixin):
             response = self.client.post(
                 reverse('new_project_version', args=(self.PROJECT_SLUG,)),
                 data={'version': version})
+
+            # Create upload agreement for the new project version
+            new_project = ActiveProject.objects.get(title=self.PROJECT_TITLE, version=version)
+            submitting_author = new_project.authors.get(is_submitting=True)
+            UploadAgreement.objects.create(
+                author=submitting_author,
+                accepted=True,
+                no_human_subjects=True
+            )
+
             self.test_publish()
 
         # Sort the list of version numbers

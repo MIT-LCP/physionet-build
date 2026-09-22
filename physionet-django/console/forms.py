@@ -962,7 +962,7 @@ class TrainingQuestionFormSet(forms.BaseModelFormSet):
 
 
 class CredentialReviewForm(forms.Form):
-    reviewer_comments = forms.CharField(widget=forms.Textarea(attrs={'rows': 5}), required=False)
+    reviewer_comments = forms.CharField(max_length=500, widget=forms.Textarea(attrs={'rows': 5}), required=False)
 
     def clean(self):
         if self.errors:

@@ -9,43 +9,22 @@
 {% endblock %}
 
 {% block content %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'console/js/search-console.js' %}"></script>
+
 <div class="card mb-3">
   <div class="card-header">
     Archived Projects <span class="badge badge-pill badge-info">{{ projects.paginator.count }}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Submission History</th>
-            <th>Version</th>
-            <th>Submitting Author</th>
-            <th>Editor</th>
-            <th>Creation Date</th>
-            <th>Archived Date</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for project in projects %}
-          <tr>
-            <td>{{ project.title }}</td>
-            <td><a href="{% url 'archived_submission_history' project.slug %}">View History</a></td>
-            <td>{{ project.version }}</td>
-            <td>{% if project.submitting_author %}
-              <a href="{% url 'user_management' project.submitting_author.user.username %}">{{ project.submitting_author }}</a>
-                {% else %}
-                  {{ project.submitting_author }}
-                {% endif %}</td>
-            <td>{{ project.editor }}</td>
-            <td>{{ project.creation_datetime|date }}</td>
-            <td>{{ project.archive_datetime|date }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% include "console/pagination.html" with pagination=projects %}
+      <input
+        type="search"
+        data-search-url="{% url 'project_search' bucket='archived' %}"
+        oninput="search(this.dataset.searchUrl, this.value);"
+        placeholder="Search..."
+      >
+      {% include "console/archived_submissions_list.html" %}
     </div>
   </div>
 </div>

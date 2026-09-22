@@ -49,6 +49,74 @@
                 </ul>
             </div>
         </div>
+        {% if show_citi_verification %}
+        <div class="card mb-4">
+            <div class="card-header">
+                CITI API Verification
+            </div>
+            <div class="card-body">
+                {% if citi_api_data %}
+                <h5>Lookup Details</h5>
+                <ul>
+                    <li>Lookup email: <mark>{{ citi_verification.lookup_email }}</mark>
+                        {% if citi_verification.lookup_email and not citi_email_still_verified %}
+                            <span class="badge badge-warning">Email no longer verified on account</span>
+                        {% endif %}
+                    </li>
+                    <li>CITI Member ID: <mark>{{ citi_verification.member_id }}</mark></li>
+                    <li>Completion Report ID: <mark>{{ citi_verification.completion_report_id }}</mark></li>
+                </ul>
+
+                {% if citi_member_profile %}
+                <h5>CITI Member Profile</h5>
+                <ul>
+                    <li>Name (CITI): <mark>{{ citi_member_profile.strFirstII }} {{ citi_member_profile.strLastII }}</mark>
+                        {% if citi_member_profile.strFirstII != training.user.profile.first_names or citi_member_profile.strLastII != training.user.profile.last_name %}
+                            <span class="badge badge-warning">Name mismatch with {{ SITE_NAME }} profile ({{ training.user.profile.first_names }} {{ training.user.profile.last_name }})</span>
+                        {% endif %}
+                    </li>
+                    <li>CITI Username: <mark>{{ citi_member_profile.strUsernameII }}</mark></li>
+                    <li>Member Email: <mark>{{ citi_member_profile.strmemberEmail }}</mark></li>
+                    {% if citi_member_profile.strInstEmail %}
+                    <li>Institution Email: <mark>{{ citi_member_profile.strInstEmail }}</mark></li>
+                    {% endif %}
+                    <li>Affiliated: {{ citi_member_profile.dteAffiliated }}</li>
+                </ul>
+                {% endif %}
+
+                <h5>Completions from CITI API</h5>
+                {% for completion in citi_api_data %}
+                <div class="card mb-2">
+                    <div class="card-body p-2">
+                        <ul class="mb-0">
+                            <li>Name: <mark>{{ completion.FirstName }} {{ completion.LastName }}</mark>
+                                {% if completion.FirstName != training.user.profile.first_names or completion.LastName != training.user.profile.last_name %}
+                                    <span class="badge badge-warning">Name mismatch with profile</span>
+                                {% endif %}
+                            </li>
+                            <li>Email: <mark>{{ completion.memberEmail }}</mark></li>
+                            <li>Course Group: <mark>{{ completion.strGroup }}</mark> (ID: {{ completion.intGroupID }})</li>
+                            <li>Stage: <mark>{{ completion.strStage }}</mark> (#{{ completion.intStageNumber }})</li>
+                            <li>Completion Report: {{ completion.strCompletionReport }}</li>
+                            <li>Date Passed: <mark>{{ completion.dtePassed }}</mark></li>
+                            <li>Expiration: <mark>{{ completion.dteExpiration }}</mark></li>
+                            <li>Score: {{ completion.intScore }} / Passing: {{ completion.intPassingScore }}</li>
+                        </ul>
+                    </div>
+                </div>
+                {% endfor %}
+                {% elif citi_verification.api_error %}
+                <div class="alert alert-info mb-0">
+                    <strong>API lookup:</strong> {{ citi_verification.api_error }}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No CITI API data available. The user may not have a CITI member profile email linked to their {{ SITE_NAME }} account.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if training.completion_report %}
         <div class="card mb-4">
             <div class="card-header">
                 Document information
@@ -67,6 +135,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
     <div class="col-sm-5">
         <div class="card mb-4">

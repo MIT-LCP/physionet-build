@@ -9,31 +9,22 @@
 {% endblock %}
 
 {% block content %}
+<script src="{% static 'custom/js/cookie.js' %}"></script>
+<script src="{% static 'console/js/search-console.js' %}"></script>
+
 <div class="card mb-3">
   <div class="card-header">
     Unsubmitted Projects <span class="badge badge-pill badge-info">{{ projects.paginator.count }}</span>
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <table class="table table-bordered">
-        <thead>
-          <tr>
-            <th>Project</th>
-            <th>Submitted By</th>
-            <th>Created</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for project in projects %}
-          <tr>
-            <td><a href="{% url 'project_preview' project.slug %}?Admin=True">{{ project.title }}</a></td>
-            <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
-            <td>{{ project.creation_datetime|date }}</td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-      {% include "console/pagination.html" with pagination=projects %}
+      <input
+        type="search"
+        data-search-url="{% url 'project_search' bucket='unsubmitted' %}"
+        oninput="search(this.dataset.searchUrl, this.value);"
+        placeholder="Search..."
+      >
+      {% include "console/project_search_list.html" with bucket="unsubmitted" %}
     </div>
   </div>
 </div>

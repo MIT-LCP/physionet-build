@@ -14,6 +14,9 @@
   {% if project.short_description %}
     <meta name="description" content="{{ project.short_description }}">
   {% endif %}
+  {% if not project.is_legacy %}
+    {% include "project/google_scholar_meta.html" %}
+  {% endif %}
 {% endblock %}
 
 {% block local_css %}

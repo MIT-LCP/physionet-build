@@ -14,7 +14,7 @@ from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
@@ -77,11 +77,14 @@ from user.models import (
     Training,
     TrainingType,
     TrainingQuestion,
+    CITIGroupMapping,
+    CITIVerification,
     CodeOfConduct,
     CloudInformation
 )
 from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
+from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
 from project.cloud.s3 import (
@@ -361,13 +364,15 @@ def submission_info_card_params(request,
     submission_info.html
     """
     authors, author_emails = project.get_author_info(include_emails=True)
-    latest_version = project.core_project.publishedprojects.all().last()
+    latest_version = project.core_project.latest_published_version()
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=bulk_download)
     notes = project.internal_notes.all().order_by('-created_at')
     reviewer_invitations = project.reviewer_invitations.filter(
         is_active=True
     ).select_related('reviewer', 'review')
+
+    upload_agreement = getattr(project.submitting_author(), 'upload_agreement', None)
 
     return {
         'project': project,
@@ -383,6 +388,7 @@ def submission_info_card_params(request,
         'notes': notes,
         'internal_note_form': internal_note_form,
         'reviewer_invitations': reviewer_invitations,
+        'upload_agreement': upload_agreement,
     }
 
 
@@ -718,6 +724,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
          'editor_home': True,
          'is_editor': True,
          'files_editable': True,
+         'can_upload_files': project.can_upload_files(request.user),
          'copyedit_form': copyedit_form,
          'copyedit_logs': copyedit_logs,
          'add_item_url': edit_url,
@@ -1483,6 +1490,86 @@ def archived_submissions(request):
                   {'projects': projects})
 
 
+PROJECT_SEARCH_BUCKETS = {
+    'unsubmitted': (ActiveProject, SubmissionStatus.UNSUBMITTED, 'creation_datetime',
+                    'console/project_search_list.html'),
+    'submitted': (ActiveProject, None, 'submission_datetime',
+                  'console/project_search_list.html'),
+    'published': (PublishedProject, None, '-publish_datetime',
+                  'console/published_projects_list.html'),
+    'archived': (ActiveProject, SubmissionStatus.ARCHIVED, 'creation_datetime',
+                 'console/archived_submissions_list.html'),
+}
+
+# Mirrors the status/hold buckets built in submitted_projects(), so the
+# tab badge counts can be updated live while searching that page.
+SUBMITTED_STATUS_BUCKETS = {
+    'assignment': SubmissionStatus.NEEDS_ASSIGNMENT,
+    'reviewer_assignment': SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT,
+    'external_review': SubmissionStatus.NEEDS_EXTERNAL_REVIEW,
+    'decision': SubmissionStatus.NEEDS_DECISION,
+    'revision': SubmissionStatus.NEEDS_RESUBMISSION,
+    'copyedit': SubmissionStatus.NEEDS_COPYEDIT,
+    'approval': SubmissionStatus.NEEDS_APPROVAL,
+    'publish': SubmissionStatus.NEEDS_PUBLICATION,
+}
+
+
+def _project_search_filter(projects, search_field):
+    """
+    Filter a project queryset by a free-text search term, across title,
+    resource type, and author name/username/email.
+    """
+    if not search_field:
+        return projects
+    author_q = (Q(authors__user__username__icontains=search_field)
+                | Q(authors__user__profile__first_names__icontains=search_field)
+                | Q(authors__user__profile__last_name__icontains=search_field)
+                | Q(authors__user__email__icontains=search_field))
+    return projects.filter(
+        Q(title__icontains=search_field)
+        | Q(resource_type__name__icontains=search_field)
+        | author_q
+    ).distinct()
+
+
+@console_permission_required('project.change_activeproject')
+def project_search(request, bucket):
+    """
+    Search projects within one of the console project-list buckets:
+    unsubmitted, submitted, published, or archived.
+    """
+    if request.method != 'POST' or bucket not in PROJECT_SEARCH_BUCKETS:
+        raise Http404()
+
+    search_field = request.POST.get('search', '')
+    model, status, order, template = PROJECT_SEARCH_BUCKETS[bucket]
+
+    if bucket == 'submitted':
+        base = model.objects.filter(submission_status__gt=SubmissionStatus.ARCHIVED)
+    elif status is not None:
+        base = model.objects.filter(submission_status=status)
+    else:
+        base = model.objects.all()
+
+    matched = _project_search_filter(base, search_field)
+
+    if bucket == 'submitted':
+        # The submitted-projects page keeps its existing tab tables and
+        # just shows/hides rows by id, so only the matching ids and the
+        # per-tab counts (for the badges) are needed here.
+        counts = {key: matched.filter(submission_status=value, is_on_hold=False).count()
+                  for key, value in SUBMITTED_STATUS_BUCKETS.items()}
+        counts['on_hold'] = matched.filter(is_on_hold=True).count()
+        return JsonResponse({'ids': list(matched.values_list('id', flat=True)), 'counts': counts})
+
+    projects = matched.order_by(order)
+    if len(search_field) == 0:
+        projects = paginate(request, projects, 50)
+
+    return render(request, template, {'projects': projects, 'bucket': bucket})
+
+
 @console_permission_required('user.view_user')
 def users(request, group='all'):
     """
@@ -1539,6 +1626,23 @@ def user_management(request, username):
     Admin page for managing an individual user account.
     """
     user = get_object_or_404(User, username__iexact=username)
+
+    if request.method == 'POST' and 'update_permission_groups' in request.POST:
+        if not request.user.has_perm('user.change_user'):
+            raise PermissionDenied
+        if 'host' in request.POST:
+            host_group, _ = Group.objects.get_or_create(name='host')
+            host_group.permissions.add(*Permission.objects.filter(
+                content_type__app_label='events',
+                content_type__model='event',
+                codename__in=['add_event', 'view_event_menu'],
+            ))
+            user.groups.add(host_group)
+        else:
+            user.groups.remove(*Group.objects.filter(name='host'))
+        messages.success(request, 'Permission groups updated.')
+        return redirect('user_management', username=user.username)
+
     try:
         aws_info = CloudInformation.objects.get(user=user).aws_id
     except CloudInformation.DoesNotExist:
@@ -1581,12 +1685,14 @@ def user_management(request, username):
     credentialing_app = CredentialApplication.objects.filter(user=user).order_by("application_datetime")
 
     groups = user.groups.all()
+    has_host_permission = groups.filter(name='host').exists()
 
     is_restricted = user.is_from_restricted_country()
 
     return render(request, 'console/user_management.html', {'subject': user,
                                                             'profile': user.profile,
                                                             'groups': groups,
+                                                            'has_host_permission': has_host_permission,
                                                             'emails': emails,
                                                             'projects': projects,
                                                             'training_list': training,
@@ -2132,6 +2238,11 @@ def training_process(request, pk):
             if questions_formset.is_valid():
                 questions_formset.save()
 
+                training_review_form = forms.TrainingReviewForm(data=request.POST)
+                if training_review_form.is_valid():
+                    training.reviewer_comments = training_review_form.cleaned_data['reviewer_comments']
+                    training.save(update_fields=['reviewer_comments'])
+
                 training.accept(reviewer=request.user)
 
                 messages.success(request, 'The training was approved.')
@@ -2153,6 +2264,11 @@ def training_process(request, pk):
 
             if questions_formset.is_valid():
                 questions_formset.save()
+
+                training_review_form = forms.TrainingReviewForm(data=request.POST)
+                if training_review_form.is_valid():
+                    training.reviewer_comments = training_review_form.cleaned_data['reviewer_comments']
+                    training.save(update_fields=['reviewer_comments'])
 
                 training.accept(reviewer=request.user)
 
@@ -2179,7 +2295,33 @@ def training_process(request, pk):
         questions_formset = TrainingQuestionFormSet(queryset=training.training_questions.all())
         training_review_form = forms.TrainingReviewForm()
 
-    training_info_from_pdf = services.get_info_from_certificate_pdf(training)
+    # PDF document info
+    if training.completion_report:
+        parsed_training_pdf = services.get_info_from_certificate_pdf(training)
+    else:
+        parsed_training_pdf = None
+
+    # CITI API verification data (populated at submission time)
+    show_citi_verification = CITIGroupMapping.objects.filter(
+        training_type=training.training_type
+    ).exists()
+
+    verification = getattr(training, 'citi_verification', None)
+
+    if verification and (verification.member_profile_xml or verification.completions_xml):
+        citi_api_data = parse_completions_xml(verification.completions_xml) or None
+        citi_member_profile = parse_member_profile_xml(verification.member_profile_xml)
+    else:
+        citi_api_data = None
+        citi_member_profile = None
+
+    citi_email_still_verified = (
+        verification
+        and verification.lookup_email
+        and training.user.associated_emails.filter(
+            email=verification.lookup_email, is_verified=True
+        ).exists()
+    )
 
     return render(
         request,
@@ -2188,7 +2330,12 @@ def training_process(request, pk):
             'training': training,
             'questions_formset': questions_formset,
             'training_review_form': training_review_form,
-            'parsed_training_pdf': training_info_from_pdf,
+            'parsed_training_pdf': parsed_training_pdf,
+            'show_citi_verification': show_citi_verification,
+            'citi_verification': verification,
+            'citi_api_data': citi_api_data,
+            'citi_member_profile': citi_member_profile,
+            'citi_email_still_verified': citi_email_still_verified,
         },
     )
 
@@ -2447,15 +2594,15 @@ def credentialing_stats(request):
         except (AttributeError, StatisticsError):
             stats[y]['time_to_ref'] = None
 
-    # Time taken for the reference to respond
+    # Time taken for the reference to respond (in hours)
     time_to_reply = apps.annotate(tm=Cast(F('reference_response_datetime')
                                   - F('reference_contact_datetime'),
                                   DurationField())).values_list('tm', flat=True)
     for y in stats:
         durations = time_to_reply.filter(application_datetime__year=y)
         try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_reply'] = median(days)
+            hours = [round(d.total_seconds() / 3600, 2) for d in durations if d and d.total_seconds() >= 0]
+            stats[y]['time_to_reply'] = median(hours)
         except (AttributeError, StatisticsError):
             stats[y]['time_to_reply'] = None
 

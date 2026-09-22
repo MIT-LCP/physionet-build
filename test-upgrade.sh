@@ -106,6 +106,11 @@ oldrev=$(git rev-parse --verify "$oldrevname^{commit}")
 # Generate a pretty name for the "current" revision
 currevname=$(git describe --all --always --dirty)
 
+PYTHON=${PYTHON:-python3}
+py_ver=$("$PYTHON" -c 'import sys; print("%s-%s.%s" % (
+    sys.implementation.name, *sys.version_info[0:2]
+))')
+
 ################################################################
 # Functions for reporting test results
 
@@ -239,13 +244,13 @@ export PATH=$venvdir/bin:$PATH
     cd "$olddir/physionet-django"
 
     msg_testing "Installing old requirements"
-    cachefile=$venvcachedir/$old_reqs_hash.tar.gz
+    cachefile=$venvcachedir/$old_reqs_hash-$py_ver.tar.gz
     if [ -n "$venvcachedir" ] && [ -f "$cachefile" ]; then
         prereq_cmd mkdir "$venvdir"
         prereq_cmd tar -xzf "$cachefile" -C "$venvdir"
     else
         prereq_cmd virtualenv --quiet --quiet \
-                   --no-download -ppython3 "$venvdir"
+                   --no-download -p"$PYTHON" "$venvdir"
         prereq_cmd pip3 install --require-hashes \
                    -r "$olddir/requirements.txt"
         if [ -n "$venvcachedir" ]; then
@@ -266,7 +271,7 @@ export PATH=$venvdir/bin:$PATH
 
     msg_testing "Installing new requirements"
     if ! cmp -s "$olddir/requirements.txt" "$topdir/requirements.txt"; then
-        cachefile=$venvcachedir/$old_reqs_hash-$new_reqs_hash.tar.gz
+        cachefile=$venvcachedir/$old_reqs_hash-$new_reqs_hash-$py_ver.tar.gz
         if [ -n "$venvcachedir" ] && [ -f "$cachefile" ]; then
             prereq_cmd rm -rf "$venvdir"
             prereq_cmd mkdir "$venvdir"

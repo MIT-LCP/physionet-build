@@ -316,3 +316,29 @@ wr = client.get(work_url)
 This will also return 200 and the xml document will contain detailed information about the users work (i.e. publication details, etc).
 
 If we have access to the ORCID member API (instead of just the public API) we should also be able to update a users profile with PhysioNet project information.  In that case the \_PHYSIO_ codes need to be associated with the ORCID MIT institution account.
+
+## OIDC Provider setup
+
+PhysioNet can act as an OpenID Connect (OIDC) provider, issuing signed ID tokens to relying parties. ID tokens are signed with an RSA private key, so the key must exist before the server starts.
+
+1. **Generate the RSA signing key first.** The file must be present before `OIDC_RSA_KEY_FILE` references it — startup raises `ImproperlyConfigured` if the path is missing.
+
+   ```
+   python manage.py generate_oidc_rsa_key --output oidc_key.pem
+   ```
+
+   The command writes a 2048-bit PKCS#8 PEM key with `0600` permissions. Use `--bits` to increase the key size (minimum 2048).
+
+2. **Configure the environment.** In your `.env` file:
+
+   ```
+   OIDC_RSA_KEY_FILE=/path/to/oidc_key.pem
+   # The canonical public host with no path component (becomes the 'iss' claim).
+   OIDC_ISS_ENDPOINT=https://physionet.org
+   ```
+
+   `OIDC_ISS_ENDPOINT` is required whenever a key is configured. It must be the bare host (e.g. `https://physionet.org`) with no path — the discovery view appends the `/oauth/...` path itself.
+
+   To rotate keys, generate a new active key and list the previous one(s) in `OIDC_RSA_INACTIVE_KEY_FILES` (comma-separated). Inactive keys stay published in JWKS so relying parties can still verify tokens signed under them during the overlap window.
+
+3. **Set each OAuth application's algorithm to RS256.** Any OAuth application that uses the `openid` scope **must** have its signing algorithm set to RS256 (RSA with SHA-2 256). An application left on the default ("No OIDC support") will fail ID-token issuance with: *"Set the application algorithm to RS256 for OIDC."* Set the algorithm in the Django admin (or when registering the application).

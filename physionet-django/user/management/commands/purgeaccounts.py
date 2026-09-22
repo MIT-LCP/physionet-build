@@ -22,7 +22,7 @@ class Command(BaseCommand):
         for user in user_list:
             deleted.append("\n - Username: {0}\n   Email: {1}\n   Full Name: "
                            "{2}".format(user.username, user.email,
-                                        user.get_full_name()))
+                                        user.get_full_name(ignore_missing_profile=True)))
             user.delete()
 
         if deleted:
@@ -38,7 +38,7 @@ class Command(BaseCommand):
         for associated_email in associated_email_list:
             deleted.append("\n - Email: {0}\n   Belonged to: {1}\n   Username:"
                            " {2}".format(associated_email.email,
-                                         associated_email.user.get_full_name(),
+                                         associated_email.user.get_full_name(ignore_missing_profile=True),
                                          associated_email.user.username))
             associated_email.delete()
 

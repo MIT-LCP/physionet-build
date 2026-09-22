@@ -2,7 +2,7 @@
 {% load console_templatetags %}
 <div class="card mb-3">
   <div class="card-header">
-    <ul class="nav nav-tabs card-header-tabs">
+    <ul class="nav nav-tabs">
       <li class="nav-item">
         <a class="nav-link {% if not passphrase %} active {% endif %}" id="info-tab" data-toggle="tab" href="#info" role="tab" aria-controls="info" aria-selected="true">Project Information</a>
       </li>
@@ -73,6 +73,17 @@
           {% else %}
             <br>Embargo: none
           {% endif %}
+          <br>Upload Agreement:
+          {% if upload_agreement and upload_agreement.accepted %}
+            <span class="badge badge-success">Accepted</span> ({{ upload_agreement.accepted_datetime|date }})
+            <ul class="mb-0">
+              {% for label in upload_agreement.selected_data_types %}
+                <li>{{ label }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <span class="badge badge-danger">Not accepted</span>
+          {% endif %}
         </p>
         <p class="card-text">
           Description: {{ project.short_description }}
@@ -118,7 +129,7 @@
         <h5>Uploaded Documents</h5>
         {% if project.uploaded_documents.all %}
           {% for uploaded_document in project.uploaded_documents.all %}
-            <p class="card_text"><a href="{% url 'serve_document' uploaded_document.document|filename %}" target="_blank">{{ uploaded_document.document_type }}</a></p>
+            <p class="card_text"><a href="{% url 'serve_active_project_ethics_doc' project.slug uploaded_document.document|filename %}" target="_blank">{{ uploaded_document.document_type }}</a></p>
           {% endfor %}
         {% else %}
           <p class="card_text">No documents were provided.</p>

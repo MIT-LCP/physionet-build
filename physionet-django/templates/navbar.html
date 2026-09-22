@@ -23,12 +23,12 @@
       <div class="nav__links align-items-center">
         {% for page in static_pg %}
           {% if page.nav_bar %}
-            <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
+            <a href="{{ page.url }}" class="nav-link{% if request.path == page.url %} nav-link--active{% endif %}">{{ page.title }}</a>
           {% endif %}
         {% endfor %}
 
         <div>{# wrapper for popover positioning #}
-          <button type="button" class="nav-link nav-link--expandable"
+          <button type="button" class="nav-link nav-link--expandable{% for button in FRONT_PAGE_BUTTONS %}{% if request.path|startswith:button.url %} nav-link--active{% endif %}{% endfor %}"
                   popovertarget="nav__explore_popup">
             Explore <i class="bi bi-chevron-down ml-2"></i>
           </button>
@@ -36,7 +36,7 @@
                   aria-label="Explore">
             <div class="nav-sublinks">
               {% for button in FRONT_PAGE_BUTTONS %}
-                <a class="nav-sublink" href="{{ button.url }}">
+                <a class="nav-sublink{% if request.path|startswith:button.url %} nav-sublink--active{% endif %}" href="{{ button.url }}">
                   <div class="nav-sublink__icon">
                     {% if button.associated_image_path %}
                       <img src="{% static button.associated_image_path %}" alt="" height="32px">
@@ -85,7 +85,11 @@
             {% endif %}
             <span class="visually-hidden">Notifications</span>
           </a>
-          <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray"
+          {% url 'event_home' as event_url %}
+          {% url 'user_settings' as settings_url %}
+          {% url 'project_home' as projects_url %}
+          {% url 'console_home' as console_url %}
+          <button type="button" class="nav__user nav-link nav-link--expandable nav-link--expand-left nav-link--gray{% if request.path|startswith:settings_url or request.path|startswith:projects_url or request.path|startswith:event_url or request.path|startswith:console_url %} nav-link--active{% endif %}"
                   popovertarget="nav__user_popup"
                   title="Account: {{ user }}">
             {% if user.has_access_to_admin_console %}
@@ -102,7 +106,7 @@
                   aria-label="Account: {{ user }}">
             <div class="nav-sublinks">
               {% if user.is_authenticated and perms.events.view_event_menu %}
-                <a class="nav-sublink" href="{% url 'event_home' %}">
+                <a class="nav-sublink{% if request.path|startswith:event_url %} nav-sublink--active{% endif %}" href="{{ event_url }}">
                   <div class="nav-sublink__icon">
                     <img src="{% static 'images/icons/events.png' %}" alt="" height="32px" />
                   </div>
@@ -114,7 +118,8 @@
               {% endif %}
               {% if user.is_authenticated %}
                 {% if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS %}
-                  <a class="nav-sublink" href="{% url 'research_environments' %}">
+                  {% url 'research_environments' as re_url %}
+                  <a class="nav-sublink{% if request.path|startswith:re_url %} nav-sublink--active{% endif %}" href="{{ re_url }}">
                     <div class="nav-sublink__icon">
                       <img src="{% static 'images/icons/environments.png' %}" alt="" height="32px" />
                     </div>
@@ -125,7 +130,7 @@
                   </a>
                 {% endif %}
 
-                <a class="nav-sublink" href="{% url 'project_home' %}">
+                <a class="nav-sublink{% if request.path|startswith:projects_url %} nav-sublink--active{% endif %}" href="{{ projects_url }}">
                   <div class="nav-sublink__icon">
                     <img src="{% static 'images/icons/projects.png' %}" alt="" height="32px" />
                   </div>
@@ -135,7 +140,7 @@
                   </div>
                 </a>
               {% endif %}
-              <a class="nav-sublink" href="{% url 'user_settings' %}">
+              <a class="nav-sublink{% if request.path|startswith:settings_url %} nav-sublink--active{% endif %}" href="{{ settings_url }}">
                 <div class="nav-sublink__icon">
                   <img src="{% static 'images/icons/settings.png' %}" alt="" height="32px" />
                 </div>
@@ -145,7 +150,7 @@
                 </div>
               </a>
               {% if user.has_access_to_admin_console %}
-                <a class="nav-sublink" href="{% url 'console_home' %}">
+                <a class="nav-sublink{% if request.path|startswith:console_url %} nav-sublink--active{% endif %}" href="{{ console_url }}">
                   <div class="nav-sublink__icon">
                     <img src="{% static 'images/icons/admin.png' %}" alt="" height="32px" />
                   </div>
@@ -155,15 +160,18 @@
                   </div>
                 </a>
               {% endif %}
-              <a class="nav-sublink" href="{% url 'logout' %}">
-                <div class="nav-sublink__icon">
-                  <img src="{% static 'images/icons/logout.png' %}" alt="" height="32px" />
-                </div>
-                <div class="nav-sublink__text">
-                  <span class="nav-sublink__title">Logout</span>
-                  <span class="nav-sublink__description">Exit your account securely and return to the homepage.</span>
-                </div>
-              </a>
+              <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="nav-sublink">
+                  <div class="nav-sublink__icon">
+                    <img src="{% static 'images/icons/logout.png' %}" alt="" height="32px" />
+                  </div>
+                  <div class="nav-sublink__text">
+                    <span class="nav-sublink__title">Logout</span>
+                    <span class="nav-sublink__description">Exit your account securely and return to the homepage.</span>
+                  </div>
+                </button>
+              </form>
             </div>
           </dialog>
         {% else %}
@@ -180,13 +188,13 @@
             aria-label="Menu">
       {% for page in static_pg %}
         {% if page.nav_bar %}
-          <a href="{{ page.url }}" class="nav-link">{{ page.title }}</a>
+          <a href="{{ page.url }}" class="nav-link{% if request.path == page.url %} nav-link--active{% endif %}">{{ page.title }}</a>
         {% endif %}
       {% endfor %}
       <hr>
       <div class="nav-sublinks">
         {% for button in FRONT_PAGE_BUTTONS %}
-          <a class="nav-sublink" href="{{ button.url }}">
+          <a class="nav-sublink{% if request.path|startswith:button.url %} nav-sublink--active{% endif %}" href="{{ button.url }}">
             <div class="nav-sublink__icon">
               {% if button.associated_image_path %}
                 <img src="{% static button.associated_image_path %}" alt="" height="32px">

@@ -65,7 +65,9 @@ from user.models import (
     User,
     Training,
     TrainingType,
+    CITIGroupMapping,
 )
+from user.tasks import run_citi_api_verification
 from user.userfiles import UserFiles
 from user.enums import RequiredField, ActivateUserType
 from physionet.models import StaticPage
@@ -185,7 +187,8 @@ class SSOLoginView(auth_views.LoginView):
 
 
 class LogoutView(auth_views.LogoutView):
-    pass
+    def get(self, request, *args, **kwargs):
+        return render(request, 'user/logout_confirm.html')
 
 
 class CustomPasswordResetForm(PasswordResetForm):
@@ -1112,13 +1115,15 @@ def edit_training(request):
             training_type=request.POST.get("training_type"),
         )
         take_course_form = CourseForm(
-            data=request.POST, training_type=request.POST.get("training_type"), auto_id="op_%s"
+            training_type=request.POST.get("training_type"), auto_id="op_%s"
         )
         if training_form.is_valid():
-            training_form.save()
+            training = training_form.save()
+            if CITIGroupMapping.objects.filter(training_type=training.training_type).exists():
+                run_citi_api_verification(training.id)
             messages.success(request, "The training has been submitted successfully.")
             training_application_request(request, training_form)
-            training_form = forms.TrainingForm(user=request.user)
+            return redirect('edit_training_detail', training.id)
         else:
             messages.error(request, "Invalid submission. Check the errors below.")
     else:
@@ -1154,35 +1159,37 @@ def edit_training(request):
                 message = f"Your {training.training_type.name} training will expire in {days_until_expiry} days."
                 messages.warning(request, message)
 
+    training_qs = Training.objects.select_related("training_type").filter(user=request.user)
+    training_by_status = {}
+    for label, qs in [
+        ("under review", training_qs.get_review()),
+        ("in progress", training_qs.get_in_progress()),
+        ("active", training_qs.get_valid()),
+        ("expired", training_qs.get_expired()),
+        ("rejected", training_qs.get_rejected()),
+    ]:
+        items = list(qs)
+        if items:
+            training_by_status[label] = items
+
     return render(
         request,
         "user/edit_training.html",
-        {"training_form": training_form, "ticket_system_url": ticket_system_url, "take_course_form": take_course_form},
+        {
+            "training_form": training_form,
+            "ticket_system_url": ticket_system_url,
+            "take_course_form": take_course_form,
+            "training_by_status": training_by_status,
+        },
     )
 
 
 @login_required
 def edit_certification(request):
     """
-    Certifications page.
+    Certifications page. Redirects to the training page.
     """
-    training = (
-        Training.objects.select_related("training_type")
-        .filter(user=request.user)
-    )
-    training_by_status = {
-        "under review": training.get_review(),
-        "in progress": training.get_in_progress(),
-        "active": training.get_valid(),
-        "expired": training.get_expired(),
-        "rejected": training.get_rejected(),
-    }
-
-    return render(
-        request,
-        "user/edit_certification.html",
-        {"training_by_status": training_by_status},
-    )
+    return redirect("edit_training")
 
 
 @login_required

@@ -157,8 +157,8 @@ class Metadata(models.Model):
     def get_platform_citation(self):
         """
         Returns the information needed to generate the standard platform
-        citation in multiple formats (MLA, APA, Chicago, Harvard, and
-        Vancouver).
+        citation in multiple formats (MLA, APA, Chicago, Harvard,
+        Vancouver, and BibTeX).
 
         1. MLA (8th edition) [https://owl.purdue.edu/owl/research_and_citation/
                               mla_style/mla_formatting_and_style_guide/
@@ -294,7 +294,7 @@ class Metadata(models.Model):
             e.set_quality_assurance_results()
         copyedit_logs = self.copyedit_log_history()
         # The last published version. May be None.
-        latest_version = self.core_project.publishedprojects.all().last()
+        latest_version = self.core_project.latest_published_version()
         return authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version
 
     def license_content(self, fmt):
@@ -457,8 +457,7 @@ class Metadata(models.Model):
             style_format = ('{author}. "{title}" (version {version}). '
                             '<i>{platform_name}</i> ({year}). {rrid}')
 
-            doi_format = (' <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>')
+            doi_format = ' https://doi.org/{doi}'
 
             if (len(authors) == 1):
                 all_authors = authors[0].get_full_name(reverse=True)
@@ -475,8 +474,7 @@ class Metadata(models.Model):
             style_format = ('{author} ({year}). {title} (version '
                             '{version}). <i>{platform_name}</i>. {rrid}')
 
-            doi_format = (' <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>')
+            doi_format = ' https://doi.org/{doi}'
 
             if (len(authors) == 1):
                 all_authors = authors[0].initialed_name()
@@ -500,8 +498,7 @@ class Metadata(models.Model):
             style_format = ('{author}. "{title}" (version {version}). '
                             '<i>{platform_name}</i> ({year}). {rrid}')
 
-            doi_format = (' <a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>')
+            doi_format = ' https://doi.org/{doi}'
 
             if (len(authors) == 1):
                 all_authors = authors[0].get_full_name(reverse=True)
@@ -517,9 +514,7 @@ class Metadata(models.Model):
             style_format = ("{author} ({year}) '{title}' (version "
                             "{version}), <i>{platform_name}</i>. {rrid}")
 
-            doi_format = (" Available at: "
-                          "<a href='https://doi.org/{doi}'>"
-                          "https://doi.org/{doi}</a>")
+            doi_format = ' Available at: https://doi.org/{doi}'
 
             if (len(authors) == 1):
                 all_authors = authors[0].initialed_name()
@@ -534,9 +529,7 @@ class Metadata(models.Model):
             style_format = ('{author}. {title} (version {version}). '
                             '{platform_name}. {year}. {rrid}')
 
-            doi_format = (' Available from: '
-                          '<a href="https://doi.org/{doi}">'
-                          'https://doi.org/{doi}</a>')
+            doi_format = ' Available from: https://doi.org/{doi}'
 
             all_authors = ', '.join(a.initialed_name(commas=False,
                                     periods=False) for a in authors)

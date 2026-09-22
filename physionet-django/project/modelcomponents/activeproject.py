@@ -327,6 +327,31 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.is_on_hold = False
             self.save(update_fields=['is_on_hold'])
 
+    def upload_agreement_accepted(self):
+        """Check whether the upload agreement requirement is satisfied.
+
+        Returns True if the submitting author has accepted the upload
+        agreement, or if the project was created before
+        UPLOAD_AGREEMENT_START_DATE (in which case no agreement exists,
+        but the requirement is considered satisfied).
+        """
+        start_date = settings.UPLOAD_AGREEMENT_START_DATE
+        if start_date and self.creation_datetime < start_date:
+            return True
+        agreement = getattr(self.submitting_author(), 'upload_agreement', None)
+        return agreement is not None and agreement.accepted
+
+    def can_upload_files(self, user):
+        """Check whether the given user is allowed to upload files.
+
+        Editors are exempt from the upload agreement requirement
+        during copyediting. All other users must have an accepted
+        upload agreement.
+        """
+        if user == self.editor:
+            return self.copyeditable()
+        return self.upload_agreement_accepted()
+
     def check_integrity(self):
         """
         Run integrity tests on metadata fields and return whether the
@@ -392,6 +417,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if self.access_policy in {AccessPolicy.CREDENTIALED,
                                   AccessPolicy.CONTRIBUTOR_REVIEW} and self.required_trainings is None:
             self.integrity_errors.append('You have to choose a required training.')
+
+        # Upload agreement (only check during author-editable phases)
+        if self.author_editable() and not self.upload_agreement_accepted():
+            self.integrity_errors.append('You must accept the upload agreement before submitting.')
 
         if self.integrity_errors:
             return False
@@ -611,11 +640,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 # in the published project
                 published_project.update_internal_links(old_project=self)
 
+                published_project.is_latest_version = False
+
                 published_project.save()
 
                 # If this is a new version, all version fields have to be updated
-                if self.is_new_version:
-                    published_project.set_version_order()
+                published_project.set_version_order()
 
                 # Same content, different objects.
                 for reference in self.references.all().order_by('order'):
@@ -650,12 +680,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         display_order=author.display_order,
                         first_names=author_profile.first_names,
                         last_name=author_profile.last_name,
-                        )
+                    )
 
                     affiliations = author.affiliations.all()
                     for affiliation in affiliations:
-                        published_affiliation = PublishedAffiliation.objects.create(
-                            name=affiliation.name, author=published_author)
+                        PublishedAffiliation.objects.create(
+                            name=affiliation.name,
+                            country=affiliation.country,
+                            author=published_author,
+                        )
 
                     UploadedDocument.objects.filter(
                         object_id=self.pk, content_type=ContentType.objects.get_for_model(ActiveProject)
