@@ -1,0 +1,200 @@
+[
+  {
+    "model": "project.coreproject",
+    "pk": "c1a2b3d4-e5f6-7890-abcd-ef1234500001",
+    "fields": {
+      "creation_datetime": "2024-01-15T10:00:00Z",
+      "doi": null,
+      "storage_allowance": 10737418240
+    }
+  },
+  {
+    "model": "project.publishedproject",
+    "pk": 21,
+    "fields": {
+      "resource_type": 2,
+      "title": "Demo ECG Classification Challenge",
+      "abstract": "<p>A demo challenge for classifying ECG signals using automated methods.</p>",
+      "background": "",
+      "methods": "<p>Participants submit code that is evaluated against a hidden validation dataset.</p>",
+      "content_description": "",
+      "usage_notes": "",
+      "installation": "",
+      "acknowledgements": "",
+      "conflicts_of_interest": "<p>None</p>",
+      "version": "1.0.0",
+      "release_notes": "",
+      "short_description": "",
+      "access_policy": 0,
+      "license": 1,
+      "dua": null,
+      "project_home_page": "",
+      "core_project": "c1a2b3d4-e5f6-7890-abcd-ef1234500001",
+      "editor": ["admin"],
+      "submission_datetime": "2024-01-10T10:00:00Z",
+      "author_comments": "",
+      "editor_assignment_datetime": "2024-01-11T10:00:00Z",
+      "revision_request_datetime": null,
+      "resubmission_datetime": null,
+      "editor_accept_datetime": "2024-01-13T10:00:00Z",
+      "copyedit_completion_datetime": "2024-01-14T10:00:00Z",
+      "author_approval_datetime": "2024-01-14T12:00:00Z",
+      "creation_datetime": "2024-01-15T10:00:00Z",
+      "version_order": 0,
+      "main_storage_size": 1024,
+      "compressed_storage_size": 512,
+      "incremental_storage_size": 1024,
+      "submission_slug": "demoecgchallenge00001",
+      "publish_datetime": "2024-01-15T10:00:00Z",
+      "has_other_versions": false,
+      "deprecated_files": false,
+      "doi": "10.13026/DEMO-ECG1",
+      "slug": "demo-ecg-challenge",
+      "public_project_uuid": "d1e2f3a4-b5c6-7890-abcd-ef1234500002",
+      "is_legacy": false,
+      "full_description": "",
+      "is_latest_version": true,
+      "featured": null,
+      "has_wfdb": false,
+      "display_publications": true,
+      "parent_projects": []
+    }
+  },
+  {
+    "model": "project.publishedauthor",
+    "pk": 22,
+    "fields": {
+      "user": ["admin"],
+      "display_order": 1,
+      "is_submitting": true,
+      "is_corresponding": true,
+      "approval_datetime": "2024-01-14T12:00:00Z",
+      "first_names": "Admin",
+      "last_name": "User",
+      "corresponding_email": "admin@localhost",
+      "project": 21
+    }
+  },
+  {
+    "model": "project.publishedaffiliation",
+    "pk": 7,
+    "fields": {
+      "name": "MIT Laboratory for Computational Physiology",
+      "country": "US",
+      "author": 22
+    }
+  },
+  {
+    "model": "project.contact",
+    "pk": 21,
+    "fields": {
+      "name": "Admin User",
+      "affiliations": "MIT Laboratory for Computational Physiology",
+      "email": "admin@localhost",
+      "project": 21
+    }
+  },
+  {
+    "model": "challenge.challenge",
+    "pk": 1,
+    "fields": {
+      "published_project": 21,
+      "slug": "demo-ecg-challenge",
+      "organizer": ["admin"],
+      "registration_open_datetime": "2024-01-15T10:00:00Z",
+      "start_datetime": "2024-01-16T00:00:00Z",
+      "end_datetime": "2025-12-31T23:59:59Z",
+      "phase": "active",
+      "training_dataset": null,
+      "validation_data_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/validation/",
+      "test_data_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/test/",
+      "rules": "<p>Standard challenge rules apply.</p>",
+      "evaluation_description": "<p>Submissions are scored using the F1 metric.</p>",
+      "prizes": "",
+      "max_submissions_per_day": 5,
+      "max_total_submissions": 100,
+      "teams_enabled": true,
+      "is_active": true,
+      "created_datetime": "2024-01-15T10:00:00Z",
+      "modified_datetime": "2024-01-15T10:00:00Z"
+    }
+  },
+  {
+    "model": "challenge.submissionspec",
+    "pk": 1,
+    "fields": {
+      "challenge": 1,
+      "base_image": "python:3.11-slim",
+      "entrypoint_command": "python main.py",
+      "max_runtime_seconds": 3600,
+      "max_memory_mb": 4096,
+      "gpu_enabled": false,
+      "gpu_type": "",
+      "cpu_count": 2,
+      "input_format": {},
+      "output_format": {},
+      "evaluation_script_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/evaluate.py",
+      "primary_metric_name": "score",
+      "primary_metric_sort": "desc",
+      "additional_metrics": []
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 1,
+    "fields": {
+      "user": ["rgmark"],
+      "challenge": 1,
+      "registered_datetime": "2024-01-20T10:00:00Z",
+      "is_active": true,
+      "team": null,
+      "is_team_captain": false
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 1,
+    "fields": {
+      "challenge": 1,
+      "submitted_by": ["rgmark"],
+      "team": null,
+      "code_archive_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/submissions/1.tar.gz",
+      "code_archive_sha256": "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "status": "completed",
+      "cloud_run_job_name": "",
+      "cloud_run_execution_name": "",
+      "error_message": "",
+      "container_log_gcs_uri": "",
+      "created_datetime": "2024-02-01T10:00:00Z",
+      "started_datetime": "2024-02-01T10:05:00Z",
+      "completed_datetime": "2024-02-01T10:15:00Z",
+      "description": "Initial submission",
+      "is_selected": true
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 1,
+    "fields": {
+      "submission": 1,
+      "metric_name": "score",
+      "value": 0.85,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.leaderboardentry",
+    "pk": 1,
+    "fields": {
+      "challenge": 1,
+      "team": null,
+      "user": ["rgmark"],
+      "submission": 1,
+      "dataset": "val",
+      "primary_score": 0.85,
+      "all_scores": {"score": 0.85},
+      "rank": 1,
+      "updated_datetime": "2024-02-01T10:15:00Z"
+    }
+  }
+]
