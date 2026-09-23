@@ -6,10 +6,7 @@ from django.conf import settings
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-from moto import (
-    mock_s3,
-    mock_s3control,
-)
+import moto
 
 from project.authorization.access import can_view_project_files
 from project.cloud.s3 import (
@@ -55,7 +52,7 @@ class TestS3(TestMixin):
 
         # The following environment variables are used by boto3, and
         # should be set to avoid unpredictable behavior when testing.
-        # They need to be set before calling mock_s3().  This list
+        # They need to be set before calling mock_aws().  This list
         # might be incomplete.
         self.mock_env = mock.patch.dict(os.environ, {
             'AWS_SHARED_CREDENTIALS_FILE': os.path.join(
@@ -68,17 +65,32 @@ class TestS3(TestMixin):
             'AWS_DEFAULT_REGION': '',
         })
         self.mock_env.start()
-        self.mock_s3 = mock_s3()
-        self.mock_s3.start()
-        self.mock_s3control = mock_s3control()
-        self.mock_s3control.start()
+
+        # Temporary workaround for compatibility with moto 4.x
+        if hasattr(moto, 'mock_aws'):
+            self.mock_aws = moto.mock_aws()
+            self.mock_aws.start()
+            self.mock_s3 = None
+            self.mock_s3control = None
+        else:
+            self.mock_aws = None
+            self.mock_s3 = moto.mock_s3()
+            self.mock_s3.start()
+            self.mock_s3control = moto.mock_s3control()
+            self.mock_s3control.start()
 
         self.user_counter = 1
 
     def tearDown(self):
         super().tearDown()
-        self.mock_s3.stop()
-        self.mock_s3control.stop()
+
+        # Temporary workaround for compatibility with moto 4.x
+        if self.mock_aws is not None:
+            self.mock_aws.stop()
+        else:
+            self.mock_s3.stop()
+            self.mock_s3control.stop()
+
         self.mock_env.stop()
 
     def test_s3_credentials(self):
