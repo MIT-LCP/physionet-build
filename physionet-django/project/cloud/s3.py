@@ -556,7 +556,8 @@ def put_bucket_logging(s3, bucket_name, target_bucket, target_prefix):
     s3.put_bucket_logging(Bucket=bucket_name, BucketLoggingStatus=logging_config)
 
 
-def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
+def send_files_to_s3(folder_path, s3_prefix, bucket_name, project,
+                     previous_bucket_name=None, previous_s3_prefix=None):
     """
     Upload files from a local folder to an AWS S3 bucket with
     a specified prefix.
@@ -584,6 +585,8 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
     if not has_s3_credentials():
         raise ValueError("AWS_PROFILE is undefined. Please set it in your settings.")
 
+    previous_s3_prefix = previous_s3_prefix or ''
+
     s3 = create_s3_client()
     for root, subdirs, files in os.walk(folder_path):
         subdirs.sort()
@@ -591,24 +594,35 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
 
         if root == folder_path:
             dir_prefix = s3_prefix
+            previous_dir_prefix = previous_s3_prefix
         else:
-            dir_prefix = os.path.join(
-                s3_prefix, os.path.relpath(root, folder_path), ''
-            )
+            rel_path = os.path.relpath(root, folder_path)
+            dir_prefix = os.path.join(s3_prefix, rel_path, '')
+            previous_dir_prefix = os.path.join(previous_s3_prefix, rel_path, '')
+
         existing_files, existing_subdirs = list_s3_subdir_object_info(
             s3, bucket_name, dir_prefix
         )
+        if previous_bucket_name is None:
+            previous_files = {}
+        else:
+            previous_files, previous_subdirs = list_s3_subdir_object_info(
+                s3, previous_bucket_name, previous_dir_prefix
+            )
 
         for file_name in files:
             local_file_path = os.path.join(root, file_name)
-            s3_key = os.path.join(
-                s3_prefix, os.path.relpath(local_file_path, folder_path)
-            )
+            rel_path = os.path.relpath(local_file_path, folder_path)
+            s3_key = os.path.join(s3_prefix, rel_path)
+            previous_s3_key = os.path.join(previous_s3_prefix, rel_path)
 
             # Upload file if not already up-to-date
             send_file_to_s3(
                 s3, bucket_name, s3_key, local_file_path,
-                existing_files.get(s3_key)
+                existing_file=existing_files.get(s3_key),
+                previous_file=previous_files.get(previous_s3_key),
+                previous_bucket_name=previous_bucket_name,
+                previous_s3_key=previous_s3_key,
             )
 
     # If project has a ZIP file, upload it as well
@@ -628,7 +642,9 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
         send_file_to_s3(s3, bucket_name, s3_key, zip_file_path, existing_file)
 
 
-def send_file_to_s3(s3, bucket_name, key, file_path, existing_file=None):
+def send_file_to_s3(s3, bucket_name, key, file_path, existing_file=None,
+                    previous_bucket_name=None, previous_s3_key=None,
+                    previous_file=None):
     """
     Upload a local file to an AWS S3 bucket.
 
@@ -648,11 +664,22 @@ def send_file_to_s3(s3, bucket_name, key, file_path, existing_file=None):
     """
     if existing_file is not None and existing_file.match_path(file_path):
         return
-    s3.upload_file(
-        Filename=file_path,
-        Bucket=bucket_name,
-        Key=key,
-    )
+
+    if previous_file is not None and previous_file.match_path(file_path):
+        s3.copy(
+            CopySource={
+                'Bucket': previous_bucket_name,
+                'Key': previous_s3_key,
+            },
+            Bucket=bucket_name,
+            Key=key,
+        )
+    else:
+        s3.upload_file(
+            Filename=file_path,
+            Bucket=bucket_name,
+            Key=key,
+        )
 
 
 def get_aws_accounts_for_access_point(access_point_name):
@@ -1419,7 +1446,7 @@ def create_s3_access_point(project, access_point_name, bucket_name, account_id):
     return access_point
 
 
-def upload_project_to_S3(project):
+def upload_project_to_S3(project, previous_project=None):
     """
         Upload project files to an S3 bucket and configure access policies.
 
@@ -1463,7 +1490,16 @@ def upload_project_to_S3(project):
     )
     folder_path = project.file_root()
     s3_prefix = f"{project.slug}/{project.version}/"
-    send_files_to_s3(folder_path, s3_prefix, bucket_name, project)
+
+    if previous_project is None:
+        previous_bucket_name = previous_s3_prefix = None
+    else:
+        previous_bucket_name = get_bucket_name(previous_project)
+        previous_s3_prefix = f"{previous_project.slug}/{previous_project.version}/"
+
+    send_files_to_s3(folder_path, s3_prefix, bucket_name, project,
+                     previous_bucket_name=previous_bucket_name,
+                     previous_s3_prefix=previous_s3_prefix)
     if project.access_policy == AccessPolicy.OPEN and not project.georestricted:
         update_open_bucket_policy(project, bucket_name)
     else:

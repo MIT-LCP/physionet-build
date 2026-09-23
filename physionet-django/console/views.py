@@ -1036,8 +1036,9 @@ def send_files_to_gcp(pid):
 
 
 @associated_task(PublishedProject, "pid", read_only=True)
+@associated_task(PublishedProject, "previous_pid", read_only=True)
 @background()
-def send_files_to_aws(pid):
+def send_files_to_aws(pid, previous_pid=None):
     """
     Upload project files to AWS S3 buckets.
 
@@ -1055,8 +1056,14 @@ def send_files_to_aws(pid):
     - Verify that AWS credentials and configurations are correctly set
     up for the S3 client.
     """
+
     project = PublishedProject.objects.get(id=pid)
-    upload_project_to_S3(project)
+    if previous_pid is None:
+        previous_project = None
+    else:
+        previous_project = PublishedProject.objects.get(id=previous_pid)
+
+    upload_project_to_S3(project, previous_project=previous_project)
     project.aws.sent_files = True
     project.aws.finished_datetime = timezone.now()
     if project.compressed_storage_size:
@@ -1392,6 +1399,15 @@ def aws_bucket_management(request, project, user):
         messages.info(request, 'Project is already scheduled to be uploaded.')
         return
 
+    previous_project = project.core_project.published_projects.filter(
+        aws__sent_files=True,
+        published_datetime__lt=project.published_datetime,
+    ).order_by('published_datetime').last()
+    if previous_project is not None:
+        previous_pid = previous_project.id
+    else:
+        previous_pid = None
+
     is_private = True
 
     if project.access_policy == AccessPolicy.OPEN and not project.georestricted:
@@ -1403,7 +1419,7 @@ def aws_bucket_management(request, project, user):
             project=project, bucket_name=bucket_name, is_private=is_private
         )
 
-    send_files_to_aws(project.id, verbose_name='AWS - {}'.format(project), creator=user)
+    send_files_to_aws(project.id, previous_pid, verbose_name='AWS - {}'.format(project), creator=user)
 
 
 @console_permission_required('project.change_publishedproject')
