@@ -65,32 +65,13 @@ class TestS3(TestMixin):
             'AWS_DEFAULT_REGION': '',
         })
         self.mock_env.start()
-
-        # Temporary workaround for compatibility with moto 4.x
-        if hasattr(moto, 'mock_aws'):
-            self.mock_aws = moto.mock_aws()
-            self.mock_aws.start()
-            self.mock_s3 = None
-            self.mock_s3control = None
-        else:
-            self.mock_aws = None
-            self.mock_s3 = moto.mock_s3()
-            self.mock_s3.start()
-            self.mock_s3control = moto.mock_s3control()
-            self.mock_s3control.start()
-
+        self.mock_aws = moto.mock_aws()
+        self.mock_aws.start()
         self.user_counter = 1
 
     def tearDown(self):
         super().tearDown()
-
-        # Temporary workaround for compatibility with moto 4.x
-        if self.mock_aws is not None:
-            self.mock_aws.stop()
-        else:
-            self.mock_s3.stop()
-            self.mock_s3control.stop()
-
+        self.mock_aws.stop()
         self.mock_env.stop()
 
     def test_s3_credentials(self):
