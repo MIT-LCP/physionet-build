@@ -114,7 +114,7 @@ def recompute_leaderboard(challenge_id):
     spec = challenge.submission_spec
     sort_ascending = spec.primary_metric_sort == MetricSort.ASC
 
-    for dataset in [DatasetType.DEV, DatasetType.TEST]:
+    for dataset in [DatasetType.VAL, DatasetType.TEST]:
         entries = LeaderboardEntry.objects.filter(
             challenge=challenge, dataset=dataset,
         ).order_by('primary_score' if sort_ascending else '-primary_score')
@@ -154,7 +154,7 @@ def _save_scores(submission, scores_data):
             submission=submission,
             metric_name=metric_name,
             value=float(value),
-            dataset=DatasetType.DEV,
+            dataset=DatasetType.VAL,
         ))
     Score.objects.bulk_create(score_objects)
 
@@ -170,7 +170,7 @@ def _update_leaderboard_entry(submission):
 
     primary_score = submission.scores.filter(
         metric_name=spec.primary_metric_name,
-        dataset=DatasetType.DEV,
+        dataset=DatasetType.VAL,
     ).first()
 
     if not primary_score:
@@ -178,12 +178,12 @@ def _update_leaderboard_entry(submission):
 
     all_scores = {
         s.metric_name: s.value
-        for s in submission.scores.filter(dataset=DatasetType.DEV)
+        for s in submission.scores.filter(dataset=DatasetType.VAL)
     }
 
     lookup = {
         'challenge': challenge,
-        'dataset': DatasetType.DEV,
+        'dataset': DatasetType.VAL,
     }
     if submission.team:
         lookup['team'] = submission.team

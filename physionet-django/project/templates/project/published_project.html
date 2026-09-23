@@ -61,6 +61,10 @@
     </div>
     {% endif %}
 
+    {% if challenge %}
+    {% include "challenge/challenge_section.html" %}
+    {% endif %}
+
     <!-- Latest news and announcements -->
     {% if news %}
       <div class="alert alert-primary" role="alert">
