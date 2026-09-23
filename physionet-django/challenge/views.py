@@ -14,11 +14,7 @@ from django.utils import timezone
 
 from challenge.enums import ChallengePhase, DatasetType, SubmissionStatus
 from challenge.forms import (
-    ChallengeConfigForm,
     CodeSubmissionForm,
-    EvaluationScriptForm,
-    HiddenTestDataForm,
-    SubmissionSpecForm,
     TeamCreateForm,
     TeamInviteForm,
     TeamInvitationResponseForm,
@@ -29,7 +25,6 @@ from challenge.models import (
     LeaderboardEntry,
     Score,
     Submission,
-    SubmissionSpec,
     Team,
     TeamInvitation,
 )
@@ -123,9 +118,9 @@ def challenge_rules(request, challenge, participant, **kwargs):
 @challenge_auth()
 def challenge_leaderboard(request, challenge, participant, **kwargs):
     """Public leaderboard (dev set). Test leaderboard visible after completion."""
-    dataset = DatasetType.DEV
+    dataset = DatasetType.VALIDATION
     if challenge.phase == ChallengePhase.COMPLETED:
-        dataset = request.GET.get('dataset', DatasetType.DEV)
+        dataset = request.GET.get('dataset', DatasetType.VALIDATION)
 
     entries = LeaderboardEntry.objects.filter(
         challenge=challenge, dataset=dataset,
@@ -433,49 +428,6 @@ def challenge_manage(request, challenge, participant, **kwargs):
 
 @login_required
 @challenge_auth(require_organizer=True)
-def challenge_manage_spec(request, challenge, participant, **kwargs):
-    """Edit the submission specification."""
-    spec, created = SubmissionSpec.objects.get_or_create(challenge=challenge)
-    form = SubmissionSpecForm(request.POST or None, instance=spec)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Submission specification updated.')
-        return redirect('challenge_manage', challenge_slug=challenge.slug)
-
-    return render(request, 'challenge/challenge_manage_spec.html', {
-        'challenge': challenge,
-        'participant': participant,
-        'form': form,
-    })
-
-
-@login_required
-@challenge_auth(require_organizer=True)
-def challenge_manage_datasets(request, challenge, participant, **kwargs):
-    """Manage dev dataset reference and upload hidden test data."""
-    config_form = ChallengeConfigForm(request.POST or None, instance=challenge)
-    test_data_form = HiddenTestDataForm(request.POST or None,
-                                        request.FILES or None)
-
-    if request.method == 'POST':
-        if 'upload_test_data' in request.POST and test_data_form.is_valid():
-            archive = test_data_form.cleaned_data['test_data_archive']
-            gcs_uri = _upload_hidden_test_data(challenge, archive)
-            challenge.hidden_test_data_gcs_uri = gcs_uri
-            challenge.save(update_fields=['hidden_test_data_gcs_uri'])
-            messages.success(request, 'Hidden test data uploaded.')
-            return redirect('challenge_manage_datasets',
-                            challenge_slug=challenge.slug)
-
-    return render(request, 'challenge/challenge_manage_datasets.html', {
-        'challenge': challenge,
-        'participant': participant,
-        'test_data_form': test_data_form,
-    })
-
-
-@login_required
-@challenge_auth(require_organizer=True)
 def challenge_manage_submissions(request, challenge, participant, **kwargs):
     """View all submissions for the challenge."""
     submissions = challenge.submissions.select_related(
@@ -510,19 +462,3 @@ def _upload_code_archive(challenge, user, archive_file):
     return gcs_uri
 
 
-def _upload_hidden_test_data(challenge, archive_file):
-    """Upload hidden test data to GCS and return the URI."""
-    bucket = getattr(settings, 'CHALLENGE_HIDDEN_DATA_BUCKET', '')
-    key = f'challenges/{challenge.slug}/hidden_test_data/{archive_file.name}'
-    gcs_uri = f'{bucket}/{key}'
-
-    try:
-        from physionet.gcp import ObjectPath
-        obj = ObjectPath(gcs_uri)
-        blob = obj.bucket().blob(obj.key())
-        blob.upload_from_file(archive_file, rewind=True)
-    except Exception:
-        logger.exception('Failed to upload hidden test data to GCS')
-        raise
-
-    return gcs_uri

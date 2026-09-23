@@ -61,6 +61,145 @@
     </div>
     {% endif %}
 
+    {% if challenge %}
+    {# Challenge section — phase, stats, actions, and leaderboard #}
+    <div class="card mb-4">
+      <div class="card-header">
+        <h4 class="mb-0">
+          Challenge
+          {% if challenge.phase == 'active' %}
+            <span class="badge badge-success">Active</span>
+          {% elif challenge.phase == 'setup' %}
+            <span class="badge badge-info">Setup</span>
+          {% elif challenge.phase == 'review' %}
+            <span class="badge badge-warning">Under Review</span>
+          {% elif challenge.phase == 'completed' %}
+            <span class="badge badge-secondary">Completed</span>
+          {% elif challenge.phase == 'archived' %}
+            <span class="badge badge-dark">Archived</span>
+          {% endif %}
+        </h4>
+      </div>
+      <div class="card-body">
+        {# Key dates and stats #}
+        <div class="row mb-3">
+          {% if challenge.start_datetime %}
+          <div class="col-sm-3">
+            <strong>Start</strong><br>{{ challenge.start_datetime|date }}
+          </div>
+          {% endif %}
+          {% if challenge.end_datetime %}
+          <div class="col-sm-3">
+            <strong>End</strong><br>{{ challenge.end_datetime|date }}
+          </div>
+          {% endif %}
+          <div class="col-sm-3">
+            <strong>Participants</strong><br>{{ challenge_participant_count }}
+          </div>
+          <div class="col-sm-3">
+            <strong>Submissions</strong><br>{{ challenge_submission_count }}
+          </div>
+        </div>
+
+        {% if challenge.evaluation_description %}
+        <p>{{ challenge.evaluation_description|safe }}</p>
+        {% endif %}
+
+        {% if challenge.prizes %}
+        <p><strong>Prizes:</strong> {{ challenge.prizes|safe }}</p>
+        {% endif %}
+
+        {# Action buttons #}
+        <div class="mb-3">
+          {% if not challenge_participant and challenge.is_registration_open %}
+            <a href="{% url 'challenge_register' challenge.slug %}" class="btn btn-success">Register</a>
+          {% endif %}
+          {% if challenge_participant %}
+            {% if challenge.is_accepting_submissions %}
+            <a href="{% url 'challenge_submit' challenge.slug %}" class="btn btn-primary">Submit Entry</a>
+            {% endif %}
+            <a href="{% url 'challenge_my_submissions' challenge.slug %}" class="btn btn-secondary">My Submissions</a>
+          {% endif %}
+          <a href="{% url 'challenge_rules' challenge.slug %}" class="btn btn-outline-secondary">Rules</a>
+          {% if request.user == challenge.organizer or perms.challenge.manage_challenge %}
+          <a href="{% url 'challenge_manage' challenge.slug %}" class="btn btn-warning">Manage</a>
+          {% endif %}
+        </div>
+
+        {# Team section #}
+        {% if challenge.teams_enabled and challenge_participant %}
+        <hr>
+        <h5>Team</h5>
+        {% if challenge_team %}
+          <div class="card">
+            <div class="card-body">
+              <h6>{{ challenge_team.name }}</h6>
+              <ul class="list-group list-group-flush mb-2">
+                {% for member in challenge_team_members %}
+                <li class="list-group-item px-0">
+                  {{ member.user.get_full_name }}
+                  {% if member.is_team_captain %}<span class="badge badge-primary">Captain</span>{% endif %}
+                </li>
+                {% endfor %}
+              </ul>
+              {% if challenge_team_invitations %}
+              <p class="mb-1"><strong>Pending invitations</strong></p>
+              <ul class="list-group list-group-flush mb-2">
+                {% for inv in challenge_team_invitations %}
+                <li class="list-group-item px-0">{{ inv.email }} <small class="text-muted">(sent {{ inv.request_datetime|date }})</small></li>
+                {% endfor %}
+              </ul>
+              {% endif %}
+              {% if challenge_participant.is_team_captain %}
+              <a href="{% url 'challenge_team_invite' challenge.slug %}" class="btn btn-sm btn-primary">Invite Member</a>
+              {% endif %}
+            </div>
+          </div>
+        {% else %}
+          <p>You are not currently on a team.</p>
+          <a href="{% url 'challenge_team_create' challenge.slug %}" class="btn btn-success btn-sm">Create a Team</a>
+        {% endif %}
+        {% endif %}
+
+        {# Leaderboard preview #}
+        <h5>Leaderboard</h5>
+        <div class="table-responsive">
+          <table class="table table-striped table-sm">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Participant</th>
+                <th>Score</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for entry in challenge_leaderboard %}
+              <tr>
+                <td>{{ entry.rank }}</td>
+                <td>
+                  {% if entry.team %}
+                    {{ entry.team.name }}
+                  {% else %}
+                    {{ entry.user.get_full_name }}
+                  {% endif %}
+                </td>
+                <td>{{ entry.primary_score }}</td>
+                <td>{{ entry.submission.created_datetime|date }}</td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="4" class="text-center text-muted">No entries yet.</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <a href="{% url 'challenge_leaderboard' challenge.slug %}" class="btn btn-outline-primary btn-sm">View Full Leaderboard</a>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Latest news and announcements -->
     {% if news %}
       <div class="alert alert-primary" role="alert">

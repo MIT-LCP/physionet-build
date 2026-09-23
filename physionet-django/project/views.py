@@ -2136,6 +2136,47 @@ def published_project(request, project_slug, version, subdir=''):
     project_views_count = project.view_count()
     all_versions_views_count = project.view_count(all_versions=True)
 
+    # Challenge content for challenge-type projects
+    challenge_obj = None
+    challenge_participant = None
+    challenge_participant_count = 0
+    challenge_submission_count = 0
+    challenge_leaderboard = []
+    challenge_team = None
+    challenge_team_members = []
+    challenge_team_invitations = []
+    if project.resource_type_id == 2:
+        try:
+            challenge_obj = project.challenge
+        except project._meta.model.challenge.RelatedObjectDoesNotExist:
+            pass
+        if challenge_obj:
+            from challenge.enums import DatasetType, SubmissionStatus
+            from challenge.models import (
+                ChallengeParticipant, LeaderboardEntry, TeamInvitation,
+            )
+            challenge_participant_count = challenge_obj.participants.filter(
+                is_active=True).count()
+            challenge_submission_count = challenge_obj.submissions.filter(
+                status=SubmissionStatus.COMPLETED).count()
+            challenge_leaderboard = LeaderboardEntry.objects.filter(
+                challenge=challenge_obj, dataset=DatasetType.VALIDATION,
+            ).select_related('user', 'team', 'submission').order_by('rank')[:10]
+            if user.is_authenticated:
+                challenge_participant = ChallengeParticipant.objects.filter(
+                    user=user, challenge=challenge_obj, is_active=True,
+                ).first()
+                if challenge_participant and challenge_participant.team:
+                    challenge_team = challenge_participant.team
+                    challenge_team_members = ChallengeParticipant.objects.filter(
+                        team=challenge_team, is_active=True,
+                    ).select_related('user')
+                    if challenge_participant.is_team_captain:
+                        challenge_team_invitations = TeamInvitation.objects.filter(
+                            team=challenge_team, is_active=True,
+                            response__isnull=True,
+                        )
+
     context = {
         'project': project,
         'authors': authors,
@@ -2171,6 +2212,14 @@ def published_project(request, project_slug, version, subdir=''):
         'user_country_blocked': user_country_blocked,
         'project_views_count': project_views_count,
         'all_versions_views_count': all_versions_views_count,
+        'challenge': challenge_obj,
+        'challenge_participant': challenge_participant,
+        'challenge_participant_count': challenge_participant_count,
+        'challenge_submission_count': challenge_submission_count,
+        'challenge_leaderboard': challenge_leaderboard,
+        'challenge_team': challenge_team,
+        'challenge_team_members': challenge_team_members,
+        'challenge_team_invitations': challenge_team_invitations,
     }
     # The file and directory contents
     if can_view_files:
