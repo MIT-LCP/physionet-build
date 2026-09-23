@@ -31,10 +31,6 @@ urlpatterns = [
     # Organizer management
     path('<slug:challenge_slug>/manage/',
          views.challenge_manage, name='challenge_manage'),
-    path('<slug:challenge_slug>/manage/spec/',
-         views.challenge_manage_spec, name='challenge_manage_spec'),
-    path('<slug:challenge_slug>/manage/datasets/',
-         views.challenge_manage_datasets, name='challenge_manage_datasets'),
     path('<slug:challenge_slug>/manage/submissions/',
          views.challenge_manage_submissions,
          name='challenge_manage_submissions'),
