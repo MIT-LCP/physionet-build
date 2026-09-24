@@ -2160,7 +2160,7 @@ def published_project(request, project_slug, version, subdir=''):
             challenge_submission_count = challenge_obj.submissions.filter(
                 status=SubmissionStatus.COMPLETED).count()
             challenge_leaderboard = LeaderboardEntry.objects.filter(
-                challenge=challenge_obj, dataset=DatasetType.VALIDATION,
+                challenge=challenge_obj, dataset=DatasetType.VAL,
             ).select_related('user', 'team', 'submission').order_by('rank')[:10]
             if user.is_authenticated:
                 challenge_participant = ChallengeParticipant.objects.filter(

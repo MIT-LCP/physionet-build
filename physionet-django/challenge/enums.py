@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 class ChallengePhase(models.TextChoices):
     SETUP = 'setup', _('Setup')
     ACTIVE = 'active', _('Active')
-    EVALUATION = 'evaluation', _('Evaluation')
+    REVIEW = 'review', _('Review')
     COMPLETED = 'completed', _('Completed')
     ARCHIVED = 'archived', _('Archived')
 
@@ -27,5 +27,6 @@ class MetricSort(models.TextChoices):
 
 
 class DatasetType(models.TextChoices):
-    DEV = 'dev', _('Development')
+    TRAIN = 'train', _('Training')
+    VAL = 'val', _('Validation')
     TEST = 'test', _('Test')

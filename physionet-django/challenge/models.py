@@ -57,9 +57,13 @@ class ChallengeConfiguration(models.Model):
         max_length=500, blank=True, default='evaluation/evaluate.py',
         help_text='Path to the evaluation script within the project files.',
     )
-    hidden_test_data_path = models.CharField(
-        max_length=500, blank=True, default='hidden_test_data/',
-        help_text='Path to the hidden test data directory within the project files.',
+    validation_data_path = models.CharField(
+        max_length=500, blank=True, default='validation_data/',
+        help_text='Path to the validation data directory within the project files.',
+    )
+    test_data_path = models.CharField(
+        max_length=500, blank=True, default='test_data/',
+        help_text='Path to the final test data directory within the project files.',
     )
 
     def __str__(self):
@@ -100,16 +104,20 @@ class Challenge(models.Model):
         choices=ChallengePhase.choices,
         default=ChallengePhase.SETUP,
     )
-    dev_dataset = models.ForeignKey(
+    training_dataset = models.ForeignKey(
         'project.PublishedProject',
         on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='challenge_dev_for',
-        help_text='Public development dataset for participants.',
+        related_name='challenge_training_for',
+        help_text='Public training dataset for participants.',
     )
-    hidden_test_data_gcs_uri = models.CharField(
+    validation_data_gcs_uri = models.CharField(
         max_length=500, blank=True, default='',
-        help_text='GCS path for the private hidden test data.',
+        help_text='GCS path for the private validation data.',
+    )
+    test_data_gcs_uri = models.CharField(
+        max_length=500, blank=True, default='',
+        help_text='GCS path for the private final test data.',
     )
     rules = SafeHTMLField(max_length=50000, blank=True, default='')
     evaluation_description = SafeHTMLField(
@@ -322,7 +330,7 @@ class Score(models.Model):
     metric_name = models.CharField(max_length=100)
     value = models.FloatField()
     dataset = models.CharField(
-        max_length=4,
+        max_length=5,
         choices=DatasetType.choices,
     )
 
@@ -358,7 +366,7 @@ class LeaderboardEntry(models.Model):
         related_name='leaderboard_entries',
     )
     dataset = models.CharField(
-        max_length=4,
+        max_length=5,
         choices=DatasetType.choices,
     )
     primary_score = models.FloatField()
