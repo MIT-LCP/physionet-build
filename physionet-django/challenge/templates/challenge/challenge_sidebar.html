@@ -1,0 +1,79 @@
+{% if not challenge_participant %}
+<div class="challenge-sidebar-cta join">
+  <h5>Join this Challenge</h5>
+  {% if challenge.is_registration_open %}
+    <p>Register to compete and submit your solution.</p>
+    <a href="{% url 'challenge_register' challenge.slug %}" class="btn-challenge-primary">Register Now</a>
+  {% else %}
+    <p>Registration is not currently open.</p>
+  {% endif %}
+</div>
+{% else %}
+<div class="challenge-sidebar-cta registered">
+  <h5>You're Registered</h5>
+  <p>You are a participant in this challenge.</p>
+  {% if challenge.is_accepting_submissions %}
+    <a href="{% url 'challenge_submit' challenge.slug %}" class="btn-challenge-primary" style="margin-bottom:0.5rem;">Submit Entry</a>
+    <br>
+    <a href="{% url 'challenge_my_submissions' challenge.slug %}" style="color:rgba(255,255,255,0.8);font-size:0.85rem;">My Submissions</a>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="challenge-sidebar-dates">
+  <h6>Key Dates</h6>
+  {% if challenge.registration_open_datetime %}
+  <div class="challenge-date-item">
+    <span class="date-label">Registration opens</span>
+    <span class="date-value">{{ challenge.registration_open_datetime|date:"M d, Y" }}</span>
+  </div>
+  {% endif %}
+  {% if challenge.start_datetime %}
+  <div class="challenge-date-item">
+    <span class="date-label">Submissions open</span>
+    <span class="date-value">{{ challenge.start_datetime|date:"M d, Y" }}</span>
+  </div>
+  {% endif %}
+  {% if challenge.end_datetime %}
+  <div class="challenge-date-item">
+    <span class="date-label">Challenge ends</span>
+    <span class="date-value">{{ challenge.end_datetime|date:"M d, Y" }}</span>
+  </div>
+  {% endif %}
+</div>
+
+<div class="challenge-sidebar-dates">
+  <h6>Challenge Info</h6>
+  <div class="challenge-date-item">
+    <span class="date-label">Organizer</span>
+    <span class="date-value">{{ challenge.organizer.get_full_name }}</span>
+  </div>
+  <div class="challenge-date-item">
+    <span class="date-label">Phase</span>
+    <span class="date-value">{{ challenge.get_phase_display }}</span>
+  </div>
+  <div class="challenge-date-item">
+    <span class="date-label">Participants</span>
+    <span class="date-value">{{ challenge_participant_count }}</span>
+  </div>
+  {% if challenge_submission_spec %}
+  <div class="challenge-date-item">
+    <span class="date-label">Metric</span>
+    <span class="date-value">{{ challenge_submission_spec.primary_metric_name }}</span>
+  </div>
+  {% endif %}
+  <div class="challenge-date-item">
+    <span class="date-label">Daily limit</span>
+    <span class="date-value">{{ challenge.max_submissions_per_day }}</span>
+  </div>
+  <div class="challenge-date-item">
+    <span class="date-label">Total limit</span>
+    <span class="date-value">{{ challenge.max_total_submissions }}</span>
+  </div>
+</div>
+
+{% if request.user == challenge.organizer or perms.challenge.manage_challenge %}
+<div class="mt-2 mb-3">
+  <a href="{% url 'challenge_manage' challenge.slug %}" class="btn btn-warning btn-block btn-sm">Manage Challenge</a>
+</div>
+{% endif %}

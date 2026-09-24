@@ -2145,6 +2145,9 @@ def published_project(request, project_slug, version, subdir=''):
     challenge_team = None
     challenge_team_members = []
     challenge_team_invitations = []
+    challenge_rules = ''
+    challenge_submission_spec = None
+    challenge_teams_count = 0
     if project.resource_type_id == 2:
         try:
             challenge_obj = project.challenge
@@ -2159,6 +2162,13 @@ def published_project(request, project_slug, version, subdir=''):
                 is_active=True).count()
             challenge_submission_count = challenge_obj.submissions.filter(
                 status=SubmissionStatus.COMPLETED).count()
+            challenge_rules = challenge_obj.rules
+            challenge_teams_count = challenge_obj.teams.filter(
+                is_active=True).count()
+            try:
+                challenge_submission_spec = challenge_obj.submission_spec
+            except challenge_obj._meta.model.submission_spec.RelatedObjectDoesNotExist:
+                pass
             challenge_leaderboard = LeaderboardEntry.objects.filter(
                 challenge=challenge_obj, dataset=DatasetType.VAL,
             ).select_related('user', 'team', 'submission').order_by('rank')[:10]
@@ -2220,6 +2230,9 @@ def published_project(request, project_slug, version, subdir=''):
         'challenge_team': challenge_team,
         'challenge_team_members': challenge_team_members,
         'challenge_team_invitations': challenge_team_invitations,
+        'challenge_rules': challenge_rules,
+        'challenge_submission_spec': challenge_submission_spec,
+        'challenge_teams_count': challenge_teams_count,
     }
     # The file and directory contents
     if can_view_files:
