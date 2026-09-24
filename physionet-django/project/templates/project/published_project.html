@@ -33,24 +33,23 @@
 {% block content %}
   <div class="container">
     {% include "message_snippet.html" %}
-    <p>
-      {{ project.resource_type.id|resource_badge|safe }}
-      {{ project.access_policy|access_badge|safe }}
-    </p>
-    <h1 class="form-signin-heading">{{ project.title }}</h1>
-    <p>
-      <strong>
-      {% for author in authors %}
-        {{ author|show_author_info|safe }}
-        {% if forloop.counter < authors|length %},&nbsp;{% endif %}
-      {% endfor %}
-      </strong>
-    </p>
-
-    <p>Published: {{ project.publish_datetime|date }}. Version:
-      {{ project.version }}{% if not project.is_latest_version %}
-      <a href="{% url 'published_project_latest' project.slug %}">&lt;View latest version&gt;</a>{% endif %}
-    </p>
+    <div class="project-header">
+      <div class="mb-2">
+        {{ project.resource_type.id|resource_badge|safe }}
+        {{ project.access_policy|access_badge|safe }}
+      </div>
+      <h1>{{ project.title }}</h1>
+      <p class="project-authors">
+        {% for author in authors %}
+          {{ author|show_author_info|safe }}{% if forloop.counter < authors|length %},&nbsp;{% endif %}
+        {% endfor %}
+      </p>
+      <div class="project-meta">
+        <span>Published {{ project.publish_datetime|date }}</span>
+        <span class="project-meta-sep">&middot;</span>
+        <span>Version {{ project.version }}{% if not project.is_latest_version %} <a href="{% url 'published_project_latest' project.slug %}">View latest</a>{% endif %}</span>
+      </div>
+    </div>
 
     {% if not project.is_latest_version %}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -61,7 +60,6 @@
       </button>
     </div>
     {% endif %}
-    <hr>
 
     <!-- Latest news and announcements -->
     {% if news %}

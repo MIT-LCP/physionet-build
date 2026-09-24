@@ -1,3 +1,34 @@
+/* Project header */
+.project-header {
+  margin-bottom: 1.5rem;
+}
+
+.project-header h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.project-authors {
+  font-size: 0.95rem;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.project-meta {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.project-meta a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.project-meta-sep {
+  margin: 0 0.35rem;
+}
+
 /*.citation {
   margin-top: 0.25rem !important;
   margin-left: 3rem !important;
