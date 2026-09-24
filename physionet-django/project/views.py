@@ -2142,12 +2142,15 @@ def published_project(request, project_slug, version, subdir=''):
     challenge_participant_count = 0
     challenge_submission_count = 0
     challenge_leaderboard = []
+    challenge_leaderboard_test = []
+    challenge_show_test_leaderboard = False
     challenge_team = None
     challenge_team_members = []
     challenge_team_invitations = []
     challenge_rules = ''
     challenge_submission_spec = None
     challenge_teams_count = 0
+    challenge_my_submissions = []
     if project.resource_type_id == 2:
         try:
             challenge_obj = project.challenge
@@ -2156,7 +2159,8 @@ def published_project(request, project_slug, version, subdir=''):
         if challenge_obj:
             from challenge.enums import DatasetType, SubmissionStatus
             from challenge.models import (
-                ChallengeParticipant, LeaderboardEntry, TeamInvitation,
+                ChallengeParticipant, LeaderboardEntry, Submission,
+                TeamInvitation,
             )
             challenge_participant_count = challenge_obj.participants.filter(
                 is_active=True).count()
@@ -2171,11 +2175,22 @@ def published_project(request, project_slug, version, subdir=''):
                 pass
             challenge_leaderboard = LeaderboardEntry.objects.filter(
                 challenge=challenge_obj, dataset=DatasetType.VAL,
-            ).select_related('user', 'team', 'submission').order_by('rank')[:10]
+            ).select_related('user', 'team', 'submission').order_by('rank')
+            from challenge.enums import ChallengePhase
+            if challenge_obj.phase == ChallengePhase.RESULTS:
+                challenge_show_test_leaderboard = True
+                challenge_leaderboard_test = LeaderboardEntry.objects.filter(
+                    challenge=challenge_obj, dataset=DatasetType.TEST,
+                ).select_related('user', 'team', 'submission').order_by('rank')
+            challenge_my_submissions = []
             if user.is_authenticated:
                 challenge_participant = ChallengeParticipant.objects.filter(
                     user=user, challenge=challenge_obj, is_active=True,
                 ).first()
+                if challenge_participant:
+                    challenge_my_submissions = Submission.objects.filter(
+                        challenge=challenge_obj, submitted_by=user,
+                    ).order_by('-created_datetime')
                 if challenge_participant and challenge_participant.team:
                     challenge_team = challenge_participant.team
                     challenge_team_members = ChallengeParticipant.objects.filter(
@@ -2227,12 +2242,15 @@ def published_project(request, project_slug, version, subdir=''):
         'challenge_participant_count': challenge_participant_count,
         'challenge_submission_count': challenge_submission_count,
         'challenge_leaderboard': challenge_leaderboard,
+        'challenge_leaderboard_test': challenge_leaderboard_test,
+        'challenge_show_test_leaderboard': challenge_show_test_leaderboard,
         'challenge_team': challenge_team,
         'challenge_team_members': challenge_team_members,
         'challenge_team_invitations': challenge_team_invitations,
         'challenge_rules': challenge_rules,
         'challenge_submission_spec': challenge_submission_spec,
         'challenge_teams_count': challenge_teams_count,
+        'challenge_my_submissions': challenge_my_submissions,
     }
     # The file and directory contents
     if can_view_files:
