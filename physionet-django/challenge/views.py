@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from challenge.enums import ChallengePhase, DatasetType, SubmissionStatus
+from challenge.enums import ChallengePhase, SubmissionStatus
 from challenge.forms import (
     CodeSubmissionForm,
     TeamCreateForm,
@@ -22,8 +22,6 @@ from challenge.forms import (
 from challenge.models import (
     Challenge,
     ChallengeParticipant,
-    LeaderboardEntry,
-    Score,
     Submission,
     Team,
     TeamInvitation,
@@ -115,47 +113,30 @@ def challenge_list(request):
 
 @challenge_auth()
 def challenge_detail(request, challenge, participant, **kwargs):
-    """Challenge overview page."""
-    participant_count = challenge.participants.filter(is_active=True).count()
-    submission_count = challenge.submissions.filter(
-        status=SubmissionStatus.COMPLETED,
-    ).count()
-    return render(request, 'challenge/challenge_detail.html', {
-        'challenge': challenge,
-        'participant': participant,
-        'participant_count': participant_count,
-        'submission_count': submission_count,
-    })
+    """Redirect to the published project page."""
+    return redirect('published_project',
+                    challenge.published_project.slug,
+                    challenge.published_project.version)
 
 
 @challenge_auth()
 def challenge_rules(request, challenge, participant, **kwargs):
-    """Display challenge rules."""
-    return render(request, 'challenge/challenge_rules.html', {
-        'challenge': challenge,
-        'participant': participant,
-    })
+    """Redirect to the published project page rules tab."""
+    url = reverse('published_project', args=[
+        challenge.published_project.slug,
+        challenge.published_project.version,
+    ])
+    return redirect(url + '#rules')
 
 
 @challenge_auth()
 def challenge_leaderboard(request, challenge, participant, **kwargs):
-    """Public leaderboard (dev set). Test leaderboard visible after completion."""
-    dataset = DatasetType.VAL
-    if challenge.phase == ChallengePhase.RESULTS:
-        dataset = request.GET.get('dataset', DatasetType.VAL)
-
-    entries = LeaderboardEntry.objects.filter(
-        challenge=challenge, dataset=dataset,
-    ).select_related('user', 'team', 'submission').order_by('rank')
-
-    show_test = challenge.phase == ChallengePhase.RESULTS
-    return render(request, 'challenge/challenge_leaderboard.html', {
-        'challenge': challenge,
-        'participant': participant,
-        'entries': entries,
-        'current_dataset': dataset,
-        'show_test': show_test,
-    })
+    """Redirect to the published project page leaderboard tab."""
+    url = reverse('published_project', args=[
+        challenge.published_project.slug,
+        challenge.published_project.version,
+    ])
+    return redirect(url + '#leaderboard')
 
 
 # ── Participant views ───────────────────────────────────────────────
@@ -166,18 +147,24 @@ def challenge_register(request, challenge, participant, **kwargs):
     """Register for a challenge."""
     if participant:
         messages.info(request, 'You are already registered for this challenge.')
-        return redirect('challenge_detail', challenge_slug=challenge.slug)
+        return redirect('published_project',
+                        challenge.published_project.slug,
+                        challenge.published_project.version)
 
     if not challenge.is_registration_open:
         messages.error(request, 'Registration is not open for this challenge.')
-        return redirect('challenge_detail', challenge_slug=challenge.slug)
+        return redirect('published_project',
+                        challenge.published_project.slug,
+                        challenge.published_project.version)
 
     if request.method == 'POST':
         ChallengeParticipant.objects.create(
             user=request.user, challenge=challenge,
         )
         messages.success(request, 'You have successfully registered.')
-        return redirect('challenge_detail', challenge_slug=challenge.slug)
+        return redirect('published_project',
+                        challenge.published_project.slug,
+                        challenge.published_project.version)
 
     return render(request, 'challenge/challenge_register.html', {
         'challenge': challenge,
@@ -190,7 +177,9 @@ def challenge_submit(request, challenge, participant, **kwargs):
     """Submit code to the challenge."""
     if not challenge.is_accepting_submissions:
         messages.error(request, 'This challenge is not accepting submissions.')
-        return redirect('challenge_detail', challenge_slug=challenge.slug)
+        return redirect('published_project',
+                        challenge.published_project.slug,
+                        challenge.published_project.version)
 
     # Check submission limits
     today_count = Submission.objects.filter(
@@ -200,16 +189,22 @@ def challenge_submit(request, challenge, participant, **kwargs):
     ).count()
     if today_count >= challenge.max_submissions_per_day:
         messages.error(request, 'Daily submission limit reached.')
-        return redirect('challenge_my_submissions',
-                        challenge_slug=challenge.slug)
+        url = reverse('published_project', args=[
+            challenge.published_project.slug,
+            challenge.published_project.version,
+        ])
+        return redirect(url + '#submit')
 
     total_count = Submission.objects.filter(
         challenge=challenge, submitted_by=request.user,
     ).count()
     if total_count >= challenge.max_total_submissions:
         messages.error(request, 'Total submission limit reached.')
-        return redirect('challenge_my_submissions',
-                        challenge_slug=challenge.slug)
+        url = reverse('published_project', args=[
+            challenge.published_project.slug,
+            challenge.published_project.version,
+        ])
+        return redirect(url + '#submit')
 
     form = CodeSubmissionForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
@@ -254,16 +249,12 @@ def challenge_submit(request, challenge, participant, **kwargs):
 @login_required
 @challenge_auth(require_participant=True)
 def challenge_my_submissions(request, challenge, participant, **kwargs):
-    """List the current user's submissions."""
-    submissions = Submission.objects.filter(
-        challenge=challenge, submitted_by=request.user,
-    ).order_by('-created_datetime')
-
-    return render(request, 'challenge/challenge_my_submissions.html', {
-        'challenge': challenge,
-        'participant': participant,
-        'submissions': submissions,
-    })
+    """Redirect to the published project page submit tab."""
+    url = reverse('published_project', args=[
+        challenge.published_project.slug,
+        challenge.published_project.version,
+    ])
+    return redirect(url + '#submit')
 
 
 @login_required

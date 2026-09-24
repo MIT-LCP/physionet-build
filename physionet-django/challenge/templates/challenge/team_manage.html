@@ -47,7 +47,7 @@
   {% endif %}
 
   <div class="mt-3">
-    <a href="{% url 'challenge_detail' challenge.slug %}" class="btn btn-secondary">Back to Challenge</a>
+    <a href="{% url 'published_project' challenge.published_project.slug challenge.published_project.version %}" class="btn btn-secondary">Back to Challenge</a>
   </div>
 </div>
 {% endblock %}

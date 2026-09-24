@@ -376,23 +376,17 @@ input[type="checkbox"] {
 }
 
 .challenge-phase-bar .phase-segment.past {
-  background: #c3e6cb;
-}
-.challenge-phase-bar .phase-segment.past .phase-name {
-  color: #155724;
-}
-.challenge-phase-bar .phase-segment.past .phase-date {
-  color: #28a745;
+  background: #e9ecef;
 }
 
 .challenge-phase-bar .phase-segment.current {
-  background: #007bff;
+  background: #28a745;
 }
 .challenge-phase-bar .phase-segment.current .phase-name {
   color: #fff;
 }
 .challenge-phase-bar .phase-segment.current .phase-date {
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,0.8);
 }
 
 .challenge-phase-bar .phase-segment.future {
@@ -508,12 +502,14 @@ input[type="checkbox"] {
 .challenge-sidebar-cta h5 {
   font-weight: 700;
   margin-bottom: 0.75rem;
+  color: inherit;
 }
 
 .challenge-sidebar-cta p {
   font-size: 0.85rem;
   opacity: 0.9;
   margin-bottom: 1rem;
+  color: inherit;
 }
 
 .challenge-sidebar-dates {
