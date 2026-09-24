@@ -29,12 +29,38 @@
   margin: 0 0.35rem;
 }
 
-/*.citation {
-  margin-top: 0.25rem !important;
-  margin-left: 3rem !important;
-  margin-right: 3rem !important;
-  background: rgb(230, 230, 230) !important;
-}*/
+/* Citation box */
+.citation-box {
+  border-top: 2px solid #dee2e6;
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.citation-section {
+  margin-bottom: 0.75rem;
+}
+
+.citation-section:last-child {
+  margin-bottom: 0;
+}
+
+.citation-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.citation-text {
+  font-size: 0.9rem;
+  color: #495057;
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+.citation-actions {
+  display: inline;
+  margin-left: 0.25rem;
+}
 
 blockquote {
   display: block;
