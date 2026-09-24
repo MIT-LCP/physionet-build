@@ -104,7 +104,7 @@
       "registration_open_datetime": "2024-01-15T10:00:00Z",
       "start_datetime": "2024-01-16T00:00:00Z",
       "end_datetime": "2025-12-31T23:59:59Z",
-      "phase": "active",
+      "phase": "unofficial",
       "training_dataset": null,
       "validation_data_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/validation/",
       "test_data_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/test/",
