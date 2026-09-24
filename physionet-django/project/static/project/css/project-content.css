@@ -99,6 +99,16 @@ input[type="checkbox"] {
   margin-bottom: 0.6rem;
 }
 
+.sharebtn {
+  font-size: 0.85rem;
+  color: #6c757d;
+  text-decoration: none;
+}
+
+.sharebtn:hover {
+  color: #007bff;
+}
+
 .sidebar-table {
   width: 100%;
   font-size: 0.85rem;

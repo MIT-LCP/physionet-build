@@ -145,15 +145,15 @@
           <div class="card-body sidebar-info">
             <h6 class="sidebar-heading">Share</h6>
             <div class="d-flex flex-wrap" style="gap: 8px;">
-              <a class="btn btn-sm btn-outline-secondary sharebtn"
+              <a class="sharebtn"
                 href="mailto:?subject={{ project.title|urlencode }}&body={{ request.build_absolute_uri }}"
-                role="button" title="Share with email"><i class="far fa-envelope"></i> Email</a>
-              <a class="btn btn-sm btn-outline-secondary sharebtn"
+                title="Share with email"><i class="far fa-envelope"></i> Email</a>
+              <a class="sharebtn"
                 href="https://www.linkedin.com/shareArticle?url={{ request.build_absolute_uri }}"
-                role="button" title="Share on LinkedIn"><i class="fab fa-linkedin"></i> LinkedIn</a>
-              <a class="btn btn-sm btn-outline-secondary sharebtn"
+                title="Share on LinkedIn"><i class="fab fa-linkedin"></i> LinkedIn</a>
+              <a class="sharebtn"
                 href="https://www.reddit.com/submit?url={{ request.build_absolute_uri }}&title={{ project.title|urlencode }}"
-                role="button" title="Share on Reddit"><i class="fab fa-reddit"></i> Reddit</a>
+                title="Share on Reddit"><i class="fab fa-reddit"></i> Reddit</a>
             </div>
           </div>
         </div>
