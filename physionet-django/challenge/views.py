@@ -118,9 +118,9 @@ def challenge_rules(request, challenge, participant, **kwargs):
 @challenge_auth()
 def challenge_leaderboard(request, challenge, participant, **kwargs):
     """Public leaderboard (dev set). Test leaderboard visible after completion."""
-    dataset = DatasetType.VALIDATION
+    dataset = DatasetType.VAL
     if challenge.phase == ChallengePhase.COMPLETED:
-        dataset = request.GET.get('dataset', DatasetType.VALIDATION)
+        dataset = request.GET.get('dataset', DatasetType.VAL)
 
     entries = LeaderboardEntry.objects.filter(
         challenge=challenge, dataset=dataset,
