@@ -86,3 +86,35 @@ input[type="checkbox"] {
 .contents-nav li a:hover {
   color: #007bff;
 }
+
+/* Sidebar cards */
+.sidebar-info {
+  font-size: 0.85rem;
+}
+
+.sidebar-heading {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 0.6rem;
+}
+
+.sidebar-table {
+  width: 100%;
+  font-size: 0.85rem;
+  margin: 0;
+  border: none;
+}
+
+.sidebar-table td {
+  padding: 0.4rem 0.5rem;
+  vertical-align: top;
+  border: none;
+}
+
+.sidebar-table-label {
+  font-weight: 600;
+  color: #495057;
+  white-space: nowrap;
+  width: 1%;
+}
