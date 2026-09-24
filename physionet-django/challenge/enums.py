@@ -3,10 +3,10 @@ from django.utils.translation import gettext_lazy as _
 
 
 class ChallengePhase(models.TextChoices):
-    SETUP = 'setup', _('Setup')
-    ACTIVE = 'active', _('Active')
-    REVIEW = 'review', _('Review')
-    COMPLETED = 'completed', _('Completed')
+    REGISTRATION = 'registration', _('Registration')
+    UNOFFICIAL = 'unofficial', _('Unofficial')
+    OFFICIAL = 'official', _('Official')
+    RESULTS = 'results', _('Results')
     ARCHIVED = 'archived', _('Archived')
 
 

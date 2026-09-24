@@ -1,0 +1,29 @@
+<div class="challenge-card{% if card_challenge.phase == 'results' or card_challenge.phase == 'archived' %} completed{% endif %}">
+  <div class="card-badges">
+    <span class="badge-challenge-type">Challenge</span>
+    {% if card_challenge.is_registration_open or card_challenge.is_accepting_submissions %}
+      <span class="badge-challenge-open">Open</span>
+    {% endif %}
+    <span class="badge-challenge-phase">{{ card_challenge.get_phase_display }}</span>
+  </div>
+  <h3><a href="{% url 'published_project' card_challenge.published_project.slug card_challenge.published_project.version %}">{{ card_challenge.published_project.title }}</a></h3>
+  <div class="card-organizer">Organized by {{ card_challenge.organizer.get_full_name }}</div>
+  {% if card_challenge.published_project.short_description %}
+  <div class="card-description">{{ card_challenge.published_project.short_description }}</div>
+  {% elif card_challenge.published_project.abstract %}
+  <div class="card-description">{{ card_challenge.published_project.abstract|striptags|truncatewords:30 }}</div>
+  {% endif %}
+  <div class="card-meta">
+    {% if card_challenge.end_datetime %}
+    <div class="meta-item">
+      <span class="meta-label">Ends</span>
+      <span class="meta-value">{{ card_challenge.end_datetime|date:"M d, Y" }}</span>
+    </div>
+    {% endif %}
+    <div class="meta-item">
+      <span class="meta-label">Participants</span>
+      <span class="meta-value">{{ card_challenge.participant_count|default:"0" }}</span>
+    </div>
+  </div>
+  <a href="{% url 'published_project' card_challenge.published_project.slug card_challenge.published_project.version %}" class="btn btn-sm btn-outline-primary">View Challenge</a>
+</div>

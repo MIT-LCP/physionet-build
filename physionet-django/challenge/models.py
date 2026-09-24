@@ -102,7 +102,7 @@ class Challenge(models.Model):
     phase = models.CharField(
         max_length=20,
         choices=ChallengePhase.choices,
-        default=ChallengePhase.SETUP,
+        default=ChallengePhase.REGISTRATION,
     )
     training_dataset = models.ForeignKey(
         'project.PublishedProject',
@@ -144,11 +144,11 @@ class Challenge(models.Model):
         now = timezone.now()
         if self.registration_open_datetime and now < self.registration_open_datetime:
             return False
-        return self.phase in (ChallengePhase.SETUP, ChallengePhase.ACTIVE)
+        return self.phase in (ChallengePhase.REGISTRATION, ChallengePhase.UNOFFICIAL)
 
     @property
     def is_accepting_submissions(self):
-        return self.phase == ChallengePhase.ACTIVE and self.is_active
+        return self.phase == ChallengePhase.UNOFFICIAL and self.is_active
 
 
 class SubmissionSpec(models.Model):

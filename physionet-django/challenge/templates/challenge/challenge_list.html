@@ -2,40 +2,50 @@
 
 {% block title %}Challenges{% endblock %}
 
+{% load static %}
+
+{% block local_css %}
+  <link rel="stylesheet" type="text/css" href="{% static 'project/css/project-content.css' %}"/>
+{% endblock %}
+
 {% block content %}
 <div class="container">
   {% include "message_snippet.html" %}
-  <div class="jumbotron">
+
+  <div class="challenge-index-hero">
     <h1>Challenges</h1>
-    <p class="lead">Compete in data science and biomedical challenges.</p>
+    <p>Compete in data science and biomedical challenges on PhysioNet.</p>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <h2>Active Challenges</h2>
-    </div>
-    <ul class="list-group list-group-flush">
-      {% for challenge in challenges %}
-      <li class="list-group-item">
-        <h3><a href="{% url 'challenge_detail' challenge.slug %}">{{ challenge.published_project.title }}</a></h3>
-        <p class="text-muted">
-          <small>Organizer: {{ challenge.organizer.get_full_name }}</small><br>
-          <small>Phase: {{ challenge.get_phase_display }}</small><br>
-          {% if challenge.start_datetime %}
-          <small>Start: {{ challenge.start_datetime|date }}</small><br>
-          {% endif %}
-          {% if challenge.end_datetime %}
-          <small>End: {{ challenge.end_datetime|date }}</small><br>
-          {% endif %}
-        </p>
-        <a href="{% url 'challenge_detail' challenge.slug %}" class="btn btn-sm btn-primary">View Challenge</a>
-      </li>
-      {% empty %}
-      <div class="card-body text-center">
-        <p class="card-text">No active challenges at this time.</p>
-      </div>
-      {% endfor %}
-    </ul>
+  <div class="challenge-filter-bar">
+    <a href="{% url 'challenge_list' %}" class="challenge-filter-chip{% if not filter_status %} active{% endif %}">All</a>
+    <a href="{% url 'challenge_list' %}?status=open" class="challenge-filter-chip{% if filter_status == 'open' %} active{% endif %}">Open</a>
+    <a href="{% url 'challenge_list' %}?status=upcoming" class="challenge-filter-chip{% if filter_status == 'upcoming' %} active{% endif %}">Upcoming</a>
+    <a href="{% url 'challenge_list' %}?status=completed" class="challenge-filter-chip{% if filter_status == 'completed' %} active{% endif %}">Completed</a>
   </div>
+
+  {% if open_challenges %}
+  <h2 class="challenge-section-heading">Open Challenges</h2>
+  <div class="challenge-cards">
+    {% for challenge in open_challenges %}
+      {% include "challenge/challenge_card.html" with card_challenge=challenge %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if completed_challenges %}
+  <h2 class="challenge-section-heading">Recently Completed</h2>
+  <div class="challenge-cards">
+    {% for challenge in completed_challenges %}
+      {% include "challenge/challenge_card.html" with card_challenge=challenge %}
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not open_challenges and not completed_challenges %}
+  <div class="text-center py-5">
+    <p class="text-muted">No challenges match your filter.</p>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
