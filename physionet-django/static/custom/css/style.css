@@ -71,6 +71,7 @@
 
 .modern-ui .circle-button,
 .modern-ui .nav__user {
+  color: var(--secondary-color);
   background-color: var(--light-color);
   border: none;
   border-radius: 50rem;
@@ -274,13 +275,6 @@ body .main {
   color: var(--secondary-color);
 }
 
-.modern-ui a {
-  color: var(--secondary-color);
-}
-.modern-ui a:hover {
-  color: var(--primary-color);
-  text-decoration: underline;
-}
 
 .modern-ui hr {
   border-color: #0000001F;
@@ -359,6 +353,7 @@ body .main {
   gap: 0.75rem;
 }
 .modern-ui .nav-sublink {
+  color: var(--secondary-color);
   display: flex;
   gap: 1rem;
   border-radius: 0.5rem;
