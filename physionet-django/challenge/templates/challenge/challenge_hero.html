@@ -1,0 +1,86 @@
+{% load project_templatetags %}
+
+{# Challenge hero area #}
+<div class="challenge-hero">
+  <div class="challenge-hero-badges">
+    <span class="badge-challenge-type">Challenge</span>
+    {% if challenge.is_registration_open or challenge.is_accepting_submissions %}
+      <span class="badge-challenge-open">Open</span>
+    {% endif %}
+    <span class="badge-challenge-phase">{{ challenge.get_phase_display }}</span>
+  </div>
+
+  <div class="challenge-hero-organizer">
+    Organized by {{ challenge.organizer.get_full_name }}
+  </div>
+
+  <div class="challenge-hero-cta">
+    {% if not challenge_participant and challenge.is_registration_open %}
+      <a href="{% url 'challenge_register' challenge.slug %}" class="btn-challenge-primary">Join this Challenge</a>
+    {% endif %}
+    {% if challenge_participant and challenge.is_accepting_submissions %}
+      <a href="{% url 'challenge_submit' challenge.slug %}" class="btn-challenge-primary">Submit Entry</a>
+    {% endif %}
+    <a href="#leaderboard" class="btn-challenge-secondary" onclick="switchChallengeTab('leaderboard');return false;">Leaderboard</a>
+    {% if request.user == challenge.organizer or perms.challenge.manage_challenge %}
+      <a href="{% url 'challenge_manage' challenge.slug %}" class="btn-challenge-secondary">Manage</a>
+    {% endif %}
+  </div>
+
+  <div class="challenge-hero-meta">
+    {% if challenge.end_datetime %}
+    <div class="meta-item">
+      <span class="meta-label">Ends</span>
+      <span class="meta-value">{{ challenge.end_datetime|date:"M d, Y" }}</span>
+    </div>
+    {% endif %}
+    <div class="meta-item">
+      <span class="meta-label">Teams</span>
+      <span class="meta-value">{{ challenge_teams_count }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Entries</span>
+      <span class="meta-value">{{ challenge_submission_count }}</span>
+    </div>
+    {% if challenge_submission_spec %}
+    <div class="meta-item">
+      <span class="meta-label">Metric</span>
+      <span class="meta-value">{{ challenge_submission_spec.primary_metric_name }}</span>
+    </div>
+    {% endif %}
+    {% if challenge.prizes %}
+    <div class="meta-item">
+      <span class="meta-label">Prizes</span>
+      <span class="meta-value">Yes</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{# Phase timeline bar #}
+<div class="challenge-phase-bar">
+  <div class="phase-segment {% if challenge.phase == 'registration' %}current{% elif challenge.phase == 'unofficial' or challenge.phase == 'official' or challenge.phase == 'results' or challenge.phase == 'archived' %}past{% else %}future{% endif %}">
+    <span class="phase-name">Registration</span>
+    {% if challenge.registration_open_datetime %}
+    <span class="phase-date">{{ challenge.registration_open_datetime|date:"M d" }}</span>
+    {% endif %}
+  </div>
+  <div class="phase-segment {% if challenge.phase == 'unofficial' %}current{% elif challenge.phase == 'official' or challenge.phase == 'results' or challenge.phase == 'archived' %}past{% else %}future{% endif %}">
+    <span class="phase-name">Unofficial</span>
+    {% if challenge.start_datetime %}
+    <span class="phase-date">{{ challenge.start_datetime|date:"M d" }}</span>
+    {% endif %}
+  </div>
+  <div class="phase-segment {% if challenge.phase == 'official' %}current{% elif challenge.phase == 'results' or challenge.phase == 'archived' %}past{% else %}future{% endif %}">
+    <span class="phase-name">Official</span>
+    {% if challenge.official_start_datetime %}
+    <span class="phase-date">{{ challenge.official_start_datetime|date:"M d" }}</span>
+    {% endif %}
+  </div>
+  <div class="phase-segment {% if challenge.phase == 'results' or challenge.phase == 'archived' %}current{% else %}future{% endif %}">
+    <span class="phase-name">Results</span>
+    {% if challenge.end_datetime %}
+    <span class="phase-date">{{ challenge.end_datetime|date:"M d" }}</span>
+    {% endif %}
+  </div>
+</div>

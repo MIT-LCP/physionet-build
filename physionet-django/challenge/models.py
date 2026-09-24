@@ -27,6 +27,7 @@ class ChallengeConfiguration(models.Model):
     # Schedule
     registration_open_datetime = models.DateTimeField(null=True, blank=True)
     start_datetime = models.DateTimeField(null=True, blank=True)
+    official_start_datetime = models.DateTimeField(null=True, blank=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
 
     # Submission limits
@@ -93,7 +94,11 @@ class Challenge(models.Model):
     )
     start_datetime = models.DateTimeField(
         null=True, blank=True,
-        help_text='When the challenge officially opens for submissions.',
+        help_text='When the unofficial phase opens for submissions.',
+    )
+    official_start_datetime = models.DateTimeField(
+        null=True, blank=True,
+        help_text='When the official phase begins.',
     )
     end_datetime = models.DateTimeField(
         null=True, blank=True,

@@ -11,7 +11,7 @@ class ChallengeConfigurationAdmin(admin.ModelAdmin):
 
 @admin.register(models.Challenge)
 class ChallengeAdmin(admin.ModelAdmin):
-    list_display = ('slug', 'organizer', 'phase', 'is_active', 'start_datetime', 'end_datetime')
+    list_display = ('slug', 'organizer', 'phase', 'is_active', 'start_datetime', 'official_start_datetime', 'end_datetime')
     list_filter = ('phase', 'is_active')
     search_fields = ('slug', 'organizer__username')
 

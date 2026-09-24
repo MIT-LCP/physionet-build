@@ -95,9 +95,10 @@ def notify_phase_change(challenge, old_phase, new_phase):
         f'Challenge "{challenge.slug}" has moved from '
         f'{old_phase} to {new_phase}.'
     )
-    url = reverse('challenge_detail', kwargs={
-        'challenge_slug': challenge.slug,
-    })
+    url = reverse('published_project', args=[
+        challenge.published_project.slug,
+        challenge.published_project.version,
+    ])
 
     for p in participants:
         create_notification(

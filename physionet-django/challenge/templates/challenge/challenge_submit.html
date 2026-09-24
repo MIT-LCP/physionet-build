@@ -19,7 +19,7 @@
         {% csrf_token %}
         {% include "form_snippet.html" with form=form %}
         <button type="submit" class="btn btn-primary mt-3">Submit</button>
-        <a href="{% url 'challenge_detail' challenge.slug %}" class="btn btn-secondary mt-3">Cancel</a>
+        <a href="{% url 'published_project' challenge.published_project.slug challenge.published_project.version %}" class="btn btn-secondary mt-3">Cancel</a>
       </form>
     </div>
   </div>
