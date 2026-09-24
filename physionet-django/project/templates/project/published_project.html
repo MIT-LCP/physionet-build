@@ -106,23 +106,22 @@
 
       <!-- Sidebar Column -->
       <div class="col-md-4">
-        {# Contents Button #}
+        {# Contents panel #}
         {% if not project.is_legacy %}
-        <div class="card" style="border: 0">
-          <button class="btn btn-secondary dropdown-toggle btn-rsp btn-right" type="button"
-            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Contents
-          </button>
-          <div class="dropdown-menu">
-            {% for section in project.content_sections %}
-              {% if section.body %}
-                <a class="dropdown-item" href="#{{ section.html_id }}">{{ section.title }}</a>
+        <div class="card mb-4">
+          <h5 class="card-header">Contents</h5>
+          <div class="card-body contents-nav">
+            <ul>
+              {% for section in project.content_sections %}
+                {% if section.body %}
+                  <li><a href="#{{ section.html_id }}">{{ section.title }}</a></li>
+                {% endif %}
+              {% endfor %}
+              {% if references %}
+                <li><a href="#references">References</a></li>
               {% endif %}
-            {% endfor %}
-            {% if references %}
-              <a class="dropdown-item" href="#references">References</a>
-            {% endif %}
-            <a class="dropdown-item" href="#files">Files</a>
+              <li><a href="#files">Files</a></li>
+            </ul>
           </div>
         </div>
         {% endif %}
