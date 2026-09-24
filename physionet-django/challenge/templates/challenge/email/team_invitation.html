@@ -3,6 +3,6 @@ Dear Colleague,
 {{ inviter_name }} has invited you to join team "{{ team.name }}" for the challenge "{{ challenge.slug }}" on {{ SITE_NAME }}.
 
 To respond to this invitation, please visit:
-{{ url_prefix }}{% url 'challenge_detail' challenge.slug %}
+{{ url_prefix }}{% url 'published_project' challenge.published_project.slug challenge.published_project.version %}
 
 {{ signature }}
