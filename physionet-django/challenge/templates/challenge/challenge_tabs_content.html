@@ -1,0 +1,224 @@
+{% load project_templatetags %}
+
+{# Tab content: Leaderboard #}
+<div id="challenge-tab-leaderboard" class="challenge-tab-content">
+  {% if challenge_show_test_leaderboard %}
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link active" href="#" onclick="switchLeaderboardDataset('dev');return false;">Development</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#" onclick="switchLeaderboardDataset('test');return false;">Test</a>
+    </li>
+  </ul>
+  {% endif %}
+
+  <div id="leaderboard-dev" class="table-responsive">
+    <table class="challenge-leaderboard-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Participant</th>
+          <th>Score</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in challenge_leaderboard %}
+        <tr class="{% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% endif %}{% if entry.user == request.user %} highlight-row{% elif entry.team and challenge_team and entry.team == challenge_team %} highlight-row{% endif %}">
+          <td class="rank-cell">
+            {% if entry.rank == 1 %}&#x1f947;{% elif entry.rank == 2 %}&#x1f948;{% elif entry.rank == 3 %}&#x1f949;{% else %}{{ entry.rank }}{% endif %}
+          </td>
+          <td>
+            {% if entry.team %}
+              {{ entry.team.name }}
+            {% else %}
+              {{ entry.user.get_full_name }}
+            {% endif %}
+          </td>
+          <td class="score-cell">{{ entry.primary_score }}</td>
+          <td>{{ entry.submission.created_datetime|date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">No entries yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if challenge_show_test_leaderboard %}
+  <div id="leaderboard-test" class="table-responsive" style="display:none;">
+    <table class="challenge-leaderboard-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Participant</th>
+          <th>Score</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in challenge_leaderboard_test %}
+        <tr class="{% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% endif %}{% if entry.user == request.user %} highlight-row{% elif entry.team and challenge_team and entry.team == challenge_team %} highlight-row{% endif %}">
+          <td class="rank-cell">
+            {% if entry.rank == 1 %}&#x1f947;{% elif entry.rank == 2 %}&#x1f948;{% elif entry.rank == 3 %}&#x1f949;{% else %}{{ entry.rank }}{% endif %}
+          </td>
+          <td>
+            {% if entry.team %}
+              {{ entry.team.name }}
+            {% else %}
+              {{ entry.user.get_full_name }}
+            {% endif %}
+          </td>
+          <td class="score-cell">{{ entry.primary_score }}</td>
+          <td>{{ entry.submission.created_datetime|date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">No entries yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+
+{# Tab content: Submit #}
+{% if challenge_participant %}
+<div id="challenge-tab-submit" class="challenge-tab-content">
+  {% if challenge.is_accepting_submissions %}
+  <p>Submit your code to be evaluated against the challenge dataset.</p>
+  <a href="{% url 'challenge_submit' challenge.slug %}" class="btn btn-primary mb-3">Submit Entry</a>
+  {% else %}
+  <p class="text-muted">This challenge is not currently accepting submissions.</p>
+  {% endif %}
+
+  <h5>My Submissions</h5>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Description</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for submission in challenge_my_submissions %}
+        <tr>
+          <td>{{ submission.pk }}</td>
+          <td>
+            <span class="badge badge-{% if submission.status == 'completed' %}success{% elif submission.status == 'failed' or submission.status == 'timed_out' %}danger{% elif submission.status == 'cancelled' %}secondary{% else %}info{% endif %}">
+              {{ submission.get_status_display }}
+            </span>
+          </td>
+          <td>{{ submission.created_datetime|date:"N j, Y H:i" }}</td>
+          <td>{{ submission.description|truncatechars:60 }}</td>
+          <td>
+            <a href="{% url 'challenge_submission_detail' challenge.slug submission.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center">No submissions yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{# Tab content: Rules #}
+{% if challenge_rules %}
+<div id="challenge-tab-rules" class="challenge-tab-content">
+  {{ challenge_rules|safe }}
+</div>
+{% endif %}
+
+{# Team card #}
+{% if challenge.teams_enabled and challenge_participant %}
+<div class="challenge-team-card">
+  <h5>Team</h5>
+  {% if challenge_team %}
+    <h6>{{ challenge_team.name }}</h6>
+    <ul class="list-group list-group-flush mb-2">
+      {% for member in challenge_team_members %}
+      <li class="list-group-item px-0">
+        {{ member.user.get_full_name }}
+        {% if member.is_team_captain %}<span class="badge badge-primary">Captain</span>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% if challenge_team_invitations %}
+    <p class="mb-1"><strong>Pending invitations</strong></p>
+    <ul class="list-group list-group-flush mb-2">
+      {% for inv in challenge_team_invitations %}
+      <li class="list-group-item px-0">{{ inv.email }} <small class="text-muted">(sent {{ inv.request_datetime|date }})</small></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% if challenge_participant.is_team_captain %}
+    <a href="{% url 'challenge_team_invite' challenge.slug %}" class="btn btn-sm btn-primary">Invite Member</a>
+    {% endif %}
+  {% else %}
+    <p>You are not currently on a team.</p>
+    <a href="{% url 'challenge_team_create' challenge.slug %}" class="btn btn-success btn-sm">Create a Team</a>
+  {% endif %}
+</div>
+{% endif %}
+
+<script>
+function switchChallengeTab(tabName) {
+  // Deactivate all tabs and content
+  document.querySelectorAll('.challenge-tab').forEach(function(tab) {
+    tab.classList.remove('active');
+  });
+  document.querySelectorAll('.challenge-tab-content').forEach(function(panel) {
+    panel.classList.remove('active');
+  });
+  // Activate selected
+  var panel = document.getElementById('challenge-tab-' + tabName);
+  if (panel) {
+    panel.classList.add('active');
+  }
+  // Find and activate the matching tab button
+  document.querySelectorAll('.challenge-tab').forEach(function(tab) {
+    if (tab.textContent.trim().toLowerCase() === tabName) {
+      tab.classList.add('active');
+    }
+  });
+  // Update hash
+  history.replaceState(null, null, '#' + tabName);
+}
+
+function switchLeaderboardDataset(dataset) {
+  var devPanel = document.getElementById('leaderboard-dev');
+  var testPanel = document.getElementById('leaderboard-test');
+  if (!devPanel || !testPanel) return;
+  var tabs = devPanel.closest('.challenge-tab-content').querySelectorAll('.nav-link');
+  tabs.forEach(function(t) { t.classList.remove('active'); });
+  if (dataset === 'test') {
+    devPanel.style.display = 'none';
+    testPanel.style.display = '';
+    if (tabs[1]) tabs[1].classList.add('active');
+  } else {
+    devPanel.style.display = '';
+    testPanel.style.display = 'none';
+    if (tabs[0]) tabs[0].classList.add('active');
+  }
+}
+
+// Deep-link on page load
+(function() {
+  var hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById('challenge-tab-' + hash)) {
+    switchChallengeTab(hash);
+  }
+})();
+</script>

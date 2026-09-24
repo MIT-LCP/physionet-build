@@ -62,7 +62,7 @@
     {% endif %}
 
     {% if challenge %}
-    {% include "challenge/challenge_section.html" %}
+    {% include "challenge/challenge_hero.html" %}
     {% endif %}
 
     <!-- Latest news and announcements -->
@@ -97,11 +97,61 @@
           {% include "project/citation_box.html" %}
         {% endif %}
 
+        {% if challenge %}
+        {# Tab bar #}
+        <ul class="challenge-tabs">
+          <li class="challenge-tab active" onclick="switchChallengeTab('overview')">Overview</li>
+          <li class="challenge-tab" onclick="switchChallengeTab('leaderboard')">Leaderboard</li>
+          {% if challenge_participant %}
+          <li class="challenge-tab" onclick="switchChallengeTab('submit')">Submit</li>
+          {% endif %}
+          {% if challenge_rules %}
+          <li class="challenge-tab" onclick="switchChallengeTab('rules')">Rules</li>
+          {% endif %}
+        </ul>
+
+        {# Overview tab — wraps project content #}
+        <div id="challenge-tab-overview" class="challenge-tab-content active">
+          {% if project.is_legacy %}
+            {{ project.full_description|safe }}
+          <hr>
+          {% else %}
+            {% include "project/published_project_content.html" %}
+          {% endif %}
+
+          {% if challenge_submission_spec %}
+            <h2 id="execution-environment">Execution Environment</h2>
+            <ul>
+              <li><strong>Base image:</strong> {{ challenge_submission_spec.base_image }}</li>
+              <li><strong>Entrypoint:</strong> <code>{{ challenge_submission_spec.entrypoint_command }}</code></li>
+              <li><strong>Max runtime:</strong> {{ challenge_submission_spec.max_runtime_seconds }}s</li>
+              <li><strong>Memory limit:</strong> {{ challenge_submission_spec.max_memory_mb }} MB</li>
+              <li><strong>CPUs:</strong> {{ challenge_submission_spec.cpu_count }}</li>
+              {% if challenge_submission_spec.gpu_enabled %}
+              <li><strong>GPU:</strong> {{ challenge_submission_spec.gpu_type|default:"Enabled" }}</li>
+              {% endif %}
+            </ul>
+            <hr>
+          {% endif %}
+
+          {% if challenge.prizes %}
+            <h2 id="prizes">Prizes</h2>
+            {{ challenge.prizes|safe }}
+            <hr>
+          {% endif %}
+        </div>
+
+        {# Other tab panels + team card + JS #}
+        {% include "challenge/challenge_tabs_content.html" %}
+
+        {% else %}
+        {# Non-challenge project #}
         {% if project.is_legacy %}
           {{ project.full_description|safe }}
         <hr>
         {% else %}
           {% include "project/published_project_content.html" %}
+        {% endif %}
         {% endif %}
       </div>
       <!-- /.main column -->
