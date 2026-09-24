@@ -79,15 +79,37 @@ def challenge_auth(require_participant=False, require_organizer=False):
 # ── Public views ────────────────────────────────────────────────────
 
 def challenge_list(request):
-    """List active challenges."""
-    challenges = Challenge.objects.filter(
+    """List challenges with optional status filtering."""
+    filter_status = request.GET.get('status', '')
+
+    base_qs = Challenge.objects.filter(
         is_active=True,
-    ).exclude(
-        phase=ChallengePhase.SETUP,
-    ).select_related('published_project', 'organizer').order_by('-start_datetime')
+    ).select_related(
+        'published_project', 'organizer',
+    ).annotate(
+        participant_count=Count('participants', filter=Q(participants__is_active=True)),
+    ).order_by('-start_datetime')
+
+    open_phases = [ChallengePhase.REGISTRATION, ChallengePhase.UNOFFICIAL, ChallengePhase.OFFICIAL]
+    completed_phases = [ChallengePhase.RESULTS, ChallengePhase.ARCHIVED]
+
+    if filter_status == 'open':
+        open_challenges = base_qs.filter(phase__in=open_phases).exclude(phase=ChallengePhase.REGISTRATION)
+        completed_challenges = Challenge.objects.none()
+    elif filter_status == 'upcoming':
+        open_challenges = base_qs.filter(phase=ChallengePhase.REGISTRATION)
+        completed_challenges = Challenge.objects.none()
+    elif filter_status == 'completed':
+        open_challenges = Challenge.objects.none()
+        completed_challenges = base_qs.filter(phase__in=completed_phases)
+    else:
+        open_challenges = base_qs.filter(phase__in=open_phases).exclude(phase=ChallengePhase.REGISTRATION)
+        completed_challenges = base_qs.filter(phase__in=completed_phases)
 
     return render(request, 'challenge/challenge_list.html', {
-        'challenges': challenges,
+        'open_challenges': open_challenges,
+        'completed_challenges': completed_challenges,
+        'filter_status': filter_status,
     })
 
 
@@ -119,14 +141,14 @@ def challenge_rules(request, challenge, participant, **kwargs):
 def challenge_leaderboard(request, challenge, participant, **kwargs):
     """Public leaderboard (dev set). Test leaderboard visible after completion."""
     dataset = DatasetType.VAL
-    if challenge.phase == ChallengePhase.COMPLETED:
+    if challenge.phase == ChallengePhase.RESULTS:
         dataset = request.GET.get('dataset', DatasetType.VAL)
 
     entries = LeaderboardEntry.objects.filter(
         challenge=challenge, dataset=dataset,
     ).select_related('user', 'team', 'submission').order_by('rank')
 
-    show_test = challenge.phase == ChallengePhase.COMPLETED
+    show_test = challenge.phase == ChallengePhase.RESULTS
     return render(request, 'challenge/challenge_leaderboard.html', {
         'challenge': challenge,
         'participant': participant,
