@@ -217,12 +217,15 @@ body .main {
 .modern-ui .card {
   border: none;
   box-shadow: 0px 4px 10px 0px #0000001F;
-  padding: 1.25rem;
   border-radius: 0.3rem;
 }
 .modern-ui .card--flat {
   box-shadow: none;
   background-color: var(--light-color);
+}
+.modern-ui .card--flat,
+.modern-ui .card--news {
+  padding: 1.25rem;
 }
 .modern-ui .card--flat p {
   margin-bottom: 0.5rem;
