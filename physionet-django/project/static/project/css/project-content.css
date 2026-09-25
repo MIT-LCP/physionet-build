@@ -566,6 +566,7 @@ input[type="checkbox"] {
 .challenge-date-item {
   display: flex;
   justify-content: space-between;
+  gap: 0.75rem;
   padding: 0.4rem 0;
   font-size: 0.85rem;
   border-bottom: 1px solid #f5f5f5;
@@ -582,6 +583,7 @@ input[type="checkbox"] {
 .challenge-date-item .date-value {
   font-weight: 500;
   color: #212529;
+  text-align: right;
 }
 
 /* Team card */
