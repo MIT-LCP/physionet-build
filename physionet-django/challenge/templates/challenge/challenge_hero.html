@@ -2,14 +2,6 @@
 
 {# Challenge hero area #}
 <div class="challenge-hero">
-  <div class="challenge-hero-badges">
-    <span class="badge-challenge-type">Challenge</span>
-    {% if challenge.is_registration_open or challenge.is_accepting_submissions %}
-      <span class="badge-challenge-open">Open</span>
-    {% endif %}
-    <span class="badge-challenge-phase">{{ challenge.get_phase_display }}</span>
-  </div>
-
   <div class="challenge-hero-organizer">
     {% if challenge.organizer_name %}{{ challenge.organizer_name }}{% else %}Hosted by {{ challenge.organizer.get_full_name }}{% endif %}
   </div>
