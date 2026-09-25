@@ -17,7 +17,7 @@
 
 .project-meta {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: var(--gray-color);
 }
 
 .project-meta a {
@@ -36,7 +36,7 @@
 }
 
 .citation-section {
-  border-left: 3px solid #dee2e6;
+  border-left: 3px solid var(--gray-200);
   padding-left: 0.75rem;
   margin-bottom: 0.75rem;
 }
@@ -127,12 +127,12 @@ input[type="checkbox"] {
 .contents-nav li {
   padding: 6px 12px;
   font-size: 0.85rem;
-  border-left: 2px solid #dee2e6;
+  border-left: 2px solid var(--gray-200);
 }
 
 .contents-nav li.active {
-  border-left-color: #007bff;
-  color: #007bff;
+  border-left-color: var(--primary-color);
+  color: var(--primary-color);
   font-weight: 500;
 }
 
@@ -142,7 +142,7 @@ input[type="checkbox"] {
 }
 
 .contents-nav li a:hover {
-  color: #007bff;
+  color: var(--primary-color);
 }
 
 /* Sidebar cards */
@@ -153,18 +153,18 @@ input[type="checkbox"] {
 .sidebar-heading {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #212529;
+  color: var(--secondary-color);
   margin-bottom: 0.6rem;
 }
 
 .sharebtn {
   font-size: 0.85rem;
-  color: #6c757d;
+  color: var(--gray-color);
   text-decoration: none;
 }
 
 .sharebtn:hover {
-  color: #007bff;
+  color: var(--primary-color);
 }
 
 .sidebar-dl {
@@ -207,56 +207,16 @@ input[type="checkbox"] {
 
 /* Hero */
 .challenge-hero {
-  background: #2d2d44;
+  background: var(--pink-100);
   border-radius: 10px;
   padding: 2rem 2.5rem;
   margin-bottom: 1.5rem;
-  color: #fff;
-}
-
-.challenge-hero-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.badge-challenge-type {
-  background: rgba(255,255,255,0.2);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.6rem;
-  border-radius: 3px;
-}
-
-.badge-challenge-open {
-  background: #28a745;
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.6rem;
-  border-radius: 3px;
-}
-
-.badge-challenge-phase {
-  background: rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.9);
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0.25rem 0.6rem;
-  border-radius: 3px;
+  color: var(--secondary-color);
 }
 
 .challenge-hero-organizer {
   font-size: 0.85rem;
-  color: rgba(255,255,255,0.8);
+  color: var(--gray-color);
   margin-bottom: 1rem;
 }
 
@@ -282,19 +242,19 @@ input[type="checkbox"] {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255,255,255,0.6);
+  color: var(--gray-color);
   font-weight: 600;
 }
 
 .challenge-hero-meta .meta-value {
   font-size: 0.95rem;
   font-weight: 500;
-  color: #fff;
+  color: var(--secondary-color);
 }
 
 /* Buttons */
 .btn-challenge-primary {
-  background: #007bff;
+  background: var(--primary-color);
   color: #fff;
   border: none;
   padding: 0.5rem 1.5rem;
@@ -315,8 +275,8 @@ input[type="checkbox"] {
 
 .btn-challenge-secondary {
   background: transparent;
-  color: #fff;
-  border: 2px solid rgba(255,255,255,0.4);
+  color: var(--secondary-color);
+  border: 2px solid var(--gray-200);
   padding: 0.45rem 1.5rem;
   border-radius: 50px;
   font-weight: 600;
@@ -327,9 +287,9 @@ input[type="checkbox"] {
 }
 
 .btn-challenge-secondary:hover {
-  border-color: #fff;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
+  border-color: var(--secondary-color);
+  background: var(--rose-100);
+  color: var(--secondary-color);
   text-decoration: none;
 }
 
@@ -339,7 +299,7 @@ input[type="checkbox"] {
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 1.5rem;
-  background: #e9ecef;
+  background: var(--gray-200);
 }
 
 .challenge-phase-bar .phase-segment {
@@ -362,7 +322,7 @@ input[type="checkbox"] {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.03em;
-  color: #6c757d;
+  color: var(--gray-color);
 }
 
 .phase-segment .phase-date {
@@ -372,7 +332,7 @@ input[type="checkbox"] {
 }
 
 .challenge-phase-bar .phase-segment.past {
-  background: #e9ecef;
+  background: var(--gray-200);
 }
 
 .challenge-phase-bar .phase-segment.current {
@@ -386,7 +346,7 @@ input[type="checkbox"] {
 }
 
 .challenge-phase-bar .phase-segment.future {
-  background: #e9ecef;
+  background: var(--gray-200);
 }
 
 /* Tabs */
@@ -395,14 +355,14 @@ input[type="checkbox"] {
   display: flex;
   padding: 0;
   margin: 0 0 0.5rem 0;
-  border-bottom: 2px solid #dee2e6;
+  border-bottom: 2px solid var(--gray-200);
 }
 
 .challenge-tab {
   padding: 0.75rem 1.25rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: #6c757d;
+  color: var(--gray-color);
   cursor: pointer;
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
@@ -411,12 +371,12 @@ input[type="checkbox"] {
 }
 
 .challenge-tab:hover {
-  color: #212529;
+  color: var(--secondary-color);
 }
 
 .challenge-tab.active {
-  color: #007bff;
-  border-bottom-color: #007bff;
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
 }
 
 .challenge-tab-content {
@@ -440,7 +400,7 @@ input[type="checkbox"] {
   border-radius: 50px;
   font-size: 0.8rem;
   font-weight: 600;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--gray-200);
   background: transparent;
   color: #495057;
   cursor: pointer;
@@ -448,20 +408,20 @@ input[type="checkbox"] {
 }
 
 .dataset-pill:hover:not(:disabled) {
-  background: #f8f9fa;
-  color: #212529;
+  background: var(--light-color);
+  color: var(--secondary-color);
 }
 
 .dataset-pill.active {
-  background: #007bff;
-  border-color: #007bff;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
   color: #fff;
 }
 
 .dataset-pill:disabled {
   color: #adb5bd;
-  border-color: #e9ecef;
-  background: #f8f9fa;
+  border-color: var(--gray-200);
+  background: var(--light-color);
   cursor: not-allowed;
   opacity: 0.7;
 }
@@ -474,12 +434,12 @@ input[type="checkbox"] {
 }
 
 .challenge-leaderboard-table thead th {
-  background: #f8f9fa;
-  border-bottom: 2px solid #dee2e6;
+  background: var(--light-color);
+  border-bottom: 2px solid var(--gray-200);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6c757d;
+  color: var(--gray-color);
   padding: 0.6rem 0.75rem;
 }
 
@@ -490,7 +450,7 @@ input[type="checkbox"] {
 }
 
 .challenge-leaderboard-table tbody tr:hover {
-  background: #f8f9fa;
+  background: var(--light-color);
 }
 
 .challenge-leaderboard-table .rank-cell {
@@ -524,7 +484,7 @@ input[type="checkbox"] {
 }
 
 .challenge-sidebar-cta.join {
-  background: #2d2d44;
+  background: var(--primary-color);
   color: #fff;
 }
 
@@ -548,7 +508,7 @@ input[type="checkbox"] {
 
 .challenge-sidebar-dates {
   background: #fff;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--gray-200);
   border-radius: 8px;
   padding: 1.25rem;
   margin-bottom: 1rem;
@@ -577,19 +537,19 @@ input[type="checkbox"] {
 }
 
 .challenge-date-item .date-label {
-  color: #6c757d;
+  color: var(--gray-color);
 }
 
 .challenge-date-item .date-value {
   font-weight: 500;
-  color: #212529;
+  color: var(--secondary-color);
   text-align: right;
 }
 
 /* Team card */
 .challenge-team-card {
   background: #fff;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--gray-200);
   border-radius: 6px;
   padding: 1.25rem;
   margin-bottom: 1.5rem;
@@ -603,11 +563,11 @@ input[type="checkbox"] {
 /* ── Challenge index page ─────────────────────────────────────── */
 
 .challenge-index-hero {
-  background: #1a1a2e;
+  background: var(--pink-100);
   border-radius: 10px;
   padding: 3rem 2.5rem;
   margin-bottom: 2rem;
-  color: #fff;
+  color: var(--secondary-color);
   text-align: center;
 }
 
@@ -617,7 +577,7 @@ input[type="checkbox"] {
 }
 
 .challenge-index-hero p {
-  color: rgba(255,255,255,0.7);
+  color: var(--gray-color);
   font-size: 1.1rem;
   margin-bottom: 0;
 }
@@ -634,7 +594,7 @@ input[type="checkbox"] {
   border-radius: 50px;
   font-size: 0.8rem;
   font-weight: 600;
-  border: 1px solid #dee2e6;
+  border: 1px solid var(--gray-200);
   background: #fff;
   color: #495057;
   text-decoration: none;
@@ -642,19 +602,20 @@ input[type="checkbox"] {
 }
 
 .challenge-filter-chip:hover {
-  background: #f8f9fa;
-  color: #212529;
+  background: var(--light-color);
+  color: var(--secondary-color);
   text-decoration: none;
 }
 
 .challenge-filter-chip.active {
-  background: #007bff;
-  border-color: #007bff;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
   color: #fff;
 }
 
 .challenge-filter-chip.active:hover {
-  background: #0069d9;
+  background: var(--primary-color);
+  opacity: 0.9;
   color: #fff;
 }
 
@@ -667,7 +628,7 @@ input[type="checkbox"] {
 
 .challenge-card {
   background: #fff;
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--gray-200);
   border-radius: 8px;
   padding: 1.5rem;
   transition: box-shadow 0.2s, transform 0.15s;
@@ -690,6 +651,39 @@ input[type="checkbox"] {
   margin-bottom: 0.75rem;
 }
 
+.badge-challenge-type {
+  background: rgba(218,18,89,0.12);
+  color: var(--primary-color);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+}
+
+.badge-challenge-open {
+  background: #28a745;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+}
+
+.badge-challenge-phase {
+  background: rgba(218,18,89,0.08);
+  color: var(--secondary-color);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 3px;
+}
+
 .challenge-card h3 {
   font-size: 1.1rem;
   font-weight: 600;
@@ -697,17 +691,17 @@ input[type="checkbox"] {
 }
 
 .challenge-card h3 a {
-  color: #212529;
+  color: var(--secondary-color);
   text-decoration: none;
 }
 
 .challenge-card h3 a:hover {
-  color: #007bff;
+  color: var(--primary-color);
 }
 
 .challenge-card .card-organizer {
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--gray-color);
   margin-bottom: 0.75rem;
 }
 
@@ -722,7 +716,7 @@ input[type="checkbox"] {
   display: flex;
   gap: 1rem;
   font-size: 0.75rem;
-  color: #6c757d;
+  color: var(--gray-color);
   margin-bottom: 1rem;
 }
 
@@ -740,14 +734,14 @@ input[type="checkbox"] {
 
 .challenge-card .card-meta .meta-value {
   font-weight: 500;
-  color: #212529;
+  color: var(--secondary-color);
 }
 
 .challenge-section-heading {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 1rem;
-  color: #212529;
+  color: var(--secondary-color);
 }
 
 /* Responsive */
