@@ -47,6 +47,7 @@ jsonschema = "^4.0.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2.3"
+docker = "^7.0"
 django-coverage-plugin = "^3.1.0"
 django-debug-toolbar = "^5.1.0"
 moto = { version = "^5.0.14", extras = ["s3", "s3control"] }

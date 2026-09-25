@@ -30,7 +30,7 @@ def process_submission(submission_id):
     3. Score - extract and save results
     4. Update leaderboard
     """
-    from challenge.services import ContainerOrchestrator
+    from challenge.services import get_orchestrator
     from challenge.utility import (
         notify_submission_complete,
         notify_submission_failed,
@@ -44,7 +44,7 @@ def process_submission(submission_id):
         logger.error('Submission %s not found', submission_id)
         return
 
-    orchestrator = ContainerOrchestrator(submission)
+    orchestrator = get_orchestrator(submission)
 
     try:
         # Build phase
