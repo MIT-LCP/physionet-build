@@ -67,6 +67,7 @@ class ChallengeConfigForm(forms.ModelForm):
     class Meta:
         model = Challenge
         fields = [
+            'organizer_name',
             'registration_open_datetime', 'start_datetime',
             'official_start_datetime', 'end_datetime',
             'rules', 'evaluation_description', 'prizes',

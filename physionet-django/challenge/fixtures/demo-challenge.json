@@ -13,18 +13,18 @@
     "pk": 21,
     "fields": {
       "resource_type": 2,
-      "title": "Demo ECG Classification Challenge",
-      "abstract": "<p>A demo challenge for classifying ECG signals using automated methods.</p>",
-      "background": "",
-      "methods": "<p>Participants submit code that is evaluated against a hidden validation dataset.</p>",
-      "content_description": "",
-      "usage_notes": "",
+      "title": "Predicting Acute Hypotensive Episodes",
+      "abstract": "<p>The goal of this challenge is to predict which ICU patients will experience an acute hypotensive episode within a forecast window, using up to the preceding 12 hours of physiologic measurements from bedside monitors. Acute hypotensive episodes (AHEs) are a common and dangerous complication in critically ill patients, associated with tissue hypoperfusion, organ dysfunction, and increased mortality. Early prediction of these events could enable timely clinical intervention and improved patient outcomes.</p>",
+      "background": "<p>Hemodynamic instability is a hallmark of critical illness. Acute hypotensive episodes\u2014sustained periods in which mean arterial pressure (MAP) falls below 60 mmHg for 30 minutes or more\u2014are associated with end-organ damage, increased ICU length of stay, and higher mortality. Despite the availability of continuous bedside monitoring, the onset of AHEs is often recognized only after the episode is already underway, limiting the window for effective intervention.</p><p>Previous work on hypotension prediction has relied on simple threshold-based alarms, which suffer from high false-alarm rates and alarm fatigue. Machine learning approaches using multivariate physiologic time series offer the potential for more accurate and earlier prediction, but their development has been hampered by the lack of standardized benchmarks and open datasets.</p><p>This challenge provides a curated dataset drawn from the MIMIC-II clinical database and invites participants to develop algorithms for early AHE prediction.</p>",
+      "methods": "<p>Participants receive time series data from ICU bedside monitors, including arterial blood pressure (systolic, diastolic, and mean), heart rate, respiratory rate, and SpO2. Each record contains up to 12 hours of minute-by-minute measurements from real ICU stays drawn from the MIMIC-II database. Records are divided into a training set (with AHE labels) and a test set (labels withheld).</p><p>Submitted algorithms must output a binary prediction (AHE or no AHE) and a continuous risk score for each patient record. Predictions are evaluated against the hidden test labels using the area under the receiver operating characteristic curve (AUROC) as the primary metric, with sensitivity and positive predictive value as secondary metrics.</p><p>Submissions are containerized and executed in a sandboxed environment with access to the hidden test data. Each container receives the test records as input and must write predictions to a standardized output file within the allotted runtime.</p>",
+      "content_description": "<p>The challenge dataset contains two collections of ICU records:\n<ul>\n<li><strong>Training set</strong> (750 records): Each record includes up to 12 hours of minute-by-minute vital signs and a binary label indicating whether an AHE occurred in the subsequent forecast window. Approximately 15% of training records are positive (AHE).</li>\n<li><strong>Test set</strong> (500 records): Identically formatted vital-sign time series without labels. Participants submit predictions for these records.</li>\n</ul>\nEach record is stored as a CSV file with columns: <code>timestamp</code>, <code>MAP</code>, <code>SBP</code>, <code>DBP</code>, <code>HR</code>, <code>RR</code>, <code>SpO2</code>. Missing values are encoded as <code>NaN</code>.</p>",
+      "usage_notes": "<p>The training data may contain missing values, sensor artifacts, and gaps in recording\u2014reflecting real-world clinical monitoring conditions. Participants are encouraged to implement appropriate preprocessing, imputation, and artifact-rejection strategies as part of their pipelines.</p>",
       "installation": "",
-      "acknowledgements": "",
-      "conflicts_of_interest": "<p>None</p>",
+      "acknowledgements": "<p>This challenge was supported by the National Institute of Biomedical Imaging and Bioengineering (NIBIB) under grant R01 EB001659 and by the National Institute of General Medical Sciences (NIGMS). The MIMIC-II database was developed with support from NIH grant R01 EB001659 and by Philips Healthcare. We thank the MIT Laboratory for Computational Physiology for hosting the challenge infrastructure and the Computing in Cardiology conference for providing a forum for presenting results.</p>",
+      "conflicts_of_interest": "<p>The organizers have no conflicts of interest to declare.</p>",
       "version": "1.0.0",
       "release_notes": "",
-      "short_description": "",
+      "short_description": "Predict acute hypotensive episodes in ICU patients from physiologic time series.",
       "access_policy": 0,
       "license": 1,
       "dua": null,
@@ -41,15 +41,15 @@
       "author_approval_datetime": "2024-01-14T12:00:00Z",
       "creation_datetime": "2024-01-15T10:00:00Z",
       "version_order": 0,
-      "main_storage_size": 1024,
-      "compressed_storage_size": 512,
-      "incremental_storage_size": 1024,
-      "submission_slug": "demoecgchallenge00001",
+      "main_storage_size": 52428800,
+      "compressed_storage_size": 18874368,
+      "incremental_storage_size": 52428800,
+      "submission_slug": "aheprediction00001",
       "publish_datetime": "2024-01-15T10:00:00Z",
       "has_other_versions": false,
       "deprecated_files": false,
-      "doi": "10.13026/DEMO-ECG1",
-      "slug": "demo-ecg-challenge",
+      "doi": "10.13026/AHE-PRED1",
+      "slug": "ahe-prediction-challenge",
       "public_project_uuid": "d1e2f3a4-b5c6-7890-abcd-ef1234500002",
       "is_legacy": false,
       "full_description": "",
@@ -64,14 +64,44 @@
     "model": "project.publishedauthor",
     "pk": 22,
     "fields": {
-      "user": ["admin"],
+      "user": ["rgmark"],
       "display_order": 1,
       "is_submitting": true,
       "is_corresponding": true,
       "approval_datetime": "2024-01-14T12:00:00Z",
-      "first_names": "Admin",
-      "last_name": "User",
-      "corresponding_email": "admin@localhost",
+      "first_names": "Roger",
+      "last_name": "Mark",
+      "corresponding_email": "rgmark@mit.edu",
+      "project": 21
+    }
+  },
+  {
+    "model": "project.publishedauthor",
+    "pk": 23,
+    "fields": {
+      "user": ["george"],
+      "display_order": 2,
+      "is_submitting": false,
+      "is_corresponding": false,
+      "approval_datetime": "2024-01-14T12:00:00Z",
+      "first_names": "George",
+      "last_name": "Moody",
+      "corresponding_email": null,
+      "project": 21
+    }
+  },
+  {
+    "model": "project.publishedauthor",
+    "pk": 24,
+    "fields": {
+      "user": ["aewj"],
+      "display_order": 3,
+      "is_submitting": false,
+      "is_corresponding": false,
+      "approval_datetime": "2024-01-14T12:00:00Z",
+      "first_names": "Alistair",
+      "last_name": "Johnson",
+      "corresponding_email": null,
       "project": 21
     }
   },
@@ -85,12 +115,30 @@
     }
   },
   {
+    "model": "project.publishedaffiliation",
+    "pk": 8,
+    "fields": {
+      "name": "MIT Laboratory for Computational Physiology",
+      "country": "US",
+      "author": 23
+    }
+  },
+  {
+    "model": "project.publishedaffiliation",
+    "pk": 9,
+    "fields": {
+      "name": "MIT Laboratory for Computational Physiology",
+      "country": "US",
+      "author": 24
+    }
+  },
+  {
     "model": "project.contact",
     "pk": 21,
     "fields": {
-      "name": "Admin User",
+      "name": "Roger Mark",
       "affiliations": "MIT Laboratory for Computational Physiology",
-      "email": "admin@localhost",
+      "email": "rgmark@mit.edu",
       "project": 21
     }
   },
@@ -99,25 +147,26 @@
     "pk": 1,
     "fields": {
       "published_project": 21,
-      "slug": "demo-ecg-challenge",
-      "organizer": ["admin"],
+      "slug": "ahe-prediction-challenge",
+      "organizer": ["rgmark"],
+      "organizer_name": "Co-hosted by PhysioNet and the National Institutes of Health",
       "registration_open_datetime": "2024-01-15T10:00:00Z",
-      "start_datetime": "2024-01-16T00:00:00Z",
+      "start_datetime": "2024-02-01T00:00:00Z",
       "official_start_datetime": "2024-06-01T00:00:00Z",
-      "end_datetime": "2025-12-31T23:59:59Z",
+      "end_datetime": "2025-09-01T23:59:59Z",
       "phase": "unofficial",
       "training_dataset": null,
-      "validation_data_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/validation/",
-      "test_data_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/test/",
-      "rules": "<p>Standard challenge rules apply.</p>",
-      "evaluation_description": "<p>Submissions are scored using the F1 metric.</p>",
-      "prizes": "",
+      "validation_data_gcs_uri": "gs://physionet-challenges/ahe-prediction/validation/",
+      "test_data_gcs_uri": "gs://physionet-challenges/ahe-prediction/test/",
+      "rules": "<h3>Eligibility</h3><p>The challenge is open to all individuals and teams worldwide. Organizers and their immediate collaborators are not eligible for prizes but may submit entries for benchmarking purposes.</p><h3>Submissions</h3><ul><li>Each participant or team may submit up to <strong>5 entries per day</strong> and <strong>100 entries total</strong> during the unofficial phase.</li><li>Submissions must be fully automated\u2014no manual annotation or interactive steps are permitted.</li><li>Code must be original work by the submitting participant or team. Use of pre-trained models is permitted provided the training data and model weights are publicly available and cited.</li></ul><h3>Evaluation</h3><ul><li>During the unofficial phase, submissions are scored against the <em>validation</em> dataset. Scores on the validation set are shown on the public leaderboard.</li><li>During the official phase, selected submissions are re-evaluated against the <em>hidden test</em> dataset. Final rankings are based on test-set performance.</li><li>Participants may select up to 2 submissions for official-phase evaluation.</li></ul><h3>Publication</h3><p>All participants with accepted entries are invited to submit a short paper describing their methods to the Computing in Cardiology conference. Top-performing methods will be highlighted in a summary paper authored by the organizers.</p>",
+      "evaluation_description": "<h3>Metrics</h3><p>The primary evaluation metric is the <strong>area under the receiver operating characteristic curve (AUROC)</strong>, which measures discrimination between AHE-positive and AHE-negative records across all operating thresholds.</p><p>Secondary metrics reported for each submission:</p><ul><li><strong>Sensitivity</strong> (recall): proportion of true AHE events correctly identified, at a decision threshold of 0.5.</li><li><strong>Positive Predictive Value</strong> (precision): proportion of predicted AHE events that were true events, at a decision threshold of 0.5.</li></ul><h3>Scoring Procedure</h3><p>Each submission container receives the test records as input and must write a CSV file with columns <code>record_id</code>, <code>prediction</code> (0 or 1), and <code>risk_score</code> (float between 0 and 1). The evaluation script computes AUROC from the <code>risk_score</code> column and derives sensitivity and PPV from the <code>prediction</code> column.</p>",
+      "prizes": "<p><strong>First place:</strong> $5,000 and an invitation to present at Computing in Cardiology.</p><p><strong>Second place:</strong> $2,500.</p><p><strong>Third place:</strong> $1,000.</p><p>All prizes are sponsored by the National Institute of Biomedical Imaging and Bioengineering (NIBIB).</p>",
       "max_submissions_per_day": 5,
       "max_total_submissions": 100,
       "teams_enabled": true,
       "is_active": true,
       "created_datetime": "2024-01-15T10:00:00Z",
-      "modified_datetime": "2024-01-15T10:00:00Z"
+      "modified_datetime": "2024-03-10T14:30:00Z"
     }
   },
   {
@@ -126,76 +175,458 @@
     "fields": {
       "challenge": 1,
       "base_image": "python:3.11-slim",
-      "entrypoint_command": "python main.py",
-      "max_runtime_seconds": 3600,
-      "max_memory_mb": 4096,
+      "entrypoint_command": "python predict.py --input /data/test --output /output/predictions.csv",
+      "max_runtime_seconds": 7200,
+      "max_memory_mb": 8192,
       "gpu_enabled": false,
       "gpu_type": "",
-      "cpu_count": 2,
-      "input_format": {},
-      "output_format": {},
-      "evaluation_script_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/evaluate.py",
-      "primary_metric_name": "score",
+      "cpu_count": 4,
+      "input_format": {
+        "type": "directory",
+        "path": "/data/test",
+        "description": "Directory of CSV files, one per patient record",
+        "columns": ["timestamp", "MAP", "SBP", "DBP", "HR", "RR", "SpO2"]
+      },
+      "output_format": {
+        "type": "csv",
+        "path": "/output/predictions.csv",
+        "columns": ["record_id", "prediction", "risk_score"],
+        "description": "One row per test record with binary prediction and continuous risk score"
+      },
+      "evaluation_script_gcs_uri": "gs://physionet-challenges/ahe-prediction/evaluation/evaluate.py",
+      "primary_metric_name": "AUROC",
       "primary_metric_sort": "desc",
-      "additional_metrics": []
+      "additional_metrics": [
+        {"name": "Sensitivity", "sort": "desc"},
+        {"name": "PPV", "sort": "desc"}
+      ]
     }
   },
+
+  {
+    "model": "challenge.team",
+    "pk": 1,
+    "fields": {
+      "challenge": 1,
+      "name": "BioSignal Lab",
+      "created_datetime": "2024-01-20T14:00:00Z",
+      "is_active": true
+    }
+  },
+  {
+    "model": "challenge.team",
+    "pk": 2,
+    "fields": {
+      "challenge": 1,
+      "name": "ICU Predictors",
+      "created_datetime": "2024-01-22T09:30:00Z",
+      "is_active": true
+    }
+  },
+
   {
     "model": "challenge.challengeparticipant",
     "pk": 1,
     "fields": {
-      "user": ["rgmark"],
+      "user": ["jameslawson"],
       "challenge": 1,
-      "registered_datetime": "2024-01-20T10:00:00Z",
+      "registered_datetime": "2024-01-18T08:15:00Z",
+      "is_active": true,
+      "team": 1,
+      "is_team_captain": true
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 2,
+    "fields": {
+      "user": ["eulaeasley"],
+      "challenge": 1,
+      "registered_datetime": "2024-01-19T11:40:00Z",
+      "is_active": true,
+      "team": 1,
+      "is_team_captain": false
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 3,
+    "fields": {
+      "user": ["miriamturner"],
+      "challenge": 1,
+      "registered_datetime": "2024-01-20T16:20:00Z",
+      "is_active": true,
+      "team": 2,
+      "is_team_captain": true
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 4,
+    "fields": {
+      "user": ["deborahbui"],
+      "challenge": 1,
+      "registered_datetime": "2024-01-21T09:05:00Z",
+      "is_active": true,
+      "team": 2,
+      "is_team_captain": false
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 5,
+    "fields": {
+      "user": ["franwilliams"],
+      "challenge": 1,
+      "registered_datetime": "2024-01-25T13:50:00Z",
       "is_active": true,
       "team": null,
       "is_team_captain": false
     }
   },
+
   {
     "model": "challenge.submission",
     "pk": 1,
     "fields": {
       "challenge": 1,
-      "submitted_by": ["rgmark"],
-      "team": null,
-      "code_archive_gcs_uri": "gs://demo-bucket/challenges/demo-ecg/submissions/1.tar.gz",
-      "code_archive_sha256": "abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "submitted_by": ["jameslawson"],
+      "team": 1,
+      "code_archive_gcs_uri": "gs://physionet-challenges/ahe-prediction/submissions/team1-001.tar.gz",
+      "code_archive_sha256": "a3f8c1d2e4b5670891a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708",
       "status": "completed",
+      "cloud_run_job_name": "ahe-eval-team1-001",
+      "cloud_run_execution_name": "ahe-eval-team1-001-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "gs://physionet-challenges/ahe-prediction/logs/team1-001.log",
+      "created_datetime": "2024-02-05T09:30:00Z",
+      "started_datetime": "2024-02-05T09:31:15Z",
+      "completed_datetime": "2024-02-05T09:48:42Z",
+      "description": "Baseline logistic regression on 5-min summary features",
+      "is_selected": false
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 2,
+    "fields": {
+      "challenge": 1,
+      "submitted_by": ["jameslawson"],
+      "team": 1,
+      "code_archive_gcs_uri": "gs://physionet-challenges/ahe-prediction/submissions/team1-002.tar.gz",
+      "code_archive_sha256": "b4c9d2e3f5a67801923a4b5c6d7e8f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e",
+      "status": "completed",
+      "cloud_run_job_name": "ahe-eval-team1-002",
+      "cloud_run_execution_name": "ahe-eval-team1-002-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "gs://physionet-challenges/ahe-prediction/logs/team1-002.log",
+      "created_datetime": "2024-02-12T14:10:00Z",
+      "started_datetime": "2024-02-12T14:11:30Z",
+      "completed_datetime": "2024-02-12T14:35:17Z",
+      "description": "Gradient boosted trees with trend features and MAP variability",
+      "is_selected": true
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 3,
+    "fields": {
+      "challenge": 1,
+      "submitted_by": ["miriamturner"],
+      "team": 2,
+      "code_archive_gcs_uri": "gs://physionet-challenges/ahe-prediction/submissions/team2-001.tar.gz",
+      "code_archive_sha256": "c5d0e3f4a6b78912034b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f",
+      "status": "completed",
+      "cloud_run_job_name": "ahe-eval-team2-001",
+      "cloud_run_execution_name": "ahe-eval-team2-001-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "gs://physionet-challenges/ahe-prediction/logs/team2-001.log",
+      "created_datetime": "2024-02-08T11:00:00Z",
+      "started_datetime": "2024-02-08T11:01:45Z",
+      "completed_datetime": "2024-02-08T11:22:30Z",
+      "description": "LSTM on raw minute-by-minute vital signs",
+      "is_selected": false
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 4,
+    "fields": {
+      "challenge": 1,
+      "submitted_by": ["miriamturner"],
+      "team": 2,
+      "code_archive_gcs_uri": "gs://physionet-challenges/ahe-prediction/submissions/team2-002.tar.gz",
+      "code_archive_sha256": "d6e1f4a5b7c89023145c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a",
+      "status": "completed",
+      "cloud_run_job_name": "ahe-eval-team2-002",
+      "cloud_run_execution_name": "ahe-eval-team2-002-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "gs://physionet-challenges/ahe-prediction/logs/team2-002.log",
+      "created_datetime": "2024-02-20T16:45:00Z",
+      "started_datetime": "2024-02-20T16:46:20Z",
+      "completed_datetime": "2024-02-20T17:15:05Z",
+      "description": "Transformer encoder with attention over 30-min sliding windows",
+      "is_selected": true
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 5,
+    "fields": {
+      "challenge": 1,
+      "submitted_by": ["franwilliams"],
+      "team": null,
+      "code_archive_gcs_uri": "gs://physionet-challenges/ahe-prediction/submissions/fran-001.tar.gz",
+      "code_archive_sha256": "e7f2a5b6c8d90134256d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b",
+      "status": "completed",
+      "cloud_run_job_name": "ahe-eval-fran-001",
+      "cloud_run_execution_name": "ahe-eval-fran-001-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "gs://physionet-challenges/ahe-prediction/logs/fran-001.log",
+      "created_datetime": "2024-02-15T10:20:00Z",
+      "started_datetime": "2024-02-15T10:21:10Z",
+      "completed_datetime": "2024-02-15T10:38:55Z",
+      "description": "Random forest with hand-crafted hemodynamic features",
+      "is_selected": true
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 6,
+    "fields": {
+      "challenge": 1,
+      "submitted_by": ["miriamturner"],
+      "team": 2,
+      "code_archive_gcs_uri": "gs://physionet-challenges/ahe-prediction/submissions/team2-003.tar.gz",
+      "code_archive_sha256": "f8a3b6c7d9e01245367e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c",
+      "status": "failed",
+      "cloud_run_job_name": "ahe-eval-team2-003",
+      "cloud_run_execution_name": "ahe-eval-team2-003-exec-1",
+      "error_message": "RuntimeError: CUDA out of memory. Tried to allocate 2.00 GiB. GPU not available in this environment.",
+      "container_log_gcs_uri": "gs://physionet-challenges/ahe-prediction/logs/team2-003.log",
+      "created_datetime": "2024-02-22T08:30:00Z",
+      "started_datetime": "2024-02-22T08:31:05Z",
+      "completed_datetime": "2024-02-22T08:32:18Z",
+      "description": "Transformer with GPU layers - testing GPU requirement",
+      "is_selected": false
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 7,
+    "fields": {
+      "challenge": 1,
+      "submitted_by": ["franwilliams"],
+      "team": null,
+      "code_archive_gcs_uri": "gs://physionet-challenges/ahe-prediction/submissions/fran-002.tar.gz",
+      "code_archive_sha256": "09a4b7c8d0e12356478f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d",
+      "status": "pending",
       "cloud_run_job_name": "",
       "cloud_run_execution_name": "",
       "error_message": "",
       "container_log_gcs_uri": "",
-      "created_datetime": "2024-02-01T10:00:00Z",
-      "started_datetime": "2024-02-01T10:05:00Z",
-      "completed_datetime": "2024-02-01T10:15:00Z",
-      "description": "Initial submission",
-      "is_selected": true
+      "created_datetime": "2024-03-10T14:00:00Z",
+      "started_datetime": null,
+      "completed_datetime": null,
+      "description": "Ensemble of XGBoost and logistic regression with imputation",
+      "is_selected": false
     }
   },
+
   {
     "model": "challenge.score",
     "pk": 1,
     "fields": {
       "submission": 1,
-      "metric_name": "score",
-      "value": 0.85,
+      "metric_name": "AUROC",
+      "value": 0.762,
       "dataset": "val"
     }
   },
+  {
+    "model": "challenge.score",
+    "pk": 2,
+    "fields": {
+      "submission": 1,
+      "metric_name": "Sensitivity",
+      "value": 0.681,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 3,
+    "fields": {
+      "submission": 1,
+      "metric_name": "PPV",
+      "value": 0.543,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 4,
+    "fields": {
+      "submission": 2,
+      "metric_name": "AUROC",
+      "value": 0.841,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 5,
+    "fields": {
+      "submission": 2,
+      "metric_name": "Sensitivity",
+      "value": 0.763,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 6,
+    "fields": {
+      "submission": 2,
+      "metric_name": "PPV",
+      "value": 0.618,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 7,
+    "fields": {
+      "submission": 3,
+      "metric_name": "AUROC",
+      "value": 0.805,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 8,
+    "fields": {
+      "submission": 3,
+      "metric_name": "Sensitivity",
+      "value": 0.724,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 9,
+    "fields": {
+      "submission": 3,
+      "metric_name": "PPV",
+      "value": 0.590,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 10,
+    "fields": {
+      "submission": 4,
+      "metric_name": "AUROC",
+      "value": 0.873,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 11,
+    "fields": {
+      "submission": 4,
+      "metric_name": "Sensitivity",
+      "value": 0.798,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 12,
+    "fields": {
+      "submission": 4,
+      "metric_name": "PPV",
+      "value": 0.654,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 13,
+    "fields": {
+      "submission": 5,
+      "metric_name": "AUROC",
+      "value": 0.789,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 14,
+    "fields": {
+      "submission": 5,
+      "metric_name": "Sensitivity",
+      "value": 0.710,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 15,
+    "fields": {
+      "submission": 5,
+      "metric_name": "PPV",
+      "value": 0.572,
+      "dataset": "val"
+    }
+  },
+
   {
     "model": "challenge.leaderboardentry",
     "pk": 1,
     "fields": {
       "challenge": 1,
-      "team": null,
-      "user": ["rgmark"],
-      "submission": 1,
+      "team": 2,
+      "user": null,
+      "submission": 4,
       "dataset": "val",
-      "primary_score": 0.85,
-      "all_scores": {"score": 0.85},
+      "primary_score": 0.873,
+      "all_scores": {"AUROC": 0.873, "Sensitivity": 0.798, "PPV": 0.654},
       "rank": 1,
-      "updated_datetime": "2024-02-01T10:15:00Z"
+      "updated_datetime": "2024-02-20T17:15:05Z"
+    }
+  },
+  {
+    "model": "challenge.leaderboardentry",
+    "pk": 2,
+    "fields": {
+      "challenge": 1,
+      "team": 1,
+      "user": null,
+      "submission": 2,
+      "dataset": "val",
+      "primary_score": 0.841,
+      "all_scores": {"AUROC": 0.841, "Sensitivity": 0.763, "PPV": 0.618},
+      "rank": 2,
+      "updated_datetime": "2024-02-12T14:35:17Z"
+    }
+  },
+  {
+    "model": "challenge.leaderboardentry",
+    "pk": 3,
+    "fields": {
+      "challenge": 1,
+      "team": null,
+      "user": ["franwilliams"],
+      "submission": 5,
+      "dataset": "val",
+      "primary_score": 0.789,
+      "all_scores": {"AUROC": 0.789, "Sensitivity": 0.710, "PPV": 0.572},
+      "rank": 3,
+      "updated_datetime": "2024-02-15T10:38:55Z"
     }
   }
 ]
