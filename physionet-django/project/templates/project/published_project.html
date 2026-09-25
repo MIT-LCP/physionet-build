@@ -108,6 +108,9 @@
           {% if challenge_rules %}
           <li class="challenge-tab" onclick="switchChallengeTab('rules')">Rules</li>
           {% endif %}
+          {% if challenge.teams_enabled and challenge_participant %}
+          <li class="challenge-tab" onclick="switchChallengeTab('team')">Team</li>
+          {% endif %}
         </ul>
 
         {# Overview tab — wraps project content #}
