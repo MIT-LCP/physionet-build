@@ -2,16 +2,11 @@
 
 {# Tab content: Leaderboard #}
 <div id="challenge-tab-leaderboard" class="challenge-tab-content">
-  {% if challenge_show_test_leaderboard %}
-  <ul class="nav nav-tabs mb-3">
-    <li class="nav-item">
-      <a class="nav-link active" href="#" onclick="switchLeaderboardDataset('dev');return false;">Development</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#" onclick="switchLeaderboardDataset('test');return false;">Test</a>
-    </li>
-  </ul>
-  {% endif %}
+  <div class="leaderboard-dataset-toggle">
+    <button class="dataset-pill active" onclick="switchLeaderboardDataset('dev')">Validation</button>
+    <button class="dataset-pill" onclick="switchLeaderboardDataset('test')"
+      {% if not challenge_show_test_leaderboard %}disabled{% endif %}>Official</button>
+  </div>
 
   <div id="leaderboard-dev" class="table-responsive">
     <table class="challenge-leaderboard-table">
@@ -48,7 +43,6 @@
     </table>
   </div>
 
-  {% if challenge_show_test_leaderboard %}
   <div id="leaderboard-test" class="table-responsive" style="display:none;">
     <table class="challenge-leaderboard-table">
       <thead>
@@ -83,7 +77,6 @@
       </tbody>
     </table>
   </div>
-  {% endif %}
 </div>
 
 {# Tab content: Submit #}
@@ -214,16 +207,16 @@ function switchLeaderboardDataset(dataset) {
   var devPanel = document.getElementById('leaderboard-dev');
   var testPanel = document.getElementById('leaderboard-test');
   if (!devPanel || !testPanel) return;
-  var tabs = devPanel.closest('.challenge-tab-content').querySelectorAll('.nav-link');
-  tabs.forEach(function(t) { t.classList.remove('active'); });
+  var pills = devPanel.closest('.challenge-tab-content').querySelectorAll('.dataset-pill');
+  pills.forEach(function(p) { p.classList.remove('active'); });
   if (dataset === 'test') {
     devPanel.style.display = 'none';
     testPanel.style.display = '';
-    if (tabs[1]) tabs[1].classList.add('active');
+    if (pills[1]) pills[1].classList.add('active');
   } else {
     devPanel.style.display = '';
     testPanel.style.display = 'none';
-    if (tabs[0]) tabs[0].classList.add('active');
+    if (pills[0]) pills[0].classList.add('active');
   }
 }
 
@@ -233,5 +226,8 @@ function switchLeaderboardDataset(dataset) {
   if (hash && document.getElementById('challenge-tab-' + hash)) {
     switchChallengeTab(hash);
   }
+  {% if challenge_show_test_leaderboard %}
+  switchLeaderboardDataset('test');
+  {% endif %}
 })();
 </script>
