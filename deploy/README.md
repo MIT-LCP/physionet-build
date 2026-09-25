@@ -317,6 +317,68 @@ This will also return 200 and the xml document will contain detailed information
 
 If we have access to the ORCID member API (instead of just the public API) we should also be able to update a users profile with PhysioNet project information.  In that case the \_PHYSIO_ codes need to be associated with the ORCID MIT institution account.
 
+## Challenge Submission Pipeline (Local Development)
+
+The challenge submission pipeline uses GCS for file storage and a container orchestrator to run participant code. In production, this uses Google Cloud Run. For local development, a `LocalContainerOrchestrator` runs containers via Docker instead.
+
+### Prerequisites
+
+- Docker Desktop running
+- `ENABLE_CHALLENGES=True` in `.env`
+
+### Setup
+
+1. **Start the fake GCS server.** The `docker-compose.yml` includes a `fake-gcs-server` service:
+
+   ```
+   docker run --rm -p 4443:4443 fsouza/fake-gcs-server -scheme http -backend memory -port 4443
+   ```
+
+2. **Configure `.env`** with the following settings:
+
+   ```
+   ENABLE_CHALLENGES=True
+   CHALLENGE_CONTAINER_BACKEND=local_docker
+   CHALLENGE_STAGING_BUCKET=challenge-staging
+   STORAGE_EMULATOR_HOST=http://localhost:4443
+   ```
+
+   `STORAGE_EMULATOR_HOST` tells the `google-cloud-storage` SDK to use the fake server and skip GCP authentication.
+
+3. **Create the staging bucket** in fake-gcs-server:
+
+   ```
+   curl -X POST http://localhost:4443/storage/v1/b -d '{"name": "challenge-staging"}'
+   ```
+
+4. **Install dev dependencies** (includes the `docker` Python SDK):
+
+   ```
+   poetry install
+   ```
+
+### Testing the pipeline
+
+1. Create a challenge with a submission spec (base image, entrypoint command, resource limits).
+2. Submit a code archive (`.tar.gz`) containing code that writes `scores.json` to the `OUTPUT_DIR` environment variable.
+3. The submission should transition through: PENDING → BUILDING → RUNNING → SCORING → COMPLETED.
+4. Scores should appear on the leaderboard.
+
+### How it works
+
+The `CHALLENGE_CONTAINER_BACKEND` setting controls which orchestrator is used:
+
+- `cloud_run` (default) — uses Google Cloud Run Jobs (requires GCP credentials)
+- `local_docker` — uses the local Docker daemon via docker-py
+
+The `get_orchestrator()` factory in `challenge/services.py` selects the backend. The background task (`process_submission`) calls the same interface regardless of backend.
+
+### Running tests
+
+```
+ENABLE_CHALLENGES=True python manage.py test challenge
+```
+
 ## OIDC Provider setup
 
 PhysioNet can act as an OpenID Connect (OIDC) provider, issuing signed ID tokens to relying parties. ID tokens are signed with an RSA private key, so the key must exist before the server starts.
