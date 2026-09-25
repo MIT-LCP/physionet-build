@@ -17,10 +17,9 @@ class ObjectPath(object):
         self._bucket = None
 
         try:
-            normalized_path = os.path.normpath(path)
-            self._bucket_name, self._key = normalized_path.split('/', 1)
+            self._bucket_name, self._key = path.split('/', 1)
         except ValueError:
-            raise ValueError('path should specify the bucket an object key/prefix')
+            raise ValueError('path should specify the bucket and object key/prefix')
 
     def __repr__(self):
         return f"ObjectPath('{self.bucket_name()}', '{self.key()}')"
