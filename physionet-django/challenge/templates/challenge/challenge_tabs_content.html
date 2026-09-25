@@ -84,7 +84,7 @@
 <div id="challenge-tab-submit" class="challenge-tab-content">
   {% if challenge.is_accepting_submissions %}
   <p>Submit your code to be evaluated against the challenge dataset.</p>
-  <a href="{% url 'challenge_submit' challenge.slug %}" class="btn btn-primary mb-3">Submit Entry</a>
+  <a href="{% url 'challenge_submit' challenge.slug %}" class="btn btn-primary btn-sm mb-3">Submit Entry</a>
   {% else %}
   <p class="text-muted">This challenge is not currently accepting submissions.</p>
   {% endif %}
