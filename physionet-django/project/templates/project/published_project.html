@@ -161,90 +161,68 @@
         <div class="card mb-3">
           <div class="card-body sidebar-info">
             <h6 class="sidebar-heading">Access</h6>
-            <table class="sidebar-table">
-              <tr>
-                <td class="sidebar-table-label">Access Policy</td>
-                <td>{{ project.access_policy|access_description }}</td>
-              </tr>
-              <tr>
-                <td class="sidebar-table-label">License</td>
-                <td><a href="{% url 'published_project_license' project.slug project.version %}">{{ project.license }}</a></td>
-              </tr>
+            <dl class="sidebar-dl">
+              <dt>Access Policy</dt>
+              <dd>{{ project.access_policy|access_description }}</dd>
+              <dt>License</dt>
+              <dd><a href="{% url 'published_project_license' project.slug project.version %}">{{ project.license }}</a></dd>
               {% if project.dua %}
-              <tr>
-                <td class="sidebar-table-label">Data Use Agreement</td>
-                <td><a href="{% url 'published_project_dua' project.slug project.version %}">{{ project.dua }}</a></td>
-              </tr>
+              <dt>Data Use Agreement</dt>
+              <dd><a href="{% url 'published_project_dua' project.slug project.version %}">{{ project.dua }}</a></dd>
               {% endif %}
               {% if project.access_policy == AccessPolicy.CREDENTIALED or project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW %}
-              <tr>
-                <td class="sidebar-table-label">Required training</td>
-                <td>
-                  {% if project.required_trainings.all|length > 0 %}
-                    {% for training in project.required_trainings.all %}
-                      <a href="{% url 'published_project_required_training' project.slug project.version %}#{{ training.id }}"{{ training }}>{{ training }}</a>{% if not forloop.last %}<br>{% endif %}
-                    {% endfor %}
-                  {% else %}
-                    No training required
-                  {% endif %}
-                </td>
-              </tr>
+              <dt>Required training</dt>
+              <dd>
+                {% if project.required_trainings.all|length > 0 %}
+                  {% for training in project.required_trainings.all %}
+                    <a href="{% url 'published_project_required_training' project.slug project.version %}#{{ training.id }}"{{ training }}>{{ training }}</a>{% if not forloop.last %}<br>{% endif %}
+                  {% endfor %}
+                {% else %}
+                  No training required
+                {% endif %}
+              </dd>
               {% endif %}
-            </table>
+            </dl>
           </div>
         </div>
 
         <div class="card mb-3">
           <div class="card-body sidebar-info">
             <h6 class="sidebar-heading">Discovery</h6>
-            <table class="sidebar-table">
+            <dl class="sidebar-dl">
               {% if project.doi %}
-              <tr>
-                <td class="sidebar-table-label">DOI (v{{ project.version }})</td>
-                <td><a href="https://doi.org/{{ project.doi }}">{{ project.doi }}</a></td>
-              </tr>
+              <dt>DOI (v{{ project.version }})</dt>
+              <dd><a href="https://doi.org/{{ project.doi }}">{{ project.doi }}</a></dd>
               {% endif %}
               {% if project.core_project.doi %}
-              <tr>
-                <td class="sidebar-table-label">DOI (latest)</td>
-                <td><a href="https://doi.org/{{ project.core_project.doi }}">{{ project.core_project.doi }}</a></td>
-              </tr>
+              <dt>DOI (latest)</dt>
+              <dd><a href="https://doi.org/{{ project.core_project.doi }}">{{ project.core_project.doi }}</a></dd>
               {% endif %}
               {% if languages %}
-              <tr>
-                <td class="sidebar-table-label">Languages</td>
-                <td>{% for language in languages %}{{ language.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
-              </tr>
+              <dt>Languages</dt>
+              <dd>{% for language in languages %}{{ language.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</dd>
               {% endif %}
               {% if topics %}
-              <tr>
-                <td class="sidebar-table-label">Topics</td>
-                <td>{% for topic in topics %}{{ topic|topic_badge|safe }} {% endfor %}</td>
-              </tr>
+              <dt>Topics</dt>
+              <dd>{% for topic in topics %}{{ topic|topic_badge|safe }} {% endfor %}</dd>
               {% endif %}
               {% if project.project_home_page %}
-              <tr>
-                <td class="sidebar-table-label">Website</td>
-                <td><a href="{{ project.project_home_page }}"><i class="fas fa-external-link-alt"></i> {{ project.project_home_page }}</a></td>
-              </tr>
+              <dt>Website</dt>
+              <dd><a href="{{ project.project_home_page }}"><i class="fas fa-external-link-alt"></i> {{ project.project_home_page }}</a></dd>
               {% endif %}
-            </table>
+            </dl>
           </div>
         </div>
 
         <div class="card mb-3">
           <div class="card-body sidebar-info">
             <h6 class="sidebar-heading">Project Views</h6>
-            <table class="sidebar-table">
-              <tr>
-                <td class="sidebar-table-label">Current Version</td>
-                <td>{{ project_views_count }}</td>
-              </tr>
-              <tr>
-                <td class="sidebar-table-label">All Versions</td>
-                <td>{{ all_versions_views_count }}</td>
-              </tr>
-            </table>
+            <dl class="sidebar-dl">
+              <dt>Current Version</dt>
+              <dd>{{ project_views_count }}</dd>
+              <dt>All Versions</dt>
+              <dd>{{ all_versions_views_count }}</dd>
+            </dl>
             <div class="mt-2">
               <a href="{% url 'published_project_metrics' project.slug project.version %}" class="btn btn-sm btn-outline-secondary">View Details</a>
             </div>

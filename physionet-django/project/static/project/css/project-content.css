@@ -109,22 +109,38 @@ input[type="checkbox"] {
   color: #007bff;
 }
 
-.sidebar-table {
-  width: 100%;
+.sidebar-dl {
   font-size: 0.85rem;
   margin: 0;
-  border: none;
 }
 
-.sidebar-table td {
-  padding: 0.4rem 0.5rem;
-  vertical-align: top;
-  border: none;
-}
-
-.sidebar-table-label {
+.sidebar-dl dt {
   font-weight: 600;
   color: #495057;
-  white-space: nowrap;
-  width: 1%;
+  margin-top: 0.5rem;
+}
+
+.sidebar-dl dt:first-child {
+  margin-top: 0;
+}
+
+.sidebar-dl dd {
+  margin: 0.1rem 0 0 0;
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 992px) {
+  .sidebar-dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 0.75rem;
+  }
+
+  .sidebar-dl dt {
+    margin-top: 0;
+  }
+
+  .sidebar-dl dd {
+    margin-top: 0;
+  }
 }
