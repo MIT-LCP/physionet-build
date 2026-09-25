@@ -117,3 +117,61 @@ input[type="checkbox"] {
 .contents-nav li a:hover {
   color: #007bff;
 }
+
+/* Sidebar cards */
+.sidebar-info {
+  font-size: 0.85rem;
+}
+
+.sidebar-heading {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #212529;
+  margin-bottom: 0.6rem;
+}
+
+.sharebtn {
+  font-size: 0.85rem;
+  color: #6c757d;
+  text-decoration: none;
+}
+
+.sharebtn:hover {
+  color: #007bff;
+}
+
+.sidebar-dl {
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.sidebar-dl dt {
+  font-weight: 600;
+  color: #495057;
+  margin-top: 0.5rem;
+}
+
+.sidebar-dl dt:first-child {
+  margin-top: 0;
+}
+
+.sidebar-dl dd {
+  margin: 0.1rem 0 0 0;
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 992px) {
+  .sidebar-dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 0.75rem;
+  }
+
+  .sidebar-dl dt {
+    margin-top: 0;
+  }
+
+  .sidebar-dl dd {
+    margin-top: 0;
+  }
+}
