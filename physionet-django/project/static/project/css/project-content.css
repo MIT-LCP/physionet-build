@@ -474,36 +474,6 @@ input[type="checkbox"] {
 }
 
 /* Sidebar */
-.challenge-sidebar-cta {
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.challenge-sidebar-cta.join {
-  background: var(--primary-color);
-  color: #fff;
-}
-
-.challenge-sidebar-cta.registered {
-  background: #28a745;
-  color: #fff;
-}
-
-.challenge-sidebar-cta h5 {
-  font-weight: 700;
-  margin-bottom: 0.75rem;
-  color: inherit;
-}
-
-.challenge-sidebar-cta p {
-  font-size: 0.85rem;
-  opacity: 0.9;
-  margin-bottom: 1rem;
-  color: inherit;
-}
-
 .challenge-sidebar-dates {
   background: #fff;
   border: 1px solid var(--gray-200);

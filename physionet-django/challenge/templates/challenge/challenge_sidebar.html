@@ -1,25 +1,3 @@
-{% if not challenge_participant %}
-<div class="challenge-sidebar-cta join">
-  <h5>Join this Challenge</h5>
-  {% if challenge.is_registration_open %}
-    <p>Register to compete and submit your solution.</p>
-    <a href="{% url 'challenge_register' challenge.slug %}" class="btn-challenge-primary">Register Now</a>
-  {% else %}
-    <p>Registration is not currently open.</p>
-  {% endif %}
-</div>
-{% else %}
-<div class="challenge-sidebar-cta registered">
-  <h5>You're Registered</h5>
-  <p>You are a participant in this challenge.</p>
-  {% if challenge.is_accepting_submissions %}
-    <a href="{% url 'challenge_submit' challenge.slug %}" class="btn-challenge-primary" style="margin-bottom:0.5rem;">Submit Entry</a>
-    <br>
-    <a href="{% url 'challenge_my_submissions' challenge.slug %}" style="color:rgba(255,255,255,0.8);font-size:0.85rem;">My Submissions</a>
-  {% endif %}
-</div>
-{% endif %}
-
 <div class="card mb-3">
   <div class="card-body sidebar-info">
     <h6 class="sidebar-heading">Key Dates</h6>
