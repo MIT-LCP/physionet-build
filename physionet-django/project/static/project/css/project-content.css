@@ -145,7 +145,6 @@ input[type="checkbox"] {
   color: #007bff;
 }
 
-<<<<<<< HEAD
 /* Sidebar cards */
 .sidebar-info {
   font-size: 0.85rem;
@@ -205,9 +204,6 @@ input[type="checkbox"] {
 }
 
 /* Challenge section styles */
-=======
-/* ── Challenge section styles ──────────────────────────────────── */
->>>>>>> 6ba9b2e2 (Adopt wireframe design for challenge pages)
 
 /* Hero */
 .challenge-hero {
@@ -430,6 +426,44 @@ input[type="checkbox"] {
 
 .challenge-tab-content.active {
   display: block;
+}
+
+/* Leaderboard dataset toggle */
+.leaderboard-dataset-toggle {
+  display: flex;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.dataset-pill {
+  padding: 0.3rem 1rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid #dee2e6;
+  background: transparent;
+  color: #495057;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.dataset-pill:hover:not(:disabled) {
+  background: #f8f9fa;
+  color: #212529;
+}
+
+.dataset-pill.active {
+  background: #007bff;
+  border-color: #007bff;
+  color: #fff;
+}
+
+.dataset-pill:disabled {
+  color: #adb5bd;
+  border-color: #e9ecef;
+  background: #f8f9fa;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 /* Leaderboard table */
