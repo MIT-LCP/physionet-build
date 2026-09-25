@@ -20,55 +20,45 @@
 </div>
 {% endif %}
 
-<div class="challenge-sidebar-dates">
-  <h6>Key Dates</h6>
-  {% if challenge.registration_open_datetime %}
-  <div class="challenge-date-item">
-    <span class="date-label">Registration opens</span>
-    <span class="date-value">{{ challenge.registration_open_datetime|date:"M d, Y" }}</span>
+<div class="card mb-3">
+  <div class="card-body sidebar-info">
+    <h6 class="sidebar-heading">Key Dates</h6>
+    <dl class="sidebar-dl">
+      {% if challenge.registration_open_datetime %}
+      <dt>Registration opens</dt>
+      <dd>{{ challenge.registration_open_datetime|date:"M d, Y" }}</dd>
+      {% endif %}
+      {% if challenge.start_datetime %}
+      <dt>Submissions open</dt>
+      <dd>{{ challenge.start_datetime|date:"M d, Y" }}</dd>
+      {% endif %}
+      {% if challenge.end_datetime %}
+      <dt>Challenge ends</dt>
+      <dd>{{ challenge.end_datetime|date:"M d, Y" }}</dd>
+      {% endif %}
+    </dl>
   </div>
-  {% endif %}
-  {% if challenge.start_datetime %}
-  <div class="challenge-date-item">
-    <span class="date-label">Submissions open</span>
-    <span class="date-value">{{ challenge.start_datetime|date:"M d, Y" }}</span>
-  </div>
-  {% endif %}
-  {% if challenge.end_datetime %}
-  <div class="challenge-date-item">
-    <span class="date-label">Challenge ends</span>
-    <span class="date-value">{{ challenge.end_datetime|date:"M d, Y" }}</span>
-  </div>
-  {% endif %}
 </div>
 
-<div class="challenge-sidebar-dates">
-  <h6>Challenge Info</h6>
-  <div class="challenge-date-item">
-    <span class="date-label">Host</span>
-    <span class="date-value">{% if challenge.organizer_name %}{{ challenge.organizer_name }}{% else %}Hosted by {{ challenge.organizer.get_full_name }}{% endif %}</span>
-  </div>
-  <div class="challenge-date-item">
-    <span class="date-label">Phase</span>
-    <span class="date-value">{{ challenge.get_phase_display }}</span>
-  </div>
-  <div class="challenge-date-item">
-    <span class="date-label">Participants</span>
-    <span class="date-value">{{ challenge_participant_count }}</span>
-  </div>
-  {% if challenge_submission_spec %}
-  <div class="challenge-date-item">
-    <span class="date-label">Metric</span>
-    <span class="date-value">{{ challenge_submission_spec.primary_metric_name }}</span>
-  </div>
-  {% endif %}
-  <div class="challenge-date-item">
-    <span class="date-label">Daily limit</span>
-    <span class="date-value">{{ challenge.max_submissions_per_day }}</span>
-  </div>
-  <div class="challenge-date-item">
-    <span class="date-label">Total limit</span>
-    <span class="date-value">{{ challenge.max_total_submissions }}</span>
+<div class="card mb-3">
+  <div class="card-body sidebar-info">
+    <h6 class="sidebar-heading">Challenge Info</h6>
+    <dl class="sidebar-dl">
+      <dt>Host</dt>
+      <dd>{% if challenge.organizer_name %}{{ challenge.organizer_name }}{% else %}{{ challenge.organizer.get_full_name }}{% endif %}</dd>
+      <dt>Phase</dt>
+      <dd>{{ challenge.get_phase_display }}</dd>
+      <dt>Participants</dt>
+      <dd>{{ challenge_participant_count }}</dd>
+      {% if challenge_submission_spec %}
+      <dt>Metric</dt>
+      <dd>{{ challenge_submission_spec.primary_metric_name }}</dd>
+      {% endif %}
+      <dt>Daily limit</dt>
+      <dd>{{ challenge.max_submissions_per_day }}</dd>
+      <dt>Total limit</dt>
+      <dd>{{ challenge.max_total_submissions }}</dd>
+    </dl>
   </div>
 </div>
 
