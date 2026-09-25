@@ -271,16 +271,25 @@ class LocalContainerOrchestrator:
         # Download test data from GCS if available
         test_data_uri = getattr(self.challenge, 'test_data_gcs_uri', None)
         if test_data_uri:
-            test_data_obj = ObjectPath(test_data_uri)
-            test_bucket = test_data_obj.bucket()
-            prefix = test_data_obj.key()
-            for blob in test_bucket.list_blobs(prefix=prefix):
-                rel_path = blob.name[len(prefix):].lstrip('/')
-                if not rel_path:
-                    continue
-                local_path = os.path.join(input_dir, rel_path)
-                os.makedirs(os.path.dirname(local_path), exist_ok=True)
-                blob.download_to_filename(local_path)
+            # Strip gs:// prefix if present — ObjectPath expects bucket/key
+            if test_data_uri.startswith('gs://'):
+                test_data_uri = test_data_uri[5:]
+            try:
+                test_data_obj = ObjectPath(test_data_uri)
+                test_bucket = test_data_obj.bucket()
+                prefix = test_data_obj.key()
+                for blob in test_bucket.list_blobs(prefix=prefix):
+                    rel_path = blob.name[len(prefix):].lstrip('/')
+                    if not rel_path:
+                        continue
+                    local_path = os.path.join(input_dir, rel_path)
+                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    blob.download_to_filename(local_path)
+            except Exception:
+                logger.warning(
+                    'Could not download test data from %s — skipping',
+                    test_data_uri,
+                )
 
         # Build container config
         mem_limit = f'{self.spec.max_memory_mb}m'
@@ -325,11 +334,10 @@ class LocalContainerOrchestrator:
         exit_code = result.get('StatusCode', -1)
         if exit_code != 0:
             logs = self._container.logs(tail=50).decode('utf-8', errors='replace')
-            self.submission.error_message = (
-                f'Container exited with code {exit_code}.\n{logs}'
-            )[:2000]
+            error_msg = f'Container exited with code {exit_code}.\n{logs}'
+            self.submission.error_message = error_msg[:2000]
             self.submission.save(update_fields=['error_message'])
-            raise RuntimeError(f'Container exited with code {exit_code}')
+            raise RuntimeError(error_msg[:2000])
 
         # Upload output files to GCS
         output_obj = ObjectPath(self.output_gcs_path)
