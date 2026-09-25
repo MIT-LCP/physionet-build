@@ -105,6 +105,7 @@
           <th>Status</th>
           <th>Submitted</th>
           <th>Description</th>
+          <th>Leaderboard</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -120,12 +121,24 @@
           <td>{{ submission.created_datetime|date:"N j, Y H:i" }}</td>
           <td>{{ submission.description|truncatechars:60 }}</td>
           <td>
+            {% if submission.status == 'completed' %}
+              {% if submission.is_selected %}
+                <span class="badge badge-success">&#10003; Selected</span>
+              {% elif not submission.team or challenge_participant.is_team_captain %}
+                <form method="post" action="{% url 'challenge_submission_select' challenge.slug submission.pk %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-success">Select</button>
+                </form>
+              {% endif %}
+            {% endif %}
+          </td>
+          <td>
             <a href="{% url 'challenge_submission_detail' challenge.slug submission.pk %}" class="btn btn-sm btn-outline-primary">View</a>
           </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="5" class="text-center">No submissions yet.</td>
+          <td colspan="6" class="text-center">No submissions yet.</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -143,7 +156,7 @@
 
 {# Team card #}
 {% if challenge.teams_enabled and challenge_participant %}
-<div class="challenge-team-card">
+<div id="challenge-tab-team" class="challenge-tab-content">
   <h5>Team</h5>
   {% if challenge_team %}
     <h6>{{ challenge_team.name }}</h6>

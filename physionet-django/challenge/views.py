@@ -12,7 +12,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from challenge.enums import ChallengePhase, SubmissionStatus
+from challenge.enums import ChallengePhase, DatasetType, SubmissionStatus
 from challenge.forms import (
     CodeSubmissionForm,
     TeamCreateForm,
@@ -22,6 +22,7 @@ from challenge.forms import (
 from challenge.models import (
     Challenge,
     ChallengeParticipant,
+    LeaderboardEntry,
     Submission,
     Team,
     TeamInvitation,
@@ -408,6 +409,105 @@ def challenge_team_invitation_respond(request, challenge, participant,
         'invitation': invitation,
         'form': form,
     })
+
+
+@login_required
+@challenge_auth(require_participant=True)
+def challenge_submission_select(request, challenge, participant,
+                                submission_id, **kwargs):
+    """Select a submission as the active leaderboard entry."""
+    if request.method != 'POST':
+        raise PermissionDenied
+
+    submission = get_object_or_404(
+        Submission, pk=submission_id, challenge=challenge,
+        status=SubmissionStatus.COMPLETED,
+    )
+
+    # Verify the user owns the submission (or is team captain)
+    if submission.team:
+        if not participant.team or participant.team != submission.team:
+            raise PermissionDenied
+        if not participant.is_team_captain:
+            raise PermissionDenied
+    else:
+        if submission.submitted_by != request.user:
+            raise PermissionDenied
+
+    # Get the primary score for this submission
+    spec = challenge.submission_spec
+    primary_score = submission.scores.filter(
+        metric_name=spec.primary_metric_name,
+        dataset=DatasetType.VAL,
+    ).first()
+
+    if not primary_score:
+        messages.error(request, 'This submission has no scores to display on the leaderboard.')
+        url = reverse('published_project', args=[
+            challenge.published_project.slug,
+            challenge.published_project.version,
+        ])
+        return redirect(url + '#submit')
+
+    all_scores = {
+        s.metric_name: s.value
+        for s in submission.scores.filter(dataset=DatasetType.VAL)
+    }
+
+    with transaction.atomic():
+        # Clear is_selected on all of this participant's/team's submissions
+        if submission.team:
+            Submission.objects.filter(
+                challenge=challenge, team=submission.team, is_selected=True,
+            ).update(is_selected=False)
+        else:
+            Submission.objects.filter(
+                challenge=challenge, submitted_by=request.user,
+                team__isnull=True, is_selected=True,
+            ).update(is_selected=False)
+
+        # Set is_selected on the chosen submission
+        submission.is_selected = True
+        submission.save(update_fields=['is_selected'])
+
+        # Update the leaderboard entry
+        lookup = {
+            'challenge': challenge,
+            'dataset': DatasetType.VAL,
+        }
+        if submission.team:
+            lookup['team'] = submission.team
+            lookup['user'] = None
+        else:
+            lookup['user'] = submission.submitted_by
+            lookup['team'] = None
+
+        entry, created = LeaderboardEntry.objects.get_or_create(
+            defaults={
+                'submission': submission,
+                'primary_score': primary_score.value,
+                'all_scores': all_scores,
+            },
+            **lookup,
+        )
+        if not created:
+            entry.submission = submission
+            entry.primary_score = primary_score.value
+            entry.all_scores = all_scores
+            entry.save(update_fields=[
+                'submission', 'primary_score', 'all_scores',
+            ])
+
+    # Recompute ranks
+    from challenge.tasks import recompute_leaderboard
+    recompute_leaderboard(challenge.pk)
+
+    messages.success(request, 'Submission selected for the leaderboard.')
+    url = reverse('published_project', args=[
+        challenge.published_project.slug,
+        challenge.published_project.version,
+    ])
+    return redirect(url + '#submit')
 
 
 # ── Organizer / management views ────────────────────────────────────
