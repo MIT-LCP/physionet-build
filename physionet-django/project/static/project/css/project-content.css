@@ -334,7 +334,7 @@ input[type="checkbox"] {
 }
 
 .challenge-phase-bar .phase-segment.current {
-  background: #28a745;
+  background: var(--primary-color);
 }
 .challenge-phase-bar .phase-segment.current .phase-name {
   color: #fff;
