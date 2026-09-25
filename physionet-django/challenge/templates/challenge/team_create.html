@@ -14,7 +14,7 @@
       <form method="post">
         {% csrf_token %}
         {% include "form_snippet.html" with form=form %}
-        <button type="submit" class="btn btn-success mt-3">Create Team</button>
+        <button type="submit" class="btn btn-primary mt-3">Create Team</button>
         <a href="{% url 'challenge_team' challenge.slug %}" class="btn btn-secondary mt-3">Cancel</a>
       </form>
     </div>
