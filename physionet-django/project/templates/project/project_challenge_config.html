@@ -3,7 +3,7 @@
 {% load static %}
 {% load project_templatetags %}
 
-{% block title %}Challenge Config - {{ project }}{% endblock %}
+{% block title %}Challenge Setup - {{ project }}{% endblock %}
 
 {% block main_content %}
 <h2 class="form-signin-heading">{% project_step_header 'challenge_config' project %}</h2>
@@ -136,7 +136,7 @@
 
   {% if is_submitting and project.author_editable %}
   <hr>
-  <button class="btn btn-primary btn-rsp" type="submit">Save Challenge Configuration</button>
+  <button class="btn btn-primary btn-rsp" type="submit">Save Challenge Setup</button>
   {% endif %}
 </form>
 {% endblock %}
