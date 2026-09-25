@@ -31,8 +31,7 @@
 
 /* Citation box */
 .citation-box {
-  border-top: 2px solid #dee2e6;
-  padding: 1rem 0;
+  padding: 0 0 1rem;
   margin-bottom: 1.5rem;
 }
 
