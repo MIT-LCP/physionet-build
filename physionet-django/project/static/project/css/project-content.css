@@ -36,6 +36,8 @@
 }
 
 .citation-section {
+  border-left: 3px solid #dee2e6;
+  padding-left: 0.75rem;
   margin-bottom: 0.75rem;
 }
 
