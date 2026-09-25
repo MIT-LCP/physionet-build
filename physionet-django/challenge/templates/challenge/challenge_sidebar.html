@@ -45,8 +45,8 @@
 <div class="challenge-sidebar-dates">
   <h6>Challenge Info</h6>
   <div class="challenge-date-item">
-    <span class="date-label">Organizer</span>
-    <span class="date-value">{{ challenge.organizer.get_full_name }}</span>
+    <span class="date-label">Host</span>
+    <span class="date-value">{% if challenge.organizer_name %}{{ challenge.organizer_name }}{% else %}Hosted by {{ challenge.organizer.get_full_name }}{% endif %}</span>
   </div>
   <div class="challenge-date-item">
     <span class="date-label">Phase</span>

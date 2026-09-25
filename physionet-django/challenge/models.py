@@ -53,6 +53,9 @@ class ChallengeConfiguration(models.Model):
     )
     additional_metrics = models.JSONField(default=list, blank=True)
 
+    # Display
+    organizer_name = models.CharField(max_length=200, blank=True, default='')
+
     # File paths within the project
     evaluation_script_path = models.CharField(
         max_length=500, blank=True, default='evaluation/evaluate.py',
@@ -132,6 +135,7 @@ class Challenge(models.Model):
     max_submissions_per_day = models.PositiveIntegerField(default=5)
     max_total_submissions = models.PositiveIntegerField(default=100)
     teams_enabled = models.BooleanField(default=False)
+    organizer_name = models.CharField(max_length=200, blank=True, default='')
     is_active = models.BooleanField(default=True)
     created_datetime = models.DateTimeField(auto_now_add=True)
     modified_datetime = models.DateTimeField(auto_now=True)

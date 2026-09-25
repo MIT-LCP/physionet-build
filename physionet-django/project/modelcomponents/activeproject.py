@@ -757,6 +757,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         max_submissions_per_day=config.max_submissions_per_day,
                         max_total_submissions=config.max_total_submissions,
                         teams_enabled=config.teams_enabled,
+                        organizer_name=config.organizer_name,
                     )
                     SubmissionSpec.objects.create(
                         challenge=challenge,

@@ -7,7 +7,7 @@
     <span class="badge-challenge-phase">{{ card_challenge.get_phase_display }}</span>
   </div>
   <h3><a href="{% url 'published_project' card_challenge.published_project.slug card_challenge.published_project.version %}">{{ card_challenge.published_project.title }}</a></h3>
-  <div class="card-organizer">Organized by {{ card_challenge.organizer.get_full_name }}</div>
+  <div class="card-organizer">{% if card_challenge.organizer_name %}{{ card_challenge.organizer_name }}{% else %}Hosted by {{ card_challenge.organizer.get_full_name }}{% endif %}</div>
   {% if card_challenge.published_project.short_description %}
   <div class="card-description">{{ card_challenge.published_project.short_description }}</div>
   {% elif card_challenge.published_project.abstract %}
