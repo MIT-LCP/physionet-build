@@ -320,14 +320,12 @@ input[type="checkbox"] {
 .phase-segment .phase-name {
   font-size: 0.7rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
   color: var(--gray-color);
 }
 
 .phase-segment .phase-date {
   font-size: 0.6rem;
-  color: #adb5bd;
+  color: var(--gray-color);
   margin-top: 1px;
 }
 
