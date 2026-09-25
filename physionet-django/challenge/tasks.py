@@ -203,18 +203,29 @@ def _update_leaderboard_entry(submission):
         )
 
         if not created:
-            # Check if new score is better
-            is_better = (
-                (sort_ascending and primary_score.value < entry.primary_score)
-                or (not sort_ascending and primary_score.value > entry.primary_score)
-            )
-            if is_better:
-                entry.submission = submission
-                entry.primary_score = primary_score.value
-                entry.all_scores = all_scores
-                entry.save(update_fields=[
-                    'submission', 'primary_score', 'all_scores',
-                ])
+            # If the participant/team has manually selected a submission,
+            # skip automatic replacement — their choice takes precedence.
+            has_manual_selection = Submission.objects.filter(
+                challenge=challenge,
+                is_selected=True,
+                status=SubmissionStatus.COMPLETED,
+                **({'team': submission.team} if submission.team
+                   else {'submitted_by': submission.submitted_by, 'team__isnull': True}),
+            ).exists()
+
+            if not has_manual_selection:
+                # Check if new score is better
+                is_better = (
+                    (sort_ascending and primary_score.value < entry.primary_score)
+                    or (not sort_ascending and primary_score.value > entry.primary_score)
+                )
+                if is_better:
+                    entry.submission = submission
+                    entry.primary_score = primary_score.value
+                    entry.all_scores = all_scores
+                    entry.save(update_fields=[
+                        'submission', 'primary_score', 'all_scores',
+                    ])
 
     # Recompute ranks
     recompute_leaderboard(challenge.pk)

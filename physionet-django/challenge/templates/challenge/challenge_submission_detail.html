@@ -79,6 +79,21 @@
   </div>
   {% endif %}
 
+  {% if submission.status == 'completed' %}
+  <div class="card mt-3">
+    <div class="card-body">
+      {% if submission.is_selected %}
+        <span class="badge badge-success">&#10003; Active on Leaderboard</span>
+      {% elif not submission.team or participant.is_team_captain %}
+        <form method="post" action="{% url 'challenge_submission_select' challenge.slug submission.pk %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success">Select for Leaderboard</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   <div class="mt-3">
     <a href="{% url 'challenge_my_submissions' challenge.slug %}" class="btn btn-secondary">Back to Submissions</a>
   </div>
