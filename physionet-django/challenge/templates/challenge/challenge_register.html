@@ -17,7 +17,7 @@
       {% endif %}
       <form method="post">
         {% csrf_token %}
-        <button type="submit" class="btn btn-success">Confirm Registration</button>
+        <button type="submit" class="btn btn-primary">Confirm Registration</button>
         <a href="{% url 'published_project' challenge.published_project.slug challenge.published_project.version %}" class="btn btn-secondary">Cancel</a>
       </form>
     </div>

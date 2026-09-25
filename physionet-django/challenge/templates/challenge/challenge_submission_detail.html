@@ -87,7 +87,7 @@
       {% elif not submission.team or participant.is_team_captain %}
         <form method="post" action="{% url 'challenge_submission_select' challenge.slug submission.pk %}" style="display:inline;">
           {% csrf_token %}
-          <button type="submit" class="btn btn-success">Select for Leaderboard</button>
+          <button type="submit" class="btn btn-primary">Select for Leaderboard</button>
         </form>
       {% endif %}
     </div>

@@ -164,6 +164,27 @@
 }
 
 /* bootstrap modifications */
+.modern-ui .btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.modern-ui .btn-primary:hover,
+.modern-ui .btn-primary:focus {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  opacity: 0.9;
+}
+.modern-ui .btn-outline-primary {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+.modern-ui .btn-outline-primary:hover,
+.modern-ui .btn-outline-primary:focus {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+
 body .container, body .main {
   width: 100%;
   /* background-color: red!important; */
