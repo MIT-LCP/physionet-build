@@ -39,9 +39,3 @@
     </dl>
   </div>
 </div>
-
-{% if request.user == challenge.organizer or perms.challenge.manage_challenge %}
-<div class="mt-2 mb-3">
-  <a href="{% url 'challenge_manage' challenge.slug %}" class="btn btn-warning btn-block btn-sm">Manage Challenge</a>
-</div>
-{% endif %}
