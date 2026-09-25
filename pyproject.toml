@@ -47,6 +47,7 @@ jsonschema = "^4.0.0"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.2.3"
+docker = "^7.0"
 django-coverage-plugin = "^3.1.0"
 django-debug-toolbar = "^5.1.0"
 moto = "^4.2.0"
