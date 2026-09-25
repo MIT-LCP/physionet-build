@@ -1,28 +1,8 @@
 <div class="citation-box">
 
-  {% if "The PhysioNet/Computing in Cardiology Challenge" in project.title or "George B. Moody PhysioNet Challenge" in project.title %}
-    {% if publication %}
-      <div class="citation-section">
-        <span class="citation-label">When using this resource, please cite the original publication:</span>
-        {% if publication.url %}
-          <p class="citation-text"><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
-        {% else %}
-          <p class="citation-text">{{ publication.citation }}</p>
-        {% endif %}
-      </div>
-    {% endif %}
-  {% endif %}
-
   {% if not project.is_legacy %}
     <div class="citation-section">
-      <span class="citation-label">
-        {% if "The PhysioNet/Computing in Cardiology Challenge" in project.title or "George B. Moody PhysioNet Challenge" in project.title %}
-          {% if publication %}Additionally, when{% else %}When{% endif %}
-        {% else %}
-          When
-        {% endif %}
-        using this resource, please cite:
-      </span>
+      <span class="citation-label">When using this resource, please cite:</span>
       <span class="citation-actions">
         <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#citationModal" title="View citation formats"><i class="bi bi-quote"></i> Cite</button>
         {% if citations.BibTeX %}
@@ -54,17 +34,15 @@
     {% include 'modal_end.html' %}
   {% endif %}
 
-  {% if not "The PhysioNet/Computing in Cardiology Challenge" in project.title and not "George B. Moody PhysioNet Challenge" in project.title %}
-    {% if publication %}
-      <div class="citation-section">
-        <span class="citation-label">{% if project.is_legacy %}When using this resource{% else %}Additionally{% endif %}, please cite the original publication:</span>
-        {% if publication.url %}
-          <p class="citation-text"><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
-        {% else %}
-          <p class="citation-text">{{ publication.citation }}</p>
-        {% endif %}
-      </div>
-    {% endif %}
+  {% if publication %}
+    <div class="citation-section">
+      <span class="citation-label">{% if project.is_legacy %}When using this resource{% else %}Additionally{% endif %}, please cite the original publication:</span>
+      {% if publication.url %}
+        <p class="citation-text"><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
+      {% else %}
+        <p class="citation-text">{{ publication.citation }}</p>
+      {% endif %}
+    </div>
   {% endif %}
 
   {% if show_platform_wide_citation %}
