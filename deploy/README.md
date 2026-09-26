@@ -340,10 +340,10 @@ The challenge submission pipeline uses GCS for file storage and a container orch
    ENABLE_CHALLENGES=True
    CHALLENGE_CONTAINER_BACKEND=local_docker
    CHALLENGE_STAGING_BUCKET=challenge-staging
-   STORAGE_EMULATOR_HOST=http://localhost:4443
+   CHALLENGE_STORAGE_EMULATOR_HOST=http://localhost:4443
    ```
 
-   `STORAGE_EMULATOR_HOST` tells the `google-cloud-storage` SDK to use the fake server and skip GCP authentication.
+   `CHALLENGE_STORAGE_EMULATOR_HOST` tells the `google-cloud-storage` SDK to use the fake server and skip GCP authentication.
 
 3. **Create the staging bucket** in fake-gcs-server:
 
@@ -364,7 +364,7 @@ The challenge submission pipeline uses GCS for file storage and a container orch
    python manage.py seed_challenge_data
    ```
 
-   `seed_challenge_data` uploads the sample test data files from `challenge/fixtures/demo-submission-files/` to the fake GCS staging bucket. It only runs when `STORAGE_EMULATOR_HOST` is set.
+   `seed_challenge_data` uploads the sample test data files from `challenge/fixtures/demo-submission-files/` to the fake GCS staging bucket. It only runs when `CHALLENGE_STORAGE_EMULATOR_HOST` is set.
 
 ### Testing the pipeline
 

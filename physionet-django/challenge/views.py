@@ -712,5 +712,3 @@ def _upload_code_archive(challenge, user, archive_file):
         raise
 
     return gcs_uri
-
-

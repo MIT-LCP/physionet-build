@@ -9,6 +9,15 @@ from challenge.models import (
 )
 
 
+class JSONPlaceholderTextarea(forms.Textarea):
+    """Textarea that shows a placeholder when the JSON value is empty."""
+
+    def format_value(self, value):
+        if value in (None, '', '{}', '[]', 'null'):
+            return ''
+        return value
+
+
 class ChallengeConfigurationForm(forms.ModelForm):
     """
     Form for editing ChallengeConfiguration during project submission.
@@ -53,19 +62,39 @@ class ChallengeConfigurationForm(forms.ModelForm):
             ),
             'input_format': JSONPlaceholderTextarea(attrs={
                 'rows': 4,
-                'placeholder': '{"type": "directory", "path": "/data/test", "description": "Directory of CSV files, one per patient record", "columns": ["timestamp", "MAP", "SBP", "DBP", "HR", "RR", "SpO2"]}',
+                'placeholder': (
+                    '{"type": "directory", "path": "/data/test",'
+                    ' "description": "Directory of CSV files, one per'
+                    ' patient record", "columns": ["timestamp", "MAP",'
+                    ' "SBP", "DBP", "HR", "RR", "SpO2"]}'
+                ),
             }),
             'output_format': JSONPlaceholderTextarea(attrs={
                 'rows': 4,
-                'placeholder': '{"type": "csv", "path": "/output/predictions.csv", "description": "One row per test record with binary prediction and continuous risk score", "columns": ["record_id", "prediction", "risk_score"]}',
+                'placeholder': (
+                    '{"type": "csv",'
+                    ' "path": "/output/predictions.csv",'
+                    ' "description": "One row per test record with'
+                    ' binary prediction and continuous risk score",'
+                    ' "columns": ["record_id", "prediction",'
+                    ' "risk_score"]}'
+                ),
             }),
             'primary_metric': JSONPlaceholderTextarea(attrs={
                 'rows': 3,
-                'placeholder': '{"name": "AUROC", "display_name": "AUROC", "sort": "desc"}',
+                'placeholder': (
+                    '{"name": "AUROC", "display_name": "AUROC",'
+                    ' "sort": "desc"}'
+                ),
             }),
             'additional_metrics': JSONPlaceholderTextarea(attrs={
                 'rows': 4,
-                'placeholder': '[{"name": "Sensitivity", "display_name": "Sensitivity", "sort": "desc"}, {"name": "PPV", "display_name": "PPV", "sort": "desc"}]',
+                'placeholder': (
+                    '[{"name": "Sensitivity",'
+                    ' "display_name": "Sensitivity",'
+                    ' "sort": "desc"}, {"name": "PPV",'
+                    ' "display_name": "PPV", "sort": "desc"}]'
+                ),
             }),
         }
 
@@ -244,8 +273,7 @@ class SubmissionSpecForm(forms.ModelForm):
             'max_runtime_seconds', 'max_memory_mb',
             'gpu_enabled', 'gpu_type', 'cpu_count',
             'input_format', 'output_format',
-            'primary_metric_name', 'primary_metric_sort',
-            'additional_metrics',
+            'primary_metric', 'additional_metrics',
         ]
 
     def clean_input_format(self):

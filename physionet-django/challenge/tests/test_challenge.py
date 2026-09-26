@@ -11,7 +11,6 @@ from django.utils import timezone
 from challenge.enums import (
     ChallengePhase,
     DatasetType,
-    MetricSort,
     SubmissionStatus,
 )
 from challenge.forms import CodeSubmissionForm, ChallengeConfigForm
@@ -38,10 +37,10 @@ class ChallengeModelTests(TestCase):
     def test_challenge_phase_choices(self):
         """Verify all expected phase choices exist."""
         phases = [c[0] for c in ChallengePhase.choices]
-        self.assertIn('setup', phases)
-        self.assertIn('active', phases)
-        self.assertIn('evaluation', phases)
-        self.assertIn('completed', phases)
+        self.assertIn('registration', phases)
+        self.assertIn('unofficial', phases)
+        self.assertIn('official', phases)
+        self.assertIn('results', phases)
         self.assertIn('archived', phases)
 
     def test_submission_status_choices(self):
@@ -56,16 +55,10 @@ class ChallengeModelTests(TestCase):
         self.assertIn('cancelled', statuses)
         self.assertIn('timed_out', statuses)
 
-    def test_metric_sort_choices(self):
-        """Verify metric sort choices."""
-        sorts = [c[0] for c in MetricSort.choices]
-        self.assertIn('asc', sorts)
-        self.assertIn('desc', sorts)
-
     def test_dataset_type_choices(self):
         """Verify dataset type choices."""
         types = [c[0] for c in DatasetType.choices]
-        self.assertIn('dev', types)
+        self.assertIn('val', types)
         self.assertIn('test', types)
 
 

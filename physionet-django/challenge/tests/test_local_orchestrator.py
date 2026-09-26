@@ -27,6 +27,7 @@ def _make_submission_mock(**overrides):
     spec.max_memory_mb = 512
     spec.cpu_count = 1
     spec.max_runtime_seconds = 300
+    spec.evaluation_script_gcs_uri = ''
 
     challenge = mock.MagicMock()
     challenge.slug = 'test-challenge'

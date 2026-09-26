@@ -99,9 +99,6 @@ class ContainerOrchestrator:
         if dataset is None:
             dataset = DatasetType.VAL
 
-        staging_bucket = getattr(settings, 'CHALLENGE_STAGING_BUCKET', '')
-        hidden_bucket = getattr(settings, 'CHALLENGE_HIDDEN_DATA_BUCKET', '')
-
         env_vars = [
             run_v2.EnvVar(name='INPUT_DIR', value='/mnt/input'),
             run_v2.EnvVar(name='OUTPUT_DIR', value='/mnt/output'),
@@ -113,7 +110,9 @@ class ContainerOrchestrator:
             image=self.spec.base_image,
             command=['sh', '-c'],
             args=[
-                f'if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && {self.spec.entrypoint_command}'
+                'if [ -f requirements.txt ]; then'
+                ' pip install --no-cache-dir -r requirements.txt;'
+                f' fi && {self.spec.entrypoint_command}'
             ],
             env=env_vars,
             resources=run_v2.ResourceRequirements(
@@ -158,7 +157,7 @@ class ContainerOrchestrator:
         self.submission.save(update_fields=['cloud_run_execution_name'])
 
         logger.info('Job executed for submission %s: %s',
-                     self.submission.pk, execution.name)
+                    self.submission.pk, execution.name)
 
     def poll(self, poll_interval=10, max_polls=360):
         """
@@ -212,7 +211,7 @@ class ContainerOrchestrator:
         raw = blob.download_as_text()
         scores = json.loads(raw)
         logger.info('Extracted scores for submission %s: %s',
-                     self.submission.pk, scores)
+                    self.submission.pk, scores)
         return scores
 
     def cleanup(self):
@@ -538,7 +537,7 @@ class LocalContainerOrchestrator:
         raw = blob.download_as_text()
         scores = json.loads(raw)
         logger.info('Extracted scores for submission %s: %s',
-                     self.submission.pk, scores)
+                    self.submission.pk, scores)
         return scores
 
     def cleanup(self):

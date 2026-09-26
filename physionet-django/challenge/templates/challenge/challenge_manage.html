@@ -104,10 +104,7 @@
         <dd class="col-sm-8">{% if spec.gpu_enabled %}{{ spec.gpu_type|default:"Enabled" }}{% else %}Disabled{% endif %}</dd>
 
         <dt class="col-sm-4">Primary metric</dt>
-        <dd class="col-sm-8">{{ spec.primary_metric_name }}</dd>
-
-        <dt class="col-sm-4">Primary metric sort</dt>
-        <dd class="col-sm-8">{{ spec.get_primary_metric_sort_display }}</dd>
+        <dd class="col-sm-8"><pre class="mb-0">{{ spec.primary_metric|pprint }}</pre></dd>
 
         <dt class="col-sm-4">Additional metrics</dt>
         <dd class="col-sm-8"><pre class="mb-0">{{ spec.additional_metrics|pprint }}</pre></dd>

@@ -13,6 +13,27 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='notification',
             name='notification_type',
-            field=models.IntegerField(choices=[(1, 'Author invitation'), (2, 'Invitation response'), (3, 'Editor decision'), (4, 'Project published'), (5, 'Project submission'), (6, 'Editor assignment'), (7, 'Copyedit'), (8, 'Storage request'), (9, 'Credential decision'), (10, 'Cohost invitation'), (11, 'Cohost response'), (12, 'Generic'), (13, 'Challenge submission complete'), (14, 'Challenge submission failed'), (15, 'Challenge team invitation'), (16, 'Challenge team response'), (17, 'Challenge phase change')], default=12),
+            field=models.IntegerField(
+                choices=[
+                    (1, 'Author invitation'),
+                    (2, 'Invitation response'),
+                    (3, 'Editor decision'),
+                    (4, 'Project published'),
+                    (5, 'Project submission'),
+                    (6, 'Editor assignment'),
+                    (7, 'Copyedit'),
+                    (8, 'Storage request'),
+                    (9, 'Credential decision'),
+                    (10, 'Cohost invitation'),
+                    (11, 'Cohost response'),
+                    (12, 'Generic'),
+                    (13, 'Challenge submission complete'),
+                    (14, 'Challenge submission failed'),
+                    (15, 'Challenge team invitation'),
+                    (16, 'Challenge team response'),
+                    (17, 'Challenge phase change'),
+                ],
+                default=12,
+            ),
         ),
     ]
