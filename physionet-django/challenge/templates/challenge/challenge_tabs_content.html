@@ -180,7 +180,7 @@
 {% endif %}
 
 <script>
-function switchChallengeTab(tabName) {
+function switchChallengeTab(tabName, scroll) {
   // Deactivate all tabs and content
   document.querySelectorAll('.challenge-tab').forEach(function(tab) {
     tab.classList.remove('active');
@@ -192,7 +192,9 @@ function switchChallengeTab(tabName) {
   var panel = document.getElementById('challenge-tab-' + tabName);
   if (panel) {
     panel.classList.add('active');
-    panel.scrollIntoView({behavior: 'smooth'});
+    if (scroll) {
+      panel.scrollIntoView({behavior: 'smooth'});
+    }
   }
   // Find and activate the matching tab button
   document.querySelectorAll('.challenge-tab').forEach(function(tab) {
