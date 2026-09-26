@@ -14,7 +14,7 @@
       <dl class="row">
         <dt class="col-sm-3">Status</dt>
         <dd class="col-sm-9">
-          <span class="badge badge-{% if submission.status == 'completed' %}success{% elif submission.status == 'failed' or submission.status == 'timed_out' %}danger{% elif submission.status == 'cancelled' %}secondary{% else %}info{% endif %}">
+          <span id="status-badge" class="badge badge-{% if submission.status == 'completed' %}success{% elif submission.status == 'failed' or submission.status == 'timed_out' %}danger{% elif submission.status == 'cancelled' %}secondary{% else %}info{% endif %}">
             {{ submission.get_status_display }}
           </span>
         </dd>
@@ -30,31 +30,24 @@
         <dt class="col-sm-3">Submitted</dt>
         <dd class="col-sm-9">{{ submission.created_datetime|date:"N j, Y H:i:s" }}</dd>
 
-        {% if submission.started_datetime %}
-        <dt class="col-sm-3">Started</dt>
-        <dd class="col-sm-9">{{ submission.started_datetime|date:"N j, Y H:i:s" }}</dd>
-        {% endif %}
+        <dt id="started-row" class="col-sm-3" {% if not submission.started_datetime %}style="display:none"{% endif %}>Started</dt>
+        <dd id="started-value" class="col-sm-9" {% if not submission.started_datetime %}style="display:none"{% endif %}>{{ submission.started_datetime|date:"N j, Y H:i:s" }}</dd>
 
-        {% if submission.completed_datetime %}
-        <dt class="col-sm-3">Completed</dt>
-        <dd class="col-sm-9">{{ submission.completed_datetime|date:"N j, Y H:i:s" }}</dd>
-        {% endif %}
+        <dt id="completed-row" class="col-sm-3" {% if not submission.completed_datetime %}style="display:none"{% endif %}>Completed</dt>
+        <dd id="completed-value" class="col-sm-9" {% if not submission.completed_datetime %}style="display:none"{% endif %}>{{ submission.completed_datetime|date:"N j, Y H:i:s" }}</dd>
 
         {% if submission.description %}
         <dt class="col-sm-3">Description</dt>
         <dd class="col-sm-9">{{ submission.description }}</dd>
         {% endif %}
 
-        {% if submission.error_message %}
-        <dt class="col-sm-3">Error</dt>
-        <dd class="col-sm-9"><pre>{{ submission.error_message }}</pre></dd>
-        {% endif %}
+        <dt id="error-row" class="col-sm-3" {% if not submission.error_message %}style="display:none"{% endif %}>Error</dt>
+        <dd id="error-value" class="col-sm-9" {% if not submission.error_message %}style="display:none"{% endif %}><pre>{{ submission.error_message }}</pre></dd>
       </dl>
     </div>
   </div>
 
-  {% if scores %}
-  <div class="card mt-3">
+  <div id="scores-card" class="card mt-3" {% if not scores %}style="display:none"{% endif %}>
     <div class="card-header"><h4>Scores</h4></div>
     <div class="card-body">
       <table class="table">
@@ -65,7 +58,7 @@
             <th>Dataset</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="scores-tbody">
           {% for score in scores %}
           <tr>
             <td>{{ score.metric_name }}</td>
@@ -77,25 +70,126 @@
       </table>
     </div>
   </div>
-  {% endif %}
 
-  {% if submission.status == 'completed' %}
-  <div class="card mt-3">
-    <div class="card-body">
-      {% if submission.is_selected %}
-        <span class="badge badge-success">&#10003; Active on Leaderboard</span>
-      {% elif not submission.team or participant.is_team_captain %}
-        <form method="post" action="{% url 'challenge_submission_select' challenge.slug submission.pk %}" style="display:inline;">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-primary">Select for Leaderboard</button>
-        </form>
+  <div id="leaderboard-card" class="card mt-3" {% if submission.status != 'completed' %}style="display:none"{% endif %}>
+    <div class="card-body" id="leaderboard-body">
+      {% if submission.status == 'completed' %}
+        {% if submission.is_selected %}
+          <span class="badge badge-success">&#10003; Active on Leaderboard</span>
+        {% elif not submission.team or participant.is_team_captain %}
+          <form method="post" action="{% url 'challenge_submission_select' challenge.slug submission.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">Select for Leaderboard</button>
+          </form>
+        {% endif %}
       {% endif %}
     </div>
   </div>
-  {% endif %}
 
   <div class="mt-3">
     <a href="{% url 'challenge_my_submissions' challenge.slug %}" class="btn btn-secondary">Back to Submissions</a>
   </div>
 </div>
+
+{% if submission.status != 'completed' and submission.status != 'failed' and submission.status != 'cancelled' and submission.status != 'timed_out' %}
+<script>
+(function() {
+  var TERMINAL = ['completed', 'failed', 'cancelled', 'timed_out'];
+  var BADGE_CLASS = {
+    completed: 'badge-success',
+    failed: 'badge-danger',
+    timed_out: 'badge-danger',
+    cancelled: 'badge-secondary',
+  };
+  var statusUrl = '{% url "challenge_submission_status_detail" challenge.slug submission.pk %}';
+  var currentStatus = '{{ submission.status }}';
+  var pollTimer = null;
+
+  function updateDetail() {
+    fetch(statusUrl, {credentials: 'same-origin'})
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.status === currentStatus) return;
+        currentStatus = data.status;
+
+        // Update badge
+        var badge = document.getElementById('status-badge');
+        badge.textContent = data.display;
+        badge.className = 'badge ' + (BADGE_CLASS[data.status] || 'badge-info');
+
+        // Update started timestamp
+        if (data.started_datetime) {
+          document.getElementById('started-row').style.display = '';
+          var startedVal = document.getElementById('started-value');
+          startedVal.style.display = '';
+          startedVal.textContent = data.started_datetime;
+        }
+
+        // Update completed timestamp
+        if (data.completed_datetime) {
+          document.getElementById('completed-row').style.display = '';
+          var completedVal = document.getElementById('completed-value');
+          completedVal.style.display = '';
+          completedVal.textContent = data.completed_datetime;
+        }
+
+        // Update error message
+        if (data.error_message) {
+          document.getElementById('error-row').style.display = '';
+          var errorVal = document.getElementById('error-value');
+          errorVal.style.display = '';
+          errorVal.innerHTML = '<pre>' + escapeHtml(data.error_message) + '</pre>';
+        }
+
+        // Update scores
+        if (data.scores && data.scores.length > 0) {
+          var scoresCard = document.getElementById('scores-card');
+          scoresCard.style.display = '';
+          var tbody = document.getElementById('scores-tbody');
+          tbody.innerHTML = '';
+          data.scores.forEach(function(s) {
+            var tr = document.createElement('tr');
+            tr.innerHTML = '<td>' + escapeHtml(s.metric_name) + '</td>' +
+              '<td>' + s.value + '</td>' +
+              '<td>' + escapeHtml(s.dataset) + '</td>';
+            tbody.appendChild(tr);
+          });
+        }
+
+        // Show leaderboard selection on completion
+        if (data.status === 'completed') {
+          var lbCard = document.getElementById('leaderboard-card');
+          lbCard.style.display = '';
+          var lbBody = document.getElementById('leaderboard-body');
+          if (data.is_selected) {
+            lbBody.innerHTML = '<span class="badge badge-success">&#10003; Active on Leaderboard</span>';
+          } else {
+            {% if not submission.team or participant.is_team_captain %}
+            var csrfToken = '{{ csrf_token }}';
+            lbBody.innerHTML = '<form method="post" action="{% url "challenge_submission_select" challenge.slug submission.pk %}" style="display:inline;">' +
+              '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
+              '<button type="submit" class="btn btn-primary">Select for Leaderboard</button></form>';
+            {% endif %}
+          }
+        }
+
+        // Stop polling on terminal status
+        if (TERMINAL.indexOf(data.status) !== -1 && pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+      })
+      .catch(function() {});
+  }
+
+  function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+  }
+
+  pollTimer = setInterval(updateDetail, 5000);
+})();
+</script>
+{% endif %}
 {% endblock %}
