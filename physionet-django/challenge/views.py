@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -511,6 +511,25 @@ def challenge_submission_select(request, challenge, participant,
         challenge.published_project.version,
     ])
     return redirect(url + '#submit')
+
+
+@login_required
+@challenge_auth(require_participant=True)
+def challenge_submission_statuses(request, challenge, participant, **kwargs):
+    """Return JSON with current statuses of the user's submissions."""
+    submissions = Submission.objects.filter(
+        challenge=challenge,
+        submitted_by=request.user,
+    ).values_list('pk', 'status')
+
+    statuses = {
+        str(pk): {
+            'status': status,
+            'display': SubmissionStatus(status).label,
+        }
+        for pk, status in submissions
+    }
+    return JsonResponse({'statuses': statuses})
 
 
 # ── Organizer / management views ────────────────────────────────────
