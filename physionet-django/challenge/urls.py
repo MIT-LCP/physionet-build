@@ -36,6 +36,9 @@ urlpatterns = [
     path('<slug:challenge_slug>/manage/submissions/',
          views.challenge_manage_submissions,
          name='challenge_manage_submissions'),
+    path('<slug:challenge_slug>/manage/evaluation-script/',
+         views.challenge_download_evaluation_script,
+         name='challenge_download_evaluation_script'),
 ]
 
 # Parameters for testing URLs (see physionet/test_urls.py)
