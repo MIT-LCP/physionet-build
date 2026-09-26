@@ -296,10 +296,8 @@ input[type="checkbox"] {
 /* Phase bar */
 .challenge-phase-bar {
   display: flex;
-  border-radius: 6px;
-  overflow: hidden;
+  gap: 3px;
   margin-bottom: 1.5rem;
-  background: var(--gray-200);
 }
 
 .challenge-phase-bar .phase-segment {
@@ -308,13 +306,21 @@ input[type="checkbox"] {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 0.25rem;
-  border-right: 2px solid #fff;
+  padding: 0.5rem 0.75rem 0.5rem 1rem;
+  position: relative;
   transition: background 0.2s;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%);
+}
+
+.challenge-phase-bar .phase-segment:first-child {
+  border-radius: 4px 0 0 4px;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  padding-left: 0.75rem;
 }
 
 .challenge-phase-bar .phase-segment:last-child {
-  border-right: none;
+  border-radius: 0 4px 4px 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 10px 50%);
 }
 
 .phase-segment .phase-name {
@@ -336,6 +342,7 @@ input[type="checkbox"] {
 .challenge-phase-bar .phase-segment.current {
   background: var(--primary-color);
 }
+
 .challenge-phase-bar .phase-segment.current .phase-name {
   color: #fff;
 }
@@ -723,7 +730,16 @@ input[type="checkbox"] {
   }
 
   .challenge-phase-bar .phase-segment {
-    padding: 0.35rem 0.15rem;
+    padding: 0.35rem 0.5rem 0.35rem 0.75rem;
+    clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 0 100%, 7px 50%);
+  }
+
+  .challenge-phase-bar .phase-segment:first-child {
+    clip-path: polygon(0 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 0 100%);
+  }
+
+  .challenge-phase-bar .phase-segment:last-child {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 7px 50%);
   }
 
   .phase-segment .phase-name {
