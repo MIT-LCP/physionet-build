@@ -1570,9 +1570,13 @@ def project_challenge_config(request, project_slug, **kwargs):
     config, _ = ChallengeConfiguration.objects.get_or_create(active_project=project)
 
     if request.method == 'POST':
-        form = ChallengeConfigurationForm(data=request.POST, instance=config, editable=editable)
+        form = ChallengeConfigurationForm(
+            data=request.POST, files=request.FILES,
+            instance=config, editable=editable,
+        )
         if form.is_valid():
             form.save()
+            _upload_challenge_data_files(form, config, project.slug)
             messages.success(request, 'Challenge configuration has been updated.')
         else:
             messages.error(request, 'Invalid submission. See errors below.')
@@ -1585,9 +1589,51 @@ def project_challenge_config(request, project_slug, **kwargs):
         {
             'project': project,
             'challenge_config_form': form,
+            'challenge_config': config,
             'is_submitting': is_submitting,
         },
     )
+
+
+def _upload_challenge_data_files(form, config, slug):
+    """Upload challenge evaluation files to GCS and save URIs on config."""
+    bucket = getattr(settings, 'CHALLENGE_STAGING_BUCKET', '')
+    if not bucket:
+        return
+
+    upload_map = [
+        ('validation_data_archive', 'validation', 'validation_data_gcs_uri'),
+        ('test_data_archive', 'test', 'test_data_gcs_uri'),
+        ('evaluation_script_file', 'evaluation', 'evaluation_script_gcs_uri'),
+    ]
+
+    from physionet.gcp import ObjectPath
+
+    updated = False
+    for field_name, subdir, uri_field in upload_map:
+        uploaded_file = form.cleaned_data.get(field_name)
+        if not uploaded_file:
+            continue
+
+        key = f'challenges/{slug}/{subdir}/{uploaded_file.name}'
+        gcs_uri = f'{bucket}/{key}'
+
+        try:
+            obj = ObjectPath(gcs_uri)
+            blob = obj.bucket().blob(obj.key())
+            blob.upload_from_file(uploaded_file, rewind=True)
+        except Exception:
+            LOGGER.exception(
+                'Failed to upload %s to GCS for challenge %s',
+                field_name, slug,
+            )
+            raise
+
+        setattr(config, uri_field, gcs_uri)
+        updated = True
+
+    if updated:
+        config.save()
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
