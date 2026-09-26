@@ -115,6 +115,61 @@ class ChallengeConfigForm(forms.ModelForm):
         return cleaned_data
 
 
+class ChallengeManageForm(forms.ModelForm):
+    """
+    Form for editing challenge settings from the manage page.
+    Covers dates, limits, phase, and active status.
+    """
+    class Meta:
+        model = Challenge
+        fields = [
+            'phase',
+            'registration_open_datetime', 'start_datetime',
+            'official_start_datetime', 'end_datetime',
+            'max_submissions_per_day', 'max_total_submissions',
+            'teams_enabled', 'is_active',
+        ]
+        widgets = {
+            'registration_open_datetime': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+            ),
+            'start_datetime': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+            ),
+            'official_start_datetime': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+            ),
+            'end_datetime': forms.DateTimeInput(
+                attrs={'type': 'datetime-local'},
+            ),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get('start_datetime')
+        official_start = cleaned_data.get('official_start_datetime')
+        end = cleaned_data.get('end_datetime')
+        reg_open = cleaned_data.get('registration_open_datetime')
+
+        if start and end and start >= end:
+            raise forms.ValidationError(
+                'End date must be after start date.'
+            )
+        if reg_open and start and reg_open > start:
+            raise forms.ValidationError(
+                'Registration must open before the challenge starts.'
+            )
+        if start and official_start and official_start <= start:
+            raise forms.ValidationError(
+                'Official phase must start after the unofficial phase.'
+            )
+        if official_start and end and official_start >= end:
+            raise forms.ValidationError(
+                'Official phase must start before the end date.'
+            )
+        return cleaned_data
+
+
 class SubmissionSpecForm(forms.ModelForm):
     class Meta:
         model = SubmissionSpec

@@ -64,14 +64,14 @@
     "model": "project.publishedauthor",
     "pk": 22,
     "fields": {
-      "user": ["rgmark"],
+      "user": ["tompollard"],
       "display_order": 1,
       "is_submitting": true,
       "is_corresponding": true,
       "approval_datetime": "2024-01-14T12:00:00Z",
-      "first_names": "Roger",
-      "last_name": "Mark",
-      "corresponding_email": "rgmark@mit.edu",
+      "first_names": "Tom",
+      "last_name": "Pollard",
+      "corresponding_email": "tpollard@mit.edu",
       "project": 21
     }
   },
@@ -106,6 +106,21 @@
     }
   },
   {
+    "model": "project.publishedauthor",
+    "pk": 25,
+    "fields": {
+      "user": ["rgmark"],
+      "display_order": 4,
+      "is_submitting": false,
+      "is_corresponding": false,
+      "approval_datetime": "2024-01-14T12:00:00Z",
+      "first_names": "Roger",
+      "last_name": "Mark",
+      "corresponding_email": null,
+      "project": 21
+    }
+  },
+  {
     "model": "project.publishedaffiliation",
     "pk": 7,
     "fields": {
@@ -133,12 +148,21 @@
     }
   },
   {
+    "model": "project.publishedaffiliation",
+    "pk": 10,
+    "fields": {
+      "name": "MIT Laboratory for Computational Physiology",
+      "country": "US",
+      "author": 25
+    }
+  },
+  {
     "model": "project.contact",
     "pk": 21,
     "fields": {
-      "name": "Roger Mark",
+      "name": "Tom Pollard",
       "affiliations": "MIT Laboratory for Computational Physiology",
-      "email": "rgmark@mit.edu",
+      "email": "tpollard@mit.edu",
       "project": 21
     }
   },
@@ -148,7 +172,7 @@
     "fields": {
       "published_project": 21,
       "slug": "ahe-prediction-challenge",
-      "organizer": ["rgmark"],
+      "organizer": ["tompollard"],
       "organizer_name": "Co-hosted by PhysioNet and the National Institutes of Health",
       "registration_open_datetime": "2024-01-15T10:00:00Z",
       "start_datetime": "2024-02-01T00:00:00Z",
@@ -156,8 +180,8 @@
       "end_datetime": "2025-09-01T23:59:59Z",
       "phase": "unofficial",
       "training_dataset": null,
-      "validation_data_gcs_uri": "gs://physionet-challenges/ahe-prediction/validation/",
-      "test_data_gcs_uri": "gs://physionet-challenges/ahe-prediction/test/",
+      "validation_data_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/validation/",
+      "test_data_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/test/",
       "rules": "<h3>Eligibility</h3><p>The challenge is open to all individuals and teams worldwide. Organizers and their immediate collaborators are not eligible for prizes but may submit entries for benchmarking purposes.</p><h3>Submissions</h3><ul><li>Each participant or team may submit up to <strong>5 entries per day</strong> and <strong>100 entries total</strong> during the unofficial phase.</li><li>Submissions must be fully automated\u2014no manual annotation or interactive steps are permitted.</li><li>Code must be original work by the submitting participant or team. Use of pre-trained models is permitted provided the training data and model weights are publicly available and cited.</li></ul><h3>Evaluation</h3><ul><li>During the unofficial phase, submissions are scored against the <em>validation</em> dataset. Scores on the validation set are shown on the public leaderboard.</li><li>During the official phase, selected submissions are re-evaluated against the <em>hidden test</em> dataset. Final rankings are based on test-set performance.</li><li>Participants may select up to 2 submissions for official-phase evaluation.</li></ul><h3>Publication</h3><p>All participants with accepted entries are invited to submit a short paper describing their methods to the Computing in Cardiology conference. Top-performing methods will be highlighted in a summary paper authored by the organizers.</p>",
       "evaluation_description": "<h3>Metrics</h3><p>The primary evaluation metric is the <strong>area under the receiver operating characteristic curve (AUROC)</strong>, which measures discrimination between AHE-positive and AHE-negative records across all operating thresholds.</p><p>Secondary metrics reported for each submission:</p><ul><li><strong>Sensitivity</strong> (recall): proportion of true AHE events correctly identified, at a decision threshold of 0.5.</li><li><strong>Positive Predictive Value</strong> (precision): proportion of predicted AHE events that were true events, at a decision threshold of 0.5.</li></ul><h3>Scoring Procedure</h3><p>Each submission container receives the test records as input and must write a CSV file with columns <code>record_id</code>, <code>prediction</code> (0 or 1), and <code>risk_score</code> (float between 0 and 1). The evaluation script computes AUROC from the <code>risk_score</code> column and derives sensitivity and PPV from the <code>prediction</code> column.</p>",
       "prizes": "<p><strong>First place:</strong> $5,000 and an invitation to present at Computing in Cardiology.</p><p><strong>Second place:</strong> $2,500.</p><p><strong>Third place:</strong> $1,000.</p><p>All prizes are sponsored by the National Institute of Biomedical Imaging and Bioengineering (NIBIB).</p>",
@@ -175,7 +199,7 @@
     "fields": {
       "challenge": 1,
       "base_image": "python:3.11-slim",
-      "entrypoint_command": "python predict.py --input /data/test --output /output/predictions.csv",
+      "entrypoint_command": "python main.py",
       "max_runtime_seconds": 7200,
       "max_memory_mb": 8192,
       "gpu_enabled": false,
@@ -193,7 +217,7 @@
         "columns": ["record_id", "prediction", "risk_score"],
         "description": "One row per test record with binary prediction and continuous risk score"
       },
-      "evaluation_script_gcs_uri": "gs://physionet-challenges/ahe-prediction/evaluation/evaluate.py",
+      "evaluation_script_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/evaluation/evaluate.py",
       "primary_metric_name": "AUROC",
       "primary_metric_sort": "desc",
       "additional_metrics": [

@@ -330,7 +330,7 @@ input[type="checkbox"] {
 }
 
 .challenge-phase-bar .phase-segment.past {
-  background: var(--gray-200);
+  background: #ced4da;
 }
 
 .challenge-phase-bar .phase-segment.current {
@@ -344,7 +344,7 @@ input[type="checkbox"] {
 }
 
 .challenge-phase-bar .phase-segment.future {
-  background: var(--gray-200);
+  background: #f8f9fa;
 }
 
 /* Tabs */
