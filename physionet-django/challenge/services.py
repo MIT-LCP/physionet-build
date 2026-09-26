@@ -11,6 +11,7 @@ import shutil
 import tarfile
 import tempfile
 import time
+import zipfile
 
 from django.conf import settings
 from django.utils import timezone
@@ -262,11 +263,15 @@ class LocalContainerOrchestrator:
         # Download and extract code archive from GCS
         archive_obj = ObjectPath(self.submission.code_archive_gcs_uri)
         archive_blob = archive_obj.bucket().blob(archive_obj.key())
-        archive_local = os.path.join(self._tmpdir, 'archive.tar.gz')
+        archive_local = os.path.join(self._tmpdir, 'archive')
         archive_blob.download_to_filename(archive_local)
 
-        with tarfile.open(archive_local, 'r:gz') as tar:
-            tar.extractall(path=code_dir)
+        if zipfile.is_zipfile(archive_local):
+            with zipfile.ZipFile(archive_local, 'r') as zf:
+                zf.extractall(path=code_dir)
+        else:
+            with tarfile.open(archive_local, 'r:*') as tar:
+                tar.extractall(path=code_dir)
 
         # Download test data from GCS if available
         test_data_uri = getattr(self.challenge, 'test_data_gcs_uri', None)
