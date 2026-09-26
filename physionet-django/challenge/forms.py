@@ -9,6 +9,15 @@ from challenge.models import (
 )
 
 
+class JSONPlaceholderTextarea(forms.Textarea):
+    """Textarea that shows a placeholder when the JSON value is empty."""
+
+    def format_value(self, value):
+        if value in (None, '', '{}', '[]', 'null'):
+            return ''
+        return value
+
+
 class ChallengeConfigurationForm(forms.ModelForm):
     """
     Form for editing ChallengeConfiguration during project submission.
@@ -47,6 +56,22 @@ class ChallengeConfigurationForm(forms.ModelForm):
             'end_datetime': forms.DateTimeInput(
                 attrs={'type': 'datetime-local'},
             ),
+            'input_format': JSONPlaceholderTextarea(attrs={
+                'rows': 4,
+                'placeholder': '{"data_file": "test_data.csv", "id_column": "subject_id"}',
+            }),
+            'output_format': JSONPlaceholderTextarea(attrs={
+                'rows': 4,
+                'placeholder': '{"predictions_file": "predictions.csv", "columns": ["subject_id", "prediction"]}',
+            }),
+            'primary_metric': JSONPlaceholderTextarea(attrs={
+                'rows': 3,
+                'placeholder': '{"name": "auroc", "display_name": "AUROC", "sort": "desc"}',
+            }),
+            'additional_metrics': JSONPlaceholderTextarea(attrs={
+                'rows': 4,
+                'placeholder': '[{"name": "f1_score", "display_name": "F1 Score", "sort": "desc"}]',
+            }),
         }
 
     def __init__(self, editable=True, **kwargs):
@@ -212,8 +237,7 @@ class SubmissionSpecForm(forms.ModelForm):
             'max_runtime_seconds', 'max_memory_mb',
             'gpu_enabled', 'gpu_type', 'cpu_count',
             'input_format', 'output_format',
-            'primary_metric_name', 'primary_metric_sort',
-            'additional_metrics',
+            'primary_metric', 'additional_metrics',
         ]
 
 

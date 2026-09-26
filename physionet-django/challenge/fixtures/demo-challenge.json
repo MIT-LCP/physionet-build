@@ -218,11 +218,10 @@
         "description": "One row per test record with binary prediction and continuous risk score"
       },
       "evaluation_script_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/evaluation/evaluate.py",
-      "primary_metric_name": "AUROC",
-      "primary_metric_sort": "desc",
+      "primary_metric": {"name": "AUROC", "display_name": "AUROC", "sort": "desc"},
       "additional_metrics": [
-        {"name": "Sensitivity", "sort": "desc"},
-        {"name": "PPV", "sort": "desc"}
+        {"name": "Sensitivity", "display_name": "Sensitivity", "sort": "desc"},
+        {"name": "PPV", "display_name": "PPV", "sort": "desc"}
       ]
     }
   },

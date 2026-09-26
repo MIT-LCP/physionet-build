@@ -90,7 +90,7 @@
   <h4>Evaluation</h4>
   <hr>
   {% for field in challenge_config_form %}
-    {% if field.name == 'primary_metric_name' or field.name == 'primary_metric_sort' or field.name == 'additional_metrics' or field.name == 'input_format' or field.name == 'output_format' %}
+    {% if field.name == 'primary_metric' or field.name == 'additional_metrics' or field.name == 'input_format' or field.name == 'output_format' %}
     <div class="form-group row">
       <label class="col-md-3" for="{{ field.id_for_label }}">
         {{ field.label }}

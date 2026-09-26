@@ -432,7 +432,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     self.integrity_errors.append('Challenge start date is required.')
                 if not config.end_datetime:
                     self.integrity_errors.append('Challenge end date is required.')
-                if not config.primary_metric_name:
+                if not config.primary_metric.get('name'):
                     self.integrity_errors.append('Primary metric name is required.')
 
         if self.integrity_errors:
@@ -772,8 +772,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         cpu_count=config.cpu_count,
                         input_format=config.input_format,
                         output_format=config.output_format,
-                        primary_metric_name=config.primary_metric_name,
-                        primary_metric_sort=config.primary_metric_sort,
+                        primary_metric=config.primary_metric,
                         additional_metrics=config.additional_metrics,
                         evaluation_script_gcs_uri=config.evaluation_script_gcs_uri,
                     )

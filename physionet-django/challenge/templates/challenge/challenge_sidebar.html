@@ -30,7 +30,7 @@
       <dd>{{ challenge_participant_count }}</dd>
       {% if challenge_submission_spec %}
       <dt>Metric</dt>
-      <dd>{{ challenge_submission_spec.primary_metric_name }}</dd>
+      <dd>{{ challenge_submission_spec.primary_metric.display_name|default:challenge_submission_spec.primary_metric_name }}</dd>
       {% endif %}
       <dt>Daily limit</dt>
       <dd>{{ challenge.max_submissions_per_day }}</dd>
