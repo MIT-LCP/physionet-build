@@ -19,12 +19,15 @@ class Command(BaseCommand):
     help = 'Upload demo challenge test data to the fake GCS staging bucket.'
 
     def handle(self, *args, **options):
-        emulator_host = os.environ.get('STORAGE_EMULATOR_HOST', '')
+        emulator_host = getattr(settings, 'STORAGE_EMULATOR_HOST', '')
         if not emulator_host:
             raise CommandError(
                 'STORAGE_EMULATOR_HOST is not set. This command is only '
                 'intended for local development with the fake GCS server.'
             )
+
+        # Ensure the env var is set for the google-cloud-storage SDK.
+        os.environ['STORAGE_EMULATOR_HOST'] = emulator_host
 
         bucket_name = getattr(settings, 'CHALLENGE_STAGING_BUCKET', 'challenge-staging')
 
