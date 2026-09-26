@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import shutil
+import subprocess
 import tarfile
 import tempfile
 import time
@@ -344,6 +345,9 @@ class LocalContainerOrchestrator:
             self.submission.save(update_fields=['error_message'])
             raise RuntimeError(error_msg[:2000])
 
+        # Run the evaluation script to score predictions against labels
+        self._run_evaluation(output_dir)
+
         # Upload output files to GCS
         output_obj = ObjectPath(self.output_gcs_path)
         output_bucket = output_obj.bucket()
@@ -356,6 +360,78 @@ class LocalContainerOrchestrator:
                 blob.upload_from_filename(local_file)
 
         logger.info('Local container completed for submission %s', self.submission.pk)
+
+    def _run_evaluation(self, output_dir):
+        """
+        Download the evaluation script and ground-truth labels from GCS,
+        then run the script to compare submission predictions against labels.
+
+        The evaluation script is invoked as:
+            python evaluate.py <predictions_dir> <labels_dir> <scores_output>
+
+        It must write a JSON dict of {metric_name: value} to scores_output.
+        """
+        from physionet.gcp import ObjectPath
+
+        eval_uri = self.spec.evaluation_script_gcs_uri
+        if not eval_uri:
+            logger.info(
+                'No evaluation script configured — expecting container '
+                'to write scores.json directly (submission %s)',
+                self.submission.pk,
+            )
+            return
+
+        # Download the evaluation script
+        eval_obj = ObjectPath(eval_uri)
+        eval_blob = eval_obj.bucket().blob(eval_obj.key())
+        if not eval_blob.exists():
+            raise FileNotFoundError(
+                f'Evaluation script not found at {eval_uri}'
+            )
+        eval_dir = os.path.join(self._tmpdir, 'evaluation')
+        os.makedirs(eval_dir, exist_ok=True)
+        eval_script = os.path.join(eval_dir, 'evaluate.py')
+        eval_blob.download_to_filename(eval_script)
+
+        # Download ground-truth labels (validation data)
+        labels_dir = os.path.join(self._tmpdir, 'labels')
+        os.makedirs(labels_dir, exist_ok=True)
+        val_uri = getattr(self.challenge, 'validation_data_gcs_uri', '')
+        if val_uri:
+            if val_uri.startswith('gs://'):
+                val_uri = val_uri[5:]
+            try:
+                val_obj = ObjectPath(val_uri)
+                val_bucket = val_obj.bucket()
+                prefix = val_obj.key()
+                for blob in val_bucket.list_blobs(prefix=prefix):
+                    rel_path = blob.name[len(prefix):].lstrip('/')
+                    if not rel_path:
+                        continue
+                    local_path = os.path.join(labels_dir, rel_path)
+                    os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                    blob.download_to_filename(local_path)
+            except Exception:
+                logger.warning(
+                    'Could not download validation data from %s', val_uri,
+                )
+
+        # Run: python evaluate.py <predictions_dir> <labels_dir> <scores_output>
+        scores_output = os.path.join(output_dir, 'scores.json')
+        result = subprocess.run(
+            ['python', eval_script, output_dir, labels_dir, scores_output],
+            capture_output=True, text=True,
+            timeout=120,
+        )
+        if result.returncode != 0:
+            error_msg = (
+                f'Evaluation script failed (exit {result.returncode}):\n'
+                f'{result.stderr}'
+            )
+            raise RuntimeError(error_msg[:2000])
+
+        logger.info('Evaluation complete for submission %s', self.submission.pk)
 
     def poll(self):
         """Return True immediately — execution is synchronous in run()."""
