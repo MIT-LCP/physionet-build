@@ -53,19 +53,25 @@
 <div class="challenge-phase-bar">
   <div class="phase-segment {% if challenge.phase == 'registration' %}current{% elif challenge.phase == 'unofficial' or challenge.phase == 'official' or challenge.phase == 'results' or challenge.phase == 'archived' %}past{% else %}future{% endif %}">
     <span class="phase-name">Registration</span>
-    {% if challenge.registration_open_datetime %}
+    {% if challenge.registration_open_datetime and challenge.start_datetime %}
+    <span class="phase-date">{{ challenge.registration_open_datetime|date:"M d" }} – {{ challenge.start_datetime|date:"M d" }}</span>
+    {% elif challenge.registration_open_datetime %}
     <span class="phase-date">{{ challenge.registration_open_datetime|date:"M d" }}</span>
     {% endif %}
   </div>
   <div class="phase-segment {% if challenge.phase == 'unofficial' %}current{% elif challenge.phase == 'official' or challenge.phase == 'results' or challenge.phase == 'archived' %}past{% else %}future{% endif %}">
     <span class="phase-name">Phase 1: Unofficial</span>
-    {% if challenge.start_datetime %}
+    {% if challenge.start_datetime and challenge.official_start_datetime %}
+    <span class="phase-date">{{ challenge.start_datetime|date:"M d" }} – {{ challenge.official_start_datetime|date:"M d" }}</span>
+    {% elif challenge.start_datetime %}
     <span class="phase-date">{{ challenge.start_datetime|date:"M d" }}</span>
     {% endif %}
   </div>
   <div class="phase-segment {% if challenge.phase == 'official' %}current{% elif challenge.phase == 'results' or challenge.phase == 'archived' %}past{% else %}future{% endif %}">
     <span class="phase-name">Phase 2: Official</span>
-    {% if challenge.official_start_datetime %}
+    {% if challenge.official_start_datetime and challenge.end_datetime %}
+    <span class="phase-date">{{ challenge.official_start_datetime|date:"M d" }} – {{ challenge.end_datetime|date:"M d" }}</span>
+    {% elif challenge.official_start_datetime %}
     <span class="phase-date">{{ challenge.official_start_datetime|date:"M d" }}</span>
     {% endif %}
   </div>
