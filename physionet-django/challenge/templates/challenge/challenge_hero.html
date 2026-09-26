@@ -37,7 +37,7 @@
     {% if challenge_submission_spec %}
     <div class="meta-item">
       <span class="meta-label">Metric</span>
-      <span class="meta-value">{{ challenge_submission_spec.primary_metric_name }}</span>
+      <span class="meta-value">{{ challenge_submission_spec.primary_metric.display_name|default:challenge_submission_spec.primary_metric_name }}</span>
     </div>
     {% endif %}
     {% if challenge.prizes %}

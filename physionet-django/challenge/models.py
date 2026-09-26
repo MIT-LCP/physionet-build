@@ -7,7 +7,6 @@ from project.fields import SafeHTMLField
 from challenge.enums import (
     ChallengePhase,
     DatasetType,
-    MetricSort,
     SubmissionStatus,
 )
 
@@ -43,15 +42,24 @@ class ChallengeConfiguration(models.Model):
     gpu_enabled = models.BooleanField(default=False)
     gpu_type = models.CharField(max_length=50, blank=True, default='')
     cpu_count = models.PositiveIntegerField(default=2)
-    input_format = models.JSONField(default=dict, blank=True)
-    output_format = models.JSONField(default=dict, blank=True)
-    primary_metric_name = models.CharField(max_length=100, default='score')
-    primary_metric_sort = models.CharField(
-        max_length=4,
-        choices=MetricSort.choices,
-        default=MetricSort.DESC,
+    input_format = models.JSONField(
+        default=dict, blank=True,
+        help_text='Describes the data structure that will be provided to participant code.',
     )
-    additional_metrics = models.JSONField(default=list, blank=True)
+    output_format = models.JSONField(
+        default=dict, blank=True,
+        help_text='Describes the output structure that participant code must produce.',
+    )
+    primary_metric = models.JSONField(
+        default=dict, blank=True,
+        help_text='Primary metric for ranking. JSON object with name, display_name, and sort '
+                  '(e.g. {"name": "auroc", "display_name": "AUROC", "sort": "desc"}).',
+    )
+    additional_metrics = models.JSONField(
+        default=list, blank=True,
+        help_text='Secondary scoring metrics. Each entry needs name, display_name, and sort '
+                  '(e.g. [{"name": "f1_score", "display_name": "F1 Score", "sort": "desc"}]).',
+    )
 
     # Display
     organizer_name = models.CharField(max_length=200, blank=True, default='')
@@ -69,6 +77,14 @@ class ChallengeConfiguration(models.Model):
         max_length=500, blank=True, default='',
         help_text='GCS URI for the evaluation/scoring script.',
     )
+
+    @property
+    def primary_metric_name(self):
+        return self.primary_metric.get('name', '')
+
+    @property
+    def primary_metric_sort(self):
+        return self.primary_metric.get('sort', 'desc')
 
     def __str__(self):
         return f'ChallengeConfiguration for {self.active_project}'
@@ -183,26 +199,34 @@ class SubmissionSpec(models.Model):
     cpu_count = models.PositiveIntegerField(default=2)
     input_format = models.JSONField(
         default=dict, blank=True,
-        help_text='JSON describing the expected input structure.',
+        help_text='Describes the data structure that will be provided to participant code.',
     )
     output_format = models.JSONField(
         default=dict, blank=True,
-        help_text='JSON describing the expected output structure.',
+        help_text='Describes the output structure that participant code must produce.',
     )
     evaluation_script_gcs_uri = models.CharField(
         max_length=500, blank=True, default='',
         help_text='GCS path to the scoring script.',
     )
-    primary_metric_name = models.CharField(max_length=100, default='score')
-    primary_metric_sort = models.CharField(
-        max_length=4,
-        choices=MetricSort.choices,
-        default=MetricSort.DESC,
+    primary_metric = models.JSONField(
+        default=dict, blank=True,
+        help_text='Primary metric for ranking. JSON object with name, display_name, and sort '
+                  '(e.g. {"name": "auroc", "display_name": "AUROC", "sort": "desc"}).',
     )
     additional_metrics = models.JSONField(
         default=list, blank=True,
-        help_text='List of {name, sort} objects for secondary metrics.',
+        help_text='Secondary scoring metrics. Each entry needs name, display_name, and sort '
+                  '(e.g. [{"name": "f1_score", "display_name": "F1 Score", "sort": "desc"}]).',
     )
+
+    @property
+    def primary_metric_name(self):
+        return self.primary_metric.get('name', '')
+
+    @property
+    def primary_metric_sort(self):
+        return self.primary_metric.get('sort', 'desc')
 
     def __str__(self):
         return f'SubmissionSpec for {self.challenge}'
