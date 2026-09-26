@@ -104,32 +104,19 @@
         <dd class="col-sm-8">{% if spec.gpu_enabled %}{{ spec.gpu_type|default:"Enabled" }}{% else %}Disabled{% endif %}</dd>
 
         <dt class="col-sm-4">Primary metric</dt>
-        <dd class="col-sm-8">{{ spec.primary_metric_name }} ({{ spec.get_primary_metric_sort_display }})</dd>
+        <dd class="col-sm-8">{{ spec.primary_metric_name }}</dd>
 
-        {% if spec.additional_metrics %}
+        <dt class="col-sm-4">Primary metric sort</dt>
+        <dd class="col-sm-8">{{ spec.get_primary_metric_sort_display }}</dd>
+
         <dt class="col-sm-4">Additional metrics</dt>
-        <dd class="col-sm-8">
-          {% for m in spec.additional_metrics %}{{ m.name }} ({{ m.sort }}){% if not forloop.last %}, {% endif %}{% endfor %}
-        </dd>
-        {% endif %}
+        <dd class="col-sm-8"><pre class="mb-0">{{ spec.additional_metrics|pprint }}</pre></dd>
 
-        {% if spec.input_format %}
         <dt class="col-sm-4">Input format</dt>
-        <dd class="col-sm-8">
-          <strong>{{ spec.input_format.type|default:"" }}</strong>
-          {% if spec.input_format.path %} &mdash; <code>{{ spec.input_format.path }}</code>{% endif %}
-          {% if spec.input_format.description %}<br>{{ spec.input_format.description }}{% endif %}
-        </dd>
-        {% endif %}
+        <dd class="col-sm-8"><pre class="mb-0">{{ spec.input_format|pprint }}</pre></dd>
 
-        {% if spec.output_format %}
         <dt class="col-sm-4">Output format</dt>
-        <dd class="col-sm-8">
-          <strong>{{ spec.output_format.type|default:"" }}</strong>
-          {% if spec.output_format.path %} &mdash; <code>{{ spec.output_format.path }}</code>{% endif %}
-          {% if spec.output_format.description %}<br>{{ spec.output_format.description }}{% endif %}
-        </dd>
-        {% endif %}
+        <dd class="col-sm-8"><pre class="mb-0">{{ spec.output_format|pprint }}</pre></dd>
       </dl>
     </div>
   </div>
