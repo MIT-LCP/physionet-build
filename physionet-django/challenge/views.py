@@ -14,6 +14,7 @@ from django.utils import timezone
 
 from challenge.enums import ChallengePhase, DatasetType, SubmissionStatus
 from challenge.forms import (
+    ChallengeManageForm,
     CodeSubmissionForm,
     TeamCreateForm,
     TeamInviteForm,
@@ -515,7 +516,7 @@ def challenge_submission_select(request, challenge, participant,
 @login_required
 @challenge_auth(require_organizer=True)
 def challenge_manage(request, challenge, participant, **kwargs):
-    """Organizer dashboard with statistics."""
+    """Organizer dashboard with statistics and settings."""
     stats = {
         'participants': challenge.participants.filter(is_active=True).count(),
         'teams': challenge.teams.filter(is_active=True).count(),
@@ -532,10 +533,23 @@ def challenge_manage(request, challenge, participant, **kwargs):
             ],
         ).count(),
     }
+
+    form = ChallengeManageForm(
+        request.POST or None, instance=challenge,
+    )
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Challenge settings updated.')
+        return redirect('challenge_manage', challenge_slug=challenge.slug)
+
+    spec = getattr(challenge, 'submission_spec', None)
+
     return render(request, 'challenge/challenge_manage.html', {
         'challenge': challenge,
         'participant': participant,
         'stats': stats,
+        'form': form,
+        'spec': spec,
     })
 
 

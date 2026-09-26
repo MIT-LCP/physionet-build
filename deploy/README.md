@@ -357,9 +357,18 @@ The challenge submission pipeline uses GCS for file storage and a container orch
    poetry install
    ```
 
+5. **Load the demo challenge and seed test data:**
+
+   ```
+   python manage.py resetdb && python manage.py loaddemo
+   python manage.py seed_challenge_data
+   ```
+
+   `seed_challenge_data` uploads the sample test data files from `challenge/fixtures/demo-submission-files/` to the fake GCS staging bucket. It only runs when `STORAGE_EMULATOR_HOST` is set.
+
 ### Testing the pipeline
 
-1. Create a challenge with a submission spec (base image, entrypoint command, resource limits).
+1. Create a challenge with a submission spec (base image, entrypoint command, resource limits), or use the demo challenge loaded above.
 2. Submit a code archive (`.tar.gz`) containing code that writes `scores.json` to the `OUTPUT_DIR` environment variable.
 3. The submission should transition through: PENDING → BUILDING → RUNNING → SCORING → COMPLETED.
 4. Scores should appear on the leaderboard.
