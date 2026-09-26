@@ -117,6 +117,15 @@
 
         <dt class="col-sm-4">Output format</dt>
         <dd class="col-sm-8"><pre class="mb-0">{{ spec.output_format|pprint }}</pre></dd>
+
+        <dt class="col-sm-4">Evaluation script</dt>
+        <dd class="col-sm-8">
+          {% if spec.evaluation_script_gcs_uri %}
+            <a href="{% url 'challenge_download_evaluation_script' challenge.slug %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-download"></i> Download</a>
+          {% else %}
+            Not uploaded
+          {% endif %}
+        </dd>
       </dl>
     </div>
   </div>
