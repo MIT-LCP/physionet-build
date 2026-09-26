@@ -3,11 +3,19 @@ Sample entry for the Predicting Acute Hypotensive Episodes challenge.
 
 This script demonstrates the expected interface for a challenge submission.
 It reads patient records from the test data directory, generates predictions,
-and writes a scores.json file to the output directory.
+and writes a predictions.json file to the output directory.
+
+The predictions.json file must be a list of objects, each with:
+    - record_id: identifier matching the input filename (without .csv)
+    - prediction: binary prediction (0 or 1)
+    - risk_score: continuous risk score between 0 and 1
+
+The evaluation pipeline will then compare these predictions against
+ground-truth labels to compute the final scores.
 
 Environment variables (set automatically by the evaluation environment):
     INPUT_DIR  - directory containing test CSV files
-    OUTPUT_DIR - directory where scores.json should be written
+    OUTPUT_DIR - directory where predictions.json should be written
 
 Usage:
     python main.py
@@ -79,8 +87,7 @@ def main():
             'risk_score': risk_score,
         })
 
-    # Write results as scores.json
-    output_path = os.path.join(output_dir, 'scores.json')
+    output_path = os.path.join(output_dir, 'predictions.json')
     with open(output_path, 'w') as f:
         json.dump(results, f, indent=2)
 

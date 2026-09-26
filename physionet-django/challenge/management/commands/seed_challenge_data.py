@@ -1,5 +1,5 @@
 """
-Upload demo test data to fake GCS when STORAGE_EMULATOR_HOST is set.
+Upload demo challenge data to fake GCS when STORAGE_EMULATOR_HOST is set.
 
 Usage: python manage.py seed_challenge_data
 
@@ -20,7 +20,7 @@ from google.cloud import storage
 
 
 class Command(BaseCommand):
-    help = 'Upload demo challenge test data to the fake GCS staging bucket.'
+    help = 'Upload demo challenge data to the fake GCS staging bucket.'
 
     def handle(self, *args, **options):
         emulator_host = getattr(settings, 'STORAGE_EMULATOR_HOST', '')
@@ -52,12 +52,8 @@ class Command(BaseCommand):
 
         bucket = client.bucket(bucket_name)
 
-        # Upload test data files.
         fixtures_dir = Path(__file__).resolve().parent.parent.parent / 'fixtures'
-        test_data_dir = fixtures_dir / 'demo-submission-files' / 'test_data'
-
-        if not test_data_dir.exists():
-            raise CommandError(f'Test data directory not found: {test_data_dir}')
+        demo_dir = fixtures_dir / 'demo-submission-files'
 
         from challenge.models import Challenge, Submission
         try:
@@ -67,21 +63,34 @@ class Command(BaseCommand):
                 'Demo challenge not found. Run "python manage.py loaddemo" first.'
             )
 
-        # Upload to the test_data_gcs_uri path.
-        test_prefix = challenge.test_data_gcs_uri
-        # Strip the bucket name prefix if present.
-        if test_prefix.startswith(f'{bucket_name}/'):
-            test_prefix = test_prefix[len(f'{bucket_name}/'):]
-
+        spec = challenge.submission_spec
         uploaded = 0
-        for filepath in test_data_dir.rglob('*'):
-            if filepath.is_file():
-                relative = filepath.relative_to(test_data_dir)
-                blob_name = f'{test_prefix}{relative}'
-                blob = bucket.blob(blob_name)
-                blob.upload_from_filename(str(filepath))
-                self.stdout.write(f'  Uploaded {relative} -> {blob_name}')
-                uploaded += 1
+
+        def strip_bucket(uri):
+            if uri.startswith(f'{bucket_name}/'):
+                return uri[len(f'{bucket_name}/'):]
+            return uri
+
+        # Upload test data
+        test_data_dir = demo_dir / 'test_data'
+        if test_data_dir.exists():
+            prefix = strip_bucket(challenge.test_data_gcs_uri)
+            uploaded += self._upload_dir(bucket, test_data_dir, prefix)
+
+        # Upload validation labels
+        validation_dir = demo_dir / 'validation'
+        if validation_dir.exists():
+            prefix = strip_bucket(challenge.validation_data_gcs_uri)
+            uploaded += self._upload_dir(bucket, validation_dir, prefix)
+
+        # Upload evaluation script
+        eval_dir = demo_dir / 'evaluation'
+        if eval_dir.exists() and spec.evaluation_script_gcs_uri:
+            eval_uri = strip_bucket(spec.evaluation_script_gcs_uri)
+            # The URI points to the script file itself, so upload
+            # all files in the evaluation dir to the parent path.
+            eval_prefix = eval_uri.rsplit('/', 1)[0] + '/'
+            uploaded += self._upload_dir(bucket, eval_dir, eval_prefix)
 
         # Upload code archive for each demo submission
         code_archive_dir = demo_dir / 'code_archive'
