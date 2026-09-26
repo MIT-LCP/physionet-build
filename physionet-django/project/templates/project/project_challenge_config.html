@@ -21,7 +21,7 @@
   </div>
 {% endif %}
 
-<form action="{% url 'project_challenge_config' project.slug %}" method="post" class="no-pd">
+<form action="{% url 'project_challenge_config' project.slug %}" method="post" enctype="multipart/form-data" class="no-pd">
   {% csrf_token %}
 
   <h4>Schedule</h4>
@@ -108,11 +108,11 @@
     {% endif %}
   {% endfor %}
 
-  <h4>Data Paths</h4>
+  <h4>Private Evaluation Data</h4>
   <hr>
-  <p>Specify the paths within the project files where the evaluation script and hidden test data are located. Upload these files using the Files tab.</p>
+  <p>These files are stored privately and never included in the public project.</p>
   {% for field in challenge_config_form %}
-    {% if field.name == 'evaluation_script_path' or field.name == 'hidden_test_data_path' %}
+    {% if field.name == 'validation_data_archive' or field.name == 'test_data_archive' or field.name == 'evaluation_script_file' %}
     <div class="form-group row">
       <label class="col-md-3" for="{{ field.id_for_label }}">
         {{ field.label }}
@@ -125,6 +125,25 @@
         {% for error in field.errors %}
           <div class="alert alert-danger"><strong>{{ error|escape }}</strong></div>
         {% endfor %}
+        {% if field.name == 'validation_data_archive' %}
+          {% if challenge_config.validation_data_gcs_uri %}
+            <small class="text-success"><i class="fas fa-check-circle"></i> Uploaded</small>
+          {% else %}
+            <small class="text-muted"><i class="fas fa-times-circle"></i> Not yet uploaded</small>
+          {% endif %}
+        {% elif field.name == 'test_data_archive' %}
+          {% if challenge_config.test_data_gcs_uri %}
+            <small class="text-success"><i class="fas fa-check-circle"></i> Uploaded</small>
+          {% else %}
+            <small class="text-muted"><i class="fas fa-times-circle"></i> Not yet uploaded</small>
+          {% endif %}
+        {% elif field.name == 'evaluation_script_file' %}
+          {% if challenge_config.evaluation_script_gcs_uri %}
+            <small class="text-success"><i class="fas fa-check-circle"></i> Uploaded</small>
+          {% else %}
+            <small class="text-muted"><i class="fas fa-times-circle"></i> Not yet uploaded</small>
+          {% endif %}
+        {% endif %}
       </div>
     </div>
     {% endif %}
