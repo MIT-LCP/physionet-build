@@ -98,7 +98,9 @@ class ContainerOrchestrator:
         container = run_v2.Container(
             image=self.spec.base_image,
             command=['sh', '-c'],
-            args=[self.spec.entrypoint_command],
+            args=[
+                f'if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && {self.spec.entrypoint_command}'
+            ],
             env=env_vars,
             resources=run_v2.ResourceRequirements(
                 limits={
@@ -317,7 +319,10 @@ class LocalContainerOrchestrator:
         # Run container synchronously
         self._container = self.docker_client.containers.run(
             image=self.spec.base_image,
-            command=['sh', '-c', self.spec.entrypoint_command],
+            command=[
+                'sh', '-c',
+                f'if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && {self.spec.entrypoint_command}',
+            ],
             environment=environment,
             volumes=volumes,
             working_dir='/workspace',
