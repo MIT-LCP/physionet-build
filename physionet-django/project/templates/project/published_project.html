@@ -174,13 +174,13 @@
             <ul>
               {% for section in project.content_sections %}
                 {% if section.body %}
-                  <li><a href="#{{ section.html_id }}">{{ section.title }}</a></li>
+                  <li><a href="#{{ section.html_id }}" {% if challenge %}onclick="switchChallengeTab('overview')"{% endif %}>{{ section.title }}</a></li>
                 {% endif %}
               {% endfor %}
               {% if references %}
-                <li><a href="#references">References</a></li>
+                <li><a href="#references" {% if challenge %}onclick="switchChallengeTab('overview')"{% endif %}>References</a></li>
               {% endif %}
-              <li><a href="#files">Files</a></li>
+              <li><a href="#files" {% if challenge %}onclick="switchChallengeTab('overview')"{% endif %}>Files</a></li>
               {% if challenge %}
                 <li><a href="#leaderboard" onclick="switchChallengeTab('leaderboard', true); return false;">Leaderboard</a></li>
               {% endif %}
