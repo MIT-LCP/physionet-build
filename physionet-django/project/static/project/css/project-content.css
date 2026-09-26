@@ -209,22 +209,22 @@ input[type="checkbox"] {
 .challenge-hero {
   background: var(--pink-100);
   border-radius: 10px;
-  padding: 2rem 2.5rem;
-  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
   color: var(--secondary-color);
 }
 
 .challenge-hero-organizer {
   font-size: 0.85rem;
   color: var(--gray-color);
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .challenge-hero-cta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .challenge-hero-meta {
