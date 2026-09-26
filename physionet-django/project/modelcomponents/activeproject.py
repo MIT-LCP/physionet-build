@@ -758,6 +758,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         max_total_submissions=config.max_total_submissions,
                         teams_enabled=config.teams_enabled,
                         organizer_name=config.organizer_name,
+                        validation_data_gcs_uri=config.validation_data_gcs_uri,
+                        test_data_gcs_uri=config.test_data_gcs_uri,
                     )
                     SubmissionSpec.objects.create(
                         challenge=challenge,
@@ -773,6 +775,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         primary_metric_name=config.primary_metric_name,
                         primary_metric_sort=config.primary_metric_sort,
                         additional_metrics=config.additional_metrics,
+                        evaluation_script_gcs_uri=config.evaluation_script_gcs_uri,
                     )
 
                 # Remove the ActiveProject

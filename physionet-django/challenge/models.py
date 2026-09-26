@@ -56,18 +56,18 @@ class ChallengeConfiguration(models.Model):
     # Display
     organizer_name = models.CharField(max_length=200, blank=True, default='')
 
-    # File paths within the project
-    evaluation_script_path = models.CharField(
-        max_length=500, blank=True, default='evaluation/evaluate.py',
-        help_text='Path to the evaluation script within the project files.',
+    # Private evaluation data (uploaded directly to GCS)
+    validation_data_gcs_uri = models.CharField(
+        max_length=500, blank=True, default='',
+        help_text='GCS URI for the private validation data.',
     )
-    validation_data_path = models.CharField(
-        max_length=500, blank=True, default='validation_data/',
-        help_text='Path to the validation data directory within the project files.',
+    test_data_gcs_uri = models.CharField(
+        max_length=500, blank=True, default='',
+        help_text='GCS URI for the private final test data.',
     )
-    test_data_path = models.CharField(
-        max_length=500, blank=True, default='test_data/',
-        help_text='Path to the final test data directory within the project files.',
+    evaluation_script_gcs_uri = models.CharField(
+        max_length=500, blank=True, default='',
+        help_text='GCS URI for the evaluation/scoring script.',
     )
 
     def __str__(self):

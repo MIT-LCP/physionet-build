@@ -13,9 +13,27 @@ class ChallengeConfigurationForm(forms.ModelForm):
     """
     Form for editing ChallengeConfiguration during project submission.
     """
+    validation_data_archive = forms.FileField(
+        required=False,
+        help_text='Upload validation data as a .tar.gz or .zip archive.',
+    )
+    test_data_archive = forms.FileField(
+        required=False,
+        help_text='Upload test data as a .tar.gz or .zip archive.',
+    )
+    evaluation_script_file = forms.FileField(
+        required=False,
+        help_text='Upload the evaluation/scoring script (e.g. evaluate.py).',
+    )
+
     class Meta:
         model = ChallengeConfiguration
-        exclude = ('active_project',)
+        exclude = (
+            'active_project',
+            'validation_data_gcs_uri',
+            'test_data_gcs_uri',
+            'evaluation_script_gcs_uri',
+        )
         widgets = {
             'registration_open_datetime': forms.DateTimeInput(
                 attrs={'type': 'datetime-local'},
@@ -36,6 +54,22 @@ class ChallengeConfigurationForm(forms.ModelForm):
         if not editable:
             for field in self.fields.values():
                 field.disabled = True
+
+    def _validate_archive(self, field_name):
+        archive = self.cleaned_data.get(field_name)
+        if archive:
+            valid_extensions = ('.tar.gz', '.tgz', '.zip')
+            if not any(archive.name.endswith(ext) for ext in valid_extensions):
+                raise forms.ValidationError(
+                    'Upload must be a .tar.gz or .zip archive.'
+                )
+        return archive
+
+    def clean_validation_data_archive(self):
+        return self._validate_archive('validation_data_archive')
+
+    def clean_test_data_archive(self):
+        return self._validate_archive('test_data_archive')
 
     def clean(self):
         cleaned_data = super().clean()
