@@ -273,8 +273,7 @@ class SubmissionSpecForm(forms.ModelForm):
             'max_runtime_seconds', 'max_memory_mb',
             'gpu_enabled', 'gpu_type', 'cpu_count',
             'input_format', 'output_format',
-            'primary_metric',
-            'additional_metrics',
+            'primary_metric', 'additional_metrics',
         ]
 
     def clean_input_format(self):

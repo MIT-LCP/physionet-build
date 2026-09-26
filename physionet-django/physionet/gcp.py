@@ -10,7 +10,7 @@ from storages.backends.gcloud import GoogleCloudStorage
 def get_client():
     emulator_host = getattr(settings, 'CHALLENGE_STORAGE_EMULATOR_HOST', '')
     if emulator_host:
-        os.environ['CHALLENGE_STORAGE_EMULATOR_HOST'] = emulator_host
+        os.environ['STORAGE_EMULATOR_HOST'] = emulator_host
         return Client()
     return GoogleCloudStorage().client
 

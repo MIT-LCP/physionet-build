@@ -1,5 +1,5 @@
 """
-Upload demo challenge data to fake GCS when STORAGE_EMULATOR_HOST is set.
+Upload demo challenge data to fake GCS when CHALLENGE_STORAGE_EMULATOR_HOST is configured.
 
 Usage: python manage.py seed_challenge_data
 
@@ -23,10 +23,10 @@ class Command(BaseCommand):
     help = 'Upload demo challenge data to the fake GCS staging bucket.'
 
     def handle(self, *args, **options):
-        emulator_host = getattr(settings, 'STORAGE_EMULATOR_HOST', '')
+        emulator_host = getattr(settings, 'CHALLENGE_STORAGE_EMULATOR_HOST', '')
         if not emulator_host:
             raise CommandError(
-                'STORAGE_EMULATOR_HOST is not set. This command is only '
+                'CHALLENGE_STORAGE_EMULATOR_HOST is not set. This command is only '
                 'intended for local development with the fake GCS server.'
             )
 

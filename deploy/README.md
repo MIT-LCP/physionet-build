@@ -364,7 +364,7 @@ The challenge submission pipeline uses GCS for file storage and a container orch
    python manage.py seed_challenge_data
    ```
 
-   `seed_challenge_data` uploads the sample test data files from `challenge/fixtures/demo-submission-files/` to the fake GCS staging bucket. It only runs when `STORAGE_EMULATOR_HOST` is set.
+   `seed_challenge_data` uploads the sample test data files from `challenge/fixtures/demo-submission-files/` to the fake GCS staging bucket. It only runs when `CHALLENGE_STORAGE_EMULATOR_HOST` is set.
 
 ### Testing the pipeline
 

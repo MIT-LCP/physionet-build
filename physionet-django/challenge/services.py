@@ -110,7 +110,9 @@ class ContainerOrchestrator:
             image=self.spec.base_image,
             command=['sh', '-c'],
             args=[
-                f'if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && {self.spec.entrypoint_command}'
+                'if [ -f requirements.txt ]; then'
+                ' pip install --no-cache-dir -r requirements.txt;'
+                f' fi && {self.spec.entrypoint_command}'
             ],
             env=env_vars,
             resources=run_v2.ResourceRequirements(

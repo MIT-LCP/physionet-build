@@ -776,7 +776,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         cpu_count=config.cpu_count,
                         input_format=config.input_format,
                         output_format=config.output_format,
-                        primary_metric_name=config.primary_metric.get('name'),
+                        primary_metric=config.primary_metric,
                         additional_metrics=config.additional_metrics,
                         evaluation_script_gcs_uri=config.evaluation_script_gcs_uri,
                     )

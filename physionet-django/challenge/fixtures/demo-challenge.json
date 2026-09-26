@@ -30,9 +30,7 @@
       "dua": null,
       "project_home_page": "",
       "core_project": "c1a2b3d4-e5f6-7890-abcd-ef1234500001",
-      "editor": [
-        "admin"
-      ],
+      "editor": ["admin"],
       "submission_datetime": "2024-01-10T10:00:00Z",
       "author_comments": "",
       "editor_assignment_datetime": "2024-01-11T10:00:00Z",
@@ -66,9 +64,7 @@
     "model": "project.publishedauthor",
     "pk": 22,
     "fields": {
-      "user": [
-        "tompollard"
-      ],
+      "user": ["tompollard"],
       "display_order": 1,
       "is_submitting": true,
       "is_corresponding": true,
@@ -83,9 +79,7 @@
     "model": "project.publishedauthor",
     "pk": 23,
     "fields": {
-      "user": [
-        "george"
-      ],
+      "user": ["george"],
       "display_order": 2,
       "is_submitting": false,
       "is_corresponding": false,
@@ -100,9 +94,7 @@
     "model": "project.publishedauthor",
     "pk": 24,
     "fields": {
-      "user": [
-        "aewj"
-      ],
+      "user": ["aewj"],
       "display_order": 3,
       "is_submitting": false,
       "is_corresponding": false,
@@ -117,9 +109,7 @@
     "model": "project.publishedauthor",
     "pk": 25,
     "fields": {
-      "user": [
-        "rgmark"
-      ],
+      "user": ["rgmark"],
       "display_order": 4,
       "is_submitting": false,
       "is_corresponding": false,
@@ -182,9 +172,7 @@
     "fields": {
       "published_project": 21,
       "slug": "ahe-prediction-challenge",
-      "organizer": [
-        "tompollard"
-      ],
+      "organizer": ["tompollard"],
       "organizer_name": "Co-hosted by PhysioNet and the National Institutes of Health",
       "registration_open_datetime": "2024-01-15T10:00:00Z",
       "start_datetime": "2024-02-01T00:00:00Z",
@@ -223,46 +211,23 @@
         "type": "directory",
         "path": "/data/test",
         "description": "Directory of CSV files, one per patient record",
-        "columns": [
-          "timestamp",
-          "MAP",
-          "SBP",
-          "DBP",
-          "HR",
-          "RR",
-          "SpO2"
-        ]
+        "columns": ["timestamp", "MAP", "SBP", "DBP", "HR", "RR", "SpO2"]
       },
       "output_format": {
         "type": "csv",
         "path": "/output/predictions.csv",
-        "columns": [
-          "record_id",
-          "prediction",
-          "risk_score"
-        ],
+        "columns": ["record_id", "prediction", "risk_score"],
         "description": "One row per test record with binary prediction and continuous risk score"
       },
       "evaluation_script_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/evaluation/evaluate.py",
+      "primary_metric": {"name": "AUROC", "display_name": "AUROC", "sort": "desc"},
       "additional_metrics": [
-        {
-          "name": "Sensitivity",
-          "sort": "desc",
-          "display_name": "Sensitivity"
-        },
-        {
-          "name": "PPV",
-          "sort": "desc",
-          "display_name": "PPV"
-        }
-      ],
-      "primary_metric": {
-        "name": "AUROC",
-        "display_name": "AUROC",
-        "sort": "desc"
-      }
+        {"name": "Sensitivity", "display_name": "Sensitivity", "sort": "desc"},
+        {"name": "PPV", "display_name": "PPV", "sort": "desc"}
+      ]
     }
   },
+
   {
     "model": "challenge.team",
     "pk": 1,
@@ -283,13 +248,12 @@
       "is_active": true
     }
   },
+
   {
     "model": "challenge.challengeparticipant",
     "pk": 1,
     "fields": {
-      "user": [
-        "jameslawson"
-      ],
+      "user": ["jameslawson"],
       "challenge": 1,
       "registered_datetime": "2024-01-18T08:15:00Z",
       "is_active": true,
@@ -301,9 +265,7 @@
     "model": "challenge.challengeparticipant",
     "pk": 2,
     "fields": {
-      "user": [
-        "eulaeasley"
-      ],
+      "user": ["eulaeasley"],
       "challenge": 1,
       "registered_datetime": "2024-01-19T11:40:00Z",
       "is_active": true,
@@ -315,9 +277,7 @@
     "model": "challenge.challengeparticipant",
     "pk": 3,
     "fields": {
-      "user": [
-        "miriamturner"
-      ],
+      "user": ["miriamturner"],
       "challenge": 1,
       "registered_datetime": "2024-01-20T16:20:00Z",
       "is_active": true,
@@ -329,9 +289,7 @@
     "model": "challenge.challengeparticipant",
     "pk": 4,
     "fields": {
-      "user": [
-        "deborahbui"
-      ],
+      "user": ["deborahbui"],
       "challenge": 1,
       "registered_datetime": "2024-01-21T09:05:00Z",
       "is_active": true,
@@ -343,9 +301,7 @@
     "model": "challenge.challengeparticipant",
     "pk": 5,
     "fields": {
-      "user": [
-        "franwilliams"
-      ],
+      "user": ["franwilliams"],
       "challenge": 1,
       "registered_datetime": "2024-01-25T13:50:00Z",
       "is_active": true,
@@ -353,14 +309,13 @@
       "is_team_captain": false
     }
   },
+
   {
     "model": "challenge.submission",
     "pk": 1,
     "fields": {
       "challenge": 1,
-      "submitted_by": [
-        "jameslawson"
-      ],
+      "submitted_by": ["jameslawson"],
       "team": 1,
       "code_archive_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/submissions/team1-001.tar.gz",
       "code_archive_sha256": "a3f8c1d2e4b5670891a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708",
@@ -381,9 +336,7 @@
     "pk": 2,
     "fields": {
       "challenge": 1,
-      "submitted_by": [
-        "jameslawson"
-      ],
+      "submitted_by": ["jameslawson"],
       "team": 1,
       "code_archive_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/submissions/team1-002.tar.gz",
       "code_archive_sha256": "b4c9d2e3f5a67801923a4b5c6d7e8f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e",
@@ -404,9 +357,7 @@
     "pk": 3,
     "fields": {
       "challenge": 1,
-      "submitted_by": [
-        "miriamturner"
-      ],
+      "submitted_by": ["miriamturner"],
       "team": 2,
       "code_archive_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/submissions/team2-001.tar.gz",
       "code_archive_sha256": "c5d0e3f4a6b78912034b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f",
@@ -427,9 +378,7 @@
     "pk": 4,
     "fields": {
       "challenge": 1,
-      "submitted_by": [
-        "miriamturner"
-      ],
+      "submitted_by": ["miriamturner"],
       "team": 2,
       "code_archive_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/submissions/team2-002.tar.gz",
       "code_archive_sha256": "d6e1f4a5b7c89023145c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a",
@@ -450,9 +399,7 @@
     "pk": 5,
     "fields": {
       "challenge": 1,
-      "submitted_by": [
-        "franwilliams"
-      ],
+      "submitted_by": ["franwilliams"],
       "team": null,
       "code_archive_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/submissions/fran-001.tar.gz",
       "code_archive_sha256": "e7f2a5b6c8d90134256d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b",
@@ -473,9 +420,7 @@
     "pk": 6,
     "fields": {
       "challenge": 1,
-      "submitted_by": [
-        "miriamturner"
-      ],
+      "submitted_by": ["miriamturner"],
       "team": 2,
       "code_archive_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/submissions/team2-003.tar.gz",
       "code_archive_sha256": "f8a3b6c7d9e01245367e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c",
@@ -496,9 +441,7 @@
     "pk": 7,
     "fields": {
       "challenge": 1,
-      "submitted_by": [
-        "franwilliams"
-      ],
+      "submitted_by": ["franwilliams"],
       "team": null,
       "code_archive_gcs_uri": "challenge-staging/challenges/ahe-prediction-challenge/submissions/fran-002.tar.gz",
       "code_archive_sha256": "09a4b7c8d0e12356478f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d",
@@ -514,6 +457,7 @@
       "is_selected": false
     }
   },
+
   {
     "model": "challenge.score",
     "pk": 1,
@@ -600,7 +544,7 @@
     "fields": {
       "submission": 3,
       "metric_name": "PPV",
-      "value": 0.59,
+      "value": 0.590,
       "dataset": "val"
     }
   },
@@ -650,7 +594,7 @@
     "fields": {
       "submission": 5,
       "metric_name": "Sensitivity",
-      "value": 0.71,
+      "value": 0.710,
       "dataset": "val"
     }
   },
@@ -664,6 +608,7 @@
       "dataset": "val"
     }
   },
+
   {
     "model": "challenge.leaderboardentry",
     "pk": 1,
@@ -674,11 +619,7 @@
       "submission": 4,
       "dataset": "val",
       "primary_score": 0.873,
-      "all_scores": {
-        "AUROC": 0.873,
-        "Sensitivity": 0.798,
-        "PPV": 0.654
-      },
+      "all_scores": {"AUROC": 0.873, "Sensitivity": 0.798, "PPV": 0.654},
       "rank": 1,
       "updated_datetime": "2024-02-20T17:15:05Z"
     }
@@ -693,11 +634,7 @@
       "submission": 2,
       "dataset": "val",
       "primary_score": 0.841,
-      "all_scores": {
-        "AUROC": 0.841,
-        "Sensitivity": 0.763,
-        "PPV": 0.618
-      },
+      "all_scores": {"AUROC": 0.841, "Sensitivity": 0.763, "PPV": 0.618},
       "rank": 2,
       "updated_datetime": "2024-02-12T14:35:17Z"
     }
@@ -708,17 +645,11 @@
     "fields": {
       "challenge": 1,
       "team": null,
-      "user": [
-        "franwilliams"
-      ],
+      "user": ["franwilliams"],
       "submission": 5,
       "dataset": "val",
       "primary_score": 0.789,
-      "all_scores": {
-        "AUROC": 0.789,
-        "Sensitivity": 0.71,
-        "PPV": 0.572
-      },
+      "all_scores": {"AUROC": 0.789, "Sensitivity": 0.710, "PPV": 0.572},
       "rank": 3,
       "updated_datetime": "2024-02-15T10:38:55Z"
     }
