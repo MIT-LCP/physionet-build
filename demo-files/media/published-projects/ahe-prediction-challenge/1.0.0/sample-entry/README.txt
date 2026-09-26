@@ -7,7 +7,7 @@ starting point for the challenge.
 Files
 -----
 - main.py : The entry point script that reads test data and writes
-             predictions to scores.json.
+             predictions to predictions.json.
 
 How it works
 ------------
@@ -20,9 +20,12 @@ The sample entry uses a simple threshold-based approach:
 3. A continuous risk score is derived by linearly mapping MAP values
    into the [0, 1] range.
 
+The evaluation pipeline then compares these predictions against the
+ground-truth labels to compute AUROC, Sensitivity, and PPV.
+
 How to submit
 -------------
-1. Package your code into a .tar.gz archive:
+1. Package your code into a .tar.gz or .zip archive:
 
        tar czf submission.tar.gz main.py
 
@@ -30,7 +33,21 @@ How to submit
 
 Your container will have the following environment variables set:
 - INPUT_DIR  : path to the directory containing test CSV files
-- OUTPUT_DIR : path where your code should write scores.json
+- OUTPUT_DIR : path where your code should write predictions.json
+
+Output format
+-------------
+Your code must write a predictions.json file containing a list of
+objects, each with:
+
+    [
+      {"record_id": "patient_001", "prediction": 0, "risk_score": 0.12},
+      {"record_id": "patient_002", "prediction": 1, "risk_score": 0.87}
+    ]
+
+- record_id  : matches the input CSV filename (without .csv extension)
+- prediction : binary prediction (0 or 1)
+- risk_score : continuous value between 0 and 1
 
 Requirements
 ------------

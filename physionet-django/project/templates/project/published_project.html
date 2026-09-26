@@ -93,10 +93,6 @@
     <div class="row">
       <!-- Main column -->
       <div class="col-md-8">
-        {% if project.display_publications %}
-          {% include "project/citation_box.html" %}
-        {% endif %}
-
         {% if challenge %}
         {# Tab bar #}
         <ul class="challenge-tabs">
@@ -115,6 +111,9 @@
 
         {# Overview tab — wraps project content #}
         <div id="challenge-tab-overview" class="challenge-tab-content active">
+          {% if project.display_publications %}
+            {% include "project/citation_box.html" %}
+          {% endif %}
           {% if project.is_legacy %}
             {{ project.full_description|safe }}
           <hr>
@@ -149,6 +148,9 @@
 
         {% else %}
         {# Non-challenge project #}
+        {% if project.display_publications %}
+          {% include "project/citation_box.html" %}
+        {% endif %}
         {% if project.is_legacy %}
           {{ project.full_description|safe }}
         <hr>
@@ -180,7 +182,7 @@
               {% endif %}
               <li><a href="#files">Files</a></li>
               {% if challenge %}
-                <li><a href="#leaderboard" onclick="switchChallengeTab('leaderboard'); return false;">Leaderboard</a></li>
+                <li><a href="#leaderboard" onclick="switchChallengeTab('leaderboard', true); return false;">Leaderboard</a></li>
               {% endif %}
             </ul>
           </div>
