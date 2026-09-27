@@ -73,6 +73,11 @@ class ContainerOrchestrator:
         """Verify the code archive exists in GCS and prepare staging."""
         from physionet.gcp import ObjectPath
 
+        if not self.submission.code_archive_gcs_uri:
+            raise FileNotFoundError(
+                f'No code archive URI set for submission {self.submission.pk}'
+            )
+
         archive_path = ObjectPath(self.submission.code_archive_gcs_uri)
         blob = archive_path.bucket().blob(archive_path.key())
         if not blob.exists():
@@ -246,6 +251,11 @@ class LocalContainerOrchestrator:
     def build(self):
         """Verify the code archive exists in GCS."""
         from physionet.gcp import ObjectPath
+
+        if not self.submission.code_archive_gcs_uri:
+            raise FileNotFoundError(
+                f'No code archive URI set for submission {self.submission.pk}'
+            )
 
         archive_path = ObjectPath(self.submission.code_archive_gcs_uri)
         blob = archive_path.bucket().blob(archive_path.key())
