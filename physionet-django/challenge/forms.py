@@ -36,7 +36,7 @@ class ChallengeConfigurationForm(forms.ModelForm):
                   'The script is called as: python evaluate.py '
                   '&lt;predictions_dir&gt; &lt;labels_dir&gt; &lt;scores_output&gt;. '
                   'It must write a JSON file to scores_output mapping metric '
-                  'names to numeric values (e.g. {"AUROC": 0.85, "Sensitivity": 0.72}).',
+                  'names to numeric values.',
     )
 
     class Meta:
