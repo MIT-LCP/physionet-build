@@ -20,6 +20,9 @@ urlpatterns = [
          views.challenge_submission_statuses, name='challenge_submission_statuses'),
     path('<slug:challenge_slug>/submissions/<int:submission_id>/',
          views.challenge_submission_detail, name='challenge_submission_detail'),
+    path('<slug:challenge_slug>/submissions/<int:submission_id>/status/',
+         views.challenge_submission_status_detail,
+         name='challenge_submission_status_detail'),
     path('<slug:challenge_slug>/submissions/<int:submission_id>/select/',
          views.challenge_submission_select, name='challenge_submission_select'),
     # Team

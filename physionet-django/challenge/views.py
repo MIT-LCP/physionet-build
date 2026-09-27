@@ -532,6 +532,47 @@ def challenge_submission_statuses(request, challenge, participant, **kwargs):
     return JsonResponse({'statuses': statuses})
 
 
+@login_required
+@challenge_auth(require_participant=True)
+def challenge_submission_status_detail(request, challenge, participant,
+                                       submission_id, **kwargs):
+    """Return JSON with full status details for a single submission."""
+    submission = get_object_or_404(
+        Submission, pk=submission_id, challenge=challenge,
+    )
+
+    # Same permission check as the detail view
+    if (submission.submitted_by != request.user
+            and request.user != challenge.organizer
+            and not request.user.has_perm('challenge.manage_challenge')):
+        if submission.team and participant.team != submission.team:
+            raise PermissionDenied
+
+    data = {
+        'status': submission.status,
+        'display': submission.get_status_display(),
+        'started_datetime': (
+            submission.started_datetime.strftime('%b. %-d, %Y %H:%M:%S')
+            if submission.started_datetime else None
+        ),
+        'completed_datetime': (
+            submission.completed_datetime.strftime('%b. %-d, %Y %H:%M:%S')
+            if submission.completed_datetime else None
+        ),
+        'error_message': submission.error_message or None,
+        'scores': [
+            {
+                'metric_name': s.metric_name,
+                'value': s.value,
+                'dataset': s.get_dataset_display(),
+            }
+            for s in submission.scores.all()
+        ],
+        'is_selected': submission.is_selected,
+    }
+    return JsonResponse(data)
+
+
 # ── Organizer / management views ────────────────────────────────────
 
 @login_required
