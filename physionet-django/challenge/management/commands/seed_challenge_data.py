@@ -7,8 +7,11 @@ Usage: python manage.py seed_challenge_data
 2. Uploads test data from fixtures/demo-submission-files/test_data/
 3. Uploads validation labels from fixtures/demo-submission-files/validation/
 4. Uploads evaluation script from fixtures/demo-submission-files/evaluation/
+5. Uploads a code archive for each demo submission
 """
+import io
 import os
+import tarfile
 from pathlib import Path
 
 from django.conf import settings
@@ -52,7 +55,7 @@ class Command(BaseCommand):
         fixtures_dir = Path(__file__).resolve().parent.parent.parent / 'fixtures'
         demo_dir = fixtures_dir / 'demo-submission-files'
 
-        from challenge.models import Challenge
+        from challenge.models import Challenge, Submission
         try:
             challenge = Challenge.objects.get(slug='ahe-prediction-challenge')
         except Challenge.DoesNotExist:
@@ -89,9 +92,33 @@ class Command(BaseCommand):
             eval_prefix = eval_uri.rsplit('/', 1)[0] + '/'
             uploaded += self._upload_dir(bucket, eval_dir, eval_prefix)
 
+        # Upload code archive for each demo submission
+        code_archive_dir = demo_dir / 'code_archive'
+        if code_archive_dir.exists():
+            archive_data = self._create_tar_gz(code_archive_dir)
+            submissions = Submission.objects.filter(challenge=challenge)
+            for submission in submissions:
+                if not submission.code_archive_gcs_uri:
+                    continue
+                gcs_key = strip_bucket(submission.code_archive_gcs_uri)
+                blob = bucket.blob(gcs_key)
+                blob.upload_from_file(io.BytesIO(archive_data), rewind=True)
+                self.stdout.write(f'  Uploaded code archive -> {gcs_key}')
+                uploaded += 1
+
         self.stdout.write(self.style.SUCCESS(
             f'Uploaded {uploaded} file(s) to "{bucket_name}".'
         ))
+
+    def _create_tar_gz(self, source_dir):
+        """Create a tar.gz archive from a directory and return bytes."""
+        buf = io.BytesIO()
+        with tarfile.open(fileobj=buf, mode='w:gz') as tar:
+            for filepath in source_dir.rglob('*'):
+                if filepath.is_file():
+                    arcname = filepath.relative_to(source_dir)
+                    tar.add(str(filepath), arcname=str(arcname))
+        return buf.getvalue()
 
     def _upload_dir(self, bucket, local_dir, gcs_prefix):
         """Upload all files in local_dir to bucket under gcs_prefix."""
