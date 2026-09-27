@@ -82,9 +82,13 @@ class ContainerOrchestrator:
 
         logger.info('Build verified for submission %s', self.submission.pk)
 
-    def run(self):
+    def run(self, dataset=None):
         """Create and execute a Cloud Run Job."""
+        from challenge.enums import DatasetType
         from google.cloud import run_v2
+
+        if dataset is None:
+            dataset = DatasetType.VAL
 
         staging_bucket = getattr(settings, 'CHALLENGE_STAGING_BUCKET', '')
         hidden_bucket = getattr(settings, 'CHALLENGE_HIDDEN_DATA_BUCKET', '')
@@ -93,6 +97,7 @@ class ContainerOrchestrator:
             run_v2.EnvVar(name='INPUT_DIR', value='/mnt/input'),
             run_v2.EnvVar(name='OUTPUT_DIR', value='/mnt/output'),
             run_v2.EnvVar(name='SUBMISSION_ID', value=str(self.submission.pk)),
+            run_v2.EnvVar(name='DATASET', value=str(dataset)),
         ]
 
         container = run_v2.Container(
@@ -251,7 +256,7 @@ class LocalContainerOrchestrator:
 
         logger.info('Build verified for submission %s (local docker)', self.submission.pk)
 
-    def run(self):
+    def run(self, dataset=None):
         """Run the submission container locally using Docker."""
         from physionet.gcp import ObjectPath
 
@@ -351,7 +356,7 @@ class LocalContainerOrchestrator:
             raise RuntimeError(error_msg[:2000])
 
         # Run the evaluation script to score predictions against labels
-        self._run_evaluation(output_dir)
+        self._run_evaluation(output_dir, dataset=dataset)
 
         # Upload output files to GCS
         output_obj = ObjectPath(self.output_gcs_path)
@@ -366,7 +371,7 @@ class LocalContainerOrchestrator:
 
         logger.info('Local container completed for submission %s', self.submission.pk)
 
-    def _run_evaluation(self, output_dir):
+    def _run_evaluation(self, output_dir, dataset=None):
         """
         Download the evaluation script and ground-truth labels from GCS,
         then run the script to compare submission predictions against labels.
@@ -375,8 +380,15 @@ class LocalContainerOrchestrator:
             python evaluate.py <predictions_dir> <labels_dir> <scores_output>
 
         It must write a JSON dict of {metric_name: value} to scores_output.
+
+        When dataset is TEST, downloads labels from test_data_gcs_uri instead
+        of validation_data_gcs_uri.
         """
+        from challenge.enums import DatasetType
         from physionet.gcp import ObjectPath
+
+        if dataset is None:
+            dataset = DatasetType.VAL
 
         eval_uri = self.spec.evaluation_script_gcs_uri
         if not eval_uri:
@@ -399,18 +411,21 @@ class LocalContainerOrchestrator:
         eval_script = os.path.join(eval_dir, 'evaluate.py')
         eval_blob.download_to_filename(eval_script)
 
-        # Download ground-truth labels (validation data)
+        # Download ground-truth labels
         labels_dir = os.path.join(self._tmpdir, 'labels')
         os.makedirs(labels_dir, exist_ok=True)
-        val_uri = getattr(self.challenge, 'validation_data_gcs_uri', '')
-        if val_uri:
-            if val_uri.startswith('gs://'):
-                val_uri = val_uri[5:]
+        if dataset == DatasetType.TEST:
+            labels_uri = getattr(self.challenge, 'test_data_gcs_uri', '')
+        else:
+            labels_uri = getattr(self.challenge, 'validation_data_gcs_uri', '')
+        if labels_uri:
+            if labels_uri.startswith('gs://'):
+                labels_uri = labels_uri[5:]
             try:
-                val_obj = ObjectPath(val_uri)
-                val_bucket = val_obj.bucket()
-                prefix = val_obj.key()
-                for blob in val_bucket.list_blobs(prefix=prefix):
+                labels_obj = ObjectPath(labels_uri)
+                labels_bucket = labels_obj.bucket()
+                prefix = labels_obj.key()
+                for blob in labels_bucket.list_blobs(prefix=prefix):
                     rel_path = blob.name[len(prefix):].lstrip('/')
                     if not rel_path:
                         continue
@@ -419,7 +434,7 @@ class LocalContainerOrchestrator:
                     blob.download_to_filename(local_path)
             except Exception:
                 logger.warning(
-                    'Could not download validation data from %s', val_uri,
+                    'Could not download %s data from %s', dataset, labels_uri,
                 )
 
         # Run: python evaluate.py <predictions_dir> <labels_dir> <scores_output>

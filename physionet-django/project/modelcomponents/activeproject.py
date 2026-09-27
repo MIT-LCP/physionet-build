@@ -756,6 +756,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         end_datetime=config.end_datetime,
                         max_submissions_per_day=config.max_submissions_per_day,
                         max_total_submissions=config.max_total_submissions,
+                        max_submissions_to_advance=config.max_submissions_to_advance,
                         teams_enabled=config.teams_enabled,
                         organizer_name=config.organizer_name,
                         validation_data_gcs_uri=config.validation_data_gcs_uri,

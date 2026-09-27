@@ -129,6 +129,7 @@ def recompute_leaderboard(challenge_id):
 @background()
 def transition_challenge_phase(challenge_id, target_phase):
     """Transition a challenge to a new phase and notify participants."""
+    from challenge.enums import ChallengePhase
     from challenge.utility import notify_phase_change
 
     try:
@@ -138,6 +139,12 @@ def transition_challenge_phase(challenge_id, target_phase):
         return
 
     old_phase = challenge.phase
+
+    # When transitioning to OFFICIAL, advance top submissions for test scoring
+    if (old_phase == ChallengePhase.UNOFFICIAL
+            and target_phase == ChallengePhase.OFFICIAL):
+        _advance_top_submissions(challenge)
+
     challenge.phase = target_phase
     challenge.save(update_fields=['phase'])
 
@@ -146,7 +153,7 @@ def transition_challenge_phase(challenge_id, target_phase):
                 challenge.slug, old_phase, target_phase)
 
 
-def _save_scores(submission, scores_data):
+def _save_scores(submission, scores_data, dataset=DatasetType.VAL):
     """Parse and save Score objects from the scoring output."""
     score_objects = []
     for metric_name, value in scores_data.items():
@@ -154,12 +161,12 @@ def _save_scores(submission, scores_data):
             submission=submission,
             metric_name=metric_name,
             value=float(value),
-            dataset=DatasetType.VAL,
+            dataset=dataset,
         ))
     Score.objects.bulk_create(score_objects)
 
 
-def _update_leaderboard_entry(submission):
+def _update_leaderboard_entry(submission, dataset=DatasetType.VAL):
     """
     Update the leaderboard entry for this submission's participant/team.
     If this submission is better than their current entry, replace it.
@@ -170,7 +177,7 @@ def _update_leaderboard_entry(submission):
 
     primary_score = submission.scores.filter(
         metric_name=spec.primary_metric_name,
-        dataset=DatasetType.VAL,
+        dataset=dataset,
     ).first()
 
     if not primary_score:
@@ -178,12 +185,12 @@ def _update_leaderboard_entry(submission):
 
     all_scores = {
         s.metric_name: s.value
-        for s in submission.scores.filter(dataset=DatasetType.VAL)
+        for s in submission.scores.filter(dataset=dataset)
     }
 
     lookup = {
         'challenge': challenge,
-        'dataset': DatasetType.VAL,
+        'dataset': dataset,
     }
     if submission.team:
         lookup['team'] = submission.team
@@ -229,3 +236,133 @@ def _update_leaderboard_entry(submission):
 
     # Recompute ranks
     recompute_leaderboard(challenge.pk)
+
+
+def _advance_top_submissions(challenge):
+    """
+    Select the top N submissions per participant/team and enqueue
+    them for test scoring. Called when transitioning to OFFICIAL phase.
+    """
+    spec = challenge.submission_spec
+    sort_ascending = spec.primary_metric_sort == MetricSort.ASC
+    n = challenge.max_submissions_to_advance
+
+    completed_submissions = Submission.objects.filter(
+        challenge=challenge,
+        status=SubmissionStatus.COMPLETED,
+    )
+
+    if challenge.teams_enabled:
+        # Group by team
+        team_ids = completed_submissions.exclude(
+            team__isnull=True,
+        ).values_list('team_id', flat=True).distinct()
+
+        for team_id in team_ids:
+            team_subs = completed_submissions.filter(team_id=team_id)
+            _select_top_n(team_subs, spec, n, sort_ascending)
+    else:
+        # Group by user
+        user_ids = completed_submissions.values_list(
+            'submitted_by_id', flat=True,
+        ).distinct()
+
+        for user_id in user_ids:
+            user_subs = completed_submissions.filter(submitted_by_id=user_id)
+            _select_top_n(user_subs, spec, n, sort_ascending)
+
+
+def _select_top_n(submissions_qs, spec, n, sort_ascending):
+    """
+    From the given submissions queryset, find the top N by primary metric
+    on VAL dataset and enqueue them for test scoring.
+    """
+    order_field = 'value' if sort_ascending else '-value'
+
+    top_scores = Score.objects.filter(
+        submission__in=submissions_qs,
+        metric_name=spec.primary_metric_name,
+        dataset=DatasetType.VAL,
+    ).order_by(order_field)[:n]
+
+    submission_ids = list(top_scores.values_list('submission_id', flat=True))
+
+    Submission.objects.filter(pk__in=submission_ids).update(
+        advanced_to_official=True,
+    )
+
+    for sub_id in submission_ids:
+        process_test_scoring(sub_id)
+
+
+@associated_task(Submission, 'submission_id')
+@background()
+def process_test_scoring(submission_id):
+    """
+    Re-evaluate a submission against the test dataset.
+    Saves Score objects with dataset=TEST and creates/updates
+    LeaderboardEntry with dataset=TEST.
+    """
+    from challenge.services import get_orchestrator
+
+    try:
+        submission = Submission.objects.select_related(
+            'challenge__submission_spec',
+        ).get(pk=submission_id)
+    except Submission.DoesNotExist:
+        logger.error('Submission %s not found for test scoring', submission_id)
+        return
+
+    # Guard against duplicate runs
+    if submission.scores.filter(dataset=DatasetType.TEST).exists():
+        logger.info(
+            'Submission %s already has TEST scores, skipping',
+            submission_id,
+        )
+        return
+
+    orchestrator = get_orchestrator(submission)
+
+    try:
+        # Build phase
+        orchestrator.build()
+
+        # Run phase with test dataset
+        orchestrator.run(dataset=DatasetType.TEST)
+
+        # Poll for completion
+        success = orchestrator.poll()
+        if not success:
+            logger.error(
+                'Test scoring failed for submission %s', submission_id,
+            )
+            return
+
+        # Extract and save test scores
+        scores_data = orchestrator.extract_scores()
+        _save_scores(submission, scores_data, dataset=DatasetType.TEST)
+        _update_leaderboard_entry(submission, dataset=DatasetType.TEST)
+
+        logger.info(
+            'Test scoring completed for submission %s', submission_id,
+        )
+
+    except FileNotFoundError:
+        logger.warning(
+            'Code archive not found for submission %s, skipping test scoring',
+            submission_id,
+        )
+
+    except Exception:
+        logger.exception(
+            'Test scoring failed for submission %s', submission_id,
+        )
+
+    finally:
+        try:
+            orchestrator.cleanup()
+        except Exception:
+            logger.exception(
+                'Cleanup failed for test scoring of submission %s',
+                submission_id,
+            )

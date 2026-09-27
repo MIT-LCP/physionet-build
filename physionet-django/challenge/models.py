@@ -32,6 +32,10 @@ class ChallengeConfiguration(models.Model):
     # Submission limits
     max_submissions_per_day = models.PositiveIntegerField(default=5)
     max_total_submissions = models.PositiveIntegerField(default=100)
+    max_submissions_to_advance = models.PositiveIntegerField(
+        default=1,
+        help_text='Number of top submissions per participant/team to advance to test scoring.',
+    )
     teams_enabled = models.BooleanField(default=False)
 
     # Submission spec
@@ -148,6 +152,10 @@ class Challenge(models.Model):
     prizes = SafeHTMLField(max_length=10000, blank=True, default='')
     max_submissions_per_day = models.PositiveIntegerField(default=5)
     max_total_submissions = models.PositiveIntegerField(default=100)
+    max_submissions_to_advance = models.PositiveIntegerField(
+        default=1,
+        help_text='Number of top submissions per participant/team to advance to test scoring.',
+    )
     teams_enabled = models.BooleanField(default=False)
     organizer_name = models.CharField(max_length=200, blank=True, default='')
     is_active = models.BooleanField(default=True)
@@ -340,6 +348,10 @@ class Submission(models.Model):
     is_selected = models.BooleanField(
         default=False,
         help_text='Marks the active submission for the leaderboard.',
+    )
+    advanced_to_official = models.BooleanField(
+        default=False,
+        help_text='Whether this submission was selected for test scoring in the official phase.',
     )
 
     class Meta:
