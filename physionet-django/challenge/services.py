@@ -268,7 +268,11 @@ class LocalContainerOrchestrator:
 
     def run(self, dataset=None):
         """Run the submission container locally using Docker."""
+        from challenge.enums import DatasetType
         from physionet.gcp import ObjectPath
+
+        if dataset is None:
+            dataset = DatasetType.VAL
 
         self._tmpdir = tempfile.mkdtemp(prefix='challenge_')
         code_dir = os.path.join(self._tmpdir, 'code')
@@ -291,17 +295,19 @@ class LocalContainerOrchestrator:
             with tarfile.open(archive_local, 'r:*') as tar:
                 tar.extractall(path=code_dir)
 
-        # Download test data from GCS if available
-        test_data_uri = getattr(self.challenge, 'test_data_gcs_uri', None)
-        if test_data_uri:
-            # Strip gs:// prefix if present — ObjectPath expects bucket/key
-            if test_data_uri.startswith('gs://'):
-                test_data_uri = test_data_uri[5:]
+        # Download input data from GCS — use the appropriate dataset
+        if dataset == DatasetType.TEST:
+            data_uri = getattr(self.challenge, 'test_data_gcs_uri', '')
+        else:
+            data_uri = getattr(self.challenge, 'validation_data_gcs_uri', '')
+        if data_uri:
+            if data_uri.startswith('gs://'):
+                data_uri = data_uri[5:]
             try:
-                test_data_obj = ObjectPath(test_data_uri)
-                test_bucket = test_data_obj.bucket()
-                prefix = test_data_obj.key()
-                for blob in test_bucket.list_blobs(prefix=prefix):
+                data_obj = ObjectPath(data_uri)
+                data_bucket = data_obj.bucket()
+                prefix = data_obj.key()
+                for blob in data_bucket.list_blobs(prefix=prefix):
                     rel_path = blob.name[len(prefix):].lstrip('/')
                     if not rel_path:
                         continue
@@ -310,8 +316,8 @@ class LocalContainerOrchestrator:
                     blob.download_to_filename(local_path)
             except Exception:
                 logger.warning(
-                    'Could not download test data from %s — skipping',
-                    test_data_uri,
+                    'Could not download %s data from %s — skipping',
+                    dataset, data_uri,
                 )
 
         # Build container config
