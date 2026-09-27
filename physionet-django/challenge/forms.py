@@ -202,7 +202,7 @@ class ChallengeManageForm(forms.ModelForm):
             'registration_open_datetime', 'start_datetime',
             'official_start_datetime', 'end_datetime',
             'max_submissions_per_day', 'max_total_submissions',
-            'teams_enabled', 'is_active',
+            'max_submissions_to_advance', 'teams_enabled', 'is_active',
         ]
         widgets = {
             'registration_open_datetime': forms.DateTimeInput(

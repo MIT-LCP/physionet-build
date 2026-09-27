@@ -48,7 +48,7 @@
   <h4>Submission Limits</h4>
   <hr>
   {% for field in challenge_config_form %}
-    {% if field.name == 'max_submissions_per_day' or field.name == 'max_total_submissions' or field.name == 'teams_enabled' %}
+    {% if field.name == 'max_submissions_per_day' or field.name == 'max_total_submissions' or field.name == 'max_submissions_to_advance' or field.name == 'teams_enabled' %}
     <div class="form-group row">
       <label class="col-md-3" for="{{ field.id_for_label }}">
         {{ field.label }}
