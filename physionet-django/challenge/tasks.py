@@ -129,7 +129,6 @@ def recompute_leaderboard(challenge_id):
 @background()
 def transition_challenge_phase(challenge_id, target_phase):
     """Transition a challenge to a new phase and notify participants."""
-    from challenge.enums import ChallengePhase
     from challenge.utility import notify_phase_change
 
     try:
@@ -139,12 +138,6 @@ def transition_challenge_phase(challenge_id, target_phase):
         return
 
     old_phase = challenge.phase
-
-    # When transitioning to OFFICIAL, advance top submissions for test scoring
-    if (old_phase == ChallengePhase.UNOFFICIAL
-            and target_phase == ChallengePhase.OFFICIAL):
-        _advance_top_submissions(challenge)
-
     challenge.phase = target_phase
     challenge.save(update_fields=['phase'])
 
