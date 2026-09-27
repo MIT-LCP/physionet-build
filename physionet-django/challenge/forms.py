@@ -90,6 +90,18 @@ class ChallengeConfigurationForm(forms.ModelForm):
                 )
         return archive
 
+    def clean_input_format(self):
+        return self.cleaned_data.get('input_format') or {}
+
+    def clean_output_format(self):
+        return self.cleaned_data.get('output_format') or {}
+
+    def clean_primary_metric(self):
+        return self.cleaned_data.get('primary_metric') or {}
+
+    def clean_additional_metrics(self):
+        return self.cleaned_data.get('additional_metrics') or []
+
     def clean_validation_data_archive(self):
         return self._validate_archive('validation_data_archive')
 
@@ -239,6 +251,18 @@ class SubmissionSpecForm(forms.ModelForm):
             'input_format', 'output_format',
             'primary_metric', 'additional_metrics',
         ]
+
+    def clean_input_format(self):
+        return self.cleaned_data.get('input_format') or {}
+
+    def clean_output_format(self):
+        return self.cleaned_data.get('output_format') or {}
+
+    def clean_primary_metric(self):
+        return self.cleaned_data.get('primary_metric') or {}
+
+    def clean_additional_metrics(self):
+        return self.cleaned_data.get('additional_metrics') or []
 
 
 class CodeSubmissionForm(forms.Form):
