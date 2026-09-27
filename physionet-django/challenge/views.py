@@ -600,8 +600,30 @@ def challenge_manage(request, challenge, participant, **kwargs):
         request.POST or None, instance=challenge,
     )
     if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Challenge settings updated.')
+        old_phase = challenge.phase
+        new_phase = form.cleaned_data.get('phase')
+
+        # If the phase changed, use the background task so that
+        # phase-transition side effects (e.g. advancing top submissions
+        # for test scoring) are triggered.
+        if new_phase and new_phase != old_phase:
+            form.save(commit=False)
+            # Save all fields except phase — transition_challenge_phase
+            # will set the phase and fire notifications.
+            challenge.phase = old_phase
+            challenge.save()
+
+            from challenge.tasks import transition_challenge_phase
+            transition_challenge_phase(challenge.pk, new_phase)
+            messages.success(
+                request,
+                f'Challenge settings updated. Phase transition to '
+                f'{ChallengePhase(new_phase).label} has been queued.',
+            )
+        else:
+            form.save()
+            messages.success(request, 'Challenge settings updated.')
+
         return redirect('challenge_manage', challenge_slug=challenge.slug)
 
     spec = getattr(challenge, 'submission_spec', None)
