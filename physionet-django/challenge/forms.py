@@ -23,7 +23,11 @@ class ChallengeConfigurationForm(forms.ModelForm):
     )
     evaluation_script_file = forms.FileField(
         required=False,
-        help_text='Upload the evaluation/scoring script (e.g. evaluate.py).',
+        help_text='Upload a Python scoring script (e.g. evaluate.py). '
+                  'The script is called as: python evaluate.py '
+                  '&lt;predictions_dir&gt; &lt;labels_dir&gt; &lt;scores_output&gt;. '
+                  'It must write a JSON file to scores_output mapping metric '
+                  'names to numeric values.',
     )
 
     class Meta:
@@ -47,6 +51,22 @@ class ChallengeConfigurationForm(forms.ModelForm):
             'end_datetime': forms.DateTimeInput(
                 attrs={'type': 'datetime-local'},
             ),
+            'input_format': JSONPlaceholderTextarea(attrs={
+                'rows': 4,
+                'placeholder': '{"type": "directory", "path": "/data/test", "description": "Directory of CSV files, one per patient record", "columns": ["timestamp", "MAP", "SBP", "DBP", "HR", "RR", "SpO2"]}',
+            }),
+            'output_format': JSONPlaceholderTextarea(attrs={
+                'rows': 4,
+                'placeholder': '{"type": "csv", "path": "/output/predictions.csv", "description": "One row per test record with binary prediction and continuous risk score", "columns": ["record_id", "prediction", "risk_score"]}',
+            }),
+            'primary_metric': JSONPlaceholderTextarea(attrs={
+                'rows': 3,
+                'placeholder': '{"name": "AUROC", "display_name": "AUROC", "sort": "desc"}',
+            }),
+            'additional_metrics': JSONPlaceholderTextarea(attrs={
+                'rows': 4,
+                'placeholder': '[{"name": "Sensitivity", "display_name": "Sensitivity", "sort": "desc"}, {"name": "PPV", "display_name": "PPV", "sort": "desc"}]',
+            }),
         }
 
     def __init__(self, editable=True, **kwargs):
