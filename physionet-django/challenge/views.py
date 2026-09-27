@@ -1,5 +1,6 @@
 import hashlib
 import logging
+import os
 from functools import wraps
 
 from django.conf import settings
@@ -8,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Count, Q
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -566,6 +568,25 @@ def challenge_manage_submissions(request, challenge, participant, **kwargs):
         'participant': participant,
         'submissions': submissions,
     })
+
+
+@login_required
+@challenge_auth(require_organizer=True)
+def challenge_download_evaluation_script(request, challenge, participant, **kwargs):
+    """Download the evaluation script from GCS."""
+    spec = getattr(challenge, 'submission_spec', None)
+    if not spec or not spec.evaluation_script_gcs_uri:
+        raise Http404
+
+    from physionet.gcp import ObjectPath
+    obj = ObjectPath(spec.evaluation_script_gcs_uri)
+    blob = obj.bucket().blob(obj.key())
+    content = blob.download_as_bytes()
+    filename = os.path.basename(obj.key())
+
+    response = HttpResponse(content, content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 # ── Helpers ─────────────────────────────────────────────────────────
