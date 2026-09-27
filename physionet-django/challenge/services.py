@@ -206,6 +206,13 @@ class ContainerOrchestrator:
                      self.submission.pk, scores)
         return scores
 
+    def rescore(self, dataset):
+        """Re-evaluate existing predictions against a different label set."""
+        raise NotImplementedError(
+            'Cloud Run rescoring is not yet implemented. '
+            'Use the local Docker backend for test scoring.'
+        )
+
     def cleanup(self):
         """Delete the Cloud Run Job after execution."""
         try:
@@ -452,6 +459,45 @@ class LocalContainerOrchestrator:
             raise RuntimeError(error_msg[:2000])
 
         logger.info('Evaluation complete for submission %s', self.submission.pk)
+
+    def rescore(self, dataset):
+        """
+        Re-evaluate existing predictions against a different label set.
+
+        Downloads the original output from GCS, runs the evaluation script
+        with the specified dataset's labels, and uploads the new scores.json.
+        Does not re-run the participant's container.
+        """
+        from physionet.gcp import ObjectPath
+
+        self._tmpdir = tempfile.mkdtemp(prefix='challenge_rescore_')
+
+        # Download original predictions from GCS
+        output_dir = os.path.join(self._tmpdir, 'output')
+        os.makedirs(output_dir)
+        output_obj = ObjectPath(self.output_gcs_path)
+        output_bucket = output_obj.bucket()
+        prefix = output_obj.key()
+        for blob in output_bucket.list_blobs(prefix=prefix):
+            rel_path = blob.name[len(prefix):].lstrip('/')
+            if not rel_path:
+                continue
+            local_path = os.path.join(output_dir, rel_path)
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            blob.download_to_filename(local_path)
+
+        # Run evaluation against the specified dataset's labels
+        self._run_evaluation(output_dir, dataset=dataset)
+
+        # Upload the new scores.json back to GCS
+        scores_file = os.path.join(output_dir, 'scores.json')
+        if os.path.exists(scores_file):
+            gcs_key = f'{output_obj.key()}/scores.json'
+            blob = output_bucket.blob(gcs_key)
+            blob.upload_from_filename(scores_file)
+
+        logger.info('Rescoring complete for submission %s (dataset=%s)',
+                    self.submission.pk, dataset)
 
     def poll(self):
         """Return True immediately — execution is synchronous in run()."""
