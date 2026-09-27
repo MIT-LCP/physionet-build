@@ -71,13 +71,13 @@ class Command(BaseCommand):
                 return uri[len(f'{bucket_name}/'):]
             return uri
 
-        # Upload test data
+        # Upload test data (input records + labels)
         test_data_dir = demo_dir / 'test_data'
         if test_data_dir.exists():
             prefix = strip_bucket(challenge.test_data_gcs_uri)
             uploaded += self._upload_dir(bucket, test_data_dir, prefix)
 
-        # Upload validation labels
+        # Upload validation data (input records + labels)
         validation_dir = demo_dir / 'validation'
         if validation_dir.exists():
             prefix = strip_bucket(challenge.validation_data_gcs_uri)
