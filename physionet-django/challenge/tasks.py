@@ -317,8 +317,19 @@ def process_test_scoring(submission_id):
     orchestrator = get_orchestrator(submission)
 
     try:
-        # Re-evaluate existing predictions against test labels
-        orchestrator.rescore(dataset=DatasetType.TEST)
+        # Build phase
+        orchestrator.build()
+
+        # Run phase with test dataset
+        orchestrator.run(dataset=DatasetType.TEST)
+
+        # Poll for completion
+        success = orchestrator.poll()
+        if not success:
+            logger.error(
+                'Test scoring failed for submission %s', submission_id,
+            )
+            return
 
         # Extract and save test scores
         scores_data = orchestrator.extract_scores()
@@ -327,6 +338,12 @@ def process_test_scoring(submission_id):
 
         logger.info(
             'Test scoring completed for submission %s', submission_id,
+        )
+
+    except FileNotFoundError:
+        logger.warning(
+            'Code archive not found for submission %s, skipping test scoring',
+            submission_id,
         )
 
     except Exception:
