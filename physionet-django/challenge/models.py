@@ -52,13 +52,11 @@ class ChallengeConfiguration(models.Model):
     )
     primary_metric = models.JSONField(
         default=dict, blank=True,
-        help_text='Primary metric for ranking. JSON object with name, display_name, and sort '
-                  '(e.g. {"name": "auroc", "display_name": "AUROC", "sort": "desc"}).',
+        help_text='Primary metric for ranking. JSON object with name, display_name, and sort fields.',
     )
     additional_metrics = models.JSONField(
         default=list, blank=True,
-        help_text='Secondary scoring metrics. Each entry needs name, display_name, and sort '
-                  '(e.g. [{"name": "f1_score", "display_name": "F1 Score", "sort": "desc"}]).',
+        help_text='Secondary scoring metrics. List of JSON objects, each with name, display_name, and sort fields.',
     )
 
     # Display
@@ -211,13 +209,11 @@ class SubmissionSpec(models.Model):
     )
     primary_metric = models.JSONField(
         default=dict, blank=True,
-        help_text='Primary metric for ranking. JSON object with name, display_name, and sort '
-                  '(e.g. {"name": "auroc", "display_name": "AUROC", "sort": "desc"}).',
+        help_text='Primary metric for ranking. JSON object with name, display_name, and sort fields.',
     )
     additional_metrics = models.JSONField(
         default=list, blank=True,
-        help_text='Secondary scoring metrics. Each entry needs name, display_name, and sort '
-                  '(e.g. [{"name": "f1_score", "display_name": "F1 Score", "sort": "desc"}]).',
+        help_text='Secondary scoring metrics. List of JSON objects, each with name, display_name, and sort fields.',
     )
 
     @property
