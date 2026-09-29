@@ -6,6 +6,7 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
 )
+from search.templatetags.search_tags import highlight
 from search.views import get_content
 from user.models import User
 
@@ -128,3 +129,44 @@ class AuthorSearchTests(TestCase):
         )
         slugs = list(self._search('Cardiac').values_list('slug', flat=True))
         self.assertEqual(slugs, ['cardiac-signals', 'sleep-study'])
+
+
+class TestHighlightFilter(TestCase):
+    """Tests for the highlight template filter."""
+
+    def test_single_term(self):
+        result = highlight('Predicting Acute Hypotensive Episodes', 'acute')
+        self.assertIn('<mark>Acute</mark>', result)
+        self.assertIn('Predicting', result)
+
+    def test_multiple_terms(self):
+        result = highlight('Predicting Acute Hypotensive Episodes', 'acute episodes')
+        self.assertIn('<mark>Acute</mark>', result)
+        self.assertIn('<mark>Episodes</mark>', result)
+
+    def test_case_insensitive(self):
+        result = highlight('ECG Database', 'ecg')
+        self.assertIn('<mark>ECG</mark>', result)
+
+    def test_no_match(self):
+        result = highlight('Some title', 'xyz')
+        self.assertEqual(result, 'Some title')
+
+    def test_empty_search_term(self):
+        result = highlight('Some title', '')
+        self.assertEqual(result, 'Some title')
+
+    def test_none_search_term(self):
+        result = highlight('Some title', None)
+        self.assertEqual(result, 'Some title')
+
+    def test_html_escaping(self):
+        """Ensure HTML in text is escaped, not rendered."""
+        result = highlight('<script>alert("xss")</script>', 'script')
+        self.assertNotIn('<script>', result)
+        self.assertIn('&lt;<mark>script</mark>&gt;', result)
+
+    def test_special_regex_chars(self):
+        """Search terms with regex chars should be treated as literals."""
+        result = highlight('version 2.0 release', '2.0')
+        self.assertIn('<mark>2.0</mark>', result)
