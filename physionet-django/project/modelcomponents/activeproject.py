@@ -761,6 +761,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         organizer_name=config.organizer_name,
                         validation_data_gcs_uri=config.validation_data_gcs_uri,
                         test_data_gcs_uri=config.test_data_gcs_uri,
+                        validation_labels_gcs_uri=config.validation_labels_gcs_uri,
+                        test_labels_gcs_uri=config.test_labels_gcs_uri,
                     )
                     SubmissionSpec.objects.create(
                         challenge=challenge,

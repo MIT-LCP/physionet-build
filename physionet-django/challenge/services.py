@@ -30,6 +30,10 @@ class ContainerOrchestrator:
         3. poll()   - Wait for job completion
         4. extract_scores() - Read scores.json from output
         5. cleanup() - Delete Cloud Run Job
+
+    # TODO: Network egress for Cloud Run Jobs should be restricted via
+    # VPC connector / VPC Service Controls in the GCP project configuration.
+    # This is infrastructure config (Terraform/gcloud), not application code.
     """
 
     def __init__(self, submission):
@@ -234,6 +238,8 @@ class LocalContainerOrchestrator:
         self.spec = self.challenge.submission_spec
         self._docker_client = None
         self._container = None
+        self._build_container = None
+        self._built_image = None
         self._tmpdir = None
 
     @property
@@ -249,7 +255,11 @@ class LocalContainerOrchestrator:
         return f'{bucket}/challenges/{self.challenge.slug}/output/{self.submission.pk}'
 
     def build(self):
-        """Verify the code archive exists in GCS."""
+        """
+        Download the code archive, extract it, and run a build container
+        WITH network access to install dependencies. The resulting container
+        is committed as a local image for use in the network-isolated run().
+        """
         from physionet.gcp import ObjectPath
 
         if not self.submission.code_archive_gcs_uri:
@@ -264,29 +274,14 @@ class LocalContainerOrchestrator:
                 f'Code archive not found: {self.submission.code_archive_gcs_uri}'
             )
 
-        logger.info('Build verified for submission %s (local docker)', self.submission.pk)
-
-    def run(self, dataset=None):
-        """Run the submission container locally using Docker."""
-        from challenge.enums import DatasetType
-        from physionet.gcp import ObjectPath
-
-        if dataset is None:
-            dataset = DatasetType.VAL
-
+        # Set up temp directories
         self._tmpdir = tempfile.mkdtemp(prefix='challenge_')
         code_dir = os.path.join(self._tmpdir, 'code')
-        input_dir = os.path.join(self._tmpdir, 'input')
-        output_dir = os.path.join(self._tmpdir, 'output')
         os.makedirs(code_dir)
-        os.makedirs(input_dir)
-        os.makedirs(output_dir)
 
-        # Download and extract code archive from GCS
-        archive_obj = ObjectPath(self.submission.code_archive_gcs_uri)
-        archive_blob = archive_obj.bucket().blob(archive_obj.key())
+        # Download and extract code archive
         archive_local = os.path.join(self._tmpdir, 'archive')
-        archive_blob.download_to_filename(archive_local)
+        blob.download_to_filename(archive_local)
 
         if zipfile.is_zipfile(archive_local):
             with zipfile.ZipFile(archive_local, 'r') as zf:
@@ -295,7 +290,63 @@ class LocalContainerOrchestrator:
             with tarfile.open(archive_local, 'r:*') as tar:
                 tar.extractall(path=code_dir)
 
-        # Download input data from GCS — use the appropriate dataset
+        # Run a build container WITH network to install dependencies
+        image_tag = f'challenge-{self.submission.pk}:built'
+        volumes = {
+            code_dir: {'bind': '/workspace', 'mode': 'ro'},
+        }
+
+        self._build_container = self.docker_client.containers.run(
+            image=self.spec.base_image,
+            command=[
+                'sh', '-c',
+                'cp -r /workspace/* /app/ && cd /app && '
+                'if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi',
+            ],
+            volumes=volumes,
+            working_dir='/app',
+            detach=True,
+        )
+
+        result = self._build_container.wait(timeout=600)
+        exit_code = result.get('StatusCode', -1)
+        if exit_code != 0:
+            logs = self._build_container.logs(tail=50).decode('utf-8', errors='replace')
+            raise RuntimeError(
+                f'Build failed (exit {exit_code}):\n{logs[:2000]}'
+            )
+
+        # Commit the stopped container as a new image
+        self._build_container.commit(repository=f'challenge-{self.submission.pk}', tag='built')
+        self._built_image = image_tag
+
+        logger.info(
+            'Build complete for submission %s — image %s (local docker)',
+            self.submission.pk, image_tag,
+        )
+
+    def run(self, dataset=None):
+        """
+        Run the submission container locally using Docker.
+
+        Uses the pre-built image from build() with network_mode='none'
+        to prevent data exfiltration. Only mounts input data and output dir.
+        """
+        from challenge.enums import DatasetType
+        from physionet.gcp import ObjectPath
+
+        if dataset is None:
+            dataset = DatasetType.VAL
+
+        if not self._built_image:
+            raise RuntimeError('build() must be called before run()')
+
+        input_dir = os.path.join(self._tmpdir, 'input')
+        output_dir = os.path.join(self._tmpdir, 'output')
+        os.makedirs(input_dir, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Download input data from GCS (records only, no labels)
         if dataset == DatasetType.TEST:
             data_uri = getattr(self.challenge, 'test_data_gcs_uri', '')
         else:
@@ -320,7 +371,7 @@ class LocalContainerOrchestrator:
                     dataset, data_uri,
                 )
 
-        # Build container config
+        # Container config
         mem_limit = f'{self.spec.max_memory_mb}m'
         nano_cpus = int(self.spec.cpu_count * 1e9)
         environment = {
@@ -329,7 +380,6 @@ class LocalContainerOrchestrator:
             'SUBMISSION_ID': str(self.submission.pk),
         }
         volumes = {
-            code_dir: {'bind': '/workspace', 'mode': 'ro'},
             input_dir: {'bind': '/mnt/input', 'mode': 'ro'},
             output_dir: {'bind': '/mnt/output', 'mode': 'rw'},
         }
@@ -337,18 +387,16 @@ class LocalContainerOrchestrator:
         self.submission.started_datetime = timezone.now()
         self.submission.save(update_fields=['started_datetime'])
 
-        # Run container synchronously
+        # Run container from built image with NO network access
         self._container = self.docker_client.containers.run(
-            image=self.spec.base_image,
-            command=[
-                'sh', '-c',
-                f'if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi && {self.spec.entrypoint_command}',
-            ],
+            image=self._built_image,
+            command=['sh', '-c', self.spec.entrypoint_command],
             environment=environment,
             volumes=volumes,
-            working_dir='/workspace',
+            working_dir='/app',
             mem_limit=mem_limit,
             nano_cpus=nano_cpus,
+            network_mode='none',
             detach=True,
         )
 
@@ -397,8 +445,8 @@ class LocalContainerOrchestrator:
 
         It must write a JSON dict of {metric_name: value} to scores_output.
 
-        When dataset is TEST, downloads labels from test_data_gcs_uri instead
-        of validation_data_gcs_uri.
+        When dataset is TEST, downloads labels from test_labels_gcs_uri instead
+        of validation_labels_gcs_uri.
         """
         from challenge.enums import DatasetType
         from physionet.gcp import ObjectPath
@@ -427,13 +475,14 @@ class LocalContainerOrchestrator:
         eval_script = os.path.join(eval_dir, 'evaluate.py')
         eval_blob.download_to_filename(eval_script)
 
-        # Download ground-truth labels
+        # Download ground-truth labels from dedicated label URIs
+        # (separate from the input data to prevent label leakage)
         labels_dir = os.path.join(self._tmpdir, 'labels')
         os.makedirs(labels_dir, exist_ok=True)
         if dataset == DatasetType.TEST:
-            labels_uri = getattr(self.challenge, 'test_data_gcs_uri', '')
+            labels_uri = getattr(self.challenge, 'test_labels_gcs_uri', '')
         else:
-            labels_uri = getattr(self.challenge, 'validation_data_gcs_uri', '')
+            labels_uri = getattr(self.challenge, 'validation_labels_gcs_uri', '')
         if labels_uri:
             if labels_uri.startswith('gs://'):
                 labels_uri = labels_uri[5:]
@@ -493,13 +542,25 @@ class LocalContainerOrchestrator:
         return scores
 
     def cleanup(self):
-        """Remove the Docker container and temp directories."""
+        """Remove Docker containers, built image, and temp directories."""
         if self._container:
             try:
                 self._container.remove(force=True)
-                logger.info('Removed container %s', self._container.id)
+                logger.info('Removed run container %s', self._container.id)
             except Exception:
-                logger.exception('Failed to remove container')
+                logger.exception('Failed to remove run container')
+        if self._build_container:
+            try:
+                self._build_container.remove(force=True)
+                logger.info('Removed build container %s', self._build_container.id)
+            except Exception:
+                logger.exception('Failed to remove build container')
+        if self._built_image:
+            try:
+                self.docker_client.images.remove(self._built_image, force=True)
+                logger.info('Removed built image %s', self._built_image)
+            except Exception:
+                logger.exception('Failed to remove built image %s', self._built_image)
         if self._tmpdir and os.path.exists(self._tmpdir):
             shutil.rmtree(self._tmpdir, ignore_errors=True)
             logger.info('Cleaned up temp dir %s', self._tmpdir)
