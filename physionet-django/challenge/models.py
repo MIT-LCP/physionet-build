@@ -75,6 +75,14 @@ class ChallengeConfiguration(models.Model):
         max_length=500, blank=True, default='',
         help_text='GCS URI for the private final test data.',
     )
+    validation_labels_gcs_uri = models.CharField(
+        max_length=500, blank=True, default='',
+        help_text='GCS URI for the validation ground-truth labels (kept separate from input data).',
+    )
+    test_labels_gcs_uri = models.CharField(
+        max_length=500, blank=True, default='',
+        help_text='GCS URI for the test ground-truth labels (kept separate from input data).',
+    )
     evaluation_script_gcs_uri = models.CharField(
         max_length=500, blank=True, default='',
         help_text='GCS URI for the evaluation/scoring script.',
@@ -144,6 +152,14 @@ class Challenge(models.Model):
     test_data_gcs_uri = models.CharField(
         max_length=500, blank=True, default='',
         help_text='GCS path for the private final test data.',
+    )
+    validation_labels_gcs_uri = models.CharField(
+        max_length=500, blank=True, default='',
+        help_text='GCS path for the validation ground-truth labels (kept separate from input data).',
+    )
+    test_labels_gcs_uri = models.CharField(
+        max_length=500, blank=True, default='',
+        help_text='GCS path for the test ground-truth labels (kept separate from input data).',
     )
     rules = SafeHTMLField(max_length=50000, blank=True, default='')
     evaluation_description = SafeHTMLField(
