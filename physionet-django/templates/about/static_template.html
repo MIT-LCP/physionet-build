@@ -19,27 +19,22 @@
   <div class="row">
     <div class="main-side">
 
-      <div class="card">
-        <h2 class="card-header">{{ static_page.title }}</h2>
-        <div class="card-body">
-
-          <ul>
-            {% for section in sections %}
-              <li><a href="#{{ section.title | underscore | lower }}">{{ section.title }}</a></li>
-            {% endfor %}
-          </ul>
-
-        </div>
-      </div>
+      <nav class="sidebar-nav">
+        <h2 class="sidebar-title">{{ static_page.title }}</h2>
+        <ul>
+          {% for section in sections %}
+            <li><a href="#{{ section.title | underscore | lower }}">{{ section.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
     </div><div class="main-content">
       {% for section in sections %}
-        <section id="{{ section.title | underscore | lower }}">
-          <h1>{{ section.title }}</h1>
+        <section class="about-section" id="{{ section.title | underscore | lower }}">
+          <h2>{{ section.title }}</h2>
           <div>
             {{ section.content|safe }}
           </div>
         </section>
-        <br>
       {% endfor %}
     </div>
   </div>

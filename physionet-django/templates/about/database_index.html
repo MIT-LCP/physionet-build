@@ -18,20 +18,15 @@
   <div class="row">
     <div class="main-side">
 
-      <div class="card">
-        <h2 class="card-header">Databases</h2>
-        <div class="card-body">
-
-            <!-- Databases -->
-            <ul>
-              <li><a href="#overview">Overview</a></li>
-              {% for i, group in projects.items %}
-                <li><a href="#{{ group.policy|lower }}">{{ group.policy }} access</a></li>
-              {% endfor %}
-          </ul>
-
-        </div>
-      </div>
+      <nav class="sidebar-nav">
+        <h2 class="sidebar-title">Databases</h2>
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          {% for i, group in projects.items %}
+            <li><a href="#{{ group.policy|lower }}">{{ group.policy }} access</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
     </div>
     <div class="main-content">
       <div>{% include "about/database_content.html" %}</div>
