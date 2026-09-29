@@ -64,6 +64,31 @@ class TestProjectSearch(TestCase):
         response = self.client.get(url + '?orderby=asdfghjk')
         self.assertEqual(response.status_code, 200)
 
+    def test_result_count_in_context(self):
+        """
+        Test that paginator count and search_term are passed to the template.
+        """
+        url = reverse('content_index')
+
+        # Unfiltered — should have a positive count and no search term
+        response = self.client.get(url)
+        self.assertGreater(response.context['projects'].paginator.count, 0)
+        self.assertEqual(response.context['search_term'], '')
+        self.assertContains(response, 'resource')
+
+        # With a search term that matches
+        response = self.client.get(url + '?topic=challenge')
+        self.assertGreater(response.context['projects'].paginator.count, 0)
+        self.assertEqual(response.context['search_term'], 'challenge')
+        self.assertContains(response, 'result')
+        self.assertContains(response, 'challenge')
+
+        # With a search term that matches nothing
+        response = self.client.get(url + '?topic=fnord')
+        self.assertEqual(response.context['projects'].paginator.count, 0)
+        self.assertContains(response, '0 results')
+        self.assertContains(response, 'No resources matched')
+
     def test_search_database(self):
         """
         Test the database index.
