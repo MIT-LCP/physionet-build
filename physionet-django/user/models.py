@@ -753,13 +753,15 @@ class Orcid(models.Model):
                                 on_delete=models.CASCADE)
     orcid_id = models.CharField(max_length=50, default='', blank=True,
                                 validators=[validators.validate_orcid_id])
-    name = models.CharField(max_length=50, default='', blank=True)
+    # The ORCID side name field has a max of 150 characters - 200 gives a buffer for
+    # potential expansion on their side.
+    name = models.CharField(max_length=200, default='', blank=True)
     access_token = models.CharField(max_length=50, default='', blank=True,
                                     validators=[validators.validate_orcid_token])
     refresh_token = models.CharField(max_length=50, default='', blank=True,
                                      validators=[validators.validate_orcid_token])
     token_type = models.CharField(max_length=50, default='', blank=True)
-    token_scope = models.CharField(max_length=50, default='', blank=True)
+    token_scope = models.CharField(max_length=512, default='', blank=True)
     token_expiration = models.DecimalField(max_digits=50, decimal_places=40, default=0)
     datetime_added = models.DateTimeField(auto_now_add=True)
 
