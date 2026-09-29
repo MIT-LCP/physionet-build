@@ -32,6 +32,8 @@ def _make_submission_mock(**overrides):
     challenge.slug = 'test-challenge'
     challenge.submission_spec = spec
     challenge.test_data_gcs_uri = None
+    challenge.validation_labels_gcs_uri = None
+    challenge.test_labels_gcs_uri = None
 
     submission = mock.MagicMock()
     submission.pk = 42
@@ -43,6 +45,43 @@ def _make_submission_mock(**overrides):
         setattr(submission, key, value)
 
     return submission
+
+
+def _create_test_archive(path):
+    """Create a minimal tar.gz archive for testing."""
+    import io as _io
+    with tarfile.open(path, 'w:gz') as tar:
+        content = b'print("hello")\n'
+        info = tarfile.TarInfo(name='main.py')
+        info.size = len(content)
+        tar.addfile(info, _io.BytesIO(content))
+
+
+def _setup_build_mocks(orch, MockObjectPath):
+    """Set up mocks for the build() phase and execute it."""
+    mock_client = mock.MagicMock()
+    orch._docker_client = mock_client
+
+    # Build container succeeds
+    mock_build_container = mock.MagicMock()
+    mock_build_container.wait.return_value = {'StatusCode': 0}
+    mock_build_container.id = 'build123'
+
+    # We'll track containers.run calls to return different containers
+    # for build vs run phases
+    mock_client.containers.run.return_value = mock_build_container
+
+    # Mock GCS archive
+    mock_blob = mock.MagicMock()
+    mock_blob.exists.return_value = True
+    mock_blob.download_to_filename.side_effect = _create_test_archive
+
+    mock_obj = MockObjectPath.return_value
+    mock_obj.bucket.return_value.blob.return_value = mock_blob
+
+    orch.build()
+
+    return mock_client
 
 
 class TestGetOrchestrator(TestCase):
@@ -69,21 +108,40 @@ class TestGetOrchestrator(TestCase):
 
 
 class TestLocalContainerOrchestratorBuild(TestCase):
-    """Test the build phase checks archive existence in GCS."""
+    """Test the build phase downloads archive, installs deps, commits image."""
 
     @mock.patch('physionet.gcp.ObjectPath')
     def test_build_success(self, MockObjectPath):
-        mock_obj = MockObjectPath.return_value
         mock_blob = mock.MagicMock()
         mock_blob.exists.return_value = True
+        mock_blob.download_to_filename.side_effect = _create_test_archive
+
+        mock_obj = MockObjectPath.return_value
         mock_obj.bucket.return_value.blob.return_value = mock_blob
 
         submission = _make_submission_mock()
         orch = LocalContainerOrchestrator(submission)
+
+        mock_client = mock.MagicMock()
+        orch._docker_client = mock_client
+
+        mock_build_container = mock.MagicMock()
+        mock_build_container.wait.return_value = {'StatusCode': 0}
+        mock_client.containers.run.return_value = mock_build_container
+
         orch.build()
 
         MockObjectPath.assert_called_once_with(submission.code_archive_gcs_uri)
         mock_blob.exists.assert_called_once()
+
+        # Verify build container was run and committed
+        mock_client.containers.run.assert_called_once()
+        mock_build_container.commit.assert_called_once_with(
+            repository='challenge-42', tag='built'
+        )
+        self.assertEqual(orch._built_image, 'challenge-42:built')
+
+        orch.cleanup()
 
     @mock.patch('physionet.gcp.ObjectPath')
     def test_build_missing_archive(self, MockObjectPath):
@@ -98,115 +156,122 @@ class TestLocalContainerOrchestratorBuild(TestCase):
         with self.assertRaises(FileNotFoundError):
             orch.build()
 
+    @mock.patch('physionet.gcp.ObjectPath')
+    def test_build_install_failure(self, MockObjectPath):
+        """Build fails if pip install exits non-zero."""
+        mock_blob = mock.MagicMock()
+        mock_blob.exists.return_value = True
+        mock_blob.download_to_filename.side_effect = _create_test_archive
+
+        mock_obj = MockObjectPath.return_value
+        mock_obj.bucket.return_value.blob.return_value = mock_blob
+
+        submission = _make_submission_mock()
+        orch = LocalContainerOrchestrator(submission)
+
+        mock_client = mock.MagicMock()
+        orch._docker_client = mock_client
+
+        mock_build_container = mock.MagicMock()
+        mock_build_container.wait.return_value = {'StatusCode': 1}
+        mock_build_container.logs.return_value = b'pip: No matching distribution found'
+        mock_client.containers.run.return_value = mock_build_container
+
+        with self.assertRaises(RuntimeError) as ctx:
+            orch.build()
+
+        self.assertIn('Build failed', str(ctx.exception))
+
 
 class TestLocalContainerOrchestratorRun(TestCase):
     """Test the run phase calls Docker with correct params."""
 
-    def _create_test_archive(self, path):
-        """Create a minimal tar.gz archive for testing."""
-        with tarfile.open(path, 'w:gz') as tar:
-            # Add a dummy main.py
-            import io
-            content = b'print("hello")\n'
-            info = tarfile.TarInfo(name='main.py')
-            info.size = len(content)
-            tar.addfile(info, io.BytesIO(content))
-
     @mock.patch('physionet.gcp.ObjectPath')
-    @mock.patch('docker.DockerClient')
-    def test_run_successful_container(self, MockDockerClient, MockObjectPath):
+    def test_run_successful_container(self, MockObjectPath):
         submission = _make_submission_mock()
         orch = LocalContainerOrchestrator(submission)
 
-        # Mock docker client
-        mock_client = mock.MagicMock()
-        orch._docker_client = mock_client
+        # Run build phase first
+        mock_client = _setup_build_mocks(orch, MockObjectPath)
 
-        mock_container = mock.MagicMock()
-        mock_container.wait.return_value = {'StatusCode': 0}
-        mock_container.id = 'abc123'
-        mock_client.containers.run.return_value = mock_container
+        # Reset ObjectPath mock for the run phase
+        MockObjectPath.reset_mock()
+        MockObjectPath.side_effect = None
 
-        # Mock GCS - archive download writes a real tar.gz
-        mock_archive_obj = mock.MagicMock()
-        mock_archive_bucket = mock.MagicMock()
-        mock_archive_blob = mock.MagicMock()
-        mock_archive_bucket.blob.return_value = mock_archive_blob
+        # Set up a new run container
+        mock_run_container = mock.MagicMock()
+        mock_run_container.wait.return_value = {'StatusCode': 0}
+        mock_run_container.id = 'run456'
+        mock_client.containers.run.return_value = mock_run_container
 
-        # Mock output bucket
+        # Mock GCS for output upload
         mock_output_obj = mock.MagicMock()
         mock_output_obj.key.return_value = 'challenges/test-challenge/output/42'
         mock_output_bucket = mock.MagicMock()
-        mock_output_bucket.list_blobs.return_value = []
-
-        call_count = [0]
-        def side_effect(uri):
-            obj = mock.MagicMock()
-            if call_count[0] == 0:
-                # Archive path
-                obj.bucket.return_value = mock_archive_bucket
-                obj.key.return_value = 'archives/42/code.tar.gz'
-                call_count[0] += 1
-            else:
-                # Output path
-                obj.bucket.return_value = mock_output_bucket
-                obj.key.return_value = 'challenges/test-challenge/output/42'
-            return obj
-
-        MockObjectPath.side_effect = side_effect
-
-        # Make download_to_filename create a real archive
-        def fake_download(filename):
-            self._create_test_archive(filename)
-
-        mock_archive_blob.download_to_filename.side_effect = fake_download
+        mock_output_obj.bucket.return_value = mock_output_bucket
+        MockObjectPath.return_value = mock_output_obj
 
         orch.run()
 
-        # Verify Docker was called with correct image and command
-        call_args = mock_client.containers.run.call_args
-        self.assertEqual(call_args.kwargs['image'], 'python:3.11-slim')
+        # Find the run() call (second call to containers.run)
+        run_calls = mock_client.containers.run.call_args_list
+        # Last call is the run container
+        call_args = run_calls[-1]
+
+        # Verify uses built image, not base image
+        self.assertEqual(call_args.kwargs['image'], 'challenge-42:built')
+
+        # Verify entrypoint command (no pip install)
         self.assertEqual(
             call_args.kwargs['command'],
             ['sh', '-c', 'python main.py'],
         )
+
+        # Verify network isolation
+        self.assertEqual(call_args.kwargs['network_mode'], 'none')
+
+        # Verify environment
         self.assertEqual(call_args.kwargs['environment']['INPUT_DIR'], '/mnt/input')
         self.assertEqual(call_args.kwargs['environment']['OUTPUT_DIR'], '/mnt/output')
         self.assertEqual(call_args.kwargs['environment']['SUBMISSION_ID'], '42')
+
+        # Verify resource limits
         self.assertEqual(call_args.kwargs['mem_limit'], '512m')
         self.assertEqual(call_args.kwargs['nano_cpus'], 1_000_000_000)
         self.assertTrue(call_args.kwargs['detach'])
 
         # Verify container was waited on
-        mock_container.wait.assert_called_once_with(timeout=300)
+        mock_run_container.wait.assert_called_once_with(timeout=300)
 
-        # Cleanup
         orch.cleanup()
+
+    @mock.patch('physionet.gcp.ObjectPath')
+    def test_run_requires_build(self, MockObjectPath):
+        """run() raises RuntimeError if build() was not called first."""
+        submission = _make_submission_mock()
+        orch = LocalContainerOrchestrator(submission)
+
+        with self.assertRaises(RuntimeError) as ctx:
+            orch.run()
+
+        self.assertIn('build() must be called before run()', str(ctx.exception))
 
     @mock.patch('physionet.gcp.ObjectPath')
     def test_run_failed_container(self, MockObjectPath):
         submission = _make_submission_mock()
         orch = LocalContainerOrchestrator(submission)
 
-        mock_client = mock.MagicMock()
-        orch._docker_client = mock_client
+        # Build phase
+        mock_client = _setup_build_mocks(orch, MockObjectPath)
+        MockObjectPath.reset_mock()
+        MockObjectPath.side_effect = None
 
-        mock_container = mock.MagicMock()
-        mock_container.wait.return_value = {'StatusCode': 1}
-        mock_container.logs.return_value = b'Error: file not found'
-        mock_container.id = 'abc123'
-        mock_client.containers.run.return_value = mock_container
-
-        mock_archive_blob = mock.MagicMock()
-        def fake_download(filename):
-            self._create_test_archive(filename)
-        mock_archive_blob.download_to_filename.side_effect = fake_download
-
-        mock_archive_obj = mock.MagicMock()
-        mock_archive_obj.bucket.return_value.blob.return_value = mock_archive_blob
-        mock_archive_obj.key.return_value = 'archives/42/code.tar.gz'
-
-        MockObjectPath.return_value = mock_archive_obj
+        # Run phase — container exits with error
+        mock_run_container = mock.MagicMock()
+        mock_run_container.wait.return_value = {'StatusCode': 1}
+        mock_run_container.logs.return_value = b'Error: file not found'
+        mock_run_container.id = 'run456'
+        mock_client.containers.run.return_value = mock_run_container
 
         with self.assertRaises(RuntimeError) as ctx:
             orch.run()
@@ -221,30 +286,22 @@ class TestLocalContainerOrchestratorRun(TestCase):
         submission = _make_submission_mock()
         orch = LocalContainerOrchestrator(submission)
 
-        mock_client = mock.MagicMock()
-        orch._docker_client = mock_client
+        # Build phase
+        mock_client = _setup_build_mocks(orch, MockObjectPath)
+        MockObjectPath.reset_mock()
+        MockObjectPath.side_effect = None
 
-        mock_container = mock.MagicMock()
-        mock_container.wait.side_effect = Exception('timeout')
-        mock_container.id = 'abc123'
-        mock_client.containers.run.return_value = mock_container
-
-        mock_archive_blob = mock.MagicMock()
-        def fake_download(filename):
-            self._create_test_archive(filename)
-        mock_archive_blob.download_to_filename.side_effect = fake_download
-
-        mock_archive_obj = mock.MagicMock()
-        mock_archive_obj.bucket.return_value.blob.return_value = mock_archive_blob
-        mock_archive_obj.key.return_value = 'archives/42/code.tar.gz'
-
-        MockObjectPath.return_value = mock_archive_obj
+        # Run phase — container times out
+        mock_run_container = mock.MagicMock()
+        mock_run_container.wait.side_effect = Exception('timeout')
+        mock_run_container.id = 'run456'
+        mock_client.containers.run.return_value = mock_run_container
 
         with self.assertRaises(RuntimeError) as ctx:
             orch.run()
 
         self.assertIn('timed out', str(ctx.exception))
-        mock_container.stop.assert_called_once()
+        mock_run_container.stop.assert_called_once()
 
         orch.cleanup()
 
@@ -293,7 +350,7 @@ class TestLocalContainerOrchestratorExtractScores(TestCase):
 
 
 class TestLocalContainerOrchestratorCleanup(TestCase):
-    """Test cleanup removes container and temp files."""
+    """Test cleanup removes containers, built image, and temp files."""
 
     def test_cleanup_removes_container_and_tmpdir(self):
         submission = _make_submission_mock()
@@ -302,12 +359,23 @@ class TestLocalContainerOrchestratorCleanup(TestCase):
         mock_container = mock.MagicMock()
         orch._container = mock_container
 
+        mock_build_container = mock.MagicMock()
+        orch._build_container = mock_build_container
+
+        mock_client = mock.MagicMock()
+        orch._docker_client = mock_client
+        orch._built_image = 'challenge-42:built'
+
         tmpdir = tempfile.mkdtemp()
         orch._tmpdir = tmpdir
 
         orch.cleanup()
 
         mock_container.remove.assert_called_once_with(force=True)
+        mock_build_container.remove.assert_called_once_with(force=True)
+        mock_client.images.remove.assert_called_once_with(
+            'challenge-42:built', force=True
+        )
         self.assertFalse(os.path.exists(tmpdir))
 
     def test_cleanup_no_container(self):
