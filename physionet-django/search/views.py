@@ -315,6 +315,7 @@ def content_index(request, resource_type=None):
             'form_type': form_type,
             'form_topic': form_topic,
             'querystring': querystring,
+            'search_term': topic,
         },
     )
 

@@ -40,8 +40,23 @@
     </form>
     </div><div class="main-content">
       <h1>Resources</h1>
-      <br>
-      {% if projects|length < 1 %} No results {% endif %}
+      <p class="text-muted result-summary">
+        {% if search_term %}
+          {{ projects.paginator.count }} result{{ projects.paginator.count|pluralize }} for "<strong>{{ search_term }}</strong>"
+        {% else %}
+          {{ projects.paginator.count }} resource{{ projects.paginator.count|pluralize }}
+        {% endif %}
+      </p>
+      {% if projects|length < 1 %}
+        <div class="no-results">
+          <p>No resources matched your search{% if search_term %} for "<strong>{{ search_term }}</strong>"{% endif %}.</p>
+          <ul>
+            <li>Check the spelling of your search terms</li>
+            <li>Try broader or different keywords</li>
+            <li>Make sure all resource types are selected</li>
+          </ul>
+        </div>
+      {% endif %}
       {% include "search/content_list.html" %}
 
       {% include "console/pagination.html" with pagination=projects %}

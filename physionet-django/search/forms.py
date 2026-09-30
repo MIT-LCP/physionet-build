@@ -1,7 +1,12 @@
 from django import forms
 
 class TopicSearchForm(forms.Form):
-    topic = forms.CharField(max_length=50, required=False, label='')
+    topic = forms.CharField(
+        max_length=50, required=False, label='',
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Search by keyword or topic...',
+        }),
+    )
 
 
 class ProjectOrderForm(forms.Form):
