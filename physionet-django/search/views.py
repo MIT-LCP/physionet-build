@@ -120,7 +120,9 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
         query = Q(resource_type__in=resource_type)
 
     match_vector = (SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
-                    + SearchVector('topics__description', weight='C'))
+                    + SearchVector('topics__description', weight='C')
+                    + SearchVector('authors__first_names', weight='C')
+                    + SearchVector('authors__last_name', weight='C'))
 
     # Create a vector without the topics to avoid row multiplication from the M2M join when ranking
     rank_vector = SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
@@ -160,6 +162,12 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
             item)) for item in search_term))
         query = query | reduce(operator.or_, (Q(title__iregex=r'{0}{1}{0}'.format(wb,
             item)) for item in search_term))
+        query = query | reduce(operator.or_, (Q(
+            authors__first_names__iregex=r'{0}{1}{0}'.format(wb, item))
+            for item in search_term))
+        query = query | reduce(operator.or_, (Q(
+            authors__last_name__iregex=r'{0}{1}{0}'.format(wb, item))
+            for item in search_term))
         query = query & Q(resource_type__in=resource_type)
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
@@ -182,6 +190,16 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
             )
             + Case(
                 When(abstract__iregex=r"{0}{1}{0}".format(wb, t), then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+            + Case(
+                When(authors__first_names__iregex=r"{0}{1}{0}".format(wb, t), then=Value(2)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+            + Case(
+                When(authors__last_name__iregex=r"{0}{1}{0}".format(wb, t), then=Value(2)),
                 default=Value(0),
                 output_field=IntegerField(),
             )
