@@ -2,17 +2,73 @@
 	padding: 0;
 }
 
-.card ul{
+/* Sidebar TOC */
+
+.sidebar-title{
+	font-size: 1.1rem;
+	font-weight: 600;
+	margin: 0 0 0.75rem;
+	padding: 0;
+	color: #212529;
+}
+
+.sidebar-nav ul{
 	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.sidebar-nav ul li{
 	padding: 0;
 }
 
-.card ul li{
-	padding: 10px;
+.sidebar-nav ul li a{
+	display: block;
+	padding: 0.4rem 0.6rem;
+	color: #495057;
+	text-decoration: none;
+	border-radius: 0.2rem;
+	font-size: 0.9rem;
+	transition: background-color 0.15s ease;
+}
+
+.sidebar-nav ul li a:hover{
+	background-color: rgba(0, 0, 0, 0.05);
+	color: #212529;
+	text-decoration: none;
 }
 
 /* nested list */
 
-.card ul ul a {
-    padding-left: 20px;
+.sidebar-nav ul ul a{
+	padding-left: 1.5rem;
+	font-size: 0.85rem;
+}
+
+/* Sticky sidebar */
+
+@media (min-width: 992px){
+	.sidebar-nav{
+		position: sticky;
+		top: 1rem;
+	}
+}
+
+/* Section styling */
+
+.about-section{
+	margin-bottom: 2.5rem;
+}
+
+.about-section h2{
+	font-size: 1.5rem;
+	font-weight: 600;
+	margin-bottom: 1rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 1px solid #e9ecef;
+}
+
+.about-section > div{
+	line-height: 1.7;
+	color: #343a40;
 }
