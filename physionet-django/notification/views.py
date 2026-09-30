@@ -3,9 +3,9 @@ import uuid
 from datetime import date
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
-from django.http import Http404, HttpResponseForbidden, JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.db.models import Min, Max
@@ -117,30 +117,21 @@ def unread_count(request):
     return JsonResponse({'unread_count': count})
 
 
-ALLOWED_IMAGE_TYPES = {
-    'image/jpeg': '.jpg',
-    'image/png': '.png',
-    'image/gif': '.gif',
-    'image/webp': '.webp',
+ALLOWED_IMAGE_FORMATS = {
+    'JPEG': '.jpg',
+    'PNG': '.png',
+    'GIF': '.gif',
+    'WEBP': '.webp',
 }
 MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
 @require_POST
-@login_required
+@permission_required('notification.change_news', raise_exception=True)
 def news_image_upload(request):
-    if not request.user.is_staff:
-        return HttpResponseForbidden('Staff access required.')
-
     uploaded_file = request.FILES.get('file')
     if not uploaded_file:
         return JsonResponse({'error': 'No file provided.'}, status=400)
-
-    if uploaded_file.content_type not in ALLOWED_IMAGE_TYPES:
-        return JsonResponse(
-            {'error': 'Unsupported file type. Allowed: JPEG, PNG, GIF, WebP.'},
-            status=400,
-        )
 
     if uploaded_file.size > MAX_IMAGE_SIZE:
         return JsonResponse(
@@ -148,13 +139,32 @@ def news_image_upload(request):
             status=400,
         )
 
+    from PIL import Image
+
+    try:
+        img = Image.open(uploaded_file)
+        img.verify()
+    except Exception:
+        return JsonResponse(
+            {'error': 'Invalid image file.'},
+            status=400,
+        )
+
+    image_format = img.format
+    if image_format not in ALLOWED_IMAGE_FORMATS:
+        return JsonResponse(
+            {'error': 'Unsupported image format. Allowed: JPEG, PNG, GIF, WebP.'},
+            status=400,
+        )
+
     upload_dir = os.path.join(settings.MEDIA_ROOT, 'news', 'images')
     os.makedirs(upload_dir, exist_ok=True)
 
-    ext = ALLOWED_IMAGE_TYPES[uploaded_file.content_type]
+    ext = ALLOWED_IMAGE_FORMATS[image_format]
     filename = f'{uuid.uuid4().hex}{ext}'
     filepath = os.path.join(upload_dir, filename)
 
+    uploaded_file.seek(0)
     with open(filepath, 'wb') as f:
         for chunk in uploaded_file.chunks():
             f.write(chunk)
