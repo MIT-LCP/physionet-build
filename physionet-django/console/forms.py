@@ -9,6 +9,7 @@ from django.db import transaction
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
+from tinymce.widgets import TinyMCE
 from physionet.models import FrontPageButton, Section, StaticPage
 from project.models import (
     ActiveProject,
@@ -683,6 +684,9 @@ class NewsForm(forms.ModelForm):
     class Meta:
         model = News
         fields = ('slug', 'title', 'content', 'url', 'project', 'link_all_versions', 'front_page_banner')
+        widgets = {
+            'content': TinyMCE(mce_attrs=settings.TINYMCE_NEWS_CONFIG),
+        }
 
 
 class FeaturedForm(forms.Form):
