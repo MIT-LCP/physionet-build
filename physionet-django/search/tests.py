@@ -7,7 +7,7 @@ from project.models import (
     PublishedProject,
 )
 from search.templatetags.search_tags import highlight
-from search.views import get_content
+from search.views import get_content, split_search_terms
 from user.models import User
 
 
@@ -131,6 +131,34 @@ class AuthorSearchTests(TestCase):
         self.assertEqual(slugs, ['cardiac-signals', 'sleep-study'])
 
 
+class TestSplitSearchTerms(TestCase):
+    """Tests for the shared search term splitting function."""
+
+    def test_whitespace(self):
+        self.assertEqual(split_search_terms('acute episodes'), ['acute', 'episodes'])
+
+    def test_commas(self):
+        self.assertEqual(split_search_terms('ecg,eeg'), ['ecg', 'eeg'])
+
+    def test_semicolons(self):
+        self.assertEqual(split_search_terms('ecg;eeg'), ['ecg', 'eeg'])
+
+    def test_mixed_delimiters(self):
+        self.assertEqual(split_search_terms('ecg, eeg; heart'), ['ecg', 'eeg', 'heart'])
+
+    def test_extra_whitespace(self):
+        self.assertEqual(split_search_terms('  ecg   eeg  '), ['ecg', 'eeg'])
+
+    def test_empty_string(self):
+        self.assertEqual(split_search_terms(''), [])
+
+    def test_none(self):
+        self.assertEqual(split_search_terms(None), [])
+
+    def test_single_term(self):
+        self.assertEqual(split_search_terms('ecg'), ['ecg'])
+
+
 class TestHighlightFilter(TestCase):
     """Tests for the highlight template filter."""
 
@@ -166,7 +194,19 @@ class TestHighlightFilter(TestCase):
         self.assertNotIn('<script>', result)
         self.assertIn('&lt;<mark>script</mark>&gt;', result)
 
-    def test_special_regex_chars(self):
-        """Search terms with regex chars should be treated as literals."""
-        result = highlight('version 2.0 release', '2.0')
+    def test_special_regex_chars_dot(self):
+        """Dot in search term is treated as literal, not regex wildcard."""
+        result = highlight('version 2.0 release and 200 items', '2.0')
         self.assertIn('<mark>2.0</mark>', result)
+        self.assertNotIn('<mark>200</mark>', result)
+
+    def test_special_regex_chars_parens(self):
+        """Parentheses in search term are treated as literals."""
+        result = highlight('function foo() is defined', 'foo()')
+        self.assertIn('<mark>foo()</mark>', result)
+
+    def test_html_entities_in_text(self):
+        """Text with characters that become HTML entities after escaping."""
+        result = highlight('A & B are <partners>', 'B')
+        self.assertNotIn('<partners>', result)
+        self.assertIn('<mark>B</mark>', result)

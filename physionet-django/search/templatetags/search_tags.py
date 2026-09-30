@@ -4,6 +4,8 @@ from django import template
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
+from search.views import split_search_terms
+
 register = template.Library()
 
 
@@ -21,11 +23,9 @@ def highlight(text, search_term):
     if not search_term or not text:
         return text
 
-    # Convert to plain text (strip any HTML) then escape for safe output
     text = str(text)
 
-    # Split search terms the same way the search view does
-    terms = [t.strip() for t in re.split(r'[\s;,]+', search_term) if t.strip()]
+    terms = split_search_terms(search_term)
     if not terms:
         return text
 
