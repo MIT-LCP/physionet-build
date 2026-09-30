@@ -98,9 +98,12 @@ if settings.ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
 
 if settings.DEBUG:
     import debug_toolbar
+    from django.conf.urls.static import static
 
     # debug toolbar
     urlpatterns.append(path('__debug__/', include(debug_toolbar.urls)))
+    # serve uploaded media files in development
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Parameters for testing URLs (see physionet/test_urls.py)
 TEST_DEFAULTS = {

@@ -249,6 +249,8 @@ MAX_RUN_TIME = 9999999999      # 316 years
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR,'static')]
+
+MEDIA_URL = '/media/'
 # Google Storage service account credentials
 if config('GOOGLE_APPLICATION_CREDENTIALS', default=None):
     GOOGLE_APPLICATION_CREDENTIALS = os.path.join(
