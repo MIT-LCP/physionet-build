@@ -1,8 +1,11 @@
+import os
+import uuid
 from datetime import date
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.db.models import Min, Max
@@ -112,3 +115,49 @@ def unread_count(request):
         recipient=request.user, is_read=False
     ).count()
     return JsonResponse({'unread_count': count})
+
+
+ALLOWED_IMAGE_TYPES = {
+    'image/jpeg': '.jpg',
+    'image/png': '.png',
+    'image/gif': '.gif',
+    'image/webp': '.webp',
+}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+@require_POST
+@login_required
+def news_image_upload(request):
+    if not request.user.is_staff:
+        return HttpResponseForbidden('Staff access required.')
+
+    uploaded_file = request.FILES.get('file')
+    if not uploaded_file:
+        return JsonResponse({'error': 'No file provided.'}, status=400)
+
+    if uploaded_file.content_type not in ALLOWED_IMAGE_TYPES:
+        return JsonResponse(
+            {'error': 'Unsupported file type. Allowed: JPEG, PNG, GIF, WebP.'},
+            status=400,
+        )
+
+    if uploaded_file.size > MAX_IMAGE_SIZE:
+        return JsonResponse(
+            {'error': 'File too large. Maximum size is 5 MB.'},
+            status=400,
+        )
+
+    upload_dir = os.path.join(settings.MEDIA_ROOT, 'news', 'images')
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ext = ALLOWED_IMAGE_TYPES[uploaded_file.content_type]
+    filename = f'{uuid.uuid4().hex}{ext}'
+    filepath = os.path.join(upload_dir, filename)
+
+    with open(filepath, 'wb') as f:
+        for chunk in uploaded_file.chunks():
+            f.write(chunk)
+
+    location = f'{settings.MEDIA_URL}news/images/{filename}'
+    return JsonResponse({'location': location})
