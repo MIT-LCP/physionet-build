@@ -588,6 +588,32 @@ TINYMCE_DEFAULT_CONFIG = {
     ],
 }
 
+# TinyMCE config for News articles — adds image upload support.
+# Project descriptions continue to use TINYMCE_DEFAULT_CONFIG (no image upload).
+TINYMCE_NEWS_CONFIG = {
+    **TINYMCE_DEFAULT_CONFIG,
+    "plugins": ",".join([
+        "autoresize",
+        "autosave",
+        "code",
+        "fullscreen",
+        "help",
+        "image",
+        "link",
+        "lists",
+        "searchreplace",
+        "table",
+    ]),
+    "toolbar": (
+        "undo redo | styles | "
+        "bold italic codetag math | "
+        "numlist bullist table image | "
+        "searchreplace code restoredraft"
+    ),
+    "images_upload_url": "/news/upload-image/",
+    "automatic_uploads": True,
+}
+
 # True if the program is invoked as 'manage.py test'
 RUNNING_TEST_SUITE = (len(sys.argv) > 1 and sys.argv[1] == 'test')
 JSON_LOGGING = config('JSON_LOGGING', default=False, cast=bool)
