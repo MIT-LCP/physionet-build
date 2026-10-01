@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load static %}
+{% load physionet_templatetags %}
 
 {% block title %}
 Request Access to {{ project.title }} {{ project.version }}
@@ -67,7 +68,7 @@ Request Access to {{ project.title }} {{ project.version }}
                             {{ field }}
                             {% for error in field.errors %}
                                 <div class="alert alert-danger">
-                                    <strong>{{ error|escape }}</strong>
+                                    {{ error|default_tag:"strong" }}
                                 </div>
                             {% endfor %}
                         </div>
@@ -75,7 +76,7 @@ Request Access to {{ project.title }} {{ project.version }}
                 {% endfor %}
                 {% for error in project_request_form.non_field_errors %}
                     <div class="alert alert-danger">
-                        <strong>{{ error|escape }}</strong>
+                        {{ error|default_tag:"strong" }}
                     </div>
                 {% endfor %}
 
