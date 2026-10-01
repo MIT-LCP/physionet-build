@@ -356,14 +356,15 @@ class MoveItemsForm(EditItemsForm):
 
         if destination_folder in selected_items:
             raise forms.ValidationError(format_html(
-                'Cannot move folder <i>{}</i> into itself',
+                '<strong>Cannot move folder <i>{}</i> into itself</strong>',
                 destination_folder))
 
         self.dest_dir = os.path.normpath(os.path.join(self.file_dir, destination_folder))
         if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(self.dest_dir):
             raise forms.ValidationError(
                 format_html(
-                    'Destination folder <i>{}</i> does not exist',
+                    '<strong>Destination folder <i>{}</i> '
+                    'does not exist</strong>',
                     destination_folder,
                 )
             )

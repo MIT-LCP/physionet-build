@@ -736,8 +736,9 @@ class AWSIdentityForm(forms.Form):
             aws_user_arn = data['Arn']
         except (TypeError, KeyError, ValueError):
             raise forms.ValidationError(
-                mark_safe("Copy and paste the output of the "
-                          "<code>aws sts get-caller-identity</code> command."))
+                mark_safe("<strong>Copy and paste the output of the "
+                          "<code>aws sts get-caller-identity</code> "
+                          "command.</strong>"))
         parse_aws_user_arn(aws_user_arn, aws_account)
         validate_aws_id(aws_account)
         validate_aws_userid(aws_userid)
@@ -933,9 +934,12 @@ class TrainingForm(forms.ModelForm):
             ).first()
             if existing:
                 url = reverse('edit_training_detail', args=[existing.pk])
+                # FIXME: This should use format_html, not mark_safe!
                 raise forms.ValidationError(mark_safe(
+                    f'<strong>'
                     f'You already have a submission of this type. '
                     f'<a href="{url}">View your submission</a>.'
+                    f'</strong>'
                 ))
             raise forms.ValidationError('You have already submitted a training of this type.')
 
