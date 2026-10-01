@@ -1,3 +1,4 @@
+{% load physionet_templatetags %}
 {{ formset.management_form }}
 {% for form in formset %}
     {% for field in form.visible_fields %}
@@ -6,14 +7,14 @@
         </label> {{ field }}
         {% for error in field.errors %}
         <div class="alert alert-danger">
-            <strong>{{ error|escape }}</strong>
+            {{ error|default_tag:"strong" }}
         </div>
         {% endfor %}
     </div>
     {% endfor %}
     {% for error in form.non_field_errors %}
     <div class="alert alert-danger">
-        <strong>{{ error|escape }}</strong>
+        {{ error|default_tag:"strong" }}
     </div>
     {% endfor %}
     {% for field in form.hidden_fields %}
@@ -22,6 +23,6 @@
 {% endfor %}
 {% for error in formset.non_form_errors %}
     <div class="alert alert-danger">
-        <strong>{{ error|escape }}</strong>
+        {{ error|default_tag:"strong" }}
     </div>
 {% endfor %}
