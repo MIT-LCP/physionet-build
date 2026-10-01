@@ -6,6 +6,7 @@ import urllib.parse
 import boto3
 from django.conf import settings
 from django.forms import ValidationError
+from django.utils.html import format_html
 import requests
 
 LOGGER = logging.getLogger(__name__)
@@ -246,11 +247,42 @@ class InvalidVerificationKey(AWSVerificationFailed):
 class InvalidAWSSignature(AWSVerificationFailed):
     """Client-supplied URL cannot be verified by AWS."""
     def __init__(self):
-        super().__init__(
-            'Invalid verification code (incorrect signature). '
-            'Please run the command exactly as shown, and copy '
-            'and paste the output.'
+        message = format_html(
+            """
+            <strong>
+            Invalid verification code (access denied by AWS).
+            </strong>
+            <ul>
+            <li>
+            Please run the command exactly as shown, and copy and
+            paste the output.
+            <li>
+            Your IAM user identity might not have permission to access
+            S3. Please check that you have enabled either the
+            <code>AmazonS3FullAccess</code> or the
+            <code>AmazonS3ReadOnlyAccess</code> policy in the IAM
+            console.
+            <li>
+            If you are a member of an AWS Organization, check whether
+            your organization might have a Service Control Policy
+            (SCP) that disallows S3 access.
+            """
         )
+        if settings.S3_OPEN_ACCESS_BUCKET:
+            message += format_html(
+                """
+                <li>
+                You can check whether you have S3 permissions by
+                running this command:
+                <pre>aws s3 ls s3://{bucket_name}/</pre>
+                If this displays <code>An error occurred
+                (AccessDenied)</code>, it means that your AWS
+                account is disallowing S3 access.
+                """,
+                bucket_name=settings.S3_OPEN_ACCESS_BUCKET,
+            )
+        message += format_html('</ul>')
+        super().__init__(message)
 
 
 class BadBucketPolicy(AWSVerificationFailed):
