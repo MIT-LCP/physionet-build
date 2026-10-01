@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% load static %}
+{% load physionet_templatetags %}
 
 {% block title %}Login{% endblock %}
 
@@ -18,7 +19,7 @@
     {{ form.password }}
     {% for error in form.non_field_errors %}
       <div class="alert alert-danger">
-        <strong>{{ error|escape }}</strong>
+        {{ error|wrap_if_unformatted:"strong" }}
       </div>
     {% endfor %}
     <input type="hidden" name="next" value="{{ next }}" />
