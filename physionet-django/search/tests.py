@@ -84,13 +84,36 @@ class AuthorSearchTests(TestCase):
 
     def test_search_by_first_name(self):
         slugs = self._get_slugs(self._search('Bob'))
-        self.assertIn('sleep-study', slugs)
+        self.assertEqual(slugs, {'sleep-study'})
 
     def test_search_title_still_works(self):
         slugs = self._get_slugs(self._search('Cardiac'))
-        self.assertIn('cardiac-signals', slugs)
+        self.assertEqual(slugs, {'cardiac-signals'})
+
+    def test_search_by_full_name(self):
+        slugs = self._get_slugs(self._search('Alice Wonderland'))
+        self.assertEqual(slugs, {'cardiac-signals'})
+
+    def test_search_by_two_coauthors(self):
+        slugs = self._get_slugs(self._search('Wonderland Danvers'))
+        self.assertEqual(slugs, {'cardiac-signals'})
 
     def test_author_search_combines_with_title(self):
-        """Author and title matches should both appear in results."""
-        slugs = self._get_slugs(self._search('Wonderland'))
-        self.assertIn('cardiac-signals', slugs)
+        """A query mixing an author name and a title word should match."""
+        slugs = self._get_slugs(self._search('Wonderland Cardiac'))
+        self.assertEqual(slugs, {'cardiac-signals'})
+
+    def test_title_match_ranks_above_author_match(self):
+        PublishedAuthor.objects.create(
+            user=User.objects.create_user(
+                username='cardiac',
+                email='cardiac@example.com',
+                password='testpass123',
+            ),
+            project=self.project2,
+            display_order=2,
+            first_names='Dana',
+            last_name='Cardiac',
+        )
+        slugs = list(self._search('Cardiac').values_list('slug', flat=True))
+        self.assertEqual(slugs, ['cardiac-signals', 'sleep-study'])
