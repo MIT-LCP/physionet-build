@@ -1,7 +1,8 @@
+import html
 import re
 
 from django import template
-from django.utils.html import escape
+from django.utils.html import escape, format_html, strip_tags
 from django.utils.safestring import mark_safe
 
 from search.views import split_search_terms
