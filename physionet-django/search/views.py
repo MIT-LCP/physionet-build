@@ -3,8 +3,6 @@ import re
 from functools import reduce
 
 from django.conf import settings
-from django.contrib.postgres.aggregates import StringAgg
-from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db.models import Case, Count, IntegerField, OuterRef, Q, Subquery, Sum, Value, When
 from django.db.models.functions import Concat
 from django.http import Http404
@@ -105,6 +103,11 @@ def get_content(resource_type, orderby, direction, search_term):
 
 
 def get_content_postgres_full_text_search(resource_type, orderby, direction, search_term):
+    # Imported here rather than at module level so the site still runs on
+    # other databases (e.g. SQLite) without psycopg2 installed
+    from django.contrib.postgres.aggregates import StringAgg
+    from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+
     # Split search term by whitespace or punctuation
     if search_term:
         # Split first, then escape each term to preserve delimiters
