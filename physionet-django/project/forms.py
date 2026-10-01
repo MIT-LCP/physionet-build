@@ -16,6 +16,8 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
+
+from physionet.exceptions import HtmlValidationError
 from physionet.settings.base import StorageTypes
 from project import utility, validators
 from project.models import (
@@ -355,16 +357,15 @@ class MoveItemsForm(EditItemsForm):
             validators.validate_filename(destination_folder)
 
         if destination_folder in selected_items:
-            raise forms.ValidationError(format_html(
-                '<strong>Cannot move folder <i>{}</i> into itself</strong>',
+            raise HtmlValidationError(format_html(
+                'Cannot move folder <i>{}</i> into itself',
                 destination_folder))
 
         self.dest_dir = os.path.normpath(os.path.join(self.file_dir, destination_folder))
         if settings.STORAGE_TYPE == StorageTypes.LOCAL and not os.path.isdir(self.dest_dir):
-            raise forms.ValidationError(
+            raise HtmlValidationError(
                 format_html(
-                    '<strong>Destination folder <i>{}</i> '
-                    'does not exist</strong>',
+                    'Destination folder <i>{}</i> does not exist',
                     destination_folder,
                 )
             )
