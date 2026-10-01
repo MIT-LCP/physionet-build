@@ -52,7 +52,7 @@ class SafeHTMLField(models.TextField):
     _styles = ['text-align']
 
     def __init__(self, config_name='default', strip=False,
-                 strip_comments=True, **kwargs):
+                 strip_comments=True, strip_nbsp=True, **kwargs):
         super().__init__(**kwargs)
 
         # Create a bleach.Cleaner for the allowed content, which is
@@ -76,6 +76,8 @@ class SafeHTMLField(models.TextField):
                                        protocols=self._protocols,
                                        strip=strip,
                                        strip_comments=strip_comments)
+
+        self._strip_nbsp = strip_nbsp
 
         # Create a corresponding filter expression (for cleaning data
         # on the client side, e.g. when copying/pasting HTML):
@@ -110,6 +112,9 @@ class SafeHTMLField(models.TextField):
 
     def clean(self, value, model_instance):
         value = self._cleaner.clean(value)
+
+        if self._strip_nbsp:
+            value = value.replace('&nbsp;', ' ')
 
         # Remove scheme/hostname from internal links, and forbid
         # external subresources
