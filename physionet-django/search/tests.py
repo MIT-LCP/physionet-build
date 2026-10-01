@@ -45,6 +45,17 @@ class AuthorSearchTests(TestCase):
             first_names='Alice',
             last_name='Wonderland',
         )
+        PublishedAuthor.objects.create(
+            user=User.objects.create_user(
+                username='coauthor',
+                email='coauthor@example.com',
+                password='testpass123',
+            ),
+            project=cls.project1,
+            display_order=2,
+            first_names='Carol',
+            last_name='Danvers',
+        )
 
         cls.project2 = PublishedProject.objects.create(
             title='Sleep Study Dataset',
