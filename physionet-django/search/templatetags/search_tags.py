@@ -29,16 +29,21 @@ def highlight(text, search_term):
     if not terms:
         return text
 
-    # Escape the text first so we're working with safe HTML
-    escaped = escape(text)
-
-    # Build a single regex pattern matching any of the terms
+    # Match against the raw text, then escape each piece separately, so a
+    # term can never match inside an HTML entity such as &amp; or &#x27;
     pattern = '|'.join(re.escape(term) for term in terms)
-    highlighted = re.sub(
-        f'({pattern})',
-        r'<mark>\1</mark>',
-        escaped,
-        flags=re.IGNORECASE,
-    )
+    parts = re.split(f'({pattern})', text, flags=re.IGNORECASE)
+    return mark_safe(''.join(
+        format_html('<mark>{}</mark>', part) if i % 2 else escape(part)
+        for i, part in enumerate(parts)
+    ))
 
-    return mark_safe(highlighted)
+
+@register.filter(name='html_to_text')
+def html_to_text(value):
+    """
+    Strip HTML tags and decode HTML entities, returning plain text.
+
+    Usage: {{ project.abstract|html_to_text|truncatechars:250 }}
+    """
+    return html.unescape(strip_tags(value))
