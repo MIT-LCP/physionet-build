@@ -27,7 +27,7 @@
       </p>
       <div class="project-description">
         {% if search_term and published_project.abstract %}
-          {{ published_project.abstract|striptags|truncatechars:250|highlight:search_term }}
+          {{ published_project.abstract|html_to_text|truncatechars:250|highlight:search_term }}
         {% else %}
           {{ published_project.abstract|safe|truncatechars_html:250 }}
         {% endif %}
