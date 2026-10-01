@@ -15,6 +15,8 @@ from django.utils.crypto import get_random_string
 from django.urls import reverse
 from django.utils.html import format_html, mark_safe
 from django.utils.translation import gettext_lazy
+
+from physionet.exceptions import HtmlValidationError
 from physionet.utility import validate_pdf_file_type
 from user.awsverification import (
     AWSVerificationFailed,
@@ -735,7 +737,7 @@ class AWSIdentityForm(forms.Form):
             aws_userid = data['UserId']
             aws_user_arn = data['Arn']
         except (TypeError, KeyError, ValueError):
-            raise forms.ValidationError(
+            raise HtmlValidationError(
                 mark_safe("Copy and paste the output of the "
                           "<code>aws sts get-caller-identity</code> command."))
         parse_aws_user_arn(aws_user_arn, aws_account)
@@ -933,7 +935,7 @@ class TrainingForm(forms.ModelForm):
             ).first()
             if existing:
                 url = reverse('edit_training_detail', args=[existing.pk])
-                raise forms.ValidationError(format_html(
+                raise HtmlValidationError(format_html(
                     'You already have a submission of this type. '
                     '<a href="{url}">View your submission</a>.',
                     url=url,
