@@ -1,3 +1,4 @@
+from django.template import Context, Template
 from django.test import TestCase
 
 from project.models import (
@@ -6,8 +7,8 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
 )
-from search.templatetags.search_tags import highlight
-from search.views import get_content, split_search_terms
+from search.templatetags.search_tags import highlight, html_to_text
+from search.views import get_content, get_content_normal_search, split_search_terms
 from user.models import User
 
 
