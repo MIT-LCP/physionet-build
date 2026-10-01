@@ -210,3 +210,58 @@ class TestHighlightFilter(TestCase):
         result = highlight('A & B are <partners>', 'B')
         self.assertNotIn('<partners>', result)
         self.assertIn('<mark>B</mark>', result)
+
+    def test_term_does_not_match_inside_entity(self):
+        """A term must not split an entity like &#x27; produced by escaping."""
+        result = highlight("Patient's 27 records", '27')
+        self.assertEqual(result, 'Patient&#x27;s <mark>27</mark> records')
+
+    def test_entity_name_not_highlighted(self):
+        result = highlight('A & B', 'amp')
+        self.assertEqual(result, 'A &amp; B')
+
+
+class TestHtmlToTextFilter(TestCase):
+    """Tests for the html_to_text template filter."""
+
+    def test_strips_tags_and_decodes_entities(self):
+        self.assertEqual(html_to_text('<p>Heart &amp; lung&nbsp;data</p>'), 'Heart & lung\xa0data')
+
+    def test_abstract_is_not_double_escaped(self):
+        template = Template(
+            '{% load search_tags %}'
+            '{{ abstract|html_to_text|truncatechars:250|highlight:search_term }}'
+        )
+        result = template.render(Context({
+            'abstract': '<p>Heart &amp; lung</p>',
+            'search_term': 'heart',
+        }))
+        self.assertEqual(result, '<mark>Heart</mark> &amp; lung')
+
+
+class TestNormalSearchRelevance(TestCase):
+    """Tests for relevance scoring in the regex-based search."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.resource_type = ProjectType.objects.get_or_create(id=0, defaults={'name': 'Database'})[0]
+        PublishedProject.objects.create(
+            title='Cardiac Signals Database',
+            abstract='A collection of recordings.',
+            slug='cardiac-signals',
+            version='1.0.0',
+            submission_slug='cardiac-signals',
+            is_latest_version=True,
+            resource_type=cls.resource_type,
+            core_project=CoreProject.objects.create(),
+        )
+
+    def _has_keys(self, term):
+        projects = get_content_normal_search([self.resource_type.id], 'relevance', 'desc', term)
+        return dict(projects.values_list('slug', 'has_keys'))
+
+    def test_title_match_scores(self):
+        self.assertEqual(self._has_keys('cardiac'), {'cardiac-signals': 3})
+
+    def test_regex_special_characters(self):
+        self.assertEqual(set(self._has_keys('cardiac (')), {'cardiac-signals'})
