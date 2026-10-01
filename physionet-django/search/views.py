@@ -3,12 +3,15 @@ import re
 from functools import reduce
 
 from django.conf import settings
-from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
+from django.contrib.postgres.aggregates import StringAgg
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.db.models import Case, Count, IntegerField, OuterRef, Q, Subquery, Sum, Value, When
+from django.db.models.functions import Concat
 from django.http import Http404
 from django.shortcuts import redirect, render, reverse
 from django.templatetags.static import static
 from physionet.utility import paginate
-from project.models import PublishedProject, PublishedTopic, ProjectType
+from project.models import PublishedAuthor, PublishedProject, PublishedTopic, ProjectType
 from search import forms
 from search.models import FederatedProject
 
@@ -102,12 +105,6 @@ def get_content(resource_type, orderby, direction, search_term):
 
 
 def get_content_postgres_full_text_search(resource_type, orderby, direction, search_term):
-    from django.contrib.postgres.search import (
-        SearchQuery,
-        SearchRank,
-        SearchVector,
-    )
-
     # Split search term by whitespace or punctuation
     if search_term:
         # Split first, then escape each term to preserve delimiters
@@ -119,8 +116,21 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
         search_query = SearchQuery('')
         query = Q(resource_type__in=resource_type)
 
+    # Aggregate all author names into one string per project, so that a query
+    # naming several co-authors can match, and the authors join does not
+    # multiply rows
+    author_names = Subquery(
+        PublishedAuthor.objects.filter(project=OuterRef('pk'))
+        .values('project')
+        .annotate(names=StringAgg(
+            Concat('first_names', Value(' '), 'last_name'),
+            delimiter=' '))
+        .values('names')
+    )
+
     match_vector = (SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
-                    + SearchVector('topics__description', weight='C'))
+                    + SearchVector('topics__description', weight='C')
+                    + SearchVector(author_names, weight='C'))
 
     # Create a vector without the topics to avoid row multiplication from the M2M join when ranking
     rank_vector = SearchVector('title', weight='A') + SearchVector('abstract', weight='B')
@@ -160,6 +170,12 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
             item)) for item in search_term))
         query = query | reduce(operator.or_, (Q(title__iregex=r'{0}{1}{0}'.format(wb,
             item)) for item in search_term))
+        query = query | reduce(operator.or_, (Q(
+            authors__first_names__iregex=r'{0}{1}{0}'.format(wb, item))
+            for item in search_term))
+        query = query | reduce(operator.or_, (Q(
+            authors__last_name__iregex=r'{0}{1}{0}'.format(wb, item))
+            for item in search_term))
         query = query & Q(resource_type__in=resource_type)
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
@@ -182,6 +198,16 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
             )
             + Case(
                 When(abstract__iregex=r"{0}{1}{0}".format(wb, t), then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+            + Case(
+                When(authors__first_names__iregex=r"{0}{1}{0}".format(wb, t), then=Value(2)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+            + Case(
+                When(authors__last_name__iregex=r"{0}{1}{0}".format(wb, t), then=Value(2)),
                 default=Value(0),
                 output_field=IntegerField(),
             )
