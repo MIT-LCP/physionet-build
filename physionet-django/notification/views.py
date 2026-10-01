@@ -3,7 +3,7 @@ import uuid
 from datetime import date
 
 from django.conf import settings
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -117,57 +117,23 @@ def unread_count(request):
     return JsonResponse({'unread_count': count})
 
 
-ALLOWED_IMAGE_FORMATS = {
-    'JPEG': '.jpg',
-    'PNG': '.png',
-    'GIF': '.gif',
-    'WEBP': '.webp',
-}
-MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+def news_image(request, guid, filename):
+    """Serve a news image using the existing serve_file utility."""
+    from physionet.utility import serve_file
 
-
-@require_POST
-@permission_required('notification.change_news', raise_exception=True)
-def news_image_upload(request):
-    uploaded_file = request.FILES.get('file')
-    if not uploaded_file:
-        return JsonResponse({'error': 'No file provided.'}, status=400)
-
-    if uploaded_file.size > MAX_IMAGE_SIZE:
-        return JsonResponse(
-            {'error': 'File too large. Maximum size is 5 MB.'},
-            status=400,
-        )
-
-    from PIL import Image
-
+    # Validate guid is a valid UUID
     try:
-        img = Image.open(uploaded_file)
-        img.verify()
-    except Exception:
-        return JsonResponse(
-            {'error': 'Invalid image file.'},
-            status=400,
-        )
+        uuid.UUID(guid)
+    except (ValueError, AttributeError):
+        raise Http404
 
-    image_format = img.format
-    if image_format not in ALLOWED_IMAGE_FORMATS:
-        return JsonResponse(
-            {'error': 'Unsupported image format. Allowed: JPEG, PNG, GIF, WebP.'},
-            status=400,
-        )
+    # Prevent path traversal
+    if '/' in filename or '\\' in filename or '..' in filename:
+        raise Http404
 
-    upload_dir = os.path.join(settings.MEDIA_ROOT, 'news', 'images')
-    os.makedirs(upload_dir, exist_ok=True)
-
-    ext = ALLOWED_IMAGE_FORMATS[image_format]
-    filename = f'{uuid.uuid4().hex}{ext}'
-    filepath = os.path.join(upload_dir, filename)
-
-    uploaded_file.seek(0)
-    with open(filepath, 'wb') as f:
-        for chunk in uploaded_file.chunks():
-            f.write(chunk)
-
-    location = f'{settings.MEDIA_URL}news/images/{filename}'
-    return JsonResponse({'location': location})
+    filepath = os.path.join(
+        settings.MEDIA_ROOT, 'news', guid, 'images', filename
+    )
+    if not os.path.isfile(filepath):
+        raise Http404
+    return serve_file(filepath, attach=False, sandbox=True)

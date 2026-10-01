@@ -7,7 +7,7 @@ urlpatterns = [
     path('news/', views.news, name='news'),
     path('news/<int:year>/', views.news_year, name='news_year'),
     path('news/post/<news_slug>/', views.news_by_slug, name='news_by_slug'),
-    path('news/upload-image/', views.news_image_upload, name='news_image_upload'),
+    path('news/images/<guid>/<filename>', views.news_image, name='news_image'),
     path('feed.xml', views.news_rss, name='news_rss'),
     path('notifications/', views.notification_list, name='notification_list'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
@@ -20,11 +20,12 @@ TEST_DEFAULTS = {
     'year': '2018',
     'news_id': '1',
     'news_slug': 'cloud-migration',
+    'guid': '00000000-0000-0000-0000-000000000000',
+    'filename': 'test.png',
 }
 
 TEST_CASES = {
-    'news_image_upload': {
-        '_user_': 'admin',
+    'news_image': {
         '_skip_': True,
     },
     'notification_list': {

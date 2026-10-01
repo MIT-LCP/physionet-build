@@ -588,29 +588,17 @@ TINYMCE_DEFAULT_CONFIG = {
     ],
 }
 
-# TinyMCE config for News articles — adds image upload support.
-# Project descriptions continue to use TINYMCE_DEFAULT_CONFIG (no image upload).
-TINYMCE_NEWS_CONFIG = {
-    **TINYMCE_DEFAULT_CONFIG,
-    "plugins": ",".join([
-        "autoresize",
-        "autosave",
-        "code",
-        "fullscreen",
-        "help",
-        "image",
-        "link",
-        "lists",
-        "searchreplace",
-        "table",
-    ]),
+# Extra TinyMCE config for News articles — merged on top of the widget config
+# that SafeHTMLField.formfield() provides (which includes valid_elements).
+# images_upload_url is set dynamically per-post in NewsForm.__init__().
+TINYMCE_NEWS_EXTRA_CONFIG = {
+    "plugins": "autoresize,autosave,code,fullscreen,help,image,link,lists,searchreplace,table",
     "toolbar": (
         "undo redo | styles | "
         "bold italic codetag math | "
         "numlist bullist table image | "
         "searchreplace code restoredraft"
     ),
-    "images_upload_url": "/news/upload-image/",
     "automatic_uploads": True,
 }
 

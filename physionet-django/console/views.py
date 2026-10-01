@@ -1,6 +1,7 @@
 import csv
 import logging
 import os
+import uuid
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
@@ -27,6 +28,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_POST
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
 from html2text import html2text
@@ -2414,6 +2416,68 @@ def news_edit(request, news_slug):
     if saved:
         set_saved_fields_cookie(form, request.path, response)
     return response
+
+
+ALLOWED_IMAGE_FORMATS = {
+    'JPEG': '.jpg',
+    'PNG': '.png',
+    'GIF': '.gif',
+    'WEBP': '.webp',
+}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+@require_POST
+@permission_required('notification.change_news', raise_exception=True)
+def news_image_upload(request):
+    guid = request.GET.get('guid', '')
+    try:
+        uuid.UUID(guid)
+    except (ValueError, AttributeError):
+        return JsonResponse({'error': 'Invalid or missing guid.'}, status=400)
+
+    uploaded_file = request.FILES.get('file')
+    if not uploaded_file:
+        return JsonResponse({'error': 'No file provided.'}, status=400)
+
+    if uploaded_file.size > MAX_IMAGE_SIZE:
+        return JsonResponse(
+            {'error': 'File too large. Maximum size is 5 MB.'},
+            status=400,
+        )
+
+    from PIL import Image
+
+    try:
+        img = Image.open(uploaded_file)
+        img.verify()
+    except Exception:
+        return JsonResponse(
+            {'error': 'Invalid image file.'},
+            status=400,
+        )
+
+    image_format = img.format
+    if image_format not in ALLOWED_IMAGE_FORMATS:
+        return JsonResponse(
+            {'error': 'Unsupported image format. Allowed: JPEG, PNG, GIF, WebP.'},
+            status=400,
+        )
+
+    upload_dir = os.path.join(settings.MEDIA_ROOT, 'news', guid, 'images')
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ext = ALLOWED_IMAGE_FORMATS[image_format]
+    filename = f'{uuid.uuid4().hex}{ext}'
+    filepath = os.path.join(upload_dir, filename)
+
+    uploaded_file.seek(0)
+    with open(filepath, 'wb') as f:
+        for chunk in uploaded_file.chunks():
+            f.write(chunk)
+
+    location = f'/news/images/{guid}/{filename}'
+    return JsonResponse({'location': location})
 
 
 @console_permission_required('project.can_edit_featured_content')

@@ -3,6 +3,7 @@ import io
 import json
 import os
 import shutil
+import uuid
 
 from PIL import Image
 
@@ -248,12 +249,12 @@ TEST_MEDIA_ROOT = os.path.join(settings.BASE_DIR, 'test_media_news_upload')
 class TestNewsImageUpload(TestCase):
     fixtures = ['demo-project.json']
 
-    url = reverse('news_image_upload')
-
     def setUp(self):
         self.staff_user = User.objects.get(username='admin')
         self.regular_user = User.objects.get(username='george')
         self.client = Client()
+        self.guid = str(uuid.uuid4())
+        self.url = reverse('news_image_upload') + '?guid=' + self.guid
 
     def tearDown(self):
         if os.path.exists(TEST_MEDIA_ROOT):
@@ -279,6 +280,21 @@ class TestNewsImageUpload(TestCase):
 
     # ---- validation tests ----
 
+    def test_missing_guid_returns_400(self):
+        self.client.force_login(self.staff_user)
+        url_no_guid = reverse('news_image_upload')
+        image = SimpleUploadedFile('test.png', _make_image_bytes(), content_type='image/png')
+        response = self.client.post(url_no_guid, {'file': image})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('guid', response.json()['error'].lower())
+
+    def test_invalid_guid_returns_400(self):
+        self.client.force_login(self.staff_user)
+        url_bad_guid = reverse('news_image_upload') + '?guid=not-a-uuid'
+        image = SimpleUploadedFile('test.png', _make_image_bytes(), content_type='image/png')
+        response = self.client.post(url_bad_guid, {'file': image})
+        self.assertEqual(response.status_code, 400)
+
     def test_no_file_returns_400(self):
         self.client.force_login(self.staff_user)
         response = self.client.post(self.url)
@@ -301,7 +317,6 @@ class TestNewsImageUpload(TestCase):
 
     def test_oversized_file_returns_400(self):
         self.client.force_login(self.staff_user)
-        # 6 MB of data with a valid PNG header won't pass size check before Pillow
         big_file = SimpleUploadedFile('big.png', b'\x00' * (6 * 1024 * 1024), content_type='image/png')
         response = self.client.post(self.url, {'file': big_file})
         self.assertEqual(response.status_code, 400)
@@ -325,7 +340,7 @@ class TestNewsImageUpload(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn('location', data)
-        self.assertTrue(data['location'].startswith(settings.MEDIA_URL))
+        self.assertIn(f'/news/images/{self.guid}/', data['location'])
         self.assertTrue(data['location'].endswith('.png'))
 
     def test_upload_jpeg(self):
@@ -349,7 +364,7 @@ class TestNewsImageUpload(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json()['location'].endswith('.webp'))
 
-    def test_file_written_to_disk(self):
+    def test_file_written_to_per_guid_directory(self):
         self.client.force_login(self.staff_user)
         image_data = _make_image_bytes('PNG')
         image = SimpleUploadedFile('disk.png', image_data, content_type='image/png')
@@ -357,8 +372,51 @@ class TestNewsImageUpload(TestCase):
         self.assertEqual(response.status_code, 200)
 
         location = response.json()['location']
-        relative_path = location.replace(settings.MEDIA_URL, '', 1)
-        filepath = os.path.join(TEST_MEDIA_ROOT, relative_path)
+        # Location is like /news/images/<guid>/<filename>
+        # File is stored at MEDIA_ROOT/news/<guid>/images/<filename>
+        parts = location.split('/')
+        # ['', 'news', 'images', '<guid>', '<filename>']
+        guid_from_url = parts[3]
+        filename = parts[4]
+        filepath = os.path.join(TEST_MEDIA_ROOT, 'news', guid_from_url, 'images', filename)
         self.assertTrue(os.path.isfile(filepath))
         with open(filepath, 'rb') as f:
             self.assertEqual(f.read(), image_data)
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+class TestNewsImageServing(TestCase):
+    fixtures = ['demo-project.json']
+
+    def setUp(self):
+        self.client = Client()
+        self.guid = str(uuid.uuid4())
+
+    def tearDown(self):
+        if os.path.exists(TEST_MEDIA_ROOT):
+            shutil.rmtree(TEST_MEDIA_ROOT)
+
+    def _create_image_file(self, filename='test.png'):
+        """Create a test image on disk and return its filename."""
+        image_dir = os.path.join(TEST_MEDIA_ROOT, 'news', self.guid, 'images')
+        os.makedirs(image_dir, exist_ok=True)
+        filepath = os.path.join(image_dir, filename)
+        with open(filepath, 'wb') as f:
+            f.write(_make_image_bytes('PNG'))
+        return filename
+
+    def test_serve_existing_image(self):
+        filename = self._create_image_file()
+        url = reverse('news_image', kwargs={'guid': self.guid, 'filename': filename})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_404_for_missing_image(self):
+        url = reverse('news_image', kwargs={'guid': self.guid, 'filename': 'nonexistent.png'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_404_for_invalid_guid(self):
+        url = '/news/images/not-a-uuid/test.png'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
