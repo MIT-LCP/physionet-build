@@ -6,7 +6,7 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
 )
-from search.views import get_content
+from search.views import get_content, get_content_normal_search
 from user.models import User
 
 
@@ -128,3 +128,47 @@ class AuthorSearchTests(TestCase):
         )
         slugs = list(self._search('Cardiac').values_list('slug', flat=True))
         self.assertEqual(slugs, ['cardiac-signals', 'sleep-study'])
+
+
+class TestNormalSearchRelevanceScoring(TestCase):
+    """Tests that relevance scoring accumulates across all search terms."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.resource_type = ProjectType.objects.get_or_create(
+            id=0, defaults={'name': 'Database'}
+        )[0]
+        cls.project = PublishedProject.objects.create(
+            title='Cardiac Signals Database',
+            abstract='A collection of cardiac signal recordings.',
+            slug='cardiac-signals',
+            version='1.0.0',
+            submission_slug='cardiac-signals',
+            is_latest_version=True,
+            resource_type=cls.resource_type,
+            core_project=CoreProject.objects.create(),
+        )
+
+    def _get_scores(self, term):
+        qs = get_content_normal_search(
+            [self.resource_type.id], 'relevance', 'desc', term,
+        )
+        return dict(qs.values_list('slug', 'has_keys'))
+
+    def test_single_term_scores(self):
+        scores = self._get_scores('cardiac')
+        self.assertGreater(scores.get('cardiac-signals', 0), 0)
+
+    def test_multi_term_accumulates(self):
+        """Two matching terms should score higher than one."""
+        one_term = self._get_scores('cardiac')
+        two_terms = self._get_scores('cardiac signals')
+        self.assertGreater(
+            two_terms.get('cardiac-signals', 0),
+            one_term.get('cardiac-signals', 0),
+        )
+
+    def test_trailing_nonmatch_preserves_score(self):
+        """A non-matching trailing term must not zero out the score."""
+        scores = self._get_scores('cardiac xyznonexistent')
+        self.assertGreater(scores.get('cardiac-signals', 0), 0)

@@ -180,38 +180,39 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
         .annotate(relevance=Count('core_project_id'))
-        .annotate(has_keys=Value(0, IntegerField()))
     )
 
-    # Relevance
-    for t in search_term:
-        published_projects = published_projects.annotate(
-            has_keys=Case(
+    # Relevance — sum scores across all search terms in a single annotation
+    # so that multi-term queries accumulate rather than overwrite.
+    if search_term:
+        score = Value(0, IntegerField())
+        for t in search_term:
+            score = score + Case(
                 When(title__iregex=r"{0}{1}{0}".format(wb, t), then=Value(3)),
                 default=Value(0),
                 output_field=IntegerField(),
-            )
-            + Case(
+            ) + Case(
                 When(topics__description__iregex=r"{0}{1}{0}".format(wb, t), then=Value(2)),
                 default=Value(0),
                 output_field=IntegerField(),
-            )
-            + Case(
+            ) + Case(
                 When(abstract__iregex=r"{0}{1}{0}".format(wb, t), then=Value(1)),
                 default=Value(0),
                 output_field=IntegerField(),
-            )
-            + Case(
+            ) + Case(
                 When(authors__first_names__iregex=r"{0}{1}{0}".format(wb, t), then=Value(2)),
                 default=Value(0),
                 output_field=IntegerField(),
-            )
-            + Case(
+            ) + Case(
                 When(authors__last_name__iregex=r"{0}{1}{0}".format(wb, t), then=Value(2)),
                 default=Value(0),
                 output_field=IntegerField(),
             )
-        ).annotate(has_keys=Sum("has_keys"))
+        published_projects = published_projects.annotate(has_keys=score)
+    else:
+        published_projects = published_projects.annotate(
+            has_keys=Value(0, IntegerField())
+        )
 
 
     # Sorting
