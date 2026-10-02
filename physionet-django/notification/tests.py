@@ -1,9 +1,16 @@
 import doctest
+import io
 import json
+import os
+import shutil
+import uuid
 
-from django.template import loader
-from django.test import TestCase, Client
+from PIL import Image
+
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.template import loader
+from django.test import TestCase, Client, override_settings
 from django.urls import reverse
 
 from notification import utility
@@ -226,3 +233,190 @@ class TestNotificationViews(TestCase):
             reverse('mark_notification_read', args=[notif.id])
         )
         self.assertEqual(response.status_code, 405)
+
+
+def _make_image_bytes(fmt='PNG', size=(1, 1)):
+    """Create minimal valid image bytes in the given format."""
+    buf = io.BytesIO()
+    Image.new('RGB', size).save(buf, format=fmt)
+    return buf.getvalue()
+
+
+TEST_MEDIA_ROOT = os.path.join(settings.BASE_DIR, 'test_media_news_upload')
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+class TestNewsImageUpload(TestCase):
+    fixtures = ['demo-project.json']
+
+    def setUp(self):
+        self.staff_user = User.objects.get(username='admin')
+        self.regular_user = User.objects.get(username='george')
+        self.client = Client()
+        self.guid = str(uuid.uuid4())
+        self.url = reverse('news_image_upload') + '?guid=' + self.guid
+
+    def tearDown(self):
+        if os.path.exists(TEST_MEDIA_ROOT):
+            shutil.rmtree(TEST_MEDIA_ROOT)
+
+    # ---- auth / method tests ----
+
+    def test_anonymous_user_forbidden(self):
+        image = SimpleUploadedFile('test.png', _make_image_bytes(), content_type='image/png')
+        response = self.client.post(self.url, {'file': image})
+        self.assertEqual(response.status_code, 403)
+
+    def test_regular_user_forbidden(self):
+        self.client.force_login(self.regular_user)
+        image = SimpleUploadedFile('test.png', _make_image_bytes(), content_type='image/png')
+        response = self.client.post(self.url, {'file': image})
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.staff_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    # ---- validation tests ----
+
+    def test_missing_guid_returns_400(self):
+        self.client.force_login(self.staff_user)
+        url_no_guid = reverse('news_image_upload')
+        image = SimpleUploadedFile('test.png', _make_image_bytes(), content_type='image/png')
+        response = self.client.post(url_no_guid, {'file': image})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('guid', response.json()['error'].lower())
+
+    def test_invalid_guid_returns_400(self):
+        self.client.force_login(self.staff_user)
+        url_bad_guid = reverse('news_image_upload') + '?guid=not-a-uuid'
+        image = SimpleUploadedFile('test.png', _make_image_bytes(), content_type='image/png')
+        response = self.client.post(url_bad_guid, {'file': image})
+        self.assertEqual(response.status_code, 400)
+
+    def test_no_file_returns_400(self):
+        self.client.force_login(self.staff_user)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('No file', response.json()['error'])
+
+    def test_invalid_file_returns_400(self):
+        self.client.force_login(self.staff_user)
+        bad_file = SimpleUploadedFile('evil.exe', b'MZ\x90\x00not-an-image', content_type='application/octet-stream')
+        response = self.client.post(self.url, {'file': bad_file})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Invalid image', response.json()['error'])
+
+    def test_fake_content_type_rejected(self):
+        """A non-image file with a spoofed image Content-Type is rejected."""
+        self.client.force_login(self.staff_user)
+        bad_file = SimpleUploadedFile('fake.png', b'not-image-data', content_type='image/png')
+        response = self.client.post(self.url, {'file': bad_file})
+        self.assertEqual(response.status_code, 400)
+
+    def test_oversized_file_returns_400(self):
+        self.client.force_login(self.staff_user)
+        big_file = SimpleUploadedFile('big.png', b'\x00' * (6 * 1024 * 1024), content_type='image/png')
+        response = self.client.post(self.url, {'file': big_file})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('too large', response.json()['error'])
+
+    def test_unsupported_format_returns_400(self):
+        """A valid image in an unsupported format (BMP) is rejected."""
+        self.client.force_login(self.staff_user)
+        bmp_bytes = _make_image_bytes(fmt='BMP')
+        bmp_file = SimpleUploadedFile('test.bmp', bmp_bytes, content_type='image/bmp')
+        response = self.client.post(self.url, {'file': bmp_file})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('Unsupported', response.json()['error'])
+
+    # ---- happy path tests ----
+
+    def test_upload_png(self):
+        self.client.force_login(self.staff_user)
+        image = SimpleUploadedFile('photo.png', _make_image_bytes('PNG'), content_type='image/png')
+        response = self.client.post(self.url, {'file': image})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('location', data)
+        self.assertIn(f'/news/images/{self.guid}/', data['location'])
+        self.assertTrue(data['location'].endswith('.png'))
+
+    def test_upload_jpeg(self):
+        self.client.force_login(self.staff_user)
+        image = SimpleUploadedFile('photo.jpg', _make_image_bytes('JPEG'), content_type='image/jpeg')
+        response = self.client.post(self.url, {'file': image})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['location'].endswith('.jpg'))
+
+    def test_upload_gif(self):
+        self.client.force_login(self.staff_user)
+        image = SimpleUploadedFile('anim.gif', _make_image_bytes('GIF'), content_type='image/gif')
+        response = self.client.post(self.url, {'file': image})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['location'].endswith('.gif'))
+
+    def test_upload_webp(self):
+        self.client.force_login(self.staff_user)
+        image = SimpleUploadedFile('photo.webp', _make_image_bytes('WEBP'), content_type='image/webp')
+        response = self.client.post(self.url, {'file': image})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['location'].endswith('.webp'))
+
+    def test_file_written_to_per_guid_directory(self):
+        self.client.force_login(self.staff_user)
+        image_data = _make_image_bytes('PNG')
+        image = SimpleUploadedFile('disk.png', image_data, content_type='image/png')
+        response = self.client.post(self.url, {'file': image})
+        self.assertEqual(response.status_code, 200)
+
+        location = response.json()['location']
+        # Location is like /news/images/<guid>/<filename>
+        # File is stored at MEDIA_ROOT/news/<guid>/images/<filename>
+        parts = location.split('/')
+        # ['', 'news', 'images', '<guid>', '<filename>']
+        guid_from_url = parts[3]
+        filename = parts[4]
+        filepath = os.path.join(TEST_MEDIA_ROOT, 'news', guid_from_url, 'images', filename)
+        self.assertTrue(os.path.isfile(filepath))
+        with open(filepath, 'rb') as f:
+            self.assertEqual(f.read(), image_data)
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+class TestNewsImageServing(TestCase):
+    fixtures = ['demo-project.json']
+
+    def setUp(self):
+        self.client = Client()
+        self.guid = str(uuid.uuid4())
+
+    def tearDown(self):
+        if os.path.exists(TEST_MEDIA_ROOT):
+            shutil.rmtree(TEST_MEDIA_ROOT)
+
+    def _create_image_file(self, filename='test.png'):
+        """Create a test image on disk and return its filename."""
+        image_dir = os.path.join(TEST_MEDIA_ROOT, 'news', self.guid, 'images')
+        os.makedirs(image_dir, exist_ok=True)
+        filepath = os.path.join(image_dir, filename)
+        with open(filepath, 'wb') as f:
+            f.write(_make_image_bytes('PNG'))
+        return filename
+
+    def test_serve_existing_image(self):
+        filename = self._create_image_file()
+        url = reverse('news_image', kwargs={'guid': self.guid, 'filename': filename})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_404_for_missing_image(self):
+        url = reverse('news_image', kwargs={'guid': self.guid, 'filename': 'nonexistent.png'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_404_for_invalid_guid(self):
+        url = '/news/images/not-a-uuid/test.png'
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)

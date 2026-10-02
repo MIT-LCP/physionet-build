@@ -1,4 +1,5 @@
 import re
+import uuid
 
 from console.utility import generate_doi_payload, register_doi
 from dal import autocomplete
@@ -6,6 +7,7 @@ from django import forms
 from django.conf import settings
 from django.core.validators import URLValidator, validate_email, validate_integer
 from django.db import transaction
+from django.urls import reverse
 from django.utils import timezone
 from google.cloud import storage
 from notification.models import News
@@ -683,6 +685,32 @@ class NewsForm(forms.ModelForm):
     class Meta:
         model = News
         fields = ('slug', 'title', 'content', 'url', 'project', 'link_all_versions', 'front_page_banner')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Determine guid: use existing for edits, generate for new posts
+        if self.instance and self.instance.guid:
+            self._generated_guid = None
+            guid = str(self.instance.guid)
+        else:
+            guid = str(uuid.uuid4())
+            self._generated_guid = guid
+
+        # Merge news-specific TinyMCE config into the widget that
+        # SafeHTMLField.formfield() already created (preserving valid_elements).
+        widget = self.fields['content'].widget
+        mce_attrs = getattr(widget, 'mce_attrs', {}).copy()
+        mce_attrs.update(settings.TINYMCE_NEWS_EXTRA_CONFIG)
+        mce_attrs['images_upload_url'] = (
+            reverse('news_image_upload') + '?guid=' + guid
+        )
+        widget.mce_attrs = mce_attrs
+
+    def save(self, commit=True):
+        if self._generated_guid:
+            self.instance.guid = self._generated_guid
+        return super().save(commit=commit)
 
 
 class FeaturedForm(forms.Form):

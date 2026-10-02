@@ -1,5 +1,8 @@
+import os
+import uuid
 from datetime import date
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse
@@ -112,3 +115,25 @@ def unread_count(request):
         recipient=request.user, is_read=False
     ).count()
     return JsonResponse({'unread_count': count})
+
+
+def news_image(request, guid, filename):
+    """Serve a news image using the existing serve_file utility."""
+    from physionet.utility import serve_file
+
+    # Validate guid is a valid UUID
+    try:
+        uuid.UUID(guid)
+    except (ValueError, AttributeError):
+        raise Http404
+
+    # Prevent path traversal
+    if '/' in filename or '\\' in filename or '..' in filename:
+        raise Http404
+
+    filepath = os.path.join(
+        settings.MEDIA_ROOT, 'news', guid, 'images', filename
+    )
+    if not os.path.isfile(filepath):
+        raise Http404
+    return serve_file(filepath, attach=False, sandbox=True)

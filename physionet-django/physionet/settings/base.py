@@ -586,6 +586,20 @@ TINYMCE_DEFAULT_CONFIG = {
     ],
 }
 
+# Extra TinyMCE config for News articles — merged on top of the widget config
+# that SafeHTMLField.formfield() provides (which includes valid_elements).
+# images_upload_url is set dynamically per-post in NewsForm.__init__().
+TINYMCE_NEWS_EXTRA_CONFIG = {
+    "plugins": "autoresize,autosave,code,fullscreen,help,image,link,lists,searchreplace,table",
+    "toolbar": (
+        "undo redo | styles | "
+        "bold italic codetag math | "
+        "numlist bullist table image | "
+        "searchreplace code restoredraft"
+    ),
+    "automatic_uploads": True,
+}
+
 # True if the program is invoked as 'manage.py test'
 RUNNING_TEST_SUITE = (len(sys.argv) > 1 and sys.argv[1] == 'test')
 JSON_LOGGING = config('JSON_LOGGING', default=False, cast=bool)
