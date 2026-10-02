@@ -219,7 +219,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         default_permissions = ('change',)
         permissions = [
             ('can_assign_editor', 'Can assign editor'),
-            ('can_edit_activeprojects', 'Can edit ActiveProjects')
+            ('can_edit_activeprojects', 'Can edit ActiveProjects'),
+            ('can_archive_project', 'Can archive ActiveProjects')
         ]
         ordering = ('title', 'creation_datetime')
 

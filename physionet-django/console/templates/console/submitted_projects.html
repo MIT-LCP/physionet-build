@@ -281,10 +281,10 @@
                         <button class="btn btn-primary btn-sm" name="send_revision_reminder" value="{{ project.id }}" disabled type="submit">Send Reminder</button>
                         {% endif %}
                       </form>
-                      {% if project.editor == user %}
+                      {% if project.editor == user or perms.project.can_archive_project %}
                         <a href="{% url 'submission_info' project.slug %}?tab=archive" class="btn btn-warning btn-sm ml-2" role="button">Archive</a>
                       {% else %}
-                        <button class="btn btn-warning btn-sm ml-2" disabled title="Only the handling editor ({{ project.editor }}) can archive this project" data-toggle="tooltip">Archive</button>
+                        <button class="btn btn-warning btn-sm ml-2" disabled title="Only the handling editor ({{ project.editor }}) or a managing editor can archive this project" data-toggle="tooltip">Archive</button>
                       {% endif %}
                       {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
                     </div>

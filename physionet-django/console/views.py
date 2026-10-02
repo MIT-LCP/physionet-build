@@ -457,8 +457,8 @@ def submission_info(request, project_slug):
             messages.error(request, "You are not authorized to delete this note.")
         return redirect(f'{request.path}?tab=notes')
     if 'archive_project' in request.POST:
-        if user != project.editor:
-            messages.error(request, 'Only the project editor can archive a project.')
+        if user != project.editor and not user.has_perm('project.can_archive_project'):
+            messages.error(request, 'Only the project editor or a managing editor can archive a project.')
             return redirect(f'{request.path}?tab=archive')
 
         if project.submission_status != SubmissionStatus.NEEDS_RESUBMISSION:
