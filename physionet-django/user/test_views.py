@@ -19,6 +19,7 @@ from django.contrib import messages as msgs
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
+from django.core.cache import cache
 from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory, TestCase, override_settings
@@ -1016,6 +1017,79 @@ class TestCertificationRedirect(TestCase):
         self.client.login(username='admin@mit.edu', password='Tester11!')
         response = self.client.get(reverse('edit_certification'))
         self.assertRedirects(response, reverse('edit_training'))
+
+
+class TestResendActivation(TestCase):
+    """Test the resend activation email feature."""
+
+    def setUp(self):
+        cache.clear()
+        # Create an inactive user (simulating a registered but unactivated account)
+        self.inactive_user = User.objects.create_user(
+            username='inactiveuser',
+            email='inactive@example.com',
+            password='Testpass123!',
+            is_active=False,
+        )
+
+    def test_resend_activation_page_loads(self):
+        response = self.client.get(reverse('resend_activation'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Resend Activation Email')
+
+    def test_resend_activation_for_inactive_user(self):
+        mail.outbox.clear()
+        response = self.client.post(reverse('resend_activation'), data={
+            'email': 'inactive@example.com',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'a new activation email has been sent')
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_resend_activation_for_active_user(self):
+        self.inactive_user.is_active = True
+        self.inactive_user.save()
+        mail.outbox.clear()
+        response = self.client.post(reverse('resend_activation'), data={
+            'email': 'inactive@example.com',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'a new activation email has been sent')
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_resend_activation_for_nonexistent_email(self):
+        mail.outbox.clear()
+        response = self.client.post(reverse('resend_activation'), data={
+            'email': 'nobody@example.com',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'a new activation email has been sent')
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_resend_activation_invalid_email(self):
+        response = self.client.post(reverse('resend_activation'), data={
+            'email': 'not-an-email',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'a new activation email has been sent')
+        self.assertContains(response, 'Enter a valid email address')
+
+    def test_resend_activation_rate_limited(self):
+        mail.outbox.clear()
+        # First request succeeds
+        response = self.client.post(reverse('resend_activation'), data={
+            'email': 'inactive@example.com',
+        })
+        self.assertContains(response, 'a new activation email has been sent')
+        self.assertEqual(len(mail.outbox), 1)
+
+        # Second request immediately after is rate limited
+        response = self.client.post(reverse('resend_activation'), data={
+            'email': 'inactive@example.com',
+        })
+        self.assertNotContains(response, 'a new activation email has been sent')
+        self.assertContains(response, 'Please wait before requesting another activation email')
+        self.assertEqual(len(mail.outbox), 1)  # no additional email sent
 
 
 class BackgroundTaskError(Exception):
