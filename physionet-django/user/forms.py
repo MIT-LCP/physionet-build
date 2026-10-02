@@ -1005,3 +1005,19 @@ class OrcidRegistrationForm(RegistrationForm):
             orcid_profile.token_expiration = self.orcid_token.get('expires_at')
             orcid_profile.save()
         return user
+
+
+class DeleteAccountForm(forms.Form):
+    username = forms.CharField(
+        label='Type your username to confirm',
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean_username(self):
+        if self.cleaned_data['username'] != self.user.username:
+            raise forms.ValidationError('Username does not match.')
+        return self.cleaned_data['username']

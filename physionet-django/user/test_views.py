@@ -1112,6 +1112,161 @@ class TestResendActivation(TestCase):
         self.assertEqual(len(mail.outbox), 1)
 
 
+class TestDeleteAccount(TestCase):
+    """Tests for the self-service account deletion feature."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.delete_url = reverse('delete_account')
+        cls.login_url = reverse('login')
+
+    def _create_user(self, username='emptyuser', email='empty@example.com',
+                     password='Tester11!'):
+        user = User.objects.create_user(
+            username=username, email=email, password=password,
+            is_active=True, first_names='Test', last_name='User',
+        )
+        return user
+
+    def test_delete_account_page_loads(self):
+        user = self._create_user()
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['deletable'])
+
+    def test_anonymous_redirected(self):
+        response = self.client.get(self.delete_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(str(self.login_url), response.url)
+
+    def test_empty_account_can_delete(self):
+        user = self._create_user()
+        user_id = user.id
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.post(self.delete_url, {
+            'username': user.username,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(id=user_id).exists())
+        # Subsequent request should redirect to login (user is logged out)
+        response = self.client.get(self.delete_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(str(self.login_url), response.url)
+
+    def test_wrong_username_rejected(self):
+        user = self._create_user()
+        user_id = user.id
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.post(self.delete_url, {
+            'username': 'wrongname',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(id=user_id).exists())
+
+    def test_credentialed_user_blocked(self):
+        user = self._create_user()
+        user.is_credentialed = True
+        user.save()
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn('Your account is credentialed.', response.context['reasons'])
+        # POST should also be blocked
+        response = self.client.post(self.delete_url, {
+            'username': user.username,
+        })
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_admin_blocked(self):
+        user = self._create_user()
+        user.is_admin = True
+        user.save()
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn('Your account has admin privileges.', response.context['reasons'])
+        # POST should also be blocked
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_superuser_blocked(self):
+        user = self._create_user()
+        user.is_superuser = True
+        user.save()
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn('Your account has admin privileges.', response.context['reasons'])
+        # POST should also be blocked
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_user_with_training_blocked(self):
+        user = self._create_user()
+        training_type = TrainingType.objects.create(
+            name='TestTraining',
+            valid_duration=datetime.timedelta(days=10),
+        )
+        Training.objects.create(
+            training_type=training_type,
+            user=user,
+        )
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn('You have training records.', response.context['reasons'])
+        # POST should also be blocked
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_user_with_projects_blocked(self):
+        from django.contrib.contenttypes.models import ContentType
+        from project.models import Author
+
+        user = self._create_user()
+        # Create an Author record using the User's own content type and id
+        # as a stand-in; can_delete_account just checks Author.exists()
+        ct = ContentType.objects.get_for_model(User)
+        Author.objects.create(
+            user=user, content_type=ct, object_id=user.id,
+            display_order=1,
+        )
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn(
+            'You are an author on one or more projects.',
+            response.context['reasons'],
+        )
+        # POST should also be blocked
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_can_delete_account_empty(self):
+        user = self._create_user()
+        deletable, reasons = user.can_delete_account()
+        self.assertTrue(deletable)
+        self.assertEqual(reasons, [])
+
+    def test_can_delete_account_credentialed(self):
+        user = self._create_user()
+        user.is_credentialed = True
+        user.save()
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('Your account is credentialed.', reasons)
+
+    def test_can_delete_account_admin(self):
+        user = self._create_user()
+        user.is_admin = True
+        user.save()
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('Your account has admin privileges.', reasons)
+
+
 class BackgroundTaskError(Exception):
     def __init__(self, task):
         self.task = task

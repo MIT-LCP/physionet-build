@@ -440,6 +440,58 @@ class User(AbstractBaseUser, PermissionsMixin):
     def disp_name_email(self):
         return '{} --- {}'.format(self.get_full_name(), self.email)
 
+    def can_delete_account(self):
+        """
+        Return (deletable: bool, reasons: list[str]) indicating whether
+        the account can be self-service deleted.
+        """
+        from events.models import Event
+        from project.models import Author, DataAccessRequest, DUASignature, PublishedAuthor
+
+        checks = [
+            (
+                lambda: self.is_admin or self.is_superuser,
+                'Your account has admin privileges.',
+            ),
+            (
+                lambda: self.is_credentialed,
+                'Your account is credentialed.',
+            ),
+            (
+                lambda: Author.objects.filter(user=self).exists()
+                or PublishedAuthor.objects.filter(user=self).exists(),
+                'You are an author on one or more projects.',
+            ),
+            (
+                lambda: CredentialApplication.objects.filter(user=self)
+                .exclude(status__in=[
+                    CredentialApplication.Status.REJECTED,
+                    CredentialApplication.Status.WITHDRAWN,
+                ])
+                .exists(),
+                'You have a credential application.',
+            ),
+            (
+                lambda: Training.objects.filter(user=self).exists(),
+                'You have training records.',
+            ),
+            (
+                lambda: DataAccessRequest.objects.filter(requester=self).exists(),
+                'You have data access requests.',
+            ),
+            (
+                lambda: DUASignature.objects.filter(user=self).exists(),
+                'You have signed data use agreements.',
+            ),
+            (
+                lambda: Event.objects.filter(host=self).exists(),
+                'You are hosting events.',
+            ),
+        ]
+
+        reasons = [msg for check, msg in checks if check()]
+        return (not reasons, reasons)
+
     def file_root(self, relative=False):
         "Where the user's files are stored"
         # GCSUserFiles expects trailing slash for directories
