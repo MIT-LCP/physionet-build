@@ -9,6 +9,7 @@ import pytz
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout as auth_logout
 from django.contrib.auth import authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
@@ -1646,3 +1647,40 @@ def auth_khdp(request):
         messages.error(request, 'Failed to save KHDP account.')
 
     return redirect('edit_khdp')
+
+
+@login_required
+def delete_account(request):
+    """
+    Allow users to delete their own account if it has no significant data.
+    """
+    user = request.user
+    deletable, reasons = user.can_delete_account()
+
+    if not deletable:
+        return render(request, 'user/delete_account.html', {
+            'form': None,
+            'deletable': False,
+            'reasons': reasons,
+        })
+
+    if request.method == 'POST':
+        form = forms.DeleteAccountForm(user, data=request.POST)
+        if form.is_valid():
+            username = user.username
+            email = user.email
+            logger.info(
+                'User deleted their account: username=%s, email=%s',
+                username, email,
+            )
+            user.delete()
+            auth_logout(request)
+            return redirect('home')
+    else:
+        form = forms.DeleteAccountForm(user)
+
+    return render(request, 'user/delete_account.html', {
+        'form': form,
+        'deletable': True,
+        'reasons': reasons,
+    })

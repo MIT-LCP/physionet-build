@@ -1,0 +1,37 @@
+{% extends "user/settings.html" %}
+
+{% block title %}
+Delete Account
+{% endblock %}
+
+{% block main_content %}
+
+{% if deletable %}
+<form action="{% url 'delete_account' %}" method="post" class="form-signin no-pd">
+  <h1 class="form-signin-heading">Delete Account</h1>
+  <hr>
+  <div class="alert alert-danger">
+    <strong>Warning:</strong> This action is permanent and cannot be undone.
+    Your account and all associated data will be permanently deleted.
+  </div>
+  <p>To confirm, please type your username (<strong>{{ request.user.username }}</strong>) below:</p>
+  {% csrf_token %}
+  {% include "inline_form_snippet.html" %}
+  <button class="btn btn-danger btn-rsp" type="submit">Delete My Account</button>
+  <a class="btn btn-secondary btn-rsp" href="{% url 'edit_profile' %}">Cancel</a>
+</form>
+{% else %}
+<div class="form-signin no-pd">
+  <h1 class="form-signin-heading">Delete Account</h1>
+  <hr>
+  <p>Your account cannot be deleted because of the following:</p>
+  <ul>
+    {% for reason in reasons %}
+    <li>{{ reason }}</li>
+    {% endfor %}
+  </ul>
+  <p>If you need to delete this account, please contact support.</p>
+</div>
+{% endif %}
+
+{% endblock %}
