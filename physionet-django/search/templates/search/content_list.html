@@ -1,4 +1,5 @@
 {% load project_templatetags %}
+{% load search_tags %}
 
 {% for published_project in projects %}
   <div class="project-card">
@@ -17,7 +18,7 @@
       </div>
       <{% firstof content_list_header 'h2' %} class="project-title">
         <a href="{{ published_project.source_url }}" target="_blank" rel="noopener">
-          {{ published_project.title }}
+          {{ published_project.title|highlight:search_term }}
           <i class="fa fa-external-link-alt fa-sm"></i>
         </a>
       </{% firstof content_list_header 'h2' %}>
@@ -25,7 +26,11 @@
         <small>Source: {{ published_project.source_site.site_name }}</small>
       </p>
       <div class="project-description">
-        {{ published_project.abstract|safe|truncatechars_html:250 }}
+        {% if search_term and published_project.abstract %}
+          {{ published_project.abstract|html_to_text|truncatechars:250|highlight:search_term }}
+        {% else %}
+          {{ published_project.abstract|safe|truncatechars_html:250 }}
+        {% endif %}
       </div>
       {% if published_project.topics %}
         <div class="project-topics">
@@ -48,16 +53,20 @@
         {{ published_project.access_policy|access_badge|safe }}
       </div>
       <{% firstof content_list_header 'h2' %} class="project-title">
-        <a href="{% url 'published_project' published_project.slug published_project.version %}">{{ published_project.title }}</a>
+        <a href="{% url 'published_project' published_project.slug published_project.version %}">
+          {{ published_project.title|highlight:search_term }}
+        </a>
       </{% firstof content_list_header 'h2' %}>
       {% if not published_project.is_legacy %}
         <p class="project-authors">{{ published_project.display_authors }}</p>
       {% endif %}
       <div class="project-description">
-        {% if not published_project.short_description %}
-          {{ published_project.abstract|safe|truncatechars_html:250 }}
-        {% else %}
+        {% if search_term and published_project.abstract %}
+          {{ published_project.abstract|html_to_text|truncatechars:250|highlight:search_term }}
+        {% elif published_project.short_description %}
           {{ published_project.short_description }}
+        {% else %}
+          {{ published_project.abstract|safe|truncatechars_html:250 }}
         {% endif %}
       </div>
       {% with published_project.topics.all as topics %}

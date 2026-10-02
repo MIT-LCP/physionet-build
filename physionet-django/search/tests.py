@@ -1,3 +1,4 @@
+from django.template import Context, Template
 from django.test import TestCase
 
 from project.models import (
@@ -6,7 +7,8 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
 )
-from search.views import get_content
+from search.templatetags.search_tags import highlight, html_to_text
+from search.views import get_content, get_content_normal_search, split_search_terms
 from user.models import User
 
 
@@ -128,3 +130,139 @@ class AuthorSearchTests(TestCase):
         )
         slugs = list(self._search('Cardiac').values_list('slug', flat=True))
         self.assertEqual(slugs, ['cardiac-signals', 'sleep-study'])
+
+
+class TestSplitSearchTerms(TestCase):
+    """Tests for the shared search term splitting function."""
+
+    def test_whitespace(self):
+        self.assertEqual(split_search_terms('acute episodes'), ['acute', 'episodes'])
+
+    def test_commas(self):
+        self.assertEqual(split_search_terms('ecg,eeg'), ['ecg', 'eeg'])
+
+    def test_semicolons(self):
+        self.assertEqual(split_search_terms('ecg;eeg'), ['ecg', 'eeg'])
+
+    def test_mixed_delimiters(self):
+        self.assertEqual(split_search_terms('ecg, eeg; heart'), ['ecg', 'eeg', 'heart'])
+
+    def test_extra_whitespace(self):
+        self.assertEqual(split_search_terms('  ecg   eeg  '), ['ecg', 'eeg'])
+
+    def test_empty_string(self):
+        self.assertEqual(split_search_terms(''), [])
+
+    def test_none(self):
+        self.assertEqual(split_search_terms(None), [])
+
+    def test_single_term(self):
+        self.assertEqual(split_search_terms('ecg'), ['ecg'])
+
+
+class TestHighlightFilter(TestCase):
+    """Tests for the highlight template filter."""
+
+    def test_single_term(self):
+        result = highlight('Predicting Acute Hypotensive Episodes', 'acute')
+        self.assertIn('<mark>Acute</mark>', result)
+        self.assertIn('Predicting', result)
+
+    def test_multiple_terms(self):
+        result = highlight('Predicting Acute Hypotensive Episodes', 'acute episodes')
+        self.assertIn('<mark>Acute</mark>', result)
+        self.assertIn('<mark>Episodes</mark>', result)
+
+    def test_case_insensitive(self):
+        result = highlight('ECG Database', 'ecg')
+        self.assertIn('<mark>ECG</mark>', result)
+
+    def test_no_match(self):
+        result = highlight('Some title', 'xyz')
+        self.assertEqual(result, 'Some title')
+
+    def test_empty_search_term(self):
+        result = highlight('Some title', '')
+        self.assertEqual(result, 'Some title')
+
+    def test_none_search_term(self):
+        result = highlight('Some title', None)
+        self.assertEqual(result, 'Some title')
+
+    def test_html_escaping(self):
+        """Ensure HTML in text is escaped, not rendered."""
+        result = highlight('<script>alert("xss")</script>', 'script')
+        self.assertNotIn('<script>', result)
+        self.assertIn('&lt;<mark>script</mark>&gt;', result)
+
+    def test_special_regex_chars_dot(self):
+        """Dot in search term is treated as literal, not regex wildcard."""
+        result = highlight('version 2.0 release and 200 items', '2.0')
+        self.assertIn('<mark>2.0</mark>', result)
+        self.assertNotIn('<mark>200</mark>', result)
+
+    def test_special_regex_chars_parens(self):
+        """Parentheses in search term are treated as literals."""
+        result = highlight('function foo() is defined', 'foo()')
+        self.assertIn('<mark>foo()</mark>', result)
+
+    def test_html_entities_in_text(self):
+        """Text with characters that become HTML entities after escaping."""
+        result = highlight('A & B are <partners>', 'B')
+        self.assertNotIn('<partners>', result)
+        self.assertIn('<mark>B</mark>', result)
+
+    def test_term_does_not_match_inside_entity(self):
+        """A term must not split an entity like &#x27; produced by escaping."""
+        result = highlight("Patient's 27 records", '27')
+        self.assertEqual(result, 'Patient&#x27;s <mark>27</mark> records')
+
+    def test_entity_name_not_highlighted(self):
+        result = highlight('A & B', 'amp')
+        self.assertEqual(result, 'A &amp; B')
+
+
+class TestHtmlToTextFilter(TestCase):
+    """Tests for the html_to_text template filter."""
+
+    def test_strips_tags_and_decodes_entities(self):
+        self.assertEqual(html_to_text('<p>Heart &amp; lung&nbsp;data</p>'), 'Heart & lung\xa0data')
+
+    def test_abstract_is_not_double_escaped(self):
+        template = Template(
+            '{% load search_tags %}'
+            '{{ abstract|html_to_text|truncatechars:250|highlight:search_term }}'
+        )
+        result = template.render(Context({
+            'abstract': '<p>Heart &amp; lung</p>',
+            'search_term': 'heart',
+        }))
+        self.assertEqual(result, '<mark>Heart</mark> &amp; lung')
+
+
+class TestNormalSearchRelevance(TestCase):
+    """Tests for relevance scoring in the regex-based search."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.resource_type = ProjectType.objects.get_or_create(id=0, defaults={'name': 'Database'})[0]
+        PublishedProject.objects.create(
+            title='Cardiac Signals Database',
+            abstract='A collection of recordings.',
+            slug='cardiac-signals',
+            version='1.0.0',
+            submission_slug='cardiac-signals',
+            is_latest_version=True,
+            resource_type=cls.resource_type,
+            core_project=CoreProject.objects.create(),
+        )
+
+    def _has_keys(self, term):
+        projects = get_content_normal_search([self.resource_type.id], 'relevance', 'desc', term)
+        return dict(projects.values_list('slug', 'has_keys'))
+
+    def test_title_match_scores(self):
+        self.assertEqual(self._has_keys('cardiac'), {'cardiac-signals': 3})
+
+    def test_regex_special_characters(self):
+        self.assertEqual(set(self._has_keys('cardiac (')), {'cardiac-signals'})

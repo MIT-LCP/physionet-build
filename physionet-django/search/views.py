@@ -14,6 +14,13 @@ from search import forms
 from search.models import FederatedProject
 
 
+def split_search_terms(search_term):
+    """Split a search string into individual terms on whitespace, semicolons, and commas."""
+    if not search_term:
+        return []
+    return [t for t in re.split(r'[\s;,]+', search_term) if t]
+
+
 def get_federated_projects(resource_type, search_term):
     """
     Search federated projects by resource type and search term.
@@ -38,9 +45,8 @@ def get_federated_projects(resource_type, search_term):
         )
 
     # Apply search term filtering if provided
-    if search_term:
-        # Split first, then escape each term to preserve delimiters
-        search_terms = [re.escape(term) for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
+    search_terms = [re.escape(term) for term in split_search_terms(search_term)]
+    if search_terms:
         query = Q()
         for term in search_terms:
             # Search in title, abstract, and topics (JSON field)
@@ -109,9 +115,8 @@ def get_content_postgres_full_text_search(resource_type, orderby, direction, sea
     from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 
     # Split search term by whitespace or punctuation
-    if search_term:
-        # Split first, then escape each term to preserve delimiters
-        search_terms = [re.escape(term) for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
+    search_terms = [re.escape(term) for term in split_search_terms(search_term)]
+    if search_terms:
         search_queries = [SearchQuery(term) for term in search_terms]
         search_query = reduce(operator.and_, search_queries)
         query = Q(resource_type__in=resource_type) & Q(search=search_query)
@@ -162,23 +167,25 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
         wb = r'\y'
 
     # Build query for resource type and keyword filtering
-    if len(search_term) == 0:
+    search_terms = [re.escape(term) for term in split_search_terms(search_term)]
+    if not search_terms:
         query = Q(resource_type__in=resource_type)
     else:
-        # Split first, then escape each term to preserve delimiters
-        search_term = [re.escape(term) for term in re.split(r'\s*[\;\,\s]\s*', search_term)]
-        query = reduce(operator.or_, (Q(topics__description__iregex=r'{0}{1}{0}'.format(wb,
-            item)) for item in search_term))
-        query = query | reduce(operator.or_, (Q(abstract__iregex=r'{0}{1}{0}'.format(wb,
-            item)) for item in search_term))
-        query = query | reduce(operator.or_, (Q(title__iregex=r'{0}{1}{0}'.format(wb,
-            item)) for item in search_term))
+        query = reduce(operator.or_, (Q(
+            topics__description__iregex=r'{0}{1}{0}'.format(wb, item)
+        ) for item in search_terms))
         query = query | reduce(operator.or_, (Q(
-            authors__first_names__iregex=r'{0}{1}{0}'.format(wb, item))
-            for item in search_term))
+            abstract__iregex=r'{0}{1}{0}'.format(wb, item)
+        ) for item in search_terms))
         query = query | reduce(operator.or_, (Q(
-            authors__last_name__iregex=r'{0}{1}{0}'.format(wb, item))
-            for item in search_term))
+            title__iregex=r'{0}{1}{0}'.format(wb, item)
+        ) for item in search_terms))
+        query = query | reduce(operator.or_, (Q(
+            authors__first_names__iregex=r'{0}{1}{0}'.format(wb, item)
+        ) for item in search_terms))
+        query = query | reduce(operator.or_, (Q(
+            authors__last_name__iregex=r'{0}{1}{0}'.format(wb, item)
+        ) for item in search_terms))
         query = query & Q(resource_type__in=resource_type)
     published_projects = (PublishedProject.objects
         .filter(query, is_latest_version=True)
@@ -187,7 +194,7 @@ def get_content_normal_search(resource_type, orderby, direction, search_term):
     )
 
     # Relevance
-    for t in search_term:
+    for t in search_terms:
         published_projects = published_projects.annotate(
             has_keys=Case(
                 When(title__iregex=r"{0}{1}{0}".format(wb, t), then=Value(3)),
