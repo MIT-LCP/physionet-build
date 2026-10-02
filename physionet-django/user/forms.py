@@ -137,6 +137,12 @@ class LoginForm(auth_forms.AuthenticationForm):
     }
 
 
+class ResendActivationForm(forms.Form):
+    email = forms.EmailField(
+        label='Email address',
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
+    )
+
 
 class UserChangeForm(forms.ModelForm):
     """A form for updating user objects in the admin interface. Includes all

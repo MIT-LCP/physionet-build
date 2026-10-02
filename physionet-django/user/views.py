@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.db import DatabaseError, IntegrityError, transaction
@@ -923,6 +924,46 @@ def register(request):
     response = render(request, 'user/register.html', {'form': form})
     form.set_response_cookies(response)
     return response
+
+
+RESEND_ACTIVATION_COOLDOWN = 60  # seconds between resend attempts
+
+
+def resend_activation(request):
+    """
+    Resend activation email for users who haven't activated their account.
+    """
+    success = False
+    if request.method == 'POST':
+        form = forms.ResendActivationForm(request.POST)
+        if form.is_valid():
+            ip = request.META['REMOTE_ADDR']
+            cache_key = f'resend_activation_{ip}'
+            if cache.get(cache_key):
+                form.add_error(None, "Please wait before requesting another activation email.")
+            else:
+                email = form.cleaned_data['email']
+                try:
+                    user = User.objects.get(email=email, is_active=False)
+                except User.DoesNotExist:
+                    user = None
+
+                if user is not None:
+                    uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
+                    token = default_token_generator.make_token(user)
+                    notify_account_registration(
+                        request, user, uidb64, token,
+                        activation_type=ActivateUserType.DEFAULT,
+                    )
+                cache.set(cache_key, True, RESEND_ACTIVATION_COOLDOWN)
+                success = True
+    else:
+        form = forms.ResendActivationForm()
+
+    return render(request, 'user/resend_activation.html', {
+        'form': form,
+        'success': success,
+    })
 
 
 @login_required
