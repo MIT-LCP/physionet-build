@@ -1957,3 +1957,80 @@ class TestExternalReview(TestMixin):
         # Status should remain unchanged
         self.assertEqual(project.submission_status,
                          SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT)
+
+
+class TestUsersSearch(TestCase):
+    """Tests for the console user search."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.search_url = reverse('users_list_search', kwargs={'group': 'active'})
+        cls.admin = User.objects.create_user(
+            username='searchadmin', email='searchadmin@example.com',
+            password='Tester11!', is_active=True, is_admin=True,
+            first_names='Admin', last_name='Tester',
+        )
+        admin_group, _ = Group.objects.get_or_create(name='Admin')
+        cls.admin.groups.add(admin_group)
+
+        cls.user_john = User.objects.create_user(
+            username='jsmith', email='john.smith@example.com',
+            password='Tester11!', is_active=True,
+            first_names='John', last_name='Smith',
+        )
+        cls.user_jane = User.objects.create_user(
+            username='jdoe', email='jane.doe@example.com',
+            password='Tester11!', is_active=True,
+            first_names='Jane', last_name='Doe',
+        )
+
+    def setUp(self):
+        self.client.login(username='searchadmin', password='Tester11!')
+
+    def test_search_by_first_name(self):
+        response = self.client.post(self.search_url, {'search': 'John'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'jsmith')
+        self.assertNotContains(response, 'jdoe')
+
+    def test_search_by_last_name(self):
+        response = self.client.post(self.search_url, {'search': 'Doe'})
+        self.assertContains(response, 'jdoe')
+        self.assertNotContains(response, 'jsmith')
+
+    def test_search_case_insensitive(self):
+        response = self.client.post(self.search_url, {'search': 'john'})
+        self.assertContains(response, 'jsmith')
+
+    def test_search_multi_term(self):
+        """Searching 'John Smith' should match user with those names."""
+        response = self.client.post(self.search_url, {'search': 'John Smith'})
+        self.assertContains(response, 'jsmith')
+        self.assertNotContains(response, 'jdoe')
+
+    def test_search_multi_term_reversed(self):
+        """Term order should not matter."""
+        response = self.client.post(self.search_url, {'search': 'Smith John'})
+        self.assertContains(response, 'jsmith')
+        self.assertNotContains(response, 'jdoe')
+
+    def test_search_by_email(self):
+        response = self.client.post(self.search_url, {'search': 'jane.doe'})
+        self.assertContains(response, 'jdoe')
+
+    def test_search_by_username(self):
+        response = self.client.post(self.search_url, {'search': 'jsmith'})
+        self.assertContains(response, 'jsmith')
+
+    def test_empty_search_returns_paginated(self):
+        response = self.client.post(self.search_url, {'search': ''})
+        self.assertEqual(response.status_code, 200)
+
+    def test_search_no_match(self):
+        response = self.client.post(self.search_url, {'search': 'zzzznonexistent'})
+        self.assertNotContains(response, 'jsmith')
+        self.assertNotContains(response, 'jdoe')
+
+    def test_get_returns_404(self):
+        response = self.client.get(self.search_url)
+        self.assertEqual(response.status_code, 404)

@@ -1570,6 +1570,41 @@ def project_search(request, bucket):
     return render(request, template, {'projects': projects, 'bucket': bucket})
 
 
+def _filter_users_by_group(queryset, group):
+    """Filter a user queryset by activation group."""
+    if group == 'active':
+        return queryset.filter(is_active=True)
+    elif group == 'inactive':
+        return queryset.filter(is_active=False)
+    return queryset
+
+
+def _build_user_search_query(search_field):
+    """
+    Build a user queryset filtered by search terms.
+
+    Splits the search string into individual terms (max 5) and requires
+    each term to match at least one of: username, first names, last name,
+    primary email, or associated emails.
+    """
+    queryset = User.objects.select_related('profile').annotate(
+        login_time_count=Count('login_time')
+    )
+    if not search_field:
+        return queryset
+
+    terms = search_field.split()[:5]
+    for term in terms:
+        queryset = queryset.filter(
+            Q(username__icontains=term)
+            | Q(profile__first_names__icontains=term)
+            | Q(profile__last_name__icontains=term)
+            | Q(email__icontains=term)
+            | Q(associated_emails__email__icontains=term)
+        )
+    return queryset.distinct()
+
+
 @console_permission_required('user.view_user')
 def users(request, group='all'):
     """
@@ -1584,11 +1619,8 @@ def users(request, group='all'):
             'admin_users': admin_users,
             'group': group,
         })
-    elif group == 'active':
-        user_list = user_list.filter(is_active=True)
-    elif group == 'inactive':
-        user_list = user_list.filter(is_active=False)
 
+    user_list = _filter_users_by_group(user_list, group)
     users = paginate(request, user_list, 50)
 
     return render(request, 'console/users.html', {'users': users, 'group': group})
@@ -1713,24 +1745,12 @@ def users_search(request, group):
     """
 
     if request.method == 'POST':
-        search_field = request.POST['search']
+        search_field = request.POST['search'].strip()
 
-        users = User.objects.filter(Q(username__icontains=search_field)
-                                    | Q(profile__first_names__icontains=search_field)
-                                    | Q(profile__last_name__icontains=search_field)
-                                    | Q(email__icontains=search_field)
-                                    | Q(associated_emails__email__icontains=search_field)
-                                    ).distinct()
-
-        if 'inactive' in group:
-            users = users.filter(is_active=False)
-        elif 'active' in group:
-            users = users.filter(is_active=True)
-
+        users = _build_user_search_query(search_field)
+        users = _filter_users_by_group(users, group)
         users = users.order_by('username')
-
-        if len(search_field) == 0:
-            users = paginate(request, users, 50)
+        users = paginate(request, users, 50)
 
         return render(request, 'console/users_list.html', {'users': users,
                                                            'group': group})
