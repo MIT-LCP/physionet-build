@@ -30,3 +30,4 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(assign_archive_permission, migrations.RunPython.noop),
     ]
+    
