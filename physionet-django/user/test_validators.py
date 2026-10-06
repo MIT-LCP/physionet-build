@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 
 from user.validators import (
     validate_affiliation,
+    validate_name,
     validate_organization,
     validate_reference_response,
     validate_research_summary,
@@ -11,6 +12,21 @@ from user.validators import (
 
 
 class TestValidators(TestCase):
+
+    def test_single_letter_name_is_valid(self):
+        for name in ('K', 'a', 'É', '李'):
+            with self.subTest(name=name):
+                self.assertIsNone(validate_name(name))
+
+    def test_name_with_allowed_characters_is_valid(self):
+        for name in ('Soorya', 'Anne-Marie', "O'Connor", 'Mary Jane', 'Name_2'):
+            with self.subTest(name=name):
+                self.assertIsNone(validate_name(name))
+
+    def test_invalid_name_is_rejected(self):
+        for name in ('', ' ', '1', '_', '-', "'", '1Name', ' Name', 'K.', 'K\n'):
+            with self.subTest(name=name):
+                self.assertRaises(ValidationError, validate_name, name)
 
     def test_affiliation_with_special_character_is_valid(self):
         self.assertIsNone(validate_affiliation('Massachusetts Institute of Technology (MIT)'))
