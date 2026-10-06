@@ -790,6 +790,7 @@ class TestProjectEditing(TestCase):
         <math><mi>&#960;</mi><mo>=</mo>
         <mfrac><mn>22</mn><mn>7</mn></mfrac></math>,
         some ambiguous characters & < >,
+        non-breaking&nbsp;spaces,&nbsp;&nbsp;
         <form>invalid tags</form>,
         <span onclick="evil()">invalid attributes</span>,
         <img src="http://testserver/foo.jpg" alt="full URL to image">,
@@ -805,6 +806,7 @@ class TestProjectEditing(TestCase):
         <math><mi>&#960;</mi><mo>=</mo>
         <mfrac><mn>22</mn><mn>7</mn></mfrac></math>,
         some ambiguous characters &amp; &lt; &gt;,
+        non-breaking spaces,
         &lt;form&gt;invalid tags&lt;/form&gt;,
         <span>invalid attributes</span>,
         <img src="/foo.jpg" alt="full URL to image">,
