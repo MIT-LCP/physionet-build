@@ -43,6 +43,7 @@
   {% endif %}
   <div class="form-signin">
     <p>New user? <a id="register" href="{% url 'register' %}">Create an account</a></p>
+    <p>Didn't receive your activation email? <a href="{% url 'resend_activation' %}">Resend it</a></p>
   </div>
 </div>
 {% endblock %}
