@@ -944,23 +944,21 @@ def resend_activation(request):
             except User.DoesNotExist:
                 user = None
 
-            if user is not None:
-                now = timezone.now()
-                if (user.last_activation_email_sent
-                        and now - user.last_activation_email_sent < RESEND_ACTIVATION_COOLDOWN):
-                    form.add_error(None, "Please wait before requesting another activation email.")
-                else:
-                    uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
-                    token = default_token_generator.make_token(user)
-                    notify_account_registration(
-                        request, user, uidb64, token,
-                        activation_type=ActivateUserType.DEFAULT,
-                    )
-                    user.last_activation_email_sent = now
-                    user.save(update_fields=['last_activation_email_sent'])
-                    success = True
-            else:
-                success = True
+            # During the cooldown, skip sending but show the same message, so
+            # a second request doesn't reveal that the account exists
+            now = timezone.now()
+            if user is not None and not (
+                    user.last_activation_email_sent
+                    and now - user.last_activation_email_sent < RESEND_ACTIVATION_COOLDOWN):
+                uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
+                token = default_token_generator.make_token(user)
+                notify_account_registration(
+                    request, user, uidb64, token,
+                    activation_type=ActivateUserType.DEFAULT,
+                )
+                user.last_activation_email_sent = now
+                user.save(update_fields=['last_activation_email_sent'])
+            success = True
     else:
         form = forms.ResendActivationForm()
 
