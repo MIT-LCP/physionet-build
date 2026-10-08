@@ -1,3 +1,4 @@
+{% load physionet_templatetags %}
 <div class="qa-checklist">
   <p><strong>Quality assurance checks (not shared with authors)</strong></p>
   <ol>
@@ -8,7 +9,7 @@
           <div class="qa-field">{{ field }}</div>
           {% for error in field.errors %}
             <div class="alert alert-danger">
-              <strong>{{ error|escape }}</strong>
+              {{ error|wrap_if_unformatted:"strong" }}
             </div>
           {% endfor %}
         </li>
@@ -24,7 +25,7 @@
       </label> {{ field }}
       {% for error in field.errors %}
         <div class="alert alert-danger">
-          <strong>{{ error|escape }}</strong>
+          {{ error|wrap_if_unformatted:"strong" }}
         </div>
       {% endfor %}
       </div>
@@ -32,7 +33,7 @@
 {% endfor %}
 {% for error in form.non_field_errors %}
   <div class="alert alert-danger">
-    <strong>{{ error|escape }}</strong>
+    {{ error|wrap_if_unformatted:"strong" }}
   </div>
 {% endfor %}
 {% for field in form.hidden_fields %}
