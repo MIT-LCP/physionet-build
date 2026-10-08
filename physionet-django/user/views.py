@@ -1716,6 +1716,9 @@ def delete_account(request):
                 'User deleted their account: username=%s, email=%s',
                 username, email,
             )
+            # Cascade deletes don't remove files, so remove the photo first
+            if hasattr(user, 'profile'):
+                user.profile.delete_photo()
             user.delete()
             auth_logout(request)
             return redirect('home')
