@@ -79,7 +79,7 @@ class News(models.Model):
         default=False,
         help_text='Check this to link the news item to all versions of the selected project'
     )
-    guid = models.CharField(max_length=64, default=uuid.uuid4)
+    guid = models.UUIDField(default=uuid.uuid4, editable=False)
     front_page_banner = models.BooleanField(default=False)
     slug = models.SlugField(max_length=100, unique=True)
 

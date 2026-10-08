@@ -1,10 +1,14 @@
 import csv
 import logging
 import os
+import shutil
+import uuid
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
+
+from PIL import Image
 
 import notification.utility as notification
 from notification.utility import archive_notify
@@ -16,6 +20,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db.models import Count, DurationField, F, Q, Prefetch
@@ -2358,6 +2364,33 @@ def news_console(request):
                   {'news_items': news_items})
 
 
+def _cleanup_orphaned_news_images():
+    """
+    Remove image directories in MEDIA_ROOT/news/ whose UUID doesn't
+    match any News object's guid. These are left behind when a user
+    uploads images via TinyMCE but never submits the form.
+    """
+    news_dir = os.path.join(settings.MEDIA_ROOT, 'news')
+    if not os.path.isdir(news_dir):
+        return
+
+    known_guids = set(
+        str(g) for g in News.objects.values_list('guid', flat=True)
+    )
+
+    for entry in os.listdir(news_dir):
+        entry_path = os.path.join(news_dir, entry)
+        if not os.path.isdir(entry_path):
+            continue
+        # Only consider directories whose name is a valid UUID
+        try:
+            uuid.UUID(entry)
+        except ValueError:
+            continue
+        if entry not in known_guids:
+            shutil.rmtree(entry_path, ignore_errors=True)
+
+
 @console_permission_required('notification.change_news')
 def news_add(request):
     if request.method == 'POST':
@@ -2368,6 +2401,7 @@ def news_add(request):
             return set_saved_fields_cookie(form, request.path,
                                            redirect('news_console'))
     else:
+        _cleanup_orphaned_news_images()
         form = forms.NewsForm()
 
     return render(request, 'console/news_add.html', {'form': form})
@@ -2403,7 +2437,13 @@ def news_edit(request, news_slug):
                 form.save()
                 messages.success(request, 'The news item has been updated')
         elif 'delete' in request.POST:
+            # Remove associated image directory
+            image_dir = os.path.join(
+                settings.MEDIA_ROOT, 'news', str(news.guid)
+            )
             news.delete()
+            if os.path.isdir(image_dir):
+                shutil.rmtree(image_dir, ignore_errors=True)
             messages.success(request, 'The news item has been deleted')
             return redirect('news_console')
     else:
@@ -2414,6 +2454,67 @@ def news_edit(request, news_slug):
     if saved:
         set_saved_fields_cookie(form, request.path, response)
     return response
+
+
+ALLOWED_IMAGE_FORMATS = {
+    'JPEG': '.jpg',
+    'PNG': '.png',
+    'GIF': '.gif',
+    'WEBP': '.webp',
+}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+@csrf_exempt
+@require_POST
+@permission_required('notification.change_news', raise_exception=True)
+def news_image_upload(request):
+    guid = request.GET.get('guid', '')
+    try:
+        uuid.UUID(guid)
+    except (ValueError, AttributeError):
+        return JsonResponse({'error': 'Invalid or missing guid.'}, status=400)
+
+    uploaded_file = request.FILES.get('file')
+    if not uploaded_file:
+        return JsonResponse({'error': 'No file provided.'}, status=400)
+
+    if uploaded_file.size > MAX_IMAGE_SIZE:
+        return JsonResponse(
+            {'error': 'File too large. Maximum size is 5 MB.'},
+            status=400,
+        )
+
+    try:
+        img = Image.open(uploaded_file)
+        img.verify()
+    except Exception:
+        return JsonResponse(
+            {'error': 'Invalid image file.'},
+            status=400,
+        )
+
+    image_format = img.format
+    if image_format not in ALLOWED_IMAGE_FORMATS:
+        return JsonResponse(
+            {'error': 'Unsupported image format. Allowed: JPEG, PNG, GIF, WebP.'},
+            status=400,
+        )
+
+    upload_dir = os.path.join(settings.MEDIA_ROOT, 'news', guid, 'images')
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ext = ALLOWED_IMAGE_FORMATS[image_format]
+    filename = f'{uuid.uuid4().hex}{ext}'
+    filepath = os.path.join(upload_dir, filename)
+
+    uploaded_file.seek(0)
+    with open(filepath, 'wb') as f:
+        for chunk in uploaded_file.chunks():
+            f.write(chunk)
+
+    location = f'/news/images/{guid}/{filename}'
+    return JsonResponse({'location': location})
 
 
 @console_permission_required('project.can_edit_featured_content')
