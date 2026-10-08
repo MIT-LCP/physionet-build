@@ -7,6 +7,7 @@ urlpatterns = [
     path('news/', views.news, name='news'),
     path('news/<int:year>/', views.news_year, name='news_year'),
     path('news/post/<news_slug>/', views.news_by_slug, name='news_by_slug'),
+    path('news/images/<guid>/<filename>', views.news_image, name='news_image'),
     path('feed.xml', views.news_rss, name='news_rss'),
     path('notifications/', views.notification_list, name='notification_list'),
     path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
