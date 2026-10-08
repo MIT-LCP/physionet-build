@@ -925,6 +925,49 @@ def register(request):
     return response
 
 
+RESEND_ACTIVATION_COOLDOWN = timedelta(seconds=60)
+
+
+def resend_activation(request):
+    """
+    Resend activation email for users who haven't activated their account.
+    """
+    success = False
+    if request.method == 'POST':
+        form = forms.ResendActivationForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email'].lower()
+            try:
+                user = User.objects.get(
+                    email=email, is_active=False, last_login__isnull=True,
+                )
+            except User.DoesNotExist:
+                user = None
+
+            # During the cooldown, skip sending but show the same message, so
+            # a second request doesn't reveal that the account exists
+            now = timezone.now()
+            if user is not None and not (
+                    user.last_activation_email_sent
+                    and now - user.last_activation_email_sent < RESEND_ACTIVATION_COOLDOWN):
+                uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
+                token = default_token_generator.make_token(user)
+                notify_account_registration(
+                    request, user, uidb64, token,
+                    activation_type=ActivateUserType.DEFAULT,
+                )
+                user.last_activation_email_sent = now
+                user.save(update_fields=['last_activation_email_sent'])
+            success = True
+    else:
+        form = forms.ResendActivationForm()
+
+    return render(request, 'user/resend_activation.html', {
+        'form': form,
+        'success': success,
+    })
+
+
 @login_required
 def user_settings(request):
     """

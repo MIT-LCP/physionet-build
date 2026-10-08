@@ -365,6 +365,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     registration_ip = models.CharField(max_length=40, db_index=True,
                                        blank=True, null=True)
 
+    # Last time an activation email was sent (for rate limiting resends)
+    last_activation_email_sent = models.DateTimeField(blank=True, null=True)
+
     # Mandatory fields for the default authentication backend
     is_active = models.BooleanField(default=False)
     is_admin = models.BooleanField(default=False)
