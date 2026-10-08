@@ -1081,12 +1081,12 @@ class TestResendActivation(TestCase):
         self.assertContains(response, 'a new activation email has been sent')
         self.assertEqual(len(mail.outbox), 1)
 
-        # Second request immediately after is rate limited
+        # Second request immediately after is rate limited, but shows the
+        # same message so it doesn't reveal that the account exists
         response = self.client.post(reverse('resend_activation'), data={
             'email': 'inactive@example.com',
         })
-        self.assertNotContains(response, 'a new activation email has been sent')
-        self.assertContains(response, 'Please wait before requesting another activation email')
+        self.assertContains(response, 'a new activation email has been sent')
         self.assertEqual(len(mail.outbox), 1)  # no additional email sent
 
     def test_resend_activation_for_previously_active_user(self):
