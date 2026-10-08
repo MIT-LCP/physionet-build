@@ -1325,6 +1325,85 @@ class TestDeleteAccount(TestCase):
         self.assertFalse(User.objects.filter(id=user.id).exists())
         self.assertFalse(os.path.exists(photo_path))
 
+    def test_all_cascade_relations_accounted_for(self):
+        """
+        Guard against new CASCADE foreign keys to User being silently
+        deleted.  Every relation must be either checked in
+        can_delete_account() or listed here as safe to cascade.
+        If this test fails, a new model with a FK to User was added —
+        decide whether it should block deletion or is safe to cascade,
+        then update the appropriate set.
+        """
+        from django.db import models as db_models
+
+        # Relations checked by can_delete_account() — deletion is blocked
+        # if any of these exist.  Format: (app_label, model_name, field_name)
+        CHECKED_RELATIONS = {
+            ('project', 'author', 'user'),
+            ('project', 'publishedauthor', 'user'),
+            ('project', 'dataaccessrequest', 'requester'),
+            ('project', 'dataaccessrequestreviewer', 'reviewer'),
+            ('project', 'duasignature', 'user'),
+            ('project', 'reviewerinvitation', 'reviewer'),
+            ('user', 'credentialapplication', 'user'),
+            ('user', 'training', 'user'),
+            ('events', 'event', 'host'),
+            ('events', 'eventparticipant', 'user'),
+        }
+
+        # Relations that are safe to cascade-delete with the account.
+        SAFE_TO_CASCADE = {
+            ('admin', 'logentry', 'user'),
+            ('user', 'userlogin', 'user'),
+            ('user', 'associatedemail', 'user'),
+            ('user', 'profile', 'user'),
+            ('user', 'orcid', 'user'),
+            ('user', 'khdpaccount', 'user'),
+            ('user', 'cloudinformation', 'user'),
+            ('user', 'codeofconductsignature', 'user'),
+            ('user', 'legacycredential', 'migrated_user'),
+            ('project', 'authorinvitation', 'inviter'),
+            ('project', 'awsaccesspointuser', 'user'),
+            ('project', 'gcp', 'managed_by'),
+            ('project', 'log', 'user'),
+            ('project', 'internalnote', 'created_by'),
+            ('project', 'reviewerinvitation', 'invited_by'),
+            ('events', 'eventapplication', 'user'),
+            ('events', 'eventagreement', 'creator'),
+            ('events', 'eventagreementsignature', 'user'),
+            ('training', 'courseprogress', 'user'),
+            ('notification', 'notification', 'recipient'),
+            ('annotation', 'annotationcollection', 'created_by'),
+            ('annotation', 'baselocation', 'created_by'),
+            ('annotation', 'annotation', 'created_by'),
+            ('oauth2_provider', 'accesstoken', 'user'),
+            ('oauth2_provider', 'application', 'user'),
+            ('oauth2_provider', 'grant', 'user'),
+            ('oauth2_provider', 'idtoken', 'user'),
+            ('oauth2_provider', 'refreshtoken', 'user'),
+        }
+
+        known = CHECKED_RELATIONS | SAFE_TO_CASCADE
+
+        cascade_relations = set()
+        for rel in User._meta.related_objects:
+            if rel.on_delete is db_models.CASCADE:
+                key = (
+                    rel.related_model._meta.app_label,
+                    rel.related_model._meta.model_name,
+                    rel.field.name,
+                )
+                cascade_relations.add(key)
+
+        unknown = cascade_relations - known
+        self.assertEqual(
+            unknown, set(),
+            f"New CASCADE relations to User not accounted for in "
+            f"can_delete_account() or SAFE_TO_CASCADE: {unknown}. "
+            f"Decide whether each should block deletion or is safe to "
+            f"cascade, then add it to the appropriate set in this test.",
+        )
+
 
 class BackgroundTaskError(Exception):
     def __init__(self, task):
