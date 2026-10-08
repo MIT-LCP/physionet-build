@@ -445,8 +445,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         Return (deletable: bool, reasons: list[str]) indicating whether
         the account can be self-service deleted.
         """
-        from events.models import Event
-        from project.models import Author, DataAccessRequest, DUASignature, PublishedAuthor
+        from events.models import Event, EventParticipant
+        from project.models import (
+            Author,
+            DataAccessRequest,
+            DataAccessRequestReviewer,
+            DUASignature,
+            PublishedAuthor,
+            ReviewerInvitation,
+        )
 
         checks = [
             (
@@ -463,12 +470,9 @@ class User(AbstractBaseUser, PermissionsMixin):
                 'You are an author on one or more projects.',
             ),
             (
-                lambda: CredentialApplication.objects.filter(user=self)
-                .exclude(status__in=[
-                    CredentialApplication.Status.REJECTED,
-                    CredentialApplication.Status.WITHDRAWN,
-                ])
-                .exists(),
+                # Includes rejected and withdrawn applications, so that
+                # deleting the account can't erase the credentialing history
+                lambda: CredentialApplication.objects.filter(user=self).exists(),
                 'You have a credential application.',
             ),
             (
@@ -480,11 +484,20 @@ class User(AbstractBaseUser, PermissionsMixin):
                 'You have data access requests.',
             ),
             (
+                lambda: DataAccessRequestReviewer.objects.filter(reviewer=self).exists(),
+                'You are a reviewer of data access requests.',
+            ),
+            (
+                lambda: ReviewerInvitation.objects.filter(reviewer=self).exists(),
+                'You have been invited to review a project.',
+            ),
+            (
                 lambda: DUASignature.objects.filter(user=self).exists(),
                 'You have signed data use agreements.',
             ),
             (
-                lambda: Event.objects.filter(host=self).exists(),
+                lambda: Event.objects.filter(host=self).exists()
+                or EventParticipant.objects.filter(user=self, is_cohost=True).exists(),
                 'You are hosting events.',
             ),
         ]
