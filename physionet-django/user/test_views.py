@@ -1266,6 +1266,65 @@ class TestDeleteAccount(TestCase):
         self.assertFalse(deletable)
         self.assertIn('Your account has admin privileges.', reasons)
 
+    def test_can_delete_account_rejected_application(self):
+        from user.models import CredentialApplication
+
+        user = self._create_user()
+        CredentialApplication.objects.create(
+            user=user, slug='deleteaccounttest01', researcher_category=0,
+            status=CredentialApplication.Status.REJECTED,
+        )
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('You have a credential application.', reasons)
+
+    def test_can_delete_account_project_reviewer(self):
+        from project.models import ActiveProject, ReviewerInvitation
+
+        user = self._create_user()
+        editor = self._create_user(username='editor', email='editor@example.com')
+        ReviewerInvitation.objects.create(
+            project=ActiveProject.objects.first(), reviewer=user,
+            invited_by=editor,
+            review_deadline=datetime.date.today(),
+        )
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('You have been invited to review a project.', reasons)
+
+    def test_can_delete_account_access_request_reviewer(self):
+        from project.models import DataAccessRequestReviewer, PublishedProject
+
+        user = self._create_user()
+        DataAccessRequestReviewer.objects.create(
+            project=PublishedProject.objects.first(), reviewer=user,
+        )
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('You are a reviewer of data access requests.', reasons)
+
+    def test_can_delete_account_event_cohost(self):
+        from events.models import Event, EventParticipant
+
+        user = self._create_user()
+        EventParticipant.objects.create(
+            user=user, event=Event.objects.first(), is_cohost=True,
+        )
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('You are hosting events.', reasons)
+
+    def test_delete_account_removes_profile_photo(self):
+        from django.core.files.base import ContentFile
+
+        user = self._create_user()
+        user.profile.photo.save('photo.png', ContentFile(b'photo'), save=True)
+        photo_path = user.profile.photo.path
+        self.client.login(username=user.username, password='Tester11!')
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertFalse(User.objects.filter(id=user.id).exists())
+        self.assertFalse(os.path.exists(photo_path))
+
 
 class BackgroundTaskError(Exception):
     def __init__(self, task):
