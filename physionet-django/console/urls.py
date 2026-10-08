@@ -228,6 +228,9 @@ TEST_DEFAULTS = {
     'site_id': 1,
 }
 TEST_CASES = {
+    'news_image_upload': {
+        '_skip_': True,
+    },
     'published_projects_by_slug': {
         'project_slug': 'demoeicu',
     },

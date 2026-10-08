@@ -23,6 +23,11 @@ TEST_DEFAULTS = {
 }
 
 TEST_CASES = {
+    'news_image': {
+        'guid': '00000000-0000-0000-0000-000000000000',
+        'filename': 'test.png',
+        '_skip_': True,
+    },
     'notification_list': {
         '_user_': 'george',
     },
