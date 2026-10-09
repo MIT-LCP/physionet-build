@@ -8,7 +8,7 @@ import pdb
 
 
 import requests_mock
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core import mail
 from django.test import TestCase
@@ -1957,6 +1957,79 @@ class TestExternalReview(TestMixin):
         # Status should remain unchanged
         self.assertEqual(project.submission_status,
                          SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT)
+
+
+class TestArchivePermission(TestMixin):
+    def test_non_editor_without_permission_cannot_archive(self):
+        project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
+        editor = User.objects.get(username='admin')
+        project.assign_editor(editor)
+        project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+        project.save()
+        self.client.login(username='amitupreti', password='Tester11!')
+        url = reverse('submission_info', args=(project.slug,))
+        response = self.client.post(url, {'archive_project': ''})
+        self.assertRedirects(response, f'{url}?tab=archive', fetch_redirect_response=False)
+        self.assertTrue(
+            ActiveProject.objects.filter(
+                slug=project.slug,
+                submission_status=SubmissionStatus.NEEDS_RESUBMISSION
+            )
+        )
+        self.assertFalse(
+            ActiveProject.objects.filter(
+                slug=project.slug,
+                submission_status=SubmissionStatus.ARCHIVED
+            )
+        )
+
+    def test_managing_editor_can_archive(self):
+        project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
+        editor = User.objects.get(username='admin')
+        project.assign_editor(editor)
+        project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+        project.save()
+        user = User.objects.get(username='amitupreti')
+        group, _ = Group.objects.get_or_create(name='Managing Editor')
+        group.permissions.add(Permission.objects.get(codename='can_archive_project'))
+        user.groups.add(group)
+        self.client.login(username='amitupreti', password='Tester11!')
+        url = reverse('submission_info', args=(project.slug,))
+        self.client.post(url, {'archive_project': ''})
+
+        self.assertFalse(
+            ActiveProject.objects.filter(
+                slug=project.slug,
+                submission_status=SubmissionStatus.NEEDS_RESUBMISSION
+            )
+        )
+        self.assertTrue(
+            ActiveProject.objects.filter(
+                slug=project.slug,
+                submission_status=SubmissionStatus.ARCHIVED
+            )
+        )
+
+    def test_project_editor_can_still_archive(self):
+        project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
+        self.client.login(username='tompollard', password='Tester11!')
+        project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+        project.save()
+        url = reverse('submission_info', args=(project.slug,))
+        self.client.post(url, {'archive_project': ''})
+
+        self.assertFalse(
+            ActiveProject.objects.filter(
+                slug=project.slug,
+                submission_status=SubmissionStatus.NEEDS_RESUBMISSION
+            )
+        )
+        self.assertTrue(
+            ActiveProject.objects.filter(
+                slug=project.slug,
+                submission_status=SubmissionStatus.ARCHIVED
+            )
+        )
 
 
 class TestUsersSearch(TestCase):

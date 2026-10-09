@@ -40,10 +40,12 @@
           {{ notes|task_count_badge|safe }}
         </a>
       </li>
-      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION and project.editor == user %}
+      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION %}
+      {% if project.editor == user or perms.project.can_archive_project %}
       <li class="nav-item">
         <a class="nav-link" id="archive-tab" data-toggle="tab" href="#archive" role="tab" aria-controls="archive" aria-selected="false">Archive Project</a>
       </li>
+      {% endif %}
       {% endif %}
     </ul>
   </div>
@@ -271,17 +273,18 @@
       </div>
 
       {# Archive Project #}
-      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION and project.editor == user %}
+      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION %}
+      {% if project.editor == user or perms.project.can_archive_project %}
       <div class="tab-pane fade" id="archive" role="tabpanel" aria-labelledby="archive-tab">
         <div class="alert alert-warning" role="alert">
-          <p>As the project editor, you may archive the project <strong>"{{ project.title }}"</strong>.</p>
+          <p>As the project editor or a managing editor, you may archive the project <strong>"{{ project.title }}"</strong>.</p>
           <p>This action will:</p>
           <ul>
             <li>Move the project to "Archived" status</li>
             <li>Prevent authors from editing the project</li>
             <li>Remove the project from active submission workflow</li>
           </ul>
-          <p><strong>Note:</strong> Only the project editor can archive a project.</p>
+          <p><strong>Note:</strong> Only the project editor or a managing editor can archive a project.</p>
         </div>
 
         <form action="{% url 'submission_info' project.slug %}" method="POST" id="archive_project_form">
@@ -318,6 +321,7 @@
           </div>
         </form>
       </div>
+      {% endif %}
       {% endif %}
 
       {# Permanent Reassign #}

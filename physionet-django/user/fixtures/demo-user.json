@@ -14516,6 +14516,11 @@
         "can_edit_activeprojects",
         "project",
         "activeproject"
+      ],
+      [
+        "can_archive_project",
+        "project",
+        "activeproject"
       ]
     ]
   }
