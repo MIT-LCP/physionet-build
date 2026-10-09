@@ -2438,3 +2438,72 @@ class TestScholarDataIntegration(TestMixin):
             self.client.get(self.metrics_url)
 
         mock_get.assert_called_once()
+
+
+class TestViewArchiveProject(TestMixin):
+    def test_author_view_archive(self):
+        """Test that an author can access the project preview of an archived project"""
+
+        project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+        response = self.client.post(reverse('project_preview', args=(project.slug,)))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_other_user_view_archive(self):
+        """
+        Test if other users can access the project preview
+        of an archived project that they are not an author of
+        """
+
+        project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+
+        self.client.login(username='adam_finn@fake_gmail.com', password='Tester11!')
+        response = self.client.post(reverse('project_preview', args=(project.slug,)))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_author_view_archive_30days(self):
+        """Test if author access expires after 30 days"""
+
+        project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+        project.refresh_from_db()
+
+        project.archive_datetime = timezone.now() - timedelta(days=31)
+        project.save()
+
+        response = self.client.post(reverse('project_preview', args=(project.slug,)))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_admin_view_archive_30days(self):
+        """Test if editor can access archive after 30 days"""
+
+        project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+        project.archive_datetime = timezone.now() + timedelta(days=31)
+
+        self.client.login(username='tompollard@mit.edu', password='Tester11!')
+        response = self.client.post(reverse('project_preview', args=(project.slug,)))
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_author_access_archived_overview(self):
+        """Test if author can access the project overview of an archived project"""
+
+        project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+        response = self.client.post(reverse('project_overview', args=(project.slug,)))
+
+        self.assertEqual(response.status_code, 403)

@@ -148,7 +148,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 and not user.has_perm("project.change_activeproject")
             ):
                 days_since_archive = (timezone.now() - project.archive_datetime).days
-                if days_since_archive > 30:  # Only deny after 30 days
+                if days_since_archive > 30 or auth_mode == 0:  # Only deny after 30 days
                     allow = False
 
             # Post authentication
