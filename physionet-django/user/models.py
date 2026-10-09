@@ -457,7 +457,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         checks = [
             (
-                lambda: self.is_admin or self.is_superuser,
+                # Staff such as handling editors get console access through
+                # groups rather than is_admin
+                lambda: self.is_admin or self.is_superuser or self.has_access_to_admin_console(),
                 'Your account has admin privileges.',
             ),
             (
