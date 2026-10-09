@@ -1,0 +1,98 @@
+# This workflow runs the package test suite using the most recent
+# available versions of packages (as determined by pip's resolver,
+# based on the dependencies declared in pyproject.toml.)
+#
+# The purpose of this workflow is to detect future compatibility
+# issues in advance.  This workflow is expected to occasionally fail
+# due to circumstances out of our control, so this workflow is *not*
+# required to pass for ordinary pull requests.
+
+on:
+  push:
+    branches:
+      - dev
+
+  pull_request:
+    paths:
+      - ".github/workflows/test-future.yml"
+      - "pyproject.toml"
+
+  workflow_dispatch:
+
+jobs:
+  test-future:
+    name: Future Test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.15"
+          allow-prereleases: true
+
+      - name: Install Ubuntu package dependencies
+        run: |
+          sudo apt-get install -y \
+                       gcc \
+                       libcap-dev \
+                       libffi-dev \
+                       libflac-dev \
+                       libpq-dev \
+                       libseccomp-dev \
+                       make \
+                       wget \
+                       zip
+
+      - name: List installed Ubuntu packages
+        run: |
+          dpkg -l
+
+      - name: Install Python package and dependencies
+        run: |
+          pip install -v . --group dev
+
+      - name: List installed Python packages
+        run: |
+          pip list
+
+      - name: Install libwfdb
+        run: |
+          wget https://github.com/bemoody/wfdb/archive/main.tar.gz \
+               -O wfdb.tar.gz
+          tar -xf wfdb.tar.gz
+          (cd wfdb-* && ./configure --without-netfiles)
+          sudo make -C wfdb-*/lib install
+          sudo make -C wfdb-*/data install
+          sudo ldconfig
+
+      - name: Install sandboxed-lightwave
+        run: |
+          wget https://github.com/bemoody/lightwave/archive/main.tar.gz \
+               -O lightwave.tar.gz
+          tar -xf lightwave.tar.gz
+          sudo make -C lightwave-* CGIDIR=/usr/local/bin sandboxed-server
+
+      - name: Create .env file
+        run: |
+          ln -sT .env.example .env
+
+      - name: Run test suite
+        env:
+          PHYSIONET_TEST_HTML_DIR: /tmp/pn-test-html-output
+        run: |
+          cd physionet-django
+          python manage.py resetdb --loaddemo
+          python manage.py test --verbosity=3 --keepdb
+
+      - name: Check consistency of migrations
+        run: |
+          cd physionet-django
+          python manage.py makemigrations --dry-run --no-input --check
+
+      - name: Compile static CSS files
+        run: |
+          cd physionet-django
+          python manage.py compilestatic
