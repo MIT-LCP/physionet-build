@@ -440,6 +440,73 @@ class User(AbstractBaseUser, PermissionsMixin):
     def disp_name_email(self):
         return '{} --- {}'.format(self.get_full_name(), self.email)
 
+    def can_delete_account(self):
+        """
+        Return (deletable: bool, reasons: list[str]) indicating whether
+        the account can be self-service deleted.
+        """
+        from events.models import Event, EventParticipant
+        from project.models import (
+            Author,
+            DataAccessRequest,
+            DataAccessRequestReviewer,
+            DUASignature,
+            PublishedAuthor,
+            ReviewerInvitation,
+        )
+
+        checks = [
+            (
+                # Staff such as handling editors get console access through
+                # groups rather than is_admin
+                lambda: self.is_admin or self.is_superuser or self.has_access_to_admin_console(),
+                'Your account has admin privileges.',
+            ),
+            (
+                lambda: self.is_credentialed,
+                'Your account is credentialed.',
+            ),
+            (
+                lambda: Author.objects.filter(user=self).exists()
+                or PublishedAuthor.objects.filter(user=self).exists(),
+                'You are an author on one or more projects.',
+            ),
+            (
+                # Includes rejected and withdrawn applications, so that
+                # deleting the account can't erase the credentialing history
+                lambda: CredentialApplication.objects.filter(user=self).exists(),
+                'You have a credential application.',
+            ),
+            (
+                lambda: Training.objects.filter(user=self).exists(),
+                'You have training records.',
+            ),
+            (
+                lambda: DataAccessRequest.objects.filter(requester=self).exists(),
+                'You have data access requests.',
+            ),
+            (
+                lambda: DataAccessRequestReviewer.objects.filter(reviewer=self).exists(),
+                'You are a reviewer of data access requests.',
+            ),
+            (
+                lambda: ReviewerInvitation.objects.filter(reviewer=self).exists(),
+                'You have been invited to review a project.',
+            ),
+            (
+                lambda: DUASignature.objects.filter(user=self).exists(),
+                'You have signed data use agreements.',
+            ),
+            (
+                lambda: Event.objects.filter(host=self).exists()
+                or EventParticipant.objects.filter(user=self, is_cohost=True).exists(),
+                'You are hosting events.',
+            ),
+        ]
+
+        reasons = [msg for check, msg in checks if check()]
+        return (not reasons, reasons)
+
     def file_root(self, relative=False):
         "Where the user's files are stored"
         # GCSUserFiles expects trailing slash for directories

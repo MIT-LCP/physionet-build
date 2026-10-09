@@ -1112,6 +1112,313 @@ class TestResendActivation(TestCase):
         self.assertEqual(len(mail.outbox), 1)
 
 
+class TestDeleteAccount(TestCase):
+    """Tests for the self-service account deletion feature."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.delete_url = reverse('delete_account')
+        cls.login_url = reverse('login')
+
+    def _create_user(self, username='emptyuser', email='empty@example.com',
+                     password='Tester11!'):
+        user = User.objects.create_user(
+            username=username, email=email, password=password,
+            is_active=True, first_names='Test', last_name='User',
+        )
+        return user
+
+    def test_delete_account_page_loads(self):
+        user = self._create_user()
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['deletable'])
+
+    def test_anonymous_redirected(self):
+        response = self.client.get(self.delete_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(str(self.login_url), response.url)
+
+    def test_empty_account_can_delete(self):
+        user = self._create_user()
+        user_id = user.id
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.post(self.delete_url, {
+            'username': user.username,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(id=user_id).exists())
+        # Subsequent request should redirect to login (user is logged out)
+        response = self.client.get(self.delete_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(str(self.login_url), response.url)
+
+    def test_wrong_username_rejected(self):
+        user = self._create_user()
+        user_id = user.id
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.post(self.delete_url, {
+            'username': 'wrongname',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(User.objects.filter(id=user_id).exists())
+
+    def test_credentialed_user_blocked(self):
+        user = self._create_user()
+        user.is_credentialed = True
+        user.save()
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn('Your account is credentialed.', response.context['reasons'])
+        # POST should also be blocked
+        response = self.client.post(self.delete_url, {
+            'username': user.username,
+        })
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_admin_blocked(self):
+        user = self._create_user()
+        user.is_admin = True
+        user.save()
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn('Your account has admin privileges.', response.context['reasons'])
+        # POST should also be blocked
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_superuser_blocked(self):
+        user = self._create_user()
+        user.is_superuser = True
+        user.save()
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn('Your account has admin privileges.', response.context['reasons'])
+        # POST should also be blocked
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_user_with_training_blocked(self):
+        user = self._create_user()
+        training_type = TrainingType.objects.create(
+            name='TestTraining',
+            valid_duration=datetime.timedelta(days=10),
+        )
+        Training.objects.create(
+            training_type=training_type,
+            user=user,
+        )
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn('You have training records.', response.context['reasons'])
+        # POST should also be blocked
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_user_with_projects_blocked(self):
+        from django.contrib.contenttypes.models import ContentType
+        from project.models import Author
+
+        user = self._create_user()
+        # Create an Author record using the User's own content type and id
+        # as a stand-in; can_delete_account just checks Author.exists()
+        ct = ContentType.objects.get_for_model(User)
+        Author.objects.create(
+            user=user, content_type=ct, object_id=user.id,
+            display_order=1,
+        )
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(self.delete_url)
+        self.assertFalse(response.context['deletable'])
+        self.assertIn(
+            'You are an author on one or more projects.',
+            response.context['reasons'],
+        )
+        # POST should also be blocked
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertTrue(User.objects.filter(id=user.id).exists())
+
+    def test_can_delete_account_empty(self):
+        user = self._create_user()
+        deletable, reasons = user.can_delete_account()
+        self.assertTrue(deletable)
+        self.assertEqual(reasons, [])
+
+    def test_can_delete_account_credentialed(self):
+        user = self._create_user()
+        user.is_credentialed = True
+        user.save()
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('Your account is credentialed.', reasons)
+
+    def test_can_delete_account_admin(self):
+        user = self._create_user()
+        user.is_admin = True
+        user.save()
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('Your account has admin privileges.', reasons)
+
+    def test_can_delete_account_console_staff(self):
+        """Staff with console access through a group, but not is_admin, are blocked."""
+        from django.contrib.auth.models import Group, Permission
+
+        user = self._create_user()
+        group = Group.objects.create(name='Console Staff Test')
+        group.permissions.add(Permission.objects.get(codename='can_view_admin_console'))
+        user.groups.add(group)
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('Your account has admin privileges.', reasons)
+
+    def test_can_delete_account_rejected_application(self):
+        from user.models import CredentialApplication
+
+        user = self._create_user()
+        CredentialApplication.objects.create(
+            user=user, slug='deleteaccounttest01', researcher_category=0,
+            status=CredentialApplication.Status.REJECTED,
+        )
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('You have a credential application.', reasons)
+
+    def test_can_delete_account_project_reviewer(self):
+        from project.models import ActiveProject, ReviewerInvitation
+
+        user = self._create_user()
+        editor = self._create_user(username='editor', email='editor@example.com')
+        ReviewerInvitation.objects.create(
+            project=ActiveProject.objects.first(), reviewer=user,
+            invited_by=editor,
+            review_deadline=datetime.date.today(),
+        )
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('You have been invited to review a project.', reasons)
+
+    def test_can_delete_account_access_request_reviewer(self):
+        from project.models import DataAccessRequestReviewer, PublishedProject
+
+        user = self._create_user()
+        DataAccessRequestReviewer.objects.create(
+            project=PublishedProject.objects.first(), reviewer=user,
+        )
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('You are a reviewer of data access requests.', reasons)
+
+    def test_can_delete_account_event_cohost(self):
+        from events.models import Event, EventParticipant
+
+        user = self._create_user()
+        EventParticipant.objects.create(
+            user=user, event=Event.objects.first(), is_cohost=True,
+        )
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('You are hosting events.', reasons)
+
+    def test_delete_account_removes_profile_photo(self):
+        from django.core.files.base import ContentFile
+
+        user = self._create_user()
+        user.profile.photo.save('photo.png', ContentFile(b'photo'), save=True)
+        photo_path = user.profile.photo.path
+        self.client.login(username=user.username, password='Tester11!')
+        self.client.post(self.delete_url, {'username': user.username})
+        self.assertFalse(User.objects.filter(id=user.id).exists())
+        self.assertFalse(os.path.exists(photo_path))
+
+    def test_all_cascade_relations_accounted_for(self):
+        """
+        Guard against new CASCADE foreign keys to User being silently
+        deleted.  Every relation must be either checked in
+        can_delete_account() or listed here as safe to cascade.
+        If this test fails, a new model with a FK to User was added —
+        decide whether it should block deletion or is safe to cascade,
+        then update the appropriate set.
+        """
+        from django.db import models as db_models
+
+        # Relations checked by can_delete_account() — deletion is blocked
+        # if any of these exist.  Format: (app_label, model_name, field_name)
+        CHECKED_RELATIONS = {
+            ('project', 'author', 'user'),
+            ('project', 'publishedauthor', 'user'),
+            ('project', 'dataaccessrequest', 'requester'),
+            ('project', 'dataaccessrequestreviewer', 'reviewer'),
+            ('project', 'duasignature', 'user'),
+            ('project', 'reviewerinvitation', 'reviewer'),
+            ('user', 'credentialapplication', 'user'),
+            ('user', 'training', 'user'),
+            ('events', 'event', 'host'),
+            # Only co-hosts (is_cohost=True) block deletion; ordinary
+            # participants cascade-delete with the account.
+            ('events', 'eventparticipant', 'user'),
+        }
+
+        # Relations that are safe to cascade-delete with the account.
+        SAFE_TO_CASCADE = {
+            ('admin', 'logentry', 'user'),
+            ('user', 'userlogin', 'user'),
+            ('user', 'associatedemail', 'user'),
+            ('user', 'profile', 'user'),
+            ('user', 'orcid', 'user'),
+            ('user', 'khdpaccount', 'user'),
+            ('user', 'cloudinformation', 'user'),
+            ('user', 'codeofconductsignature', 'user'),
+            ('user', 'legacycredential', 'migrated_user'),
+            ('project', 'authorinvitation', 'inviter'),
+            ('project', 'awsaccesspointuser', 'user'),
+            ('project', 'gcp', 'managed_by'),
+            ('project', 'log', 'user'),
+            ('project', 'internalnote', 'created_by'),
+            ('project', 'reviewerinvitation', 'invited_by'),
+            ('events', 'eventapplication', 'user'),
+            ('events', 'eventagreement', 'creator'),
+            ('events', 'eventagreementsignature', 'user'),
+            ('training', 'courseprogress', 'user'),
+            ('notification', 'notification', 'recipient'),
+            ('annotation', 'annotationcollection', 'created_by'),
+            ('annotation', 'baselocation', 'created_by'),
+            ('annotation', 'annotation', 'created_by'),
+            ('oauth2_provider', 'accesstoken', 'user'),
+            ('oauth2_provider', 'application', 'user'),
+            ('oauth2_provider', 'grant', 'user'),
+            ('oauth2_provider', 'idtoken', 'user'),
+            ('oauth2_provider', 'refreshtoken', 'user'),
+        }
+
+        known = CHECKED_RELATIONS | SAFE_TO_CASCADE
+
+        cascade_relations = set()
+        for rel in User._meta.related_objects:
+            if rel.on_delete is db_models.CASCADE:
+                key = (
+                    rel.related_model._meta.app_label,
+                    rel.related_model._meta.model_name,
+                    rel.field.name,
+                )
+                cascade_relations.add(key)
+
+        unknown = cascade_relations - known
+        self.assertEqual(
+            unknown, set(),
+            f"New CASCADE relations to User not accounted for in "
+            f"can_delete_account() or SAFE_TO_CASCADE: {unknown}. "
+            f"Decide whether each should block deletion or is safe to "
+            f"cascade, then add it to the appropriate set in this test.",
+        )
+
+
 class BackgroundTaskError(Exception):
     def __init__(self, task):
         self.task = task

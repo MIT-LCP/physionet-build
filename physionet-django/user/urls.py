@@ -37,6 +37,7 @@ urlpatterns = [
         name="edit_training_detail",
     ),
     path("settings/agreements/", views.view_agreements, name="edit_agreements"),
+    path("settings/delete/", views.delete_account, name="delete_account"),
     path(
         "settings/agreements/<int:dua_signature_id>/",
         views.view_signed_agreement,
