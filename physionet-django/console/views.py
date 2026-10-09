@@ -1570,6 +1570,43 @@ def project_search(request, bucket):
     return render(request, template, {'projects': projects, 'bucket': bucket})
 
 
+def _filter_users_by_group(queryset, group):
+    """Filter a user queryset by activation group."""
+    if group == 'active':
+        return queryset.filter(is_active=True)
+    elif group == 'inactive':
+        return queryset.filter(is_active=False)
+    return queryset
+
+
+def _build_user_search_query(search_field):
+    """
+    Build a user queryset filtered by search terms.
+
+    Splits the search string into individual terms and requires
+    each term to match at least one of: username, first names, last name,
+    primary email, or associated emails.
+    """
+    queryset = User.objects.select_related('profile').annotate(
+        login_time_count=Count('login_time')
+    )
+    if not search_field:
+        return queryset
+
+    terms = search_field.split()
+    for term in terms:
+        # Match associated emails with a subquery rather than a join, so each
+        # term doesn't multiply the login_time rows counted by login_time_count
+        queryset = queryset.filter(
+            Q(username__icontains=term)
+            | Q(profile__first_names__icontains=term)
+            | Q(profile__last_name__icontains=term)
+            | Q(email__icontains=term)
+            | Q(pk__in=AssociatedEmail.objects.filter(email__icontains=term).values('user'))
+        )
+    return queryset
+
+
 @console_permission_required('user.view_user')
 def users(request, group='all'):
     """
@@ -1584,11 +1621,8 @@ def users(request, group='all'):
             'admin_users': admin_users,
             'group': group,
         })
-    elif group == 'active':
-        user_list = user_list.filter(is_active=True)
-    elif group == 'inactive':
-        user_list = user_list.filter(is_active=False)
 
+    user_list = _filter_users_by_group(user_list, group)
     users = paginate(request, user_list, 50)
 
     return render(request, 'console/users.html', {'users': users, 'group': group})
@@ -1713,23 +1747,14 @@ def users_search(request, group):
     """
 
     if request.method == 'POST':
-        search_field = request.POST['search']
+        search_field = request.POST.get('search', '').strip()
 
-        users = User.objects.filter(Q(username__icontains=search_field)
-                                    | Q(profile__first_names__icontains=search_field)
-                                    | Q(profile__last_name__icontains=search_field)
-                                    | Q(email__icontains=search_field)
-                                    | Q(associated_emails__email__icontains=search_field)
-                                    ).distinct()
-
-        if 'inactive' in group:
-            users = users.filter(is_active=False)
-        elif 'active' in group:
-            users = users.filter(is_active=True)
-
+        users = _build_user_search_query(search_field)
+        users = _filter_users_by_group(users, group)
         users = users.order_by('username')
-
-        if len(search_field) == 0:
+        # Pagination links can't carry the search term, so only paginate the
+        # full list, as the other console searches do
+        if not search_field:
             users = paginate(request, users, 50)
 
         return render(request, 'console/users_list.html', {'users': users,
@@ -1745,7 +1770,7 @@ def known_references_search(request):
     """
 
     if request.method == 'POST':
-        search_field = request.POST['search']
+        search_field = request.POST.get('search', '')
 
         applications = CredentialApplication.objects.filter(
             Q(reference_email__icontains=search_field)
@@ -2086,7 +2111,7 @@ def search_credential_applications(request):
         request (obj): Django WSGIRequest object.
     """
     if request.POST:
-        search_field = request.POST['search']
+        search_field = request.POST.get('search', '')
         pending_status = CredentialApplication.Status.PENDING
         accepted_status = CredentialApplication.Status.ACCEPTED
         rejected_status = CredentialApplication.Status.REJECTED
@@ -2208,7 +2233,7 @@ def search_training_applications(request, display_training):
         request (obj): Django WSGIRequest object.
         display_training (obj): Training queryset.
     """
-    search_field = request.POST['search']
+    search_field = request.POST.get('search', '')
     if search_field:
         display_training = display_training.filter(Q(user__username__icontains=search_field)
                                                    | Q(user__profile__first_names__icontains=search_field)
@@ -2380,7 +2405,7 @@ def news_search(request):
     """
 
     if request.method == 'POST':
-        search = request.POST['search']
+        search = request.POST.get('search', '')
         news_items = News.objects.filter(title__icontains=search).order_by('-publish_datetime')
 
         return render(request, 'console/news_list.html', {'news_items': news_items})
