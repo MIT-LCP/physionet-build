@@ -148,7 +148,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 and not user.has_perm("project.change_activeproject")
             ):
                 days_since_archive = (timezone.now() - project.archive_datetime).days
-                if days_since_archive > 30:  # Only deny after 30 days
+                if days_since_archive > 30 or auth_mode == 0:  # Always block access to project overview
                     allow = False
 
             # Post authentication
@@ -1348,7 +1348,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     main_platform_citation = next((v for k, v in platform_citations.items() if v is not None and k != 'BibTeX'), '')
     passes_checks = project.check_integrity()
 
-    is_archived = project.submission_status==SubmissionStatus.ARCHIVED
+    is_archived = project.submission_status == SubmissionStatus.ARCHIVED
 
     if is_archived:
         messages.error(request, "This project has been archived")
