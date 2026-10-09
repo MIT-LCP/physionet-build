@@ -21,7 +21,7 @@
     <p><a class="btn btn-secondary"
         href="{% url 'submission_info' project.slug %}" role="button">
         <i class="fas fa-angle-left"></i> Return to the admin console</a></p>
-  {% elif not has_passphrase and not is_reviewer %}
+  {% elif not has_passphrase and not is_reviewer and not is_archived %}
     <p><a class="btn btn-secondary"
         href="{% url 'project_overview' project.slug %}" role="button">
         <i class="fas fa-angle-left"></i> Return to project overview</a></p>
@@ -36,16 +36,27 @@
   </div>
   {% endif %}
 
+
   {% if messages and not has_passphrase and not is_reviewer %}
     {% if passes_checks %}
-      <div class="alert alert-success alert-dismissible">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-        {% for message in messages %}
-          <strong>{{ message }}</strong>
-        {% endfor %}
-      </div>
+    <div class="alert alert-success alert-dismissible">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      {% for message in messages %}
+        <strong>{{ message }}</strong>
+      {% endfor %}
+    </div>
+    {% elif is_archived %}
+    <div class="alert alert-danger alert-dismissible">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      {% for message in messages %}
+        <strong>{{ message }}</strong>
+      {% endfor %}
+      </ul>
+    </div>
     {% else %}
     <div class="alert alert-danger alert-dismissible">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -65,7 +76,11 @@
     {{ project.resource_type.id|resource_badge|safe }}
     {{ project.access_policy|access_badge|safe }}
   </p>
+  {% if is_archived %}
+  <h1 class="form-signin-heading"><em>[Archive]:</em> {{ project.title }}
+  {% else %}
   <h1 class="form-signin-heading"><em>[Preview]:</em> {{ project.title }}
+  {% endif %}
   </h1>
   {% if not hide_authors %}
   <p>
