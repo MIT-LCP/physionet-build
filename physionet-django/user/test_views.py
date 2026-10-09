@@ -1360,6 +1360,8 @@ class TestDeleteAccount(TestCase):
             ('user', 'credentialapplication', 'user'),
             ('user', 'training', 'user'),
             ('events', 'event', 'host'),
+            # Only co-hosts (is_cohost=True) block deletion; ordinary
+            # participants cascade-delete with the account.
             ('events', 'eventparticipant', 'user'),
         }
 
