@@ -1266,6 +1266,18 @@ class TestDeleteAccount(TestCase):
         self.assertFalse(deletable)
         self.assertIn('Your account has admin privileges.', reasons)
 
+    def test_can_delete_account_console_staff(self):
+        """Staff with console access through a group, but not is_admin, are blocked."""
+        from django.contrib.auth.models import Group, Permission
+
+        user = self._create_user()
+        group = Group.objects.create(name='Console Staff Test')
+        group.permissions.add(Permission.objects.get(codename='can_view_admin_console'))
+        user.groups.add(group)
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('Your account has admin privileges.', reasons)
+
     def test_can_delete_account_rejected_application(self):
         from user.models import CredentialApplication
 
