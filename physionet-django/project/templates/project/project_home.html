@@ -253,7 +253,7 @@
           <li class="list-group-item">
             <h3>
               {% if project.archive_datetime|is_within_days:30 %}
-                <a href="{% url 'project_preview' project.slug %}">{{ project }}</a>
+                <a href="{% url 'project_preview' project.slug %}">{{ project }}</a><a href="{% url 'archived_submission_history' project.slug %}" class="btn btn-primary ml-1" role="button" style="float:right">Submission History</a>
               {% else %}
                 {{ project }} <a href="{% url 'archived_submission_history' project.slug %}" class="btn btn-primary ml-1" role="button" style="float:right">Submission History</a>
               {% endif %}
