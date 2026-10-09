@@ -15,7 +15,11 @@ class Migration(migrations.Migration):
             options={
                 'default_permissions': ('change',),
                 'ordering': ('title', 'creation_datetime'),
-                'permissions': [('can_assign_editor', 'Can assign editor'), ('can_edit_activeprojects',
-                'Can edit ActiveProjects'), ('can_archive_project', 'Can archive ActiveProjects')]},
+                'permissions': [
+                    ('can_assign_editor', 'Can assign editor'),
+                    ('can_edit_activeprojects', 'Can edit ActiveProjects'),
+                    ('can_archive_project', 'Can archive ActiveProjects')
+                ]
+            },
         ),
     ]
