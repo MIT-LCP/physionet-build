@@ -14,7 +14,7 @@
     <tbody>
       {% for project in projects %}
       <tr>
-        <td>{{ project.title }}</td>
+        <td><a href="{% url 'submission_info' project.slug %}">{{ project }}</a></td>
         <td><a href="{% url 'archived_submission_history' project.slug %}">View History</a></td>
         <td>{{ project.version }}</td>
         <td>
