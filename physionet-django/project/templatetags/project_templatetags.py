@@ -2,6 +2,7 @@ import os
 
 from django import template
 from django.shortcuts import reverse
+from django.utils import timezone
 from django.utils.html import format_html, escape
 from django.utils.http import urlencode
 import html2text
@@ -9,6 +10,7 @@ import html2text
 from project.authorization.access import can_view_project_files as can_view_project_files_func
 from project.models import AccessPolicy
 from notification.utility import mailto_url
+from datetime import timedelta
 
 
 register = template.Library()
@@ -240,3 +242,14 @@ def project_step_header(key):
 @register.simple_tag(name='can_view_project_files')
 def can_view_project_files(project, user, request=None):
     return can_view_project_files_func(project, user, request)
+
+
+@register.filter(name='is_within_days')
+def is_within_days(date_value, days):
+    """
+    Check if date is within N days of now
+    """
+    if not date_value:
+        return False
+    days_since = (timezone.now() - date_value).days
+    return 0 <= days_since < int(days)
