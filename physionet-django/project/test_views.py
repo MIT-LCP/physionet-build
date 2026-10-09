@@ -2447,7 +2447,7 @@ class TestViewArchiveProject(TestMixin):
         project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
-        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project': ''})
         response = self.client.post(reverse('project_preview', args=(project.slug,)))
 
         self.assertEqual(response.status_code, 200)
@@ -2460,7 +2460,7 @@ class TestViewArchiveProject(TestMixin):
 
         project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
-        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project': ''})
 
         self.client.login(username='adam_finn@fake_gmail.com', password='Tester11!')
         response = self.client.post(reverse('project_preview', args=(project.slug,)))
@@ -2473,7 +2473,7 @@ class TestViewArchiveProject(TestMixin):
         project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
-        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project': ''})
         project.refresh_from_db()
 
         project.archive_datetime = timezone.now() - timedelta(days=31)
@@ -2489,7 +2489,7 @@ class TestViewArchiveProject(TestMixin):
         project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
-        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project': ''})
         project.archive_datetime = timezone.now() + timedelta(days=31)
 
         self.client.login(username='tompollard@mit.edu', password='Tester11!')
@@ -2503,7 +2503,7 @@ class TestViewArchiveProject(TestMixin):
         project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
-        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project':''})
+        self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project': ''})
         response = self.client.post(reverse('project_overview', args=(project.slug,)))
 
         self.assertEqual(response.status_code, 403)

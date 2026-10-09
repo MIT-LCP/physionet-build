@@ -1348,7 +1348,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     main_platform_citation = next((v for k, v in platform_citations.items() if v is not None and k != 'BibTeX'), '')
     passes_checks = project.check_integrity()
 
-    is_archived = project.submission_status==SubmissionStatus.ARCHIVED
+    is_archived = project.submission_status == SubmissionStatus.ARCHIVED
 
     if is_archived:
         messages.error(request, "This project has been archived")
