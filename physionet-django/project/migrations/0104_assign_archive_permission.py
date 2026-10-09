@@ -6,6 +6,10 @@ def assign_archive_permission(apps, schema_editor):
     Permission = apps.get_model("auth", "Permission")
     Group = apps.get_model("auth", "Group")
 
+    # Only run if the permission doesn't already exist
+    if Permission.objects.filter(codename="can_archive_project").exists():
+        return
+
     # Permissions are normally created after migrations finish, so on a fresh
     # database they may not exist yet. Create them here if needed.
     content_type, _ = ContentType.objects.get_or_create(
@@ -17,8 +21,13 @@ def assign_archive_permission(apps, schema_editor):
         defaults={"name": "Can archive ActiveProjects"},
     )
 
-    group, _ = Group.objects.get_or_create(name="Managing Editor")
-    group.permissions.add(permission)
+    try:
+        group = Group.objects.get(name="Managing Editor")
+        group.permissions.add(permission)
+    except Group.DoesNotExist:
+        # Group doesn't exist yet, skip
+        # (It will be created by fixture if needed)
+        pass
 
 
 class Migration(migrations.Migration):
@@ -30,4 +39,3 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunPython(assign_archive_permission, migrations.RunPython.noop),
     ]
-    

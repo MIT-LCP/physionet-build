@@ -12,7 +12,10 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='activeproject',
-            options={'default_permissions': ('change',), 'ordering': ('title', 'creation_datetime'), 'permissions': [('can_assign_editor', 'Can assign editor'), ('can_edit_activeprojects',
-             'Can edit ActiveProjects'), ('can_archive_project', 'Can archive ActiveProjects')]},
+            options={
+                'default_permissions': ('change',),
+                'ordering': ('title', 'creation_datetime'),
+                'permissions': [('can_assign_editor', 'Can assign editor'), ('can_edit_activeprojects',
+                'Can edit ActiveProjects'), ('can_archive_project', 'Can archive ActiveProjects')]},
         ),
     ]

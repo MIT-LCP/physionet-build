@@ -1958,6 +1958,7 @@ class TestExternalReview(TestMixin):
         self.assertEqual(project.submission_status,
                          SubmissionStatus.NEEDS_REVIEWER_ASSIGNMENT)
 
+
 class TestArchivePermission(TestMixin):
     def test_non_editor_without_permission_cannot_archive(self):
         project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
@@ -1969,10 +1970,8 @@ class TestArchivePermission(TestMixin):
         url = reverse('submission_info', args=(project.slug,))
         response = self.client.post(url, {'archive_project': ''})
         self.assertRedirects(response, f'{url}?tab=archive', fetch_redirect_response=False)
-        self.assertTrue(ActiveProject.objects.filter(slug=project.slug,
-                                                     submission_status=SubmissionStatus.NEEDS_RESUBMISSION))
-        self.assertFalse(ActiveProject.objects.filter(slug=project.slug,
-                                                     submission_status=SubmissionStatus.ARCHIVED))
+        self.assertTrue(ActiveProject.objects.filter(slug=project.slug, submission_status=SubmissionStatus.NEEDS_RESUBMISSION))
+        self.assertFalse(ActiveProject.objects.filter(slug=project.slug, submission_status=SubmissionStatus.ARCHIVED))
 
     def test_managing_editor_can_archive(self):
         project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
@@ -1986,12 +1985,10 @@ class TestArchivePermission(TestMixin):
         user.groups.add(group)
         self.client.login(username='amitupreti', password='Tester11!')
         url = reverse('submission_info', args=(project.slug,))
-        response = self.client.post(url, {'archive_project': ''})
+        self.client.post(url, {'archive_project': ''})
 
-        self.assertFalse(ActiveProject.objects.filter(slug=project.slug,
-                                                     submission_status=SubmissionStatus.NEEDS_RESUBMISSION))
-        self.assertTrue(ActiveProject.objects.filter(slug=project.slug,
-                                                     submission_status=SubmissionStatus.ARCHIVED))
+        self.assertFalse(ActiveProject.objects.filter(slug=project.slug, submission_status=SubmissionStatus.NEEDS_RESUBMISSION))
+        self.assertTrue(ActiveProject.objects.filter(slug=project.slug, submission_status=SubmissionStatus.ARCHIVED))
 
     def test_project_editor_can_still_archive(self):
         project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
@@ -1999,8 +1996,7 @@ class TestArchivePermission(TestMixin):
         project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
         project.save()
         url = reverse('submission_info', args=(project.slug,))
-        response = self.client.post(url, {'archive_project': ''})
-        self.assertFalse(ActiveProject.objects.filter(slug=project.slug,
-                                                     submission_status=SubmissionStatus.NEEDS_RESUBMISSION))
-        self.assertTrue(ActiveProject.objects.filter(slug=project.slug,
-                                                     submission_status=SubmissionStatus.ARCHIVED))
+        self.client.post(url, {'archive_project': ''})
+
+        self.assertFalse(ActiveProject.objects.filter(slug=project.slug, submission_status=SubmissionStatus.NEEDS_RESUBMISSION))
+        self.assertTrue(ActiveProject.objects.filter(slug=project.slug, submission_status=SubmissionStatus.ARCHIVED))
