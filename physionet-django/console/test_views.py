@@ -2000,3 +2000,110 @@ class TestArchivePermission(TestMixin):
 
         self.assertFalse(ActiveProject.objects.filter(slug=project.slug, submission_status=SubmissionStatus.NEEDS_RESUBMISSION))
         self.assertTrue(ActiveProject.objects.filter(slug=project.slug, submission_status=SubmissionStatus.ARCHIVED))
+        
+        
+class TestUsersSearch(TestCase):
+    """Tests for the console user search."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.search_url = reverse('users_list_search', kwargs={'group': 'active'})
+        cls.admin = User.objects.create_user(
+            username='searchadmin', email='searchadmin@example.com',
+            password='Tester11!', is_active=True, is_admin=True,
+            first_names='Admin', last_name='Tester',
+        )
+        admin_group, _ = Group.objects.get_or_create(name='Admin')
+        cls.admin.groups.add(admin_group)
+
+        cls.user_john = User.objects.create_user(
+            username='jsmith', email='john.smith@example.com',
+            password='Tester11!', is_active=True,
+            first_names='John', last_name='Smith',
+        )
+        cls.user_jane = User.objects.create_user(
+            username='jdoe', email='jane.doe@example.com',
+            password='Tester11!', is_active=True,
+            first_names='Jane', last_name='Doe',
+        )
+
+    def setUp(self):
+        self.client.login(username='searchadmin', password='Tester11!')
+
+    def test_search_by_first_name(self):
+        response = self.client.post(self.search_url, {'search': 'John'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'jsmith')
+        self.assertNotContains(response, 'jdoe')
+
+    def test_search_by_last_name(self):
+        response = self.client.post(self.search_url, {'search': 'Doe'})
+        self.assertContains(response, 'jdoe')
+        self.assertNotContains(response, 'jsmith')
+
+    def test_search_case_insensitive(self):
+        response = self.client.post(self.search_url, {'search': 'john'})
+        self.assertContains(response, 'jsmith')
+
+    def test_search_multi_term(self):
+        """Searching 'John Smith' should match user with those names."""
+        response = self.client.post(self.search_url, {'search': 'John Smith'})
+        self.assertContains(response, 'jsmith')
+        self.assertNotContains(response, 'jdoe')
+
+    def test_search_multi_term_reversed(self):
+        """Term order should not matter."""
+        response = self.client.post(self.search_url, {'search': 'Smith John'})
+        self.assertContains(response, 'jsmith')
+        self.assertNotContains(response, 'jdoe')
+
+    def test_search_by_email(self):
+        response = self.client.post(self.search_url, {'search': 'jane.doe'})
+        self.assertContains(response, 'jdoe')
+        self.assertNotContains(response, 'jsmith')
+
+    def test_search_by_username(self):
+        response = self.client.post(self.search_url, {'search': 'jsmith'})
+        self.assertContains(response, 'jsmith')
+        self.assertNotContains(response, 'jdoe')
+
+    def test_empty_search_returns_paginated(self):
+        response = self.client.post(self.search_url, {'search': ''})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(hasattr(response.context['users'], 'paginator'))
+        all_usernames = {
+            u.username
+            for page_num in response.context['users'].paginator.page_range
+            for u in response.context['users'].paginator.page(page_num)
+        }
+        self.assertIn('jsmith', all_usernames)
+        self.assertIn('jdoe', all_usernames)
+
+    def test_search_no_match(self):
+        response = self.client.post(self.search_url, {'search': 'zzzznonexistent'})
+        self.assertNotContains(response, 'jsmith')
+        self.assertNotContains(response, 'jdoe')
+
+    def test_get_returns_404(self):
+        response = self.client.get(self.search_url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_login_count_not_inflated_by_associated_emails(self):
+        """Each search term must not multiply login_time_count."""
+        self.user_john.associated_emails.create(email='john@work.example.org')
+        self.user_john.associated_emails.create(email='js@other.example.net')
+        for _ in range(3):
+            self.user_john.login_time.create(ip='127.0.0.1')
+        response = self.client.post(self.search_url, {'search': 'John Smith'})
+        john = next(u for u in response.context['users'] if u.username == 'jsmith')
+        self.assertEqual(john.login_time_count, 3)
+
+    def test_search_results_not_paginated(self):
+        """Pagination links can't carry the search term, so return all matches."""
+        for i in range(55):
+            User.objects.create_user(
+                username=f'bulk{i:02d}', email=f'bulk{i:02d}@example.com',
+                password='Tester11!', is_active=True,
+            )
+        response = self.client.post(self.search_url, {'search': 'bulk'})
+        self.assertEqual(len(response.context['users']), 55)

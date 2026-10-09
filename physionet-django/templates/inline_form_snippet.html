@@ -1,3 +1,4 @@
+{% load physionet_templatetags %}
 {% for field in form.visible_fields %}
   <div class="form-group row">
     <label class="col-md-2" for="{{ field.id_for_label }}" title="{{ field.help_text }}">{{ field.label }}
@@ -6,7 +7,7 @@
       {{ field }}
       {% for error in field.errors %}
         <div class="alert alert-danger">
-          <strong>{{ error|escape }}</strong>
+          {{ error|wrap_if_unformatted:"strong" }}
         </div>
       {% endfor %}
     </div>
@@ -14,7 +15,7 @@
 {% endfor %}
 {% for error in form.non_field_errors %}
   <div class="alert alert-danger">
-    <strong>{{ error|escape }}</strong>
+    {{ error|wrap_if_unformatted:"strong" }}
   </div>
 {% endfor %}
 {% for field in form.hidden_fields %}

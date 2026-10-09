@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Resend Activation Email{% endblock %}
+
+{% block local_css %}
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/login-register.css' %}"/>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% if success %}
+    <h2>Activation Email Sent</h2>
+    <p>If an account with that email exists and has not been activated, a new activation email has been sent.</p>
+    <p><a href="{% url 'login' %}">Return to login</a></p>
+  {% else %}
+    <div class="form-signin">
+      <h2 class="form-signin-heading">Resend Activation Email</h2>
+      <p>Enter the email address you registered with and we'll send a new activation link.</p>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.email }}
+        {% for error in form.email.errors %}
+          <div class="alert alert-danger mt-2">
+            <strong>{{ error }}</strong>
+          </div>
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <div class="alert alert-danger mt-2">
+            <strong>{{ error }}</strong>
+          </div>
+        {% endfor %}
+        <button class="btn btn-lg btn-primary btn-block mt-3" type="submit">Send Activation Email</button>
+      </form>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -82,6 +82,7 @@ if not settings.ENABLE_SSO:
     urlpatterns.extend(
         [
             path("register/", views.register, name="register"),
+            path("resend-activation/", views.resend_activation, name="resend_activation"),
             path("settings/password/", views.edit_password, name="edit_password"),
             path(
                 "settings/password/changed/",
