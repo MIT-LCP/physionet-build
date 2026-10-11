@@ -270,33 +270,63 @@
       {% if project.deprecated_files %}
         <p>This project's files are deprecated.</p>
       {% else %}
-        <form action="" method="post">
-          {% csrf_token %}
-          <button id="delete-items-button" type="button"
-                  class="btn btn-primary btn-fixed" data-toggle="modal"
-                  {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
-                  data-target="#deprecate-files-modal">Deprecate files</button>
-        </form>
+        <button type="button" class="btn btn-primary btn-fixed" data-toggle="modal"
+                {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                data-target="#deprecate-files-modal">Deprecate files</button>
         {# Modal for deprecating files #}
         <div class="modal fade" id="deprecate-files-modal" tabindex="-1" role="dialog" aria-hidden="true">
           <div class="modal-dialog" role="document">
             <div class="modal-content">
               <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Deprecate Project Files</h5>
+                <h5 class="modal-title">Deprecate Project Files</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                   <span aria-hidden="true">&times;</span>
                 </button>
               </div>
-              <form action="" method="post">
-                <div class="modal-body">
+              <div class="modal-body">
+                <p>Are you sure you want to deprecate the files for this project? The files will no longer be available for download.</p>
+              </div>
+              <div class="modal-footer">
+                <form action="" method="post">
                   {% csrf_token %}
-                  {{ deprecate_form }}
-                </div>
-                <div class="modal-footer">
                   <button class="btn btn-danger" name="deprecate_files" type="submit">Deprecate Files</button>
-                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-              </form>
+                </form>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+      </li>
+      <li class="list-group-item">
+      <h5 class="card-title mb-1">Delete files</h5>
+      {% if not project.deprecated_files %}
+        <p>Files must be deprecated before they can be deleted.</p>
+      {% else %}
+        <p>Permanently delete the project files from disk. This cannot be undone.</p>
+        <button type="button" class="btn btn-danger btn-fixed" data-toggle="modal"
+                {% if rw_tasks or ro_tasks %} disabled="disabled" {% endif %}
+                data-target="#delete-files-modal">Delete files</button>
+        {# Modal for deleting files #}
+        <div class="modal fade" id="delete-files-modal" tabindex="-1" role="dialog" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Delete Project Files</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>Are you sure you want to permanently delete the files for this project? This action cannot be undone.</p>
+              </div>
+              <div class="modal-footer">
+                <form action="" method="post">
+                  {% csrf_token %}
+                  <button class="btn btn-danger" name="delete_files" type="submit">Delete Files</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
             </div>
           </div>
         </div>
