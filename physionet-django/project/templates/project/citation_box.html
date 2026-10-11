@@ -37,11 +37,7 @@
   {% if publication %}
     <div class="citation-section">
       <span class="citation-label">{% if project.is_legacy %}When using this resource{% else %}Additionally{% endif %}, please cite the original publication:</span>
-      {% if publication.url %}
-        <p class="citation-text"><a href="{{ publication.url }}">{{ publication.citation }}</a></p>
-      {% else %}
-        <p class="citation-text">{{ publication.citation }}</p>
-      {% endif %}
+      <p class="citation-text">{{ publication.citation|urlize }} {{ publication.url|urlize }}</p>
     </div>
   {% endif %}
 
