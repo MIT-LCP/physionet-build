@@ -302,6 +302,8 @@
       <h5 class="card-title mb-1">Delete files</h5>
       {% if not project.deprecated_files %}
         <p>Files must be deprecated before they can be deleted.</p>
+      {% elif project.main_storage_size == 0 %}
+        <p>This project's files have been deleted.</p>
       {% else %}
         <p>Permanently delete the project files from disk. This cannot be undone.</p>
         <button type="button" class="btn btn-danger btn-fixed" data-toggle="modal"
