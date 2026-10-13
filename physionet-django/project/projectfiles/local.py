@@ -110,21 +110,18 @@ class LocalProjectFiles(BaseProjectFiles):
         return self.raw_url(project, path) + '?download'
 
     def rm_dir(self, path, remove_zip):
-        # Published project files are set to read-only (0o444/0o555),
-        # so we must make them writable before deletion can succeed.
+        # Published project directories are read-only (0o555), and
+        # removing a file needs write permission on its directory, so
+        # make the directories writable first. The files themselves are
+        # left alone, since they may be hard links shared with another
+        # published version of the project.
         if os.path.isdir(path):
-            self._make_tree_writable(path)
+            for dirpath, dirnames, filenames in os.walk(path):
+                os.chmod(dirpath, 0o755)
             clear_directory(path)
         remove_zip()
 
-    def _make_tree_writable(self, path):
-        for dirpath, dirnames, filenames in os.walk(path):
-            os.chmod(dirpath, 0o755)
-            for filename in filenames:
-                os.chmod(os.path.join(dirpath, filename), 0o644)
-
     def rmtree(self, path):
-        self._make_tree_writable(path)
         shutil.rmtree(path)
 
     def chmod_tree_files_readonly(self, path):
