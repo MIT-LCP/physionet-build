@@ -873,6 +873,41 @@ class TestDeprecateAndDeleteFiles(TestMixin):
         # Directory should be empty now
         self.assertEqual(os.listdir(file_root), [])
 
+    def test_delete_files_keeps_linked_files_readonly(self):
+        """
+        New versions hard-link unchanged files from the previous
+        version, so deleting this version's files must not change the
+        permissions of files shared with another published version.
+        """
+        import shutil
+        import stat
+        import tempfile
+
+        from django.conf import settings
+
+        self.client.login(username='admin', password='Tester11!')
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        file_root = project.file_root()
+        source = next(
+            os.path.join(directory, name)
+            for directory, _, names in os.walk(file_root) for name in names
+        )
+        # Stand-in for another published version sharing the same inode
+        other_version = tempfile.mkdtemp(dir=settings.MEDIA_ROOT)
+        self.addCleanup(shutil.rmtree, other_version, ignore_errors=True)
+        linked = os.path.join(other_version, os.path.basename(source))
+        os.link(source, linked)
+        os.chmod(linked, 0o444)
+
+        project.deprecate_files()
+        management_url = reverse('manage_published_project',
+                                 args=(project.slug, project.version))
+        self.client.post(management_url, data={'delete_files': ''})
+
+        self.assertEqual(os.listdir(file_root), [])
+        self.assertTrue(os.path.exists(linked))
+        self.assertEqual(stat.S_IMODE(os.stat(linked).st_mode), 0o444)
+
 
 class TestStaticPage(TestMixin):
     """ Test that all views are behaving as expected """
