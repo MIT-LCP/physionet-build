@@ -148,35 +148,31 @@
     return false;
   }
 
-  // Selected checkboxes
-  n_selected = 0
-
   // Enables and disables buttons based on selected checkboxes
-  function countSelected(box){
-    if (box.checked){
-      n_selected ++
-    }
-    else{
-      n_selected --
-    }
+  function countSelected(){
+    const boxes = document.querySelectorAll('#files-panel input[name="items"]');
+    n_selected = Array.from(boxes).filter(box => box.checked).length;
+    const selectAllButton = document.getElementById("select-all-items-button");
+    if (!selectAllButton) return;
 
-    if (n_selected > 0){
-      if (n_selected == 1){
-        document.getElementById("rename-item-button").disabled = false
-      }
-      else{
-        document.getElementById("rename-item-button").disabled = true
-      }
-      document.getElementById("move-items-button").disabled = false
-      document.getElementById("delete-items-button").disabled = false
-    }
-    else{
-      document.getElementById("rename-item-button").disabled = true
-      document.getElementById("move-items-button").disabled = true
-      document.getElementById("delete-items-button").disabled = true
-    }
+    const allSelected = boxes.length > 0 && n_selected === boxes.length;
+    selectAllButton.disabled = boxes.length === 0;
+    document.getElementById("select-all-items-label").textContent = allSelected ? "Deselect All" : "Select All";
+    selectAllButton.setAttribute("aria-pressed", String(allSelected));
+    document.getElementById("rename-item-button").disabled = n_selected !== 1;
+    document.getElementById("move-items-button").disabled = n_selected === 0;
+    document.getElementById("delete-items-button").disabled = n_selected === 0;
   }
 
+  function toggleSelectAll(){
+    const boxes = document.querySelectorAll('#files-panel input[name="items"]');
+    const select = !Array.from(boxes).every(box => box.checked);
+    boxes.forEach(box => { box.checked = select; });
+    countSelected();
+  }
+
+  // Initialize selection state after loading or navigating to a folder.
+  countSelected();
 
   // Direct each input's 'enter' submit function to the right button.
   // Needed due to form sharing of all item manipulation inputs.
