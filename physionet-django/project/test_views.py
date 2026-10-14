@@ -1175,6 +1175,18 @@ class TestAccessPublished(TestMixin):
             args=(project.slug, project.version, long_fn)))
         self.assertEqual(response.status_code, 404)
 
+        # Raise a 404 for a null byte or any other error opening the file
+        response = self.client.get(reverse(
+            'display_published_project_file',
+            args=(project.slug, project.version, 'Make\x00file')))
+        self.assertEqual(response.status_code, 404)
+        with mock.patch.object(type(project.files), 'open',
+                               side_effect=OSError('Structure needs cleaning')):
+            response = self.client.get(reverse(
+                'display_published_project_file',
+                args=(project.slug, project.version, 'Makefile')))
+        self.assertEqual(response.status_code, 404)
+
         AWS.objects.create(
             project=project,
             bucket_name='testproject',
