@@ -1,5 +1,4 @@
 import os
-from errno import ENAMETOOLONG
 
 from django.http import Http404
 from django.shortcuts import redirect
@@ -37,10 +36,8 @@ def display_project_file(request, project, file_path):
         infile = project.files.open(abs_path)
     except IsADirectoryError:
         return redirect(request.path + '/')
-    except (FileNotFoundError, NotADirectoryError):
+    except (OSError, ValueError):
         raise Http404()
-    except (IOError, OSError) as err:
-        raise (Http404() if err.errno == ENAMETOOLONG else err)
 
     if file_path.endswith('.csv.gz'):
         cls = GzippedCSVFileView
