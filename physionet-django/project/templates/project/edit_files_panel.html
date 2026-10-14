@@ -58,7 +58,7 @@
             <th>Name</th>
             <th>Size</th>
             <th>Modified</th>
-            <th></th>
+            <th>{% if files_editable %}<input type="checkbox" id="select-all" onchange="toggleSelectAll(this)">{% endif %}</th>
           </tr>
         </thead>
         <tbody>
@@ -75,7 +75,7 @@
             <td><a href="{{ dir.name }}/#files-panel" onclick="return navigateDir('{{ dir.full_subdir|escapejs }}')">{{ dir.name }}</a></td>
             <td></td>
             <td></td>
-            <td>{% if files_editable %}<input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected(this)">{% endif %}</td>
+            <td>{% if files_editable %}<input type="checkbox" name="items" value="{{ dir.name }}" onchange="countSelected()">{% endif %}</td>
           </tr>
         {% endfor %}
         {% for file in display_files %}
@@ -83,7 +83,7 @@
             <td><a href="{{ file.url }}?return=files">{{ file.name }}</a></td>
             <td>{{ file.size }}</td>
             <td>{{ file.last_modified }}</td>
-            <td>{% if files_editable %}<input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected(this)">{% endif %}</td>
+            <td>{% if files_editable %}<input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected()">{% endif %}</td>
           </tr>
         {% endfor %}
         </tbody>
@@ -148,35 +148,26 @@
     return false;
   }
 
-  // Selected checkboxes
-  n_selected = 0
-
   // Enables and disables buttons based on selected checkboxes
-  function countSelected(box){
-    if (box.checked){
-      n_selected ++
+  function countSelected(){
+    const boxes = document.querySelectorAll('#files-panel input[name="items"]');
+    let n_selected = Array.from(boxes).filter(box => box.checked).length;
+    const selectAll = document.getElementById('select-all');
+    if (selectAll) {
+      selectAll.checked = boxes.length > 0 && n_selected === boxes.length;
+      selectAll.indeterminate = n_selected > 0 && n_selected < boxes.length;
     }
-    else{
-      n_selected --
-    }
-
-    if (n_selected > 0){
-      if (n_selected == 1){
-        document.getElementById("rename-item-button").disabled = false
-      }
-      else{
-        document.getElementById("rename-item-button").disabled = true
-      }
-      document.getElementById("move-items-button").disabled = false
-      document.getElementById("delete-items-button").disabled = false
-    }
-    else{
-      document.getElementById("rename-item-button").disabled = true
-      document.getElementById("move-items-button").disabled = true
-      document.getElementById("delete-items-button").disabled = true
-    }
+    document.getElementById('rename-item-button').disabled = n_selected !== 1;
+    document.getElementById('move-items-button').disabled = n_selected === 0;
+    document.getElementById('delete-items-button').disabled = n_selected === 0;
   }
-
+  function toggleSelectAll(source){
+    const boxes = document.querySelectorAll('#files-panel input[name="items"]');
+    boxes.forEach(box => { box.checked = source.checked; });
+    countSelected();
+  }
+  // Initialize selection state after loading or navigating to a folder.
+  countSelected();
 
   // Direct each input's 'enter' submit function to the right button.
   // Needed due to form sharing of all item manipulation inputs.
