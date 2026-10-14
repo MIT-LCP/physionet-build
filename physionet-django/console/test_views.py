@@ -798,6 +798,117 @@ class TestPublished(TestCase):
             self.assertEqual(attributes['url'], core_url)
 
 
+class TestDeprecateAndDeleteFiles(TestMixin):
+    """
+    Test deprecating and deleting published project files.
+    """
+
+    def test_deprecate_files_sets_flag(self):
+        """
+        Deprecating files should set deprecated_files=True without
+        removing files from disk.
+        """
+        self.client.login(username='admin', password='Tester11!')
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.assertFalse(project.deprecated_files)
+        file_root = project.file_root()
+        self.assertTrue(os.path.isdir(file_root))
+        files_before = os.listdir(file_root)
+        self.assertTrue(len(files_before) > 0)
+
+        management_url = reverse('manage_published_project',
+                                 args=(project.slug, project.version))
+        response = self.client.post(management_url, data={
+            'deprecate_files': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        project.refresh_from_db()
+        self.assertTrue(project.deprecated_files)
+        # Files should still exist on disk
+        self.assertEqual(os.listdir(file_root), files_before)
+
+    def test_delete_files_requires_deprecation(self):
+        """
+        Attempting to delete files on a non-deprecated project should
+        have no effect.
+        """
+        self.client.login(username='admin', password='Tester11!')
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.assertFalse(project.deprecated_files)
+        file_root = project.file_root()
+        files_before = os.listdir(file_root)
+
+        management_url = reverse('manage_published_project',
+                                 args=(project.slug, project.version))
+        response = self.client.post(management_url, data={
+            'delete_files': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        project.refresh_from_db()
+        # Files should still exist since project was not deprecated
+        self.assertEqual(os.listdir(file_root), files_before)
+
+    def test_delete_files_on_readonly_tree(self):
+        """
+        Deleting files on a deprecated project with read-only
+        permissions (as set during publication) should succeed.
+        """
+        self.client.login(username='admin', password='Tester11!')
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        file_root = project.file_root()
+        self.assertTrue(os.path.isdir(file_root))
+        self.assertTrue(len(os.listdir(file_root)) > 0)
+
+        # Deprecate first
+        project.deprecate_files()
+        project.refresh_from_db()
+        self.assertTrue(project.deprecated_files)
+
+        management_url = reverse('manage_published_project',
+                                 args=(project.slug, project.version))
+        response = self.client.post(management_url, data={
+            'delete_files': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        # Directory should be empty now
+        self.assertEqual(os.listdir(file_root), [])
+
+    def test_delete_files_keeps_linked_files_readonly(self):
+        """
+        New versions hard-link unchanged files from the previous
+        version, so deleting this version's files must not change the
+        permissions of files shared with another published version.
+        """
+        import shutil
+        import stat
+        import tempfile
+
+        from django.conf import settings
+
+        self.client.login(username='admin', password='Tester11!')
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        file_root = project.file_root()
+        source = next(
+            os.path.join(directory, name)
+            for directory, _, names in os.walk(file_root) for name in names
+        )
+        # Stand-in for another published version sharing the same inode
+        other_version = tempfile.mkdtemp(dir=settings.MEDIA_ROOT)
+        self.addCleanup(shutil.rmtree, other_version, ignore_errors=True)
+        linked = os.path.join(other_version, os.path.basename(source))
+        os.link(source, linked)
+        os.chmod(linked, 0o444)
+
+        project.deprecate_files()
+        management_url = reverse('manage_published_project',
+                                 args=(project.slug, project.version))
+        self.client.post(management_url, data={'delete_files': ''})
+
+        self.assertEqual(os.listdir(file_root), [])
+        self.assertTrue(os.path.exists(linked))
+        self.assertEqual(stat.S_IMODE(os.stat(linked).st_mode), 0o444)
+
+
 class TestStaticPage(TestMixin):
     """ Test that all views are behaving as expected """
 

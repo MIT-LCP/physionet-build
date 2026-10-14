@@ -1140,6 +1140,20 @@ def manage_doi_request(request, project):
     return message
 
 
+def _handle_deprecate_files(request, project):
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
+    project.deprecate_files()
+    messages.success(request, 'The project files have been deprecated.')
+
+
+def _handle_delete_files(request, project):
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        raise ServiceUnavailable()
+    project.remove_files()
+    messages.success(request, 'The project files have been deleted.')
+
+
 @console_permission_required('project.change_publishedproject')
 def manage_published_project(request, project_slug, version):
     """
@@ -1158,7 +1172,6 @@ def manage_published_project(request, project_slug, version):
     anonymous_url = project.get_anonymous_url()
     topic_form = forms.TopicForm(project=project)
     topic_form.set_initial()
-    deprecate_form = None if project.deprecated_files else forms.DeprecateFilesForm()
     has_credentials = bool(settings.GOOGLE_APPLICATION_CREDENTIALS)
     data_access_form = forms.DataAccessForm(project=project)
     contact_form = forms.PublishedProjectContactForm(project=project,
@@ -1204,13 +1217,9 @@ def manage_published_project(request, project_slug, version):
                 messages.success(
                     request, 'The zip of the main files has been scheduled.')
         elif 'deprecate_files' in request.POST and not project.deprecated_files:
-            deprecate_form = forms.DeprecateFilesForm(data=request.POST)
-            if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
-                raise ServiceUnavailable()
-            elif deprecate_form.is_valid():
-                project.deprecate_files(
-                    delete_files=int(deprecate_form.cleaned_data['delete_files']))
-                messages.success(request, 'The project files have been deprecated.')
+            _handle_deprecate_files(request, project)
+        elif 'delete_files' in request.POST and project.deprecated_files:
+            _handle_delete_files(request, project)
         elif 'remove_embargo' in request.POST:
             if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
                 raise ServiceUnavailable()
@@ -1315,7 +1324,6 @@ def manage_published_project(request, project_slug, version):
             'latest_version': latest_version,
             'published': True,
             'topic_form': topic_form,
-            'deprecate_form': deprecate_form,
             'has_credentials': has_credentials,
             'has_s3_credentials': has_s3_credentials(),
             # 'aws_bucket_exists': s3_bucket_exists,

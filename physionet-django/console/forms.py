@@ -417,13 +417,6 @@ class TopicForm(forms.Form):
         return data
 
 
-class DeprecateFilesForm(forms.Form):
-    """
-    For deprecating a project's files
-    """
-    delete_files = forms.ChoiceField(choices=YES_NO)
-
-
 class ContactCredentialRefForm(forms.Form):
     """
     Contact the reference for a credentialing application.

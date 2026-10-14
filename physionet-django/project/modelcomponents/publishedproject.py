@@ -185,15 +185,12 @@ class PublishedProject(Metadata, SubmissionInfo):
         self.files.rm_dir(self.file_root(), remove_zip=self.remove_zip)
         self.set_storage_info()
 
-    def deprecate_files(self, delete_files):
+    def deprecate_files(self):
         """
-        Label the project's files as deprecated. Option of deleting
-        files.
+        Label the project's files as deprecated.
         """
         self.deprecated_files = True
         self.save()
-        if delete_files:
-            self.remove_files()
 
     def get_inspect_dir(self, subdir):
         """

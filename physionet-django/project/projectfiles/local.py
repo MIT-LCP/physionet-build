@@ -110,7 +110,15 @@ class LocalProjectFiles(BaseProjectFiles):
         return self.raw_url(project, path) + '?download'
 
     def rm_dir(self, path, remove_zip):
-        clear_directory(path)
+        # Published project directories are read-only (0o555), and
+        # removing a file needs write permission on its directory, so
+        # make the directories writable first. The files themselves are
+        # left alone, since they may be hard links shared with another
+        # published version of the project.
+        if os.path.isdir(path):
+            for dirpath, dirnames, filenames in os.walk(path):
+                os.chmod(dirpath, 0o755)
+            clear_directory(path)
         remove_zip()
 
     def rmtree(self, path):
