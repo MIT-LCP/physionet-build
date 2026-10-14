@@ -6,7 +6,7 @@
       <span class="citation-actions">
         <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#citationModal" title="View citation formats"><i class="bi bi-quote"></i> Cite</button>
         {% if citations.BibTeX %}
-          <button type="button" class="btn btn-sm btn-outline-secondary ml-1" title="Copy BibTeX" onclick="copyToClipboard(document.getElementById('bibtex-data').value); this.innerHTML='<i class=\'bi bi-check\'></i> Copied'; var btn=this; setTimeout(function(){ btn.innerHTML='<i class=\'bi bi-clipboard\'></i> Copy BibTeX'; }, 2000);"><i class="bi bi-clipboard"></i> Copy BibTeX</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary ml-1 btn-copy-bibtex" title="Copy BibTeX" data-clipboard-target="bibtex-data"><i class="bi bi-clipboard"></i> Copy BibTeX</button>
         {% endif %}
       </span>
       <p class="citation-text">{{ citations.APA|urlize }}</p>
@@ -27,7 +27,7 @@
     {% if citations.BibTeX %}
     <div class="mt-3">
       <strong>BibTeX</strong>
-      <button class="btn btn-sm btn-outline-secondary ml-2" onclick="copyToClipboard(document.getElementById('bibtex-data').value); var btn=this; btn.textContent='Copied!'; setTimeout(function(){ btn.textContent='Copy'; }, 2000)">Copy</button>
+      <button class="btn btn-sm btn-outline-secondary ml-2 btn-copy-bibtex btn-copy-bibtex-modal" data-clipboard-target="bibtex-data">Copy</button>
       <pre class="mt-2 p-2 border rounded" style="white-space: pre-wrap; background-color: #f8f9fa;">{{ citations.BibTeX }}</pre>
     </div>
     {% endif %}
@@ -47,7 +47,7 @@
       <span class="citation-actions">
         <button type="button" class="btn btn-sm btn-outline-secondary" data-toggle="modal" data-target="#citationModalPlatform" title="View citation formats"><i class="bi bi-quote"></i> Cite</button>
         {% if platform_citations.BibTeX %}
-          <button type="button" class="btn btn-sm btn-outline-secondary ml-1" title="Copy BibTeX" onclick="copyToClipboard(document.getElementById('bibtex-data-platform').value); this.innerHTML='<i class=\'bi bi-check\'></i> Copied'; var btn=this; setTimeout(function(){ btn.innerHTML='<i class=\'bi bi-clipboard\'></i> Copy BibTeX'; }, 2000);"><i class="bi bi-clipboard"></i> Copy BibTeX</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary ml-1 btn-copy-bibtex" title="Copy BibTeX" data-clipboard-target="bibtex-data-platform"><i class="bi bi-clipboard"></i> Copy BibTeX</button>
         {% endif %}
       </span>
       <p class="citation-text">{{ main_platform_citation|urlize }}</p>
@@ -69,7 +69,7 @@
   {% if platform_citations.BibTeX %}
   <div class="mt-3">
     <strong>BibTeX</strong>
-    <button class="btn btn-sm btn-outline-secondary ml-2" onclick="copyToClipboard(document.getElementById('bibtex-data-platform').value); var btn=this; btn.textContent='Copied!'; setTimeout(function(){ btn.textContent='Copy'; }, 2000)">Copy</button>
+    <button class="btn btn-sm btn-outline-secondary ml-2 btn-copy-bibtex btn-copy-bibtex-modal" data-clipboard-target="bibtex-data-platform">Copy</button>
     <pre class="mt-2 p-2 border rounded" style="white-space: pre-wrap; background-color: #f8f9fa;">{{ platform_citations.BibTeX }}</pre>
   </div>
   {% endif %}
