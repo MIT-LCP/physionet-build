@@ -30,6 +30,14 @@
       </div>
 
       <div class="mb-4">
+        <h6>Project view counts</h6>
+        <p>Download list of unique registered project views per published project.</p>
+        <a href="{% url 'download_projects_view_counts' %}" class="btn btn-primary">
+          Download projects view counts
+        </a>
+      </div>
+
+      <div class="mb-4">
         <h6>Published authors</h6>
         <p>Download a complete list of published authors, including their names, email addresses, and affiliations.</p>
         <a href="{% url 'download_published_authors' %}" class="btn btn-primary">
