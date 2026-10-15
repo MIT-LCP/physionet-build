@@ -70,6 +70,7 @@ from physionet.utility import get_client_ip, get_country_code
 from user.awsverification import aws_verification_available
 
 LOGGER = logging.getLogger(__name__)
+ARCHIVE_VIEW_DAYS = 30
 
 
 def project_auth(auth_mode=0, post_auth_mode=0):
@@ -142,12 +143,14 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             else:
                 allow = False
 
-            # Authors cannot view archived projects
+            # Authors cannot view archived projects after 30 days
             if (
                 project.submission_status == SubmissionStatus.ARCHIVED
                 and not user.has_perm("project.change_activeproject")
             ):
-                allow = False
+                days_since_archive = (timezone.now() - project.archive_datetime).days
+                if days_since_archive > ARCHIVE_VIEW_DAYS or auth_mode == 0:  # Always block access to project overview
+                    allow = False
 
             # Post authentication
             if request.method == 'POST':
@@ -324,6 +327,7 @@ def project_home(request):
             'invitation_response_formset': invitation_response_formset,
             'data_access_requests': data_access_requests,
             'pending_revisions': pending_revisions,
+            'archive_view_days': ARCHIVE_VIEW_DAYS,
         },
     )
 
@@ -1346,7 +1350,11 @@ def project_preview(request, project_slug, subdir='', **kwargs):
     main_platform_citation = next((v for k, v in platform_citations.items() if v is not None and k != 'BibTeX'), '')
     passes_checks = project.check_integrity()
 
-    if passes_checks:
+    is_archived = project.submission_status == SubmissionStatus.ARCHIVED
+
+    if is_archived:
+        messages.error(request, "This project has been archived")
+    elif passes_checks:
         messages.success(request, 'The project has passed all automatic checks.')
     else:
         for e in project.integrity_errors:
@@ -1389,6 +1397,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
             'has_passphrase': has_passphrase,
             'hide_authors': hide_authors,
             'is_reviewer': is_reviewer,
+            'is_archived': is_archived,
             'is_lightwave_supported': project.files.is_lightwave_supported(),
             'show_platform_wide_citation': show_platform_wide_citation,
             'main_platform_citation': main_platform_citation,
