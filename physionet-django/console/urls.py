@@ -117,6 +117,7 @@ urlpatterns = [
     path('news/add/', views.news_add, name='news_add'),
     path('news/search/', views.news_search, name='news_search'),
     path('news/edit/<news_slug>/', views.news_edit, name='news_edit'),
+    path('news/upload-image/', views.news_image_upload, name='news_image_upload'),
 
     path('featured/', views.featured_content, name='featured_content'),
     path('featured/add', views.add_featured, name='add_featured'),
@@ -227,6 +228,9 @@ TEST_DEFAULTS = {
     'site_id': 1,
 }
 TEST_CASES = {
+    'news_image_upload': {
+        '_skip_': True,
+    },
     'published_projects_by_slug': {
         'project_slug': 'demoeicu',
     },
