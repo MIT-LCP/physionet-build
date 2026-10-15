@@ -1,10 +1,13 @@
 import csv
 import logging
 import os
+import uuid
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
+
+from PIL import Image
 
 import notification.utility as notification
 from notification.utility import archive_notify
@@ -16,6 +19,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
+from django.views.decorators.http import require_POST
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db.models import Count, DurationField, F, Q, Prefetch
@@ -30,7 +34,7 @@ from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
 from html2text import html2text
-from notification.models import News
+from notification.models import News, NewsImage
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
@@ -2455,6 +2459,71 @@ def news_edit(request, news_slug):
     if saved:
         set_saved_fields_cookie(form, request.path, response)
     return response
+
+
+ALLOWED_IMAGE_FORMATS = {
+    'JPEG': '.jpg',
+    'PNG': '.png',
+    'GIF': '.gif',
+    'WEBP': '.webp',
+}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
+@require_POST
+@permission_required('notification.change_news', raise_exception=True)
+def news_image_upload(request):
+    uploaded_file = request.FILES.get('file')
+    if not uploaded_file:
+        return JsonResponse({'error': 'No file provided.'}, status=400)
+
+    if uploaded_file.size > MAX_IMAGE_SIZE:
+        return JsonResponse(
+            {'error': 'File too large. Maximum size is 5 MB.'},
+            status=400,
+        )
+
+    try:
+        img = Image.open(uploaded_file)
+        img.verify()
+    except Exception:
+        return JsonResponse(
+            {'error': 'Invalid image file.'},
+            status=400,
+        )
+
+    image_format = img.format
+    if image_format not in ALLOWED_IMAGE_FORMATS:
+        return JsonResponse(
+            {'error': 'Unsupported image format. Allowed: JPEG, PNG, GIF, WebP.'},
+            status=400,
+        )
+
+    upload_dir = os.path.join(settings.MEDIA_ROOT, 'news', 'images')
+    os.makedirs(upload_dir, exist_ok=True)
+
+    ext = ALLOWED_IMAGE_FORMATS[image_format]
+    filename = f'{uuid.uuid4().hex}{ext}'
+    filepath = os.path.join(upload_dir, filename)
+
+    # Re-open and re-save through Pillow to strip EXIF metadata
+    # (e.g. GPS coordinates) from the original file.
+    uploaded_file.seek(0)
+    img = Image.open(uploaded_file)
+    save_kwargs = {}
+    if image_format == 'JPEG':
+        save_kwargs['quality'] = 95
+    if image_format == 'GIF' and getattr(img, 'is_animated', False):
+        save_kwargs['save_all'] = True
+    news_image = NewsImage.objects.create(filename=filename)
+    try:
+        img.save(filepath, format=image_format, **save_kwargs)
+    except Exception:
+        news_image.delete()
+        raise
+
+    location = f'/news/images/{filename}'
+    return JsonResponse({'location': location})
 
 
 @console_permission_required('project.can_edit_featured_content')
