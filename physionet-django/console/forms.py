@@ -687,11 +687,6 @@ class NewsForm(forms.ModelForm):
         mce_attrs = getattr(widget, 'mce_attrs', {}).copy()
         mce_attrs.update(settings.TINYMCE_NEWS_EXTRA_CONFIG)
         mce_attrs['images_upload_url'] = reverse('news_image_upload')
-        # TinyMCE 6 removed images_upload_headers, so we reference a
-        # custom handler defined in static/custom/js/news-image-upload.js
-        # that reads the CSRF token from the cookie. init_tinymce.js
-        # resolves bare names (no parentheses) via window[fn_name].
-        mce_attrs['images_upload_handler'] = 'newsImageUploadHandler'
         widget.mce_attrs = mce_attrs
 
 

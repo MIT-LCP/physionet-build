@@ -7,8 +7,6 @@ from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
 
-from PIL import Image
-
 import notification.utility as notification
 from notification.utility import archive_notify
 from background_task import background
@@ -17,9 +15,9 @@ from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
-from django.views.decorators.http import require_POST
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db.models import Count, DurationField, F, Q, Prefetch
@@ -31,9 +29,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_POST
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
 from html2text import html2text
+from PIL import Image
 from notification.models import News, NewsImage
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
@@ -2471,6 +2471,7 @@ MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 
 @require_POST
+@csrf_exempt
 @permission_required('notification.change_news', raise_exception=True)
 def news_image_upload(request):
     uploaded_file = request.FILES.get('file')
@@ -2522,7 +2523,8 @@ def news_image_upload(request):
         news_image.delete()
         raise
 
-    location = f'/news/images/{filename}'
+    LOGGER.info('News image uploaded: %s by %s', filename, request.user)
+    location = reverse('news_image', kwargs={'filename': filename})
     return JsonResponse({'location': location})
 
 
