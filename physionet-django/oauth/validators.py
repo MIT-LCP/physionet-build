@@ -1,6 +1,6 @@
 from django.core.exceptions import ImproperlyConfigured
 from oauth2_provider.models import AbstractApplication
-from oauth2_provider.oauth2_validators import OAuth2Validator
+from oauth2_provider.oauth2_validators import GRANT_TYPE_MAPPING, OAuth2Validator
 
 from user.models import AssociatedEmail
 
@@ -109,6 +109,17 @@ class CustomOAuth2Validator(OAuth2Validator):
         tokens and /oauth/oidc/userinfo return.
         """
         return list(OIDC_SUPPORTED_CLAIMS)
+
+    def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
+        """
+        Reject grant types DOT doesn't map. oauthlib 4 registers the
+        device_code grant at the token endpoint, and DOT 2.2 asserts that
+        every grant type is in GRANT_TYPE_MAPPING, which turns a device_code
+        request into a 500 instead of an unauthorized_client error.
+        """
+        if grant_type not in GRANT_TYPE_MAPPING:
+            return False
+        return super().validate_grant_type(client_id, grant_type, client, request, *args, **kwargs)
 
     def finalize_id_token(self, id_token, token, token_handler, request):
         """
