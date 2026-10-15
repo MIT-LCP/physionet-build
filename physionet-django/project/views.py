@@ -70,6 +70,7 @@ from physionet.utility import get_client_ip, get_country_code
 from user.awsverification import aws_verification_available
 
 LOGGER = logging.getLogger(__name__)
+ARCHIVE_VIEW_DAYS = 30
 
 
 def project_auth(auth_mode=0, post_auth_mode=0):
@@ -148,7 +149,7 @@ def project_auth(auth_mode=0, post_auth_mode=0):
                 and not user.has_perm("project.change_activeproject")
             ):
                 days_since_archive = (timezone.now() - project.archive_datetime).days
-                if days_since_archive > 30 or auth_mode == 0:  # Always block access to project overview
+                if days_since_archive > ARCHIVE_VIEW_DAYS or auth_mode == 0:  # Always block access to project overview
                     allow = False
 
             # Post authentication
@@ -326,6 +327,7 @@ def project_home(request):
             'invitation_response_formset': invitation_response_formset,
             'data_access_requests': data_access_requests,
             'pending_revisions': pending_revisions,
+            'archive_view_days': ARCHIVE_VIEW_DAYS,
         },
     )
 
