@@ -40,6 +40,7 @@ from project.models import (
 from user.enums import TrainingStatus
 from user.models import Training, TrainingType, User
 from user.test_views import TestMixin, prevent_request_warnings
+from project.views import ARCHIVE_VIEW_DAYS
 
 PROJECT_VIEWS = [
     'project_overview', 'project_authors', 'project_content',
@@ -2480,7 +2481,7 @@ class TestViewArchiveProject(TestMixin):
         self.assertEqual(response.status_code, 403)
 
     def test_author_view_archive_30days(self):
-        """Test if author access expires after 30 days"""
+        """Test if author access expires after ARCHIVE_VIEW_DAYS days"""
 
         project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
@@ -2488,7 +2489,7 @@ class TestViewArchiveProject(TestMixin):
         self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project': ''})
         project.refresh_from_db()
 
-        project.archive_datetime = timezone.now() - timedelta(days=31)
+        project.archive_datetime = timezone.now() - timedelta(days=ARCHIVE_VIEW_DAYS + 1)
         project.save()
 
         response = self.client.post(reverse('project_preview', args=(project.slug,)))
@@ -2496,14 +2497,14 @@ class TestViewArchiveProject(TestMixin):
         self.assertEqual(response.status_code, 403)
 
     def test_admin_view_archive_30days(self):
-        """Test if editor can access archive after 30 days"""
+        """Test if editor can access archive after ARCHIVE_VIEW_DAYS days"""
 
         project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
 
         self.client.post(reverse('project_overview', args=(project.slug,)), data={'delete_project': ''})
         project.refresh_from_db()
-        project.archive_datetime = timezone.now() - timedelta(days=31)
+        project.archive_datetime = timezone.now() - timedelta(days=ARCHIVE_VIEW_DAYS + 1)
         project.save()
 
         self.client.login(username='tompollard', password='Tester11!')
