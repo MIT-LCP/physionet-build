@@ -602,6 +602,21 @@ TINYMCE_DEFAULT_CONFIG = {
     ],
 }
 
+TINYMCE_NEWS_EXTRA_CONFIG = {
+    "plugins": "autoresize,autosave,code,fullscreen,help,image,link,lists,searchreplace,table",
+    "toolbar": (
+        "undo redo | styles | "
+        "bold italic codetag math | "
+        "numlist bullist table image | "
+        "searchreplace code restoredraft"
+    ),
+    "automatic_uploads": True,
+    # Store /news/images/... rather than a path relative to the console
+    # page (../../../news/images/...), which breaks in the editor on the
+    # edit page and in the RSS feed.
+    "relative_urls": False,
+}
+
 # True if the program is invoked as 'manage.py test'
 RUNNING_TEST_SUITE = (len(sys.argv) > 1 and sys.argv[1] == 'test')
 JSON_LOGGING = config('JSON_LOGGING', default=False, cast=bool)
