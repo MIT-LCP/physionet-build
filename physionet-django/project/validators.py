@@ -1,6 +1,7 @@
 import re
 
 from django.core.exceptions import ValidationError
+from django.utils.deconstruct import deconstructible
 from django.utils.translation import gettext as _
 from packaging.version import Version
 
@@ -144,6 +145,37 @@ def validate_topic(value):
     """
     if not re.fullmatch(r'[a-zA-Z\d][\w -]*', value):
         raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')
+
+
+@deconstructible
+class MaxWordsValidator:
+    """
+    Validate that a value does not contain more than a given number of
+    words. HTML tags are stripped before counting.
+    """
+    message = 'Ensure this field has no more than %(limit_value)d words (currently %(show_value)d).'
+    code = 'max_words'
+
+    def __init__(self, limit_value, message=None):
+        self.limit_value = limit_value
+        if message:
+            self.message = message
+
+    def __call__(self, value):
+        # Replace tags with a space rather than stripping them outright,
+        # so that e.g. adjacent "</p><p>" tags don't merge the last word
+        # of one block with the first word of the next.
+        text = re.sub(r'<[^>]+>', ' ', value)
+        word_count = len(re.findall(r'\S+', text))
+        if word_count > self.limit_value:
+            raise ValidationError(
+                self.message, code=self.code,
+                params={'limit_value': self.limit_value, 'show_value': word_count})
+
+    def __eq__(self, other):
+        return (isinstance(other, MaxWordsValidator)
+                and self.limit_value == other.limit_value
+                and self.message == other.message)
 
 
 def validate_gcs_bucket_object(filename, size):
