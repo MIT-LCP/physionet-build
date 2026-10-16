@@ -445,6 +445,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         Return (deletable: bool, reasons: list[str]) indicating whether
         the account can be self-service deleted.
         """
+        from challenge.models import Submission
         from events.models import Event, EventParticipant
         from project.models import (
             Author,
@@ -501,6 +502,10 @@ class User(AbstractBaseUser, PermissionsMixin):
                 lambda: Event.objects.filter(host=self).exists()
                 or EventParticipant.objects.filter(user=self, is_cohost=True).exists(),
                 'You are hosting events.',
+            ),
+            (
+                lambda: Submission.objects.filter(submitted_by=self).exists(),
+                'You have challenge submissions.',
             ),
         ]
 
