@@ -28,6 +28,12 @@
                 for (let i = 0; i < nodes.length; i++) {
                     let node = nodes[i];
 
+                    // TeX source saved by the PastePreProcess handler
+                    // below, if the annotation was stripped on paste.
+                    let pastedSource = node.attr(SOURCE_ATTR);
+                    if (pastedSource !== undefined)
+                        node.attr(SOURCE_ATTR, null);
+
                     let mathml = ser.serialize(node);
                     let display = node.attr('display');
                     if (display !== undefined)
@@ -56,6 +62,11 @@
                         }
                     });
 
+                    if (source === null && pastedSource !== undefined) {
+                        source = pastedSource;
+                        mathml = addTeXAnnotation(mathml, source);
+                    }
+
                     let vnode = tinymce.html.Node.create(tag, {
                         [MATHML_ATTR]: mathml,
                         [SOURCE_ATTR]: source,
@@ -68,6 +79,27 @@
                     node.replace(vnode);
                 }
             });
+        });
+
+        // PastePreProcess: TinyMCE 7 sanitizes pasted HTML with a
+        // separate parser that ignores allow_mathml_annotation_encodings,
+        // so the TeX annotation is removed before the filter above sees
+        // it.  Copy the source into an attribute so it survives.
+        editor.on('PastePreProcess', function(o) {
+            if (o.content.indexOf('<math') === -1)
+                return;
+            let doc = new DOMParser().parseFromString(o.content, 'text/html');
+            let changed = false;
+            tinymce.each(doc.getElementsByTagName('math'), (math) => {
+                tinymce.each(math.getElementsByTagName('annotation'), (ann) => {
+                    if (ann.getAttribute('encoding') === 'application/x-tex') {
+                        math.setAttribute(SOURCE_ATTR, ann.textContent);
+                        changed = true;
+                    }
+                });
+            });
+            if (changed)
+                o.content = doc.body.innerHTML;
         });
 
         // SetContent: update elements after editor content is changed
