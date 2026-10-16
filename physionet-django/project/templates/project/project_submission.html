@@ -31,7 +31,7 @@
     $.ajax({url: "{% url 'check_integrity' project.slug %}",
       success: function(result){
         if (result.passes_checks){
-          $(target_modal).html("<i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: you will no longer be able to edit the project.");
+          $(target_modal).html("<p><i class='fas fa-check' style='color:green'></i> The automatic checks have passed. You may submit the project for review. Note: you will no longer be able to edit the project.</p>");
           document.getElementById(button_id).disabled = false;
           document.getElementById(comment_input_id).disabled = false;
         }
@@ -42,6 +42,15 @@
           }
           message += "</ul>";
           $(target_modal).html(message);
+        }
+
+        if (result.integrity_warnings && result.integrity_warnings.length > 0) {
+          message = "<p><i class='fas fa-exclamation-triangle' style='color:orange'></i> The following items may need attention, but will not prevent submission:</p><ul>";
+          for (i=0; i<result.integrity_warnings.length; i++) {
+            message += "<li>" + result.integrity_warnings[i] + "</li>";
+          }
+          message += "</ul>";
+          $(target_modal).append(message);
         }
       }
     });

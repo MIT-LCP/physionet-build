@@ -359,6 +359,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         project passes the checks
         """
         self.integrity_errors = ErrorList()
+        self.integrity_warnings = ErrorList()
 
         # Invitations
         for invitation in self.authorinvitations.filter(is_active=True):
@@ -402,6 +403,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         # References
         if not self.has_valid_reference_order():
             self.integrity_errors.append('Order of references may be incorrect')
+
+        if not self.references.exists():
+            self.integrity_warnings.append(
+                'No references have been added to this project.')
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
