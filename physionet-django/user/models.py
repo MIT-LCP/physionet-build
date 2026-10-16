@@ -1203,6 +1203,35 @@ class CredentialApplication(models.Model):
 
         return status
 
+    def get_progress_steps(self):
+        """
+        Return a list of progress steps for the credentialing application,
+        derived from actual data fields rather than the admin review workflow.
+        """
+        has_review = hasattr(self, 'credential_review')
+        return [
+            {
+                'label': 'Application submitted',
+                'complete': True,
+            },
+            {
+                'label': 'Identity check',
+                'complete': has_review and self.credential_review.status >= 20,
+            },
+            {
+                'label': 'Reference contacted',
+                'complete': self.reference_contact_datetime is not None,
+            },
+            {
+                'label': 'Reference responded',
+                'complete': self.reference_response_datetime is not None,
+            },
+            {
+                'label': 'Final review',
+                'complete': self.status != self.Status.PENDING,
+            },
+        ]
+
     def auto_reject(self, reason):
         """
         Automatically reject this application.
