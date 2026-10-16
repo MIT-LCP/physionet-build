@@ -12,7 +12,8 @@
     let globalStyle = null;
 
     tinymce.PluginManager.add('pnmath', function(editor, pluginURL) {
-        if (!editor.options.isSet('allow_mathml_annotation_encodings')) {
+        if (editor.options.isRegistered('allow_mathml_annotation_encodings')
+            && !editor.options.isSet('allow_mathml_annotation_encodings')) {
             editor.options.set('allow_mathml_annotation_encodings',
                                ['application/x-tex']);
         }
