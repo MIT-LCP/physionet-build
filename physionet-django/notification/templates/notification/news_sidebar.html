@@ -1,0 +1,13 @@
+<nav class="sidebar-nav">
+  <h2 class="sidebar-title">News</h2>
+  <h3 class="sidebar-section-label">Archives</h3>
+  <ul>
+    {% for year in news_years %}
+      <li><a href="{% url 'news_year' year %}">{{ year }}</a></li>
+    {% endfor %}
+  </ul>
+  <h3 class="sidebar-section-label">Elsewhere</h3>
+  <ul>
+    <li><a href="{{ SOURCE_CODE_REPOSITORY_LINK }}" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+  </ul>
+</nav>
