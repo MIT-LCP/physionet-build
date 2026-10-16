@@ -1221,6 +1221,7 @@ class CredentialApplication(models.Model):
             {
                 'label': 'Reference contacted',
                 'complete': self.reference_contact_datetime is not None,
+                'datetime': self.reference_contact_datetime,
             },
             {
                 'label': 'Reference responded',
