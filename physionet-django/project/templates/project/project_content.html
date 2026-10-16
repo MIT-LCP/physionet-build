@@ -45,6 +45,7 @@
 {% block local_js_bottom %}
 <script src="{% static 'custom/js/resize-ck.js' %}"></script>
 <script src="{% static 'custom/js/enable-popover.js' %}"></script>
+<script src="{% static 'custom/js/abstract-word-counter.js' %}"></script>
 <script>disableAddButtons();</script>
 {# Disable submission if not currently editable or not submitting author #}
 {% if not is_submitting or not project.author_editable %}
