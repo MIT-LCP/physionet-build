@@ -12,14 +12,27 @@
     let globalStyle = null;
 
     tinymce.PluginManager.add('pnmath', function(editor, pluginURL) {
+        if (editor.options.isRegistered('allow_mathml_annotation_encodings')
+            && !editor.options.isSet('allow_mathml_annotation_encodings')) {
+            editor.options.set('allow_mathml_annotation_encodings',
+                               ['application/x-tex']);
+        }
+
         // PreInit: establish filters for converting input HTML
         editor.on('PreInit', function() {
             let ser = tinymce.html.Serializer();
+            let unsafeParser = new DOMParser();
 
             // Convert <math> to BLOCK_MATH_TAG / INLINE_MATH_TAG
             editor.parser.addNodeFilter('math', (nodes) => {
                 for (let i = 0; i < nodes.length; i++) {
                     let node = nodes[i];
+
+                    // TeX source saved by the PastePreProcess handler
+                    // below, if the annotation was stripped on paste.
+                    let pastedSource = node.attr(SOURCE_ATTR);
+                    if (pastedSource !== undefined)
+                        node.attr(SOURCE_ATTR, null);
 
                     let mathml = ser.serialize(node);
                     let display = node.attr('display');
@@ -30,13 +43,29 @@
                                : INLINE_MATH_TAG);
 
                     let source = null;
-                    tinymce.each(node.getAll('annotation'), (ann) => {
-                        if (ann.attr('encoding') === 'application/x-tex') {
-                            ann = ser.serialize(ann);
-                            ann = editor.dom.createFragment(ann);
+
+                    // The TinyMCE parser (since TinyMCE 7.1.0) treats
+                    // math elements as opaque and doesn't provide
+                    // access to their descendants.  Instead, use a
+                    // DOMParser to parse the annotations.  (This
+                    // should be safe since we are simply extracting
+                    // the textContent and we never insert the parsed
+                    // nodes into the document.)
+                    let annotations = unsafeParser.parseFromString(
+                        mathml, 'text/html'
+                    ).getElementsByTagName('annotation');
+
+                    tinymce.each(annotations, (ann) => {
+                        let encoding = ann.getAttribute('encoding');
+                        if (encoding === 'application/x-tex') {
                             source = ann.textContent;
                         }
                     });
+
+                    if (source === null && pastedSource !== undefined) {
+                        source = pastedSource;
+                        mathml = addTeXAnnotation(mathml, source);
+                    }
 
                     let vnode = tinymce.html.Node.create(tag, {
                         [MATHML_ATTR]: mathml,
@@ -50,6 +79,27 @@
                     node.replace(vnode);
                 }
             });
+        });
+
+        // PastePreProcess: TinyMCE 7 sanitizes pasted HTML with a
+        // separate parser that ignores allow_mathml_annotation_encodings,
+        // so the TeX annotation is removed before the filter above sees
+        // it.  Copy the source into an attribute so it survives.
+        editor.on('PastePreProcess', function(o) {
+            if (o.content.indexOf('<math') === -1)
+                return;
+            let doc = new DOMParser().parseFromString(o.content, 'text/html');
+            let changed = false;
+            tinymce.each(doc.getElementsByTagName('math'), (math) => {
+                tinymce.each(math.getElementsByTagName('annotation'), (ann) => {
+                    if (ann.getAttribute('encoding') === 'application/x-tex') {
+                        math.setAttribute(SOURCE_ATTR, ann.textContent);
+                        changed = true;
+                    }
+                });
+            });
+            if (changed)
+                o.content = doc.body.innerHTML;
         });
 
         // SetContent: update elements after editor content is changed
@@ -100,10 +150,15 @@
             // create extra undo levels.
             if (initial) {
                 if (MATHJAX.callSync(editor, (MathJax) => {
-                    mathml = MathJax.tex2mml(source, {display: dblk});
-                    mathml = addTeXAnnotation(mathml, source);
-                    let svg = MathJax.mathml2svg(mathml);
-                    setMathSVGContent(eqn, mathml, svg);
+                    try {
+                        mathml = MathJax.tex2mml(source, {display: dblk});
+                        mathml = addTeXAnnotation(mathml, source);
+                        let svg = MathJax.mathml2svg(mathml);
+                        setMathSVGContent(eqn, mathml, svg);
+                    } catch (err) {
+                        console.log('sync tex->svg input: ' + source);
+                        console.log('sync tex->svg failed: ' + err.message);
+                    }
                 })) {
                     return;
                 }
@@ -222,6 +277,7 @@
 
                 let preview = document.getElementById(previewid);
                 preview.style.textAlign = 'center';
+                preview.style.minHeight = '2em';
 
                 previewPending = true;
                 MATHJAX.callSoon(editor, (MathJax) => {

@@ -487,6 +487,9 @@ HTML_ALLOWED_CONTENT = {
 # User interface settings for TinyMCE
 
 TINYMCE_DEFAULT_CONFIG = {
+    # TinyMCE 7 is GPL-licensed; without this it logs that it is
+    # running in evaluation mode.
+    "license_key": "gpl",
     "theme": "silver",
     "min_height": 300,
     "menubar": False,
@@ -550,9 +553,9 @@ TINYMCE_DEFAULT_CONFIG = {
         {"start": "####", "format": "h4"},
         {"start": "#####", "format": "h5"},
         {"start": "######", "format": "h6"},
-        {"start": "1. ", "cmd": "InsertOrderedList"},
-        {"start": "* ", "cmd": "InsertUnorderedList"},
-        {"start": "- ", "cmd": "InsertUnorderedList"},
+        {"start": "1.", "cmd": "InsertOrderedList"},
+        {"start": "*", "cmd": "InsertUnorderedList"},
+        {"start": "-", "cmd": "InsertUnorderedList"},
         {"start": "$", "end": "$", "cmd": "InlineMath"},
         {"start": "$$", "end": "$$", "cmd": "BlockMath"},
         {"start": r"\(", "end": r"\)", "cmd": "InlineMath"},
