@@ -113,7 +113,7 @@ class Migration(migrations.Migration):
                     to=settings.AUTH_USER_MODEL,
                 )),
                 ('published_project', models.OneToOneField(
-                    limit_choices_to={'resource_type__name': 'Challenge'},
+                    limit_choices_to={'resource_type': 2},
                     on_delete=django.db.models.deletion.CASCADE,
                     related_name='challenge',
                     to='project.publishedproject',

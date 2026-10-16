@@ -109,7 +109,7 @@ class Challenge(models.Model):
         'project.PublishedProject',
         on_delete=models.CASCADE,
         related_name='challenge',
-        limit_choices_to={'resource_type__name': 'Challenge'},
+        limit_choices_to={'resource_type': 2},
     )
     slug = models.SlugField(max_length=100, unique=True)
     organizer = models.ForeignKey(
