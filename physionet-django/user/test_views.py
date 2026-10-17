@@ -1326,6 +1326,24 @@ class TestDeleteAccount(TestCase):
         self.assertFalse(deletable)
         self.assertIn('You are hosting events.', reasons)
 
+    def test_can_delete_account_challenge_submission(self):
+        from challenge.models import Challenge, Submission
+        from project.models import PublishedProject
+
+        user = self._create_user()
+        challenge = Challenge.objects.create(
+            published_project=PublishedProject.objects.first(),
+            slug='test-challenge',
+            organizer=User.objects.get(username='rgmark'),
+        )
+        Submission.objects.create(
+            challenge=challenge, submitted_by=user,
+            code_archive_gcs_uri='gs://bucket/archive.zip',
+        )
+        deletable, reasons = user.can_delete_account()
+        self.assertFalse(deletable)
+        self.assertIn('You have challenge submissions.', reasons)
+
     def test_delete_account_removes_profile_photo(self):
         from django.core.files.base import ContentFile
 
@@ -1363,6 +1381,10 @@ class TestDeleteAccount(TestCase):
             # Only co-hosts (is_cohost=True) block deletion; ordinary
             # participants cascade-delete with the account.
             ('events', 'eventparticipant', 'user'),
+            ('challenge', 'submission', 'submitted_by'),
+            # A user's leaderboard entry always points at one of their
+            # submissions, so the submission check covers it.
+            ('challenge', 'leaderboardentry', 'user'),
         }
 
         # Relations that are safe to cascade-delete with the account.
@@ -1390,6 +1412,8 @@ class TestDeleteAccount(TestCase):
             ('annotation', 'annotationcollection', 'created_by'),
             ('annotation', 'baselocation', 'created_by'),
             ('annotation', 'annotation', 'created_by'),
+            ('challenge', 'challengeparticipant', 'user'),
+            ('challenge', 'teaminvitation', 'invited_by'),
             ('oauth2_provider', 'accesstoken', 'user'),
             ('oauth2_provider', 'application', 'user'),
             ('oauth2_provider', 'grant', 'user'),

@@ -31,6 +31,7 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 SECRET_KEY = config('SECRET_KEY')
 ENABLE_SSO = config('ENABLE_SSO', default=False, cast=bool)
 ENABLE_LIGHTWAVE = config('ENABLE_LIGHTWAVE', default=True, cast=bool)
+ENABLE_CHALLENGES = config('ENABLE_CHALLENGES', default=False, cast=bool)
 SSO_REMOTE_USER_HEADER = config('SSO_REMOTE_USER_HEADER', default='HTTP_REMOTE_USER')
 SSO_LOGIN_BUTTON_TEXT = config('SSO_LOGIN_BUTTON_TEXT', default='Login')
 PRIVACY_POLICY_HTML = config('PRIVACY_POLICY_HTML', default=None)
@@ -117,6 +118,10 @@ if ENABLE_SSO:
 
 if ENABLE_LIGHTWAVE:
     INSTALLED_APPS += ['lightwave']
+
+# Installed even when ENABLE_CHALLENGES is off, so its tables and
+# foreign keys stay known to Django; the flag only gates the URLs.
+INSTALLED_APPS += ['challenge']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
