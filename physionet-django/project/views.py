@@ -1462,7 +1462,8 @@ def check_integrity(request, project_slug, **kwargs):
     result = project.check_integrity()
 
     return JsonResponse({'passes_checks':result,
-        'integrity_errors':project.integrity_errors})
+        'integrity_errors':project.integrity_errors,
+        'integrity_warnings':project.integrity_warnings})
 
 
 @project_auth(auth_mode=0)
