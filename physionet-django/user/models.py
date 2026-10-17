@@ -1205,33 +1205,40 @@ class CredentialApplication(models.Model):
 
     def get_progress_steps(self):
         """
-        Return a list of progress steps for the credentialing application,
-        derived from actual data fields rather than the admin review workflow.
+        Return a list of progress steps for the credentialing application.
+
+        Completion follows the review stage, so a skipped reference or a
+        reset review doesn't show later steps as complete.
         """
-        has_review = hasattr(self, 'credential_review')
-        return [
+        stage = self.credential_review.status if hasattr(self, 'credential_review') else 0
+        steps = [
             {
                 'label': 'Application submitted',
                 'complete': True,
             },
             {
                 'label': 'Identity check',
-                'complete': has_review and self.credential_review.status >= 20,
-            },
-            {
-                'label': 'Reference contacted',
-                'complete': self.reference_contact_datetime is not None,
-                'datetime': self.reference_contact_datetime,
-            },
-            {
-                'label': 'Reference responded',
-                'complete': self.reference_response_datetime is not None,
-            },
-            {
-                'label': 'Final review',
-                'complete': self.status != self.Status.PENDING,
+                'complete': stage >= 20,
             },
         ]
+        # The reviewer can skip the reference and go straight to final review
+        if not (stage >= 40 and self.reference_contact_datetime is None):
+            steps += [
+                {
+                    'label': 'Reference contacted',
+                    'complete': stage >= 30 and self.reference_contact_datetime is not None,
+                    'datetime': self.reference_contact_datetime,
+                },
+                {
+                    'label': 'Reference responded',
+                    'complete': stage >= 40,
+                },
+            ]
+        steps.append({
+            'label': 'Final review',
+            'complete': False,
+        })
+        return steps
 
     def auto_reject(self, reason):
         """
