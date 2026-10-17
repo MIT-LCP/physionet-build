@@ -30,6 +30,8 @@ from user.enums import TrainingStatus
 from user.models import (
     AssociatedEmail,
     CloudInformation,
+    CredentialApplication,
+    CredentialReview,
     Profile,
     Question,
     Training,
@@ -1417,6 +1419,79 @@ class TestDeleteAccount(TestCase):
             f"Decide whether each should block deletion or is safe to "
             f"cascade, then add it to the appropriate set in this test.",
         )
+
+
+class TestCredentialingProgress(TestCase):
+    """Tests for the applicant's credentialing progress checklist."""
+
+    def setUp(self):
+        self.application = CredentialApplication.objects.get(
+            user__username='george',
+            status=CredentialApplication.Status.PENDING,
+        )
+        CredentialReview.objects.filter(application=self.application).delete()
+        self.application.reference_contact_datetime = None
+        self.application.reference_response_datetime = None
+        self.application.save()
+
+    def _steps(self, review_status=None, contacted=False):
+        if review_status is not None:
+            CredentialReview.objects.create(application=self.application, status=review_status)
+        if contacted:
+            self.application.reference_contact_datetime = timezone.now()
+            self.application.save()
+        self.application.refresh_from_db()
+        return [(step['label'], step['complete']) for step in self.application.get_progress_steps()]
+
+    def test_new_application(self):
+        self.assertEqual(self._steps(), [
+            ('Application submitted', True),
+            ('Identity check', False),
+            ('Reference contacted', False),
+            ('Reference responded', False),
+            ('Final review', False),
+        ])
+
+    def test_reference_contacted(self):
+        self.assertEqual(self._steps(review_status=30, contacted=True), [
+            ('Application submitted', True),
+            ('Identity check', True),
+            ('Reference contacted', True),
+            ('Reference responded', False),
+            ('Final review', False),
+        ])
+
+    def test_reference_responded(self):
+        self.assertEqual(self._steps(review_status=40, contacted=True), [
+            ('Application submitted', True),
+            ('Identity check', True),
+            ('Reference contacted', True),
+            ('Reference responded', True),
+            ('Final review', False),
+        ])
+
+    def test_reference_skipped(self):
+        self.assertEqual(self._steps(review_status=40), [
+            ('Application submitted', True),
+            ('Identity check', True),
+            ('Final review', False),
+        ])
+
+    def test_contact_before_review_reset(self):
+        self.assertEqual(self._steps(contacted=True), [
+            ('Application submitted', True),
+            ('Identity check', False),
+            ('Reference contacted', False),
+            ('Reference responded', False),
+            ('Final review', False),
+        ])
+
+    def test_checklist_shown_to_applicant(self):
+        self.client.login(username='george', password='Tester11!')
+        response = self.client.get(reverse('edit_credentialing'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Identity check')
+        self.assertContains(response, 'Final review')
 
 
 class BackgroundTaskError(Exception):
