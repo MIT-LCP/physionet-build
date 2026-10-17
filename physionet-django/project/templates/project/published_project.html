@@ -61,6 +61,10 @@
     </div>
     {% endif %}
 
+    {% if challenge %}
+    {% include "challenge/challenge_hero.html" %}
+    {% endif %}
+
     <!-- Latest news and announcements -->
     {% if news %}
       <div class="alert alert-primary" role="alert">
@@ -89,21 +93,79 @@
     <div class="row">
       <!-- Main column -->
       <div class="col-md-8">
+        {% if challenge %}
+        {# Tab bar #}
+        <ul class="challenge-tabs">
+          <li class="challenge-tab active" onclick="switchChallengeTab('overview')">Overview</li>
+          <li class="challenge-tab" onclick="switchChallengeTab('leaderboard')">Leaderboard</li>
+          {% if challenge_participant %}
+          <li class="challenge-tab" onclick="switchChallengeTab('submit')">Submit</li>
+          {% endif %}
+          {% if challenge_rules %}
+          <li class="challenge-tab" onclick="switchChallengeTab('rules')">Rules</li>
+          {% endif %}
+          {% if challenge.teams_enabled and challenge_participant %}
+          <li class="challenge-tab" onclick="switchChallengeTab('team')">Team</li>
+          {% endif %}
+        </ul>
+
+        {# Overview tab — wraps project content #}
+        <div id="challenge-tab-overview" class="challenge-tab-content active">
+          {% if project.display_publications %}
+            {% include "project/citation_box.html" %}
+          {% endif %}
+          {% if project.is_legacy %}
+            {{ project.full_description|safe }}
+          <hr>
+          {% else %}
+            {% include "project/published_project_content.html" %}
+          {% endif %}
+
+          {% if challenge_submission_spec %}
+            <h2 id="execution-environment">Execution Environment</h2>
+            <ul>
+              <li><strong>Base image:</strong> {{ challenge_submission_spec.base_image }}</li>
+              <li><strong>Entrypoint:</strong> <code>{{ challenge_submission_spec.entrypoint_command }}</code></li>
+              <li><strong>Max runtime:</strong> {{ challenge_submission_spec.max_runtime_seconds }}s</li>
+              <li><strong>Memory limit:</strong> {{ challenge_submission_spec.max_memory_mb }} MB</li>
+              <li><strong>CPUs:</strong> {{ challenge_submission_spec.cpu_count }}</li>
+              {% if challenge_submission_spec.gpu_enabled %}
+              <li><strong>GPU:</strong> {{ challenge_submission_spec.gpu_type|default:"Enabled" }}</li>
+              {% endif %}
+            </ul>
+            <hr>
+          {% endif %}
+
+          {% if challenge.prizes %}
+            <h2 id="prizes">Prizes</h2>
+            {{ challenge.prizes|safe }}
+            <hr>
+          {% endif %}
+        </div>
+
+        {# Other tab panels + team card + JS #}
+        {% include "challenge/challenge_tabs_content.html" %}
+
+        {% else %}
+        {# Non-challenge project #}
         {% if project.display_publications %}
           {% include "project/citation_box.html" %}
         {% endif %}
-
         {% if project.is_legacy %}
           {{ project.full_description|safe }}
         <hr>
         {% else %}
           {% include "project/published_project_content.html" %}
         {% endif %}
+        {% endif %}
       </div>
       <!-- /.main column -->
 
       <!-- Sidebar Column -->
       <div class="col-md-4">
+        {% if challenge %}
+          {% include "challenge/challenge_sidebar.html" %}
+        {% endif %}
         {# Contents panel #}
         {% if not project.is_legacy %}
         <div class="card mb-3">
@@ -112,13 +174,16 @@
             <ul>
               {% for section in project.content_sections %}
                 {% if section.body %}
-                  <li><a href="#{{ section.html_id }}">{{ section.title }}</a></li>
+                  <li><a href="#{{ section.html_id }}" {% if challenge %}onclick="switchChallengeTab('overview')"{% endif %}>{{ section.title }}</a></li>
                 {% endif %}
               {% endfor %}
               {% if references %}
-                <li><a href="#references">References</a></li>
+                <li><a href="#references" {% if challenge %}onclick="switchChallengeTab('overview')"{% endif %}>References</a></li>
               {% endif %}
-              <li><a href="#files">Files</a></li>
+              <li><a href="#files" {% if challenge %}onclick="switchChallengeTab('overview')"{% endif %}>Files</a></li>
+              {% if challenge %}
+                <li><a href="#leaderboard" onclick="switchChallengeTab('leaderboard', true); return false;">Leaderboard</a></li>
+              {% endif %}
             </ul>
           </div>
         </div>

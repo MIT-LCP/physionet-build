@@ -1564,6 +1564,88 @@ def project_submission(request, project_slug, **kwargs):
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
+def project_challenge_config(request, project_slug, **kwargs):
+    project = kwargs['project']
+    is_submitting = kwargs['is_submitting']
+
+    if project.resource_type_id != 2:
+        raise Http404
+
+    editable = is_submitting and project.author_editable()
+
+    from challenge.models import ChallengeConfiguration
+    from challenge.forms import ChallengeConfigurationForm
+
+    config, _ = ChallengeConfiguration.objects.get_or_create(active_project=project)
+
+    if request.method == 'POST':
+        form = ChallengeConfigurationForm(
+            data=request.POST, files=request.FILES,
+            instance=config, editable=editable,
+        )
+        if form.is_valid():
+            form.save()
+            _upload_challenge_data_files(form, config, project.slug)
+            messages.success(request, 'Challenge configuration has been updated.')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        form = ChallengeConfigurationForm(instance=config, editable=editable)
+
+    return render(
+        request,
+        'project/project_challenge_config.html',
+        {
+            'project': project,
+            'challenge_config_form': form,
+            'challenge_config': config,
+            'is_submitting': is_submitting,
+        },
+    )
+
+
+def _upload_challenge_data_files(form, config, slug):
+    """Upload challenge evaluation files to GCS and save URIs on config."""
+    bucket = getattr(settings, 'CHALLENGE_STAGING_BUCKET', '')
+    if not bucket:
+        return
+
+    upload_map = [
+        ('validation_data_archive', 'validation', 'validation_data_gcs_uri'),
+        ('test_data_archive', 'test', 'test_data_gcs_uri'),
+        ('evaluation_script_file', 'evaluation', 'evaluation_script_gcs_uri'),
+    ]
+
+    from physionet.gcp import ObjectPath
+
+    updated = False
+    for field_name, subdir, uri_field in upload_map:
+        uploaded_file = form.cleaned_data.get(field_name)
+        if not uploaded_file:
+            continue
+
+        key = f'challenges/{slug}/{subdir}/{uploaded_file.name}'
+        gcs_uri = f'{bucket}/{key}'
+
+        try:
+            obj = ObjectPath(gcs_uri)
+            blob = obj.bucket().blob(obj.key())
+            blob.upload_from_file(uploaded_file, rewind=True)
+        except Exception:
+            LOGGER.exception(
+                'Failed to upload %s to GCS for challenge %s',
+                field_name, slug,
+            )
+            raise
+
+        setattr(config, uri_field, gcs_uri)
+        updated = True
+
+    if updated:
+        config.save()
+
+
+@project_auth(auth_mode=0, post_auth_mode=2)
 def project_ethics(request, project_slug, **kwargs):
     project = kwargs['project']
     is_submitting = kwargs['is_submitting']
@@ -2122,6 +2204,72 @@ def published_project(request, project_slug, version, subdir=''):
     project_views_count = project.view_count()
     all_versions_views_count = project.view_count(all_versions=True)
 
+    # Challenge content for challenge-type projects
+    challenge_obj = None
+    challenge_participant = None
+    challenge_participant_count = 0
+    challenge_submission_count = 0
+    challenge_leaderboard = []
+    challenge_leaderboard_test = []
+    challenge_show_test_leaderboard = False
+    challenge_team = None
+    challenge_team_members = []
+    challenge_team_invitations = []
+    challenge_rules = ''
+    challenge_submission_spec = None
+    challenge_teams_count = 0
+    challenge_my_submissions = []
+    if project.resource_type_id == 2:
+        try:
+            challenge_obj = project.challenge
+        except project._meta.model.challenge.RelatedObjectDoesNotExist:
+            pass
+        if challenge_obj:
+            from challenge.enums import DatasetType, SubmissionStatus
+            from challenge.models import (
+                ChallengeParticipant, LeaderboardEntry, Submission,
+                TeamInvitation,
+            )
+            challenge_participant_count = challenge_obj.participants.filter(
+                is_active=True).count()
+            challenge_submission_count = challenge_obj.submissions.filter(
+                status=SubmissionStatus.COMPLETED).count()
+            challenge_rules = challenge_obj.rules
+            challenge_teams_count = challenge_obj.teams.filter(
+                is_active=True).count()
+            try:
+                challenge_submission_spec = challenge_obj.submission_spec
+            except challenge_obj._meta.model.submission_spec.RelatedObjectDoesNotExist:
+                pass
+            challenge_leaderboard = LeaderboardEntry.objects.filter(
+                challenge=challenge_obj, dataset=DatasetType.VAL,
+            ).select_related('user', 'team', 'submission').order_by('rank')
+            from challenge.enums import ChallengePhase
+            if challenge_obj.phase == ChallengePhase.RESULTS:
+                challenge_show_test_leaderboard = True
+                challenge_leaderboard_test = LeaderboardEntry.objects.filter(
+                    challenge=challenge_obj, dataset=DatasetType.TEST,
+                ).select_related('user', 'team', 'submission').order_by('rank')
+            challenge_my_submissions = []
+            if user.is_authenticated:
+                challenge_participant = ChallengeParticipant.objects.filter(
+                    user=user, challenge=challenge_obj, is_active=True,
+                ).first()
+                if challenge_participant:
+                    challenge_my_submissions = Submission.objects.filter(
+                        challenge=challenge_obj, submitted_by=user,
+                    ).order_by('-created_datetime')
+                if challenge_participant and challenge_participant.team:
+                    challenge_team = challenge_participant.team
+                    challenge_team_members = ChallengeParticipant.objects.filter(
+                        team=challenge_team, is_active=True,
+                    ).select_related('user')
+                    if challenge_participant.is_team_captain:
+                        challenge_team_invitations = TeamInvitation.objects.filter(
+                            team=challenge_team, is_active=True,
+                            response__isnull=True,
+                        )
+
     context = {
         'project': project,
         'authors': authors,
@@ -2158,6 +2306,20 @@ def published_project(request, project_slug, version, subdir=''):
         'user_country_blocked': user_country_blocked,
         'project_views_count': project_views_count,
         'all_versions_views_count': all_versions_views_count,
+        'challenge': challenge_obj,
+        'challenge_participant': challenge_participant,
+        'challenge_participant_count': challenge_participant_count,
+        'challenge_submission_count': challenge_submission_count,
+        'challenge_leaderboard': challenge_leaderboard,
+        'challenge_leaderboard_test': challenge_leaderboard_test,
+        'challenge_show_test_leaderboard': challenge_show_test_leaderboard,
+        'challenge_team': challenge_team,
+        'challenge_team_members': challenge_team_members,
+        'challenge_team_invitations': challenge_team_invitations,
+        'challenge_rules': challenge_rules,
+        'challenge_submission_spec': challenge_submission_spec,
+        'challenge_teams_count': challenge_teams_count,
+        'challenge_my_submissions': challenge_my_submissions,
     }
     # The file and directory contents
     if can_view_files:

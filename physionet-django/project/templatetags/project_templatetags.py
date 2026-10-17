@@ -217,6 +217,7 @@ PROJECT_SETTINGS_STEPS = [
     ('access', 'Access'),
     ('discovery', 'Discovery'),
     ('ethics', 'Ethics'),
+    ('challenge_config', 'Challenge Setup'),
     ('upload_agreement', 'Upload Agreement'),
     ('files', 'Files'),
     ('proofread', 'Proofread'),
