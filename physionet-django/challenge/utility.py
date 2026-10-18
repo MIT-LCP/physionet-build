@@ -7,12 +7,21 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.template import loader
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 
 from notification.models import NotificationType
 from notification.utility import create_notification, get_url_prefix
 
 logger = logging.getLogger(__name__)
+
+
+def _safe_reverse(view_name, **kwargs):
+    """Reverse a URL, returning '' if the URL pattern is not registered."""
+    try:
+        return reverse(view_name, kwargs=kwargs)
+    except NoReverseMatch:
+        logger.warning('URL pattern %r not found', view_name)
+        return ''
 
 
 def notify_submission_complete(submission):
@@ -28,10 +37,9 @@ def notify_submission_complete(submission):
         f'Your submission to "{challenge.slug}" has been scored. '
         f'{score_summary}'
     )
-    url = reverse('challenge_submission_detail', kwargs={
-        'challenge_slug': challenge.slug,
-        'submission_id': submission.pk,
-    })
+    url = _safe_reverse('challenge_submission_detail',
+                        challenge_slug=challenge.slug,
+                        submission_id=submission.pk)
 
     create_notification(
         recipient=recipient,
@@ -50,10 +58,9 @@ def notify_submission_failed(submission):
         f'Your submission to "{challenge.slug}" failed: '
         f'{submission.error_message[:200]}'
     )
-    url = reverse('challenge_submission_detail', kwargs={
-        'challenge_slug': challenge.slug,
-        'submission_id': submission.pk,
-    })
+    url = _safe_reverse('challenge_submission_detail',
+                        challenge_slug=challenge.slug,
+                        submission_id=submission.pk)
 
     create_notification(
         recipient=recipient,
@@ -95,9 +102,8 @@ def notify_phase_change(challenge, old_phase, new_phase):
         f'Challenge "{challenge.slug}" has moved from '
         f'{old_phase} to {new_phase}.'
     )
-    url = reverse('challenge_detail', kwargs={
-        'challenge_slug': challenge.slug,
-    })
+    url = _safe_reverse('challenge_detail',
+                        challenge_slug=challenge.slug)
 
     for p in participants:
         create_notification(

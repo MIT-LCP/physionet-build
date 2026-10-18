@@ -757,12 +757,19 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         published_project=published_project,
                         slug=published_project.slug,
                         organizer=self.submitting_author().user,
+                        organizer_name=config.organizer_name,
                         registration_open_datetime=config.registration_open_datetime,
                         start_datetime=config.start_datetime,
+                        official_start_datetime=config.official_start_datetime,
                         end_datetime=config.end_datetime,
                         max_submissions_per_day=config.max_submissions_per_day,
                         max_total_submissions=config.max_total_submissions,
+                        max_submissions_to_advance=config.max_submissions_to_advance,
                         teams_enabled=config.teams_enabled,
+                        validation_data_gcs_uri=config.validation_data_gcs_uri,
+                        test_data_gcs_uri=config.test_data_gcs_uri,
+                        validation_labels_gcs_uri=config.validation_labels_gcs_uri,
+                        test_labels_gcs_uri=config.test_labels_gcs_uri,
                     )
                     SubmissionSpec.objects.create(
                         challenge=challenge,
@@ -775,7 +782,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         cpu_count=config.cpu_count,
                         input_format=config.input_format,
                         output_format=config.output_format,
-                        primary_metric_name=config.primary_metric.get('name'),
+                        evaluation_script_gcs_uri=config.evaluation_script_gcs_uri,
+                        primary_metric=config.primary_metric,
                         additional_metrics=config.additional_metrics,
                     )
 

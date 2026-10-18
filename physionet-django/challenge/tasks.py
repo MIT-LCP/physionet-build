@@ -115,14 +115,15 @@ def recompute_leaderboard(challenge_id):
     sort_ascending = spec.primary_metric_sort == MetricSort.ASC
 
     for dataset in [DatasetType.VAL, DatasetType.TEST]:
-        entries = LeaderboardEntry.objects.filter(
-            challenge=challenge, dataset=dataset,
-        ).order_by('primary_score' if sort_ascending else '-primary_score')
+        with transaction.atomic():
+            entries = LeaderboardEntry.objects.select_for_update().filter(
+                challenge=challenge, dataset=dataset,
+            ).order_by('primary_score' if sort_ascending else '-primary_score')
 
-        for rank, entry in enumerate(entries, start=1):
-            if entry.rank != rank:
-                entry.rank = rank
-                entry.save(update_fields=['rank'])
+            for rank, entry in enumerate(entries, start=1):
+                if entry.rank != rank:
+                    entry.rank = rank
+                    entry.save(update_fields=['rank'])
 
 
 @associated_task(Challenge, 'challenge_id')

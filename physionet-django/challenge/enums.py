@@ -21,6 +21,11 @@ class SubmissionStatus(models.TextChoices):
     TIMED_OUT = 'timed_out', _('Timed Out')
 
 
+class MetricSort(models.TextChoices):
+    ASC = 'asc', _('Ascending (lower is better)')
+    DESC = 'desc', _('Descending (higher is better)')
+
+
 class DatasetType(models.TextChoices):
     TRAIN = 'train', _('Training')
     VAL = 'val', _('Validation')
