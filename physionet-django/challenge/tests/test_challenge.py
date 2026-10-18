@@ -3,6 +3,7 @@ Tests for the challenge app.
 
 Run with: ENABLE_CHALLENGES=True python manage.py test challenge
 """
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
 
@@ -55,7 +56,6 @@ class CodeSubmissionFormTests(TestCase):
 
     def test_rejects_invalid_extension(self):
         """Form should reject files without .tar.gz or .zip extension."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
         f = SimpleUploadedFile('code.py', b'print("hello")')
         form = CodeSubmissionForm(data={'description': ''}, files={'code_archive': f})
         self.assertFalse(form.is_valid())
@@ -63,14 +63,12 @@ class CodeSubmissionFormTests(TestCase):
 
     def test_accepts_tar_gz(self):
         """Form should accept .tar.gz files within size limits."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
         f = SimpleUploadedFile('code.tar.gz', b'\x00' * 100)
         form = CodeSubmissionForm(data={'description': ''}, files={'code_archive': f})
         self.assertTrue(form.is_valid())
 
     def test_accepts_zip(self):
         """Form should accept .zip files within size limits."""
-        from django.core.files.uploadedfile import SimpleUploadedFile
         f = SimpleUploadedFile('code.zip', b'\x00' * 100)
         form = CodeSubmissionForm(data={'description': ''}, files={'code_archive': f})
         self.assertTrue(form.is_valid())
