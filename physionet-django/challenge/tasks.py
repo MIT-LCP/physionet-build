@@ -5,7 +5,6 @@ import logging
 
 from background_task import background
 from django.db import transaction
-from django.db.models import F
 from django.utils import timezone
 
 from challenge.enums import DatasetType, MetricSort, SubmissionStatus

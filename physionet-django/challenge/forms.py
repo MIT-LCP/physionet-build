@@ -48,7 +48,18 @@ class ChallengeConfigurationForm(ChallengeDateValidationMixin, forms.ModelForm):
     """
     class Meta:
         model = ChallengeConfiguration
-        exclude = ('active_project',)
+        fields = [
+            'registration_open_datetime', 'start_datetime',
+            'official_start_datetime', 'end_datetime',
+            'max_submissions_per_day', 'max_total_submissions',
+            'max_submissions_to_advance', 'teams_enabled',
+            'base_image', 'entrypoint_command',
+            'max_runtime_seconds', 'max_memory_mb',
+            'gpu_enabled', 'gpu_type', 'cpu_count',
+            'input_format', 'output_format',
+            'primary_metric', 'additional_metrics',
+            'organizer_name',
+        ]
         widgets = DATETIME_WIDGETS
 
     def __init__(self, editable=True, **kwargs):
