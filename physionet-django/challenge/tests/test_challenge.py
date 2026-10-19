@@ -7,48 +7,47 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.utils import timezone
 
-from challenge.enums import (
-    ChallengePhase,
-    DatasetType,
-    SubmissionStatus,
-)
 from challenge.forms import CodeSubmissionForm, ChallengeConfigForm
+from challenge.models import ChallengeConfiguration
+from project.models import ActiveProject
 
 
-class ChallengeModelTests(TestCase):
-    """Tests for Challenge model properties and constraints."""
+class ChallengeIntegrityTests(TestCase):
+    """Tests for the challenge checks in ActiveProject.check_integrity()."""
 
     def setUp(self):
-        # These tests require a PublishedProject and User to exist.
-        # In integration tests, use fixtures or factory methods.
-        pass
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        project.resource_type_id = 2
+        project.save()
+        self.project_id = project.pk
 
-    def test_challenge_phase_choices(self):
-        """Verify all expected phase choices exist."""
-        phases = [c[0] for c in ChallengePhase.choices]
-        self.assertIn('registration', phases)
-        self.assertIn('unofficial', phases)
-        self.assertIn('official', phases)
-        self.assertIn('results', phases)
-        self.assertIn('archived', phases)
+    def check(self):
+        project = ActiveProject.objects.get(pk=self.project_id)
+        return project.check_integrity(), project.integrity_errors
 
-    def test_submission_status_choices(self):
-        """Verify all expected submission status choices exist."""
-        statuses = [c[0] for c in SubmissionStatus.choices]
-        self.assertIn('pending', statuses)
-        self.assertIn('building', statuses)
-        self.assertIn('running', statuses)
-        self.assertIn('scoring', statuses)
-        self.assertIn('completed', statuses)
-        self.assertIn('failed', statuses)
-        self.assertIn('cancelled', statuses)
-        self.assertIn('timed_out', statuses)
+    def test_challenge_without_config_passes(self):
+        """Challenge-type projects that aren't hosted challenges can still be submitted."""
+        passed, errors = self.check()
+        self.assertTrue(passed, errors)
 
-    def test_dataset_type_choices(self):
-        """Verify dataset type choices."""
-        types = [c[0] for c in DatasetType.choices]
-        self.assertIn('val', types)
-        self.assertIn('test', types)
+    def test_incomplete_config_rejected(self):
+        ChallengeConfiguration.objects.create(active_project_id=self.project_id)
+        passed, errors = self.check()
+        self.assertFalse(passed)
+        self.assertIn('Challenge start date is required.', errors)
+        self.assertIn('Challenge end date is required.', errors)
+        self.assertIn('Primary metric name is required.', errors)
+
+    def test_complete_config_passes(self):
+        now = timezone.now()
+        ChallengeConfiguration.objects.create(
+            active_project_id=self.project_id,
+            start_datetime=now,
+            end_datetime=now + timezone.timedelta(days=30),
+            primary_metric={'name': 'auc', 'sort': 'desc'},
+        )
+        passed, errors = self.check()
+        self.assertTrue(passed, errors)
 
 
 class CodeSubmissionFormTests(TestCase):
