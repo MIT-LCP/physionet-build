@@ -25,10 +25,19 @@ function attachAbstractWordCounter(editor) {
     updateAbstractWordCount(editor, counterEl);
 }
 
-function initAbstractWordCounter() {
+function initAbstractWordCounter(retries) {
+    retries = retries || 0;
+    var MAX_RETRIES = 50;
+
     var editor = window.tinymce && window.tinymce.get('id_abstract');
     if (!editor) {
-        setTimeout(initAbstractWordCounter, 200);
+        if (retries < MAX_RETRIES) {
+            setTimeout(function() {
+                initAbstractWordCounter(retries + 1);
+            }, 200);
+        } else {
+            console.warn('initAbstractWordCounter: Failed to find id_abstract after ' + MAX_RETRIES + ' retries');
+        }
         return;
     }
 
@@ -41,4 +50,6 @@ function initAbstractWordCounter() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initAbstractWordCounter);
+document.addEventListener('DOMContentLoaded', function () {
+    initAbstractWordCounter(0);
+});

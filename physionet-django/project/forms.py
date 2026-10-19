@@ -1,6 +1,5 @@
 import os
 import uuid
-import re
 from collections import OrderedDict
 
 from dal import autocomplete
@@ -428,6 +427,11 @@ class CreateProjectForm(forms.ModelForm):
         project.files.mkdir(project.file_root())
         return project
 
+    def clean_abstract(self):
+        data = self.cleaned_data['abstract']
+        validators.validate_abstract_word_count(data)
+        return data
+
 
 class NewProjectVersionForm(forms.ModelForm):
     """
@@ -632,18 +636,7 @@ class ContentForm(forms.ModelForm):
 
     def clean_abstract(self):
         data = self.cleaned_data['abstract']
-
-        # Strip HTML tags before counting words
-        text = re.sub(r'<[^>]+>', ' ', data)
-        word_count = len(re.findall(r'\S+', text))
-
-        max_words = 250
-        if word_count > max_words:
-            raise forms.ValidationError(
-                f'Ensure this field has no more than {max_words} words '
-                f'(currently {word_count}).',
-                code='max_words'
-            )
+        validators.validate_abstract_word_count(data)
         return data
 
 
