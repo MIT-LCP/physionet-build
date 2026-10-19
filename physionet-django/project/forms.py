@@ -1,5 +1,6 @@
 import os
 import uuid
+import re
 from collections import OrderedDict
 
 from dal import autocomplete
@@ -627,6 +628,22 @@ class ContentForm(forms.ModelForm):
         data = self.cleaned_data['version']
         if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
             raise forms.ValidationError('Please specify a new unused version.')
+        return data
+
+    def clean_abstract(self):
+        data = self.cleaned_data['abstract']
+
+        # Strip HTML tags before counting words
+        text = re.sub(r'<[^>]+>', ' ', data)
+        word_count = len(re.findall(r'\S+', text))
+
+        max_words = 250
+        if word_count > max_words:
+            raise forms.ValidationError(
+                f'Ensure this field has no more than {max_words} words '
+                f'(currently {word_count}).',
+                code='max_words'
+            )
         return data
 
 

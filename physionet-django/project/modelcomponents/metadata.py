@@ -14,7 +14,7 @@ from project.fields import SafeHTMLField
 from project.modelcomponents.anonymousaccess import AnonymousAccess
 from project.modelcomponents.authors import Affiliation
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
-from project.validators import MaxWordsValidator, validate_title, validate_topic, validate_version
+from project.validators import validate_title, validate_topic, validate_version
 
 
 def get_document_path(instance, filename):
@@ -51,7 +51,7 @@ class Metadata(models.Model):
 
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_title])
-    abstract = SafeHTMLField(max_length=10000, blank=True, validators=[MaxWordsValidator(250)])
+    abstract = SafeHTMLField(max_length=10000, blank=True)
     background = SafeHTMLField(blank=True)
     methods = SafeHTMLField(blank=True)
     content_description = SafeHTMLField(blank=True)

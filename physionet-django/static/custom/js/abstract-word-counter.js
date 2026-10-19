@@ -1,13 +1,14 @@
 // Live word counter for the Abstract field's TinyMCE editor.
 var ABSTRACT_WORD_LIMIT = 250;
 
-function countWords(text) {
-    var trimmed = text.trim();
-    return trimmed === '' ? 0 : trimmed.split(/\s+/).length;
+function countWords(html) {
+    var text = html.replace(/<[^>]+>/g, ' ');
+    var matches = text.match(/\S+/g);
+    return matches ? matches.length : 0;
 }
 
 function updateAbstractWordCount(editor, counterEl) {
-    var count = countWords(editor.getContent({format: 'text'}));
+    var count = countWords(editor.getContent());
     counterEl.textContent = count + ' / ' + ABSTRACT_WORD_LIMIT + ' words';
     counterEl.style.color = count > ABSTRACT_WORD_LIMIT ? '#a94442' : '#6c757d';
 }
