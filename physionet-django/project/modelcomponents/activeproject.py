@@ -428,6 +428,18 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if self.author_editable() and not self.upload_agreement_accepted():
             self.integrity_errors.append('You must accept the upload agreement before submitting.')
 
+        # Challenge-specific validation. Only projects set up as hosted
+        # challenges have a configuration; other Challenge-type projects
+        # (e.g. data for a challenge run elsewhere) are checked as before.
+        if self.resource_type_id == 2 and hasattr(self, 'challenge_config'):
+            config = self.challenge_config
+            if not config.start_datetime:
+                self.integrity_errors.append('Challenge start date is required.')
+            if not config.end_datetime:
+                self.integrity_errors.append('Challenge end date is required.')
+            if not config.primary_metric.get('name'):
+                self.integrity_errors.append('Primary metric name is required.')
+
         if self.integrity_errors:
             return False
         else:
@@ -734,6 +746,50 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     tasks.create_published_project_zip(
                         published_project.id,
                         verbose_name='Create zip archive: {}'.format(published_project),
+                    )
+
+                # Create or update Challenge + SubmissionSpec from config
+                if self.resource_type_id == 2 and hasattr(self, 'challenge_config'):
+                    config = self.challenge_config
+                    from challenge.models import Challenge, SubmissionSpec
+                    challenge_fields = dict(
+                        published_project=published_project,
+                        organizer=self.submitting_author().user,
+                        organizer_name=config.organizer_name,
+                        registration_open_datetime=config.registration_open_datetime,
+                        start_datetime=config.start_datetime,
+                        official_start_datetime=config.official_start_datetime,
+                        end_datetime=config.end_datetime,
+                        max_submissions_per_day=config.max_submissions_per_day,
+                        max_total_submissions=config.max_total_submissions,
+                        max_submissions_to_advance=config.max_submissions_to_advance,
+                        teams_enabled=config.teams_enabled,
+                        validation_data_gcs_uri=config.validation_data_gcs_uri,
+                        test_data_gcs_uri=config.test_data_gcs_uri,
+                        validation_labels_gcs_uri=config.validation_labels_gcs_uri,
+                        test_labels_gcs_uri=config.test_labels_gcs_uri,
+                    )
+                    challenge, created = Challenge.objects.update_or_create(
+                        slug=published_project.slug,
+                        defaults=challenge_fields,
+                    )
+                    spec_fields = dict(
+                        base_image=config.base_image,
+                        entrypoint_command=config.entrypoint_command,
+                        max_runtime_seconds=config.max_runtime_seconds,
+                        max_memory_mb=config.max_memory_mb,
+                        gpu_enabled=config.gpu_enabled,
+                        gpu_type=config.gpu_type,
+                        cpu_count=config.cpu_count,
+                        input_format=config.input_format,
+                        output_format=config.output_format,
+                        evaluation_script_gcs_uri=config.evaluation_script_gcs_uri,
+                        primary_metric=config.primary_metric,
+                        additional_metrics=config.additional_metrics,
+                    )
+                    SubmissionSpec.objects.update_or_create(
+                        challenge=challenge,
+                        defaults=spec_fields,
                     )
 
                 # Remove the ActiveProject
