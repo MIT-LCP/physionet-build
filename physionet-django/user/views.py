@@ -1061,12 +1061,15 @@ def edit_credentialing(request):
         else:
             messages.error(request, 'The application has already been processed.')
 
+    progress_steps = current_application.get_progress_steps() if current_application else None
+
     return render(request, 'user/edit_credentialing.html', {
         'applications': applications,
         'pause_applications': pause_applications,
         'estimated_time_for_credentialing': estimated_time,
         'pause_message': pause_message,
         'current_application': current_application,
+        'progress_steps': progress_steps,
         'ticket_system_url': ticket_system_url})
 
 

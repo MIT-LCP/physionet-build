@@ -1208,6 +1208,43 @@ class CredentialApplication(models.Model):
 
         return status
 
+    def get_progress_steps(self):
+        """
+        Return a list of progress steps for the credentialing application.
+
+        Completion follows the review stage, so a skipped reference or a
+        reset review doesn't show later steps as complete.
+        """
+        stage = self.credential_review.status if hasattr(self, 'credential_review') else 0
+        steps = [
+            {
+                'label': 'Application submitted',
+                'complete': True,
+            },
+            {
+                'label': 'Identity check',
+                'complete': stage >= 20,
+            },
+        ]
+        # The reviewer can skip the reference and go straight to final review
+        if not (stage >= 40 and self.reference_contact_datetime is None):
+            steps += [
+                {
+                    'label': 'Reference contacted',
+                    'complete': stage >= 30 and self.reference_contact_datetime is not None,
+                    'datetime': self.reference_contact_datetime,
+                },
+                {
+                    'label': 'Reference responded',
+                    'complete': stage >= 40,
+                },
+            ]
+        steps.append({
+            'label': 'Final review',
+            'complete': False,
+        })
+        return steps
+
     def auto_reject(self, reason):
         """
         Automatically reject this application.
