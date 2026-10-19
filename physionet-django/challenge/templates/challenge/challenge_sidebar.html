@@ -1,0 +1,41 @@
+<div class="card mb-3">
+  <div class="card-body sidebar-info">
+    <h6 class="sidebar-heading">Key Dates</h6>
+    <dl class="sidebar-dl">
+      {% if challenge.registration_open_datetime %}
+      <dt>Registration opens</dt>
+      <dd>{{ challenge.registration_open_datetime|date:"M d, Y" }}</dd>
+      {% endif %}
+      {% if challenge.start_datetime %}
+      <dt>Submissions open</dt>
+      <dd>{{ challenge.start_datetime|date:"M d, Y" }}</dd>
+      {% endif %}
+      {% if challenge.end_datetime %}
+      <dt>Challenge ends</dt>
+      <dd>{{ challenge.end_datetime|date:"M d, Y" }}</dd>
+      {% endif %}
+    </dl>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-body sidebar-info">
+    <h6 class="sidebar-heading">Challenge Info</h6>
+    <dl class="sidebar-dl">
+      <dt>Host</dt>
+      <dd>{% if challenge.organizer_name %}{{ challenge.organizer_name }}{% else %}{{ challenge.organizer.get_full_name }}{% endif %}</dd>
+      <dt>Phase</dt>
+      <dd>{{ challenge.get_phase_display }}</dd>
+      <dt>Participants</dt>
+      <dd>{{ challenge_participant_count }}</dd>
+      {% if challenge_submission_spec %}
+      <dt>Metric</dt>
+      <dd>{{ challenge_submission_spec.primary_metric.display_name|default:challenge_submission_spec.primary_metric_name }}</dd>
+      {% endif %}
+      <dt>Daily limit</dt>
+      <dd>{{ challenge.max_submissions_per_day }}</dd>
+      <dt>Total limit</dt>
+      <dd>{{ challenge.max_total_submissions }}</dd>
+    </dl>
+  </div>
+</div>

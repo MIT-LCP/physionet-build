@@ -1,0 +1,79 @@
+{% load project_templatetags %}
+
+{# Challenge hero area #}
+<div class="challenge-hero">
+  <div class="challenge-hero-organizer">
+    {% if challenge.organizer_name %}{{ challenge.organizer_name }}{% else %}Hosted by {{ challenge.organizer.get_full_name }}{% endif %}
+  </div>
+
+  <div class="challenge-hero-cta">
+    <a href="#leaderboard" class="{% if challenge.phase == 'official' or challenge.phase == 'results' %}btn-challenge-primary{% else %}btn-challenge-secondary{% endif %}" onclick="switchChallengeTab('leaderboard', true);return false;">Leaderboard</a>
+  </div>
+
+  <div class="challenge-hero-meta">
+    {% if challenge.end_datetime %}
+    <div class="meta-item">
+      <span class="meta-label">Ends</span>
+      <span class="meta-value">{{ challenge.end_datetime|date:"M d, Y" }}</span>
+    </div>
+    {% endif %}
+    <div class="meta-item">
+      <span class="meta-label">Participants</span>
+      <span class="meta-value">{{ challenge_participant_count }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Teams</span>
+      <span class="meta-value">{{ challenge_teams_count }}</span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Entries</span>
+      <span class="meta-value">{{ challenge_submission_count }}</span>
+    </div>
+    {% if challenge_submission_spec %}
+    <div class="meta-item">
+      <span class="meta-label">Metric</span>
+      <span class="meta-value">{{ challenge_submission_spec.primary_metric.display_name|default:challenge_submission_spec.primary_metric_name }}</span>
+    </div>
+    {% endif %}
+    {% if challenge.prizes %}
+    <div class="meta-item">
+      <span class="meta-label">Prizes</span>
+      <span class="meta-value">Yes</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{# Phase timeline bar #}
+<div class="challenge-phase-bar">
+  <div class="phase-segment {% if challenge.phase == 'registration' %}current{% elif challenge.phase == 'unofficial' or challenge.phase == 'official' or challenge.phase == 'results' or challenge.phase == 'archived' %}past{% else %}future{% endif %}">
+    <span class="phase-name">Registration</span>
+    {% if challenge.registration_open_datetime and challenge.start_datetime %}
+    <span class="phase-date">{{ challenge.registration_open_datetime|date:"M d" }} – {{ challenge.start_datetime|date:"M d" }}</span>
+    {% elif challenge.registration_open_datetime %}
+    <span class="phase-date">{{ challenge.registration_open_datetime|date:"M d" }}</span>
+    {% endif %}
+  </div>
+  <div class="phase-segment {% if challenge.phase == 'unofficial' %}current{% elif challenge.phase == 'official' or challenge.phase == 'results' or challenge.phase == 'archived' %}past{% else %}future{% endif %}">
+    <span class="phase-name">Phase 1: Unofficial</span>
+    {% if challenge.start_datetime and challenge.official_start_datetime %}
+    <span class="phase-date">{{ challenge.start_datetime|date:"M d" }} – {{ challenge.official_start_datetime|date:"M d" }}</span>
+    {% elif challenge.start_datetime %}
+    <span class="phase-date">{{ challenge.start_datetime|date:"M d" }}</span>
+    {% endif %}
+  </div>
+  <div class="phase-segment {% if challenge.phase == 'official' %}current{% elif challenge.phase == 'results' or challenge.phase == 'archived' %}past{% else %}future{% endif %}">
+    <span class="phase-name">Phase 2: Official</span>
+    {% if challenge.official_start_datetime and challenge.end_datetime %}
+    <span class="phase-date">{{ challenge.official_start_datetime|date:"M d" }} – {{ challenge.end_datetime|date:"M d" }}</span>
+    {% elif challenge.official_start_datetime %}
+    <span class="phase-date">{{ challenge.official_start_datetime|date:"M d" }}</span>
+    {% endif %}
+  </div>
+  <div class="phase-segment {% if challenge.phase == 'results' or challenge.phase == 'archived' %}current{% else %}future{% endif %}">
+    <span class="phase-name">Results</span>
+    {% if challenge.end_datetime %}
+    <span class="phase-date">{{ challenge.end_datetime|date:"M d" }}</span>
+    {% endif %}
+  </div>
+</div>

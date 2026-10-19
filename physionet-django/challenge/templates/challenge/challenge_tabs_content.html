@@ -1,0 +1,141 @@
+{% load project_templatetags %}
+
+{# Tab content: Leaderboard #}
+<div id="challenge-tab-leaderboard" class="challenge-tab-content">
+  <div class="leaderboard-dataset-toggle">
+    <button class="dataset-pill active" onclick="switchLeaderboardDataset('dev')">Validation</button>
+    <button class="dataset-pill" onclick="switchLeaderboardDataset('test')"
+      {% if not challenge_show_test_leaderboard %}disabled{% endif %}>Official</button>
+  </div>
+
+  <div id="leaderboard-dev" class="table-responsive">
+    <table class="challenge-leaderboard-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Participant</th>
+          <th>Score</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in challenge_leaderboard %}
+        <tr class="{% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% endif %}{% if entry.user == request.user %} highlight-row{% elif entry.team and challenge_team and entry.team == challenge_team %} highlight-row{% endif %}">
+          <td class="rank-cell">
+            {% if entry.rank == 1 %}&#x1f947;{% elif entry.rank == 2 %}&#x1f948;{% elif entry.rank == 3 %}&#x1f949;{% else %}{{ entry.rank }}{% endif %}
+          </td>
+          <td>
+            {% if entry.team %}
+              {{ entry.team.name }}
+            {% else %}
+              {{ entry.user.get_full_name }}
+            {% endif %}
+          </td>
+          <td class="score-cell">{{ entry.primary_score }}</td>
+          <td>{{ entry.submission.created_datetime|date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">No entries yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div id="leaderboard-test" class="table-responsive" style="display:none;">
+    <table class="challenge-leaderboard-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Participant</th>
+          <th>Score</th>
+          <th>Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in challenge_leaderboard_test %}
+        <tr class="{% if entry.rank == 1 %}rank-1{% elif entry.rank == 2 %}rank-2{% elif entry.rank == 3 %}rank-3{% endif %}{% if entry.user == request.user %} highlight-row{% elif entry.team and challenge_team and entry.team == challenge_team %} highlight-row{% endif %}">
+          <td class="rank-cell">
+            {% if entry.rank == 1 %}&#x1f947;{% elif entry.rank == 2 %}&#x1f948;{% elif entry.rank == 3 %}&#x1f949;{% else %}{{ entry.rank }}{% endif %}
+          </td>
+          <td>
+            {% if entry.team %}
+              {{ entry.team.name }}
+            {% else %}
+              {{ entry.user.get_full_name }}
+            {% endif %}
+          </td>
+          <td class="score-cell">{{ entry.primary_score }}</td>
+          <td>{{ entry.submission.created_datetime|date }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">No entries yet.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# Tab content: Rules #}
+{% if challenge_rules %}
+<div id="challenge-tab-rules" class="challenge-tab-content">
+  {{ challenge_rules|safe }}
+</div>
+{% endif %}
+
+<script>
+function switchChallengeTab(tabName) {
+  // Deactivate all tabs and content
+  document.querySelectorAll('.challenge-tab').forEach(function(tab) {
+    tab.classList.remove('active');
+  });
+  document.querySelectorAll('.challenge-tab-content').forEach(function(panel) {
+    panel.classList.remove('active');
+  });
+  // Activate selected
+  var panel = document.getElementById('challenge-tab-' + tabName);
+  if (panel) {
+    panel.classList.add('active');
+    panel.scrollIntoView({behavior: 'smooth'});
+  }
+  // Find and activate the matching tab button
+  document.querySelectorAll('.challenge-tab').forEach(function(tab) {
+    if (tab.textContent.trim().toLowerCase() === tabName) {
+      tab.classList.add('active');
+    }
+  });
+  // Update hash
+  history.replaceState(null, null, '#' + tabName);
+}
+
+function switchLeaderboardDataset(dataset) {
+  var devPanel = document.getElementById('leaderboard-dev');
+  var testPanel = document.getElementById('leaderboard-test');
+  if (!devPanel || !testPanel) return;
+  var pills = devPanel.closest('.challenge-tab-content').querySelectorAll('.dataset-pill');
+  pills.forEach(function(p) { p.classList.remove('active'); });
+  if (dataset === 'test') {
+    devPanel.style.display = 'none';
+    testPanel.style.display = '';
+    if (pills[1]) pills[1].classList.add('active');
+  } else {
+    devPanel.style.display = '';
+    testPanel.style.display = 'none';
+    if (pills[0]) pills[0].classList.add('active');
+  }
+}
+
+// Deep-link on page load
+(function() {
+  var hash = window.location.hash.replace('#', '');
+  if (hash && document.getElementById('challenge-tab-' + hash)) {
+    switchChallengeTab(hash);
+  }
+  {% if challenge_show_test_leaderboard %}
+  switchLeaderboardDataset('test');
+  {% endif %}
+})();
+</script>

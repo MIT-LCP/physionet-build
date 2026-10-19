@@ -3,13 +3,18 @@ Tests for the challenge app.
 
 Run with: ENABLE_CHALLENGES=True python manage.py test challenge
 """
+import unittest
+
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.urls import reverse
 from django.utils import timezone
 
 from challenge.forms import CodeSubmissionForm, ChallengeConfigForm
 from challenge.models import ChallengeConfiguration
 from project.models import ActiveProject
+from user.test_views import TestMixin
 
 
 class ChallengeIntegrityTests(TestCase):
@@ -91,3 +96,73 @@ class ChallengeConfigFormTests(TestCase):
             'prizes': '',
         })
         self.assertFalse(form.is_valid())
+
+
+class ChallengeNewVersionTests(TestCase):
+    """Test that ChallengeConfiguration is copied when creating a new version."""
+    fixtures = ['demo-user.json', 'demo-challenge.json']
+
+    @override_settings(COPY_FILES_TO_NEW_VERSION=False)
+    def test_new_version_copies_challenge_config(self):
+        from project.forms import NewProjectVersionForm
+        from project.models import PublishedProject
+
+        published = PublishedProject.objects.get(slug='demo-ecg-challenge')
+        user = published.submitting_user()
+        previous = PublishedProject.objects.filter(
+            slug='demo-ecg-challenge',
+        ).order_by('-version_order')
+
+        form = NewProjectVersionForm(
+            user=user,
+            latest_project=published,
+            previous_projects=previous,
+            data={'version': '2.0.0'},
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        new_project = form.save()
+
+        self.assertTrue(
+            hasattr(new_project, 'challenge_config'),
+        )
+        config = new_project.challenge_config
+        challenge = published.challenge
+        spec = challenge.submission_spec
+
+        self.assertEqual(config.max_submissions_per_day, challenge.max_submissions_per_day)
+        self.assertEqual(config.teams_enabled, challenge.teams_enabled)
+        self.assertEqual(config.start_datetime, challenge.start_datetime)
+        self.assertEqual(config.base_image, spec.base_image)
+        self.assertEqual(config.entrypoint_command, spec.entrypoint_command)
+        self.assertEqual(config.max_runtime_seconds, spec.max_runtime_seconds)
+        self.assertEqual(config.primary_metric, spec.primary_metric)
+
+
+@unittest.skipUnless(
+    getattr(settings, 'ENABLE_CHALLENGES', False),
+    'Challenge URLs not registered',
+)
+class PublishedChallengePageTests(TestMixin):
+    """The published project page shows challenge content."""
+
+    def setUp(self):
+        super().setUp()
+        self.url = reverse('published_project', args=['demo-ecg-challenge', '1.0.0'])
+
+    def test_challenge_tabs_rendered(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'challenge-tabs')
+        self.assertContains(response, 'id="challenge-tab-leaderboard"')
+        self.assertContains(response, 'id="challenge-tab-rules"')
+
+    @override_settings(ENABLE_CHALLENGES=False)
+    def test_challenge_content_hidden_when_disabled(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'challenge-tabs')
+
+    def test_detail_redirects_to_published_project(self):
+        response = self.client.get(
+            reverse('challenge_detail', args=['demo-ecg-challenge']))
+        self.assertRedirects(response, self.url)
