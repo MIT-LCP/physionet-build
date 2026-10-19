@@ -748,13 +748,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         verbose_name='Create zip archive: {}'.format(published_project),
                     )
 
-                # Create Challenge + SubmissionSpec from config
+                # Create or update Challenge + SubmissionSpec from config
                 if self.resource_type_id == 2 and hasattr(self, 'challenge_config'):
                     config = self.challenge_config
                     from challenge.models import Challenge, SubmissionSpec
-                    challenge = Challenge.objects.create(
+                    challenge_fields = dict(
                         published_project=published_project,
-                        slug=published_project.slug,
                         organizer=self.submitting_author().user,
                         organizer_name=config.organizer_name,
                         registration_open_datetime=config.registration_open_datetime,
@@ -770,8 +769,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         validation_labels_gcs_uri=config.validation_labels_gcs_uri,
                         test_labels_gcs_uri=config.test_labels_gcs_uri,
                     )
-                    SubmissionSpec.objects.create(
-                        challenge=challenge,
+                    challenge, created = Challenge.objects.update_or_create(
+                        slug=published_project.slug,
+                        defaults=challenge_fields,
+                    )
+                    spec_fields = dict(
                         base_image=config.base_image,
                         entrypoint_command=config.entrypoint_command,
                         max_runtime_seconds=config.max_runtime_seconds,
@@ -784,6 +786,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         evaluation_script_gcs_uri=config.evaluation_script_gcs_uri,
                         primary_metric=config.primary_metric,
                         additional_metrics=config.additional_metrics,
+                    )
+                    SubmissionSpec.objects.update_or_create(
+                        challenge=challenge,
+                        defaults=spec_fields,
                     )
 
                 # Remove the ActiveProject
