@@ -100,7 +100,7 @@ def process_submission(submission_id):
             logger.exception('Cleanup failed for submission %s', submission_id)
 
 
-@associated_task(Challenge, 'challenge_id', read_only=True)
+@associated_task(Challenge, 'challenge_id')
 @background()
 def recompute_leaderboard(challenge_id):
     """Recalculate all ranks for a challenge."""
