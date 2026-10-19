@@ -4,8 +4,10 @@ Background tasks for challenge phase transitions.
 import logging
 
 from background_task import background
+from django.db import transaction
 
-from challenge.models import Challenge
+from challenge.enums import DatasetType, MetricSort, SubmissionStatus
+from challenge.models import Challenge, LeaderboardEntry, Score, Submission
 from console.tasks import associated_task
 
 logger = logging.getLogger(__name__)
@@ -30,3 +32,86 @@ def transition_challenge_phase(challenge_id, target_phase):
     notify_phase_change(challenge, old_phase, target_phase)
     logger.info('Challenge %s transitioned from %s to %s',
                 challenge.slug, old_phase, target_phase)
+
+
+def _save_scores(submission, scores_data):
+    """Parse and save Score objects from the scoring output."""
+    score_objects = []
+    for metric_name, value in scores_data.items():
+        score_objects.append(Score(
+            submission=submission,
+            metric_name=metric_name,
+            value=float(value),
+            dataset=DatasetType.VAL,
+        ))
+    Score.objects.bulk_create(score_objects)
+
+
+def _update_leaderboard_entry(submission):
+    """
+    Update the leaderboard entry for this submission's participant/team.
+    If this submission is better than their current entry, replace it.
+    """
+    challenge = submission.challenge
+    spec = challenge.submission_spec
+    sort_ascending = spec.primary_metric_sort == MetricSort.ASC
+
+    primary_score = submission.scores.filter(
+        metric_name=spec.primary_metric_name,
+        dataset=DatasetType.VAL,
+    ).first()
+
+    if not primary_score:
+        return
+
+    all_scores = {
+        s.metric_name: s.value
+        for s in submission.scores.filter(dataset=DatasetType.VAL)
+    }
+
+    lookup = {
+        'challenge': challenge,
+        'dataset': DatasetType.VAL,
+    }
+    if submission.team:
+        lookup['team'] = submission.team
+        lookup['user'] = None
+    else:
+        lookup['user'] = submission.submitted_by
+        lookup['team'] = None
+
+    with transaction.atomic():
+        try:
+            entry = LeaderboardEntry.objects.select_for_update().get(
+                **lookup,
+            )
+        except LeaderboardEntry.DoesNotExist:
+            LeaderboardEntry.objects.create(
+                submission=submission,
+                primary_score=primary_score.value,
+                all_scores=all_scores,
+                **lookup,
+            )
+        else:
+            # If the participant/team has manually selected a submission,
+            # skip automatic replacement — their choice takes precedence.
+            has_manual_selection = Submission.objects.filter(
+                challenge=challenge,
+                is_selected=True,
+                status=SubmissionStatus.COMPLETED,
+                **({'team': submission.team} if submission.team
+                   else {'submitted_by': submission.submitted_by, 'team__isnull': True}),
+            ).exists()
+
+            if not has_manual_selection:
+                is_better = (
+                    (sort_ascending and primary_score.value < entry.primary_score)
+                    or (not sort_ascending and primary_score.value > entry.primary_score)
+                )
+                if is_better:
+                    entry.submission = submission
+                    entry.primary_score = primary_score.value
+                    entry.all_scores = all_scores
+                    entry.save(update_fields=[
+                        'submission', 'primary_score', 'all_scores',
+                    ])

@@ -102,8 +102,14 @@
         <ul class="challenge-tabs">
           <li class="challenge-tab active" onclick="switchChallengeTab('overview')">Overview</li>
           <li class="challenge-tab" onclick="switchChallengeTab('leaderboard')">Leaderboard</li>
+          {% if challenge_participant %}
+          <li class="challenge-tab" onclick="switchChallengeTab('submit')">Submit</li>
+          {% endif %}
           {% if challenge_rules %}
           <li class="challenge-tab" onclick="switchChallengeTab('rules')">Rules</li>
+          {% endif %}
+          {% if challenge.teams_enabled and challenge_participant %}
+          <li class="challenge-tab" onclick="switchChallengeTab('team')">Team</li>
           {% endif %}
         </ul>
 

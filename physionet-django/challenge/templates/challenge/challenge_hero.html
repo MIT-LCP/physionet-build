@@ -7,7 +7,16 @@
   </div>
 
   <div class="challenge-hero-cta">
+    {% if not challenge_participant and challenge.is_registration_open %}
+      <a href="{% url 'challenge_register' challenge.slug %}" class="btn-challenge-primary">Join this Challenge</a>
+    {% endif %}
+    {% if challenge_participant and challenge.is_accepting_submissions %}
+      <a href="{% url 'challenge_submit' challenge.slug %}" class="btn-challenge-primary">Submit Entry</a>
+    {% endif %}
     <a href="#leaderboard" class="{% if challenge.phase == 'official' or challenge.phase == 'results' %}btn-challenge-primary{% else %}btn-challenge-secondary{% endif %}" onclick="switchChallengeTab('leaderboard', true);return false;">Leaderboard</a>
+    {% if request.user == challenge.organizer or perms.challenge.manage_challenge %}
+      <a href="{% url 'challenge_manage' challenge.slug %}" class="btn-challenge-secondary">Manage</a>
+    {% endif %}
   </div>
 
   <div class="challenge-hero-meta">

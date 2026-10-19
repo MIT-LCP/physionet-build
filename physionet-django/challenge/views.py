@@ -1,12 +1,35 @@
+import hashlib
+import logging
+import os
 from functools import wraps
 
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 
-from challenge.enums import ChallengePhase
-from challenge.models import Challenge, ChallengeParticipant
+from challenge.enums import ChallengePhase, DatasetType, SubmissionStatus
+from challenge.forms import (
+    CodeSubmissionForm,
+    TeamCreateForm,
+    TeamInviteForm,
+    TeamInvitationResponseForm,
+)
+from challenge.models import (
+    Challenge,
+    ChallengeParticipant,
+    LeaderboardEntry,
+    Submission,
+    TeamInvitation,
+)
+from challenge.utility import pending_team_invitations, team_invitation_notify
+
+logger = logging.getLogger(__name__)
 
 
 # ── Auth decorator ──────────────────────────────────────────────────
@@ -122,3 +145,472 @@ def challenge_leaderboard(request, challenge, participant, **kwargs):
         challenge.published_project.version,
     ])
     return redirect(url + '#leaderboard')
+
+
+# ── Participant views ───────────────────────────────────────────────
+
+@login_required
+@challenge_auth()
+def challenge_register(request, challenge, participant, **kwargs):
+    """Register for a challenge."""
+    if participant:
+        messages.info(request, 'You are already registered for this challenge.')
+        return redirect('published_project',
+                        challenge.published_project.slug,
+                        challenge.published_project.version)
+
+    if not challenge.is_registration_open:
+        messages.error(request, 'Registration is not open for this challenge.')
+        return redirect('published_project',
+                        challenge.published_project.slug,
+                        challenge.published_project.version)
+
+    if request.method == 'POST':
+        participant_obj, created = ChallengeParticipant.objects.get_or_create(
+            user=request.user, challenge=challenge,
+        )
+        if not created and not participant_obj.is_active:
+            participant_obj.is_active = True
+            participant_obj.save(update_fields=['is_active'])
+            created = True
+        if created:
+            messages.success(request, 'You have successfully registered.')
+        else:
+            messages.info(request, 'You are already registered for this challenge.')
+        return redirect('published_project',
+                        challenge.published_project.slug,
+                        challenge.published_project.version)
+
+    return render(request, 'challenge/challenge_register.html', {
+        'challenge': challenge,
+    })
+
+
+@login_required
+@challenge_auth(require_participant=True)
+def challenge_submit(request, challenge, participant, **kwargs):
+    """Submit code to the challenge."""
+    if not challenge.is_accepting_submissions:
+        messages.error(request, 'This challenge is not accepting submissions.')
+        return redirect('published_project',
+                        challenge.published_project.slug,
+                        challenge.published_project.version)
+
+    submit_tab_url = reverse('published_project', args=[
+        challenge.published_project.slug,
+        challenge.published_project.version,
+    ]) + '#submit'
+
+    if not settings.CHALLENGE_STAGING_BUCKET:
+        logger.error('CHALLENGE_STAGING_BUCKET is not set; cannot accept submissions')
+        messages.error(request, 'Submissions are temporarily unavailable.')
+        return redirect(submit_tab_url)
+
+    today_count, total_count = _submission_counts(challenge, request.user)
+    limit_error = _submission_limit_error(challenge, today_count, total_count)
+    if limit_error:
+        messages.error(request, limit_error)
+        return redirect(submit_tab_url)
+
+    form = CodeSubmissionForm(request.POST or None, request.FILES or None)
+    if request.method == 'POST' and form.is_valid():
+        archive = form.cleaned_data['code_archive']
+
+        # Lock the participant row so that parallel uploads from the same
+        # user can't both pass the limit check.
+        with transaction.atomic():
+            ChallengeParticipant.objects.select_for_update().get(pk=participant.pk)
+            limit_error = _submission_limit_error(
+                challenge, *_submission_counts(challenge, request.user))
+            if limit_error:
+                messages.error(request, limit_error)
+                return redirect(submit_tab_url)
+
+            sha256 = hashlib.sha256()
+            for chunk in archive.chunks():
+                sha256.update(chunk)
+
+            gcs_uri = _upload_code_archive(challenge, request.user, archive)
+
+            submission = Submission.objects.create(
+                challenge=challenge,
+                submitted_by=request.user,
+                team=participant.team,
+                code_archive_gcs_uri=gcs_uri,
+                code_archive_sha256=sha256.hexdigest(),
+                description=form.cleaned_data.get('description', ''),
+            )
+
+        # Enqueue background task
+        from challenge.tasks import process_submission
+        process_submission(submission.pk)
+
+        messages.success(request, 'Submission uploaded and queued.')
+        return redirect('challenge_submission_detail',
+                        challenge_slug=challenge.slug,
+                        submission_id=submission.pk)
+
+    return render(request, 'challenge/challenge_submit.html', {
+        'challenge': challenge,
+        'participant': participant,
+        'form': form,
+        'today_count': today_count,
+        'total_count': total_count,
+    })
+
+
+@login_required
+@challenge_auth(require_participant=True)
+def challenge_my_submissions(request, challenge, participant, **kwargs):
+    """Redirect to the published project page submit tab."""
+    url = reverse('published_project', args=[
+        challenge.published_project.slug,
+        challenge.published_project.version,
+    ])
+    return redirect(url + '#submit')
+
+
+@login_required
+@challenge_auth()
+def challenge_submission_detail(request, challenge, participant,
+                                submission_id, **kwargs):
+    """View a single submission's details."""
+    submission = get_object_or_404(
+        Submission, pk=submission_id, challenge=challenge,
+    )
+
+    # Only the submitter, their team members, or the organizer can view
+    is_organizer = (request.user == challenge.organizer
+                    or request.user.has_perm('challenge.manage_challenge'))
+    is_teammate = (participant is not None and submission.team is not None
+                   and participant.team_id == submission.team_id)
+    if not (submission.submitted_by == request.user or is_organizer or is_teammate):
+        raise PermissionDenied
+
+    scores = submission.scores.all()
+    return render(request, 'challenge/challenge_submission_detail.html', {
+        'challenge': challenge,
+        'participant': participant,
+        'submission': submission,
+        'scores': scores,
+    })
+
+
+# ── Team views ──────────────────────────────────────────────────────
+
+@login_required
+@challenge_auth(require_participant=True)
+def challenge_team(request, challenge, participant, **kwargs):
+    """View current team details."""
+    if not challenge.teams_enabled:
+        raise PermissionDenied
+
+    team = participant.team
+    members = []
+    invitations = []
+    if team:
+        members = ChallengeParticipant.objects.filter(
+            team=team, is_active=True,
+        ).select_related('user')
+        invitations = TeamInvitation.objects.filter(
+            team=team, is_active=True, response__isnull=True,
+        )
+
+    return render(request, 'challenge/team_manage.html', {
+        'challenge': challenge,
+        'participant': participant,
+        'team': team,
+        'members': members,
+        'invitations': invitations,
+        'my_invitations': pending_team_invitations(challenge, request.user),
+    })
+
+
+@login_required
+@challenge_auth(require_participant=True)
+def challenge_team_create(request, challenge, participant, **kwargs):
+    """Create a new team."""
+    if not challenge.teams_enabled:
+        raise PermissionDenied
+    if participant.team:
+        messages.error(request, 'You are already on a team.')
+        return redirect('challenge_team', challenge_slug=challenge.slug)
+
+    form = TeamCreateForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        with transaction.atomic():
+            team = form.save(commit=False)
+            team.challenge = challenge
+            team.save()
+            participant.team = team
+            participant.is_team_captain = True
+            participant.save()
+        messages.success(request, f'Team "{team.name}" created.')
+        return redirect('challenge_team', challenge_slug=challenge.slug)
+
+    return render(request, 'challenge/team_create.html', {
+        'challenge': challenge,
+        'participant': participant,
+        'form': form,
+    })
+
+
+@login_required
+@challenge_auth(require_participant=True)
+def challenge_team_invite(request, challenge, participant, **kwargs):
+    """Invite someone to your team."""
+    if not challenge.teams_enabled or not participant.team:
+        raise PermissionDenied
+    if not participant.is_team_captain:
+        messages.error(request, 'Only the team captain can send invitations.')
+        return redirect('challenge_team', challenge_slug=challenge.slug)
+
+    form = TeamInviteForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        email = form.cleaned_data['email'].lower()
+        invitation = TeamInvitation.objects.create(
+            team=participant.team,
+            email=email,
+            invited_by=request.user,
+        )
+        team_invitation_notify(invitation)
+
+        messages.success(request, f'Invitation sent to {email}.')
+        return redirect('challenge_team', challenge_slug=challenge.slug)
+
+    return render(request, 'challenge/team_invite.html', {
+        'challenge': challenge,
+        'participant': participant,
+        'form': form,
+    })
+
+
+@login_required
+@challenge_auth()
+def challenge_team_invitation_respond(request, challenge, participant,
+                                      invitation_id, **kwargs):
+    """Respond to a team invitation."""
+    if not challenge.teams_enabled:
+        raise PermissionDenied
+    invitation = get_object_or_404(
+        pending_team_invitations(challenge, request.user), pk=invitation_id,
+    )
+
+    if not participant:
+        messages.info(request, 'Please register for the challenge before joining a team.')
+        return redirect('challenge_register', challenge_slug=challenge.slug)
+    if participant.team:
+        messages.error(
+            request,
+            f'You are already on team "{participant.team.name}", so you cannot '
+            f'join "{invitation.team.name}".',
+        )
+        return redirect('challenge_team', challenge_slug=challenge.slug)
+
+    form = TeamInvitationResponseForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        accepted = form.cleaned_data['accept']
+        with transaction.atomic():
+            invitation.response = accepted
+            invitation.response_datetime = timezone.now()
+            invitation.is_active = False
+            invitation.save()
+
+            if accepted:
+                participant.team = invitation.team
+                participant.is_team_captain = False
+                participant.save(update_fields=['team', 'is_team_captain'])
+
+        action = 'accepted' if accepted else 'declined'
+        messages.success(request, f'You have {action} the invitation.')
+        return redirect('challenge_team', challenge_slug=challenge.slug)
+
+    return render(request, 'challenge/team_invitation_respond.html', {
+        'challenge': challenge,
+        'participant': participant,
+        'invitation': invitation,
+        'form': form,
+    })
+
+
+@login_required
+@challenge_auth(require_participant=True)
+def challenge_submission_select(request, challenge, participant,
+                                submission_id, **kwargs):
+    """Select a submission as the active leaderboard entry."""
+    if request.method != 'POST':
+        raise PermissionDenied
+
+    submission = get_object_or_404(
+        Submission, pk=submission_id, challenge=challenge,
+        status=SubmissionStatus.COMPLETED,
+    )
+
+    # Verify the user owns the submission (or is team captain)
+    if submission.team:
+        if not participant.team or participant.team != submission.team:
+            raise PermissionDenied
+        if not participant.is_team_captain:
+            raise PermissionDenied
+    else:
+        if submission.submitted_by != request.user:
+            raise PermissionDenied
+
+    # Get the primary score for this submission
+    spec = challenge.submission_spec
+    primary_score = submission.scores.filter(
+        metric_name=spec.primary_metric_name,
+        dataset=DatasetType.VAL,
+    ).first()
+
+    if not primary_score:
+        messages.error(request, 'This submission has no scores to display on the leaderboard.')
+        url = reverse('published_project', args=[
+            challenge.published_project.slug,
+            challenge.published_project.version,
+        ])
+        return redirect(url + '#submit')
+
+    all_scores = {
+        s.metric_name: s.value
+        for s in submission.scores.filter(dataset=DatasetType.VAL)
+    }
+
+    with transaction.atomic():
+        # Clear is_selected on all of this participant's/team's submissions
+        if submission.team:
+            Submission.objects.filter(
+                challenge=challenge, team=submission.team, is_selected=True,
+            ).update(is_selected=False)
+        else:
+            Submission.objects.filter(
+                challenge=challenge, submitted_by=request.user,
+                team__isnull=True, is_selected=True,
+            ).update(is_selected=False)
+
+        # Set is_selected on the chosen submission
+        submission.is_selected = True
+        submission.save(update_fields=['is_selected'])
+
+        # Update the leaderboard entry
+        lookup = {
+            'challenge': challenge,
+            'dataset': DatasetType.VAL,
+        }
+        if submission.team:
+            lookup['team'] = submission.team
+            lookup['user'] = None
+        else:
+            lookup['user'] = submission.submitted_by
+            lookup['team'] = None
+
+        entry, created = LeaderboardEntry.objects.get_or_create(
+            defaults={
+                'submission': submission,
+                'primary_score': primary_score.value,
+                'all_scores': all_scores,
+            },
+            **lookup,
+        )
+        if not created:
+            entry.submission = submission
+            entry.primary_score = primary_score.value
+            entry.all_scores = all_scores
+            entry.save(update_fields=[
+                'submission', 'primary_score', 'all_scores',
+            ])
+
+    # Recompute ranks
+    from challenge.tasks import recompute_leaderboard
+    recompute_leaderboard(challenge.pk)
+
+    messages.success(request, 'Submission selected for the leaderboard.')
+    url = reverse('published_project', args=[
+        challenge.published_project.slug,
+        challenge.published_project.version,
+    ])
+    return redirect(url + '#submit')
+
+
+# ── Organizer / management views ────────────────────────────────────
+
+@login_required
+@challenge_auth(require_organizer=True)
+def challenge_manage(request, challenge, participant, **kwargs):
+    """Organizer dashboard with statistics."""
+    submission_stats = challenge.submissions.aggregate(
+        total=Count('id'),
+        completed=Count('id', filter=Q(
+            status=SubmissionStatus.COMPLETED,
+        )),
+        pending=Count('id', filter=Q(status__in=[
+            SubmissionStatus.PENDING,
+            SubmissionStatus.BUILDING,
+            SubmissionStatus.RUNNING,
+            SubmissionStatus.SCORING,
+        ])),
+    )
+    stats = {
+        'participants': challenge.participants.filter(is_active=True).count(),
+        'teams': challenge.teams.filter(is_active=True).count(),
+        'total_submissions': submission_stats['total'],
+        'completed_submissions': submission_stats['completed'],
+        'pending_submissions': submission_stats['pending'],
+    }
+    return render(request, 'challenge/challenge_manage.html', {
+        'challenge': challenge,
+        'participant': participant,
+        'stats': stats,
+    })
+
+
+@login_required
+@challenge_auth(require_organizer=True)
+def challenge_manage_submissions(request, challenge, participant, **kwargs):
+    """View all submissions for the challenge."""
+    submissions = challenge.submissions.select_related(
+        'submitted_by', 'team',
+    ).order_by('-created_datetime')
+
+    return render(request, 'challenge/challenge_manage_submissions.html', {
+        'challenge': challenge,
+        'participant': participant,
+        'submissions': submissions,
+    })
+
+
+# ── Helpers ─────────────────────────────────────────────────────────
+
+def _submission_counts(challenge, user):
+    """Return (today, total) submission counts for a user."""
+    submissions = Submission.objects.filter(challenge=challenge, submitted_by=user)
+    today = submissions.filter(created_datetime__date=timezone.localdate()).count()
+    return today, submissions.count()
+
+
+def _submission_limit_error(challenge, today_count, total_count):
+    if today_count >= challenge.max_submissions_per_day:
+        return 'Daily submission limit reached.'
+    if total_count >= challenge.max_total_submissions:
+        return 'Total submission limit reached.'
+    return None
+
+
+def _upload_code_archive(challenge, user, archive_file):
+    """Upload a code archive to GCS and return the URI."""
+    timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+    bucket = settings.CHALLENGE_STAGING_BUCKET
+    filename = os.path.basename(archive_file.name)
+    key = f'challenges/{challenge.slug}/submissions/{user.pk}/{timestamp}/{filename}'
+    gcs_uri = f'{bucket}/{key}'
+
+    try:
+        from physionet.gcp import ObjectPath
+        obj = ObjectPath(gcs_uri)
+        blob = obj.bucket().blob(obj.key())
+        blob.upload_from_file(archive_file, rewind=True)
+    except Exception:
+        logger.exception('Failed to upload code archive to GCS')
+        raise
+
+    return gcs_uri
