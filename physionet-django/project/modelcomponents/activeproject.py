@@ -428,18 +428,17 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if self.author_editable() and not self.upload_agreement_accepted():
             self.integrity_errors.append('You must accept the upload agreement before submitting.')
 
-        # Challenge-specific validation
-        if self.resource_type_id == 2:
-            if not hasattr(self, 'challenge_config'):
-                self.integrity_errors.append('Missing challenge configuration.')
-            else:
-                config = self.challenge_config
-                if not config.start_datetime:
-                    self.integrity_errors.append('Challenge start date is required.')
-                if not config.end_datetime:
-                    self.integrity_errors.append('Challenge end date is required.')
-                if not config.primary_metric.get('name'):
-                    self.integrity_errors.append('Primary metric name is required.')
+        # Challenge-specific validation. Only projects set up as hosted
+        # challenges have a configuration; other Challenge-type projects
+        # (e.g. data for a challenge run elsewhere) are checked as before.
+        if self.resource_type_id == 2 and hasattr(self, 'challenge_config'):
+            config = self.challenge_config
+            if not config.start_datetime:
+                self.integrity_errors.append('Challenge start date is required.')
+            if not config.end_datetime:
+                self.integrity_errors.append('Challenge end date is required.')
+            if not config.primary_metric.get('name'):
+                self.integrity_errors.append('Primary metric name is required.')
 
         if self.integrity_errors:
             return False
