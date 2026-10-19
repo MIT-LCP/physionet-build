@@ -646,6 +646,18 @@ class TestState(TestMixin):
 
         self.assertEqual(mocker.call_count, 4)
 
+    def test_embargo_archived_project(self):
+        self.client.login(username='tompollard', password='Tester11!')
+        project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
+
+        project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+        project.save()
+        url = reverse('submission_info', args=(project.slug,))
+        self.client.post(url, {'archive_project': ''})
+
+        self.client.post(url, {'embargo_files': ''})
+        self.assertFalse(project.embargo_files_days)
+
 
 class TestPublished(TestCase):
     """

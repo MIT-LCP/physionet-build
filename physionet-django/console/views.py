@@ -409,14 +409,18 @@ def submission_info(request, project_slug):
     passphrase = ''
     anonymous_url = project.get_anonymous_url()
 
-    if 'generate_passphrase' in request.POST:
+    if 'generate_passphrase' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
         anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=False)
-    elif 'generate_passphrase_masked' in request.POST:
+    elif 'generate_passphrase_masked' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
         anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=True)
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
         anonymous_url, passphrase = '', 'revoked'
-    elif 'reassign_editor' in request.POST and user == project.editor:
+    elif (
+        'reassign_editor' in request.POST
+        and user == project.editor
+        and not project.submission_status == SubmissionStatus.ARCHIVED
+    ):
         if reassign_editor_form.is_valid():
             project.reassign_editor(reassign_editor_form.cleaned_data['editor'])
             notification.editor_notify_new_project(project, user, reassigned=True)
@@ -426,7 +430,7 @@ def submission_info(request, project_slug):
                                             reassign_editor_form.cleaned_data['editor']))
         else:
             messages.error(request, 'Invalid submission. See errors below.')
-    elif 'embargo_files' in request.POST:
+    elif 'embargo_files' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
         embargo_form = forms.EmbargoFilesDaysForm(data=request.POST)
         if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
             raise ServiceUnavailable()
