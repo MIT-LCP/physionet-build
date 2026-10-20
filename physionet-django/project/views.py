@@ -2199,7 +2199,7 @@ def published_project(request, project_slug, version, subdir=''):
         'project_views_count': project_views_count,
         'all_versions_views_count': all_versions_views_count,
     }
-    context.update(published_challenge_context(project, user))
+    context.update(published_challenge_context(project))
     # The file and directory contents
     if can_view_files:
         if user.is_authenticated:

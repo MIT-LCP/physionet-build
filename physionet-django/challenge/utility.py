@@ -38,7 +38,7 @@ def notify_phase_change(challenge, old_phase, new_phase):
         )
 
 
-def published_challenge_context(project, user):
+def published_challenge_context(project):
     """
     Template context for the challenge content shown on a published
     project page. Returns an empty dict when the project has no challenge

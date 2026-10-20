@@ -239,10 +239,10 @@ def project_settings_steps(project=None):
     return _get_settings_steps(project)
 
 
-@register.simple_tag(name='project_step_header')
-def project_step_header(key, project=None):
+@register.simple_tag(name='project_step_header', takes_context=True)
+def project_step_header(context, key):
     """Return the step heading string (e.g. '7. Files') for a given key."""
-    steps = dict((k, (i, label)) for i, (k, label) in enumerate(_get_settings_steps(project), 1))
+    steps = dict((k, (i, label)) for i, (k, label) in enumerate(_get_settings_steps(context.get('project')), 1))
     if key not in steps:
         raise KeyError(f"Unknown project step: {key!r}")
     i, label = steps[key]
