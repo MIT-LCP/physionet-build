@@ -1580,7 +1580,10 @@ def project_challenge_config(request, project_slug, **kwargs):
     from challenge.models import ChallengeConfiguration
     from challenge.forms import ChallengeConfigurationForm
 
-    config, _ = ChallengeConfiguration.objects.get_or_create(active_project=project)
+    # Only create the configuration when the submitting author saves it.
+    # check_integrity() and publish() treat its existence as opting in to
+    # hosting the challenge.
+    config = getattr(project, 'challenge_config', None) or ChallengeConfiguration(active_project=project)
 
     if request.method == 'POST':
         form = ChallengeConfigurationForm(data=request.POST, instance=config, editable=editable)
