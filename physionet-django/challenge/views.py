@@ -86,9 +86,7 @@ def challenge_list(request):
         open_challenges = Challenge.objects.none()
         completed_challenges = base_qs.filter(phase__in=completed_phases)
     else:
-        open_challenges = base_qs.filter(
-            phase__in=open_phases,
-        ).exclude(phase=ChallengePhase.REGISTRATION)
+        open_challenges = base_qs.filter(phase__in=open_phases)
         completed_challenges = base_qs.filter(phase__in=completed_phases)
 
     return render(request, 'challenge/challenge_list.html', {
