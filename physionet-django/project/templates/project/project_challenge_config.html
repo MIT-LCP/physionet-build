@@ -108,28 +108,6 @@
     {% endif %}
   {% endfor %}
 
-  <h4>Data Paths</h4>
-  <hr>
-  <p>Specify the paths within the project files where the evaluation script and hidden test data are located. Upload these files using the Files tab.</p>
-  {% for field in challenge_config_form %}
-    {% if field.name == 'evaluation_script_path' or field.name == 'hidden_test_data_path' %}
-    <div class="form-group row">
-      <label class="col-md-3" for="{{ field.id_for_label }}">
-        {{ field.label }}
-        {% if field.help_text %}
-        <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ field.help_text|safe }}" data-html="true" style="cursor: pointer;"></i>
-        {% endif %}
-      </label>
-      <div class="col-md-9">
-        {{ field }}
-        {% for error in field.errors %}
-          <div class="alert alert-danger"><strong>{{ error|escape }}</strong></div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-  {% endfor %}
-
   {% for error in challenge_config_form.non_field_errors %}
     <div class="alert alert-danger"><strong>{{ error|escape }}</strong></div>
   {% endfor %}
