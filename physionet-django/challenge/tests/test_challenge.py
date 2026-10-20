@@ -448,7 +448,8 @@ class CodeSubmissionTests(TestCase):
         before = Submission.objects.filter(submitted_by=self.user).count()
         with patch('challenge.views._upload_code_archive',
                    return_value='staging-bucket/code.zip'), \
-                patch('challenge.tasks.process_submission', create=True) as task:
+                patch('challenge.tasks.process_submission', create=True) as task, \
+                self.captureOnCommitCallbacks(execute=True):
             response = self._post()
         submission = Submission.objects.filter(submitted_by=self.user).latest('pk')
         self.assertRedirects(

@@ -46,11 +46,12 @@ def pending_team_invitations(challenge, user):
     """
     from challenge.models import TeamInvitation
 
-    email_match = Q()
-    for email in user.get_emails():
-        email_match |= Q(email__iexact=email)
-    if not email_match:
+    emails = user.get_emails()
+    if not emails:
         return TeamInvitation.objects.none()
+    email_match = Q()
+    for email in emails:
+        email_match |= Q(email__iexact=email)
     return TeamInvitation.objects.filter(
         email_match,
         team__challenge=challenge,

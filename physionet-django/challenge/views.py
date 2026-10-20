@@ -212,43 +212,51 @@ def challenge_submit(request, challenge, participant, **kwargs):
         messages.error(request, limit_error)
         return redirect(submit_tab_url)
 
-    form = CodeSubmissionForm(request.POST or None, request.FILES or None)
-    if request.method == 'POST' and form.is_valid():
-        archive = form.cleaned_data['code_archive']
+    if request.method == 'POST':
+        form = CodeSubmissionForm(request.POST, request.FILES)
+        if form.is_valid():
+            archive = form.cleaned_data['code_archive']
 
-        # Lock the participant row so that parallel uploads from the same
-        # user can't both pass the limit check.
-        with transaction.atomic():
-            ChallengeParticipant.objects.select_for_update().get(pk=participant.pk)
-            limit_error = _submission_limit_error(
-                challenge, *_submission_counts(challenge, request.user))
-            if limit_error:
-                messages.error(request, limit_error)
-                return redirect(submit_tab_url)
+            # Lock the participant row so that parallel uploads from the
+            # same user can't both pass the limit check.
+            with transaction.atomic():
+                ChallengeParticipant.objects.select_for_update().get(
+                    pk=participant.pk)
+                limit_error = _submission_limit_error(
+                    challenge,
+                    *_submission_counts(challenge, request.user))
+                if limit_error:
+                    messages.error(request, limit_error)
+                    return redirect(submit_tab_url)
 
-            sha256 = hashlib.sha256()
-            for chunk in archive.chunks():
-                sha256.update(chunk)
+                sha256 = hashlib.sha256()
+                for chunk in archive.chunks():
+                    sha256.update(chunk)
+                archive.seek(0)
 
-            gcs_uri = _upload_code_archive(challenge, request.user, archive)
+                gcs_uri = _upload_code_archive(
+                    challenge, request.user, archive)
 
-            submission = Submission.objects.create(
-                challenge=challenge,
-                submitted_by=request.user,
-                team=participant.team,
-                code_archive_gcs_uri=gcs_uri,
-                code_archive_sha256=sha256.hexdigest(),
-                description=form.cleaned_data.get('description', ''),
-            )
+                submission = Submission.objects.create(
+                    challenge=challenge,
+                    submitted_by=request.user,
+                    team=participant.team,
+                    code_archive_gcs_uri=gcs_uri,
+                    code_archive_sha256=sha256.hexdigest(),
+                    description=form.cleaned_data.get('description', ''),
+                )
 
-        # Enqueue background task
-        from challenge.tasks import process_submission
-        process_submission(submission.pk)
+                # Enqueue after commit so the row is visible to the task.
+                from challenge.tasks import process_submission
+                transaction.on_commit(
+                    lambda pk=submission.pk: process_submission(pk))
 
-        messages.success(request, 'Submission uploaded and queued.')
-        return redirect('challenge_submission_detail',
-                        challenge_slug=challenge.slug,
-                        submission_id=submission.pk)
+            messages.success(request, 'Submission uploaded and queued.')
+            return redirect('challenge_submission_detail',
+                            challenge_slug=challenge.slug,
+                            submission_id=submission.pk)
+    else:
+        form = CodeSubmissionForm()
 
     return render(request, 'challenge/challenge_submit.html', {
         'challenge': challenge,
