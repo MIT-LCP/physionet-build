@@ -427,6 +427,11 @@ class CreateProjectForm(forms.ModelForm):
         project.files.mkdir(project.file_root())
         return project
 
+    def clean_abstract(self):
+        data = self.cleaned_data['abstract']
+        validators.validate_abstract_word_count(data)
+        return data
+
 
 class NewProjectVersionForm(forms.ModelForm):
     """
@@ -627,6 +632,11 @@ class ContentForm(forms.ModelForm):
         data = self.cleaned_data['version']
         if data in [p.version for p in self.instance.core_project.publishedprojects.all()]:
             raise forms.ValidationError('Please specify a new unused version.')
+        return data
+
+    def clean_abstract(self):
+        data = self.cleaned_data['abstract']
+        validators.validate_abstract_word_count(data)
         return data
 
 

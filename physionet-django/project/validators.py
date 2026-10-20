@@ -7,6 +7,7 @@ from packaging.version import Version
 MAX_FILENAME_LENGTH = 100
 MAX_PROJECT_SLUG_LENGTH = 30
 MAX_GCS_OBJECT_NAME_LENGTH = 256
+MAX_ABSTRACT_WORDS = 250
 
 _good_name_pattern = re.compile(r'\w+([\w\-\.]*\w+)?', re.ASCII)
 _bad_name_pattern = re.compile(r'^(?:con|nul|aux|prn|com\d|lpt\d)(?:\.|$)',
@@ -180,3 +181,27 @@ def validate_gcs_bucket_object(filename, size):
 
     for path_segment in filename[1:].split('/'):
         validate_filename(path_segment)
+
+
+def validate_abstract_word_count(value, max_words=MAX_ABSTRACT_WORDS):
+    """
+    Validate that a value does not contain more than a given number of words.
+    HTML tags are stripped before counting.
+
+    Raises forms.ValidationError if word count exceeds max_words.
+    Returns the word count if valid.
+    """
+    # Replace tags with a space rather than stripping them outright,
+    # so that e.g. adjacent "</p><p>" tags don't merge the last word
+    # of one block with the first word of the next.
+    text = re.sub(r'<[^>]+>', ' ', value)
+    word_count = len(re.findall(r'\S+', text))
+
+    if word_count > max_words:
+        raise ValidationError(
+            f'Ensure this field has no more than {max_words} words '
+            f'(currently {word_count}).',
+            code='max_words'
+        )
+
+    return word_count

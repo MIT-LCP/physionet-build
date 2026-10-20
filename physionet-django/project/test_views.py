@@ -37,6 +37,7 @@ from project.models import (
     UploadAgreement,
     AWS
 )
+from project.validators import validate_abstract_word_count
 from user.enums import TrainingStatus
 from user.models import Training, TrainingType, User
 from user.test_views import TestMixin, prevent_request_warnings
@@ -533,6 +534,40 @@ class TestProjectCreation(TestMixin):
         self.assertEqual(quota.inodes_used, num_inodes + 1)
         self.assertGreater(quota.bytes_used, num_bytes)
 
+    def test_abstract_length(self):
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        abstract_text = " ".join(["word"] * 250)
+
+        # Create project
+        response = self.client.post(
+            reverse('create_project'),
+            data={
+                'resource_type': 0,
+                'title': 'Neuro-Electric Widget Database',
+                'abstract': abstract_text,
+            })
+        self.assertEqual(response.status_code, 302)
+
+    def test_create_abstract_limit_exceeded(self):
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+        abstract_text = " ".join(["word"] * 251)
+
+        # Create project
+        response = self.client.post(
+            reverse('create_project'),
+            data={
+                'resource_type': 0,
+                'title': 'Neuro-Electric Widget Database',
+                'abstract': abstract_text,
+            })
+        self.assertEqual(response.status_code, 200)
+        form = response.context['form']
+        self.assertIn('abstract', form.errors)
+        self.assertIn('no more than 250 words', str(form.errors['abstract']))
+        self.assertIn('251', str(form.errors['abstract']))
+
 
 @override_settings(UPLOAD_AGREEMENT_START_DATE=None)
 class TestUploadAgreement(TestMixin):
@@ -881,6 +916,76 @@ class TestProjectEditing(TestCase):
         ref2.refresh_from_db()
         self.assertEqual(ref2.order, 2)
         self.assertTrue(project.is_submittable())
+
+    def test_abstract_word_limit(self):
+        """
+        Test that abstract word limit works properly
+        """
+
+        abstract_text = " ".join(["word"] * 250)
+
+        self.client.login(username=self.AUTHOR, password=self.PASSWORD)
+        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        content_url = reverse('project_content', args=(project.slug,))
+
+        data = {
+            'project-reference-content_type-object_id-TOTAL_FORMS': '0',
+            'project-reference-content_type-object_id-INITIAL_FORMS': '0',
+            'project-reference-content_type-object_id-MIN_NUM_FORMS': '0',
+            'project-reference-content_type-object_id-MAX_NUM_FORMS': '0',
+            'title': project.title,
+        }
+        for section in project.content_sections():
+            data[section.field_name] = section.body
+
+        data['abstract'] = "<p>" + abstract_text + "</p>"
+        response = self.client.post(content_url, data=data)
+
+        form = response.context['form']
+        self.assertFalse(form.errors)
+        project.refresh_from_db()
+        self.assertIn(abstract_text, project.abstract)
+
+    def test_abstract_word_limit_exceeds(self):
+        """
+        Test that abstract rejects more than 250 words
+        """
+        abstract_test = " ".join(["word"] * 251)  # 251 words, should fail
+
+        self.client.login(username=self.AUTHOR, password=self.PASSWORD)
+        project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        content_url = reverse('project_content', args=(project.slug,))
+
+        data = {
+            'project-reference-content_type-object_id-TOTAL_FORMS': '0',
+            'project-reference-content_type-object_id-INITIAL_FORMS': '0',
+            'project-reference-content_type-object_id-MIN_NUM_FORMS': '0',
+            'project-reference-content_type-object_id-MAX_NUM_FORMS': '0',
+            'title': project.title,
+        }
+        for section in project.content_sections():
+            data[section.field_name] = section.body
+
+        data['abstract'] = "<p>" + abstract_test + "</p>"
+        response = self.client.post(content_url, data=data)
+
+        form = response.context['form']
+        self.assertIn('abstract', form.errors)
+        self.assertIn('no more than 250 words', str(form.errors['abstract']))
+        self.assertIn('251', str(form.errors['abstract']))
+
+    def test_abstract_word_count_with_html_tags(self):
+        """Test that words separated only by HTML tags are counted correctly"""
+
+        # Test case 1: Adjacent tags should not merge words
+        html_with_tags = "<p>one</p><p>two</p>"
+        word_count = validate_abstract_word_count(html_with_tags)
+        self.assertEqual(word_count, 2)
+
+        # Test case 2: Multiple nested tags
+        html_nested = "<div><p>hello</p><span>world</span></div>"
+        word_count = validate_abstract_word_count(html_nested)
+        self.assertEqual(word_count, 2)
 
 
 class TestProjectTransfer(TestCase):
