@@ -166,3 +166,54 @@ class PublishedChallengePageTests(TestMixin):
         response = self.client.get(
             reverse('challenge_detail', args=['demo-ecg-challenge']))
         self.assertRedirects(response, self.url)
+
+
+class ChallengeConfigViewTests(TestCase):
+    """Tests for the Challenge Setup step of an active project."""
+
+    def setUp(self):
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        project.resource_type_id = 2
+        project.save()
+        self.project = project
+        self.url = reverse('project_challenge_config', args=[project.slug])
+        self.client.force_login(project.authors.get(is_submitting=True).user)
+
+    def test_get_does_not_create_config(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(ChallengeConfiguration.objects.filter(active_project=self.project).exists())
+
+    def test_all_fields_rendered(self):
+        response = self.client.get(self.url)
+        for name in response.context['challenge_config_form'].fields:
+            self.assertContains(response, f'name="{name}"')
+
+    def test_post_saves_config(self):
+        response = self.client.post(self.url, data={
+            'organizer_name': 'Organizer',
+            'start_datetime': '2030-01-01T00:00',
+            'official_start_datetime': '2030-02-01T00:00',
+            'end_datetime': '2030-03-01T00:00',
+            'max_submissions_per_day': 5,
+            'max_total_submissions': 100,
+            'max_submissions_to_advance': 1,
+            'base_image': 'python:3.11-slim',
+            'entrypoint_command': 'python main.py',
+            'max_runtime_seconds': 3600,
+            'max_memory_mb': 4096,
+            'cpu_count': 2,
+            'input_format': '{}',
+            'output_format': '{}',
+            'primary_metric': '{"name": "auc", "sort": "desc"}',
+            'additional_metrics': '[]',
+        })
+        self.assertEqual(response.status_code, 200)
+        config = ChallengeConfiguration.objects.get(active_project=self.project)
+        self.assertEqual(config.organizer_name, 'Organizer')
+        self.assertIsNotNone(config.official_start_datetime)
+        self.assertEqual(config.primary_metric, {'name': 'auc', 'sort': 'desc'})
+
+    def test_step_headers_match_sidebar(self):
+        response = self.client.get(reverse('project_upload_agreement', args=[self.project.slug]))
+        self.assertContains(response, '<h2 class="form-signin-heading">7. Upload Agreement</h2>', html=True)
