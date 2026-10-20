@@ -24,10 +24,10 @@
 <form action="{% url 'project_challenge_config' project.slug %}" method="post" class="no-pd">
   {% csrf_token %}
 
-  <h4>Schedule</h4>
+  <h4>Organizer and Schedule</h4>
   <hr>
   {% for field in challenge_config_form %}
-    {% if field.name == 'registration_open_datetime' or field.name == 'start_datetime' or field.name == 'end_datetime' %}
+    {% if field.name == 'organizer_name' or field.name == 'registration_open_datetime' or field.name == 'start_datetime' or field.name == 'official_start_datetime' or field.name == 'end_datetime' %}
     <div class="form-group row">
       <label class="col-md-3" for="{{ field.id_for_label }}">
         {{ field.label }}
