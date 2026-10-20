@@ -542,6 +542,37 @@ class NewProjectVersionForm(forms.ModelForm):
 
         project.required_trainings.set(self.latest_project.required_trainings.all())
 
+        # Copy ChallengeConfiguration from the published Challenge
+        if self.latest_project.resource_type_id == 2:
+            try:
+                challenge = self.latest_project.challenge
+                spec = getattr(challenge, 'submission_spec', None)
+                from challenge.models import ChallengeConfiguration
+                config = ChallengeConfiguration(active_project=project)
+                for field in (
+                    'registration_open_datetime', 'start_datetime',
+                    'official_start_datetime', 'end_datetime',
+                    'max_submissions_per_day', 'max_total_submissions',
+                    'max_submissions_to_advance', 'teams_enabled',
+                    'organizer_name', 'validation_data_gcs_uri',
+                    'test_data_gcs_uri', 'validation_labels_gcs_uri',
+                    'test_labels_gcs_uri',
+                ):
+                    setattr(config, field, getattr(challenge, field))
+                if spec:
+                    for field in (
+                        'base_image', 'entrypoint_command',
+                        'max_runtime_seconds', 'max_memory_mb',
+                        'gpu_enabled', 'gpu_type', 'cpu_count',
+                        'input_format', 'output_format',
+                        'evaluation_script_gcs_uri',
+                        'primary_metric', 'additional_metrics',
+                    ):
+                        setattr(config, field, getattr(spec, field))
+                config.save()
+            except self.latest_project._meta.model.challenge.RelatedObjectDoesNotExist:
+                pass
+
         current_file_root = project.file_root()
         older_file_root = self.latest_project.file_root()
 

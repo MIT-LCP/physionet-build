@@ -27,6 +27,7 @@ from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.storage import generate_signed_url_helper
 from physionet.utility import paginate, serve_file
+from challenge.utility import published_challenge_context
 from project import forms, utility
 from project.fileviews import display_project_file
 from project.models import (
@@ -1567,6 +1568,45 @@ def project_submission(request, project_slug, **kwargs):
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)
+def project_challenge_config(request, project_slug, **kwargs):
+    project = kwargs['project']
+    is_submitting = kwargs['is_submitting']
+
+    if project.resource_type_id != 2:
+        raise Http404
+
+    editable = is_submitting and project.author_editable()
+
+    from challenge.models import ChallengeConfiguration
+    from challenge.forms import ChallengeConfigurationForm
+
+    # Only create the configuration when the submitting author saves it.
+    # check_integrity() and publish() treat its existence as opting in to
+    # hosting the challenge.
+    config = getattr(project, 'challenge_config', None) or ChallengeConfiguration(active_project=project)
+
+    if request.method == 'POST':
+        form = ChallengeConfigurationForm(data=request.POST, instance=config, editable=editable)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Challenge configuration has been updated.')
+        else:
+            messages.error(request, 'Invalid submission. See errors below.')
+    else:
+        form = ChallengeConfigurationForm(instance=config, editable=editable)
+
+    return render(
+        request,
+        'project/project_challenge_config.html',
+        {
+            'project': project,
+            'challenge_config_form': form,
+            'is_submitting': is_submitting,
+        },
+    )
+
+
+@project_auth(auth_mode=0, post_auth_mode=2)
 def project_ethics(request, project_slug, **kwargs):
     project = kwargs['project']
     is_submitting = kwargs['is_submitting']
@@ -2162,6 +2202,7 @@ def published_project(request, project_slug, version, subdir=''):
         'project_views_count': project_views_count,
         'all_versions_views_count': all_versions_views_count,
     }
+    context.update(published_challenge_context(project))
     # The file and directory contents
     if can_view_files:
         if user.is_authenticated:
