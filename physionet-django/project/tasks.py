@@ -1,7 +1,13 @@
+import logging
+
+import requests
 from background_task import background
+from django.conf import settings
 
 from console.tasks import associated_task
 import project.models as models
+
+LOGGER = logging.getLogger(__name__)
 
 
 @associated_task('project.ActiveProject', 'project_id')
@@ -72,3 +78,31 @@ def create_published_project_zip(project_id):
     """
     project = models.PublishedProject.objects.get(id=project_id)
     project.make_zip()
+
+
+@background()
+def refresh_scholar_data(doi):
+    """
+    Fetch dataset statistics for a DOI from the ScholarData API and
+    store them.
+
+    On failure the previously stored data is kept, and the error is
+    logged rather than raised so that the task is not retried; the next
+    refresh is queued after ScholarData.REFRESH_INTERVAL.
+
+    Does nothing if ENABLE_SCHOLAR_DATA_API has been turned off since
+    the task was queued.
+    """
+    if not settings.ENABLE_SCHOLAR_DATA_API:
+        return
+
+    url = f'{settings.SCHOLAR_DATA_API_URL}/datasets/by-doi'
+    try:
+        response = requests.get(url, params={'doi': doi}, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        LOGGER.warning('Unable to fetch ScholarData for %s: %r', doi, e)
+        return
+
+    models.ScholarData.objects.filter(doi=doi).update(data=data)
