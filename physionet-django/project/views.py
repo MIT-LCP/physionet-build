@@ -2,7 +2,6 @@ import datetime as dt
 import logging
 import os
 
-import requests
 import notification.utility as notification
 from dal import autocomplete
 from django.conf import settings
@@ -12,7 +11,6 @@ from django.contrib.auth.views import redirect_to_login
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
@@ -48,6 +46,7 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
     Reference,
+    ScholarData,
     StorageRequest,
     SubmissionStatus,
     Topic,
@@ -2250,30 +2249,6 @@ def published_project(request, project_slug, version, subdir=''):
                   status=status)
 
 
-def fetch_scholar_data(doi):
-    """
-    Fetch external dataset statistics from the ScholarData API.
-
-    Returns the parsed JSON dict on success, or None on any failure.
-    Results are cached for 24 hours, keyed by DOI.
-    """
-    cache_key = f'scholar_data:{doi}'
-    cached = cache.get(cache_key)
-    if cached is not None:
-        return cached
-
-    try:
-        url = f'{settings.SCHOLAR_DATA_API_URL}/datasets/by-doi'
-        response = requests.get(url, params={'doi': doi}, timeout=10)
-        response.raise_for_status()
-        data = response.json()
-    except Exception:
-        return None
-
-    cache.set(cache_key, data, 86400)
-    return data
-
-
 def published_project_metrics(request, project_slug, version):
     """
     Public metrics page for a published project.
@@ -2288,7 +2263,7 @@ def published_project_metrics(request, project_slug, version):
 
     scholar_data = None
     if settings.ENABLE_SCHOLAR_DATA_API and project.doi:
-        scholar_data = fetch_scholar_data(project.doi)
+        scholar_data = ScholarData.get_data(project.doi)
 
     return render(request, 'project/published_project_metrics.html', {
         'project': project,

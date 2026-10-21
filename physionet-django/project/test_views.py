@@ -8,12 +8,14 @@ import json
 from unittest import mock
 
 import requests
+from background_task.models import Task
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
-from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.test import TestCase, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 from project.forms import ContentForm
@@ -32,6 +34,7 @@ from project.models import (
     ProjectType,
     PublishedAuthor,
     PublishedProject,
+    ScholarData,
     StorageRequest,
     SubmissionStatus,
     UploadAgreement,
@@ -2431,7 +2434,12 @@ class TestProjectViewsMetric(TestMixin):
 
 
 class TestScholarDataIntegration(TestMixin):
-    """Test the ScholarData API integration on the metrics page."""
+    """
+    Test the ScholarData integration on the metrics page.
+
+    The page only reads stored data; fetching happens in a background
+    task, so the external API is never called during a web request.
+    """
 
     SCHOLAR_DATA_RESPONSE = {
         'datasetId': 12463514,
@@ -2451,111 +2459,126 @@ class TestScholarDataIntegration(TestMixin):
 
     def setUp(self):
         super().setUp()
-        cache.clear()
         self.project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        self.project.doi = '10.1234/test'
+        self.project.save()
         self.metrics_url = reverse(
             'published_project_metrics',
             args=(self.project.slug, self.project.version),
         )
 
-    @override_settings(ENABLE_SCHOLAR_DATA_API=False)
-    def test_api_not_called_when_disabled(self):
-        """ScholarData API is not called when ENABLE_SCHOLAR_DATA_API is False."""
-        with mock.patch('project.views.requests.get') as mock_get:
+    def mock_api_response(self):
+        response = mock.Mock()
+        response.json.return_value = self.SCHOLAR_DATA_RESPONSE
+        return response
+
+    def get_metrics_page(self):
+        """Request the metrics page, failing if it calls the external API."""
+        with mock.patch('project.tasks.requests.get') as mock_get:
             response = self.client.get(self.metrics_url)
         mock_get.assert_not_called()
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=False)
+    def test_disabled(self):
+        """Nothing is stored or queued when ENABLE_SCHOLAR_DATA_API is False."""
+        response = self.get_metrics_page()
         self.assertIsNone(response.context['scholar_data'])
+        self.assertFalse(ScholarData.objects.exists())
+        self.assertEqual(Task.objects.count(), 0)
 
     @override_settings(ENABLE_SCHOLAR_DATA_API=True)
-    def test_api_called_when_enabled_with_doi(self):
-        """ScholarData API is called when enabled and project has a DOI."""
-        self.project.doi = '10.1234/test'
-        self.project.save()
-
-        mock_response = mock.Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = self.SCHOLAR_DATA_RESPONSE
-        mock_response.raise_for_status = mock.Mock()
-
-        with mock.patch('project.views.requests.get', return_value=mock_response) as mock_get:
-            response = self.client.get(self.metrics_url)
-
-        mock_get.assert_called_once()
-        self.assertEqual(response.context['scholar_data'], self.SCHOLAR_DATA_RESPONSE)
-
-    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
-    def test_api_not_called_without_doi(self):
-        """ScholarData API is not called when project has no DOI."""
+    def test_no_doi(self):
+        """Nothing is stored or queued when the project has no DOI."""
         self.project.doi = ''
         self.project.save()
-
-        with mock.patch('project.views.requests.get') as mock_get:
-            response = self.client.get(self.metrics_url)
-
-        mock_get.assert_not_called()
+        response = self.get_metrics_page()
         self.assertIsNone(response.context['scholar_data'])
+        self.assertFalse(ScholarData.objects.exists())
+        self.assertEqual(Task.objects.count(), 0)
 
     @override_settings(ENABLE_SCHOLAR_DATA_API=True)
-    def test_graceful_degradation_on_api_error(self):
-        """Metrics page renders normally when ScholarData API returns an error."""
-        self.project.doi = '10.1234/test'
-        self.project.save()
-
-        with mock.patch('project.views.requests.get', side_effect=requests.ConnectionError):
-            response = self.client.get(self.metrics_url)
-
-        self.assertEqual(response.status_code, 200)
+    def test_first_view_queues_fetch(self):
+        """The first view queues one fetch; the stored data is shown afterwards."""
+        response = self.get_metrics_page()
         self.assertIsNone(response.context['scholar_data'])
 
-    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
-    def test_graceful_degradation_on_timeout(self):
-        """Metrics page renders normally when ScholarData API times out."""
-        self.project.doi = '10.1234/test'
-        self.project.save()
+        # Further views before the fetch has run do not queue duplicates.
+        self.get_metrics_page()
+        self.assertEqual(Task.objects.count(), 1)
+        # Refreshes must not delay other background tasks.
+        self.assertEqual(Task.objects.get().priority, -1)
 
-        with mock.patch('project.views.requests.get', side_effect=requests.Timeout):
-            response = self.client.get(self.metrics_url)
+        with mock.patch('project.tasks.requests.get',
+                        return_value=self.mock_api_response()) as mock_get:
+            self.assertBackgroundTasks(1)
+        mock_get.assert_called_once()
 
-        self.assertEqual(response.status_code, 200)
-        self.assertIsNone(response.context['scholar_data'])
-
-    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
-    def test_scholar_data_in_template(self):
-        """Scholar data values appear in the rendered template."""
-        self.project.doi = '10.1234/test'
-        self.project.save()
-
-        mock_response = mock.Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = self.SCHOLAR_DATA_RESPONSE
-        mock_response.raise_for_status = mock.Mock()
-
-        with mock.patch('project.views.requests.get', return_value=mock_response):
-            response = self.client.get(self.metrics_url)
-
+        response = self.get_metrics_page()
+        self.assertEqual(response.context['scholar_data'], self.SCHOLAR_DATA_RESPONSE)
         self.assertContains(response, 'Total scholarly citations')
         self.assertContains(response, '42')
         self.assertContains(response, 'FUJI Score')
         self.assertContains(response, '85')
         self.assertContains(response, 'D-Index')
-        self.assertContains(response, '7')
+        self.assertEqual(Task.objects.count(), 0)
 
     @override_settings(ENABLE_SCHOLAR_DATA_API=True)
-    def test_caching(self):
-        """Second request uses cached data instead of calling the API again."""
-        self.project.doi = '10.1234/test'
-        self.project.save()
+    def test_stale_data_queues_one_refresh(self):
+        """Stale data is still shown, and exactly one refresh is queued."""
+        ScholarData.objects.create(
+            doi=self.project.doi,
+            data=self.SCHOLAR_DATA_RESPONSE,
+            refresh_datetime=timezone.now() - ScholarData.REFRESH_INTERVAL - timedelta(minutes=1),
+        )
+        response = self.get_metrics_page()
+        self.assertEqual(response.context['scholar_data'], self.SCHOLAR_DATA_RESPONSE)
+        self.get_metrics_page()
+        self.assertEqual(Task.objects.count(), 1)
 
-        mock_response = mock.Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = self.SCHOLAR_DATA_RESPONSE
-        mock_response.raise_for_status = mock.Mock()
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_fresh_data_queues_nothing(self):
+        """No refresh is queued while the data is fresh."""
+        ScholarData.objects.create(
+            doi=self.project.doi,
+            data=self.SCHOLAR_DATA_RESPONSE,
+            refresh_datetime=timezone.now(),
+        )
+        with CaptureQueriesContext(connection) as queries:
+            self.get_metrics_page()
+        self.assertEqual(Task.objects.count(), 0)
+        writes = [q['sql'] for q in queries
+                  if 'scholardata' in q['sql'] and not q['sql'].startswith('SELECT')]
+        self.assertEqual(writes, [])
 
-        with mock.patch('project.views.requests.get', return_value=mock_response) as mock_get:
-            self.client.get(self.metrics_url)
-            self.client.get(self.metrics_url)
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_queued_fetch_skipped_when_disabled(self):
+        """A queued fetch does not call the API if the feature is turned off."""
+        self.get_metrics_page()
+        with override_settings(ENABLE_SCHOLAR_DATA_API=False), \
+                mock.patch('project.tasks.requests.get') as mock_get:
+            self.assertBackgroundTasks(1)
+        mock_get.assert_not_called()
+        self.assertIsNone(ScholarData.objects.get(doi=self.project.doi).data)
 
-        mock_get.assert_called_once()
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_fetch_failure_keeps_previous_data(self):
+        """A failed fetch keeps the stored data and does not fail the task."""
+        ScholarData.objects.create(
+            doi=self.project.doi,
+            data=self.SCHOLAR_DATA_RESPONSE,
+            refresh_datetime=timezone.now(),
+        )
+        for error in (requests.ConnectionError, requests.Timeout):
+            ScholarData.objects.update(refresh_datetime=timezone.now() - timedelta(days=2))
+            self.get_metrics_page()
+            with mock.patch('project.tasks.requests.get', side_effect=error):
+                self.assertBackgroundTasks(1)
+            self.assertEqual(
+                ScholarData.objects.get(doi=self.project.doi).data,
+                self.SCHOLAR_DATA_RESPONSE,
+            )
 
 
 class TestViewArchiveProject(TestMixin):
