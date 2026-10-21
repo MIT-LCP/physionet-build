@@ -471,3 +471,25 @@ class CodeSubmissionTests(TestCase):
             self._post()
         upload.assert_not_called()
         self.assertEqual(Submission.objects.count(), before)
+
+
+class SubmissionSelectTests(TestCase):
+    """Selecting a submission updates the leaderboard entry and ranks."""
+
+    def test_select_updates_entry_and_ranks(self):
+        challenge = Challenge.objects.get(slug='demo-ecg-challenge')
+        captain = ChallengeParticipant.objects.get(
+            challenge=challenge, team__name='BioSignal Lab', is_team_captain=True,
+        ).user
+        self.client.force_login(captain)
+        response = self.client.post(
+            reverse('challenge_submission_select', args=[challenge.slug, 1]))
+        self.assertEqual(response.status_code, 302)
+
+        from challenge.tasks import recompute_leaderboard
+        recompute_leaderboard.now(challenge.pk)
+        entries = challenge.leaderboard_entries.filter(dataset='val').order_by('rank')
+        self.assertEqual(
+            [(e.team.name if e.team else e.user.username, e.primary_score) for e in entries],
+            [('ICU Predictors', 0.873), ('franwilliams', 0.789), ('BioSignal Lab', 0.762)],
+        )
