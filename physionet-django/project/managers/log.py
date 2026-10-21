@@ -28,6 +28,17 @@ class AccessLogQuerySet(QuerySet):
         """Count unique users who have viewed."""
         return self.values('user').distinct().count()
 
+    def unique_viewers_by_object(self):
+        """
+        Count unique viewers of each logged object, in a single query.
+        Returns a dict mapping object_id to the number of unique users.
+        """
+        return dict(
+            self.values('object_id')
+            .annotate(count=Count('user', distinct=True))
+            .values_list('object_id', 'count')
+        )
+
     def unique_viewers_by_month(self):
         """
         Count unique viewers per month.

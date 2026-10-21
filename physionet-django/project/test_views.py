@@ -3,6 +3,7 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 import html.parser
 import os
+import uuid
 from http import HTTPStatus
 import json
 from unittest import mock
@@ -12,6 +13,7 @@ from background_task.models import Task
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.test import TestCase, override_settings
@@ -2213,9 +2215,32 @@ class TestProjectViewsMetric(TestMixin):
     """Test the project views metric on published project pages."""
 
     def setUp(self):
-        """Clear AccessLog data before each test for isolation."""
+        """Clear AccessLog data and cached view counts before each test."""
         super().setUp()
         Log.objects.all().delete()
+        cache.clear()
+
+    def add_version(self, project, version):
+        """Create another published version of a project."""
+        new_version = PublishedProject.objects.get(pk=project.pk)
+        new_version.pk = None
+        new_version.id = None
+        new_version.version = version
+        new_version.version_order = project.version_order + 1
+        new_version.is_latest_version = False
+        new_version.doi = None
+        new_version.public_project_uuid = uuid.uuid4()
+        new_version.submission_slug = f'{project.submission_slug}-{version}'
+        new_version.save()
+        return new_version
+
+    def log_view(self, project, email):
+        AccessLog.objects.create(
+            user=User.objects.get(email=email),
+            object_id=project.id,
+            content_type=ContentType.objects.get_for_model(project),
+            data='',
+        )
 
     def test_project_views_count_displayed(self):
         """Project views count is displayed on the published project page."""
@@ -2236,11 +2261,43 @@ class TestProjectViewsMetric(TestMixin):
         # First visit creates the AccessLog
         self.client.get(reverse('published_project',
                                 args=(project.slug, project.version)))
-        # Second visit sees the incremented count
+        # Counts are cached, so the new view appears once the cache expires
+        cache.clear()
         response = self.client.get(reverse('published_project',
                                            args=(project.slug, project.version)))
         self.assertEqual(response.context['project_views_count'], 1)
         self.assertEqual(response.context['all_versions_views_count'], 1)
+
+    def test_view_counts_multiple_versions(self):
+        """Counts are per version, and the all-versions count is their sum."""
+        v1 = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        v2 = self.add_version(v1, '10.5.25')
+        self.log_view(v1, 'rgmark@mit.edu')
+        self.log_view(v1, 'rgmark@mit.edu')
+        self.log_view(v2, 'rgmark@mit.edu')
+        self.log_view(v2, 'admin@mit.edu')
+
+        self.assertEqual(v1.view_count(), 1)
+        self.assertEqual(v2.view_count(), 2)
+        self.assertEqual(v1.view_count(all_versions=True), 3)
+        self.assertEqual(v2.view_count(all_versions=True), 3)
+        self.assertEqual(v1.views_by_version(), [
+            {'version': v1.version, 'count': 1},
+            {'version': v2.version, 'count': 2},
+        ])
+
+    def test_view_counts_cached(self):
+        """View counts are cached, and refreshed when the cache expires."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        url = reverse('published_project', args=(project.slug, project.version))
+        self.log_view(project, 'rgmark@mit.edu')
+        self.assertEqual(self.client.get(url).context['project_views_count'], 1)
+
+        self.log_view(project, 'admin@mit.edu')
+        self.assertEqual(self.client.get(url).context['project_views_count'], 1)
+
+        cache.clear()
+        self.assertEqual(self.client.get(url).context['project_views_count'], 2)
 
     def test_metrics_detail_page_accessible(self):
         """Metrics detail page is publicly accessible."""
