@@ -473,8 +473,13 @@ class CodeSubmissionTests(TestCase):
         self.assertEqual(Submission.objects.count(), before)
 
 
+@unittest.skipUnless(
+    getattr(settings, 'ENABLE_CHALLENGES', False),
+    'Challenge URLs not registered',
+)
 class SubmissionSelectTests(TestCase):
     """Selecting a submission updates the leaderboard entry and ranks."""
+    fixtures = ['demo-user.json', 'demo-challenge.json']
 
     def test_select_updates_entry_and_ranks(self):
         challenge = Challenge.objects.get(slug='demo-ecg-challenge')
