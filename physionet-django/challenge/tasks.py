@@ -34,6 +34,14 @@ def transition_challenge_phase(challenge_id, target_phase):
                 challenge.slug, old_phase, target_phase)
 
 
+@associated_task(Submission, 'submission_id')
+@background()
+def process_submission(submission_id):
+    """Process a submitted code archive. Replaced by the pipeline in #2790."""
+    logger.info('process_submission(%s): stub — pipeline not yet installed',
+                submission_id)
+
+
 @associated_task(Challenge, 'challenge_id')
 @background()
 def recompute_leaderboard(challenge_id):

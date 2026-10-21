@@ -344,17 +344,20 @@ def challenge_team_create(request, challenge, participant, **kwargs):
         messages.error(request, 'You are already on a team.')
         return redirect('challenge_team', challenge_slug=challenge.slug)
 
-    form = TeamCreateForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        with transaction.atomic():
-            team = form.save(commit=False)
-            team.challenge = challenge
-            team.save()
-            participant.team = team
-            participant.is_team_captain = True
-            participant.save()
-        messages.success(request, f'Team "{team.name}" created.')
-        return redirect('challenge_team', challenge_slug=challenge.slug)
+    if request.method == 'POST':
+        form = TeamCreateForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                team = form.save(commit=False)
+                team.challenge = challenge
+                team.save()
+                participant.team = team
+                participant.is_team_captain = True
+                participant.save()
+            messages.success(request, f'Team "{team.name}" created.')
+            return redirect('challenge_team', challenge_slug=challenge.slug)
+    else:
+        form = TeamCreateForm()
 
     return render(request, 'challenge/team_create.html', {
         'challenge': challenge,
@@ -373,18 +376,21 @@ def challenge_team_invite(request, challenge, participant, **kwargs):
         messages.error(request, 'Only the team captain can send invitations.')
         return redirect('challenge_team', challenge_slug=challenge.slug)
 
-    form = TeamInviteForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        email = form.cleaned_data['email'].lower()
-        invitation = TeamInvitation.objects.create(
-            team=participant.team,
-            email=email,
-            invited_by=request.user,
-        )
-        team_invitation_notify(invitation)
+    if request.method == 'POST':
+        form = TeamInviteForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email'].lower()
+            invitation = TeamInvitation.objects.create(
+                team=participant.team,
+                email=email,
+                invited_by=request.user,
+            )
+            team_invitation_notify(invitation)
 
-        messages.success(request, f'Invitation sent to {email}.')
-        return redirect('challenge_team', challenge_slug=challenge.slug)
+            messages.success(request, f'Invitation sent to {email}.')
+            return redirect('challenge_team', challenge_slug=challenge.slug)
+    else:
+        form = TeamInviteForm()
 
     return render(request, 'challenge/team_invite.html', {
         'challenge': challenge,
@@ -415,23 +421,26 @@ def challenge_team_invitation_respond(request, challenge, participant,
         )
         return redirect('challenge_team', challenge_slug=challenge.slug)
 
-    form = TeamInvitationResponseForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        accepted = form.cleaned_data['accept']
-        with transaction.atomic():
-            invitation.response = accepted
-            invitation.response_datetime = timezone.now()
-            invitation.is_active = False
-            invitation.save()
+    if request.method == 'POST':
+        form = TeamInvitationResponseForm(request.POST)
+        if form.is_valid():
+            accepted = form.cleaned_data['accept']
+            with transaction.atomic():
+                invitation.response = accepted
+                invitation.response_datetime = timezone.now()
+                invitation.is_active = False
+                invitation.save()
 
-            if accepted:
-                participant.team = invitation.team
-                participant.is_team_captain = False
-                participant.save(update_fields=['team', 'is_team_captain'])
+                if accepted:
+                    participant.team = invitation.team
+                    participant.is_team_captain = False
+                    participant.save(update_fields=['team', 'is_team_captain'])
 
-        action = 'accepted' if accepted else 'declined'
-        messages.success(request, f'You have {action} the invitation.')
-        return redirect('challenge_team', challenge_slug=challenge.slug)
+            action = 'accepted' if accepted else 'declined'
+            messages.success(request, f'You have {action} the invitation.')
+            return redirect('challenge_team', challenge_slug=challenge.slug)
+    else:
+        form = TeamInvitationResponseForm()
 
     return render(request, 'challenge/team_invitation_respond.html', {
         'challenge': challenge,
@@ -528,9 +537,10 @@ def challenge_submission_select(request, challenge, participant,
                 'submission', 'primary_score', 'all_scores',
             ])
 
-    # Recompute ranks
+    # Recompute ranks after the leaderboard entry is committed.
     from challenge.tasks import recompute_leaderboard
-    recompute_leaderboard(challenge.pk)
+    transaction.on_commit(
+        lambda pk=challenge.pk: recompute_leaderboard(pk))
 
     messages.success(request, 'Submission selected for the leaderboard.')
     url = reverse('published_project', args=[
