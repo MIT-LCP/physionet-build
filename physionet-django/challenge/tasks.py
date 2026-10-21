@@ -34,6 +34,31 @@ def transition_challenge_phase(challenge_id, target_phase):
                 challenge.slug, old_phase, target_phase)
 
 
+@associated_task(Challenge, 'challenge_id')
+@background()
+def recompute_leaderboard(challenge_id):
+    """Recalculate all ranks for a challenge."""
+    try:
+        challenge = Challenge.objects.get(pk=challenge_id)
+    except Challenge.DoesNotExist:
+        logger.error('Challenge %s not found', challenge_id)
+        return
+
+    spec = challenge.submission_spec
+    sort_ascending = spec.primary_metric_sort == MetricSort.ASC
+
+    for dataset in [DatasetType.VAL, DatasetType.TEST]:
+        with transaction.atomic():
+            entries = LeaderboardEntry.objects.select_for_update().filter(
+                challenge=challenge, dataset=dataset,
+            ).order_by('primary_score' if sort_ascending else '-primary_score')
+
+            for rank, entry in enumerate(entries, start=1):
+                if entry.rank != rank:
+                    entry.rank = rank
+                    entry.save(update_fields=['rank'])
+
+
 def _save_scores(submission, scores_data):
     """Parse and save Score objects from the scoring output."""
     score_objects = []
