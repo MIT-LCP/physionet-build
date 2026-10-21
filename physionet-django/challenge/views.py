@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import os
+import uuid
 from functools import wraps
 
 from django.conf import settings
@@ -9,12 +10,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Count, Q
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
 from challenge.enums import ChallengePhase, DatasetType, SubmissionStatus
 from challenge.forms import (
+    ChallengeManageForm,
     CodeSubmissionForm,
     TeamCreateForm,
     TeamInviteForm,
@@ -556,7 +559,7 @@ def challenge_submission_select(request, challenge, participant,
 @login_required
 @challenge_auth(require_organizer=True)
 def challenge_manage(request, challenge, participant, **kwargs):
-    """Organizer dashboard with statistics."""
+    """Organizer dashboard with statistics and settings."""
     submission_stats = challenge.submissions.aggregate(
         total=Count('id'),
         completed=Count('id', filter=Q(
@@ -576,10 +579,23 @@ def challenge_manage(request, challenge, participant, **kwargs):
         'completed_submissions': submission_stats['completed'],
         'pending_submissions': submission_stats['pending'],
     }
+
+    form = ChallengeManageForm(
+        request.POST or None, instance=challenge,
+    )
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Challenge settings updated.')
+        return redirect('challenge_manage', challenge_slug=challenge.slug)
+
+    spec = getattr(challenge, 'submission_spec', None)
+
     return render(request, 'challenge/challenge_manage.html', {
         'challenge': challenge,
         'participant': participant,
         'stats': stats,
+        'form': form,
+        'spec': spec,
     })
 
 
@@ -596,6 +612,25 @@ def challenge_manage_submissions(request, challenge, participant, **kwargs):
         'participant': participant,
         'submissions': submissions,
     })
+
+
+@login_required
+@challenge_auth(require_organizer=True)
+def challenge_download_evaluation_script(request, challenge, participant, **kwargs):
+    """Download the evaluation script from GCS."""
+    spec = getattr(challenge, 'submission_spec', None)
+    if not spec or not spec.evaluation_script_gcs_uri:
+        raise Http404
+
+    from physionet.gcp import ObjectPath
+    obj = ObjectPath(spec.evaluation_script_gcs_uri)
+    blob = obj.bucket().blob(obj.key())
+    content = blob.download_as_bytes()
+    filename = os.path.basename(obj.key())
+
+    response = HttpResponse(content, content_type='application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
 
 
 # ── Helpers ─────────────────────────────────────────────────────────
@@ -617,10 +652,11 @@ def _submission_limit_error(challenge, today_count, total_count):
 
 def _upload_code_archive(challenge, user, archive_file):
     """Upload a code archive to GCS and return the URI."""
-    timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+    upload_id = uuid.uuid4().hex
     bucket = settings.CHALLENGE_STAGING_BUCKET
     filename = os.path.basename(archive_file.name)
-    key = f'challenges/{challenge.slug}/submissions/{user.pk}/{timestamp}/{filename}'
+    key = (f'challenges/{challenge.slug}/submissions/'
+           f'{user.pk}/{upload_id}/{filename}')
     gcs_uri = f'{bucket}/{key}'
 
     try:
