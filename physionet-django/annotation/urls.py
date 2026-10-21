@@ -1,6 +1,7 @@
 from django.urls import path
 from annotation.views import (
     AnnotationCollectionCreateAPIView,
+    AnnotationCollectionReadAPIView,
     AnnotationTypeCreateAPIView,
     AnnotationCreateAPIView,
 )
@@ -12,6 +13,11 @@ urlpatterns = [
         "annotations/collection/create/",
         AnnotationCollectionCreateAPIView.as_view(),
         name="annotation-collection-create",
+    ),
+    path(
+        "annotations/collection/<slug:slug>/",
+        AnnotationCollectionReadAPIView.as_view(),
+        name="annotation-collection-read",
     ),
     path(
         "annotations/type/create/",

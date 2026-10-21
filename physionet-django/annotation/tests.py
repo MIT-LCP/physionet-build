@@ -74,6 +74,19 @@ class BaseTest(TestCase):
         )
         return response
 
+    def _read_annotation_collection(self):
+        """
+        Helper function to read annotation collection
+        """
+        response = self.client.get(
+            reverse(
+                "annotation:annotation-collection-read", args=[self.collection.slug]
+            ),
+            format="json",
+            HTTP_AUTHORIZATION=self.auth_header,
+        )
+        return response
+
     def _create_annotation_type(self):
         """
         Helper function to create annotation type
@@ -123,7 +136,7 @@ class AnnotationAPITests(BaseTest):
     def test_create_annotation_collection_correct_scope(self):
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:collections:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -140,7 +153,7 @@ class AnnotationAPITests(BaseTest):
     def test_create_annotation_collection_wrong_scope(self):
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:view",
+            scope="annotations:collections:read",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -163,10 +176,55 @@ class AnnotationAPITests(BaseTest):
         self.assertEqual(response.status_code, 403)
         response = response.json()
 
+    def test_read_annotation_collection_correct_scope(self):
+        self.collection = AnnotationCollection.objects.create(
+            slug="test-collection-text-span",
+            name="Test Collection Text Span",
+            description="Test Description",
+            created_by=self.user,
+        )
+        self.access_token = AccessToken.objects.create(
+            user=self.user,
+            scope="annotations:collections:read annotations:annotations:write",
+            expires=timezone.now() + timedelta(seconds=300),
+            token="secret-access-token-key",
+            application=self.application,
+        )
+        self.auth_header = self._create_authorization_header(self.access_token.token)
+        self.annotation_type = AnnotationType.objects.create(
+            slug="test-annotation-type-text-span",
+            name="Test Annotation Type Text Span",
+            description="Test Description",
+            label_schema={
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string"},
+                    "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+                },
+                "required": ["label"],
+            },
+            allowed_location_type="text_span",
+        )
+        text_span_annotation_data = {
+            "annotation_type": self.annotation_type.slug,
+            "project": self.project.slug,
+            "file_path": "../test-filepath.txt",
+            "labels": {"label": "Test Label", "confidence": 0.5},
+            "location": {
+                "location_type": "text_span",
+                "coord_system": "char_offset",
+                "begin": 100,
+                "end": 200,
+            },
+        }
+        self._create_annotation(data=text_span_annotation_data)
+        response = self._read_annotation_collection()
+        self.assertEqual(response.status_code, 200)
+
     def test_create_annotation_type_correct_scope(self):
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:types:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -228,7 +286,7 @@ class AnnotationAPITests(BaseTest):
 
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:annotations:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -285,7 +343,7 @@ class AnnotationAPITests(BaseTest):
         }
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:annotations:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -343,7 +401,7 @@ class AnnotationAPITests(BaseTest):
         }
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:annotations:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
