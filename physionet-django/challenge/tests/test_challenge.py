@@ -4,16 +4,25 @@ Tests for the challenge app.
 Run with: ENABLE_CHALLENGES=True python manage.py test challenge
 """
 import unittest
+from unittest.mock import patch
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, override_settings
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from challenge.forms import CodeSubmissionForm, ChallengeConfigForm
-from challenge.models import ChallengeConfiguration
-from project.models import ActiveProject
+from challenge.models import (
+    Challenge,
+    ChallengeConfiguration,
+    ChallengeParticipant,
+    Submission,
+    Team,
+    TeamInvitation,
+)
+from project.models import ActiveProject, PublishedProject
+from user.models import User
 from user.test_views import TestMixin
 
 
@@ -217,3 +226,275 @@ class ChallengeConfigViewTests(TestCase):
     def test_step_headers_match_sidebar(self):
         response = self.client.get(reverse('project_upload_agreement', args=[self.project.slug]))
         self.assertContains(response, '<h2 class="form-signin-heading">7. Upload Agreement</h2>', html=True)
+
+
+@unittest.skipUnless(
+    getattr(settings, 'ENABLE_CHALLENGES', False),
+    'Challenge URLs not registered',
+)
+class ChallengeAuthTests(TestCase):
+    """Tests for the challenge_auth decorator and view authorization."""
+    fixtures = ['demo-user.json', 'demo-challenge.json']
+
+    def setUp(self):
+        self.client = Client()
+        self.challenge = Challenge.objects.get(slug='demo-ecg-challenge')
+        self.participant_user = User.objects.get(username='rgmark')
+        self.non_participant = User.objects.get(username='aewj')
+        self.organizer = self.challenge.organizer
+
+    def test_anonymous_gets_403_on_participant_view(self):
+        """Anonymous users get 403 on participant-only views."""
+        url = reverse('challenge_submit', args=[self.challenge.slug])
+        response = self.client.get(url)
+        # login_required redirects to login (302)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login', response.url)
+
+    def test_non_participant_gets_403_on_participant_view(self):
+        """Non-participants get 403 on require_participant views."""
+        self.client.force_login(self.non_participant)
+        url = reverse(
+            'challenge_my_submissions', args=[self.challenge.slug])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_participant_can_access_participant_view(self):
+        """Registered participants can access participant-only views."""
+        self.client.force_login(self.participant_user)
+        url = reverse(
+            'challenge_my_submissions', args=[self.challenge.slug])
+        response = self.client.get(url)
+        self.assertIn(response.status_code, [200, 302])
+
+    def test_non_organizer_gets_403_on_manage_view(self):
+        """Non-organizers get 403 on require_organizer views."""
+        self.client.force_login(self.participant_user)
+        url = reverse('challenge_manage', args=[self.challenge.slug])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_organizer_can_access_manage_view(self):
+        """The challenge organizer can access manage views."""
+        self.client.force_login(self.organizer)
+        url = reverse('challenge_manage', args=[self.challenge.slug])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_submission_detail_idor_blocked(self):
+        """A participant cannot view another participant's solo submission."""
+        # Create a second participant
+        other_user = User.objects.get(username='tompollard')
+        ChallengeParticipant.objects.create(
+            user=other_user, challenge=self.challenge,
+        )
+
+        # Get the existing submission (belongs to rgmark)
+        submission = Submission.objects.get(
+            challenge=self.challenge, submitted_by=self.participant_user,
+        )
+
+        # Log in as the other participant
+        self.client.force_login(other_user)
+        url = reverse(
+            'challenge_submission_detail',
+            args=[self.challenge.slug, submission.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_submitter_can_view_own_submission(self):
+        """The submitter can view their own submission."""
+        self.client.force_login(self.participant_user)
+        submission = Submission.objects.get(
+            challenge=self.challenge, submitted_by=self.participant_user,
+        )
+        url = reverse(
+            'challenge_submission_detail',
+            args=[self.challenge.slug, submission.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_organizer_can_view_submission_without_registering(self):
+        """Organizers can view any submission without being participants."""
+        self.assertFalse(ChallengeParticipant.objects.filter(
+            user=self.organizer, challenge=self.challenge).exists())
+        submission = Submission.objects.get(
+            challenge=self.challenge, submitted_by=self.participant_user,
+        )
+        self.client.force_login(self.organizer)
+        url = reverse(
+            'challenge_submission_detail',
+            args=[self.challenge.slug, submission.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+
+@unittest.skipUnless(
+    getattr(settings, 'ENABLE_CHALLENGES', False),
+    'Challenge URLs not registered',
+)
+class TeamInvitationTests(TestCase):
+    """Responding to team invitations."""
+    fixtures = ['demo-user.json', 'demo-challenge.json']
+
+    def setUp(self):
+        self.challenge = Challenge.objects.get(slug='demo-ecg-challenge')
+        self.team = Team.objects.get(challenge=self.challenge, name='BioSignal Lab')
+        self.captain = User.objects.get(username='jameslawson')
+        # rgmark is registered and not on a team
+        self.invitee = User.objects.get(username='rgmark')
+        self.client.force_login(self.invitee)
+
+    def _invite(self, team=None, email=None):
+        return TeamInvitation.objects.create(
+            team=team or self.team,
+            email=email or self.invitee.email,
+            invited_by=self.captain,
+        )
+
+    def _respond_url(self, invitation, challenge=None):
+        return reverse('challenge_team_invitation_respond',
+                       args=[(challenge or self.challenge).slug, invitation.pk])
+
+    def test_accept_invitation(self):
+        invitation = self._invite()
+        response = self.client.post(self._respond_url(invitation), {'accept': True})
+        self.assertRedirects(response, reverse('challenge_team', args=[self.challenge.slug]))
+        participant = ChallengeParticipant.objects.get(
+            user=self.invitee, challenge=self.challenge)
+        self.assertEqual(participant.team, self.team)
+
+    def test_email_match_is_case_insensitive(self):
+        invitation = self._invite(email=self.invitee.email.upper())
+        response = self.client.get(self._respond_url(invitation))
+        self.assertEqual(response.status_code, 200)
+
+    def test_invitation_for_someone_else_not_found(self):
+        invitation = self._invite(email='someone-else@example.com')
+        response = self.client.get(self._respond_url(invitation))
+        self.assertEqual(response.status_code, 404)
+
+    def test_invitation_from_another_challenge_not_found(self):
+        """An invitation can only be used within its own challenge."""
+        other_project = PublishedProject.objects.exclude(
+            pk=self.challenge.published_project_id).first()
+        other_challenge = Challenge.objects.create(
+            published_project=other_project, slug='other-challenge',
+            organizer=self.captain, teams_enabled=True,
+        )
+        other_team = Team.objects.create(challenge=other_challenge, name='Other')
+        invitation = self._invite(team=other_team)
+        response = self.client.post(self._respond_url(invitation), {'accept': True})
+        self.assertEqual(response.status_code, 404)
+        participant = ChallengeParticipant.objects.get(
+            user=self.invitee, challenge=self.challenge)
+        self.assertIsNone(participant.team)
+
+    def test_cannot_join_second_team(self):
+        participant = ChallengeParticipant.objects.get(
+            user=self.invitee, challenge=self.challenge)
+        participant.team = Team.objects.get(challenge=self.challenge, name='ICU Predictors')
+        participant.save()
+        invitation = self._invite()
+        self.client.post(self._respond_url(invitation), {'accept': True})
+        participant.refresh_from_db()
+        self.assertEqual(participant.team.name, 'ICU Predictors')
+        invitation.refresh_from_db()
+        self.assertIsNone(invitation.response)
+
+    def test_unregistered_invitee_sent_to_registration(self):
+        ChallengeParticipant.objects.filter(
+            user=self.invitee, challenge=self.challenge).update(is_active=False)
+        invitation = self._invite()
+        response = self.client.get(self._respond_url(invitation))
+        self.assertRedirects(
+            response, reverse('challenge_register', args=[self.challenge.slug]),
+            fetch_redirect_response=False)
+
+    def test_invitation_listed_on_team_page(self):
+        invitation = self._invite()
+        response = self.client.get(reverse('challenge_team', args=[self.challenge.slug]))
+        self.assertContains(response, self._respond_url(invitation))
+
+
+@unittest.skipUnless(
+    getattr(settings, 'ENABLE_CHALLENGES', False),
+    'Challenge URLs not registered',
+)
+class CodeSubmissionTests(TestCase):
+    """Uploading a code submission."""
+    fixtures = ['demo-user.json', 'demo-challenge.json']
+
+    def setUp(self):
+        self.challenge = Challenge.objects.get(slug='demo-ecg-challenge')
+        self.user = User.objects.get(username='rgmark')
+        self.client.force_login(self.user)
+        self.url = reverse('challenge_submit', args=[self.challenge.slug])
+
+    def _post(self):
+        archive = SimpleUploadedFile('code.zip', b'PK\x03\x04', content_type='application/zip')
+        return self.client.post(self.url, {'code_archive': archive})
+
+    @override_settings(CHALLENGE_STAGING_BUCKET='')
+    def test_rejected_when_bucket_not_configured(self):
+        before = Submission.objects.count()
+        with patch('challenge.views._upload_code_archive') as upload:
+            self._post()
+        upload.assert_not_called()
+        self.assertEqual(Submission.objects.count(), before)
+
+    @override_settings(CHALLENGE_STAGING_BUCKET='staging-bucket')
+    def test_submission_created_and_queued(self):
+        before = Submission.objects.filter(submitted_by=self.user).count()
+        with patch('challenge.views._upload_code_archive',
+                   return_value='staging-bucket/code.zip'), \
+                patch('challenge.tasks.process_submission', create=True) as task, \
+                self.captureOnCommitCallbacks(execute=True):
+            response = self._post()
+        submission = Submission.objects.filter(submitted_by=self.user).latest('pk')
+        self.assertRedirects(
+            response,
+            reverse('challenge_submission_detail', args=[self.challenge.slug, submission.pk]),
+            fetch_redirect_response=False)
+        self.assertEqual(Submission.objects.filter(submitted_by=self.user).count(), before + 1)
+        task.assert_called_once_with(submission.pk)
+
+    @override_settings(CHALLENGE_STAGING_BUCKET='staging-bucket')
+    def test_daily_limit_enforced(self):
+        self.challenge.max_submissions_per_day = Submission.objects.filter(
+            challenge=self.challenge, submitted_by=self.user,
+            created_datetime__date=timezone.localdate(),
+        ).count()
+        self.challenge.save()
+        before = Submission.objects.count()
+        with patch('challenge.views._upload_code_archive') as upload:
+            self._post()
+        upload.assert_not_called()
+        self.assertEqual(Submission.objects.count(), before)
+
+
+@unittest.skipUnless(
+    getattr(settings, 'ENABLE_CHALLENGES', False),
+    'Challenge URLs not registered',
+)
+class SubmissionSelectTests(TestCase):
+    """Selecting a submission updates the leaderboard entry and ranks."""
+    fixtures = ['demo-user.json', 'demo-challenge.json']
+
+    def test_select_updates_entry_and_ranks(self):
+        challenge = Challenge.objects.get(slug='demo-ecg-challenge')
+        captain = ChallengeParticipant.objects.get(
+            challenge=challenge, team__name='BioSignal Lab', is_team_captain=True,
+        ).user
+        self.client.force_login(captain)
+        response = self.client.post(
+            reverse('challenge_submission_select', args=[challenge.slug, 1]))
+        self.assertEqual(response.status_code, 302)
+
+        from challenge.tasks import recompute_leaderboard
+        recompute_leaderboard.now(challenge.pk)
+        entries = challenge.leaderboard_entries.filter(dataset='val').order_by('rank')
+        self.assertEqual(
+            [(e.team.name if e.team else e.user.username, e.primary_score) for e in entries],
+            [('ICU Predictors', 0.873), ('franwilliams', 0.789), ('BioSignal Lab', 0.762)],
+        )
