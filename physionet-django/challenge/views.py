@@ -234,6 +234,7 @@ def challenge_submit(request, challenge, participant, **kwargs):
                     challenge,
                     *_submission_counts(challenge, request.user))
                 if limit_error:
+                    _delete_gcs_blob(gcs_uri)
                     messages.error(request, limit_error)
                     return redirect(submit_tab_url)
 
@@ -632,3 +633,13 @@ def _upload_code_archive(challenge, user, archive_file):
         raise
 
     return gcs_uri
+
+
+def _delete_gcs_blob(gcs_uri):
+    """Best-effort deletion of an uploaded blob (e.g. after a racing limit check)."""
+    try:
+        from physionet.gcp import ObjectPath
+        obj = ObjectPath(gcs_uri)
+        obj.bucket().blob(obj.key()).delete()
+    except Exception:
+        logger.warning('Failed to delete orphaned blob %s', gcs_uri)
