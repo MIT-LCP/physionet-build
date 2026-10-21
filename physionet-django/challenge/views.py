@@ -217,6 +217,14 @@ def challenge_submit(request, challenge, participant, **kwargs):
         if form.is_valid():
             archive = form.cleaned_data['code_archive']
 
+            sha256 = hashlib.sha256()
+            for chunk in archive.chunks():
+                sha256.update(chunk)
+            archive.seek(0)
+
+            gcs_uri = _upload_code_archive(
+                challenge, request.user, archive)
+
             # Lock the participant row so that parallel uploads from the
             # same user can't both pass the limit check.
             with transaction.atomic():
@@ -228,14 +236,6 @@ def challenge_submit(request, challenge, participant, **kwargs):
                 if limit_error:
                     messages.error(request, limit_error)
                     return redirect(submit_tab_url)
-
-                sha256 = hashlib.sha256()
-                for chunk in archive.chunks():
-                    sha256.update(chunk)
-                archive.seek(0)
-
-                gcs_uri = _upload_code_archive(
-                    challenge, request.user, archive)
 
                 submission = Submission.objects.create(
                     challenge=challenge,
