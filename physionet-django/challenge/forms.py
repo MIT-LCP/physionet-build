@@ -9,6 +9,13 @@ from challenge.models import (
 )
 
 
+ADVANCEMENT_HELP_TEXT = (
+    'Number of top validation submissions per participant or team to score '
+    'on the test set. Their best test score determines their test leaderboard '
+    'entry.'
+)
+
+
 DATETIME_WIDGETS = {
     'registration_open_datetime': forms.DateTimeInput(
         attrs={'type': 'datetime-local'},
@@ -134,6 +141,9 @@ class ChallengeConfigurationForm(ChallengeDateValidationMixin, forms.ModelForm):
 
     class Meta:
         model = ChallengeConfiguration
+        help_texts = {
+            'max_submissions_to_advance': ADVANCEMENT_HELP_TEXT,
+        }
         fields = [
             'registration_open_datetime', 'start_datetime',
             'official_start_datetime', 'end_datetime',
@@ -210,6 +220,9 @@ class ChallengeManageForm(ChallengeDateValidationMixin, forms.ModelForm):
     """
     class Meta:
         model = Challenge
+        help_texts = {
+            'max_submissions_to_advance': ADVANCEMENT_HELP_TEXT,
+        }
         fields = [
             'phase',
             'registration_open_datetime', 'start_datetime',
