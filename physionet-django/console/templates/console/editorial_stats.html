@@ -15,6 +15,7 @@
           <th>Total publications</th>
           <th>Submission to assignment of editor (median days)</th>
           <th>Submission to final publication (median days)</th>
+          <th>Submission to decision time (median days)</th>
         </tr>
         {% for year, values in stats.items %}
           <tr>
@@ -22,6 +23,7 @@
             <td>{{ values.0 }}</td>
             <td>{{ values.1 }}</td>
             <td>{{ values.2 }}</td>
+            <td>{{ values.3 }}</td>
           </tr>
         {% endfor %}
       </table>
