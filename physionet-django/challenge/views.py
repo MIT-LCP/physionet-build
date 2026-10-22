@@ -35,6 +35,23 @@ from challenge.utility import pending_team_invitations, team_invitation_notify
 
 logger = logging.getLogger(__name__)
 
+TEST_SCORING_PUBLIC_ERROR = (
+    'Official test scoring failed. Contact the challenge organizers.'
+)
+
+
+def _submission_display_error(submission, is_organizer):
+    """Expose official test diagnostics only to challenge organizers."""
+    errors = []
+    if submission.error_message:
+        errors.append(submission.error_message)
+    if submission.test_scoring_error_message:
+        errors.append(
+            submission.test_scoring_error_message if is_organizer
+            else TEST_SCORING_PUBLIC_ERROR
+        )
+    return '\n'.join(errors)
+
 
 # ── Auth decorator ──────────────────────────────────────────────────
 
@@ -308,6 +325,8 @@ def challenge_submission_detail(request, challenge, participant,
         'participant': participant,
         'submission': submission,
         'scores': scores,
+        'display_error_message': _submission_display_error(
+            submission, is_organizer),
     })
 
 
@@ -604,7 +623,8 @@ def challenge_submission_status_detail(request, challenge, participant,
             submission.completed_datetime.strftime('%b. %d, %Y %H:%M:%S').replace(' 0', ' ')
             if submission.completed_datetime else None
         ),
-        'error_message': submission.error_message or None,
+        'error_message': _submission_display_error(
+            submission, is_organizer) or None,
         'scores': [
             {
                 'metric_name': s.metric_name,

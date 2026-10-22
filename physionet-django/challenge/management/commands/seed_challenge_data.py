@@ -5,7 +5,7 @@ Usage: python manage.py seed_challenge_data
 
 1. Creates the staging bucket if it doesn't exist
 2. Uploads test data from fixtures/demo-submission-files/test_data/
-3. Uploads validation labels from fixtures/demo-submission-files/validation/
+3. Uploads validation data and separate validation/test labels
 4. Uploads evaluation script from fixtures/demo-submission-files/evaluation/
 5. Uploads a code archive for each demo submission
 """
@@ -82,6 +82,11 @@ class Command(BaseCommand):
         validation_dir = demo_dir / 'validation'
         if validation_dir.exists():
             prefix = strip_bucket(challenge.validation_data_gcs_uri)
+            # Earlier demo seeds put ground truth in participant input.
+            # Remove that object when reseeding an existing emulator bucket.
+            old_labels = bucket.blob(f'{prefix}labels.csv')
+            if old_labels.exists():
+                old_labels.delete()
             uploaded += self._upload_dir(bucket, validation_dir, prefix)
 
         # Upload validation labels (ground truth, separate from input data)

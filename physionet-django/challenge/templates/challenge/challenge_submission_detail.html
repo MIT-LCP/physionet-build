@@ -41,8 +41,8 @@
         <dd class="col-sm-9">{{ submission.description }}</dd>
         {% endif %}
 
-        <dt id="error-row" class="col-sm-3" {% if not submission.error_message %}style="display:none"{% endif %}>Error</dt>
-        <dd id="error-value" class="col-sm-9" {% if not submission.error_message %}style="display:none"{% endif %}><pre>{{ submission.error_message }}</pre></dd>
+        <dt id="error-row" class="col-sm-3" {% if not display_error_message %}style="display:none"{% endif %}>Error</dt>
+        <dd id="error-value" class="col-sm-9" {% if not display_error_message %}style="display:none"{% endif %}><pre>{{ display_error_message }}</pre></dd>
       </dl>
     </div>
   </div>

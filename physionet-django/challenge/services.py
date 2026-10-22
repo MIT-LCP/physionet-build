@@ -155,6 +155,12 @@ class LocalContainerOrchestrator:
         else:
             self.submission.save(update_fields=[field])
 
+    def _save_run_error(self, message, dataset):
+        """Keep official test diagnostics out of participant-visible errors."""
+        field = ('test_scoring_error_message' if dataset == DatasetType.TEST
+                 else 'error_message')
+        self._save_submission_field(field, message)
+
     def build(self):
         """Verify the code archive exists in GCS."""
         if not self.submission.code_archive_gcs_uri:
@@ -248,17 +254,15 @@ class LocalContainerOrchestrator:
             result = self._container.wait(timeout=self.spec.max_runtime_seconds)
         except Exception:
             self._container.stop()
-            self._save_submission_field(
-                'error_message',
-                f'Container timed out after {self.spec.max_runtime_seconds}s.',
-            )
-            raise RuntimeError(self.submission.error_message)
+            message = f'Container timed out after {self.spec.max_runtime_seconds}s.'
+            self._save_run_error(message, dataset)
+            raise RuntimeError(message)
 
         exit_code = result.get('StatusCode', -1)
         if exit_code != 0:
             logs = self._container.logs(tail=50).decode('utf-8', errors='replace')
             error_msg = f'Container exited with code {exit_code}.\n{logs}'
-            self._save_submission_field('error_message', error_msg[:2000])
+            self._save_run_error(error_msg[:2000], dataset)
             raise RuntimeError(error_msg[:2000])
 
         # Participant code controls the output directory. Reject links

@@ -392,6 +392,10 @@ class Submission(models.Model):
         null=True, blank=True,
         help_text='Identifies the worker that owns the current test scoring claim.',
     )
+    test_scoring_error_message = models.TextField(
+        blank=True, default='', db_default='',
+        help_text='Official test scoring diagnostics, visible only to organizers.',
+    )
 
     class Meta:
         ordering = ['-created_datetime']

@@ -287,11 +287,12 @@ def _select_top_n(submissions_qs, spec, n, sort_ascending):
     """
     order_field = 'value' if sort_ascending else '-value'
 
+    # Earlier submissions win equal scores; PK resolves equal timestamps.
     top_scores = Score.objects.filter(
         submission__in=submissions_qs,
         metric_name=spec.primary_metric_name,
         dataset=DatasetType.VAL,
-    ).order_by(order_field)[:n]
+    ).order_by(order_field, 'submission__created_datetime', 'submission_id')[:n]
 
     submission_ids = list(top_scores.values_list('submission_id', flat=True))
 
@@ -330,7 +331,12 @@ def process_test_scoring(submission_id):
 
     # Atomically claim this submission for test scoring.  Only one
     # worker proceeds; the rest return immediately.
-    STALE_CLAIM_MINUTES = 120
+    # Allow the full participant runtime, the evaluator's two-minute limit,
+    # and time for staging and uploads before reclaiming a worker's claim.
+    claim_lifetime = timezone.timedelta(
+        seconds=submission.challenge.submission_spec.max_runtime_seconds + 120,
+        hours=1,
+    )
     claim_id = uuid.uuid4()
     with transaction.atomic():
         locked = Submission.objects.select_for_update().filter(
@@ -344,8 +350,7 @@ def process_test_scoring(submission_id):
             )
             return
         if locked.test_scoring_in_progress:
-            cutoff = timezone.now() - timezone.timedelta(
-                minutes=STALE_CLAIM_MINUTES)
+            cutoff = timezone.now() - claim_lifetime
             if locked.test_scoring_claimed_at and locked.test_scoring_claimed_at > cutoff:
                 logger.info(
                     'Submission %s claimed by another worker, skipping',
@@ -360,9 +365,10 @@ def process_test_scoring(submission_id):
         locked.test_scoring_in_progress = True
         locked.test_scoring_claimed_at = timezone.now()
         locked.test_scoring_claim_id = claim_id
+        locked.test_scoring_error_message = ''
         locked.save(update_fields=[
             'test_scoring_in_progress', 'test_scoring_claimed_at',
-            'test_scoring_claim_id',
+            'test_scoring_claim_id', 'test_scoring_error_message',
         ])
 
     succeeded = False
@@ -380,6 +386,9 @@ def process_test_scoring(submission_id):
             logger.error(
                 'Test scoring failed for submission %s', submission_id,
             )
+            Submission.objects.filter(
+                pk=submission_id, test_scoring_claim_id=claim_id,
+            ).update(test_scoring_error_message='Test scoring did not complete.')
             return
 
         scores_data = orchestrator.extract_scores()
@@ -412,16 +421,22 @@ def process_test_scoring(submission_id):
             'Test scoring completed for submission %s', submission_id,
         )
 
-    except FileNotFoundError:
+    except FileNotFoundError as exc:
         logger.warning(
-            'Code archive not found for submission %s, skipping test scoring',
-            submission_id,
+            'File not found during test scoring for submission %s: %s',
+            submission_id, exc,
         )
+        Submission.objects.filter(
+            pk=submission_id, test_scoring_claim_id=claim_id,
+        ).update(test_scoring_error_message=str(exc)[:2000])
 
-    except Exception:
+    except Exception as exc:
         logger.exception(
             'Test scoring failed for submission %s', submission_id,
         )
+        Submission.objects.filter(
+            pk=submission_id, test_scoring_claim_id=claim_id,
+        ).update(test_scoring_error_message=str(exc)[:2000])
 
     finally:
         if not succeeded:

@@ -6,8 +6,11 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+from unittest import mock
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, override_settings
+
+from challenge.management.commands.seed_challenge_data import Command
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -22,6 +25,53 @@ PRIVATE_FILES = (
 
 
 class DemoSampleTests(SimpleTestCase):
+    @override_settings(
+        CHALLENGE_STORAGE_EMULATOR_HOST='http://fake-gcs',
+        CHALLENGE_STAGING_BUCKET='challenge-staging',
+    )
+    @mock.patch('challenge.models.Submission.objects.filter')
+    @mock.patch('challenge.models.Challenge.objects.get')
+    @mock.patch('challenge.management.commands.seed_challenge_data.storage.Client')
+    def test_reseeding_removes_old_validation_labels(
+            self, storage_client, get_challenge, submissions):
+        challenge = mock.MagicMock()
+        challenge.validation_data_gcs_uri = 'challenge-staging/demo/validation/'
+        challenge.validation_labels_gcs_uri = (
+            'challenge-staging/demo/validation_labels/')
+        challenge.test_data_gcs_uri = 'challenge-staging/demo/test/'
+        challenge.test_labels_gcs_uri = 'challenge-staging/demo/test_labels/'
+        challenge.submission_spec.evaluation_script_gcs_uri = (
+            'challenge-staging/demo/evaluation/evaluate.py')
+        get_challenge.return_value = challenge
+        submissions.return_value = []
+
+        bucket = storage_client.return_value.get_bucket.return_value
+        storage_client.return_value.bucket.return_value = bucket
+        blobs = {}
+        bucket.blob.side_effect = lambda key: blobs.setdefault(
+            key, mock.MagicMock())
+
+        with mock.patch.dict(os.environ):
+            Command().handle()
+
+        old_labels = blobs['demo/validation/labels.csv']
+        old_labels.delete.assert_called_once_with()
+        old_labels.upload_from_filename.assert_not_called()
+        blobs['demo/validation/records.csv'].upload_from_filename.assert_called_once()
+        blobs['demo/validation_labels/labels.csv'].upload_from_filename.assert_called_once()
+
+    def test_seeded_validation_input_contains_only_records(self):
+        bucket = mock.MagicMock()
+        validation_dir = PRIVATE_FILES / 'validation'
+
+        self.assertEqual(
+            Command()._upload_dir(bucket, validation_dir, 'validation/'), 1)
+        bucket.blob.assert_called_once_with('validation/records.csv')
+        self.assertEqual(
+            sorted(path.name for path in validation_dir.iterdir()),
+            ['records.csv'],
+        )
+
     def test_downloadable_archive_contains_current_main_at_root(self):
         with tarfile.open(PUBLIC_FILES / 'sample-entry.tar.gz', 'r:gz') as archive:
             self.assertEqual(archive.getnames(), ['README.txt', 'main.py'])
