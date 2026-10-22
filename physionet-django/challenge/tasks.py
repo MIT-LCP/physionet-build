@@ -15,6 +15,10 @@ from console.tasks import associated_task
 logger = logging.getLogger(__name__)
 
 
+class ValidationScoringPending(Exception):
+    """Official candidates cannot be fixed while validation jobs are active."""
+
+
 @associated_task(Submission, 'submission_id')
 @background()
 def process_submission(submission_id):
@@ -238,52 +242,76 @@ def _update_leaderboard_entry(submission, dataset=DatasetType.VAL):
 
 def _advance_top_submissions(challenge):
     """
-    Select the top N submissions per participant/team and enqueue
-    them for test scoring. Called when transitioning to OFFICIAL phase.
+    Fix the top N submissions per participant/team once, then retry only
+    incomplete members of that selection on subsequent calls.
     """
-    spec = challenge.submission_spec
-    sort_ascending = spec.primary_metric_sort == MetricSort.ASC
-    n = challenge.max_submissions_to_advance
+    with transaction.atomic():
+        challenge = Challenge.objects.select_for_update().get(pk=challenge.pk)
+        selected_ids = list(Submission.objects.filter(
+            challenge=challenge,
+            advanced_to_official=True,
+        ).order_by('pk').values_list('pk', flat=True))
 
-    completed_submissions = Submission.objects.filter(
-        challenge=challenge,
-        status=SubmissionStatus.COMPLETED,
-    )
+        if not selected_ids:
+            active_statuses = [
+                SubmissionStatus.PENDING, SubmissionStatus.BUILDING,
+                SubmissionStatus.RUNNING, SubmissionStatus.SCORING,
+            ]
+            if challenge.submissions.filter(status__in=active_statuses).exists():
+                raise ValidationScoringPending(
+                    'Wait for all validation submissions to finish before '
+                    'selecting official submissions.'
+                )
 
-    if challenge.teams_enabled:
-        # Group by team (team-based submissions)
-        team_ids = completed_submissions.exclude(
-            team__isnull=True,
-        ).values_list('team_id', flat=True).distinct()
+            spec = challenge.submission_spec
+            sort_ascending = spec.primary_metric_sort == MetricSort.ASC
+            n = challenge.max_submissions_to_advance
+            completed = challenge.submissions.filter(
+                status=SubmissionStatus.COMPLETED)
 
-        for team_id in team_ids:
-            team_subs = completed_submissions.filter(team_id=team_id)
-            _select_top_n(team_subs, spec, n, sort_ascending)
+            if challenge.teams_enabled:
+                team_ids = completed.exclude(team__isnull=True).values_list(
+                    'team_id', flat=True).distinct()
+                for team_id in team_ids:
+                    selected_ids.extend(_select_top_n(
+                        completed.filter(team_id=team_id), spec, n,
+                        sort_ascending))
 
-        # Solo submissions (participants who never joined a team)
-        solo_user_ids = completed_submissions.filter(
-            team__isnull=True,
-        ).values_list('submitted_by_id', flat=True).distinct()
+                solo_user_ids = completed.filter(team__isnull=True).values_list(
+                    'submitted_by_id', flat=True).distinct()
+                for user_id in solo_user_ids:
+                    selected_ids.extend(_select_top_n(
+                        completed.filter(submitted_by_id=user_id,
+                                         team__isnull=True),
+                        spec, n, sort_ascending))
+            else:
+                user_ids = completed.values_list(
+                    'submitted_by_id', flat=True).distinct()
+                for user_id in user_ids:
+                    selected_ids.extend(_select_top_n(
+                        completed.filter(submitted_by_id=user_id),
+                        spec, n, sort_ascending))
 
-        for user_id in solo_user_ids:
-            user_subs = completed_submissions.filter(
-                submitted_by_id=user_id, team__isnull=True)
-            _select_top_n(user_subs, spec, n, sort_ascending)
-    else:
-        # Group by user
-        user_ids = completed_submissions.values_list(
-            'submitted_by_id', flat=True,
-        ).distinct()
+            Submission.objects.filter(pk__in=selected_ids).update(
+                advanced_to_official=True)
 
-        for user_id in user_ids:
-            user_subs = completed_submissions.filter(submitted_by_id=user_id)
-            _select_top_n(user_subs, spec, n, sort_ascending)
+        incomplete_ids = list(Submission.objects.filter(
+            pk__in=selected_ids,
+            test_scoring_complete=False,
+        ).order_by('pk').values_list('pk', flat=True))
+
+        def enqueue():
+            for submission_id in incomplete_ids:
+                process_test_scoring(submission_id)
+
+        transaction.on_commit(enqueue)
+
+    return len(incomplete_ids)
 
 
 def _select_top_n(submissions_qs, spec, n, sort_ascending):
     """
-    From the given submissions queryset, find the top N by primary metric
-    on VAL dataset and enqueue them for test scoring.
+    Return the top N submission IDs by validation primary metric.
     """
     order_field = 'value' if sort_ascending else '-value'
 
@@ -294,21 +322,7 @@ def _select_top_n(submissions_qs, spec, n, sort_ascending):
         dataset=DatasetType.VAL,
     ).order_by(order_field, 'submission__created_datetime', 'submission_id')[:n]
 
-    submission_ids = list(top_scores.values_list('submission_id', flat=True))
-
-    Submission.objects.filter(pk__in=submission_ids).update(
-        advanced_to_official=True,
-    )
-
-    already_complete = set(
-        Submission.objects.filter(
-            pk__in=submission_ids,
-            test_scoring_complete=True,
-        ).values_list('pk', flat=True)
-    )
-    for sub_id in submission_ids:
-        if sub_id not in already_complete:
-            process_test_scoring(sub_id)
+    return list(top_scores.values_list('submission_id', flat=True))
 
 
 @associated_task(Submission, 'submission_id')

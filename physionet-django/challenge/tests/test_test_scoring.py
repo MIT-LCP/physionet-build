@@ -9,9 +9,15 @@ from django.urls import reverse
 from django.utils import timezone
 
 from challenge.enums import DatasetType, SubmissionStatus
+from challenge.forms import ChallengeManageForm
 from challenge.models import Score, Submission
 from challenge.services import LocalContainerOrchestrator
-from challenge.tasks import _select_top_n, process_test_scoring
+from challenge.tasks import (
+    ValidationScoringPending,
+    _advance_top_submissions,
+    _select_top_n,
+    process_test_scoring,
+)
 
 
 class TestScoringClaims(TestCase):
@@ -179,12 +185,74 @@ class TestScoringClaims(TestCase):
         queryset = Submission.objects.filter(
             pk__in=[submission.pk for submission in submissions])
 
-        with mock.patch('challenge.tasks.process_test_scoring') as enqueue:
-            _select_top_n(queryset, challenge.submission_spec, 1, False)
-        enqueue.assert_called_once_with(submissions[1].pk)
+        self.assertEqual(
+            _select_top_n(queryset, challenge.submission_spec, 1, False),
+            [submissions[1].pk],
+        )
 
         Submission.objects.filter(pk__in=[s.pk for s in submissions]).update(
             created_datetime=older)
+        self.assertEqual(
+            _select_top_n(queryset, challenge.submission_spec, 1, False),
+            [submissions[0].pk],
+        )
+
+    def test_selection_waits_for_validation_jobs(self):
+        with self.assertRaises(ValidationScoringPending):
+            _advance_top_submissions(self.submission.challenge)
+        self.assertFalse(Submission.objects.filter(
+            challenge=self.submission.challenge,
+            advanced_to_official=True,
+        ).exists())
+
+    def test_selection_stays_fixed_when_scores_or_limit_change(self):
+        challenge = self.submission.challenge
+        challenge.teams_enabled = False
+        challenge.max_submissions_to_advance = 1
+        challenge.save(update_fields=[
+            'teams_enabled', 'max_submissions_to_advance',
+        ])
+        Submission.objects.filter(challenge=challenge).exclude(
+            pk=self.submission.pk).update(status=SubmissionStatus.FAILED)
+        self.submission.status = SubmissionStatus.COMPLETED
+        self.submission.save(update_fields=['status'])
+        Score.objects.create(
+            submission=self.submission, metric_name='AUROC',
+            dataset=DatasetType.VAL, value=0.8,
+        )
+
         with mock.patch('challenge.tasks.process_test_scoring') as enqueue:
-            _select_top_n(queryset, challenge.submission_spec, 1, False)
-        enqueue.assert_called_once_with(submissions[0].pk)
+            with self.captureOnCommitCallbacks(execute=True):
+                queued = _advance_top_submissions(challenge)
+        self.assertEqual(queued, 1)
+        enqueue.assert_called_once_with(self.submission.pk)
+
+        better = Submission.objects.create(
+            challenge=challenge, submitted_by=self.submission.submitted_by,
+            status=SubmissionStatus.COMPLETED,
+            code_archive_gcs_uri='challenge-staging/better.tar.gz',
+        )
+        Score.objects.create(
+            submission=better, metric_name='AUROC',
+            dataset=DatasetType.VAL, value=0.9,
+        )
+        challenge.max_submissions_to_advance = 2
+        challenge.save(update_fields=['max_submissions_to_advance'])
+
+        with mock.patch('challenge.tasks.process_test_scoring') as enqueue:
+            with self.captureOnCommitCallbacks(execute=True):
+                queued = _advance_top_submissions(challenge)
+        self.assertEqual(queued, 1)
+        enqueue.assert_called_once_with(self.submission.pk)
+        self.assertTrue(ChallengeManageForm(
+            instance=challenge).fields['max_submissions_to_advance'].disabled)
+        better.refresh_from_db()
+        self.assertFalse(better.advanced_to_official)
+
+        self.submission.test_scoring_complete = True
+        self.submission.save(update_fields=['test_scoring_complete'])
+        with mock.patch('challenge.tasks.process_test_scoring') as enqueue:
+            with self.captureOnCommitCallbacks(execute=True):
+                queued = _advance_top_submissions(challenge)
+        self.assertEqual(queued, 0)
+        enqueue.assert_not_called()

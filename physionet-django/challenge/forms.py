@@ -219,6 +219,14 @@ class ChallengeManageForm(ChallengeDateValidationMixin, forms.ModelForm):
         ]
         widgets = DATETIME_WIDGETS
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if (self.instance.pk and self.instance.submissions.filter(
+                advanced_to_official=True).exists()):
+            field = self.fields['max_submissions_to_advance']
+            field.disabled = True
+            field.help_text = 'Locked after official submissions are selected.'
+
 
 class SubmissionSpecForm(forms.ModelForm):
     class Meta:

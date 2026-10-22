@@ -148,6 +148,7 @@
       cancelled: 'badge-secondary',
     };
     var statusUrl = '{% url "challenge_submission_statuses" challenge.slug %}';
+    var csrfToken = '{{ csrf_token }}';
     var pollTimer = null;
 
     function hasActiveSubmissions() {
@@ -187,7 +188,7 @@
             if (lbCell && info.status === 'completed') {
               {% if not challenge_participant.team or challenge_participant.is_team_captain %}
               lbCell.innerHTML = '<form method="post" action="{% url "challenge_submission_select" challenge.slug 0 %}'.replace('/0/select/', '/' + id + '/select/') + '" style="display:inline;">' +
-                '<input type="hidden" name="csrfmiddlewaretoken" value="' + document.querySelector('[name=csrfmiddlewaretoken]').value + '">' +
+                '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrfToken + '">' +
                 '<button type="submit" class="btn btn-sm btn-outline-success">Select</button></form>';
               {% endif %}
             }

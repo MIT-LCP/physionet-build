@@ -28,6 +28,10 @@ from user.test_views import TestMixin
 
 class ChallengeIntegrityTests(TestCase):
     """Tests for the challenge checks in ActiveProject.check_integrity()."""
+    fixtures = [
+        'demo-training-type.json', 'demo-user.json',
+        'site-data.json', 'demo-project.json',
+    ]
 
     def setUp(self):
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
@@ -59,10 +63,36 @@ class ChallengeIntegrityTests(TestCase):
             start_datetime=now,
             end_datetime=now + timezone.timedelta(days=30),
             primary_metric={'name': 'auc', 'sort': 'desc'},
+            validation_data_gcs_uri='challenge-staging/data/val',
+            test_data_gcs_uri='challenge-staging/data/test',
             validation_labels_gcs_uri='challenge-staging/labels/val',
             test_labels_gcs_uri='challenge-staging/labels/test',
             evaluation_script_gcs_uri='challenge-staging/eval/evaluate.py',
         )
+        passed, errors = self.check()
+        self.assertTrue(passed, errors)
+
+    def test_input_data_required_for_publication(self):
+        now = timezone.now()
+        config = ChallengeConfiguration.objects.create(
+            active_project_id=self.project_id,
+            start_datetime=now,
+            end_datetime=now + timezone.timedelta(days=30),
+            primary_metric={'name': 'auc', 'sort': 'desc'},
+            validation_labels_gcs_uri='challenge-staging/labels/val',
+            test_labels_gcs_uri='challenge-staging/labels/test',
+            evaluation_script_gcs_uri='challenge-staging/eval/evaluate.py',
+        )
+        passed, errors = self.check()
+        self.assertFalse(passed)
+        self.assertIn('Validation data must be uploaded for scoring.', errors)
+        self.assertIn('Test data must be uploaded for scoring.', errors)
+
+        config.validation_data_gcs_uri = 'challenge-staging/data/val'
+        config.test_data_gcs_uri = 'challenge-staging/data/test'
+        config.save(update_fields=[
+            'validation_data_gcs_uri', 'test_data_gcs_uri',
+        ])
         passed, errors = self.check()
         self.assertTrue(passed, errors)
 

@@ -135,21 +135,26 @@
   <div class="card mt-3">
     <div class="card-header"><h4>Test Scoring</h4></div>
     <div class="card-body">
-      <p>
-        Select the top {{ challenge.max_submissions_to_advance }} submission(s) per
-        {% if challenge.teams_enabled %}team{% else %}participant{% endif %}
-        based on validation scores and re-evaluate them against the test dataset.
-      </p>
       {% if advanced_count > 0 %}
+      <p>The official selection is fixed. Retry test scoring for any selected submissions that have not completed it.</p>
       <p>
-        <strong>{{ advanced_count }}</strong> submission(s) advanced so far,
+        <strong>{{ advanced_count }}</strong> submission(s) selected,
         <strong>{{ test_scored_count }}</strong> scored against test data.
+      </p>
+      {% else %}
+      <p>
+        After all validation submissions finish, select the top
+        {{ challenge.max_submissions_to_advance }} submission(s) per
+        {% if challenge.teams_enabled %}team{% else %}participant{% endif %}
+        based on validation scores and evaluate them against the test dataset.
       </p>
       {% endif %}
       <form method="post" action="{% url 'challenge_run_test_scoring' challenge.slug %}"
-            onsubmit="return confirm('This will run test scoring for the top submissions. Continue?');">
+            onsubmit="return confirm('Queue test scoring for the selected submissions?');">
         {% csrf_token %}
-        <button type="submit" class="btn btn-warning">Run Test Scoring</button>
+        <button type="submit" class="btn btn-warning">
+          {% if advanced_count > 0 %}Retry Incomplete Test Scoring{% else %}Select and Run Test Scoring{% endif %}
+        </button>
       </form>
     </div>
   </div>

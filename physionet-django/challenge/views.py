@@ -27,7 +27,6 @@ from challenge.models import (
     Challenge,
     ChallengeParticipant,
     LeaderboardEntry,
-    Score,
     Submission,
     TeamInvitation,
 )
@@ -677,7 +676,7 @@ def challenge_manage(request, challenge, participant, **kwargs):
 
     spec = getattr(challenge, 'submission_spec', None)
 
-    # Count how many submissions would be advanced for test scoring
+    # Show the fixed official selection and completed test evaluations.
     test_scoring_eligible = (
         challenge.phase in (ChallengePhase.OFFICIAL, ChallengePhase.RESULTS)
         and spec
@@ -685,10 +684,10 @@ def challenge_manage(request, challenge, participant, **kwargs):
     advanced_count = challenge.submissions.filter(
         advanced_to_official=True,
     ).count() if test_scoring_eligible else 0
-    test_scored_count = Score.objects.filter(
-        submission__challenge=challenge,
-        dataset=DatasetType.TEST,
-    ).values('submission').distinct().count() if test_scoring_eligible else 0
+    test_scored_count = challenge.submissions.filter(
+        advanced_to_official=True,
+        test_scoring_complete=True,
+    ).count() if test_scoring_eligible else 0
 
     return render(request, 'challenge/challenge_manage.html', {
         'challenge': challenge,
@@ -716,16 +715,18 @@ def challenge_run_test_scoring(request, challenge, participant, **kwargs):
         )
         return redirect('challenge_manage', challenge_slug=challenge.slug)
 
-    from challenge.tasks import _advance_top_submissions
-    _advance_top_submissions(challenge)
-
-    advanced_count = challenge.submissions.filter(
-        advanced_to_official=True,
-    ).count()
-    messages.success(
-        request,
-        f'Test scoring queued for {advanced_count} top submission(s).',
+    from challenge.tasks import (
+        ValidationScoringPending, _advance_top_submissions,
     )
+    try:
+        queued_count = _advance_top_submissions(challenge)
+    except ValidationScoringPending as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(
+            request,
+            f'Test scoring queued for {queued_count} selected submission(s).',
+        )
     return redirect('challenge_manage', challenge_slug=challenge.slug)
 
 
