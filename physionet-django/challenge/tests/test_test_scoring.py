@@ -166,6 +166,24 @@ class TestScoringClaims(TestCase):
             self.client.get(status_url).json()['error_message'],
         )
 
+    @unittest.skipUnless(
+        getattr(settings, 'ENABLE_CHALLENGES', False),
+        'Challenge URLs not registered',
+    )
+    def test_status_times_match_detail_page(self):
+        """Polled times use the site time zone and format, like the page."""
+        self.submission.started_datetime = timezone.make_aware(
+            timezone.datetime(2026, 1, 15, 3, 5, 3))
+        self.submission.save(update_fields=['started_datetime'])
+
+        args = [self.submission.challenge.slug, self.submission.pk]
+        self.client.force_login(self.submission.submitted_by)
+        detail = self.client.get(reverse('challenge_submission_detail', args=args))
+        status = self.client.get(
+            reverse('challenge_submission_status_detail', args=args)).json()
+        self.assertContains(detail, 'Jan. 15, 2026 03:05:03')
+        self.assertEqual(status['started_datetime'], 'Jan. 15, 2026 03:05:03')
+
     def test_equal_scores_use_creation_time_then_submission_id(self):
         challenge = self.submission.challenge
         submissions = [Submission.objects.create(
