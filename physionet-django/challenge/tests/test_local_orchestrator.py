@@ -8,9 +8,11 @@ import json
 import os
 import tarfile
 import tempfile
+import unittest
 import zipfile
 from unittest import mock
 
+from django.conf import settings
 from django.test import TestCase, override_settings
 
 from challenge.services import (
@@ -74,9 +76,9 @@ class TestGetOrchestrator(TestCase):
 class TestLocalContainerOrchestratorBuild(TestCase):
     """Test the build phase checks archive existence in GCS."""
 
-    @mock.patch('physionet.gcp.ObjectPath')
-    def test_build_success(self, MockObjectPath):
-        mock_obj = MockObjectPath.return_value
+    @mock.patch('challenge.services._gcs_path')
+    def test_build_success(self, mock_gcs_path):
+        mock_obj = mock_gcs_path.return_value
         mock_blob = mock.MagicMock()
         mock_blob.exists.return_value = True
         mock_obj.bucket.return_value.blob.return_value = mock_blob
@@ -85,12 +87,13 @@ class TestLocalContainerOrchestratorBuild(TestCase):
         orch = LocalContainerOrchestrator(submission)
         orch.build()
 
-        MockObjectPath.assert_called_once_with(submission.code_archive_gcs_uri)
+        mock_gcs_path.assert_called_once_with(
+            submission.code_archive_gcs_uri)
         mock_blob.exists.assert_called_once()
 
-    @mock.patch('physionet.gcp.ObjectPath')
-    def test_build_missing_archive(self, MockObjectPath):
-        mock_obj = MockObjectPath.return_value
+    @mock.patch('challenge.services._gcs_path')
+    def test_build_missing_archive(self, mock_gcs_path):
+        mock_obj = mock_gcs_path.return_value
         mock_blob = mock.MagicMock()
         mock_blob.exists.return_value = False
         mock_obj.bucket.return_value.blob.return_value = mock_blob
@@ -114,7 +117,7 @@ class TestLocalContainerOrchestratorRun(TestCase):
             info.size = len(content)
             tar.addfile(info, _io.BytesIO(content))
 
-    def _make_orchestrator(self, MockObjectPath, submission=None):
+    def _make_orchestrator(self, mock_gcs_path, submission=None):
         """Set up an orchestrator with mocked GCS and Docker."""
         if submission is None:
             submission = _make_submission_mock()
@@ -152,7 +155,7 @@ class TestLocalContainerOrchestratorRun(TestCase):
                     'challenges/test-challenge/output/42')
             return obj
 
-        MockObjectPath.side_effect = side_effect
+        mock_gcs_path.side_effect = side_effect
 
         # Patch _run_evaluation to skip actual script execution.
         # Evaluation-specific behaviour is tested separately.
@@ -160,11 +163,11 @@ class TestLocalContainerOrchestratorRun(TestCase):
 
         return orch, mock_client, mock_container
 
-    @mock.patch('physionet.gcp.ObjectPath')
+    @mock.patch('challenge.services._gcs_path')
     @mock.patch('docker.DockerClient')
-    def test_run_successful_container(self, MockDockerClient, MockObjectPath):
+    def test_run_successful_container(self, MockDockerClient, mock_gcs_path):
         orch, mock_client, mock_container = self._make_orchestrator(
-            MockObjectPath)
+            mock_gcs_path)
 
         orch.run()
 
@@ -188,10 +191,10 @@ class TestLocalContainerOrchestratorRun(TestCase):
 
         orch.cleanup()
 
-    @mock.patch('physionet.gcp.ObjectPath')
-    def test_run_failed_container(self, MockObjectPath):
+    @mock.patch('challenge.services._gcs_path')
+    def test_run_failed_container(self, mock_gcs_path):
         orch, mock_client, mock_container = self._make_orchestrator(
-            MockObjectPath)
+            mock_gcs_path)
 
         mock_container.wait.return_value = {'StatusCode': 1}
         mock_container.logs.return_value = b'Error: file not found'
@@ -203,10 +206,10 @@ class TestLocalContainerOrchestratorRun(TestCase):
 
         orch.cleanup()
 
-    @mock.patch('physionet.gcp.ObjectPath')
-    def test_run_container_timeout(self, MockObjectPath):
+    @mock.patch('challenge.services._gcs_path')
+    def test_run_container_timeout(self, mock_gcs_path):
         orch, mock_client, mock_container = self._make_orchestrator(
-            MockObjectPath)
+            mock_gcs_path)
 
         mock_container.wait.side_effect = Exception('timeout')
 
@@ -231,14 +234,14 @@ class TestLocalContainerOrchestratorPoll(TestCase):
 class TestLocalContainerOrchestratorExtractScores(TestCase):
     """Test score extraction from GCS."""
 
-    @mock.patch('physionet.gcp.ObjectPath')
+    @mock.patch('challenge.services._gcs_path')
     @override_settings(CHALLENGE_STAGING_BUCKET='staging-bucket')
-    def test_extract_scores_success(self, MockObjectPath):
+    def test_extract_scores_success(self, mock_gcs_path):
         submission = _make_submission_mock()
         orch = LocalContainerOrchestrator(submission)
 
         scores = {'accuracy': 0.95, 'f1': 0.88}
-        mock_obj = MockObjectPath.return_value
+        mock_obj = mock_gcs_path.return_value
         mock_blob = mock.MagicMock()
         mock_blob.exists.return_value = True
         mock_blob.download_as_text.return_value = json.dumps(scores)
@@ -247,13 +250,13 @@ class TestLocalContainerOrchestratorExtractScores(TestCase):
         result = orch.extract_scores()
         self.assertEqual(result, scores)
 
-    @mock.patch('physionet.gcp.ObjectPath')
+    @mock.patch('challenge.services._gcs_path')
     @override_settings(CHALLENGE_STAGING_BUCKET='staging-bucket')
-    def test_extract_scores_missing(self, MockObjectPath):
+    def test_extract_scores_missing(self, mock_gcs_path):
         submission = _make_submission_mock()
         orch = LocalContainerOrchestrator(submission)
 
-        mock_obj = MockObjectPath.return_value
+        mock_obj = mock_gcs_path.return_value
         mock_blob = mock.MagicMock()
         mock_blob.exists.return_value = False
         mock_obj.bucket.return_value.blob.return_value = mock_blob
@@ -351,3 +354,50 @@ class TestEvaluationRequired(TestCase):
         with self.assertRaises(RuntimeError) as ctx:
             orch._run_evaluation(output_dir)
         self.assertIn('evaluation script', str(ctx.exception))
+
+
+class TestOutputFileCheck(TestCase):
+    """Participant output may only contain regular files and directories."""
+
+    def test_symlink_rejected(self):
+        from challenge.services import _check_output_files
+
+        with tempfile.TemporaryDirectory() as output_dir:
+            os.makedirs(os.path.join(output_dir, 'sub'))
+            with open(os.path.join(output_dir, 'sub', 'predictions.json'), 'w') as f:
+                f.write('[]')
+            _check_output_files(output_dir)
+
+            os.symlink('../labels/labels.csv',
+                       os.path.join(output_dir, 'sub', 'leak.csv'))
+            with self.assertRaises(RuntimeError) as ctx:
+                _check_output_files(output_dir)
+            self.assertIn('leak.csv', str(ctx.exception))
+
+
+@unittest.skipUnless(
+    getattr(settings, 'ENABLE_CHALLENGES', False),
+    'Challenge URLs not registered',
+)
+class TestProcessSubmission(TestCase):
+    """Run the process_submission task with a stubbed orchestrator."""
+    fixtures = ['demo-user.json', 'demo-challenge.json']
+
+    def test_scored_submission_completes(self):
+        from challenge.enums import SubmissionStatus
+        from challenge.models import Submission
+        from challenge.tasks import process_submission
+
+        submission = Submission.objects.get(status=SubmissionStatus.PENDING)
+        orchestrator = mock.MagicMock()
+        orchestrator.poll.return_value = True
+        orchestrator.extract_scores.return_value = {'AUROC': 0.9}
+        with mock.patch('challenge.services.get_orchestrator',
+                        return_value=orchestrator):
+            process_submission.now(submission.pk)
+
+        submission.refresh_from_db()
+        self.assertEqual(submission.status, SubmissionStatus.COMPLETED,
+                         submission.error_message)
+        self.assertEqual(submission.scores.get().value, 0.9)
+        orchestrator.cleanup.assert_called_once_with()

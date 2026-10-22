@@ -58,7 +58,7 @@ class Command(BaseCommand):
 
         from challenge.models import Challenge, Submission
         try:
-            challenge = Challenge.objects.get(slug='ahe-prediction-challenge')
+            challenge = Challenge.objects.get(slug='demo-ecg-challenge')
         except Challenge.DoesNotExist:
             raise CommandError(
                 'Demo challenge not found. Run "python manage.py loaddemo" first.'

@@ -364,12 +364,12 @@ The challenge submission pipeline uses GCS for file storage and a container orch
    python manage.py seed_challenge_data
    ```
 
-   `seed_challenge_data` uploads the sample test data files from `challenge/fixtures/demo-submission-files/` to the fake GCS staging bucket. It only runs when `STORAGE_EMULATOR_HOST` is set.
+   `seed_challenge_data` uploads the sample test data files from `challenge/fixtures/demo-submission-files/` to the fake GCS staging bucket. It only runs when `CHALLENGE_STORAGE_EMULATOR_HOST` is set.
 
 ### Testing the pipeline
 
 1. Create a challenge with a submission spec (base image, entrypoint command, resource limits), or use the demo challenge loaded above.
-2. Submit a code archive (`.tar.gz`) containing code that writes `scores.json` to the `OUTPUT_DIR` environment variable.
+2. Submit a code archive (`.tar.gz`) containing code that writes its predictions to the directory in the `OUTPUT_DIR` environment variable. The challenge's evaluation script then scores them and writes `scores.json`.
 3. The submission should transition through: PENDING → BUILDING → RUNNING → SCORING → COMPLETED.
 4. Scores should appear on the leaderboard.
 
@@ -377,8 +377,8 @@ The challenge submission pipeline uses GCS for file storage and a container orch
 
 The `CHALLENGE_CONTAINER_BACKEND` setting controls which orchestrator is used:
 
-- `cloud_run` (default) — uses Google Cloud Run Jobs (requires GCP credentials)
-- `local_docker` — uses the local Docker daemon via docker-py
+- `local_docker` (default): uses the local Docker daemon via docker-py
+- `cloud_run`: uses Google Cloud Run Jobs (not yet implemented)
 
 The `get_orchestrator()` factory in `challenge/services.py` selects the backend. The background task (`process_submission`) calls the same interface regardless of backend.
 

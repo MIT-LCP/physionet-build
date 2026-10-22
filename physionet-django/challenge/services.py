@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import shutil
+import stat
 import tarfile
 import tempfile
 import zipfile
@@ -16,6 +17,12 @@ from django.conf import settings
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
+
+
+def _gcs_path(uri):
+    """Build an ObjectPath that uses the challenge storage client."""
+    from physionet.gcp import ObjectPath, get_challenge_storage_client
+    return ObjectPath(uri, client=get_challenge_storage_client())
 
 
 class ContainerOrchestrator:
@@ -64,14 +71,12 @@ class ContainerOrchestrator:
 
     def build(self):
         """Verify the code archive exists in GCS and prepare staging."""
-        from physionet.gcp import ObjectPath
-
         if not self.submission.code_archive_gcs_uri:
             raise FileNotFoundError(
                 f'No code archive URI set for submission {self.submission.pk}'
             )
 
-        archive_path = ObjectPath(self.submission.code_archive_gcs_uri)
+        archive_path = _gcs_path(self.submission.code_archive_gcs_uri)
         blob = archive_path.bucket().blob(archive_path.key())
         if not blob.exists():
             raise FileNotFoundError(
@@ -134,14 +139,12 @@ class LocalContainerOrchestrator:
 
     def build(self):
         """Verify the code archive exists in GCS."""
-        from physionet.gcp import ObjectPath
-
         if not self.submission.code_archive_gcs_uri:
             raise FileNotFoundError(
                 f'No code archive URI set for submission {self.submission.pk}'
             )
 
-        archive_path = ObjectPath(self.submission.code_archive_gcs_uri)
+        archive_path = _gcs_path(self.submission.code_archive_gcs_uri)
         blob = archive_path.bucket().blob(archive_path.key())
         if not blob.exists():
             raise FileNotFoundError(
@@ -152,8 +155,6 @@ class LocalContainerOrchestrator:
 
     def run(self):
         """Run the submission container locally using Docker."""
-        from physionet.gcp import ObjectPath
-
         self._tmpdir = tempfile.mkdtemp(prefix='challenge_')
         code_dir = os.path.join(self._tmpdir, 'code')
         input_dir = os.path.join(self._tmpdir, 'input')
@@ -163,7 +164,7 @@ class LocalContainerOrchestrator:
         os.makedirs(output_dir)
 
         # Download and extract code archive from GCS
-        archive_obj = ObjectPath(self.submission.code_archive_gcs_uri)
+        archive_obj = _gcs_path(self.submission.code_archive_gcs_uri)
         archive_blob = archive_obj.bucket().blob(archive_obj.key())
         archive_local = os.path.join(self._tmpdir, 'archive')
         archive_blob.download_to_filename(archive_local)
@@ -182,7 +183,7 @@ class LocalContainerOrchestrator:
         if input_data_uri:
             if input_data_uri.startswith('gs://'):
                 input_data_uri = input_data_uri[5:]
-            _download_gcs_data(ObjectPath(input_data_uri), input_dir)
+            _download_gcs_data(_gcs_path(input_data_uri), input_dir)
 
         # Build container config
         mem_limit = f'{self.spec.max_memory_mb}m'
@@ -236,11 +237,15 @@ class LocalContainerOrchestrator:
             self.submission.save(update_fields=['error_message'])
             raise RuntimeError(error_msg[:2000])
 
+        # Participant code controls the output directory. Reject links
+        # and special files before the worker copies or uploads anything.
+        _check_output_files(output_dir)
+
         # Run the evaluation script to score predictions against labels
         self._run_evaluation(output_dir)
 
         # Upload output files to GCS
-        output_obj = ObjectPath(self.output_gcs_path)
+        output_obj = _gcs_path(self.output_gcs_path)
         output_bucket = output_obj.bucket()
         for root, _dirs, files in os.walk(output_dir):
             for fname in files:
@@ -262,8 +267,6 @@ class LocalContainerOrchestrator:
 
         It must write a JSON dict of {metric_name: value} to the output.
         """
-        from physionet.gcp import ObjectPath
-
         eval_uri = self.spec.evaluation_script_gcs_uri
         if not eval_uri:
             raise RuntimeError(
@@ -274,7 +277,7 @@ class LocalContainerOrchestrator:
         # Download the evaluation script
         eval_dir = os.path.join(self._tmpdir, 'evaluation')
         os.makedirs(eval_dir, exist_ok=True)
-        eval_obj = ObjectPath(eval_uri)
+        eval_obj = _gcs_path(eval_uri)
         eval_blob = eval_obj.bucket().blob(eval_obj.key())
         if not eval_blob.exists():
             raise FileNotFoundError(
@@ -290,7 +293,7 @@ class LocalContainerOrchestrator:
         if val_uri:
             if val_uri.startswith('gs://'):
                 val_uri = val_uri[5:]
-            _download_gcs_data(ObjectPath(val_uri), labels_dir)
+            _download_gcs_data(_gcs_path(val_uri), labels_dir)
 
         # Copy predictions so the evaluator gets a read-only snapshot
         # while writing scores.json to the real output directory.
@@ -320,8 +323,8 @@ class LocalContainerOrchestrator:
                 logs = eval_container.logs(tail=50).decode(
                     'utf-8', errors='replace')
                 raise RuntimeError(
-                    f'Evaluation script failed (exit {exit_code}):'
-                    f'\n{logs}'[:2000])
+                    (f'Evaluation script failed (exit {exit_code}):'
+                     f'\n{logs}')[:2000])
         finally:
             eval_container.remove(force=True)
 
@@ -334,10 +337,8 @@ class LocalContainerOrchestrator:
 
     def extract_scores(self):
         """Read scores.json from the output GCS path and return parsed metrics."""
-        from physionet.gcp import ObjectPath
-
         scores_uri = f'{self.output_gcs_path}/scores.json'
-        scores_path = ObjectPath(scores_uri)
+        scores_path = _gcs_path(scores_uri)
         blob = scores_path.bucket().blob(scores_path.key())
 
         if not blob.exists():
@@ -415,6 +416,23 @@ def _download_gcs_data(obj_path, dest_dir):
             shutil.copy2(local_file, dest_dir)
     finally:
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def _check_output_files(output_dir):
+    """Reject anything in output_dir that is not a regular file or directory.
+
+    Symlinks would otherwise be followed on the worker when the output is
+    copied for the evaluator and uploaded to GCS.
+    """
+    for root, dirs, files in os.walk(output_dir):
+        for name in dirs + files:
+            path = os.path.join(root, name)
+            mode = os.lstat(path).st_mode
+            if not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
+                raise RuntimeError(
+                    'Output must contain only regular files and directories: '
+                    f'{os.path.relpath(path, output_dir)}'
+                )
 
 
 def _safe_extract_tar(tar, dest):

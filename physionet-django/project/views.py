@@ -1622,8 +1622,9 @@ def _upload_challenge_data_files(form, config, slug):
         ('evaluation_script_file', 'evaluation', 'evaluation_script_gcs_uri'),
     ]
 
-    from physionet.gcp import ObjectPath
+    from physionet.gcp import ObjectPath, get_challenge_storage_client
 
+    client = get_challenge_storage_client()
     updated = False
     for field_name, subdir, uri_field in upload_map:
         uploaded_file = form.cleaned_data.get(field_name)
@@ -1634,7 +1635,7 @@ def _upload_challenge_data_files(form, config, slug):
         gcs_uri = f'{bucket}/{key}'
 
         try:
-            obj = ObjectPath(gcs_uri)
+            obj = ObjectPath(gcs_uri, client=client)
             blob = obj.bucket().blob(obj.key())
             blob.upload_from_file(uploaded_file, rewind=True)
         except Exception:

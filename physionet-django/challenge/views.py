@@ -622,8 +622,9 @@ def challenge_download_evaluation_script(request, challenge, participant, **kwar
     if not spec or not spec.evaluation_script_gcs_uri:
         raise Http404
 
-    from physionet.gcp import ObjectPath
-    obj = ObjectPath(spec.evaluation_script_gcs_uri)
+    from physionet.gcp import ObjectPath, get_challenge_storage_client
+    obj = ObjectPath(spec.evaluation_script_gcs_uri,
+                     client=get_challenge_storage_client())
     blob = obj.bucket().blob(obj.key())
     content = blob.download_as_bytes()
     filename = os.path.basename(obj.key())
@@ -660,8 +661,9 @@ def _upload_code_archive(challenge, user, archive_file):
     gcs_uri = f'{bucket}/{key}'
 
     try:
-        from physionet.gcp import ObjectPath
-        obj = ObjectPath(gcs_uri)
+        from physionet.gcp import ObjectPath, get_challenge_storage_client
+        client = get_challenge_storage_client()
+        obj = ObjectPath(gcs_uri, client=client)
         blob = obj.bucket().blob(obj.key())
         blob.upload_from_file(archive_file, rewind=True)
     except Exception:
@@ -674,8 +676,8 @@ def _upload_code_archive(challenge, user, archive_file):
 def _delete_gcs_blob(gcs_uri):
     """Best-effort deletion of an uploaded blob (e.g. after a racing limit check)."""
     try:
-        from physionet.gcp import ObjectPath
-        obj = ObjectPath(gcs_uri)
+        from physionet.gcp import ObjectPath, get_challenge_storage_client
+        obj = ObjectPath(gcs_uri, client=get_challenge_storage_client())
         obj.bucket().blob(obj.key()).delete()
     except Exception:
         logger.warning('Failed to delete orphaned blob %s', gcs_uri)
