@@ -52,6 +52,13 @@ def _submission_display_error(submission, is_organizer):
     return '\n'.join(errors)
 
 
+def _format_datetime(value):
+    """Format like the detail template's |date filter, in the site time zone."""
+    if not value:
+        return None
+    return date_format(timezone.localtime(value), 'N j, Y H:i:s')
+
+
 # ── Auth decorator ──────────────────────────────────────────────────
 
 def challenge_auth(require_participant=False, require_organizer=False):
