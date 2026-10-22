@@ -2299,6 +2299,18 @@ class TestProjectViewsMetric(TestMixin):
         cache.clear()
         self.assertEqual(self.client.get(url).context['project_views_count'], 2)
 
+    def test_view_counts_single_query(self):
+        """Counts for all versions come from one query, then from the cache."""
+        v1 = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        v2 = self.add_version(v1, '10.5.25')
+        ContentType.objects.get_for_model(PublishedProject)
+        with self.assertNumQueries(1):
+            v1.view_count()
+            v1.view_count(all_versions=True)
+            v2.view_count()
+        with self.assertNumQueries(1):
+            v1.views_by_version()
+
     def test_metrics_detail_page_accessible(self):
         """Metrics detail page is publicly accessible."""
         project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
