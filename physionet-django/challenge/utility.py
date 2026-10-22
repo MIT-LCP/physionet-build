@@ -13,6 +13,47 @@ from notification.utility import create_notification
 logger = logging.getLogger(__name__)
 
 
+def notify_submission_complete(submission):
+    """Notify the submitter that their submission scored successfully."""
+    challenge = submission.challenge
+    score_summary = ', '.join(
+        f'{s.metric_name}: {s.value}' for s in submission.scores.all()
+    )
+    message = (
+        f'Your submission to "{challenge.slug}" has been scored. '
+        f'{score_summary}'
+    )
+    url = reverse('challenge_submission_detail', kwargs={
+        'challenge_slug': challenge.slug,
+        'submission_id': submission.pk,
+    })
+    create_notification(
+        recipient=submission.submitted_by,
+        notification_type=NotificationType.CHALLENGE_SUBMISSION_COMPLETE,
+        message=message[:500],
+        url=url,
+    )
+
+
+def notify_submission_failed(submission):
+    """Notify the submitter that their submission failed."""
+    challenge = submission.challenge
+    message = (
+        f'Your submission to "{challenge.slug}" failed: '
+        f'{submission.error_message[:200]}'
+    )
+    url = reverse('challenge_submission_detail', kwargs={
+        'challenge_slug': challenge.slug,
+        'submission_id': submission.pk,
+    })
+    create_notification(
+        recipient=submission.submitted_by,
+        notification_type=NotificationType.CHALLENGE_SUBMISSION_FAILED,
+        message=message[:500],
+        url=url,
+    )
+
+
 def notify_phase_change(challenge, old_phase, new_phase):
     """Notify all participants of a challenge phase change."""
     participants = challenge.participants.filter(

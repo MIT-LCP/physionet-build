@@ -11,16 +11,35 @@ def get_client():
     return GoogleCloudStorage().client
 
 
+def get_challenge_storage_client():
+    """Return a GCS client for challenge data.
+
+    Uses the storage emulator when CHALLENGE_STORAGE_EMULATOR_HOST is
+    configured; otherwise falls back to the default GCS client.
+    """
+    emulator_host = getattr(settings, 'CHALLENGE_STORAGE_EMULATOR_HOST', '')
+    if emulator_host:
+        saved = os.environ.get('STORAGE_EMULATOR_HOST')
+        os.environ['STORAGE_EMULATOR_HOST'] = emulator_host
+        try:
+            return Client()
+        finally:
+            if saved is None:
+                os.environ.pop('STORAGE_EMULATOR_HOST', None)
+            else:
+                os.environ['STORAGE_EMULATOR_HOST'] = saved
+    return get_client()
+
+
 class ObjectPath(object):
-    def __init__(self, path):
-        self._client = None
+    def __init__(self, path, client=None):
+        self._client = client
         self._bucket = None
 
         try:
-            normalized_path = path.normpath(path)
-            self._bucket_name, self._key = normalized_path.split('/', 1)
+            self._bucket_name, self._key = path.split('/', 1)
         except ValueError:
-            raise ValueError('path should specify the bucket an object key/prefix')
+            raise ValueError('path should specify the bucket and object key/prefix')
 
     def __repr__(self):
         return f"ObjectPath('{self.bucket_name()}', '{self.key()}')"
