@@ -6,6 +6,7 @@ from distutils.version import StrictVersion
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
@@ -397,45 +398,54 @@ class PublishedProject(Metadata, SubmissionInfo):
 
         return direct_news | linked_news
 
+    # How long the public view counts may be cached. Counts are shown on
+    # every project page and subdirectory page, so a short delay before a
+    # new view is reflected avoids recounting the access log on each request.
+    VIEW_COUNT_CACHE_SECONDS = 300
+
+    def _view_counts_by_version(self):
+        """
+        Return a dict mapping each version's id to its number of unique
+        registered viewers, for all versions of this project.
+
+        Computed in a single query and cached for VIEW_COUNT_CACHE_SECONDS.
+        """
+        cache_key = f'project_view_counts:{self.slug}'
+        counts = cache.get(cache_key)
+        if counts is None:
+            counts = AccessLog.objects.filter(
+                content_type=ContentType.objects.get_for_model(PublishedProject),
+                object_id__in=PublishedProject.objects.filter(slug=self.slug).values('id'),
+            ).unique_viewers_by_object()
+            cache.set(cache_key, counts, self.VIEW_COUNT_CACHE_SECONDS)
+        return counts
+
     def view_count(self, all_versions=False):
         """
         Return the count of unique registered users who have viewed this project.
 
         Args:
-            all_versions: If True, count views across all versions of this project.
+            all_versions: If True, return the sum of the unique viewer counts
+                         of all versions of this project.
                          If False (default), count only views of this specific version.
+
+        The result may be up to VIEW_COUNT_CACHE_SECONDS out of date.
         """
+        counts = self._view_counts_by_version()
         if all_versions:
-            versions = PublishedProject.objects.filter(slug=self.slug)
-            total = 0
-            for v in versions:
-                content_type = ContentType.objects.get_for_model(v)
-                total += AccessLog.objects.filter(
-                    object_id=v.id,
-                    content_type=content_type
-                ).unique_viewers_count()
-            return total
-        else:
-            content_type = ContentType.objects.get_for_model(self)
-            return AccessLog.objects.filter(
-                object_id=self.id,
-                content_type=content_type
-            ).unique_viewers_count()
+            return sum(counts.values())
+        return counts.get(self.id, 0)
 
     def views_by_version(self):
         """
         Return a list of view counts for each version of this project.
+
+        The counts may be up to VIEW_COUNT_CACHE_SECONDS out of date.
         """
-        versions = PublishedProject.objects.filter(slug=self.slug).order_by('version_order')
-        result = []
-        for v in versions:
-            content_type = ContentType.objects.get_for_model(v)
-            count = AccessLog.objects.filter(
-                object_id=v.id,
-                content_type=content_type
-            ).unique_viewers_count()
-            result.append({'version': v.version, 'count': count})
-        return result
+        counts = self._view_counts_by_version()
+        versions = PublishedProject.objects.filter(
+            slug=self.slug).order_by('version_order').values_list('id', 'version')
+        return [{'version': version, 'count': counts.get(pk, 0)} for pk, version in versions]
 
     def views_over_time(self):
         """
