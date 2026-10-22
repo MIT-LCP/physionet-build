@@ -2,6 +2,7 @@
 Background tasks for challenge phase transitions.
 """
 import logging
+import uuid
 
 from background_task import background
 from django.db import transaction
@@ -65,11 +66,10 @@ def process_submission(submission_id):
         submission.save(update_fields=['status'])
         scores_data = orchestrator.extract_scores()
 
-        # Save scores
-        _save_scores(submission, scores_data)
-
-        # Update leaderboard
-        _update_leaderboard_entry(submission)
+        # Save scores and update leaderboard atomically
+        with transaction.atomic():
+            _save_scores(submission, scores_data)
+            _update_leaderboard_entry(submission)
 
         # Mark completed
         submission.status = SubmissionStatus.COMPLETED
@@ -141,7 +141,7 @@ def transition_challenge_phase(challenge_id, target_phase):
                 challenge.slug, old_phase, target_phase)
 
 
-def _save_scores(submission, scores_data):
+def _save_scores(submission, scores_data, dataset=DatasetType.VAL):
     """Parse and save Score objects from the scoring output."""
     score_objects = []
     for metric_name, value in scores_data.items():
@@ -149,12 +149,12 @@ def _save_scores(submission, scores_data):
             submission=submission,
             metric_name=metric_name,
             value=float(value),
-            dataset=DatasetType.VAL,
+            dataset=dataset,
         ))
     Score.objects.bulk_create(score_objects)
 
 
-def _update_leaderboard_entry(submission):
+def _update_leaderboard_entry(submission, dataset=DatasetType.VAL):
     """
     Update the leaderboard entry for this submission's participant/team.
     If this submission is better than their current entry, replace it.
@@ -165,20 +165,23 @@ def _update_leaderboard_entry(submission):
 
     primary_score = submission.scores.filter(
         metric_name=spec.primary_metric_name,
-        dataset=DatasetType.VAL,
+        dataset=dataset,
     ).first()
 
     if not primary_score:
-        return
+        raise ValueError(
+            f'Primary metric {spec.primary_metric_name!r} not found in '
+            f'scores for submission {submission.pk} ({dataset.label}).'
+        )
 
     all_scores = {
         s.metric_name: s.value
-        for s in submission.scores.filter(dataset=DatasetType.VAL)
+        for s in submission.scores.filter(dataset=dataset)
     }
 
     lookup = {
         'challenge': challenge,
-        'dataset': DatasetType.VAL,
+        'dataset': dataset,
     }
     if submission.team:
         lookup['team'] = submission.team
@@ -200,14 +203,19 @@ def _update_leaderboard_entry(submission):
                 **lookup,
             )
         else:
-            has_manual_selection = Submission.objects.filter(
-                challenge=challenge,
-                is_selected=True,
-                status=SubmissionStatus.COMPLETED,
-                **({'team': submission.team} if submission.team
-                   else {'submitted_by': submission.submitted_by,
-                         'team__isnull': True}),
-            ).exists()
+            # Manual selection only applies to the validation leaderboard.
+            # Test entries are always replaced by a better result.
+            has_manual_selection = (
+                dataset == DatasetType.VAL
+                and Submission.objects.filter(
+                    challenge=challenge,
+                    is_selected=True,
+                    status=SubmissionStatus.COMPLETED,
+                    **({'team': submission.team} if submission.team
+                       else {'submitted_by': submission.submitted_by,
+                             'team__isnull': True}),
+                ).exists()
+            )
 
             if not has_manual_selection:
                 is_better = (
@@ -223,3 +231,215 @@ def _update_leaderboard_entry(submission):
                     entry.save(update_fields=[
                         'submission', 'primary_score', 'all_scores',
                     ])
+
+    # Recompute ranks
+    recompute_leaderboard(challenge.pk)
+
+
+def _advance_top_submissions(challenge):
+    """
+    Select the top N submissions per participant/team and enqueue
+    them for test scoring. Called when transitioning to OFFICIAL phase.
+    """
+    spec = challenge.submission_spec
+    sort_ascending = spec.primary_metric_sort == MetricSort.ASC
+    n = challenge.max_submissions_to_advance
+
+    completed_submissions = Submission.objects.filter(
+        challenge=challenge,
+        status=SubmissionStatus.COMPLETED,
+    )
+
+    if challenge.teams_enabled:
+        # Group by team (team-based submissions)
+        team_ids = completed_submissions.exclude(
+            team__isnull=True,
+        ).values_list('team_id', flat=True).distinct()
+
+        for team_id in team_ids:
+            team_subs = completed_submissions.filter(team_id=team_id)
+            _select_top_n(team_subs, spec, n, sort_ascending)
+
+        # Solo submissions (participants who never joined a team)
+        solo_user_ids = completed_submissions.filter(
+            team__isnull=True,
+        ).values_list('submitted_by_id', flat=True).distinct()
+
+        for user_id in solo_user_ids:
+            user_subs = completed_submissions.filter(
+                submitted_by_id=user_id, team__isnull=True)
+            _select_top_n(user_subs, spec, n, sort_ascending)
+    else:
+        # Group by user
+        user_ids = completed_submissions.values_list(
+            'submitted_by_id', flat=True,
+        ).distinct()
+
+        for user_id in user_ids:
+            user_subs = completed_submissions.filter(submitted_by_id=user_id)
+            _select_top_n(user_subs, spec, n, sort_ascending)
+
+
+def _select_top_n(submissions_qs, spec, n, sort_ascending):
+    """
+    From the given submissions queryset, find the top N by primary metric
+    on VAL dataset and enqueue them for test scoring.
+    """
+    order_field = 'value' if sort_ascending else '-value'
+
+    top_scores = Score.objects.filter(
+        submission__in=submissions_qs,
+        metric_name=spec.primary_metric_name,
+        dataset=DatasetType.VAL,
+    ).order_by(order_field)[:n]
+
+    submission_ids = list(top_scores.values_list('submission_id', flat=True))
+
+    Submission.objects.filter(pk__in=submission_ids).update(
+        advanced_to_official=True,
+    )
+
+    already_complete = set(
+        Submission.objects.filter(
+            pk__in=submission_ids,
+            test_scoring_complete=True,
+        ).values_list('pk', flat=True)
+    )
+    for sub_id in submission_ids:
+        if sub_id not in already_complete:
+            process_test_scoring(sub_id)
+
+
+@associated_task(Submission, 'submission_id')
+@background()
+def process_test_scoring(submission_id):
+    """
+    Re-evaluate a submission against the test dataset.
+    Saves Score objects with dataset=TEST and creates/updates
+    LeaderboardEntry with dataset=TEST.
+    """
+    from challenge.services import get_orchestrator
+
+    try:
+        submission = Submission.objects.select_related(
+            'challenge__submission_spec',
+        ).get(pk=submission_id)
+    except Submission.DoesNotExist:
+        logger.error('Submission %s not found for test scoring', submission_id)
+        return
+
+    # Atomically claim this submission for test scoring.  Only one
+    # worker proceeds; the rest return immediately.
+    STALE_CLAIM_MINUTES = 120
+    claim_id = uuid.uuid4()
+    with transaction.atomic():
+        locked = Submission.objects.select_for_update().filter(
+            pk=submission_id,
+            test_scoring_complete=False,
+        ).first()
+        if not locked:
+            logger.info(
+                'Submission %s already completed test scoring, skipping',
+                submission_id,
+            )
+            return
+        if locked.test_scoring_in_progress:
+            cutoff = timezone.now() - timezone.timedelta(
+                minutes=STALE_CLAIM_MINUTES)
+            if locked.test_scoring_claimed_at and locked.test_scoring_claimed_at > cutoff:
+                logger.info(
+                    'Submission %s claimed by another worker, skipping',
+                    submission_id,
+                )
+                return
+            logger.warning(
+                'Submission %s has stale claim, reclaiming',
+                submission_id,
+            )
+        locked.scores.filter(dataset=DatasetType.TEST).delete()
+        locked.test_scoring_in_progress = True
+        locked.test_scoring_claimed_at = timezone.now()
+        locked.test_scoring_claim_id = claim_id
+        locked.save(update_fields=[
+            'test_scoring_in_progress', 'test_scoring_claimed_at',
+            'test_scoring_claim_id',
+        ])
+
+    succeeded = False
+    orchestrator = None
+
+    try:
+        submission.refresh_from_db()
+        orchestrator = get_orchestrator(submission, attempt_id=claim_id.hex)
+
+        orchestrator.build()
+        orchestrator.run(dataset=DatasetType.TEST)
+
+        success = orchestrator.poll()
+        if not success:
+            logger.error(
+                'Test scoring failed for submission %s', submission_id,
+            )
+            return
+
+        scores_data = orchestrator.extract_scores()
+        with transaction.atomic():
+            current_claim = Submission.objects.select_for_update().filter(
+                pk=submission_id,
+                test_scoring_complete=False,
+                test_scoring_in_progress=True,
+                test_scoring_claim_id=claim_id,
+            ).first()
+            if not current_claim:
+                logger.warning(
+                    'Submission %s test scoring claim expired; discarding results',
+                    submission_id,
+                )
+                return
+            _save_scores(submission, scores_data, dataset=DatasetType.TEST)
+            _update_leaderboard_entry(submission, dataset=DatasetType.TEST)
+            current_claim.test_scoring_complete = True
+            current_claim.test_scoring_in_progress = False
+            current_claim.test_scoring_claimed_at = None
+            current_claim.test_scoring_claim_id = None
+            current_claim.save(update_fields=[
+                'test_scoring_complete', 'test_scoring_in_progress',
+                'test_scoring_claimed_at', 'test_scoring_claim_id',
+            ])
+        succeeded = True
+
+        logger.info(
+            'Test scoring completed for submission %s', submission_id,
+        )
+
+    except FileNotFoundError:
+        logger.warning(
+            'Code archive not found for submission %s, skipping test scoring',
+            submission_id,
+        )
+
+    except Exception:
+        logger.exception(
+            'Test scoring failed for submission %s', submission_id,
+        )
+
+    finally:
+        if not succeeded:
+            Submission.objects.filter(
+                pk=submission_id,
+                test_scoring_claim_id=claim_id,
+                test_scoring_in_progress=True,
+                test_scoring_complete=False,
+            ).update(
+                test_scoring_in_progress=False,
+                test_scoring_claimed_at=None,
+                test_scoring_claim_id=None,
+            )
+        if orchestrator:
+            try:
+                orchestrator.cleanup()
+            except Exception:
+                logger.exception(
+                    'Cleanup failed for test scoring of submission %s',
+                    submission_id,
+                )

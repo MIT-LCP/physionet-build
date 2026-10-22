@@ -59,6 +59,9 @@ class ChallengeIntegrityTests(TestCase):
             start_datetime=now,
             end_datetime=now + timezone.timedelta(days=30),
             primary_metric={'name': 'auc', 'sort': 'desc'},
+            validation_labels_gcs_uri='challenge-staging/labels/val',
+            test_labels_gcs_uri='challenge-staging/labels/test',
+            evaluation_script_gcs_uri='challenge-staging/eval/evaluate.py',
         )
         passed, errors = self.check()
         self.assertTrue(passed, errors)

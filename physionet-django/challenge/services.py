@@ -16,6 +16,8 @@ import zipfile
 from django.conf import settings
 from django.utils import timezone
 
+from challenge.enums import DatasetType
+
 logger = logging.getLogger(__name__)
 
 
@@ -37,8 +39,9 @@ class ContainerOrchestrator:
         5. cleanup() - Delete Cloud Run Job
     """
 
-    def __init__(self, submission):
+    def __init__(self, submission, attempt_id=None):
         self.submission = submission
+        self.attempt_id = attempt_id
         self.challenge = submission.challenge
         self.spec = self.challenge.submission_spec
         self.project_id = getattr(settings, 'CHALLENGE_GCP_PROJECT_ID', '')
@@ -67,7 +70,8 @@ class ContainerOrchestrator:
     @property
     def output_gcs_path(self):
         bucket = getattr(settings, 'CHALLENGE_STAGING_BUCKET', '')
-        return f'{bucket}/challenges/{self.challenge.slug}/output/{self.submission.pk}'
+        path = f'{bucket}/challenges/{self.challenge.slug}/output/{self.submission.pk}'
+        return f'{path}/attempts/{self.attempt_id}' if self.attempt_id else path
 
     def build(self):
         """Verify the code archive exists in GCS and prepare staging."""
@@ -85,7 +89,7 @@ class ContainerOrchestrator:
 
         logger.info('Build verified for submission %s', self.submission.pk)
 
-    def run(self):
+    def run(self, dataset=None):
         raise NotImplementedError(
             'Cloud Run backend does not yet stage code, input data, '
             'or run evaluation. Use CHALLENGE_CONTAINER_BACKEND='
@@ -117,8 +121,9 @@ class LocalContainerOrchestrator:
     allowing the full submission pipeline to run with docker-compose.
     """
 
-    def __init__(self, submission):
+    def __init__(self, submission, attempt_id=None):
         self.submission = submission
+        self.attempt_id = attempt_id
         self.challenge = submission.challenge
         self.spec = self.challenge.submission_spec
         self._docker_client = None
@@ -135,7 +140,20 @@ class LocalContainerOrchestrator:
     @property
     def output_gcs_path(self):
         bucket = getattr(settings, 'CHALLENGE_STAGING_BUCKET', '')
-        return f'{bucket}/challenges/{self.challenge.slug}/output/{self.submission.pk}'
+        path = f'{bucket}/challenges/{self.challenge.slug}/output/{self.submission.pk}'
+        return f'{path}/attempts/{self.attempt_id}' if self.attempt_id else path
+
+    def _save_submission_field(self, field, value):
+        """Do not let an expired test attempt modify the submission."""
+        setattr(self.submission, field, value)
+        if self.attempt_id:
+            type(self.submission).objects.filter(
+                pk=self.submission.pk,
+                test_scoring_claim_id=self.attempt_id,
+                test_scoring_in_progress=True,
+            ).update(**{field: value})
+        else:
+            self.submission.save(update_fields=[field])
 
     def build(self):
         """Verify the code archive exists in GCS."""
@@ -153,8 +171,11 @@ class LocalContainerOrchestrator:
 
         logger.info('Build verified for submission %s (local docker)', self.submission.pk)
 
-    def run(self):
+    def run(self, dataset=None):
         """Run the submission container locally using Docker."""
+        if dataset is None:
+            dataset = DatasetType.VAL
+
         self._tmpdir = tempfile.mkdtemp(prefix='challenge_')
         code_dir = os.path.join(self._tmpdir, 'code')
         input_dir = os.path.join(self._tmpdir, 'input')
@@ -177,9 +198,13 @@ class LocalContainerOrchestrator:
                 _safe_extract_tar(tar, code_dir)
 
         # Download input data (features only, no labels) for participant
-        # code. Labels stay in validation_data_gcs_uri for the evaluator.
-        input_data_uri = getattr(
-            self.challenge, 'test_data_gcs_uri', None)
+        # code. Labels stay separate for the evaluator.
+        if dataset == DatasetType.TEST:
+            input_data_uri = getattr(
+                self.challenge, 'test_data_gcs_uri', '')
+        else:
+            input_data_uri = getattr(
+                self.challenge, 'validation_data_gcs_uri', '')
         if input_data_uri:
             if input_data_uri.startswith('gs://'):
                 input_data_uri = input_data_uri[5:]
@@ -199,8 +224,8 @@ class LocalContainerOrchestrator:
             output_dir: {'bind': '/mnt/output', 'mode': 'rw'},
         }
 
-        self.submission.started_datetime = timezone.now()
-        self.submission.save(update_fields=['started_datetime'])
+        if not self.submission.started_datetime:
+            self._save_submission_field('started_datetime', timezone.now())
 
         # Run submission code with network disabled.  The base image
         # must include all required packages — we do not run pip from
@@ -223,18 +248,17 @@ class LocalContainerOrchestrator:
             result = self._container.wait(timeout=self.spec.max_runtime_seconds)
         except Exception:
             self._container.stop()
-            self.submission.error_message = (
-                f'Container timed out after {self.spec.max_runtime_seconds}s.'
+            self._save_submission_field(
+                'error_message',
+                f'Container timed out after {self.spec.max_runtime_seconds}s.',
             )
-            self.submission.save(update_fields=['error_message'])
             raise RuntimeError(self.submission.error_message)
 
         exit_code = result.get('StatusCode', -1)
         if exit_code != 0:
             logs = self._container.logs(tail=50).decode('utf-8', errors='replace')
             error_msg = f'Container exited with code {exit_code}.\n{logs}'
-            self.submission.error_message = error_msg[:2000]
-            self.submission.save(update_fields=['error_message'])
+            self._save_submission_field('error_message', error_msg[:2000])
             raise RuntimeError(error_msg[:2000])
 
         # Participant code controls the output directory. Reject links
@@ -242,7 +266,7 @@ class LocalContainerOrchestrator:
         _check_output_files(output_dir)
 
         # Run the evaluation script to score predictions against labels
-        self._run_evaluation(output_dir)
+        self._run_evaluation(output_dir, dataset=dataset)
 
         # Upload output files to GCS
         output_obj = _gcs_path(self.output_gcs_path)
@@ -257,7 +281,7 @@ class LocalContainerOrchestrator:
 
         logger.info('Local container completed for submission %s', self.submission.pk)
 
-    def _run_evaluation(self, output_dir):
+    def _run_evaluation(self, output_dir, dataset=None):
         """
         Download the evaluation script and ground-truth labels from GCS,
         then run the evaluator in an isolated container.
@@ -266,7 +290,12 @@ class LocalContainerOrchestrator:
             python /eval/evaluate.py /predictions /labels /output/scores.json
 
         It must write a JSON dict of {metric_name: value} to the output.
+
+        Selects the dedicated labels URI for the requested dataset.
         """
+        if dataset is None:
+            dataset = DatasetType.VAL
+
         eval_uri = self.spec.evaluation_script_gcs_uri
         if not eval_uri:
             raise RuntimeError(
@@ -286,14 +315,23 @@ class LocalContainerOrchestrator:
         eval_blob.download_to_filename(
             os.path.join(eval_dir, 'evaluate.py'))
 
-        # Download ground-truth labels (only the evaluator sees these)
+        # Download ground-truth labels (only the evaluator sees these).
         labels_dir = os.path.join(self._tmpdir, 'labels')
         os.makedirs(labels_dir, exist_ok=True)
-        val_uri = getattr(self.challenge, 'validation_data_gcs_uri', '')
-        if val_uri:
-            if val_uri.startswith('gs://'):
-                val_uri = val_uri[5:]
-            _download_gcs_data(_gcs_path(val_uri), labels_dir)
+        if dataset == DatasetType.TEST:
+            labels_uri = getattr(self.challenge, 'test_labels_gcs_uri', '')
+        else:
+            labels_uri = getattr(
+                self.challenge, 'validation_labels_gcs_uri', '')
+        if not labels_uri:
+            raise RuntimeError(
+                f'No {dataset.label.lower()} labels URI configured. '
+                'Upload ground-truth labels before scoring submissions.'
+            )
+        if labels_uri:
+            if labels_uri.startswith('gs://'):
+                labels_uri = labels_uri[5:]
+            _download_gcs_data(_gcs_path(labels_uri), labels_dir)
 
         # Copy predictions so the evaluator gets a read-only snapshot
         # while writing scores.json to the real output directory.
@@ -463,10 +501,10 @@ def _safe_extract_zip(zf, dest):
     zf.extractall(path=dest)
 
 
-def get_orchestrator(submission):
+def get_orchestrator(submission, attempt_id=None):
     """Factory function to select the appropriate container orchestrator."""
     backend = getattr(
         settings, 'CHALLENGE_CONTAINER_BACKEND', 'local_docker')
     if backend == 'cloud_run':
-        return ContainerOrchestrator(submission)
-    return LocalContainerOrchestrator(submission)
+        return ContainerOrchestrator(submission, attempt_id=attempt_id)
+    return LocalContainerOrchestrator(submission, attempt_id=attempt_id)

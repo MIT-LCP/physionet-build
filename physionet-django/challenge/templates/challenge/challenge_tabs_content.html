@@ -104,7 +104,7 @@
       </thead>
       <tbody>
         {% for submission in challenge_my_submissions %}
-        <tr>
+        <tr data-submission-id="{{ submission.pk }}" data-status="{{ submission.status }}">
           <td>{{ submission.pk }}</td>
           <td>
             <span class="badge badge-{% if submission.status == 'completed' %}success{% elif submission.status == 'failed' or submission.status == 'timed_out' %}danger{% elif submission.status == 'cancelled' %}secondary{% else %}info{% endif %}">
@@ -113,7 +113,7 @@
           </td>
           <td>{{ submission.created_datetime|date:"N j, Y H:i" }}</td>
           <td>{{ submission.description|truncatechars:60 }}</td>
-          <td>
+          <td class="leaderboard-cell">
             {% if submission.status == 'completed' %}
               {% if submission.is_selected %}
                 <span class="badge badge-success">&#10003; Selected</span>
@@ -137,6 +137,75 @@
       </tbody>
     </table>
   </div>
+
+  <script>
+  (function() {
+    var TERMINAL = ['completed', 'failed', 'cancelled', 'timed_out'];
+    var BADGE_CLASS = {
+      completed: 'badge-success',
+      failed: 'badge-danger',
+      timed_out: 'badge-danger',
+      cancelled: 'badge-secondary',
+    };
+    var statusUrl = '{% url "challenge_submission_statuses" challenge.slug %}';
+    var pollTimer = null;
+
+    function hasActiveSubmissions() {
+      var rows = document.querySelectorAll('#challenge-tab-submit tr[data-submission-id]');
+      for (var i = 0; i < rows.length; i++) {
+        if (TERMINAL.indexOf(rows[i].getAttribute('data-status')) === -1) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function updateStatuses() {
+      fetch(statusUrl, {credentials: 'same-origin'})
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var rows = document.querySelectorAll('#challenge-tab-submit tr[data-submission-id]');
+          rows.forEach(function(row) {
+            var id = row.getAttribute('data-submission-id');
+            var info = data.statuses[id];
+            if (!info) return;
+
+            var oldStatus = row.getAttribute('data-status');
+            if (info.status === oldStatus) return;
+
+            row.setAttribute('data-status', info.status);
+
+            // Update badge
+            var badge = row.querySelector('.badge');
+            if (badge) {
+              badge.textContent = info.display;
+              badge.className = 'badge ' + (BADGE_CLASS[info.status] || 'badge-info');
+            }
+
+            // Update leaderboard cell
+            var lbCell = row.querySelector('.leaderboard-cell');
+            if (lbCell && info.status === 'completed') {
+              {% if not challenge_participant.team or challenge_participant.is_team_captain %}
+              lbCell.innerHTML = '<form method="post" action="{% url "challenge_submission_select" challenge.slug 0 %}'.replace('/0/select/', '/' + id + '/select/') + '" style="display:inline;">' +
+                '<input type="hidden" name="csrfmiddlewaretoken" value="' + document.querySelector('[name=csrfmiddlewaretoken]').value + '">' +
+                '<button type="submit" class="btn btn-sm btn-outline-success">Select</button></form>';
+              {% endif %}
+            }
+          });
+
+          if (!hasActiveSubmissions() && pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+          }
+        })
+        .catch(function() {});
+    }
+
+    if (hasActiveSubmissions()) {
+      pollTimer = setInterval(updateStatuses, 10000);
+    }
+  })();
+  </script>
 </div>
 {% endif %}
 

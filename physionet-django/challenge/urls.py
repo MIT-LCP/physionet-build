@@ -16,8 +16,13 @@ urlpatterns = [
          views.challenge_submit, name='challenge_submit'),
     path('<slug:challenge_slug>/submissions/',
          views.challenge_my_submissions, name='challenge_my_submissions'),
+    path('<slug:challenge_slug>/submissions/status/',
+         views.challenge_submission_statuses, name='challenge_submission_statuses'),
     path('<slug:challenge_slug>/submissions/<int:submission_id>/',
          views.challenge_submission_detail, name='challenge_submission_detail'),
+    path('<slug:challenge_slug>/submissions/<int:submission_id>/status/',
+         views.challenge_submission_status_detail,
+         name='challenge_submission_status_detail'),
     path('<slug:challenge_slug>/submissions/<int:submission_id>/select/',
          views.challenge_submission_select, name='challenge_submission_select'),
     # Team
@@ -33,6 +38,9 @@ urlpatterns = [
     # Organizer management
     path('<slug:challenge_slug>/manage/',
          views.challenge_manage, name='challenge_manage'),
+    path('<slug:challenge_slug>/manage/run-test-scoring/',
+         views.challenge_run_test_scoring,
+         name='challenge_run_test_scoring'),
     path('<slug:challenge_slug>/manage/submissions/',
          views.challenge_manage_submissions,
          name='challenge_manage_submissions'),
@@ -55,6 +63,9 @@ TEST_CASES = {
     },
     'challenge_manage_submissions': {
         '_user_': 'george',
+    },
+    'challenge_run_test_scoring': {
+        '_skip_': True,
     },
     'challenge_download_evaluation_script': {
         '_skip_': True,

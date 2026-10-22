@@ -72,6 +72,13 @@ class TestGetOrchestrator(TestCase):
             orchestrator = get_orchestrator(submission)
         self.assertIsInstance(orchestrator, LocalContainerOrchestrator)
 
+    def test_attempts_have_separate_output_paths(self):
+        submission = _make_submission_mock()
+        first = get_orchestrator(submission, attempt_id='first')
+        second = get_orchestrator(submission, attempt_id='second')
+        self.assertNotEqual(first.output_gcs_path, second.output_gcs_path)
+        self.assertTrue(first.output_gcs_path.endswith('/42/attempts/first'))
+
 
 class TestLocalContainerOrchestratorBuild(TestCase):
     """Test the build phase checks archive existence in GCS."""
