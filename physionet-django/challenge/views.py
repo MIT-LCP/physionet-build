@@ -614,14 +614,8 @@ def challenge_submission_status_detail(request, challenge, participant,
     data = {
         'status': submission.status,
         'display': submission.get_status_display(),
-        'started_datetime': (
-            submission.started_datetime.strftime('%b. %d, %Y %H:%M:%S').replace(' 0', ' ')
-            if submission.started_datetime else None
-        ),
-        'completed_datetime': (
-            submission.completed_datetime.strftime('%b. %d, %Y %H:%M:%S').replace(' 0', ' ')
-            if submission.completed_datetime else None
-        ),
+        'started_datetime': _format_datetime(submission.started_datetime),
+        'completed_datetime': _format_datetime(submission.completed_datetime),
         'error_message': _submission_display_error(
             submission, is_organizer) or None,
         'scores': [
