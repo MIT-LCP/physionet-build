@@ -1,9 +1,12 @@
 import re
+from html import unescape
+from urllib.parse import parse_qs, urlsplit
 
 from django.conf import settings
 from django.conf.urls import include
 from django.core import mail
 from django.test import TestCase, override_settings
+from django.template.loader import render_to_string
 from django.urls import path, reverse
 from physionet.urls import urlpatterns
 from user.models import Profile, User
@@ -79,6 +82,23 @@ class TestViews(TestCase):
         response = self.client.get(reverse('sso_login'), HTTP_REMOTE_USER=self.active_user.sso_id)
         self.assertRedirects(response, reverse('project_home'))
         self.assertAuthenticatedAs(self.active_user)
+
+    def test_login_active_returns_to_reference(self):
+        reference_url = '/credential-reference/application/token/'
+        response = self.client.get(
+            reverse('sso_login') + '?next=' + reference_url,
+            HTTP_REMOTE_USER=self.active_user.sso_id,
+        )
+        self.assertRedirects(response, reference_url, fetch_redirect_response=False)
+        self.assertAuthenticatedAs(self.active_user)
+
+    def test_login_button_preserves_reference_url(self):
+        reference_url = '/credential-reference/application/token/'
+        page = render_to_string('sso/login.html', {'next': reference_url})
+        link = re.search(r'href="([^\"]*sso/login/[^\"]*)"', page)
+        self.assertIsNotNone(link)
+        self.assertEqual(parse_qs(urlsplit(unescape(link.group(1))).query)['next'],
+                         [reference_url])
 
     def test_register_authenticated(self):
         self.client.login(remote_user=self.active_user.sso_id)

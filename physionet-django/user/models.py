@@ -479,6 +479,10 @@ class User(AbstractBaseUser, PermissionsMixin):
                 'You have a credential application.',
             ),
             (
+                lambda: CredentialApplication.objects.filter(reference_user=self).exists(),
+                'You have responded to a credential reference request.',
+            ),
+            (
                 lambda: Training.objects.filter(user=self).exists(),
                 'You have training records.',
             ),
@@ -1008,6 +1012,10 @@ class CredentialApplication(models.Model):
     reference_response = models.PositiveSmallIntegerField(default=0, choices=REFERENCE_RESPONSES)
     reference_response_text = models.CharField(max_length=2000, validators=[validators.validate_reference_response])
     reference_verification_token = models.CharField(max_length=32, blank=True, null=True)
+    reference_user = models.ForeignKey(
+        'user.User', null=True, blank=True, related_name='reference_responses',
+        on_delete=models.SET_NULL,
+    )
     research_summary = models.CharField(max_length=1000, validators=[validators.validate_research_summary])
     project_of_interest = models.ForeignKey(
         'project.PublishedProject',
@@ -1121,19 +1129,15 @@ class CredentialApplication(models.Model):
         """
         Returns True if the reference is a registered user, else False.
         """
-        try:
-            ref = User.objects.get(
-                associated_emails__email__iexact=self.reference_email,
-                associated_emails__is_verified=True)
-            return True
-        except ObjectDoesNotExist:
-            return False
+        return self.get_reference_user() is not None
 
     def get_reference_user(self):
         """
-        Returns reference User if the reference is a registered user,
-        else None.
+        Return the recorded responder for completed requests. For pending
+        requests, look up the account associated with the invitation email.
         """
+        if self.reference_response_datetime is not None:
+            return self.reference_user
         try:
             ref = User.objects.get(
                 associated_emails__email__iexact=self.reference_email,
@@ -1147,13 +1151,8 @@ class CredentialApplication(models.Model):
         Returns True if the reference is a credentialed registered user,
         else False.
         """
-        try:
-            ref = User.objects.get(
-                associated_emails__email__iexact=self.reference_email,
-                associated_emails__is_verified=True)
-            return ref.is_credentialed
-        except ObjectDoesNotExist:
-            return False
+        ref = self.get_reference_user()
+        return ref.is_credentialed if ref is not None else False
 
     def revoke(self):
         """

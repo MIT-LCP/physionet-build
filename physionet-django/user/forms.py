@@ -675,7 +675,7 @@ class CredentialReferenceForm(forms.ModelForm):
             'reference_response_text':forms.Textarea(attrs={'rows': 3}),
         }
 
-    def save(self):
+    def save(self, reference_user):
         """
         Process the decision
         """
@@ -689,6 +689,7 @@ class CredentialReferenceForm(forms.ModelForm):
 
         application.reference_response_datetime = timezone.now()
         application.reference_response_text = self.cleaned_data['reference_response_text']
+        application.reference_user = reference_user
         application.save()
         return application
 

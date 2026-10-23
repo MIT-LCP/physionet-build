@@ -4,6 +4,8 @@
 
 If you support their application, please indicate your approval using the link below. If you do not support their application, you may ignore this email or update us via the link.
 
+You will need a PhysioNet account with {{ application.reference_email }} verified as one of its email addresses to respond. If you do not have an account, create one using this email address first.
+
 {% if application.reference_verification_token  %}
 {{ url_prefix }}{% url 'credential_reference_verification' application.slug application.reference_verification_token %}
 {% else %}
