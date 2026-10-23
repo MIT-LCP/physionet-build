@@ -33,7 +33,7 @@ from django.views.decorators.http import require_POST
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
 from html2text import html2text
-from PIL import Image
+from PIL import Image, ImageOps
 from notification.models import News, NewsImage
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
