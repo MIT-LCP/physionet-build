@@ -2494,6 +2494,10 @@ def news_image_upload(request):
         )
 
     image_format = img.format
+    # Phone cameras often write multi-picture JPEGs, which Pillow reports
+    # as MPO. Save them as plain JPEG, keeping only the main image.
+    if image_format == 'MPO':
+        image_format = 'JPEG'
     if image_format not in ALLOWED_IMAGE_FORMATS:
         return JsonResponse(
             {'error': 'Unsupported image format. Allowed: JPEG, PNG, GIF, WebP.'},
