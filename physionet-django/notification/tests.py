@@ -358,6 +358,54 @@ class TestNewsImageUpload(TestCase):
         data = response.json()
         self.assertTrue(data['location'].endswith('.webp'))
 
+    def _open_saved_image(self, response):
+        filename = response.json()['location'].split('/')[-1]
+        return Image.open(os.path.join(TEST_MEDIA_ROOT, 'news', 'images', filename))
+
+    def test_upload_applies_exif_orientation(self):
+        """Portrait phone photos stay upright once EXIF is stripped."""
+        self.client.force_login(self.admin_user)
+        exif = Image.Exif()
+        exif[0x0112] = 6  # Orientation: rotate 90 degrees clockwise
+        buf = io.BytesIO()
+        Image.new('RGB', (40, 20), color='red').save(buf, format='JPEG', exif=exif)
+        buf.seek(0)
+        buf.name = 'photo.jpg'
+        response = self.client.post(self.upload_url, {'file': buf})
+        self.assertEqual(response.status_code, 200)
+        with self._open_saved_image(response) as saved:
+            self.assertEqual(saved.size, (20, 40))
+            self.assertNotIn(0x0112, saved.getexif())
+
+    def test_upload_multi_picture_jpeg(self):
+        """Multi-picture JPEGs from phone cameras are saved as plain JPEG."""
+        self.client.force_login(self.admin_user)
+        buf = io.BytesIO()
+        Image.new('RGB', (40, 20), color='red').save(
+            buf, format='MPO', save_all=True,
+            append_images=[Image.new('RGB', (10, 5), color='blue')],
+        )
+        buf.seek(0)
+        buf.name = 'photo.jpg'
+        response = self.client.post(self.upload_url, {'file': buf})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['location'].endswith('.jpg'))
+        with self._open_saved_image(response) as saved:
+            self.assertEqual(saved.format, 'JPEG')
+            self.assertEqual(saved.size, (40, 20))
+
+    def test_upload_animated_webp(self):
+        self.client.force_login(self.admin_user)
+        frames = [Image.new('RGB', (10, 10), color=c) for c in ('red', 'green', 'blue')]
+        buf = io.BytesIO()
+        frames[0].save(buf, format='WEBP', save_all=True, append_images=frames[1:])
+        buf.seek(0)
+        buf.name = 'anim.webp'
+        response = self.client.post(self.upload_url, {'file': buf})
+        self.assertEqual(response.status_code, 200)
+        with self._open_saved_image(response) as saved:
+            self.assertEqual(saved.n_frames, 3)
+
     def test_file_written_to_disk(self):
         self.client.force_login(self.admin_user)
         img = _make_test_image('PNG')
