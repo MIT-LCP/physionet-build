@@ -21,7 +21,7 @@ def regenerate_duplicate_guids(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notification', '0012_notification'),
+        ('notification', '0013_alter_notification_notification_type'),
     ]
 
     operations = [

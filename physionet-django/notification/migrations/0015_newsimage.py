@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('notification', '0013_alter_news_guid'),
+        ('notification', '0014_alter_news_guid'),
     ]
 
     operations = [
