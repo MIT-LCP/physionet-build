@@ -654,9 +654,16 @@ class TestState(TestMixin):
         project.save()
         url = reverse('submission_info', args=(project.slug,))
         self.client.post(url, {'archive_project': ''})
+        project.refresh_from_db()
+        self.assertEqual(project.submission_status, SubmissionStatus.ARCHIVED)
 
-        self.client.post(url, {'embargo_files': ''})
-        self.assertFalse(project.embargo_files_days)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'id="embargo"')
+
+        self.client.post(url, {'embargo_files': '', 'embargo_files_days': 30})
+        project.refresh_from_db()
+        self.assertIsNone(project.embargo_files_days)
 
 
 class TestPublished(TestCase):

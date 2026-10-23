@@ -430,7 +430,11 @@ def submission_info(request, project_slug):
                                             reassign_editor_form.cleaned_data['editor']))
         else:
             messages.error(request, 'Invalid submission. See errors below.')
-    elif 'embargo_files' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
+    elif (
+        'embargo_files' in request.POST
+        and user == project.editor
+        and not project.submission_status == SubmissionStatus.ARCHIVED
+    ):
         embargo_form = forms.EmbargoFilesDaysForm(data=request.POST)
         if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
             raise ServiceUnavailable()
