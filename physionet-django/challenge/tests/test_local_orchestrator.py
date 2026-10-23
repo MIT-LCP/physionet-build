@@ -15,6 +15,7 @@ from unittest import mock
 from django.conf import settings
 from django.test import TestCase, override_settings
 
+from challenge.enums import DatasetType
 from challenge.services import (
     ContainerOrchestrator,
     LocalContainerOrchestrator,
@@ -71,6 +72,13 @@ class TestGetOrchestrator(TestCase):
         with self.settings(CHALLENGE_CONTAINER_BACKEND='local_docker'):
             orchestrator = get_orchestrator(submission)
         self.assertIsInstance(orchestrator, LocalContainerOrchestrator)
+
+    def test_attempts_have_separate_output_paths(self):
+        submission = _make_submission_mock()
+        first = get_orchestrator(submission, attempt_id='first')
+        second = get_orchestrator(submission, attempt_id='second')
+        self.assertNotEqual(first.output_gcs_path, second.output_gcs_path)
+        self.assertTrue(first.output_gcs_path.endswith('/42/attempts/first'))
 
 
 class TestLocalContainerOrchestratorBuild(TestCase):
@@ -204,6 +212,23 @@ class TestLocalContainerOrchestratorRun(TestCase):
 
         self.assertIn('exited with code 1', str(ctx.exception))
 
+        orch.cleanup()
+
+    @mock.patch('challenge.services._gcs_path')
+    def test_failed_test_run_keeps_container_logs_private(self, mock_gcs_path):
+        orch, mock_client, mock_container = self._make_orchestrator(
+            mock_gcs_path)
+        orch._save_submission_field = mock.Mock()
+        mock_container.wait.return_value = {'StatusCode': 1}
+        mock_container.logs.return_value = b'hidden patient data'
+
+        with self.assertRaises(RuntimeError):
+            orch.run(dataset=DatasetType.TEST)
+
+        orch._save_submission_field.assert_called_once_with(
+            'test_scoring_error_message',
+            'Container exited with code 1.\nhidden patient data',
+        )
         orch.cleanup()
 
     @mock.patch('challenge.services._gcs_path')

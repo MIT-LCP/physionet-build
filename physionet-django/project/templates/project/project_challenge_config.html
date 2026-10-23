@@ -112,7 +112,7 @@
   <hr>
   <p>These files are stored privately and never included in the public project.</p>
   {% for field in challenge_config_form %}
-    {% if field.name == 'validation_data_archive' or field.name == 'test_data_archive' or field.name == 'evaluation_script_file' %}
+    {% if field.name == 'validation_data_archive' or field.name == 'test_data_archive' or field.name == 'validation_labels_archive' or field.name == 'test_labels_archive' or field.name == 'evaluation_script_file' %}
     <div class="form-group row">
       <label class="col-md-3" for="{{ field.id_for_label }}">
         {{ field.label }}
@@ -133,6 +133,18 @@
           {% endif %}
         {% elif field.name == 'test_data_archive' %}
           {% if challenge_config.test_data_gcs_uri %}
+            <small class="text-success"><i class="fas fa-check-circle"></i> Uploaded</small>
+          {% else %}
+            <small class="text-muted"><i class="fas fa-times-circle"></i> Not yet uploaded</small>
+          {% endif %}
+        {% elif field.name == 'validation_labels_archive' %}
+          {% if challenge_config.validation_labels_gcs_uri %}
+            <small class="text-success"><i class="fas fa-check-circle"></i> Uploaded</small>
+          {% else %}
+            <small class="text-muted"><i class="fas fa-times-circle"></i> Not yet uploaded</small>
+          {% endif %}
+        {% elif field.name == 'test_labels_archive' %}
+          {% if challenge_config.test_labels_gcs_uri %}
             <small class="text-success"><i class="fas fa-check-circle"></i> Uploaded</small>
           {% else %}
             <small class="text-muted"><i class="fas fa-times-circle"></i> Not yet uploaded</small>

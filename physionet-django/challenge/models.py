@@ -375,6 +375,27 @@ class Submission(models.Model):
         default=False,
         help_text='Whether this submission was selected for test scoring in the official phase.',
     )
+    # Database defaults let old servers insert after early migrations.
+    test_scoring_complete = models.BooleanField(
+        default=False, db_default=False,
+        help_text='Set atomically when test scores and leaderboard entry are saved.',
+    )
+    test_scoring_in_progress = models.BooleanField(
+        default=False, db_default=False,
+        help_text='Claimed by a worker before starting test evaluation.',
+    )
+    test_scoring_claimed_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text='When the current test scoring claim was taken.',
+    )
+    test_scoring_claim_id = models.UUIDField(
+        null=True, blank=True,
+        help_text='Identifies the worker that owns the current test scoring claim.',
+    )
+    test_scoring_error_message = models.TextField(
+        blank=True, default='', db_default='',
+        help_text='Official test scoring diagnostics, visible only to organizers.',
+    )
 
     class Meta:
         ordering = ['-created_datetime']

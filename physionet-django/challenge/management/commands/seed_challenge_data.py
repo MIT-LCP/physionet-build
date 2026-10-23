@@ -5,7 +5,7 @@ Usage: python manage.py seed_challenge_data
 
 1. Creates the staging bucket if it doesn't exist
 2. Uploads test data from fixtures/demo-submission-files/test_data/
-3. Uploads validation labels from fixtures/demo-submission-files/validation/
+3. Uploads validation data and separate validation/test labels
 4. Uploads evaluation script from fixtures/demo-submission-files/evaluation/
 5. Uploads a code archive for each demo submission
 """
@@ -72,17 +72,34 @@ class Command(BaseCommand):
                 return uri[len(f'{bucket_name}/'):]
             return uri
 
-        # Upload test data
+        # Upload test data (input records only)
         test_data_dir = demo_dir / 'test_data'
         if test_data_dir.exists():
             prefix = strip_bucket(challenge.test_data_gcs_uri)
             uploaded += self._upload_dir(bucket, test_data_dir, prefix)
 
-        # Upload validation labels
+        # Upload validation data (input records only)
         validation_dir = demo_dir / 'validation'
         if validation_dir.exists():
             prefix = strip_bucket(challenge.validation_data_gcs_uri)
+            # Earlier demo seeds put ground truth in participant input.
+            # Remove that object when reseeding an existing emulator bucket.
+            old_labels = bucket.blob(f'{prefix}labels.csv')
+            if old_labels.exists():
+                old_labels.delete()
             uploaded += self._upload_dir(bucket, validation_dir, prefix)
+
+        # Upload validation labels (ground truth, separate from input data)
+        validation_labels_dir = demo_dir / 'validation_labels'
+        if validation_labels_dir.exists() and challenge.validation_labels_gcs_uri:
+            prefix = strip_bucket(challenge.validation_labels_gcs_uri)
+            uploaded += self._upload_dir(bucket, validation_labels_dir, prefix)
+
+        # Upload test labels (ground truth, separate from input data)
+        test_labels_dir = demo_dir / 'test_labels'
+        if test_labels_dir.exists() and challenge.test_labels_gcs_uri:
+            prefix = strip_bucket(challenge.test_labels_gcs_uri)
+            uploaded += self._upload_dir(bucket, test_labels_dir, prefix)
 
         # Upload evaluation script
         eval_dir = demo_dir / 'evaluation'

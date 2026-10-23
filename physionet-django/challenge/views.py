@@ -10,10 +10,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
 
 from challenge.enums import ChallengePhase, DatasetType, SubmissionStatus
 from challenge.forms import (
@@ -33,6 +34,30 @@ from challenge.models import (
 from challenge.utility import pending_team_invitations, team_invitation_notify
 
 logger = logging.getLogger(__name__)
+
+TEST_SCORING_PUBLIC_ERROR = (
+    'Official test scoring failed. Contact the challenge organizers.'
+)
+
+
+def _submission_display_error(submission, is_organizer):
+    """Expose official test diagnostics only to challenge organizers."""
+    errors = []
+    if submission.error_message:
+        errors.append(submission.error_message)
+    if submission.test_scoring_error_message:
+        errors.append(
+            submission.test_scoring_error_message if is_organizer
+            else TEST_SCORING_PUBLIC_ERROR
+        )
+    return '\n'.join(errors)
+
+
+def _format_datetime(value):
+    """Format like the detail template's |date filter, in the site time zone."""
+    if not value:
+        return None
+    return date_format(timezone.localtime(value), 'N j, Y H:i:s')
 
 
 # ── Auth decorator ──────────────────────────────────────────────────
@@ -300,11 +325,15 @@ def challenge_submission_detail(request, challenge, participant,
         raise PermissionDenied
 
     scores = submission.scores.all()
+    if not is_organizer and challenge.phase != ChallengePhase.RESULTS:
+        scores = scores.exclude(dataset=DatasetType.TEST)
     return render(request, 'challenge/challenge_submission_detail.html', {
         'challenge': challenge,
         'participant': participant,
         'submission': submission,
         'scores': scores,
+        'display_error_message': _submission_display_error(
+            submission, is_organizer),
     })
 
 
@@ -554,6 +583,65 @@ def challenge_submission_select(request, challenge, participant,
     return redirect(url + '#submit')
 
 
+@login_required
+@challenge_auth()
+def challenge_submission_statuses(request, challenge, participant, **kwargs):
+    """Return JSON with current statuses of the user's submissions."""
+    submissions = Submission.objects.filter(
+        challenge=challenge,
+        submitted_by=request.user,
+    ).values_list('pk', 'status')
+
+    statuses = {
+        str(pk): {
+            'status': status,
+            'display': SubmissionStatus(status).label,
+        }
+        for pk, status in submissions
+    }
+    return JsonResponse({'statuses': statuses})
+
+
+@login_required
+@challenge_auth()
+def challenge_submission_status_detail(request, challenge, participant,
+                                       submission_id, **kwargs):
+    """Return JSON with full status details for a single submission."""
+    submission = get_object_or_404(
+        Submission, pk=submission_id, challenge=challenge,
+    )
+
+    # Same permission check as the detail view
+    is_organizer = (request.user == challenge.organizer
+                    or request.user.has_perm('challenge.manage_challenge'))
+    is_teammate = (participant is not None and submission.team is not None
+                   and participant.team_id == submission.team_id)
+    if not (submission.submitted_by == request.user or is_organizer or is_teammate):
+        raise PermissionDenied
+
+    data = {
+        'status': submission.status,
+        'display': submission.get_status_display(),
+        'started_datetime': _format_datetime(submission.started_datetime),
+        'completed_datetime': _format_datetime(submission.completed_datetime),
+        'error_message': _submission_display_error(
+            submission, is_organizer) or None,
+        'scores': [
+            {
+                'metric_name': s.metric_name,
+                'value': s.value,
+                'dataset': s.get_dataset_display(),
+            }
+            for s in submission.scores.all()
+            if s.dataset != DatasetType.TEST
+            or challenge.phase == ChallengePhase.RESULTS
+            or is_organizer
+        ],
+        'is_selected': submission.is_selected,
+    }
+    return JsonResponse(data)
+
+
 # ── Organizer / management views ────────────────────────────────────
 
 @login_required
@@ -590,13 +678,58 @@ def challenge_manage(request, challenge, participant, **kwargs):
 
     spec = getattr(challenge, 'submission_spec', None)
 
+    # Show the fixed official selection and completed test evaluations.
+    test_scoring_eligible = (
+        challenge.phase in (ChallengePhase.OFFICIAL, ChallengePhase.RESULTS)
+        and spec
+    )
+    advanced_count = challenge.submissions.filter(
+        advanced_to_official=True,
+    ).count() if test_scoring_eligible else 0
+    test_scored_count = challenge.submissions.filter(
+        advanced_to_official=True,
+        test_scoring_complete=True,
+    ).count() if test_scoring_eligible else 0
+
     return render(request, 'challenge/challenge_manage.html', {
         'challenge': challenge,
         'participant': participant,
         'stats': stats,
         'form': form,
         'spec': spec,
+        'test_scoring_eligible': test_scoring_eligible,
+        'advanced_count': advanced_count,
+        'test_scored_count': test_scored_count,
     })
+
+
+@login_required
+@challenge_auth(require_organizer=True)
+def challenge_run_test_scoring(request, challenge, participant, **kwargs):
+    """Advance top submissions and run test scoring."""
+    if request.method != 'POST':
+        return redirect('challenge_manage', challenge_slug=challenge.slug)
+
+    if challenge.phase not in (ChallengePhase.OFFICIAL, ChallengePhase.RESULTS):
+        messages.error(
+            request,
+            'Test scoring can only be run during the official or results phase.',
+        )
+        return redirect('challenge_manage', challenge_slug=challenge.slug)
+
+    from challenge.tasks import (
+        ValidationScoringPending, _advance_top_submissions,
+    )
+    try:
+        queued_count = _advance_top_submissions(challenge)
+    except ValidationScoringPending as exc:
+        messages.error(request, str(exc))
+    else:
+        messages.success(
+            request,
+            f'Test scoring queued for {queued_count} selected submission(s).',
+        )
+    return redirect('challenge_manage', challenge_slug=challenge.slug)
 
 
 @login_required

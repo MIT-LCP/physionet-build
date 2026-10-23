@@ -9,6 +9,13 @@ from challenge.models import (
 )
 
 
+ADVANCEMENT_HELP_TEXT = (
+    'Number of top validation submissions per participant or team to score '
+    'on the test set. Their best test score determines their test leaderboard '
+    'entry.'
+)
+
+
 DATETIME_WIDGETS = {
     'registration_open_datetime': forms.DateTimeInput(
         attrs={'type': 'datetime-local'},
@@ -115,6 +122,14 @@ class ChallengeConfigurationForm(ChallengeDateValidationMixin, forms.ModelForm):
         required=False,
         help_text='Upload test data as a .tar.gz or .zip archive.',
     )
+    validation_labels_archive = forms.FileField(
+        required=False,
+        help_text='Upload validation ground-truth labels as a .tar.gz or .zip archive.',
+    )
+    test_labels_archive = forms.FileField(
+        required=False,
+        help_text='Upload test ground-truth labels as a .tar.gz or .zip archive.',
+    )
     evaluation_script_file = forms.FileField(
         required=False,
         help_text='Upload a Python scoring script (e.g. evaluate.py). '
@@ -126,6 +141,9 @@ class ChallengeConfigurationForm(ChallengeDateValidationMixin, forms.ModelForm):
 
     class Meta:
         model = ChallengeConfiguration
+        help_texts = {
+            'max_submissions_to_advance': ADVANCEMENT_HELP_TEXT,
+        }
         fields = [
             'registration_open_datetime', 'start_datetime',
             'official_start_datetime', 'end_datetime',
@@ -174,6 +192,12 @@ class ChallengeConfigurationForm(ChallengeDateValidationMixin, forms.ModelForm):
     def clean_test_data_archive(self):
         return self._validate_archive('test_data_archive')
 
+    def clean_validation_labels_archive(self):
+        return self._validate_archive('validation_labels_archive')
+
+    def clean_test_labels_archive(self):
+        return self._validate_archive('test_labels_archive')
+
 
 class ChallengeConfigForm(ChallengeDateValidationMixin, forms.ModelForm):
     class Meta:
@@ -196,14 +220,25 @@ class ChallengeManageForm(ChallengeDateValidationMixin, forms.ModelForm):
     """
     class Meta:
         model = Challenge
+        help_texts = {
+            'max_submissions_to_advance': ADVANCEMENT_HELP_TEXT,
+        }
         fields = [
             'phase',
             'registration_open_datetime', 'start_datetime',
             'official_start_datetime', 'end_datetime',
             'max_submissions_per_day', 'max_total_submissions',
-            'teams_enabled', 'is_active',
+            'max_submissions_to_advance', 'teams_enabled', 'is_active',
         ]
         widgets = DATETIME_WIDGETS
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if (self.instance.pk and self.instance.submissions.filter(
+                advanced_to_official=True).exists()):
+            field = self.fields['max_submissions_to_advance']
+            field.disabled = True
+            field.help_text = 'Locked after official submissions are selected.'
 
 
 class SubmissionSpecForm(forms.ModelForm):

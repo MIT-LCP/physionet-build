@@ -439,6 +439,21 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.integrity_errors.append('Challenge end date is required.')
             if not config.primary_metric.get('name'):
                 self.integrity_errors.append('Primary metric name is required.')
+            if not config.validation_data_gcs_uri:
+                self.integrity_errors.append(
+                    'Validation data must be uploaded for scoring.')
+            if not config.test_data_gcs_uri:
+                self.integrity_errors.append(
+                    'Test data must be uploaded for scoring.')
+            if not config.validation_labels_gcs_uri:
+                self.integrity_errors.append(
+                    'Validation labels must be uploaded for scoring.')
+            if not config.test_labels_gcs_uri:
+                self.integrity_errors.append(
+                    'Test labels must be uploaded for scoring.')
+            if not config.evaluation_script_gcs_uri:
+                self.integrity_errors.append(
+                    'An evaluation script must be uploaded for scoring.')
 
         if self.integrity_errors:
             return False

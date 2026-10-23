@@ -73,7 +73,7 @@ def main():
 
     results = []
     for filename in sorted(os.listdir(input_dir)):
-        if not filename.endswith('.csv'):
+        if not filename.endswith('.csv') or filename == 'labels.csv':
             continue
 
         record_id = os.path.splitext(filename)[0]

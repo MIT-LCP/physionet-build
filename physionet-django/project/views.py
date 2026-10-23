@@ -1619,6 +1619,8 @@ def _upload_challenge_data_files(form, config, slug):
     upload_map = [
         ('validation_data_archive', 'validation', 'validation_data_gcs_uri'),
         ('test_data_archive', 'test', 'test_data_gcs_uri'),
+        ('validation_labels_archive', 'validation_labels', 'validation_labels_gcs_uri'),
+        ('test_labels_archive', 'test_labels', 'test_labels_gcs_uri'),
         ('evaluation_script_file', 'evaluation', 'evaluation_script_gcs_uri'),
     ]
 

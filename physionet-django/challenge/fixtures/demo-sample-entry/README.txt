@@ -3,6 +3,8 @@ Sample Entry: Predicting Acute Hypotensive Episodes
 
 This directory contains a sample submission that can be used as a
 starting point for the challenge.
+The training-data/ directory in the project files contains two synthetic
+records and labels for trying it locally.
 
 Files
 -----
@@ -25,11 +27,23 @@ ground-truth labels to compute AUROC, Sensitivity, and PPV.
 
 How to submit
 -------------
-1. Package your code into a .tar.gz or .zip archive:
+Upload the downloaded sample-entry.tar.gz archive unchanged through the
+challenge submission page.
+
+If you modify the source, package it into a .tar.gz or .zip archive with
+main.py at the top level and keep that filename unchanged:
 
        tar czf submission.tar.gz main.py
 
-2. Upload the archive through the challenge submission page.
+Upload the resulting archive through the challenge submission page.
+
+To try the sample locally after extracting the archive, set INPUT_DIR to the
+training-data/ directory downloaded from the project Files section:
+
+       INPUT_DIR=/path/to/training-data OUTPUT_DIR=/tmp/ahe-demo-output python main.py
+
+The script writes predictions.json to OUTPUT_DIR. The labels.csv file in
+training-data/ is for local inspection and is not an input to the submission.
 
 Your container will have the following environment variables set:
 - INPUT_DIR  : path to the directory containing test CSV files
@@ -52,5 +66,4 @@ objects, each with:
 Requirements
 ------------
 The sample entry uses only the Python standard library (csv, json,
-os, statistics). If your submission needs additional packages, include
-a requirements.txt and install them in your entrypoint script.
+os, statistics).
