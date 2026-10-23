@@ -65,6 +65,7 @@ urlpatterns = [
     path('submitted-projects/<project_slug>/info/', views.submission_info, name='submission_info'),
     path('submitted-projects/<project_slug>/edit/', views.edit_submission, name='edit_submission'),
     path('submitted-projects/<project_slug>/copyedit/', views.copyedit_submission, name='copyedit_submission'),
+    path('submitted-projects/<project_slug>/authors/move/', views.move_author_editor, name='move_author_editor'),
     path('submitted-projects/<project_slug>/reopen/', views.reopen_copyedit, name='reopen_copyedit'),
     path('submitted-projects/<project_slug>/awaiting-authors/', views.awaiting_authors, name='awaiting_authors'),
     path('submitted-projects/<project_slug>/publish/', views.publish_submission, name='publish_submission'),
@@ -361,4 +362,5 @@ TEST_CASES = {
     'project_search': {'bucket': 'unsubmitted', '_skip_': True},
     'known_references_search': {'_skip_': True},
     'news_search': {'_skip_': True},
+    'move_author_editor': {'_skip_': True},
 }
