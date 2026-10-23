@@ -520,27 +520,12 @@ def move_author(request, project_slug, **kwargs):
     if request.method == 'POST':
         author = authors.get(id=int(request.POST['author_id']))
         direction = request.POST['direction']
-        n_authors = authors.count()
-        if n_authors > 1:
-            if direction == 'up' and 1 < author.display_order <= n_authors:
-                swap_author = authors.get(display_order=author.display_order - 1)
-            elif direction == 'down' and 1 <= author.display_order < n_authors:
-                swap_author = authors.get(display_order=author.display_order + 1)
-            else:
-                raise Http404()
-            with transaction.atomic():
-                orig_order = author.display_order
-                swap_order = swap_author.display_order
-                author.display_order = 0
-                author.save(update_fields=('display_order',))
-                swap_author.display_order = orig_order
-                swap_author.save(update_fields=('display_order',))
-                author.display_order = swap_order
-                author.save(update_fields=('display_order',))
-            authors = project.get_author_info()
-            return render(request, 'project/author_list.html',
-                {'project':project, 'authors':authors,
-                'is_submitting':is_submitting})
+        utility.move_author(author, authors, direction)
+        authors = project.get_author_info()
+        return render(
+            request, 'project/author_list.html',
+            {'project': project, 'authors': authors, 'is_submitting': is_submitting},
+        )
     raise Http404()
 
 
