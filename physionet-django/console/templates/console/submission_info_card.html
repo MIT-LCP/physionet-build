@@ -12,10 +12,12 @@
       <li class="nav-item">
         <a class="nav-link" id="ethics-tab" data-toggle="tab" href="#ethics" role="tab" aria-controls="ethics" aria-selected="false">Ethics</a>
       </li>
+      {% if project.submission_status != SubmissionStatus.ARCHIVED or anonymous_url %}
       <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="anonymous-tab" data-toggle="tab" href="#anonymous" role="tab" aria-controls="anonymous" aria-selected="false">Anonymous Access</a>
       </li>
-      {% if project.editor == user %}
+      {% endif %}
+      {% if project.editor == user and not project.submission_status == SubmissionStatus.ARCHIVED %}
       <li class="nav-item">
         <a class="nav-link {% if passphrase %} active {% endif %}" id="reassign-tab" data-toggle="tab" href="#reassign" role="tab" aria-controls="reassign" aria-selected="false">Assign new editor</a>
       </li>
@@ -138,6 +140,7 @@
         {% endif %}
       </div>
       {# Anonymous Access #}
+      {% if project.submission_status != SubmissionStatus.ARCHIVED or anonymous_url %}
       <div class="tab-pane fade {% if passphrase %} show active {% endif %}" id="anonymous" role="tabpanel" aria-labelledby="anonymous-tab">
         <p>
           You can generate a passphrase that will allow anonymous access to the
@@ -176,7 +179,7 @@
         </div>
         <form action="{% url 'submission_info' project.slug %}" method="POST" id="passphrase_form">
           {% csrf_token %}
-          {% if not project.anonymous.first %}
+          {% if not project.anonymous.first and not project.submission_status == SubmissionStatus.ARCHIVED %}
           <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase">
             Generate Standard Link
           </button>
@@ -190,6 +193,7 @@
           {% endif %}
         </form>
       </div>
+      {% endif %}
 
       {# External Reviews #}
       {% if reviewer_invitations %}
@@ -325,7 +329,7 @@
       {% endif %}
 
       {# Permanent Reassign #}
-      {% if project.editor == user %}
+      {% if project.editor == user and not project.submission_status == SubmissionStatus.ARCHIVED %}
       <div class="tab-pane fade" id="reassign" role="tabpanel" aria-labelledby="reassign-tab">
         <p>Permanently reassign the project to another editor.</p>
         <form action="{% url 'submission_info' project.slug %}" method="POST" id="reassign_editor_form">
@@ -357,7 +361,7 @@
       {% endif %}
 
       {# Embargo #}
-      {% if project.editor == user %}
+      {% if project.editor == user and not project.submission_status == SubmissionStatus.ARCHIVED %}
       <div class="tab-pane fade" id="embargo" role="tabpanel" aria-labelledby="embargo-tab">
         {% if not project.license.access_policy == AccessPolicy.OPEN %}
           {% if project.embargo_files_days %}
