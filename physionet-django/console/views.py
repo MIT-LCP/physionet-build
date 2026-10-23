@@ -2472,7 +2472,7 @@ MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 @require_POST
 @csrf_exempt
-@permission_required('notification.change_news', raise_exception=True)
+@console_permission_required('notification.change_news')
 def news_image_upload(request):
     uploaded_file = request.FILES.get('file')
     if not uploaded_file:
