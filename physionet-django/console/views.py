@@ -2518,8 +2518,12 @@ def news_image_upload(request):
     save_kwargs = {}
     if image_format == 'JPEG':
         save_kwargs['quality'] = 95
-    if image_format == 'GIF' and getattr(img, 'is_animated', False):
+    if image_format in ('GIF', 'WEBP') and getattr(img, 'is_animated', False):
         save_kwargs['save_all'] = True
+    else:
+        # The orientation tag is stripped with the rest of the EXIF data,
+        # so rotate the pixels to match it (e.g. portrait phone photos).
+        img = ImageOps.exif_transpose(img)
     news_image = NewsImage.objects.create(filename=filename)
     try:
         img.save(filepath, format=image_format, **save_kwargs)
