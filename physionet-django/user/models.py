@@ -1133,8 +1133,9 @@ class CredentialApplication(models.Model):
 
     def get_reference_user(self):
         """
-        Return the recorded responder for completed requests. For pending
-        requests, look up the account associated with the invitation email.
+        Return the recorded responder if there is one. Otherwise, for pending
+        requests and responses recorded before the responder was stored, look
+        up the account associated with the invitation email.
         """
         if self.reference_response_datetime is not None:
             return self.reference_user
