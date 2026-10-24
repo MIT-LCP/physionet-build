@@ -66,7 +66,7 @@ Reference's job title or position: {{ application.reference_title }}</p>
     Revoked Date: {{ application.revoked_datetime|date }}<br><br>
   {% endif %}
   {% if form %}
-    {% if request.user.is_superuser or request.user|has_group:"Admin" %}
+    {% if perms.user.change_credentialapplication %}
       <form action="" method="post">
         {% csrf_token %}
         {{ form }}
