@@ -1518,6 +1518,27 @@ class TestCredentialingProgress(TestCase):
         self.assertContains(response, 'Final review')
 
 
+class TestCredentialApplicationDisplay(TestCase):
+    """Tests for the admin-only parts of the credential application display."""
+
+    def setUp(self):
+        self.application = CredentialApplication.objects.get(user__username='admin')
+        self.application.status = CredentialApplication.Status.REJECTED
+        self.application.save()
+        self.client.login(username='admin', password='Tester11!')
+
+    def test_no_admin_form_on_own_applications_page(self):
+        response = self.client.get(reverse('user_credential_applications'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'name="manage_credentialing"')
+
+    def test_admin_form_on_console_page(self):
+        response = self.client.get(
+            reverse('view_credential_application', args=[self.application.slug]))
+        self.assertContains(response, 'name="manage_credentialing"')
+        self.assertNotContains(response, 'Reference Contact Date:')
+
+
 class BackgroundTaskError(Exception):
     def __init__(self, task):
         self.task = task

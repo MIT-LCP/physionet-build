@@ -46,10 +46,12 @@ Reference's job title or position: {{ application.reference_title }}</p>
 
 <p>Date of this agreement: {{ application.application_datetime }}<br></p>
 
-{% if application.reference_contact_datetime and request.user.is_superuser or request.user|has_group:"Admin" %}
-  Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
-  {% if application.reference_response_datetime and request.user.is_superuser or request.user|has_group:"Admin" %}
-    Reference Response Date: {{ application.reference_response_datetime|date }}<br><br>
+{% if perms.user.change_credentialapplication %}
+  {% if application.reference_contact_datetime %}
+    Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
+    {% if application.reference_response_datetime %}
+      Reference Response Date: {{ application.reference_response_datetime|date }}<br><br>
+    {% endif %}
   {% endif %}
 {% endif %}
 
@@ -63,12 +65,14 @@ Reference's job title or position: {{ application.reference_title }}</p>
   {% if application.status == CredentialApplication.Status.REVOKED %}
     Revoked Date: {{ application.revoked_datetime|date }}<br><br>
   {% endif %}
-  {% if request.user.is_superuser or request.user|has_group:"Admin" and form %}
-    <form action="" method="post">
-      {% csrf_token %}
-      {{ form }}
-      <br>
-      <button class="btn btn-success pull-right" name="manage_credentialing" value="{{ application.id }}" type="submit">Submit</button>
-    </form>
+  {% if form %}
+    {% if perms.user.change_credentialapplication %}
+      <form action="" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <br>
+        <button class="btn btn-success pull-right" name="manage_credentialing" value="{{ application.id }}" type="submit">Submit</button>
+      </form>
+    {% endif %}
   {% endif %}
 {% endif %}
