@@ -1312,6 +1312,11 @@ def _credential_reference(request, application_slug, verification_token=None):
         if not request.user.is_authenticated:
             return auth_views.redirect_to_login(request.get_full_path(), settings.LOGIN_URL)
 
+        # Applicants cannot act as their own reference, even after adding the
+        # reference's address to their account.
+        if request.user == application.user:
+            raise PermissionDenied
+
         if not AssociatedEmail.objects.filter(
             user=request.user, email__iexact=application.reference_email, is_verified=True
         ).exists():
