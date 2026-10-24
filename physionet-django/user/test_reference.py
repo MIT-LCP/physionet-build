@@ -158,10 +158,13 @@ class CredentialReferenceAccountTests(TestCase):
         self.assertIn('Responding account: <mark>reference</mark>', page)
         self.assertNotIn('Responding account: <mark>otheruser</mark>', page)
 
-    def test_legacy_response_does_not_infer_a_responder(self):
+    def test_legacy_response_falls_back_to_invitation_email(self):
+        self.reference.is_credentialed = True
+        self.reference.save()
         self.application.reference_response_datetime = timezone.now()
         self.application.save()
-        self.assertIsNone(self.application.get_reference_user())
+        self.assertEqual(self.application.get_reference_user(), self.reference)
+        self.assertTrue(self.application.ref_credentialed_flag())
 
     def test_reference_account_cannot_be_deleted_after_response(self):
         self.application.reference_user = self.reference
