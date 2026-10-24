@@ -172,3 +172,14 @@ class CredentialReferenceAccountTests(TestCase):
         deletable, reasons = self.reference.can_delete_account()
         self.assertFalse(deletable)
         self.assertIn('You have responded to a credential reference request.', reasons)
+
+    def test_applicant_cannot_answer_own_reference_request(self):
+        AssociatedEmail.objects.create(
+            user=self.applicant, email='alternate@example.com', is_verified=True,
+        )
+        self.application.reference_email = 'alternate@example.com'
+        self.application.save()
+        self.client.force_login(self.applicant)
+        self.assertEqual(self.client.post(self.url, self.response_data).status_code, 403)
+        self.application.refresh_from_db()
+        self.assertIsNone(self.application.reference_response_datetime)
