@@ -1137,7 +1137,7 @@ class CredentialApplication(models.Model):
         requests and responses recorded before the responder was stored, look
         up the account associated with the invitation email.
         """
-        if self.reference_response_datetime is not None:
+        if self.reference_user is not None:
             return self.reference_user
         try:
             ref = User.objects.get(
