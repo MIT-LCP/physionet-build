@@ -17,7 +17,7 @@
         <a
           type="button"
           class="btn btn-primary center p-2 px-3"
-          href="{% url 'sso_login' %}"
+          href="{% url 'sso_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}"
           aria-disabled="true"
         >
           <i class="fa fa-university fa-lg mr-3"></i>

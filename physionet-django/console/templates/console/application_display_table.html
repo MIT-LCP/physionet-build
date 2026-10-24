@@ -92,7 +92,11 @@ Applied: {{ application.application_datetime|date }}</p>
     <li>Organization: <mark>{{ application.reference_organization }}</mark></li>
     <li>Position: <mark>{{ application.reference_title }}</mark></li>
     <li>Relationship: <mark>{{ application.get_reference_category_display }}</mark></li>
-    <li>Active User: <mark>{{ application.ref_user_flag|yesno:"Yes,No" }}</mark></li>
+    {% if application.reference_response_datetime %}
+      <li>Responding account: <mark>{{ application.reference_user.username|default:"Unknown (legacy response)" }}</mark></li>
+    {% else %}
+      <li>Active User: <mark>{{ application.ref_user_flag|yesno:"Yes,No" }}</mark></li>
+    {% endif %}
     <li>Credentialed User: <mark>{{ application.ref_credentialed_flag|yesno:"Yes,No" }}</mark></li>
     <li>ORCID: <mark>
       {% if application.get_reference_user.orcid %}<img src='{% static "images/ORCIDiD_icon24x24.png" %}' />
