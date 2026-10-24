@@ -40,5 +40,34 @@
 
     </div>
   </div>
+  <div class="card-header">
+    Projects (past 6 years)
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+
+      <table class="table table-bordered">
+        <tr>
+          <th>Year</th>
+          <th>Created</th>
+          <th>Submitted</th>
+          <th>Resubmitted</th>
+          <th>Published</th>
+          <th>Rejected</th>
+        </tr>
+        {% for year, val in yearly_stats.items %}
+          <tr>
+            <td>{{ year }}</td>
+            <td>{{ val.0 }}</td>
+            <td>{{ val.1 }}</td>
+            <td>{{ val.2 }}</td>
+            <td>{{ val.3 }}</td>
+            <td>{{ val.4 }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+
+    </div>
+  </div>
 </div>
 {% endblock %}
