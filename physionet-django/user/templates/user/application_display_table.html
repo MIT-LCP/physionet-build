@@ -46,7 +46,7 @@ Reference's job title or position: {{ application.reference_title }}</p>
 
 <p>Date of this agreement: {{ application.application_datetime }}<br></p>
 
-{% if request.user.is_superuser or request.user|has_group:"Admin" %}
+{% if perms.user.change_credentialapplication %}
   {% if application.reference_contact_datetime %}
     Reference Contact Date: {{ application.reference_contact_datetime|date }}<br>
     {% if application.reference_response_datetime %}
