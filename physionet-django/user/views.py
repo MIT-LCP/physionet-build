@@ -1,6 +1,7 @@
 import logging
 import os
 import pdb
+from contextlib import nullcontext
 from datetime import datetime, date, timedelta
 from collections import defaultdict
 
@@ -1270,69 +1271,75 @@ def training_report(request, training_id):
     return utility.serve_file(training.completion_report.path, attach=False)
 
 
-# TODO: remove this after 30 days of commit merge, we want let the old links that was sent to the referees work
-# @login_required
 def credential_reference(request, application_slug):
     """
-    Page for a reference to verify or reject a credential application
+    Support older reference links that do not include a verification token.
     """
-    application = CredentialApplication.objects.filter(
-        slug=application_slug, reference_response_datetime=None)
-
-    if not application:
-        return redirect('/')
-    application = application.get()
-    form = forms.CredentialReferenceForm(instance=application)
-
-    if request.method == 'POST':
-        form = forms.CredentialReferenceForm(data=request.POST, instance=application)
-        if form.is_valid():
-            application = form.save()
-            # Automated email notifying that their reference has denied
-            # their application.
-            if application.reference_response == 1:
-                process_credential_complete(request, application,
-                                            include_comments=False)
-
-            response = 'verifying' if application.reference_response == 2 else 'denying'
-            return render(request, 'user/credential_reference_complete.html',
-                {'response': response, 'application': application})
-        else:
-            messages.error(request, 'Invalid submission. See errors below.')
-
-    return render(request, 'user/credential_reference.html',
-        {'form': form, 'application': application})
+    return _credential_reference(request, application_slug)
 
 
 def credential_reference_verification(request, application_slug, verification_token):
     """
-    Page for a reference to verify or reject a credential application. This is an updated version of
-    `credential_reference` that uses an additional verification token.
+    Page for a reference to verify or reject a credential application.
     """
-    application = CredentialApplication.objects.filter(
-        slug=application_slug, reference_response_datetime=None, status=0,
-        reference_verification_token=verification_token)
+    return _credential_reference(request, application_slug, verification_token)
 
-    if not application:
-        return redirect('/')
-    application = application.get()
-    form = forms.CredentialReferenceForm(instance=application)
 
-    if request.method == 'POST':
-        form = forms.CredentialReferenceForm(data=request.POST, instance=application)
-        if form.is_valid():
-            application = form.save()
-            # Automated email notifying that their reference has denied
-            # their application.
-            if application.reference_response == 1:
-                process_credential_complete(request, application,
-                                            include_comments=False)
+def _credential_reference(request, application_slug, verification_token=None):
+    application_filter = {
+        'slug': application_slug,
+    }
+    if verification_token is not None:
+        application_filter['reference_verification_token'] = verification_token
+    submitted = False
+    # Lock the application on POST so another response cannot pass the
+    # unanswered check before this one is saved.
+    with transaction.atomic() if request.method == 'POST' and request.user.is_authenticated else nullcontext():
+        applications = CredentialApplication.objects.filter(**application_filter)
+        if request.method == 'POST' and request.user.is_authenticated:
+            applications = applications.select_for_update()
+        application = applications.first()
 
-            response = 'verifying' if application.reference_response == 2 else 'denying'
-            return render(request, 'user/credential_reference_complete.html',
-                          {'response': response, 'application': application})
-        else:
-            messages.error(request, 'Invalid submission. See errors below.')
+        if not application:
+            return redirect('/')
+
+        if application.reference_response_datetime is not None:
+            return render(request, 'user/credential_reference_already_responded.html')
+
+        if application.status != CredentialApplication.Status.PENDING:
+            return redirect('/')
+
+        if not request.user.is_authenticated:
+            return auth_views.redirect_to_login(request.get_full_path(), settings.LOGIN_URL)
+
+        # Applicants cannot act as their own reference, even after adding the
+        # reference's address to their account.
+        if request.user == application.user:
+            raise PermissionDenied
+
+        if not AssociatedEmail.objects.filter(
+            user=request.user, email__iexact=application.reference_email, is_verified=True
+        ).exists():
+            return render(request, 'user/credential_reference_email_mismatch.html',
+                          {'reference_email': application.reference_email}, status=403)
+
+        form = forms.CredentialReferenceForm(instance=application)
+        if request.method == 'POST':
+            form = forms.CredentialReferenceForm(data=request.POST, instance=application)
+            if form.is_valid():
+                application = form.save(reference_user=request.user)
+                submitted = True
+            else:
+                messages.error(request, 'Invalid submission. See errors below.')
+
+    if submitted:
+        # Send email after the response is committed and the lock is released.
+        if application.reference_response == 1:
+            process_credential_complete(request, application, include_comments=False)
+
+        response = 'verifying' if application.reference_response == 2 else 'denying'
+        return render(request, 'user/credential_reference_complete.html',
+                      {'response': response, 'application': application})
 
     return render(request, 'user/credential_reference.html', {'form': form, 'application': application})
 
