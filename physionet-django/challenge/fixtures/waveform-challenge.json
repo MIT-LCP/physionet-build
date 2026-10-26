@@ -760,5 +760,26 @@
       "rank": 3,
       "updated_datetime": "2024-04-15T10:35:50Z"
     }
+  },
+  {
+    "model": "challenge.leaderboardentry",
+    "pk": 7,
+    "fields": {
+      "challenge": 2,
+      "team": null,
+      "user": [
+        "rgmark"
+      ],
+      "submission": 16,
+      "dataset": "val",
+      "primary_score": 0.734,
+      "all_scores": {
+        "F1": 0.734,
+        "Accuracy": 0.803,
+        "Sensitivity": 0.698
+      },
+      "rank": 4,
+      "updated_datetime": "2024-04-18T11:15:20Z"
+    }
   }
 ]
