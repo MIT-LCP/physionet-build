@@ -2319,27 +2319,27 @@ class EditorAuthorManagement(TestMixin):
         self.copyedit_url = reverse('copyedit_submission',
                                     args=(self.project.slug,))
 
-    def test_non_editor_returns_404(self):
-        """Non-editors cannot reorder copyedit authors."""
-        author = self.project.authors.get(user__username='aewj')
-        self.client.logout()
-        self.client.login(username='amitupreti', password='Tester11!')
-        url = reverse('move_author_editor', args=(self.project.slug,))
-        response = self.client.post(
-            url, {'author_id': author.pk, 'direction': 'down'})
-        self.assertEqual(response.status_code, 404)
+    def test_editor_can_save_author_order(self):
+        """Editors save a complete author order in one copyedit POST."""
+        authors = list(self.project.authors.order_by('display_order'))
+        response = self.client.post(self.copyedit_url, {
+            'save_author_order': '',
+            'author_order': [author.pk for author in reversed(authors)],
+        })
+        self.assertRedirects(response, self.copyedit_url)
+        self.assertEqual(
+            list(self.project.authors.order_by('display_order').values_list('pk', flat=True)),
+            [author.pk for author in reversed(authors)],
+        )
 
-    def test_editor_can_move_author(self):
-        """Editors can reorder authors and receive editor controls."""
-        author = self.project.authors.get(user__username='aewj')
-        url = reverse('move_author_editor', args=(self.project.slug,))
-        response = self.client.post(
-            url, {'author_id': author.id, 'direction': 'down'})
-        self.assertEqual(response.status_code, 200)
-        author.refresh_from_db()
-        self.assertEqual(author.display_order, 2)
-        self.assertContains(response, 'fa-pencil-alt')
-        self.assertNotContains(response, 'fa-user-times')
+    def test_invalid_author_order_is_rejected(self):
+        """The saved order must include every project author exactly once."""
+        author = self.project.authors.order_by('display_order').first()
+        response = self.client.post(self.copyedit_url, {
+            'save_author_order': '',
+            'author_order': [author.pk],
+        })
+        self.assertEqual(response.status_code, 400)
 
     def test_editor_can_add_edit_and_remove_affiliations(self):
         """Editors can create, update, and delete affiliations together."""
@@ -2399,6 +2399,32 @@ class EditorAuthorManagement(TestMixin):
         self.assertEqual(author.affiliations.filter(
             name=affiliation.name).count(), 1)
 
+    def test_editor_cannot_delete_all_affiliations(self):
+        """At least one affiliation is required while copyediting."""
+        author = self.project.authors.get(user__username='aewj')
+        affiliations = list(author.affiliations.all())
+        prefix = f'aff_{author.pk}'
+        data = {
+            'edit_author_affiliation': author.pk,
+            f'{prefix}-TOTAL_FORMS': str(len(affiliations)),
+            f'{prefix}-INITIAL_FORMS': str(len(affiliations)),
+            f'{prefix}-MIN_NUM_FORMS': '1',
+            f'{prefix}-MAX_NUM_FORMS': '3',
+        }
+        for index, affiliation in enumerate(affiliations):
+            data.update({
+                f'{prefix}-{index}-id': affiliation.pk,
+                f'{prefix}-{index}-name': affiliation.name,
+                f'{prefix}-{index}-country': affiliation.country,
+                f'{prefix}-{index}-DELETE': 'on',
+            })
+
+        response = self.client.post(self.copyedit_url, data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertMessage(response, 40)
+        self.assertEqual(author.affiliations.count(), len(affiliations))
+
     def test_editor_can_update_corresponding_author_and_email(self):
         """Editors can update the corresponding author and their email."""
         new_author = self.project.authors.exclude(
@@ -2427,6 +2453,14 @@ class EditorAuthorManagement(TestMixin):
         response = self.client.post(self.copyedit_url, {
             'corresponding_email': '',
             'associated_email': alternate_email.email,
+        })
+        self.assertRedirects(response, self.copyedit_url)
+        new_author.refresh_from_db()
+        self.assertEqual(new_author.corresponding_email, alternate_email)
+
+        response = self.client.post(self.copyedit_url, {
+            'corresponding_author': '',
+            'author': new_author.pk,
         })
         self.assertRedirects(response, self.copyedit_url)
         new_author.refresh_from_db()

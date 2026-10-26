@@ -18,7 +18,7 @@ function moveAuthor(authorId, direction) {
       $('#author-list-error').remove();
       $authorList.before(
         '<div id="author-list-error" class="alert alert-danger" role="alert">'
-        + 'Unable to reorder authors. Please reload the page and try again.'</div>'
+        + 'Unable to reorder authors. Please reload the page and try again.</div>'
       );
     }
   });

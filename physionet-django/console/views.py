@@ -18,6 +18,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
+from django.db import transaction
 from django.db.models import Count, DurationField, F, Q, Prefetch
 from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory, inlineformset_factory
@@ -36,7 +37,7 @@ from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.utility import paginate
 from physionet.models import FrontPageButton, Section, StaticPage
-from project import forms as project_forms, utility as project_utility
+from project import forms as project_forms
 from project.models import (
     GCP,
     GCPLog,
@@ -594,6 +595,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     reassign_editor_form = forms.ReassignEditorForm(project=project)
     embargo_form = forms.EmbargoFilesDaysForm()
     internal_note_form = forms.InternalNoteForm()
+    author_order_form = forms.AuthorOrderForm(project=project)
     corresponding_author_form = project_forms.CorrespondingAuthorForm(project=project)
     corresponding_author = project.authors.filter(
         is_corresponding=True).select_related('user').first()
@@ -697,7 +699,10 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             else:
                 messages.error(request, 'Invalid submission. See errors below.')
         elif 'edit_author_affiliation' in request.POST:
-            author_id = int(request.POST['edit_author_affiliation'])
+            try:
+                author_id = int(request.POST['edit_author_affiliation'])
+            except (TypeError, ValueError):
+                raise Http404()
             target_author = get_object_or_404(project.authors, pk=author_id)
             prefix = f'aff_{author_id}'
             formset = EditorAffiliationFormSet(
@@ -716,20 +721,39 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             corresponding_author_form = project_forms.CorrespondingAuthorForm(
                 project=project, data=request.POST)
             if corresponding_author_form.is_valid():
+                old_corresponding_author = project.corresponding_author()
                 corresponding_author_form.update_corresponder()
                 # Editor-only: auto-set corresponding email to the new
                 # corresponding author's primary email to avoid a validation
                 # error when no email has been explicitly chosen yet
                 new_corresponding_author = corresponding_author_form.cleaned_data['author']
-                primary_email = new_corresponding_author.user.associated_emails.filter(
-                    is_primary_email=True, is_verified=True).first()
-                if primary_email:
-                    new_corresponding_author.corresponding_email = primary_email
-                    new_corresponding_author.save()
+                if old_corresponding_author != new_corresponding_author:
+                    primary_email = new_corresponding_author.user.associated_emails.filter(
+                        is_primary_email=True, is_verified=True).first()
+                    if primary_email:
+                        new_corresponding_author.corresponding_email = primary_email
+                        new_corresponding_author.save()
                 messages.success(request, 'The corresponding author has been updated.')
                 return redirect('copyedit_submission', project_slug=project.slug)
             else:
                 messages.error(request, 'Update unsuccessful. See form for errors.')
+        elif 'save_author_order' in request.POST:
+            author_order_form = forms.AuthorOrderForm(
+                project=project, data=request.POST)
+            if not author_order_form.is_valid():
+                return HttpResponse('Invalid author order.', status=400)
+
+            author_ids = author_order_form.cleaned_data['author_order']
+            # Move existing values out of the target range before assigning the
+            # requested sequence, preserving the unique display_order constraint.
+            with transaction.atomic():
+                project.authors.update(
+                    display_order=F('display_order') + len(author_ids))
+                for display_order, author_id in enumerate(author_ids, start=1):
+                    project.authors.filter(pk=author_id).update(
+                        display_order=display_order)
+            messages.success(request, 'The author order has been updated.')
+            return redirect('copyedit_submission', project_slug=project.slug)
         elif 'corresponding_email' in request.POST:
             corresponding_author = project.authors.filter(
                 is_corresponding=True).select_related('user').first()
@@ -813,6 +837,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
          'discovery_form': discovery_form,
          'editor_affiliation_formsets': editor_affiliation_formsets,
          'open_modal_author_id': open_modal_author_id,
+         'author_order_form': author_order_form,
          'corresponding_author_form': corresponding_author_form,
          'corresponding_email_form': corresponding_email_form,
          },
@@ -829,8 +854,11 @@ def _build_editor_affiliation_formsets(project):
         form=project_forms.AffiliationForm,
         extra=1,
         max_num=Affiliation.MAX_AFFILIATIONS,
+        min_num=1,
         can_delete=True,
         validate_max=True,
+        validate_min=True,
+        formset=project_forms.AffiliationFormSet,
     )
     authors_qs = project.authors.select_related('user').order_by('display_order')
     return (
@@ -838,36 +866,6 @@ def _build_editor_affiliation_formsets(project):
         {a.pk: EditorAffiliationFormSet(instance=a, prefix=f'aff_{a.pk}')
          for a in authors_qs},
     )
-
-
-@handling_editor
-def move_author_editor(request, project_slug, **kwargs):
-    """
-    Reorder authors in the editor (copyedit) workflow.
-    Mirrors move_author but is protected by @handling_editor and returns
-    author_list.html with is_editor=True and fresh per-author formsets.
-    Called via AJAX.
-    """
-    project = kwargs['project']
-    if project.submission_status != SubmissionStatus.NEEDS_COPYEDIT:
-        raise Http404()
-    authors = project.authors.order_by('display_order')
-
-    if request.method == 'POST':
-        author = get_object_or_404(authors, id=int(request.POST['author_id']))
-        direction = request.POST['direction']
-        project_utility.move_author(author, authors, direction)
-
-        _, editor_affiliation_formsets = _build_editor_affiliation_formsets(project)
-        return render(request, 'project/author_list.html', {
-            'project': project,
-            'authors': project.get_author_info(),
-            'is_editor': True,
-            'editor_affiliation_formsets': editor_affiliation_formsets,
-            'open_modal_author_id': None,
-        })
-
-    raise Http404()
 
 
 @handling_editor

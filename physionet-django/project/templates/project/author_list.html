@@ -1,5 +1,5 @@
 {% load project_templatetags %}
-<div id="author-list" class="card" data-move-author-url="{% if is_editor %}{% url 'move_author_editor' project.slug %}{% elif is_submitting %}{% url 'move_author' project.slug %}{% endif %}">
+<div id="author-list" class="card"{% if is_submitting %} data-move-author-url="{% url 'move_author' project.slug %}"{% endif %}>
   <div class="card card-header">
     <h3>Project Authors</h3>
     <em>Shown in display order</em>
@@ -7,7 +7,7 @@
 
   <ul class="list-group list-group-flush">
     {% for author in authors %}
-      <li class="list-group-item">
+      <li class="list-group-item"{% if is_editor %} data-author-id="{{ author.id }}"{% endif %}>
         <strong>User</strong>: {{ author.user }}
         {% if author.is_submitting %}
           <span class="badge badge-success">Submitting Author</span>
@@ -41,14 +41,14 @@
         {% elif is_editor %}
           <a class="float-right">
             {% if author.display_order > 1 %}
-              <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'up')" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
+              <button class="btn btn-sm" type="button" data-editor-direction="up" title="Move Author Up" style="background:none"><i class="fas fa-arrow-up"></i></button>
             {% else %}
-              <button class="btn btn-sm" style="background:none; color:white"><i class="fas fa-arrow-up"></i></button>
+              <button class="btn btn-sm" type="button" data-editor-direction="up" title="Move Author Up" disabled style="background:none; color:white"><i class="fas fa-arrow-up"></i></button>
             {% endif %}
             {% if author.display_order < authors|length %}
-              <button class="btn btn-sm" onclick="moveAuthor({{ author.id }}, 'down')" type="button" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
+              <button class="btn btn-sm" type="button" data-editor-direction="down" title="Move Author Down" style="background:none"><i class="fas fa-arrow-down"></i></button>
             {% else %}
-              <button class="btn btn-sm" type="button" style="background:none; color:white"><i class="fas fa-arrow-down"></i></button>
+              <button class="btn btn-sm" type="button" data-editor-direction="down" title="Move Author Down" disabled style="background:none; color:white"><i class="fas fa-arrow-down"></i></button>
             {% endif %}
             <button class="btn btn-sm" type="button" title="Edit Affiliations" style="background:none" data-toggle="modal" data-target="#edit-aff-{{ author.id }}-modal"><i class="fas fa-pencil-alt"></i></button>
           </a>
