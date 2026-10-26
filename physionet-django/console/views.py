@@ -26,6 +26,7 @@ from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirec
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
@@ -3454,6 +3455,7 @@ def download_all_dua_signatures(request):
     return response
 
 
+@method_decorator(console_permission_required('user.can_view_admin_console'), name='dispatch')
 class UserAutocomplete(autocomplete.Select2QuerySetView):
     def get_queryset(self):
         """
