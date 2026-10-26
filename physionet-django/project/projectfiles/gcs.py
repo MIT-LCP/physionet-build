@@ -196,7 +196,13 @@ class GCSProjectFiles(BaseProjectFiles):
             if name != '':
                 size = readable_size(blob.size)
                 modified = blob.updated.strftime("%Y-%m-%d")
-                files.append(FileInfo(name, size, modified))
+                files.append(FileInfo(
+                    name,
+                    size,
+                    modified,
+                    snapshot_size=blob.size,
+                    snapshot_modified=blob.updated.isoformat(),
+                ))
 
         for prefix in prefixes:
             dirs.append(DirectoryInfo(prefix.replace(object_name, '', 1)[:-1]))

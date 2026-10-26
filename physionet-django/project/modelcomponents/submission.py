@@ -118,6 +118,9 @@ class EditLog(models.Model):
     submission_datetime = models.DateTimeField(auto_now_add=True)
     is_resubmission = models.BooleanField(default=False)
     author_comments = models.CharField(max_length=20000, default='')
+    # A record of the author-facing metadata at the time of submission.
+    # This remains unchanged when authors edit the project for later revisions.
+    metadata_snapshot = models.JSONField(default=dict, blank=True)
     # Quality assurance fields
     soundly_produced = models.BooleanField(null=True, blank=True)
     well_described = models.BooleanField(null=True, blank=True)

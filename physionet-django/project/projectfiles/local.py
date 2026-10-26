@@ -66,7 +66,11 @@ class LocalProjectFiles(BaseProjectFiles):
 
         # Files require descriptive info and download links
         for file in file_names:
-            file_info = get_file_info(os.path.join(path, file))
+            file_path = os.path.join(path, file)
+            file_info = get_file_info(file_path)
+            file_stat = os.stat(file_path)
+            file_info.snapshot_size = file_stat.st_size
+            file_info.snapshot_modified = file_stat.st_mtime_ns
             file_info.url = file_display_url(subdir=subdir, file=file)
             file_info.raw_url = file_url(subdir=subdir, file=file)
             file_info.download_url = file_info.raw_url + '?download'

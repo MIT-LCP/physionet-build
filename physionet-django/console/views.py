@@ -347,6 +347,20 @@ def submission_info_redirect(request, project_slug):
     return redirect('submission_info', project_slug=project_slug)
 
 
+def snapshot_files(metadata_snapshot):
+    """Return a file manifest and whether it was truncated.
+
+    File manifests saved before the cap was introduced are lists; retain
+    support for those snapshots while newer ones store entries and metadata.
+    """
+    files = metadata_snapshot.get('files')
+    if isinstance(files, list):
+        return files, False
+    if isinstance(files, dict):
+        return files.get('entries', []), files.get('truncated', False)
+    return None, False
+
+
 def submission_info_card_params(request,
                                 project,
                                 reassign_editor_form,
@@ -374,12 +388,39 @@ def submission_info_card_params(request,
 
     upload_agreement = getattr(project.submitting_author(), 'upload_agreement', None)
 
+    edit_logs = project.edit_log_history()
+    metadata_edit_logs = [
+        edit_log for edit_log in edit_logs if edit_log.metadata_snapshot
+    ]
+    previous_files = None
+    previous_files_truncated = False
+    for edit_log in metadata_edit_logs:
+        files, files_truncated = snapshot_files(edit_log.metadata_snapshot)
+        if files is None:
+            continue
+
+        current_files = {file_info['path']: file_info for file_info in files}
+        if previous_files is not None:
+            shared_paths = current_files.keys() & previous_files.keys()
+            edit_log.file_changes = {
+                'added': sorted(current_files.keys() - previous_files.keys()),
+                'removed': sorted(previous_files.keys() - current_files.keys()),
+                'changed': sorted(
+                    path for path in shared_paths
+                    if current_files[path] != previous_files[path]
+                ),
+                'is_limited': files_truncated or previous_files_truncated,
+            }
+        previous_files = current_files
+        previous_files_truncated = files_truncated
+
     return {
         'project': project,
         'authors': authors,
         'author_emails': author_emails,
         'storage_info': project.get_storage_info(force_calculate=force_calculate),
-        'edit_logs': project.edit_log_history(),
+        'edit_logs': edit_logs,
+        'metadata_edit_logs': metadata_edit_logs,
         'latest_version': latest_version,
         'url_prefix': url_prefix,
         'bulk_url_prefix': bulk_url_prefix,

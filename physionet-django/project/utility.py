@@ -29,10 +29,15 @@ class FileInfo():
     For displaying lists of files in project pages
     All attributes are human readable strings
     """
-    def __init__(self, name, size, last_modified):
+    def __init__(self, name, size, last_modified, snapshot_size=None,
+                 snapshot_modified=None):
         self.name = name
         self.size = size
         self.last_modified = last_modified
+        # Machine-readable values used when recording a submission snapshot.
+        # The display values above remain unchanged for the file browser.
+        self.snapshot_size = snapshot_size
+        self.snapshot_modified = snapshot_modified
 
     def __lt__(self, other):
         return self.name < other.name

@@ -202,6 +202,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         'short_description',
     )
 
+    # Bound the database storage and submission-time work for file snapshots.
+    SUBMISSION_FILE_MANIFEST_MAX_FILES = 1000
+
     SUBMISSION_STATUS_LABELS = {
         SubmissionStatus.UNSUBMITTED: 'Not submitted.',
         SubmissionStatus.ARCHIVED: 'Archived.',
@@ -502,7 +505,11 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.author_comments = author_comments
         self.save()
         # Create the first edit log
-        EditLog.objects.create(project=self, author_comments=author_comments)
+        EditLog.objects.create(
+            project=self,
+            author_comments=author_comments,
+            metadata_snapshot=self.submission_metadata_snapshot(),
+        )
 
     def set_submitting_author(self):
         """
@@ -550,8 +557,73 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.resubmission_datetime = timezone.now()
             self.save()
             # Create a new edit log
-            EditLog.objects.create(project=self, is_resubmission=True,
-                author_comments=author_comments)
+            EditLog.objects.create(
+                project=self,
+                is_resubmission=True,
+                author_comments=author_comments,
+                metadata_snapshot=self.submission_metadata_snapshot(),
+            )
+
+    def submission_metadata_snapshot(self):
+        """Return the author-facing metadata as it appears at submission."""
+        return {
+            'sections': [
+                {
+                    'title': section.title,
+                    'html_id': section.html_id,
+                    'body': section.body,
+                }
+                for section in self.content_sections()
+            ],
+            'files': self.submission_file_manifest(),
+            'references': [
+                {
+                    'order': reference.order,
+                    'description': reference.description,
+                }
+                for reference in self.references.order_by('order', 'id')
+            ],
+        }
+
+    def submission_file_manifest(self):
+        """Return file metadata needed to compare two submissions.
+
+        This intentionally records file-system metadata rather than reading file
+        contents, so submitting a large project does not require checksumming it.
+        The manifest is capped; callers must treat a truncated manifest as a
+        partial view of the project's files.
+        """
+        manifest = []
+        truncated = self._append_submission_file_manifest('', manifest)
+        return {
+            'entries': manifest,
+            'truncated': truncated,
+        }
+
+    def _append_submission_file_manifest(self, subdir, manifest):
+        """Append files under ``subdir`` and return whether the cap was hit."""
+        if len(manifest) >= self.SUBMISSION_FILE_MANIFEST_MAX_FILES:
+            return True
+
+        display_files, display_dirs = self.get_directory_content(subdir)
+
+        for file_info in display_files:
+            if len(manifest) >= self.SUBMISSION_FILE_MANIFEST_MAX_FILES:
+                return True
+            manifest.append({
+                'path': os.path.join(subdir, file_info.name),
+                'size': file_info.snapshot_size,
+                'modified': file_info.snapshot_modified,
+            })
+
+        for directory_info in display_dirs:
+            if self._append_submission_file_manifest(
+                os.path.join(subdir, directory_info.name),
+                manifest,
+            ):
+                return True
+
+        return False
 
     def reopen_copyedit(self):
         """
