@@ -254,8 +254,8 @@ class EditSubmissionForm(forms.ModelForm):
             # in use. Before authors can revise an older submission, record
             # its files so the following resubmission has a comparison base.
             if (edit_log.decision == 1
-                    and 'files' not in edit_log.metadata_snapshot):
-                metadata_snapshot = dict(edit_log.metadata_snapshot)
+                    and 'files' not in (edit_log.metadata_snapshot or {})):
+                metadata_snapshot = dict(edit_log.metadata_snapshot or {})
                 metadata_snapshot['files'] = project.submission_file_manifest()
                 edit_log.metadata_snapshot = metadata_snapshot
             edit_log.save()
