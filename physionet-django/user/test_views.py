@@ -1334,7 +1334,7 @@ class TestDeleteAccount(TestCase):
 
         user = self._create_user()
         challenge = Challenge.objects.create(
-            published_project=PublishedProject.objects.first(),
+            published_project=PublishedProject.objects.filter(challenge=None).first(),
             slug='test-challenge',
             organizer=User.objects.get(username='rgmark'),
         )

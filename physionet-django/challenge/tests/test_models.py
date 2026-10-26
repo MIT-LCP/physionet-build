@@ -11,7 +11,7 @@ class TestLeaderboardEntryConstraints(TestCase):
     def setUp(self):
         self.user = User.objects.get(username='rgmark')
         self.challenge = Challenge.objects.create(
-            published_project=PublishedProject.objects.first(),
+            published_project=PublishedProject.objects.filter(challenge=None).first(),
             slug='test-challenge',
             organizer=self.user,
         )

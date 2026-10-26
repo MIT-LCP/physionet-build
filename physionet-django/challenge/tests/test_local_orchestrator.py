@@ -413,7 +413,8 @@ class TestProcessSubmission(TestCase):
         from challenge.models import Submission
         from challenge.tasks import process_submission
 
-        submission = Submission.objects.get(status=SubmissionStatus.PENDING)
+        submission = Submission.objects.get(
+            challenge__slug='demo-ecg-challenge', status=SubmissionStatus.PENDING)
         orchestrator = mock.MagicMock()
         orchestrator.poll.return_value = True
         orchestrator.extract_scores.return_value = {'AUROC': 0.9}

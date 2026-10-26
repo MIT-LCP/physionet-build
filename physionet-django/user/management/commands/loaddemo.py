@@ -78,15 +78,26 @@ class Command(BaseCommand):
 
 def find_demo_fixtures(project_apps):
     """
-    Find non-empty demo fixtures
+    Find non-empty demo fixtures.
+
+    Discovers the standard ``demo-<app>.json`` file for each app, plus
+    any additional ``*-<app>.json`` files in the same fixtures directory
+    (e.g. ``waveform-challenge.json`` alongside ``demo-challenge.json``).
     """
+    import glob
+
     demo_fixtures = []
     for app in project_apps:
-        fixture = 'demo-{}'.format(app)
-        file_name = os.path.join(settings.BASE_DIR, app,
-                                 'fixtures', '{}.json'.format(fixture))
-        if os.path.exists(file_name) and open(file_name).read(4) != '[\n]\n':
-            demo_fixtures.append(fixture)
+        fixtures_dir = os.path.join(settings.BASE_DIR, app, 'fixtures')
+        pattern = os.path.join(
+            fixtures_dir, '*-{}.json'.format(app))
+        for file_name in sorted(glob.glob(pattern)):
+            with open(file_name) as f:
+                if f.read(4) == '[\n]\n':
+                    continue
+            base = os.path.basename(file_name)
+            fixture_name = os.path.splitext(base)[0]
+            demo_fixtures.append(fixture_name)
 
     return demo_fixtures
 

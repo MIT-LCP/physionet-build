@@ -1,0 +1,785 @@
+[
+  {
+    "model": "project.coreproject",
+    "pk": "a1b2c3d4-e5f6-7890-abcd-ef1234600001",
+    "fields": {
+      "creation_datetime": "2024-03-01T10:00:00Z",
+      "doi": null,
+      "storage_allowance": 10737418240
+    }
+  },
+  {
+    "model": "project.publishedproject",
+    "pk": 22,
+    "fields": {
+      "resource_type": 2,
+      "title": "Classifying ECG Beat Morphology",
+      "abstract": "<p>This challenge asks participants to classify individual electrocardiogram (ECG) beats as Normal or Abnormal using short waveform segments extracted from the MIT-BIH Arrhythmia Database. Accurate automated beat classification is a critical step in cardiac rhythm analysis, enabling real-time arrhythmia detection in wearable monitors and bedside telemetry systems. Participants receive fixed-length amplitude vectors and must return a binary label for each beat.</p>",
+      "background": "<p>The electrocardiogram remains the most widely used tool for non-invasive cardiac monitoring. Clinical interpretation of the ECG depends heavily on identifying individual heartbeat morphologies: normal sinus beats, premature ventricular contractions (PVCs), atrial premature beats, and other arrhythmia classes. Manual annotation is time-consuming and subject to inter-observer variability, motivating decades of work on automated beat classification.</p><p>The MIT-BIH Arrhythmia Database, first released in 1980, has served as the standard benchmark for this task. It contains 48 half-hour two-lead ambulatory ECG recordings from 47 subjects, with over 109,000 individually annotated beats. Despite its age, the database continues to be the most cited resource in ECG classification research, and performance on it remains a key indicator of algorithm quality.</p><p>This challenge provides pre-segmented beat waveforms in a simple tabular format, lowering the barrier to entry for participants without signal processing expertise while preserving the core classification problem.</p>",
+      "methods": "<p>Each beat is represented as a fixed-length vector of 20 amplitude samples spanning the QRS complex and surrounding baseline. Beats were extracted from the MIT-BIH Arrhythmia Database by centering a window on the annotated R-peak and resampling to a uniform length. The original AAMI beat-type annotations were mapped to a binary scheme: Normal (N) versus Abnormal (any non-normal morphology including PVCs, atrial premature beats, and other ectopic beats).</p><p>Submissions receive a CSV file of beat segments as input and must write a JSON file of classifications. The evaluation script computes the F1 score as the primary metric, with accuracy and sensitivity as secondary metrics. All metrics are computed against the withheld ground-truth labels.</p><p>Containers execute in a sandboxed environment with no network access. The entrypoint command, resource limits, and expected I/O format are specified in the challenge configuration.</p>",
+      "content_description": "<p>The challenge dataset comprises two partitions of pre-segmented ECG beats:\n<ul>\n<li><strong>Training set</strong>: Beat segments with binary labels (0 = Normal, 1 = Abnormal) for local development and model fitting.</li>\n<li><strong>Validation / Test sets</strong>: Identically formatted beat segments without labels. Validation scores are shown on the public leaderboard during the unofficial phase; test scores determine the final ranking.</li>\n</ul>\nEach patient’s beats are stored in a <code>record.csv</code> file inside a per-patient subdirectory, with columns: <code>beat_id</code> and <code>sample_0</code> through <code>sample_19</code>, representing 20 amplitude values spanning the QRS complex.</p>",
+      "usage_notes": "<p>Download <code>sample-entry.tar.gz</code> from the Files section below and upload it unchanged to try a baseline submission. The archive contains source code and instructions. The <code>training-data/</code> directory contains synthetic example beats, not the full challenge dataset.</p><p>Each amplitude sample is a normalized floating-point value. No additional preprocessing (filtering, baseline wander removal) is needed, though participants may apply their own feature engineering.</p>",
+      "installation": "",
+      "acknowledgements": "<p>The MIT-BIH Arrhythmia Database was created by George Moody and Roger Mark at the MIT Laboratory for Computational Physiology with support from NIH grants and the Beth Israel Deaconess Medical Center. This challenge is hosted by PhysioNet.</p>",
+      "conflicts_of_interest": "<p>The organizers have no conflicts of interest to declare.</p>",
+      "version": "1.0.0",
+      "release_notes": "",
+      "short_description": "Classify individual ECG beats as Normal or Abnormal from waveform segments.",
+      "access_policy": 0,
+      "license": 1,
+      "dua": null,
+      "project_home_page": "",
+      "core_project": "a1b2c3d4-e5f6-7890-abcd-ef1234600001",
+      "editor": [
+        "admin"
+      ],
+      "submission_datetime": "2024-02-20T10:00:00Z",
+      "author_comments": "",
+      "editor_assignment_datetime": "2024-02-21T10:00:00Z",
+      "revision_request_datetime": null,
+      "resubmission_datetime": null,
+      "editor_accept_datetime": "2024-02-25T10:00:00Z",
+      "copyedit_completion_datetime": "2024-02-27T10:00:00Z",
+      "author_approval_datetime": "2024-02-27T12:00:00Z",
+      "creation_datetime": "2024-03-01T10:00:00Z",
+      "version_order": 0,
+      "main_storage_size": 52428800,
+      "compressed_storage_size": 18874368,
+      "incremental_storage_size": 52428800,
+      "submission_slug": "ecgbeatclass00001",
+      "publish_datetime": "2024-03-01T10:00:00Z",
+      "has_other_versions": false,
+      "deprecated_files": false,
+      "doi": "10.13026/ECG-BEAT1",
+      "slug": "demo-waveform-challenge",
+      "public_project_uuid": "b2c3d4e5-f6a7-8901-bcde-f12345600002",
+      "is_legacy": false,
+      "full_description": "",
+      "is_latest_version": true,
+      "featured": null,
+      "has_wfdb": false,
+      "display_publications": true,
+      "parent_projects": []
+    }
+  },
+  {
+    "model": "project.publishedauthor",
+    "pk": 26,
+    "fields": {
+      "user": [
+        "tompollard"
+      ],
+      "display_order": 1,
+      "is_submitting": true,
+      "is_corresponding": true,
+      "approval_datetime": "2024-02-27T12:00:00Z",
+      "first_names": "Tom",
+      "last_name": "Pollard",
+      "corresponding_email": "tpollard@mit.edu",
+      "project": 22
+    }
+  },
+  {
+    "model": "project.publishedauthor",
+    "pk": 27,
+    "fields": {
+      "user": [
+        "george"
+      ],
+      "display_order": 2,
+      "is_submitting": false,
+      "is_corresponding": false,
+      "approval_datetime": "2024-02-27T12:00:00Z",
+      "first_names": "George",
+      "last_name": "Moody",
+      "corresponding_email": null,
+      "project": 22
+    }
+  },
+  {
+    "model": "project.publishedauthor",
+    "pk": 28,
+    "fields": {
+      "user": [
+        "rgmark"
+      ],
+      "display_order": 3,
+      "is_submitting": false,
+      "is_corresponding": false,
+      "approval_datetime": "2024-02-27T12:00:00Z",
+      "first_names": "Roger",
+      "last_name": "Mark",
+      "corresponding_email": null,
+      "project": 22
+    }
+  },
+  {
+    "model": "project.publishedaffiliation",
+    "pk": 11,
+    "fields": {
+      "name": "MIT Laboratory for Computational Physiology",
+      "country": "US",
+      "author": 26
+    }
+  },
+  {
+    "model": "project.publishedaffiliation",
+    "pk": 12,
+    "fields": {
+      "name": "MIT Laboratory for Computational Physiology",
+      "country": "US",
+      "author": 27
+    }
+  },
+  {
+    "model": "project.publishedaffiliation",
+    "pk": 13,
+    "fields": {
+      "name": "MIT Laboratory for Computational Physiology",
+      "country": "US",
+      "author": 28
+    }
+  },
+  {
+    "model": "project.contact",
+    "pk": 22,
+    "fields": {
+      "name": "Tom Pollard",
+      "affiliations": "MIT Laboratory for Computational Physiology",
+      "email": "tpollard@mit.edu",
+      "project": 22
+    }
+  },
+  {
+    "model": "challenge.challenge",
+    "pk": 2,
+    "fields": {
+      "published_project": 22,
+      "slug": "demo-waveform-challenge",
+      "organizer": [
+        "george"
+      ],
+      "organizer_name": "Hosted by PhysioNet",
+      "registration_open_datetime": "2024-03-01T10:00:00Z",
+      "start_datetime": "2024-04-01T00:00:00Z",
+      "official_start_datetime": "2024-08-01T00:00:00Z",
+      "end_datetime": "2025-12-01T23:59:59Z",
+      "phase": "unofficial",
+      "training_dataset": null,
+      "validation_data_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/validation/",
+      "test_data_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/test/",
+      "validation_labels_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/validation_labels/",
+      "test_labels_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/test_labels/",
+      "rules": "<h3>Eligibility</h3><p>The challenge is open to all individuals and teams worldwide. Organizers and their immediate collaborators are not eligible for prizes but may submit entries for benchmarking purposes.</p><h3>Submissions</h3><ul><li>Each participant or team may submit up to <strong>5 entries per day</strong> and <strong>100 entries total</strong> during the unofficial phase.</li><li>Submissions must be fully automated—no manual annotation or interactive steps are permitted.</li><li>Code must be original work by the submitting participant or team. Use of pre-trained models is permitted provided the training data and model weights are publicly available and cited.</li></ul><h3>Evaluation</h3><ul><li>During the unofficial phase, submissions are scored against the <em>validation</em> dataset. Scores on the validation set are shown on the public leaderboard.</li><li>During the official phase, selected submissions are re-evaluated against the <em>hidden test</em> dataset. Final rankings are based on test-set performance.</li></ul><h3>Publication</h3><p>All participants with accepted entries are invited to submit a short paper describing their methods to the Computing in Cardiology conference.</p>",
+      "evaluation_description": "<h3>Metrics</h3><p>The primary evaluation metric is the <strong>F1 score</strong>, the harmonic mean of precision and recall for the Abnormal class. F1 balances the cost of missed abnormal beats (false negatives) against false alarms (false positives).</p><p>Secondary metrics reported for each submission:</p><ul><li><strong>Accuracy</strong>: fraction of all beats classified correctly.</li><li><strong>Sensitivity</strong> (recall): proportion of truly abnormal beats that were correctly identified.</li></ul><h3>Scoring Procedure</h3><p>Each submission container receives a directory of patient subdirectories as input, each containing a <code>record.csv</code> file with beat segments. The submission must write a <code>predictions.json</code> file containing one object per beat with <code>beat_id</code> and <code>classification</code> (0 for Normal, 1 for Abnormal). The evaluation script computes all metrics by comparing the submitted classifications against the ground-truth labels.</p>",
+      "prizes": "<p><strong>First place:</strong> $3,000 and an invitation to present at Computing in Cardiology.</p><p><strong>Second place:</strong> $1,500.</p><p><strong>Third place:</strong> $750.</p>",
+      "max_submissions_per_day": 5,
+      "max_total_submissions": 100,
+      "teams_enabled": true,
+      "is_active": true,
+      "created_datetime": "2024-03-01T10:00:00Z",
+      "modified_datetime": "2024-04-15T14:30:00Z"
+    }
+  },
+  {
+    "model": "challenge.submissionspec",
+    "pk": 2,
+    "fields": {
+      "challenge": 2,
+      "base_image": "python:3.11-slim",
+      "entrypoint_command": "python main.py",
+      "max_runtime_seconds": 3600,
+      "max_memory_mb": 4096,
+      "gpu_enabled": false,
+      "gpu_type": "",
+      "cpu_count": 2,
+      "input_format": {
+        "type": "directory",
+        "path": "/data/test",
+        "description": "Directory of patient subdirectories, each containing a record.csv with one row per beat segment",
+        "columns": [
+          "beat_id",
+          "sample_0",
+          "sample_1",
+          "...",
+          "sample_19"
+        ]
+      },
+      "output_format": {
+        "type": "json",
+        "path": "/mnt/output/predictions.json",
+        "columns": [
+          "beat_id",
+          "classification"
+        ],
+        "description": "One object per beat with its identifier and binary classification"
+      },
+      "evaluation_script_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/evaluation/evaluate.py",
+      "additional_metrics": [
+        {
+          "name": "Accuracy",
+          "sort": "desc",
+          "display_name": "Accuracy"
+        },
+        {
+          "name": "Sensitivity",
+          "sort": "desc",
+          "display_name": "Sensitivity"
+        }
+      ],
+      "primary_metric": {
+        "name": "F1",
+        "display_name": "F1 Score",
+        "sort": "desc"
+      }
+    }
+  },
+  {
+    "model": "challenge.team",
+    "pk": 3,
+    "fields": {
+      "challenge": 2,
+      "name": "CardioML",
+      "created_datetime": "2024-03-10T14:00:00Z",
+      "is_active": true
+    }
+  },
+  {
+    "model": "challenge.team",
+    "pk": 4,
+    "fields": {
+      "challenge": 2,
+      "name": "WaveNet Lab",
+      "created_datetime": "2024-03-12T09:30:00Z",
+      "is_active": true
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 7,
+    "fields": {
+      "user": [
+        "jameslawson"
+      ],
+      "challenge": 2,
+      "registered_datetime": "2024-03-08T08:15:00Z",
+      "is_active": true,
+      "team": 3,
+      "is_team_captain": true
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 8,
+    "fields": {
+      "user": [
+        "eulaeasley"
+      ],
+      "challenge": 2,
+      "registered_datetime": "2024-03-09T11:40:00Z",
+      "is_active": true,
+      "team": 3,
+      "is_team_captain": false
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 9,
+    "fields": {
+      "user": [
+        "miriamturner"
+      ],
+      "challenge": 2,
+      "registered_datetime": "2024-03-10T16:20:00Z",
+      "is_active": true,
+      "team": 4,
+      "is_team_captain": true
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 10,
+    "fields": {
+      "user": [
+        "deborahbui"
+      ],
+      "challenge": 2,
+      "registered_datetime": "2024-03-11T09:05:00Z",
+      "is_active": true,
+      "team": 4,
+      "is_team_captain": false
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 11,
+    "fields": {
+      "user": [
+        "franwilliams"
+      ],
+      "challenge": 2,
+      "registered_datetime": "2024-03-15T13:50:00Z",
+      "is_active": true,
+      "team": null,
+      "is_team_captain": false
+    }
+  },
+  {
+    "model": "challenge.challengeparticipant",
+    "pk": 12,
+    "fields": {
+      "user": [
+        "rgmark"
+      ],
+      "challenge": 2,
+      "registered_datetime": "2024-03-16T10:00:00Z",
+      "is_active": true,
+      "team": null,
+      "is_team_captain": false
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 9,
+    "fields": {
+      "challenge": 2,
+      "submitted_by": [
+        "jameslawson"
+      ],
+      "team": 3,
+      "code_archive_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/submissions/team3-001.tar.gz",
+      "code_archive_sha256": "aa11bb22cc33dd44ee55ff6677889900aabbccdd11223344556677889900aabb",
+      "status": "completed",
+      "cloud_run_job_name": "ecg-eval-team3-001",
+      "cloud_run_execution_name": "ecg-eval-team3-001-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/logs/team3-001.log",
+      "created_datetime": "2024-04-05T09:30:00Z",
+      "started_datetime": "2024-04-05T09:31:15Z",
+      "completed_datetime": "2024-04-05T09:42:10Z",
+      "description": "Threshold-based classifier on peak amplitude",
+      "is_selected": false
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 10,
+    "fields": {
+      "challenge": 2,
+      "submitted_by": [
+        "jameslawson"
+      ],
+      "team": 3,
+      "code_archive_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/submissions/team3-002.tar.gz",
+      "code_archive_sha256": "bb22cc33dd44ee55ff6677889900aabb11223344556677889900aabbccddeeff",
+      "status": "completed",
+      "cloud_run_job_name": "ecg-eval-team3-002",
+      "cloud_run_execution_name": "ecg-eval-team3-002-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/logs/team3-002.log",
+      "created_datetime": "2024-04-12T14:10:00Z",
+      "started_datetime": "2024-04-12T14:11:30Z",
+      "completed_datetime": "2024-04-12T14:25:45Z",
+      "description": "Random forest on morphology features (amplitude range, kurtosis, skewness)",
+      "is_selected": true
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 11,
+    "fields": {
+      "challenge": 2,
+      "submitted_by": [
+        "miriamturner"
+      ],
+      "team": 4,
+      "code_archive_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/submissions/team4-001.tar.gz",
+      "code_archive_sha256": "cc33dd44ee55ff6677889900aabb11223344556677889900aabbccddeeff0011",
+      "status": "completed",
+      "cloud_run_job_name": "ecg-eval-team4-001",
+      "cloud_run_execution_name": "ecg-eval-team4-001-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/logs/team4-001.log",
+      "created_datetime": "2024-04-08T11:00:00Z",
+      "started_datetime": "2024-04-08T11:01:45Z",
+      "completed_datetime": "2024-04-08T11:18:30Z",
+      "description": "1D-CNN on raw waveform samples",
+      "is_selected": false
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 12,
+    "fields": {
+      "challenge": 2,
+      "submitted_by": [
+        "miriamturner"
+      ],
+      "team": 4,
+      "code_archive_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/submissions/team4-002.tar.gz",
+      "code_archive_sha256": "dd44ee55ff6677889900aabb11223344556677889900aabbccddeeff00112233",
+      "status": "completed",
+      "cloud_run_job_name": "ecg-eval-team4-002",
+      "cloud_run_execution_name": "ecg-eval-team4-002-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/logs/team4-002.log",
+      "created_datetime": "2024-04-20T16:45:00Z",
+      "started_datetime": "2024-04-20T16:46:20Z",
+      "completed_datetime": "2024-04-20T17:05:15Z",
+      "description": "ResNet-18 with data augmentation (time shift, noise injection)",
+      "is_selected": true
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 13,
+    "fields": {
+      "challenge": 2,
+      "submitted_by": [
+        "franwilliams"
+      ],
+      "team": null,
+      "code_archive_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/submissions/fran-w001.tar.gz",
+      "code_archive_sha256": "ee55ff6677889900aabb11223344556677889900aabbccddeeff001122334455",
+      "status": "completed",
+      "cloud_run_job_name": "ecg-eval-fran-w001",
+      "cloud_run_execution_name": "ecg-eval-fran-w001-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/logs/fran-w001.log",
+      "created_datetime": "2024-04-15T10:20:00Z",
+      "started_datetime": "2024-04-15T10:21:10Z",
+      "completed_datetime": "2024-04-15T10:35:50Z",
+      "description": "SVM with wavelet coefficients as features",
+      "is_selected": true
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 14,
+    "fields": {
+      "challenge": 2,
+      "submitted_by": [
+        "miriamturner"
+      ],
+      "team": 4,
+      "code_archive_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/submissions/team4-003.tar.gz",
+      "code_archive_sha256": "ff6677889900aabb11223344556677889900aabbccddeeff00112233445566aa",
+      "status": "failed",
+      "cloud_run_job_name": "ecg-eval-team4-003",
+      "cloud_run_execution_name": "ecg-eval-team4-003-exec-1",
+      "error_message": "FileNotFoundError: [Errno 2] No such file or directory: '/data/test/records.csv'",
+      "container_log_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/logs/team4-003.log",
+      "created_datetime": "2024-04-22T08:30:00Z",
+      "started_datetime": "2024-04-22T08:31:05Z",
+      "completed_datetime": "2024-04-22T08:31:42Z",
+      "description": "Reused AHE code without updating input filename",
+      "is_selected": false
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 15,
+    "fields": {
+      "challenge": 2,
+      "submitted_by": [
+        "franwilliams"
+      ],
+      "team": null,
+      "code_archive_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/submissions/fran-w002.tar.gz",
+      "code_archive_sha256": "0011223344556677889900aabbccddeeff0011223344556677889900aabbccdd",
+      "status": "pending",
+      "cloud_run_job_name": "",
+      "cloud_run_execution_name": "",
+      "error_message": "",
+      "container_log_gcs_uri": "",
+      "created_datetime": "2024-05-10T14:00:00Z",
+      "started_datetime": null,
+      "completed_datetime": null,
+      "description": "Ensemble of SVM and gradient boosting with optimized threshold",
+      "is_selected": false
+    }
+  },
+  {
+    "model": "challenge.submission",
+    "pk": 16,
+    "fields": {
+      "challenge": 2,
+      "submitted_by": [
+        "rgmark"
+      ],
+      "team": null,
+      "code_archive_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/submissions/rgmark-w001.tar.gz",
+      "code_archive_sha256": "aabbccddeeff0011223344556677889900aabbccddeeff001122334455667788",
+      "status": "completed",
+      "cloud_run_job_name": "ecg-eval-rgmark-w001",
+      "cloud_run_execution_name": "ecg-eval-rgmark-w001-exec-1",
+      "error_message": "",
+      "container_log_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/logs/rgmark-w001.log",
+      "created_datetime": "2024-04-18T11:00:00Z",
+      "started_datetime": "2024-04-18T11:01:30Z",
+      "completed_datetime": "2024-04-18T11:15:20Z",
+      "description": "Logistic regression on R-peak amplitude and QRS width",
+      "is_selected": false
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 16,
+    "fields": {
+      "submission": 9,
+      "metric_name": "F1",
+      "value": 0.712,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 17,
+    "fields": {
+      "submission": 9,
+      "metric_name": "Accuracy",
+      "value": 0.785,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 18,
+    "fields": {
+      "submission": 9,
+      "metric_name": "Sensitivity",
+      "value": 0.658,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 19,
+    "fields": {
+      "submission": 10,
+      "metric_name": "F1",
+      "value": 0.856,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 20,
+    "fields": {
+      "submission": 10,
+      "metric_name": "Accuracy",
+      "value": 0.892,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 21,
+    "fields": {
+      "submission": 10,
+      "metric_name": "Sensitivity",
+      "value": 0.821,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 22,
+    "fields": {
+      "submission": 11,
+      "metric_name": "F1",
+      "value": 0.823,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 23,
+    "fields": {
+      "submission": 11,
+      "metric_name": "Accuracy",
+      "value": 0.861,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 24,
+    "fields": {
+      "submission": 11,
+      "metric_name": "Sensitivity",
+      "value": 0.792,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 25,
+    "fields": {
+      "submission": 12,
+      "metric_name": "F1",
+      "value": 0.901,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 26,
+    "fields": {
+      "submission": 12,
+      "metric_name": "Accuracy",
+      "value": 0.924,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 27,
+    "fields": {
+      "submission": 12,
+      "metric_name": "Sensitivity",
+      "value": 0.875,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 28,
+    "fields": {
+      "submission": 13,
+      "metric_name": "F1",
+      "value": 0.778,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 29,
+    "fields": {
+      "submission": 13,
+      "metric_name": "Accuracy",
+      "value": 0.832,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 30,
+    "fields": {
+      "submission": 13,
+      "metric_name": "Sensitivity",
+      "value": 0.745,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 31,
+    "fields": {
+      "submission": 16,
+      "metric_name": "F1",
+      "value": 0.734,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 32,
+    "fields": {
+      "submission": 16,
+      "metric_name": "Accuracy",
+      "value": 0.803,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.score",
+    "pk": 33,
+    "fields": {
+      "submission": 16,
+      "metric_name": "Sensitivity",
+      "value": 0.698,
+      "dataset": "val"
+    }
+  },
+  {
+    "model": "challenge.leaderboardentry",
+    "pk": 4,
+    "fields": {
+      "challenge": 2,
+      "team": 4,
+      "user": null,
+      "submission": 12,
+      "dataset": "val",
+      "primary_score": 0.901,
+      "all_scores": {
+        "F1": 0.901,
+        "Accuracy": 0.924,
+        "Sensitivity": 0.875
+      },
+      "rank": 1,
+      "updated_datetime": "2024-04-20T17:05:15Z"
+    }
+  },
+  {
+    "model": "challenge.leaderboardentry",
+    "pk": 5,
+    "fields": {
+      "challenge": 2,
+      "team": 3,
+      "user": null,
+      "submission": 10,
+      "dataset": "val",
+      "primary_score": 0.856,
+      "all_scores": {
+        "F1": 0.856,
+        "Accuracy": 0.892,
+        "Sensitivity": 0.821
+      },
+      "rank": 2,
+      "updated_datetime": "2024-04-12T14:25:45Z"
+    }
+  },
+  {
+    "model": "challenge.leaderboardentry",
+    "pk": 6,
+    "fields": {
+      "challenge": 2,
+      "team": null,
+      "user": [
+        "franwilliams"
+      ],
+      "submission": 13,
+      "dataset": "val",
+      "primary_score": 0.778,
+      "all_scores": {
+        "F1": 0.778,
+        "Accuracy": 0.832,
+        "Sensitivity": 0.745
+      },
+      "rank": 3,
+      "updated_datetime": "2024-04-15T10:35:50Z"
+    }
+  },
+  {
+    "model": "challenge.leaderboardentry",
+    "pk": 7,
+    "fields": {
+      "challenge": 2,
+      "team": null,
+      "user": [
+        "rgmark"
+      ],
+      "submission": 16,
+      "dataset": "val",
+      "primary_score": 0.734,
+      "all_scores": {
+        "F1": 0.734,
+        "Accuracy": 0.803,
+        "Sensitivity": 0.698
+      },
+      "rank": 4,
+      "updated_datetime": "2024-04-18T11:15:20Z"
+    }
+  }
+]

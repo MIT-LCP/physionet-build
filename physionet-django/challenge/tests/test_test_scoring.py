@@ -27,7 +27,8 @@ class TestScoringClaims(TestCase):
     ]
 
     def setUp(self):
-        self.submission = Submission.objects.get(status=SubmissionStatus.PENDING)
+        self.submission = Submission.objects.get(
+            challenge__slug='demo-ecg-challenge', status=SubmissionStatus.PENDING)
 
     def test_success_completes_and_releases_claim(self):
         orchestrator = mock.MagicMock()

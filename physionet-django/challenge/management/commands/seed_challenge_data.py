@@ -3,10 +3,11 @@ Upload demo challenge data to fake GCS when STORAGE_EMULATOR_HOST is set.
 
 Usage: python manage.py seed_challenge_data
 
+For each demo challenge found in the database:
 1. Creates the staging bucket if it doesn't exist
-2. Uploads test data from fixtures/demo-submission-files/test_data/
-3. Uploads validation data and separate validation/test labels
-4. Uploads evaluation script from fixtures/demo-submission-files/evaluation/
+2. Uploads test data and validation data (input records only)
+3. Uploads separate validation and test ground-truth labels
+4. Uploads the evaluation script
 5. Uploads a code archive for each demo submission
 """
 import io
@@ -17,6 +18,11 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from google.cloud import storage
+
+CHALLENGE_FIXTURES = {
+    'demo-ecg-challenge': 'demo-submission-files',
+    'demo-waveform-challenge': 'waveform-submission-files',
+}
 
 
 class Command(BaseCommand):
@@ -52,81 +58,88 @@ class Command(BaseCommand):
             ))
 
         bucket = client.bucket(bucket_name)
-
         fixtures_dir = Path(__file__).resolve().parent.parent.parent / 'fixtures'
-        demo_dir = fixtures_dir / 'demo-submission-files'
 
         from challenge.models import Challenge, Submission
-        try:
-            challenge = Challenge.objects.get(slug='demo-ecg-challenge')
-        except Challenge.DoesNotExist:
-            raise CommandError(
-                'Demo challenge not found. Run "python manage.py loaddemo" first.'
-            )
 
-        spec = challenge.submission_spec
-        uploaded = 0
+        total_uploaded = 0
+        for slug, files_dir_name in CHALLENGE_FIXTURES.items():
+            try:
+                challenge = Challenge.objects.get(slug=slug)
+            except Challenge.DoesNotExist:
+                continue
 
-        def strip_bucket(uri):
-            if uri.startswith(f'{bucket_name}/'):
-                return uri[len(f'{bucket_name}/'):]
-            return uri
+            demo_dir = fixtures_dir / files_dir_name
+            if not demo_dir.exists():
+                continue
 
-        # Upload test data (input records only)
-        test_data_dir = demo_dir / 'test_data'
-        if test_data_dir.exists():
-            prefix = strip_bucket(challenge.test_data_gcs_uri)
-            uploaded += self._upload_dir(bucket, test_data_dir, prefix)
+            spec = challenge.submission_spec
+            uploaded = 0
 
-        # Upload validation data (input records only)
-        validation_dir = demo_dir / 'validation'
-        if validation_dir.exists():
-            prefix = strip_bucket(challenge.validation_data_gcs_uri)
-            # Earlier demo seeds put ground truth in participant input.
-            # Remove that object when reseeding an existing emulator bucket.
-            old_labels = bucket.blob(f'{prefix}labels.csv')
-            if old_labels.exists():
-                old_labels.delete()
-            uploaded += self._upload_dir(bucket, validation_dir, prefix)
+            prefix_str = f'{bucket_name}/'
 
-        # Upload validation labels (ground truth, separate from input data)
-        validation_labels_dir = demo_dir / 'validation_labels'
-        if validation_labels_dir.exists() and challenge.validation_labels_gcs_uri:
-            prefix = strip_bucket(challenge.validation_labels_gcs_uri)
-            uploaded += self._upload_dir(bucket, validation_labels_dir, prefix)
+            def strip_bucket(uri):
+                if uri.startswith(prefix_str):
+                    return uri[len(prefix_str):]
+                return uri
 
-        # Upload test labels (ground truth, separate from input data)
-        test_labels_dir = demo_dir / 'test_labels'
-        if test_labels_dir.exists() and challenge.test_labels_gcs_uri:
-            prefix = strip_bucket(challenge.test_labels_gcs_uri)
-            uploaded += self._upload_dir(bucket, test_labels_dir, prefix)
+            # Upload test data (input records only)
+            test_data_dir = demo_dir / 'test_data'
+            if test_data_dir.exists():
+                prefix = strip_bucket(challenge.test_data_gcs_uri)
+                uploaded += self._upload_dir(bucket, test_data_dir, prefix)
 
-        # Upload evaluation script
-        eval_dir = demo_dir / 'evaluation'
-        if eval_dir.exists() and spec.evaluation_script_gcs_uri:
-            eval_uri = strip_bucket(spec.evaluation_script_gcs_uri)
-            # The URI points to the script file itself, so upload
-            # all files in the evaluation dir to the parent path.
-            eval_prefix = eval_uri.rsplit('/', 1)[0] + '/'
-            uploaded += self._upload_dir(bucket, eval_dir, eval_prefix)
+            # Upload validation data (input records only)
+            validation_dir = demo_dir / 'validation'
+            if validation_dir.exists():
+                prefix = strip_bucket(challenge.validation_data_gcs_uri)
+                old_labels = bucket.blob(f'{prefix}labels.csv')
+                if old_labels.exists():
+                    old_labels.delete()
+                uploaded += self._upload_dir(bucket, validation_dir, prefix)
 
-        # Upload code archive for each demo submission
-        code_archive_dir = demo_dir / 'code_archive'
-        if code_archive_dir.exists():
-            archive_data = self._create_tar_gz(code_archive_dir)
-            submissions = Submission.objects.filter(challenge=challenge)
-            for submission in submissions:
-                if not submission.code_archive_gcs_uri:
-                    continue
-                gcs_key = strip_bucket(submission.code_archive_gcs_uri)
-                blob = bucket.blob(gcs_key)
-                blob.upload_from_file(io.BytesIO(archive_data), rewind=True)
-                self.stdout.write(f'  Uploaded code archive -> {gcs_key}')
-                uploaded += 1
+            # Upload validation labels (ground truth, separate from input data)
+            validation_labels_dir = demo_dir / 'validation_labels'
+            if validation_labels_dir.exists() and challenge.validation_labels_gcs_uri:
+                prefix = strip_bucket(challenge.validation_labels_gcs_uri)
+                uploaded += self._upload_dir(bucket, validation_labels_dir, prefix)
 
-        self.stdout.write(self.style.SUCCESS(
-            f'Uploaded {uploaded} file(s) to "{bucket_name}".'
-        ))
+            # Upload test labels (ground truth, separate from input data)
+            test_labels_dir = demo_dir / 'test_labels'
+            if test_labels_dir.exists() and challenge.test_labels_gcs_uri:
+                prefix = strip_bucket(challenge.test_labels_gcs_uri)
+                uploaded += self._upload_dir(bucket, test_labels_dir, prefix)
+
+            # Upload evaluation script
+            eval_dir = demo_dir / 'evaluation'
+            if eval_dir.exists() and spec.evaluation_script_gcs_uri:
+                eval_uri = strip_bucket(spec.evaluation_script_gcs_uri)
+                eval_prefix = eval_uri.rsplit('/', 1)[0] + '/'
+                uploaded += self._upload_dir(bucket, eval_dir, eval_prefix)
+
+            # Upload code archive for each demo submission
+            code_archive_dir = demo_dir / 'code_archive'
+            if code_archive_dir.exists():
+                archive_data = self._create_tar_gz(code_archive_dir)
+                submissions = Submission.objects.filter(challenge=challenge)
+                for submission in submissions:
+                    if not submission.code_archive_gcs_uri:
+                        continue
+                    gcs_key = strip_bucket(submission.code_archive_gcs_uri)
+                    blob = bucket.blob(gcs_key)
+                    blob.upload_from_file(io.BytesIO(archive_data), rewind=True)
+                    self.stdout.write(f'  Uploaded code archive -> {gcs_key}')
+                    uploaded += 1
+
+            self.stdout.write(self.style.SUCCESS(
+                f'Uploaded {uploaded} file(s) to "{bucket_name}" for {slug}.'
+            ))
+            total_uploaded += uploaded
+
+        if not total_uploaded:
+            self.stdout.write(self.style.WARNING(
+                'No demo challenges found. Run "python manage.py loaddemo" first.'
+            ))
 
     def _create_tar_gz(self, source_dir):
         """Create a tar.gz archive from a directory and return bytes."""
