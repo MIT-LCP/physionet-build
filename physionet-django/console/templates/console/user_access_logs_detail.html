@@ -9,13 +9,13 @@
   <script src="{% static 'daterangepicker/js/moment.min.js' %}"></script> 
   <script src="{% static 'daterangepicker/js/daterangepicker.min.js' %}"></script>
   <script src="{% static 'console/js/generic-filter.js' %}"></script>
-  {{ project_filter_form.js }}
+  {{ project_filter_form.media.js }}
 {% endblock %}
 
 {% block local_css %}
   <link rel="stylesheet" type="text/css" href="{% static 'custom/css/pagination.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'daterangepicker/css/daterangepicker.css' %}">
-  {{ project_filter_form.css }}
+  {{ project_filter_form.media.css }}
 {% endblock %}
 
 {% block content %}

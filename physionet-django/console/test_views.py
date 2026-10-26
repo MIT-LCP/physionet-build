@@ -2267,3 +2267,26 @@ class TestUsersSearch(TestCase):
             )
         response = self.client.post(self.search_url, {'search': 'bulk'})
         self.assertEqual(len(response.context['users']), 55)
+
+
+class TestUserAutocomplete(TestMixin):
+    """
+    Test that the user autocomplete is limited to admin console users.
+    """
+
+    @prevent_request_warnings
+    def test_anonymous_user_denied(self):
+        response = self.client.get(reverse('user-autocomplete'), {'q': 'rgmark'})
+        self.assertEqual(response.status_code, 403)
+
+    @prevent_request_warnings
+    def test_user_without_console_access_denied(self):
+        self.client.login(username='aewj', password='Tester11!')
+        response = self.client.get(reverse('user-autocomplete'), {'q': 'rgmark'})
+        self.assertEqual(response.status_code, 403)
+
+    def test_console_user_allowed(self):
+        self.client.login(username='admin', password='Tester11!')
+        response = self.client.get(reverse('user-autocomplete'), {'q': 'rgmark'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('rgmark', [r['text'] for r in response.json()['results']])
