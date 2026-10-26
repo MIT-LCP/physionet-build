@@ -409,8 +409,7 @@ class TeamInvitationTests(TestCase):
 
     def test_invitation_from_another_challenge_not_found(self):
         """An invitation can only be used within its own challenge."""
-        other_project = PublishedProject.objects.exclude(
-            pk=self.challenge.published_project_id).first()
+        other_project = PublishedProject.objects.filter(challenge=None).first()
         other_challenge = Challenge.objects.create(
             published_project=other_project, slug='other-challenge',
             organizer=self.captain, teams_enabled=True,
