@@ -64,6 +64,16 @@ class BaseProjectFiles(abc.ABC):
         raise NotImplementedError
 
     @abc.abstractmethod
+    def submission_file_manifest(self, path, max_files):
+        """Return at most ``max_files + 1`` file metadata records below path.
+
+        This is deliberately separate from the file browser listing: a
+        submission snapshot needs neither display formatting nor URLs, and
+        must be able to stop scanning once its cap is reached.
+        """
+        raise NotImplementedError
+
+    @abc.abstractmethod
     def cp_dir(self, source_path, target_path, ignored_files=None):
         """Copy directories."""
         raise NotImplementedError

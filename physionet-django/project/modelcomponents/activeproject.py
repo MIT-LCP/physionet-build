@@ -500,16 +500,18 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_submittable():
             raise Exception('ActiveProject is not submittable')
 
-        self.submission_status = SubmissionStatus.NEEDS_ASSIGNMENT
-        self.submission_datetime = timezone.now()
-        self.author_comments = author_comments
-        self.save()
-        # Create the first edit log
-        EditLog.objects.create(
-            project=self,
-            author_comments=author_comments,
-            metadata_snapshot=self.submission_metadata_snapshot(),
-        )
+        snapshot = self.submission_metadata_snapshot()
+        with transaction.atomic():
+            self.submission_status = SubmissionStatus.NEEDS_ASSIGNMENT
+            self.submission_datetime = timezone.now()
+            self.author_comments = author_comments
+            self.save()
+            # Create the first edit log.
+            EditLog.objects.create(
+                project=self,
+                author_comments=author_comments,
+                metadata_snapshot=snapshot,
+            )
 
     def set_submitting_author(self):
         """
@@ -552,6 +554,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_resubmittable():
             raise Exception('ActiveProject is not resubmittable')
 
+        snapshot = self.submission_metadata_snapshot()
         with transaction.atomic():
             self.submission_status = SubmissionStatus.NEEDS_DECISION
             self.resubmission_datetime = timezone.now()
@@ -561,7 +564,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 project=self,
                 is_resubmission=True,
                 author_comments=author_comments,
-                metadata_snapshot=self.submission_metadata_snapshot(),
+                metadata_snapshot=snapshot,
             )
 
     def submission_metadata_snapshot(self):
@@ -593,37 +596,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         The manifest is capped; callers must treat a truncated manifest as a
         partial view of the project's files.
         """
-        manifest = []
-        truncated = self._append_submission_file_manifest('', manifest)
+        manifest = self.files.submission_file_manifest(
+            self.file_root(), self.SUBMISSION_FILE_MANIFEST_MAX_FILES)
         return {
-            'entries': manifest,
-            'truncated': truncated,
+            'entries': manifest[:self.SUBMISSION_FILE_MANIFEST_MAX_FILES],
+            'truncated': len(manifest) > self.SUBMISSION_FILE_MANIFEST_MAX_FILES,
         }
-
-    def _append_submission_file_manifest(self, subdir, manifest):
-        """Append files under ``subdir`` and return whether the cap was hit."""
-        if len(manifest) >= self.SUBMISSION_FILE_MANIFEST_MAX_FILES:
-            return True
-
-        display_files, display_dirs = self.get_directory_content(subdir)
-
-        for file_info in display_files:
-            if len(manifest) >= self.SUBMISSION_FILE_MANIFEST_MAX_FILES:
-                return True
-            manifest.append({
-                'path': os.path.join(subdir, file_info.name),
-                'size': file_info.snapshot_size,
-                'modified': file_info.snapshot_modified,
-            })
-
-        for directory_info in display_dirs:
-            if self._append_submission_file_manifest(
-                os.path.join(subdir, directory_info.name),
-                manifest,
-            ):
-                return True
-
-        return False
 
     def reopen_copyedit(self):
         """

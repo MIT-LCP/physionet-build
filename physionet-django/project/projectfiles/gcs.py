@@ -84,6 +84,28 @@ class GCSProjectFiles(BaseProjectFiles):
 
         return files, dirs
 
+    def submission_file_manifest(self, path, max_files):
+        """List only enough blobs for a bounded submission snapshot."""
+        path = self._dir_path(path)
+        _, object_name = self._local_filesystem_path_to_gcs_path(path)
+        object_name = self._dir_path(object_name)
+        # The iterator is lazy, so this fetches only enough pages to find the
+        # cap plus one actual file. Directory marker blobs do not count.
+        blobs = GCSObject(path).ls()
+
+        entries = []
+        for blob in blobs:
+            name = blob.name.replace(object_name, '', 1)
+            if name and not name.endswith('/'):
+                entries.append({
+                    'path': name,
+                    'size': blob.size,
+                    'modified': blob.updated.isoformat(),
+                })
+                if len(entries) == max_files + 1:
+                    break
+        return entries
+
     def cp_dir(self, source_path, target_path, ignored_files=None):
         source_path = self._dir_path(source_path)
         target_path = self._dir_path(target_path)
@@ -200,8 +222,6 @@ class GCSProjectFiles(BaseProjectFiles):
                     name,
                     size,
                     modified,
-                    snapshot_size=blob.size,
-                    snapshot_modified=blob.updated.isoformat(),
                 ))
 
         for prefix in prefixes:

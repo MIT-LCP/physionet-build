@@ -250,14 +250,6 @@ class EditSubmissionForm(forms.ModelForm):
             # This object has to be saved first before calling reject, which
             # edits the related EditLog objects (this).
             edit_log.decision_datetime = now
-            # File manifests were added after metadata snapshots were already
-            # in use. Before authors can revise an older submission, record
-            # its files so the following resubmission has a comparison base.
-            if (edit_log.decision == 1
-                    and 'files' not in (edit_log.metadata_snapshot or {})):
-                metadata_snapshot = dict(edit_log.metadata_snapshot or {})
-                metadata_snapshot['files'] = project.submission_file_manifest()
-                edit_log.metadata_snapshot = metadata_snapshot
             edit_log.save()
             # Reject
             if edit_log.decision == 0:

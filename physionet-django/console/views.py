@@ -348,17 +348,30 @@ def submission_info_redirect(request, project_slug):
 
 
 def snapshot_files(metadata_snapshot):
-    """Return a file manifest and whether it was truncated.
-
-    File manifests saved before the cap was introduced are lists; retain
-    support for those snapshots while newer ones store entries and metadata.
-    """
+    """Return a file manifest and whether it was truncated."""
+    metadata_snapshot = metadata_snapshot or {}
     files = metadata_snapshot.get('files')
-    if isinstance(files, list):
-        return files, False
     if isinstance(files, dict):
         return files.get('entries', []), files.get('truncated', False)
     return None, False
+
+
+def submission_file_changes(previous_files, current_files,
+                            previous_truncated=False, current_truncated=False):
+    """Compare two file manifests, avoiding false removals from capped data."""
+    previous = {file_info['path']: file_info for file_info in previous_files}
+    current = {file_info['path']: file_info for file_info in current_files}
+    is_limited = previous_truncated or current_truncated
+    shared_paths = current.keys() & previous.keys()
+    return {
+        # A capped manifest cannot establish that a path was added or removed.
+        'added': [] if is_limited else sorted(current.keys() - previous.keys()),
+        'removed': [] if is_limited else sorted(previous.keys() - current.keys()),
+        'changed': sorted(
+            path for path in shared_paths if current[path] != previous[path]
+        ),
+        'is_limited': is_limited,
+    }
 
 
 def submission_info_card_params(request,
@@ -390,7 +403,8 @@ def submission_info_card_params(request,
 
     edit_logs = project.edit_log_history()
     metadata_edit_logs = [
-        edit_log for edit_log in edit_logs if edit_log.metadata_snapshot
+        edit_log for edit_log in edit_logs
+        if (edit_log.metadata_snapshot or {}).get('sections')
     ]
     previous_files = None
     previous_files_truncated = False
@@ -399,19 +413,10 @@ def submission_info_card_params(request,
         if files is None:
             continue
 
-        current_files = {file_info['path']: file_info for file_info in files}
         if previous_files is not None:
-            shared_paths = current_files.keys() & previous_files.keys()
-            edit_log.file_changes = {
-                'added': sorted(current_files.keys() - previous_files.keys()),
-                'removed': sorted(previous_files.keys() - current_files.keys()),
-                'changed': sorted(
-                    path for path in shared_paths
-                    if current_files[path] != previous_files[path]
-                ),
-                'is_limited': files_truncated or previous_files_truncated,
-            }
-        previous_files = current_files
+            edit_log.file_changes = submission_file_changes(
+                previous_files, files, previous_files_truncated, files_truncated)
+        previous_files = files
         previous_files_truncated = files_truncated
 
     return {

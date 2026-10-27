@@ -15,6 +15,7 @@ from django.test import TestCase
 from django.test.utils import get_runner
 from django.urls import reverse
 from console.forms import CredentialReviewForm
+from console.views import snapshot_files, submission_file_changes
 from events.models import EventAgreement
 from project.models import (
     AccessPolicy,
@@ -44,6 +45,46 @@ class TestCredentialReviewForm(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn('reviewer_comments', form.errors)
+
+
+class TestSubmissionFileComparison(TestCase):
+    def test_detects_added_removed_and_changed_files(self):
+        changes = submission_file_changes(
+            [
+                {'path': 'changed.txt', 'size': 1, 'modified': 1},
+                {'path': 'removed.txt', 'size': 1, 'modified': 1},
+            ],
+            [
+                {'path': 'added.txt', 'size': 1, 'modified': 1},
+                {'path': 'changed.txt', 'size': 2, 'modified': 1},
+            ],
+        )
+
+        self.assertEqual(changes['added'], ['added.txt'])
+        self.assertEqual(changes['removed'], ['removed.txt'])
+        self.assertEqual(changes['changed'], ['changed.txt'])
+        self.assertFalse(changes['is_limited'])
+
+    def test_truncated_manifest_only_compares_shared_paths(self):
+        changes = submission_file_changes(
+            [
+                {'path': 'changed.txt', 'size': 1, 'modified': 1},
+                {'path': 'pushed-out.txt', 'size': 1, 'modified': 1},
+            ],
+            [
+                {'path': 'changed.txt', 'size': 2, 'modified': 1},
+                {'path': 'new-early.txt', 'size': 1, 'modified': 1},
+            ],
+            previous_truncated=True,
+        )
+
+        self.assertEqual(changes['added'], [])
+        self.assertEqual(changes['removed'], [])
+        self.assertEqual(changes['changed'], ['changed.txt'])
+        self.assertTrue(changes['is_limited'])
+
+    def test_none_snapshot_has_no_manifest(self):
+        self.assertEqual(snapshot_files(None), (None, False))
 
 
 class TestUserManagement(TestMixin):

@@ -10,23 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Add the column as nullable in the database so existing EditLog rows
-        # are not rewritten while this migration runs.  Keeping the model
-        # state non-nullable preserves the default for new rows.
-        migrations.SeparateDatabaseAndState(
-            database_operations=[
-                migrations.AddField(
-                    model_name='editlog',
-                    name='metadata_snapshot',
-                    field=models.JSONField(blank=True, null=True),
-                ),
-            ],
-            state_operations=[
-                migrations.AddField(
-                    model_name='editlog',
-                    name='metadata_snapshot',
-                    field=models.JSONField(blank=True, default=dict),
-                ),
-            ],
+        migrations.AddField(
+            model_name='editlog',
+            name='metadata_snapshot',
+            field=models.JSONField(blank=True, default=dict, null=True),
         ),
     ]
