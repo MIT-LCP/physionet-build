@@ -263,3 +263,11 @@ def is_within_days(date_value, days):
         return False
     days_since = (timezone.now() - date_value).days
     return 0 <= days_since < int(days)
+
+
+@register.filter(name='get_item')
+def get_item(dictionary, key):
+    """Variable-key dict lookup for use in templates."""
+    if dictionary is None:
+        return None
+    return dictionary.get(key)

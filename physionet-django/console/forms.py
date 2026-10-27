@@ -334,6 +334,35 @@ class CopyeditForm(forms.ModelForm):
             return copyedit_log
 
 
+class AuthorOrderForm(forms.Form):
+    """Validate a complete ordering of a project's authors."""
+    author_order = forms.MultipleChoiceField(
+        choices=(), widget=forms.MultipleHiddenInput)
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+        author_ids = list(project.authors.order_by('display_order').values_list(
+            'pk', flat=True))
+        self.fields['author_order'].choices = [
+            (str(author_id), str(author_id)) for author_id in author_ids
+        ]
+        self.initial['author_order'] = author_ids
+
+    def clean_author_order(self):
+        author_ids = self.cleaned_data['author_order']
+        expected_ids = {
+            str(author_id) for author_id in self.project.authors.values_list(
+                'pk', flat=True)
+        }
+        if (len(author_ids) != len(expected_ids)
+                or len(set(author_ids)) != len(author_ids)
+                or set(author_ids) != expected_ids):
+            raise forms.ValidationError(
+                'Author order must include each project author exactly once.')
+        return [int(author_id) for author_id in author_ids]
+
+
 class PublishForm(forms.Form):
     """
     Form for publishing a project

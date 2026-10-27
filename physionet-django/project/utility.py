@@ -17,12 +17,37 @@ from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
 from django.http import Http404, HttpResponse
 from django.utils.crypto import constant_time_compare
 from googleapiclient.errors import HttpError
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+def move_author(author, authors, direction):
+    """Move an author one position in the requested direction."""
+    n_authors = authors.count()
+    if n_authors <= 1:
+        raise Http404()
+    if direction == 'up' and 1 < author.display_order <= n_authors:
+        swap_author = authors.get(display_order=author.display_order - 1)
+    elif direction == 'down' and 1 <= author.display_order < n_authors:
+        swap_author = authors.get(display_order=author.display_order + 1)
+    else:
+        raise Http404()
+
+    with transaction.atomic():
+        author_order = author.display_order
+        swap_order = swap_author.display_order
+        author.display_order = 0
+        author.save(update_fields=('display_order',))
+        swap_author.display_order = author_order
+        swap_author.save(update_fields=('display_order',))
+        author.display_order = swap_order
+        author.save(update_fields=('display_order',))
+
 
 class FileInfo():
     """

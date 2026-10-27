@@ -13,6 +13,14 @@
 <script src="{% static 'custom/js/clear-autosave.js' %}"></script>
 <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
 <script src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
+<script src="{% static 'console/js/copyedit-author-management.js' %}"></script>
+{% if open_modal_author_id %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      $('#edit-aff-{{ open_modal_author_id }}-modal').appendTo('body').modal('show');
+    });
+  </script>
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -28,6 +36,9 @@
       </li>
       <li class="nav-item">
         <a class="nav-link" id="content-tab" data-toggle="tab" href="#content" role="tab" aria-controls="content" aria-selected="true">Edit Content</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="author-tab" data-toggle="tab" href="#author-edit" role="tab" aria-controls="author-edit" aria-selected="true">Edit Authors</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" id="complete-tab" data-toggle="tab" href="#complete" role="tab" aria-controls="complete" aria-selected="false">Complete Copyedit</a>
@@ -65,6 +76,35 @@
           {% include 'project/item_list.html' with item="publication" item_label=publication_formset.item_label formset=publication_formset form_name=publication_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
           {% include 'project/item_list.html' with item="topic" item_label=topic_formset.item_label formset=topic_formset form_name=topic_formset.form_name add_item_url=add_item_url remove_item_url=remove_item_url %}
           <button class="btn btn-lg btn-primary" type="submit" name="edit_content">Save Content</button>
+        </form>
+      </div>
+      {# Edit Authors #}
+      <div class="tab-pane fade" id="author-edit" role="tabpanel" aria-labelledby="author-tab">
+        {% include 'project/author_list.html' %}
+        <form id="save-author-order-form" action="{% url 'copyedit_submission' project.slug %}" method="post" class="mt-3">
+          {% csrf_token %}
+          {{ author_order_form.author_order }}
+          <button id="save-author-order-button" class="btn btn-primary" name="save_author_order" type="submit">Save Author Order</button>
+        </form>
+        <hr>
+        <br>
+        <h3>Corresponding Author</h3>
+        <form action="{% url 'copyedit_submission' project.slug %}" method="post"
+              class="form-signin no-pd">
+          {% csrf_token %}
+          {% include "inline_form_snippet.html" with form=corresponding_author_form %}
+          <button class="btn btn-primary btn-rsp" name="corresponding_author"
+                  type="submit">Set Corresponder</button>
+        </form>
+        <hr>
+        <br>
+        <h3>Corresponding Email</h3>
+        <form action="{% url 'copyedit_submission' project.slug %}" method="post"
+              class="form-signin no-pd">
+          {% csrf_token %}
+          {% include "inline_form_snippet.html" with form=corresponding_email_form %}
+          <button class="btn btn-primary btn-rsp" name="corresponding_email"
+                  type="submit">Set Email</button>
         </form>
       </div>
       {# Complete Copyedit #}
