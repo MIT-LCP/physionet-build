@@ -11,6 +11,7 @@
 
 {% block content %}
 <div class="container">
+  {% include "message_snippet.html" %}
   <form action="{% url 'login' %}" method="post" class="form-signin">
     <h2 class="form-signin-heading">Account Login</h2>
     {% csrf_token %}
