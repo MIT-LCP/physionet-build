@@ -13,6 +13,7 @@
 <script src="{% static 'custom/js/clear-autosave.js' %}"></script>
 <script src="{% static 'project/js/dynamic-formset.js' %}"></script>
 <script src="{% static 'custom/js/copy-to-clipboard.js' %}"></script>
+<script src="{% static 'console/js/copyedit-author-management.js' %}"></script>
 {% if open_modal_author_id %}
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -83,7 +84,7 @@
         <form id="save-author-order-form" action="{% url 'copyedit_submission' project.slug %}" method="post" class="mt-3">
           {% csrf_token %}
           {{ author_order_form.author_order }}
-          <button class="btn btn-primary" name="save_author_order" type="submit">Save Author Order</button>
+          <button id="save-author-order-button" class="btn btn-primary" name="save_author_order" type="submit">Save Author Order</button>
         </form>
         <hr>
         <br>
@@ -135,54 +136,6 @@
 </script>
 
 <script>disableAddButtons();</script>
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var authorList = document.getElementById('author-list');
-    var orderForm = document.getElementById('save-author-order-form');
-    if (!authorList || !orderForm) return;
-
-    function updateAuthorControls() {
-      var authors = authorList.querySelectorAll('[data-author-id]');
-      authors.forEach(function(author, index) {
-        [['up', index === 0], ['down', index === authors.length - 1]].forEach(
-          function(control) {
-            var button = author.querySelector(
-              '[data-editor-direction="' + control[0] + '"]');
-            button.disabled = control[1];
-            button.style.color = control[1] ? 'white' : '';
-          });
-      });
-    }
-
-    authorList.addEventListener('click', function(event) {
-      var button = event.target.closest('[data-editor-direction]');
-      if (!button) return;
-      var author = button.closest('[data-author-id]');
-      var sibling = button.dataset.editorDirection === 'up'
-        ? author.previousElementSibling : author.nextElementSibling;
-      if (!sibling) return;
-      if (button.dataset.editorDirection === 'up') {
-        author.parentNode.insertBefore(author, sibling);
-      } else {
-        author.parentNode.insertBefore(sibling, author);
-      }
-      updateAuthorControls();
-    });
-
-    orderForm.addEventListener('submit', function() {
-      orderForm.querySelectorAll('input[name="author_order"]').forEach(function(input) {
-        input.remove();
-      });
-      authorList.querySelectorAll('[data-author-id]').forEach(function(author) {
-        var input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'author_order';
-        input.value = author.dataset.authorId;
-        orderForm.appendChild(input);
-      });
-    });
-  });
-</script>
 {% if project.is_new_version %}
   <script src="{% static 'custom/js/disable-title.js' %}"></script>
 {% endif %}

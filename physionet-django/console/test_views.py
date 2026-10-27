@@ -2326,7 +2326,7 @@ class EditorAuthorManagement(TestMixin):
             'save_author_order': '',
             'author_order': [author.pk for author in reversed(authors)],
         })
-        self.assertRedirects(response, self.copyedit_url)
+        self.assertRedirects(response, f'{self.copyedit_url}#author-edit')
         self.assertEqual(
             list(self.project.authors.order_by('display_order').values_list('pk', flat=True)),
             [author.pk for author in reversed(authors)],
@@ -2339,7 +2339,12 @@ class EditorAuthorManagement(TestMixin):
             'save_author_order': '',
             'author_order': [author.pk],
         })
-        self.assertEqual(response.status_code, 400)
+        self.assertRedirects(
+            response, f'{self.copyedit_url}#author-edit',
+            fetch_redirect_response=False,
+        )
+        response = self.client.get(response.url)
+        self.assertMessage(response, 40)
 
     def test_editor_can_add_edit_and_remove_affiliations(self):
         """Editors can create, update, and delete affiliations together."""
@@ -2366,7 +2371,7 @@ class EditorAuthorManagement(TestMixin):
             f'{prefix}-2-country': 'GB',
         })
 
-        self.assertRedirects(response, self.copyedit_url)
+        self.assertRedirects(response, f'{self.copyedit_url}#author-edit')
         affiliation.refresh_from_db()
         self.assertEqual(affiliation.name, 'Updated Institution')
         self.assertEqual(affiliation.country, 'CA')
@@ -2439,7 +2444,7 @@ class EditorAuthorManagement(TestMixin):
             'corresponding_author': '',
             'author': new_author.pk,
         })
-        self.assertRedirects(response, self.copyedit_url)
+        self.assertRedirects(response, f'{self.copyedit_url}#author-edit')
         new_author.refresh_from_db()
         self.assertTrue(new_author.is_corresponding)
         self.assertEqual(new_author.corresponding_email, primary_email)
@@ -2454,7 +2459,7 @@ class EditorAuthorManagement(TestMixin):
             'corresponding_email': '',
             'associated_email': alternate_email.email,
         })
-        self.assertRedirects(response, self.copyedit_url)
+        self.assertRedirects(response, f'{self.copyedit_url}#author-edit')
         new_author.refresh_from_db()
         self.assertEqual(new_author.corresponding_email, alternate_email)
 
@@ -2462,6 +2467,6 @@ class EditorAuthorManagement(TestMixin):
             'corresponding_author': '',
             'author': new_author.pk,
         })
-        self.assertRedirects(response, self.copyedit_url)
+        self.assertRedirects(response, f'{self.copyedit_url}#author-edit')
         new_author.refresh_from_db()
         self.assertEqual(new_author.corresponding_email, alternate_email)

@@ -586,6 +586,10 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     if project.submission_status != SubmissionStatus.NEEDS_COPYEDIT:
         return redirect('editor_home')
 
+    author_edit_url = '{}#author-edit'.format(
+        reverse('copyedit_submission', kwargs={'project_slug': project.slug})
+    )
+
     EditorAffiliationFormSet, editor_affiliation_formsets = (
         _build_editor_affiliation_formsets(project)
     )
@@ -711,7 +715,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             if formset.is_valid():
                 formset.save()
                 messages.success(request, f'Affiliations updated for {target_author.user}.')
-                return redirect('copyedit_submission', project_slug=project.slug)
+                return redirect(author_edit_url)
             else:
                 messages.error(request, 'Invalid affiliation data. See errors below.')
                 # Keep the bound formset so errors render inside the reopened modal
@@ -734,14 +738,18 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                         new_corresponding_author.corresponding_email = primary_email
                         new_corresponding_author.save()
                 messages.success(request, 'The corresponding author has been updated.')
-                return redirect('copyedit_submission', project_slug=project.slug)
+                return redirect(author_edit_url)
             else:
                 messages.error(request, 'Update unsuccessful. See form for errors.')
         elif 'save_author_order' in request.POST:
             author_order_form = forms.AuthorOrderForm(
                 project=project, data=request.POST)
             if not author_order_form.is_valid():
-                return HttpResponse('Invalid author order.', status=400)
+                messages.error(
+                    request,
+                    'The author order is no longer valid. Please review the author list and try again.'
+                )
+                return redirect(author_edit_url)
 
             author_ids = author_order_form.cleaned_data['author_order']
             # Move existing values out of the target range before assigning the
@@ -753,7 +761,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                     project.authors.filter(pk=author_id).update(
                         display_order=display_order)
             messages.success(request, 'The author order has been updated.')
-            return redirect('copyedit_submission', project_slug=project.slug)
+            return redirect(author_edit_url)
         elif 'corresponding_email' in request.POST:
             corresponding_author = project.authors.filter(
                 is_corresponding=True).select_related('user').first()
@@ -770,7 +778,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                     )
                     corresponding_author.save()
                     messages.success(request, 'The corresponding email has been updated.')
-                    return redirect('copyedit_submission', project_slug=project.slug)
+                    return redirect(author_edit_url)
                 else:
                     messages.error(request, 'Submission unsuccessful. See form for errors.')
         else:
