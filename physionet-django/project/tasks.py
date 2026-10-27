@@ -3,9 +3,12 @@ import logging
 import requests
 from background_task import background
 from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
 
 from console.tasks import associated_task
 import project.models as models
+from project import openalex
 
 LOGGER = logging.getLogger(__name__)
 
@@ -106,3 +109,62 @@ def refresh_scholar_data(doi):
         return
 
     models.ScholarData.objects.filter(doi=doi).update(data=data)
+
+
+def citing_work_dois(core_project):
+    """
+    Return the DOIs to look up when finding works that cite a project,
+    as a pair (dataset_dois, publication_dois).
+
+    The dataset DOIs are the project's own DOIs (one per version, plus
+    the DOI for the latest version). The publication DOIs are taken from
+    the URLs of the primary publications of every version.
+    """
+    versions = core_project.publishedprojects.all()
+    dataset_dois = {
+        doi.lower() for doi in [core_project.doi, *versions.values_list('doi', flat=True)] if doi
+    }
+    publication_dois = set()
+    for url in models.PublishedPublication.objects.filter(
+            project__core_project=core_project).values_list('url', flat=True):
+        doi = openalex.extract_doi(url)
+        if doi:
+            publication_dois.add(doi)
+    return dataset_dois, publication_dois - dataset_dois
+
+
+@background()
+def refresh_citing_works(core_project_id):
+    """
+    Fetch the works citing a project from OpenAlex and store them,
+    replacing the previously stored list.
+
+    On failure the previously stored list is kept, and the error is
+    logged rather than raised so that the task is not retried; the next
+    refresh is queued after CitingWorksRefresh.REFRESH_INTERVAL.
+
+    Does nothing if ENABLE_OPENALEX_API has been turned off since the
+    task was queued.
+    """
+    if not settings.ENABLE_OPENALEX_API:
+        return
+
+    core_project = models.CoreProject.objects.filter(id=core_project_id).first()
+    if core_project is None:
+        return
+
+    dataset_dois, publication_dois = citing_work_dois(core_project)
+    try:
+        works = openalex.fetch_citing_works(dataset_dois, publication_dois)
+    except Exception as e:
+        LOGGER.warning('Unable to fetch citing works for core project %s: %r', core_project_id, e)
+        return
+
+    with transaction.atomic():
+        models.CitingWork.objects.filter(core_project=core_project).delete()
+        models.CitingWork.objects.bulk_create(
+            [models.CitingWork(core_project=core_project, **fields) for fields in works.values()],
+            batch_size=1000,
+        )
+        models.CitingWorksRefresh.objects.filter(core_project=core_project).update(
+            fetch_datetime=timezone.now())

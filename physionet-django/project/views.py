@@ -36,6 +36,8 @@ from project.models import (
     AnonymousAccess,
     Author,
     AuthorInvitation,
+    CitingWork,
+    CitingWorksRefresh,
     DataAccess,
     DataAccessRequest,
     DataAccessRequestReviewer,
@@ -46,6 +48,7 @@ from project.models import (
     Publication,
     PublishedAuthor,
     PublishedProject,
+    PublishedPublication,
     Reference,
     ScholarData,
     StorageRequest,
@@ -2214,6 +2217,7 @@ def published_project(request, project_slug, version, subdir=''):
 
     project_views_count = project.view_count()
     all_versions_views_count = project.view_count(all_versions=True)
+    citing_works, citing_works_count = recent_citing_works(project)
 
     context = {
         'project': project,
@@ -2252,6 +2256,8 @@ def published_project(request, project_slug, version, subdir=''):
         'user_country_blocked': user_country_blocked,
         'project_views_count': project_views_count,
         'all_versions_views_count': all_versions_views_count,
+        'citing_works': citing_works,
+        'citing_works_count': citing_works_count,
     }
     context.update(published_challenge_context(project, user))
     # The file and directory contents
@@ -2299,6 +2305,41 @@ def published_project(request, project_slug, version, subdir=''):
 
     return render(request, 'project/published_project.html', context,
                   status=status)
+
+
+def recent_citing_works(project, limit=5):
+    """
+    Return the most recent works citing a published project and the
+    total number of citing works, queuing a refresh if the stored list
+    is stale.
+
+    Returns ([], 0) if ENABLE_OPENALEX_API is off.
+    """
+    if not settings.ENABLE_OPENALEX_API:
+        return [], 0
+    CitingWorksRefresh.request_refresh(project.core_project)
+    works = CitingWork.newest_first(project.core_project)
+    return list(works[:limit]), works.count()
+
+
+def published_project_citations(request, project_slug, version):
+    """
+    Public list of works that cite a published project.
+    """
+    project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
+    if not settings.ENABLE_OPENALEX_API:
+        raise Http404()
+    CitingWorksRefresh.request_refresh(project.core_project)
+    citing_works = CitingWork.newest_first(project.core_project)
+    has_publication = PublishedPublication.objects.filter(
+        project__core_project=project.core_project).exclude(url='').exists()
+
+    return render(request, 'project/published_project_citations.html', {
+        'project': project,
+        'citing_works': paginate(request, citing_works, 50),
+        'citing_works_count': citing_works.count(),
+        'has_publication': has_publication,
+    })
 
 
 def published_project_metrics(request, project_slug, version):

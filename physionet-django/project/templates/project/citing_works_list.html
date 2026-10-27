@@ -1,0 +1,17 @@
+{# List of works citing a project. Set show_cited_item to show whether each work cites the dataset or the paper. #}
+<ul class="list-unstyled citing-works">
+  {% for work in works %}
+    <li class="mb-3">
+      <a href="{{ work.url }}" rel="noopener">{{ work.title }}</a><br>
+      <small class="text-muted">
+        {% if work.authors %}{{ work.authors }}{% if work.authors|last != "." %}.{% endif %}{% endif %}
+        {% if work.venue %}<em>{{ work.venue }}</em>{% if work.publication_date %},{% else %}.{% endif %}{% endif %}
+        {% if work.publication_date %}{{ work.publication_date|date:"Y" }}.{% endif %}
+        {% if show_cited_item %}
+          Cites:
+          {% if work.cites_dataset %}dataset{% endif %}{% if work.cites_dataset and work.cites_publication %}, {% endif %}{% if work.cites_publication %}paper{% endif %}
+        {% endif %}
+      </small>
+    </li>
+  {% endfor %}
+</ul>

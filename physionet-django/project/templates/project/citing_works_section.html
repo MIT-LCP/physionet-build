@@ -1,0 +1,13 @@
+{% if citing_works_count %}
+  <h2 id="cited-by">Cited by</h2>
+  <p>
+    {{ citing_works_count }} publication{{ citing_works_count|pluralize }} cite{{ citing_works_count|pluralize:"s," }} this project.
+    The most recent are listed below.
+  </p>
+  {% include "project/citing_works_list.html" with works=citing_works %}
+  <p>
+    <a href="{% url 'published_project_citations' project.slug project.version %}">View all {{ citing_works_count }} publication{{ citing_works_count|pluralize }}</a>
+  </p>
+  <p><small class="text-muted">Citation data from <a href="https://openalex.org" rel="noopener">OpenAlex</a>. Papers that use the project without citing it may be missing.</small></p>
+  <hr>
+{% endif %}
