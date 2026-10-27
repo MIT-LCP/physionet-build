@@ -17,6 +17,12 @@ The new PhysioNet platform built using Django. The new site is currently hosted 
 
 The local development server will be available at [http://localhost:8000](http://localhost:8000).
 
+To show a version-pinned PhysioNet package download command alongside wget on
+published project pages, set `SHOW_PHYSIONET_PACKAGE_DOWNLOAD=True` in `.env` and
+restart Django. It defaults to off. Enable it after deploying protected-file
+support and releasing a package version that prompts for a password when
+`--username` is used.
+
 ## Running Local Instance Using Docker
 
 - Install docker: [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/).

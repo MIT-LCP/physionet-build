@@ -788,6 +788,7 @@ else:
     UPLOAD_AGREEMENT_START_DATE = None
 
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
+SHOW_PHYSIONET_PACKAGE_DOWNLOAD = config('SHOW_PHYSIONET_PACKAGE_DOWNLOAD', cast=bool, default=False)
 COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)
 
 LOG_TIMEDELTA = config('LOG_TIMEDELTA', cast=int, default='10')

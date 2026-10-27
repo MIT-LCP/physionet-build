@@ -2225,6 +2225,7 @@ def published_project(request, project_slug, version, subdir=''):
         'platform_citations': platform_citations,
         'is_lightwave_supported': project.files.is_lightwave_supported(),
         'is_wget_supported': project.files.is_wget_supported(),
+        'show_physionet_package_download': settings.SHOW_PHYSIONET_PACKAGE_DOWNLOAD,
         'has_s3_credentials': has_s3_credentials(),
         's3_uri': s3_uri,
         'user_in_access_point_policy': user_in_access_point_policy,

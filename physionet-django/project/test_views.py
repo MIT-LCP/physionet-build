@@ -1087,6 +1087,7 @@ class TestAccessPublished(TestMixin):
 
         self.assertContains(response, 'Your training report is under review.')
 
+    @override_settings(SHOW_PHYSIONET_PACKAGE_DOWNLOAD=True)
     @prevent_request_warnings
     def test_credentialed(self):
         """
@@ -1284,6 +1285,14 @@ class TestAccessPublished(TestMixin):
             HTTP_AUTHORIZATION=_basic_auth('admin@mit.edu', 'Tester11!'))
         self.assertEqual(response.status_code, 200)
 
+    def test_package_download_recommendation_is_off_by_default(self):
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project',
+            args=(project.slug, project.version)))
+        self.assertNotContains(response, 'PhysioNet Python package')
+        self.assertContains(response, 'wget -r -N -c -np')
+
+    @override_settings(SHOW_PHYSIONET_PACKAGE_DOWNLOAD=True)
     def test_open(self):
         """
         Test access to an open project.
