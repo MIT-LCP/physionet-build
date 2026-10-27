@@ -9,6 +9,11 @@
       <li class="nav-item">
         <a class="nav-link" id="timeline-tab" data-toggle="tab" href="#timeline" role="tab" aria-controls="timeline" aria-selected="false">Submission Timeline</a>
       </li>
+      {% if metadata_edit_logs %}
+      <li class="nav-item">
+        <a class="nav-link" id="submitted-metadata-tab" data-toggle="tab" href="#submitted-metadata" role="tab" aria-controls="submitted-metadata" aria-selected="false">Submitted Metadata</a>
+      </li>
+      {% endif %}
       <li class="nav-item">
         <a class="nav-link" id="ethics-tab" data-toggle="tab" href="#ethics" role="tab" aria-controls="ethics" aria-selected="false">Ethics</a>
       </li>
@@ -126,6 +131,69 @@
       <div class="tab-pane fade" id="timeline" role="tabpanel" aria-labelledby="timeline-tab">
         {% include "project/active_submission_timeline.html" %}
       </div>
+      {# Metadata saved with each submission or resubmission #}
+      {% if metadata_edit_logs %}
+      <div class="tab-pane fade" id="submitted-metadata" role="tabpanel" aria-labelledby="submitted-metadata-tab">
+        <p>Metadata below was saved when each submission was received and does not change when authors make later revisions.</p>
+        <div id="submitted-metadata-accordion">
+          {% for edit_log in metadata_edit_logs %}
+          <div class="card mb-2">
+            <div class="card-header" id="submitted-metadata-heading-{{ edit_log.id }}">
+              <h5 class="mb-0">
+                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#submitted-metadata-{{ edit_log.id }}" aria-expanded="{% if forloop.last %}true{% else %}false{% endif %}" aria-controls="submitted-metadata-{{ edit_log.id }}">
+                  {% if edit_log.is_resubmission %}Resubmission{% else %}Initial submission{% endif %}: {{ edit_log.submission_datetime|date }}
+                </button>
+              </h5>
+            </div>
+            <div id="submitted-metadata-{{ edit_log.id }}" class="collapse {% if forloop.last %}show{% endif %}" aria-labelledby="submitted-metadata-heading-{{ edit_log.id }}" data-parent="#submitted-metadata-accordion">
+              <div class="card-body">
+                {% for section in edit_log.metadata_snapshot.sections %}
+                  {% if section.body %}
+                    <h5 id="submitted-{{ edit_log.id }}-{{ section.html_id }}">{{ section.title }}</h5>
+                    {{ section.body|safe }}
+                  {% endif %}
+                {% endfor %}
+                {% if edit_log.metadata_snapshot.references %}
+                  <h5>References</h5>
+                  <ol>
+                    {% for reference in edit_log.metadata_snapshot.references %}
+                      <li>{{ reference.description|urlize }}</li>
+                    {% endfor %}
+                  </ol>
+                {% endif %}
+                {% if edit_log.file_changes %}
+                  <h5>File changes since the previous submission</h5>
+                  {% if edit_log.file_changes.is_limited %}
+                    <div class="alert alert-warning">
+                      This comparison is limited to the first 1,000 files in each submission. Changes outside that subset are not shown.
+                    </div>
+                  {% endif %}
+                  {% if edit_log.file_changes.added or edit_log.file_changes.removed or edit_log.file_changes.changed %}
+                    <ul>
+                      {% for path in edit_log.file_changes.added %}
+                        <li><span class="badge badge-success">Added</span> <code>{{ path }}</code></li>
+                      {% endfor %}
+                      {% for path in edit_log.file_changes.removed %}
+                        <li><span class="badge badge-danger">Removed</span> <code>{{ path }}</code></li>
+                      {% endfor %}
+                      {% for path in edit_log.file_changes.changed %}
+                        <li><span class="badge badge-warning">Changed</span> <code>{{ path }}</code></li>
+                      {% endfor %}
+                    </ul>
+                  {% else %}
+                    <p>{% if edit_log.file_changes.is_limited %}No file changes were detected in the captured subset.{% else %}No file changes were detected.{% endif %}</p>
+                  {% endif %}
+                  <p class="text-muted small">Changed files are identified by file size or modification time; file contents are not read.</p>
+                {% elif edit_log.metadata_snapshot.files %}
+                  <p class="text-muted">No earlier file manifest is available for comparison.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
       {# Ethics #}
       <div class="tab-pane fade" id="ethics" role="tabpanel" aria-labelledby="ethics-tab">
         <h5 class="card-title">Ethics statement</h5>

@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 import os
 import shutil
 
@@ -66,7 +67,8 @@ class LocalProjectFiles(BaseProjectFiles):
 
         # Files require descriptive info and download links
         for file in file_names:
-            file_info = get_file_info(os.path.join(path, file))
+            file_path = os.path.join(path, file)
+            file_info = get_file_info(file_path)
             file_info.url = file_display_url(subdir=subdir, file=file)
             file_info.raw_url = file_url(subdir=subdir, file=file)
             file_info.download_url = file_info.raw_url + '?download'
@@ -79,6 +81,22 @@ class LocalProjectFiles(BaseProjectFiles):
             display_dirs.append(dir_info)
 
         return display_files, display_dirs
+
+    def submission_file_manifest(self, path, max_files):
+        """List only enough files for a bounded submission snapshot."""
+        def files():
+            for directory, dirnames, filenames in os.walk(path):
+                dirnames.sort()
+                for filename in sorted(filenames):
+                    file_path = os.path.join(directory, filename)
+                    file_stat = os.stat(file_path)
+                    yield {
+                        'path': os.path.relpath(file_path, path),
+                        'size': file_stat.st_size,
+                        'modified': file_stat.st_mtime_ns,
+                    }
+
+        return list(itertools.islice(files(), max_files + 1))
 
     def cp_dir(self, source_path, target_path, ignored_files=None):
         os.mkdir(target_path)

@@ -15,6 +15,7 @@ from django.test import TestCase
 from django.test.utils import get_runner
 from django.urls import reverse
 from console.forms import CredentialReviewForm
+from console.views import snapshot_files, submission_file_changes
 from events.models import EventAgreement
 from project.models import (
     AccessPolicy,
@@ -44,6 +45,46 @@ class TestCredentialReviewForm(TestCase):
 
         self.assertFalse(form.is_valid())
         self.assertIn('reviewer_comments', form.errors)
+
+
+class TestSubmissionFileComparison(TestCase):
+    def test_detects_added_removed_and_changed_files(self):
+        changes = submission_file_changes(
+            [
+                {'path': 'changed.txt', 'size': 1, 'modified': 1},
+                {'path': 'removed.txt', 'size': 1, 'modified': 1},
+            ],
+            [
+                {'path': 'added.txt', 'size': 1, 'modified': 1},
+                {'path': 'changed.txt', 'size': 2, 'modified': 1},
+            ],
+        )
+
+        self.assertEqual(changes['added'], ['added.txt'])
+        self.assertEqual(changes['removed'], ['removed.txt'])
+        self.assertEqual(changes['changed'], ['changed.txt'])
+        self.assertFalse(changes['is_limited'])
+
+    def test_truncated_manifest_only_compares_shared_paths(self):
+        changes = submission_file_changes(
+            [
+                {'path': 'changed.txt', 'size': 1, 'modified': 1},
+                {'path': 'pushed-out.txt', 'size': 1, 'modified': 1},
+            ],
+            [
+                {'path': 'changed.txt', 'size': 2, 'modified': 1},
+                {'path': 'new-early.txt', 'size': 1, 'modified': 1},
+            ],
+            previous_truncated=True,
+        )
+
+        self.assertEqual(changes['added'], [])
+        self.assertEqual(changes['removed'], [])
+        self.assertEqual(changes['changed'], ['changed.txt'])
+        self.assertTrue(changes['is_limited'])
+
+    def test_none_snapshot_has_no_manifest(self):
+        self.assertEqual(snapshot_files(None), (None, False))
 
 
 class TestUserManagement(TestMixin):
@@ -85,6 +126,64 @@ class TestState(TestMixin):
     AUTHOR_PASSWORD = 'Tester11!'
     EDITOR = 'admin'
     EDITOR_PASSWORD = 'Tester11!'
+
+    def test_submission_metadata_snapshots(self):
+        """Submission metadata remains available after a resubmission."""
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        project.abstract = '<p>Initial abstract</p>'
+        project.save()
+        reference_order = max(
+            (reference.order or 0 for reference in project.references.all()),
+            default=0,
+        )
+        project.references.create(
+            order=reference_order + 1,
+            description='Initial reference',
+        )
+
+        project.submit(author_comments='Initial submission')
+
+        project.abstract = '<p>Revised abstract</p>'
+        project.save()
+        project.references.create(
+            order=reference_order + 2,
+            description='Revised reference',
+        )
+        project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+        project.save()
+        project.resubmit(author_comments='Revised submission')
+
+        edit_logs = list(project.edit_log_history())
+        self.assertEqual(len(edit_logs), 2)
+        self.assertEqual(
+            {section['html_id']: section['body']
+             for section in edit_logs[0].metadata_snapshot['sections']}['abstract'],
+            '<p>Initial abstract</p>',
+        )
+        self.assertIn(
+            'Initial reference',
+            [reference['description']
+             for reference in edit_logs[0].metadata_snapshot['references']],
+        )
+        self.assertEqual(
+            {section['html_id']: section['body']
+             for section in edit_logs[1].metadata_snapshot['sections']}['abstract'],
+            '<p>Revised abstract</p>',
+        )
+        self.assertIn(
+            'Revised reference',
+            [reference['description']
+             for reference in edit_logs[1].metadata_snapshot['references']],
+        )
+        self.assertIn('files', edit_logs[0].metadata_snapshot)
+        self.assertIn('files', edit_logs[1].metadata_snapshot)
+        self.assertFalse(edit_logs[0].metadata_snapshot['files']['truncated'])
+
+        self.client.login(username='admin', password='Tester11!')
+        response = self.client.get(reverse('submission_info', args=(project.slug,)))
+        self.assertContains(response, 'Submitted Metadata')
+        self.assertContains(response, 'Initial abstract')
+        self.assertContains(response, 'Revised abstract')
 
     def test_assign_editor(self):
         """

@@ -202,6 +202,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         'short_description',
     )
 
+    # Bound the database storage and submission-time work for file snapshots.
+    SUBMISSION_FILE_MANIFEST_MAX_FILES = 1000
+
     SUBMISSION_STATUS_LABELS = {
         SubmissionStatus.UNSUBMITTED: 'Not submitted.',
         SubmissionStatus.ARCHIVED: 'Archived.',
@@ -497,12 +500,18 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_submittable():
             raise Exception('ActiveProject is not submittable')
 
-        self.submission_status = SubmissionStatus.NEEDS_ASSIGNMENT
-        self.submission_datetime = timezone.now()
-        self.author_comments = author_comments
-        self.save()
-        # Create the first edit log
-        EditLog.objects.create(project=self, author_comments=author_comments)
+        snapshot = self.submission_metadata_snapshot()
+        with transaction.atomic():
+            self.submission_status = SubmissionStatus.NEEDS_ASSIGNMENT
+            self.submission_datetime = timezone.now()
+            self.author_comments = author_comments
+            self.save()
+            # Create the first edit log.
+            EditLog.objects.create(
+                project=self,
+                author_comments=author_comments,
+                metadata_snapshot=snapshot,
+            )
 
     def set_submitting_author(self):
         """
@@ -545,13 +554,54 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.is_resubmittable():
             raise Exception('ActiveProject is not resubmittable')
 
+        snapshot = self.submission_metadata_snapshot()
         with transaction.atomic():
             self.submission_status = SubmissionStatus.NEEDS_DECISION
             self.resubmission_datetime = timezone.now()
             self.save()
             # Create a new edit log
-            EditLog.objects.create(project=self, is_resubmission=True,
-                author_comments=author_comments)
+            EditLog.objects.create(
+                project=self,
+                is_resubmission=True,
+                author_comments=author_comments,
+                metadata_snapshot=snapshot,
+            )
+
+    def submission_metadata_snapshot(self):
+        """Return the author-facing metadata as it appears at submission."""
+        return {
+            'sections': [
+                {
+                    'title': section.title,
+                    'html_id': section.html_id,
+                    'body': section.body,
+                }
+                for section in self.content_sections()
+            ],
+            'files': self.submission_file_manifest(),
+            'references': [
+                {
+                    'order': reference.order,
+                    'description': reference.description,
+                }
+                for reference in self.references.order_by('order', 'id')
+            ],
+        }
+
+    def submission_file_manifest(self):
+        """Return file metadata needed to compare two submissions.
+
+        This intentionally records file-system metadata rather than reading file
+        contents, so submitting a large project does not require checksumming it.
+        The manifest is capped; callers must treat a truncated manifest as a
+        partial view of the project's files.
+        """
+        manifest = self.files.submission_file_manifest(
+            self.file_root(), self.SUBMISSION_FILE_MANIFEST_MAX_FILES)
+        return {
+            'entries': manifest[:self.SUBMISSION_FILE_MANIFEST_MAX_FILES],
+            'truncated': len(manifest) > self.SUBMISSION_FILE_MANIFEST_MAX_FILES,
+        }
 
     def reopen_copyedit(self):
         """
