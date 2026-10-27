@@ -1154,6 +1154,11 @@ class TestAccessPublished(TestMixin):
             'serve_published_project_file',
             args=(project.slug, project.version, 'admissions.csv')))
         self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse('published_project',
+            args=(project.slug, project.version)))
+        self.assertContains(response,
+            'physionet download {} --version {} --username {}'.format(
+                project.slug, project.version, 'rgmark'))
         response = self.client.get(reverse(
             'serve_published_project_file',
             args=(project.slug, project.version, 'fnord.txt')))
@@ -1166,6 +1171,31 @@ class TestAccessPublished(TestMixin):
             'published_project_subdir',
             args=(project.slug, project.version, 'fnord')))
         self.assertEqual(response.status_code, 404)
+
+        # The Python package uses its own user agent for HTTP Basic auth.
+        client_agent = 'PhysioNet-Python-Client/1.0'
+        manifest_url = reverse('serve_published_project_file',
+            args=(project.slug, project.version, 'SHA256SUMS.txt'))
+        file_url = reverse('serve_published_project_file',
+            args=(project.slug, project.version, 'admissions.csv'))
+        self.client.logout()
+        response = self.client.get(manifest_url, secure=True,
+            HTTP_USER_AGENT=client_agent)
+        self.assertEqual(response.status_code, 401)
+        response = self.client.get(manifest_url, secure=True,
+            HTTP_USER_AGENT=client_agent,
+            HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'badpassword'))
+        self.assertEqual(response.status_code, 401)
+        response = self.client.get(manifest_url, secure=True,
+            HTTP_USER_AGENT=client_agent,
+            HTTP_AUTHORIZATION=_basic_auth('admin@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 403)
+        self.client.logout()
+        for url in (manifest_url, file_url):
+            response = self.client.get(url, secure=True,
+                HTTP_USER_AGENT=client_agent,
+                HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'Tester11!'))
+            self.assertEqual(response.status_code, 200)
 
         # Download file using wget
         self.client.logout()
@@ -1264,6 +1294,8 @@ class TestAccessPublished(TestMixin):
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version,)))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response,
+            'physionet download {} --version {}'.format(project.slug, project.version))
         response = self.client.get(reverse('serve_published_project_file',
             args=(project.slug, project.version, 'Makefile')))
         self.assertEqual(response.status_code, 200)

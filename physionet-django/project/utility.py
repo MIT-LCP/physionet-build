@@ -411,6 +411,7 @@ def grant_gcp_group_access(user, project, data_access):
 HTTP_AUTH_USER_AGENT = re.compile('|'.join((
     'Wget/',
     'libwfdb/',
+    'PhysioNet-Python-Client/',
 )))
 
 
