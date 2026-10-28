@@ -61,6 +61,7 @@ from project.modelcomponents.activeproject import ArchiveReason
 from project.modelcomponents.review import ReviewerInvitation
 from project.authorization.access import (
     can_access_project, can_view_project_files, has_required_trainings, is_region_blocked,
+    login_required_for_download,
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
@@ -2071,6 +2072,8 @@ def display_published_project_file(request, project_slug, version,
     context = {
         'project': project,
         'breadcrumbs': breadcrumbs,
+        'must_sign_in': (login_required_for_download(user)
+                         and can_access_project(project, user, request)),
     }
     return render(request, 'project/file_view_unauthorized.html',
                   context, status=403)
@@ -2196,6 +2199,9 @@ def published_project(request, project_slug, version, subdir=''):
 
     can_view_files = can_view_project_files(project, user, request) or has_passphrase
     is_authorized = can_access_project(project, user, request) or has_passphrase
+    # Shown instead of the download options when only sign-in is missing
+    must_sign_in = (is_authorized and not can_view_files and project.allow_file_downloads
+                    and login_required_for_download(user))
 
     # Check if user is from a blocked country
     user_country_blocked = is_region_blocked(project, request)
@@ -2285,6 +2291,9 @@ def published_project(request, project_slug, version, subdir=''):
         'contact': contact,
         'is_authorized': is_authorized,
         'can_view_files': can_view_files,
+        'must_sign_in': must_sign_in,
+        # Whether command-line downloads need a username and password
+        'download_requires_account': bool(project.access_policy) or settings.REQUIRE_LOGIN_FOR_DOWNLOAD,
         'has_signed_dua': has_signed_dua,
         'has_accepted_access_request': has_accepted_access_request,
         'requires_training': requires_training,

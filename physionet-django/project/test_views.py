@@ -1402,6 +1402,66 @@ class TestAccessPublished(TestMixin):
         self.assertNotContains(response, 'PhysioNet Python package')
         self.assertContains(response, 'wget -r -N -c -np')
 
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_require_login_for_download(self):
+        """
+        With REQUIRE_LOGIN_FOR_DOWNLOAD, open files need a signed-in user.
+        """
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        page_url = reverse('published_project', args=(project.slug, project.version))
+        file_url = reverse('serve_published_project_file',
+                           args=(project.slug, project.version, 'Makefile'))
+        display_url = reverse('display_published_project_file',
+                              args=(project.slug, project.version, 'Makefile'))
+        zip_url = reverse('serve_published_project_zip', args=(project.slug, project.version))
+        panel_url = reverse('published_files_panel', args=(project.slug, project.version))
+
+        # Anonymous users see a sign-in prompt instead of the download options
+        response = self.client.get(page_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'to access the files')
+        self.assertNotContains(response, 'wget -r -N -c -np')
+        self.assertNotContains(response, 'Download the ZIP file')
+
+        # Anonymous downloads are refused. Command-line tools are asked for
+        # HTTP Basic credentials, as for restricted data.
+        for url in (file_url, zip_url):
+            self.assertEqual(self.client.get(url).status_code, 403)
+            response = self.client.get(url, secure=True, HTTP_USER_AGENT='Wget/1.18')
+            self.assertEqual(response.status_code, 401)
+            self.assertIn('WWW-Authenticate', response)
+        response = self.client.get(display_url)
+        self.assertEqual(response.status_code, 403)
+        self.assertContains(response, 'to access the files', status_code=403)
+        response = self.client.get(panel_url, {'subdir': ''})
+        self.assertEqual(response.status_code, 404)
+
+        # Command-line tools can download with a username and password
+        response = self.client.get(
+            file_url, secure=True, HTTP_USER_AGENT='Wget/1.18',
+            HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 200)
+        self.client.logout()
+
+        # Signed-in users can download, and the wget command asks for a password
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        response = self.client.get(page_url)
+        self.assertNotContains(response, 'to access the files')
+        self.assertContains(response, 'wget -r -N -c -np --user rgmark --ask-password')
+        self.assertEqual(self.client.get(file_url).status_code, 200)
+        self.assertEqual(self.client.get(display_url).status_code, 200)
+        self.assertEqual(self.client.get(panel_url, {'subdir': ''}).status_code, 200)
+
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_require_login_for_download_restricted(self):
+        """
+        Anonymous users still see the access requirements for restricted projects.
+        """
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+        self.assertContains(response, 'This is a restricted-access resource')
+        self.assertNotContains(response, 'to access the files')
+
     @override_settings(SHOW_PHYSIONET_PACKAGE_DOWNLOAD=True)
     def test_open(self):
         """
