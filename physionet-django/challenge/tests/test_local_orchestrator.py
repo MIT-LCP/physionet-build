@@ -406,7 +406,10 @@ class TestOutputFileCheck(TestCase):
 )
 class TestProcessSubmission(TestCase):
     """Run the process_submission task with a stubbed orchestrator."""
-    fixtures = ['demo-user.json', 'demo-challenge.json']
+    fixtures = [
+        'demo-training-type.json', 'demo-user.json',
+        'site-data.json', 'demo-project.json', 'demo-challenge.json',
+    ]
 
     def test_scored_submission_completes(self):
         from challenge.enums import SubmissionStatus

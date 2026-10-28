@@ -142,7 +142,10 @@ class ChallengeConfigFormTests(TestCase):
 
 class ChallengeNewVersionTests(TestCase):
     """Test that ChallengeConfiguration is copied when creating a new version."""
-    fixtures = ['demo-user.json', 'demo-challenge.json']
+    fixtures = [
+        'demo-training-type.json', 'demo-user.json',
+        'site-data.json', 'demo-project.json', 'demo-challenge.json',
+    ]
 
     @override_settings(COPY_FILES_TO_NEW_VERSION=False)
     def test_new_version_copies_challenge_config(self):
@@ -267,7 +270,10 @@ class ChallengeConfigViewTests(TestCase):
 )
 class ChallengeAuthTests(TestCase):
     """Tests for the challenge_auth decorator and view authorization."""
-    fixtures = ['demo-user.json', 'demo-challenge.json']
+    fixtures = [
+        'demo-training-type.json', 'demo-user.json',
+        'site-data.json', 'demo-project.json', 'demo-challenge.json',
+    ]
 
     def setUp(self):
         self.client = Client()
@@ -368,7 +374,10 @@ class ChallengeAuthTests(TestCase):
 )
 class TeamInvitationTests(TestCase):
     """Responding to team invitations."""
-    fixtures = ['demo-user.json', 'demo-challenge.json']
+    fixtures = [
+        'demo-training-type.json', 'demo-user.json',
+        'site-data.json', 'demo-project.json', 'demo-challenge.json',
+    ]
 
     def setUp(self):
         self.challenge = Challenge.objects.get(slug='demo-ecg-challenge')
@@ -455,7 +464,10 @@ class TeamInvitationTests(TestCase):
 )
 class CodeSubmissionTests(TestCase):
     """Uploading a code submission."""
-    fixtures = ['demo-user.json', 'demo-challenge.json']
+    fixtures = [
+        'demo-training-type.json', 'demo-user.json',
+        'site-data.json', 'demo-project.json', 'demo-challenge.json',
+    ]
 
     def setUp(self):
         self.challenge = Challenge.objects.get(slug='demo-ecg-challenge')
@@ -511,7 +523,10 @@ class CodeSubmissionTests(TestCase):
 )
 class SubmissionSelectTests(TestCase):
     """Selecting a submission updates the leaderboard entry and ranks."""
-    fixtures = ['demo-user.json', 'demo-challenge.json']
+    fixtures = [
+        'demo-training-type.json', 'demo-user.json',
+        'site-data.json', 'demo-project.json', 'demo-challenge.json',
+    ]
 
     def test_select_updates_entry_and_ranks(self):
         challenge = Challenge.objects.get(slug='demo-ecg-challenge')
