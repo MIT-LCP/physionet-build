@@ -25,7 +25,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.utils.crypto import get_random_string
+from django.utils.crypto import constant_time_compare, get_random_string
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -606,6 +606,24 @@ def edit_tokens(request):
         },
     )
 
+
+ORCID_LINK_STATE_KEY = 'orcid_link_state'
+ORCID_LOGIN_STATE_KEY = 'orcid_login_state'
+
+
+def _check_orcid_state(request, session_key):
+    """
+    Check that the state returned by ORCID matches the one stored in the
+    session when the flow was started, so that an authorization code can
+    only be used by the browser that requested it.
+    """
+    expected_state = request.session.pop(session_key, None)
+    returned_state = request.GET.get('state')
+    if not expected_state or not returned_state:
+        return False
+    return constant_time_compare(expected_state, returned_state)
+
+
 @login_required
 def edit_orcid(request):
     """
@@ -621,6 +639,7 @@ def edit_orcid(request):
             scope = list(settings.ORCID_SCOPE.split(","))
             oauth = OAuth2Session(client_id, redirect_uri=redirect_uri, scope=scope)
             authorization_url, state = oauth.authorization_url(settings.ORCID_AUTH_URL)
+            request.session[ORCID_LINK_STATE_KEY] = state
 
             return redirect(authorization_url)
 
@@ -657,8 +676,11 @@ def auth_orcid(request):
     scope = list(settings.ORCID_SCOPE.split(","))
     oauth = OAuth2Session(client_id, redirect_uri=redirect_uri,
                           scope=scope)
-    params = request.GET.copy()
-    code = params['code']
+
+    code = request.GET.get('code')
+    if not _check_orcid_state(request, ORCID_LINK_STATE_KEY) or not code:
+        messages.error(request, 'Invalid ORCID linking request. Please try linking your account again.')
+        return redirect('edit_orcid')
 
     token_valid, token = _fetch_and_validate_token(request, code, oauth)
 
@@ -703,8 +725,11 @@ def auth_orcid_login(request):
     redirect_uri = settings.ORCID_LOGIN_REDIRECT_URI
     scope = list(settings.ORCID_SCOPE.split(","))
     oauth = OAuth2Session(client_id, redirect_uri=redirect_uri, scope=scope)
-    params = request.GET.copy()
-    code = params['code']
+
+    code = request.GET.get('code')
+    if not _check_orcid_state(request, ORCID_LOGIN_STATE_KEY) or not code:
+        messages.error(request, 'Invalid ORCID login request. Please try logging in again.')
+        return redirect('login')
 
     token_valid, token = _fetch_and_validate_token(request, code, oauth)
 
@@ -806,9 +831,12 @@ def orcid_init_login(request):
     redirect_uri = settings.ORCID_LOGIN_REDIRECT_URI
     scope = settings.ORCID_SCOPE
     auth_url = settings.ORCID_AUTH_URL
+    state = get_random_string(32)
+    request.session[ORCID_LOGIN_STATE_KEY] = state
 
     return redirect(
         f'{auth_url}?response_type=code&redirect_uri={redirect_uri}&client_id={client_id}&scope={scope}'
+        f'&state={state}'
     )
 
 
