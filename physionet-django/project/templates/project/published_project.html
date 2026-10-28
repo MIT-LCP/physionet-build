@@ -185,7 +185,7 @@
               {% if citing_works_count %}
                 <li><a href="#cited-by" {% if challenge %}onclick="switchChallengeTab('overview')"{% endif %}>Cited by</a></li>
               {% endif %}
-              <li><a href="#files"{% if challenge %}onclick="switchChallengeTab('overview')"{% endif %}>Files</a></li>
+              <li><a href="#files" {% if challenge %}onclick="switchChallengeTab('overview')"{% endif %}>Files</a></li>
               {% if challenge %}
                 <li><a href="#leaderboard" onclick="switchChallengeTab('leaderboard', true); return false;">Leaderboard</a></li>
               {% endif %}
