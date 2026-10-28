@@ -32,6 +32,7 @@ class UnpublishedProject(models.Model):
     references = GenericRelation('project.Reference')
     publications = GenericRelation('project.Publication')
     topics = GenericRelation('project.Topic')
+    funding = GenericRelation('project.Funding')
     archive_datetime = models.DateTimeField(null=True, blank=True)
 
     # Timestamp for which project checksum file was generated.

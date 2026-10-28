@@ -153,6 +153,14 @@
                     {{ section.body|safe }}
                   {% endif %}
                 {% endfor %}
+                {% if edit_log.metadata_snapshot.funding %}
+                  <h5>Funding</h5>
+                  <ul>
+                    {% for funding in edit_log.metadata_snapshot.funding %}
+                      <li>{{ funding.funder_name }}{% if funding.funder_identifier %} ({{ funding.funder_identifier|urlize }}){% endif %}{% if funding.award_number %}: {{ funding.award_number }}{% endif %}{% if funding.award_title %} &ndash; {{ funding.award_title }}{% endif %}{% if funding.award_uri %} {{ funding.award_uri|urlize }}{% endif %}</li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
                 {% if edit_log.metadata_snapshot.references %}
                   <h5>References</h5>
                   <ol>

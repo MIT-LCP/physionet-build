@@ -503,6 +503,12 @@ class TestProjectCreation(TestMixin):
         self.assertEqual(newproject.core_project, oldproject.core_project)
         self.assertEqual(newproject.access_policy, oldproject.access_policy)
         self.assertEqual(newproject.version, '3.0.0')
+        self.assertEqual(
+            [(f.funder_name, f.funder_identifier, f.award_number)
+             for f in newproject.funding.all()],
+            [(f.funder_name, f.funder_identifier, f.award_number)
+             for f in oldproject.funding.all()])
+        self.assertTrue(newproject.funding.exists())
 
         # Load overview page
         response = self.client.get(

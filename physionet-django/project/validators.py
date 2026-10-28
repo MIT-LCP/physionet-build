@@ -147,6 +147,47 @@ def validate_topic(value):
         raise ValidationError('Letters, numbers, spaces, underscores, and hyphens only. Must begin with a letter or number.')
 
 
+ROR_ID_PATTERN = r'0[a-hj-km-np-tv-z0-9]{6}[0-9]{2}'
+ROR_URL_REGEX = re.compile(r'https://ror\.org/' + ROR_ID_PATTERN)
+CROSSREF_FUNDER_URL_REGEX = re.compile(r'https://doi\.org/10\.13039/\d+')
+
+
+def normalize_funder_identifier(value):
+    """
+    Return a funder identifier as a full URL.
+
+    Accepts a ROR ID (with or without the https://ror.org/ prefix) or a
+    Crossref Funder ID (with or without the https://doi.org/ prefix).
+    Other values are returned stripped but otherwise unchanged, so that
+    validate_funder_identifier can reject them.
+    """
+    value = (value or '').strip()
+    lowered = value.lower()
+    for prefix in ('http://ror.org/', 'https://ror.org/', 'ror.org/'):
+        if lowered.startswith(prefix):
+            lowered = lowered[len(prefix):]
+            break
+    if re.fullmatch(ROR_ID_PATTERN, lowered):
+        return 'https://ror.org/' + lowered
+    for prefix in ('http://dx.doi.org/', 'https://dx.doi.org/', 'http://doi.org/', 'https://doi.org/', 'doi:'):
+        if lowered.startswith(prefix):
+            lowered = lowered[len(prefix):]
+            break
+    if re.fullmatch(r'10\.13039/\d+', lowered):
+        return 'https://doi.org/' + lowered
+    return value
+
+
+def validate_funder_identifier(value):
+    """
+    Validate a funder identifier: a ROR ID URL or a Crossref Funder ID URL.
+    """
+    if not (ROR_URL_REGEX.fullmatch(value) or CROSSREF_FUNDER_URL_REGEX.fullmatch(value)):
+        raise ValidationError(
+            'Enter a ROR ID (e.g. https://ror.org/01cwqze88) or a Crossref '
+            'Funder ID (e.g. https://doi.org/10.13039/100000002).')
+
+
 def validate_gcs_bucket_object(filename, size):
     """
     Validate a filename and size for upload to gcs bucket objects.

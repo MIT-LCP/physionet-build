@@ -5,7 +5,7 @@ from collections import OrderedDict
 from dal import autocomplete
 from django import forms
 from django.conf import settings
-from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
+from django.contrib.contenttypes.forms import BaseGenericInlineFormSet, generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.db.models.functions import Lower
@@ -32,6 +32,7 @@ from project.models import (
     DataAccessRequestReviewer,
     DUA,
     DUASignature,
+    Funding,
     License,
     Metadata,
     ProgrammingLanguage,
@@ -527,6 +528,17 @@ class NewProjectVersionForm(forms.ModelForm):
         for p_topic in self.latest_project.topics.all():
             Topic.objects.create(project=project, description=p_topic.description)
 
+        for p_funding in self.latest_project.funding.all():
+            Funding.objects.create(
+                project=project,
+                funder_name=p_funding.funder_name,
+                funder_identifier=p_funding.funder_identifier,
+                award_number=p_funding.award_number,
+                award_title=p_funding.award_title,
+                award_uri=p_funding.award_uri,
+                order=p_funding.order,
+            )
+
         documents = []
         content_type = ContentType.objects.get_for_model(ActiveProject)
         for uploaded_document in self.latest_project.uploaded_documents.all():
@@ -690,7 +702,7 @@ class DiscoveryForm(forms.ModelForm):
     class Meta:
         model = ActiveProject
         fields = ('version', 'short_description', 'project_home_page', 'parent_projects',
-            'programming_languages')
+                  'programming_languages')
         help_texts = {
             'version':
             "* The version number of the resource. <a href=https://semver.org/ target=_blank>Semantic versioning</a> is encouraged. If unsure, put '1.0.0'.",
@@ -700,9 +712,9 @@ class DiscoveryForm(forms.ModelForm):
             'contents of the project to a reader who is generally '
             'knowledgeable about the subject but is not specifically familiar '
             'with your research.',
-            'project_home_page': 'External home page for the project.'
+            'project_home_page': 'External home page for the project.',
         }
-        widgets = {'short_description':forms.Textarea(attrs={'rows':'4'})}
+        widgets = {'short_description': forms.Textarea(attrs={'rows': '4'})}
 
     def __init__(self, resource_type, editable=True, **kwargs):
         super().__init__(**kwargs)
@@ -874,6 +886,97 @@ class PublicationFormSet(BaseGenericInlineFormSet):
         if len(set([p.id for p in self.instance.publications.all()]
                    + [f.instance.id for f in self.forms])) > self.max_forms:
             raise forms.ValidationError('Maximum number of allowed items exceeded.')
+
+
+class FundingForm(forms.ModelForm):
+    """
+    A single funding source for an ActiveProject
+    """
+    # A plain text field so authors can paste a bare ROR ID; the value is
+    # normalized to a URL and then checked by the model field validators.
+    funder_identifier = forms.CharField(
+        max_length=255, required=False, label='Funder ROR ID (optional)',
+        widget=forms.TextInput(attrs={'placeholder': 'e.g. https://ror.org/01cwqze88'}))
+
+    class Meta:
+        model = Funding
+        fields = ('funder_name', 'funder_identifier', 'award_number',
+                  'award_title', 'award_uri')
+        labels = {
+            'funder_name': 'Funder name',
+            'award_number': 'Award or grant number (optional)',
+            'award_title': 'Award title (optional)',
+            'award_uri': 'Award URL (optional)',
+        }
+
+    def clean_funder_name(self):
+        return ' '.join(self.cleaned_data['funder_name'].split())
+
+    def clean_funder_identifier(self):
+        return validators.normalize_funder_identifier(
+            self.cleaned_data['funder_identifier'])
+
+    def clean_award_number(self):
+        return self.cleaned_data['award_number'].strip()
+
+
+def funding_formset_factory(extra=0):
+    """
+    Return the formset class used to edit an ActiveProject's funding.
+    """
+    return generic_inlineformset_factory(
+        Funding, form=FundingForm, fields=FundingForm._meta.fields,
+        extra=extra, max_num=FundingFormSet.max_forms, can_delete=False,
+        formset=FundingFormSet, validate_max=True)
+
+
+class FundingFormSet(BaseGenericInlineFormSet):
+    """
+    Formset for adding an ActiveProject's funding sources
+    """
+    form_name = 'project-funding-content_type-object_id'
+    item_label = 'Funding'
+    max_forms = 20
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_forms = FundingFormSet.max_forms
+        self.help_text = (
+            'Each organization that funded this work, with the award or grant '
+            'number if there is one. Add a separate entry for each award. '
+            'This is included in the DOI metadata; to acknowledge funding on '
+            'the project page, also mention it in the Acknowledgements. '
+            'Look up the funder at <a href=https://ror.org/search target=_blank>ror.org</a> '
+            'to find its ROR ID. Maximum of {}.').format(self.max_forms)
+
+    def clean(self):
+        """
+        - Check max forms due to POST refresh issue
+        - Check that funder and award pairs are unique
+        """
+        if any(self.errors):
+            return
+
+        if len(set([f.id for f in self.instance.funding.all()]
+                   + [f.instance.id for f in self.forms])) > self.max_forms:
+            raise forms.ValidationError('Maximum number of allowed items exceeded.')
+
+        seen = set()
+        for form in self.forms:
+            name = form.cleaned_data.get('funder_name')
+            if not name:
+                continue
+            key = (name.lower(), form.cleaned_data.get('award_number', '').lower())
+            if key in seen:
+                raise forms.ValidationError(
+                    'Each funder and award number pair must be unique.')
+            seen.add(key)
+
+    def save(self, *args, **kwargs):
+        # Keep entries in the order they appear on the page.
+        for index, form in enumerate(self.forms):
+            form.instance.order = index
+        return super().save(*args, **kwargs)
 
 
 class TopicFormSet(BaseGenericInlineFormSet):

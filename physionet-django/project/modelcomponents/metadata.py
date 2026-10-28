@@ -1,3 +1,4 @@
+import json
 import os
 import re
 import uuid
@@ -14,7 +15,17 @@ from project.fields import SafeHTMLField
 from project.modelcomponents.anonymousaccess import AnonymousAccess
 from project.modelcomponents.authors import Affiliation
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
-from project.validators import validate_title, validate_topic, validate_version
+from project.validators import (
+    ROR_URL_REGEX,
+    validate_funder_identifier,
+    validate_title,
+    validate_topic,
+    validate_version,
+)
+
+
+# Characters escaped so JSON can be embedded safely in a <script> element
+JSON_SCRIPT_ESCAPES = {ord('>'): '\\u003E', ord('<'): '\\u003C', ord('&'): '\\u0026'}
 
 
 def get_document_path(instance, filename):
@@ -355,6 +366,15 @@ class Metadata(models.Model):
             return type_map[self.resource_type]
         except KeyError:
             return 'Dataset'
+
+    def schema_org_funding_json(self):
+        """
+        Return the project's funding as a JSON array of schema.org Grants.
+
+        The result is safe to embed in a <script> element.
+        """
+        grants = [funding.schema_org_grant() for funding in self.funding.all()]
+        return mark_safe(json.dumps(grants).translate(JSON_SCRIPT_ESCAPES))
 
     def is_valid_passphrase(self, raw_passphrase):
         """
@@ -812,6 +832,107 @@ class PublishedReference(BaseReference):
     class Meta:
         default_permissions = ()
         unique_together = (('description', 'project', 'order'))
+
+
+class BaseFunding(models.Model):
+    """
+    Abstract base class for a funding source (funder and optional award).
+
+    Fields follow the DataCite fundingReference property so they can be
+    exported directly.
+    """
+    funder_name = models.CharField(max_length=255)
+    funder_identifier = models.URLField(
+        max_length=255, blank=True, default='',
+        validators=[validate_funder_identifier])
+    award_number = models.CharField(max_length=100, blank=True, default='')
+    award_title = models.CharField(max_length=255, blank=True, default='')
+    award_uri = models.URLField(max_length=255, blank=True, default='')
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        if self.award_number:
+            return f'{self.funder_name}: {self.award_number}'
+        return self.funder_name
+
+    @property
+    def funder_identifier_type(self):
+        """
+        The DataCite funderIdentifierType for funder_identifier.
+        """
+        if not self.funder_identifier:
+            return ''
+        if ROR_URL_REGEX.fullmatch(self.funder_identifier):
+            return 'ROR'
+        return 'Crossref Funder ID'
+
+    def datacite_funding_reference(self):
+        """
+        Return this funding source as a DataCite fundingReference.
+        """
+        reference = {'funderName': self.funder_name}
+        if self.funder_identifier:
+            reference['funderIdentifier'] = self.funder_identifier
+            reference['funderIdentifierType'] = self.funder_identifier_type
+        if self.award_number:
+            reference['awardNumber'] = self.award_number
+        if self.award_uri:
+            reference['awardURI'] = self.award_uri
+        if self.award_title:
+            reference['awardTitle'] = self.award_title
+        return reference
+
+    def schema_org_grant(self):
+        """
+        Return this funding source as a schema.org Grant.
+        """
+        funder = {'@type': 'Organization', 'name': self.funder_name}
+        if self.funder_identifier:
+            funder['@id'] = self.funder_identifier
+        grant = {'@type': 'Grant', 'funder': funder}
+        if self.award_number:
+            grant['identifier'] = self.award_number
+        if self.award_title:
+            grant['name'] = self.award_title
+        if self.award_uri:
+            grant['url'] = self.award_uri
+        return grant
+
+
+class Funding(BaseFunding):
+    """
+    Funding source for ActiveProject
+    """
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    project = GenericForeignKey('content_type', 'object_id')
+
+    class Meta:
+        default_permissions = ()
+        ordering = ('order', 'id')
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.project.content_modified()
+
+    def delete(self, *args, **kwargs):
+        super().delete(*args, **kwargs)
+        self.project.content_modified()
+
+
+class PublishedFunding(BaseFunding):
+    """
+    Funding source for PublishedProject
+    """
+    project = models.ForeignKey('project.PublishedProject',
+                                related_name='funding', on_delete=models.CASCADE)
+
+    class Meta:
+        default_permissions = ()
+        ordering = ('order', 'id')
 
 
 class Contact(models.Model):

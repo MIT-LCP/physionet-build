@@ -690,6 +690,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
     reference_formset = ReferenceFormSet(instance=project)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
+    FundingFormSet = project_forms.funding_formset_factory()
+    funding_formset = FundingFormSet(instance=project)
 
     copyedit_form = forms.CopyeditForm(instance=copyedit_log)
 
@@ -710,15 +712,18 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
             publication_formset = PublicationFormSet(request.POST,
                                                      instance=project)
             topic_formset = TopicFormSet(request.POST, instance=project)
-            if (
-                description_form.is_valid()
-                and access_form.is_valid()
-                and ethics_form.is_valid()
-                and reference_formset.is_valid()
-                and publication_formset.is_valid()
-                and topic_formset.is_valid()
-                and discovery_form.is_valid()
-            ):
+            funding_formset = FundingFormSet(request.POST, instance=project)
+            all_valid = all([
+                description_form.is_valid(),
+                access_form.is_valid(),
+                ethics_form.is_valid(),
+                reference_formset.is_valid(),
+                publication_formset.is_valid(),
+                topic_formset.is_valid(),
+                funding_formset.is_valid(),
+                discovery_form.is_valid(),
+            ])
+            if all_valid:
                 description_form.save()
                 ethics_form.save()
                 access_form.save()
@@ -726,6 +731,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 reference_formset.save()
                 publication_formset.save()
                 topic_formset.save()
+                funding_formset.save()
                 messages.success(request,
                                  'The project metadata has been updated.')
                 description_form_saved = True
@@ -733,6 +739,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 reference_formset = ReferenceFormSet(instance=project)
                 publication_formset = PublicationFormSet(instance=project)
                 topic_formset = TopicFormSet(instance=project)
+                funding_formset = FundingFormSet(instance=project)
             else:
                 messages.error(request,
                                'Invalid submission. See errors below.')
@@ -868,7 +875,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
          'access_form': access_form,
          'reference_formset': reference_formset,
          'publication_formset': publication_formset,
-         'topic_formset': topic_formset,
+         'topic_formset': topic_formset, 'funding_formset': funding_formset,
          'storage_type': settings.STORAGE_TYPE,
          'upload_files_form': upload_files_form,
          'create_folder_form': create_folder_form,
