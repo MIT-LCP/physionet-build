@@ -880,7 +880,7 @@ class BaseFunding(models.Model):
         if self.award_number:
             reference['awardNumber'] = self.award_number
         if self.award_uri:
-            reference['awardURI'] = self.award_uri
+            reference['awardUri'] = self.award_uri
         if self.award_title:
             reference['awardTitle'] = self.award_title
         return reference
