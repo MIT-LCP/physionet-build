@@ -750,7 +750,9 @@ def edit_content_item(request, project_slug):
         except (KeyError, ValueError):
             raise Http404()
         extra_forms = 0
-        model.objects.filter(id=item_id).delete()
+        model.objects.filter(
+            id=item_id, object_id=project.id,
+            content_type=ContentType.objects.get_for_model(ActiveProject)).delete()
     else:
         raise Http404()
 

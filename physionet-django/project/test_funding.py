@@ -175,6 +175,15 @@ class TestFundingSubmission(TestCase):
         self.assertNotContains(response, 'id="funding"')
         self.assertNotContains(response, 'Wellcome Trust')
 
+    def test_cannot_remove_other_project_funding(self):
+        other = ActiveProject.objects.get(title='Demo database project')
+        funding = Funding.objects.create(project=other, funder_name='Wellcome Trust')
+        response = self.client.post(
+            reverse('edit_content_item', args=(self.project.slug,)),
+            {'item': 'funding', 'remove_id': funding.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Funding.objects.filter(id=funding.id).exists())
+
 
 class TestFundingMetadata(TestCase):
     fixtures = FIXTURES
