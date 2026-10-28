@@ -2056,6 +2056,32 @@ class TestCloudDownloadRedirect(TestMixin):
             'display_published_project_file', args=(self.project.slug, self.project.version, 'Makefile')))
         self.assertContains(response, 'Makefile?inline')
 
+    def test_embedded_files_served_locally(self):
+        url = self.file_url(self.project, 'Makefile')
+        for dest in ('image', 'style', 'script', 'iframe'):
+            with self.subTest(dest=dest):
+                response = self.client.get(url, HTTP_SEC_FETCH_DEST=dest)
+                self.assertEqual(response.status_code, 200)
+
+        # Navigating to the file (e.g. a '?download' link) is redirected
+        response = self.client.get(url + '?download', HTTP_SEC_FETCH_DEST='document')
+        self.assertEqual(response.status_code, 302)
+
+    def test_checksum_file_served_locally(self):
+        response = self.client.get(self.file_url(self.project, 'SHA256SUMS.txt'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_regenerating_zip_stops_zip_redirect(self):
+        from console.views import make_zip_background
+        os.chmod(self.project.project_file_root(), 0o755)
+        make_zip_background.now(self.project.id)
+
+        self.aws.refresh_from_db()
+        self.assertFalse(self.aws.sent_zip)
+        self.assertTrue(self.aws.sent_files)
+        response = self.client.get(self.zip_url(self.project))
+        self.assertEqual(response.status_code, 200)
+
     def test_content_type_sensitive_files_served_locally(self):
         root = self.project.file_root()
         os.chmod(root, 0o755)
