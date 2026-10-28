@@ -23,6 +23,7 @@ from project.modelcomponents.authors import PublishedAffiliation, PublishedAutho
 from project.modelcomponents.metadata import (
     Contact,
     Metadata,
+    PublishedFunding,
     PublishedPublication,
     PublishedReference,
     UploadedDocument,
@@ -586,6 +587,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 }
                 for reference in self.references.order_by('order', 'id')
             ],
+            'funding': [
+                {
+                    'funder_name': funding.funder_name,
+                    'funder_identifier': funding.funder_identifier,
+                    'award_number': funding.award_number,
+                    'award_title': funding.award_title,
+                    'award_uri': funding.award_uri,
+                }
+                for funding in self.funding.all()
+            ],
         }
 
     def submission_file_manifest(self):
@@ -742,6 +753,17 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                     published_publication = PublishedPublication.objects.create(
                         citation=publication.citation, url=publication.url,
                         project=published_project)
+
+                for funding in self.funding.all():
+                    PublishedFunding.objects.create(
+                        project=published_project,
+                        funder_name=funding.funder_name,
+                        funder_identifier=funding.funder_identifier,
+                        award_number=funding.award_number,
+                        award_title=funding.award_title,
+                        award_uri=funding.award_uri,
+                        order=funding.order,
+                    )
 
                 published_project.set_topics([t.description for t in self.topics.all()])
 

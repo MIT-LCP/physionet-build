@@ -2,7 +2,7 @@ from django.urls import reverse
 
 from rest_framework import serializers
 
-from project.models import PublishedProject, License, DUA
+from project.models import PublishedProject, PublishedFunding, License, DUA
 
 
 class LicenseSerializer(serializers.ModelSerializer):
@@ -18,6 +18,21 @@ class DUASerializer(serializers.ModelSerializer):
         model = DUA
         fields = (
             'name',
+        )
+
+
+class FundingSerializer(serializers.ModelSerializer):
+    funder_identifier_type = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = PublishedFunding
+        fields = (
+            'funder_name',
+            'funder_identifier',
+            'funder_identifier_type',
+            'award_number',
+            'award_title',
+            'award_uri',
         )
 
 
@@ -146,6 +161,7 @@ class ProjectVersionsSerializer(serializers.ModelSerializer):
 
 class PublishedProjectDetailSerializer(ProjectFieldsMixin, serializers.ModelSerializer):
     license = LicenseSerializer()
+    funding = FundingSerializer(many=True, read_only=True)
     resource_type = serializers.SerializerMethodField()
     access_policy = serializers.SerializerMethodField()
     topics = serializers.SerializerMethodField()
@@ -170,4 +186,5 @@ class PublishedProjectDetailSerializer(ProjectFieldsMixin, serializers.ModelSeri
             'access_policy',
             'topics',
             'source_url',
+            'funding',
         )

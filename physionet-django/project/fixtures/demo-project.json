@@ -2934,5 +2934,46 @@
     "created_datetime": "2018-09-04T17:26:24.820Z",
     "updated_datetime": "2018-09-04T17:26:24.820Z"
   }
+},
+{
+  "model": "project.funding",
+  "pk": 1,
+  "fields": {
+    "content_type": ["project", "activeproject"],
+    "object_id": 2,
+    "funder_name": "National Institutes of Health",
+    "funder_identifier": "https://ror.org/01cwqze88",
+    "award_number": "R01-EB017205",
+    "award_title": "",
+    "award_uri": "",
+    "order": 0
+  }
+},
+{
+  "model": "project.funding",
+  "pk": 2,
+  "fields": {
+    "content_type": ["project", "activeproject"],
+    "object_id": 2,
+    "funder_name": "National Institutes of Health",
+    "funder_identifier": "https://ror.org/01cwqze88",
+    "award_number": "R01-EB001659",
+    "award_title": "",
+    "award_uri": "",
+    "order": 1
+  }
+},
+{
+  "model": "project.publishedfunding",
+  "pk": 1,
+  "fields": {
+    "project": 1,
+    "funder_name": "National Institutes of Health",
+    "funder_identifier": "https://ror.org/01cwqze88",
+    "award_number": "R01-EB017205",
+    "award_title": "",
+    "award_uri": "",
+    "order": 0
+  }
 }
 ]

@@ -9,6 +9,7 @@ import pdb
 
 import requests_mock
 from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
 from django.test import TestCase
@@ -25,6 +26,7 @@ from project.models import (
     AuthorInvitation,
     DUASignature,
     ExternalReview,
+    Funding,
     License,
     PublishedProject,
     ReviewerInvitation,
@@ -560,6 +562,14 @@ class TestState(TestMixin):
         project_slug = project.slug
         custom_slug = 'mitbih'
 
+        # Add a funding source without changing the approved content.
+        # New versions already carry funding over from the previous version.
+        if not project.funding.exists():
+            Funding.objects.bulk_create([Funding(
+                content_type=ContentType.objects.get_for_model(ActiveProject),
+                object_id=project.pk, funder_name='Wellcome Trust',
+                funder_identifier='https://ror.org/029chgv08', award_number='123')])
+
         # The project description includes links to internal files
         active_file_url = reverse('serve_active_project_file',
                                   args=(project.slug, 'RECORDS'))
@@ -600,6 +610,10 @@ class TestState(TestMixin):
             user__username='rgmark'
         ).affiliations.first()
         self.assertEqual(published_affiliation.country, 'US')
+        self.assertEqual(
+            [(f.funder_name, f.funder_identifier, f.award_number)
+             for f in project.funding.all()],
+            [('Wellcome Trust', 'https://ror.org/029chgv08', '123')])
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))

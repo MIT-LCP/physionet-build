@@ -40,6 +40,14 @@ class ContactInline(admin.TabularInline):
     model = models.Contact
 
 
+class PublishedFundingInline(admin.TabularInline):
+    """
+    Used to add/edit funding sources of published projects
+    """
+    model = models.PublishedFunding
+    extra = 0
+
+
 class PublishedProjectAdmin(admin.ModelAdmin):
     fields = ('title', 'abstract', 'background', 'methods',
         'content_description', 'usage_notes', 'installation',
@@ -48,7 +56,7 @@ class PublishedProjectAdmin(admin.ModelAdmin):
 
     readonly_fields = ('publish_datetime',)
     inlines = [PublishedPublicationInline, ContactInline,
-        PublishedAuthorInline]
+               PublishedAuthorInline, PublishedFundingInline]
     list_display = ('title', 'version', 'is_legacy', 'publish_datetime')
 
 
@@ -130,6 +138,7 @@ admin.site.register(models.CopyeditLog)
 admin.site.register(models.DUASignature)
 admin.site.register(models.EditLog)
 admin.site.register(models.Publication)
+admin.site.register(models.Funding)
 admin.site.register(models.PublishedAffiliation)
 admin.site.register(models.PublishedPublication)
 admin.site.register(models.PublishedReference)

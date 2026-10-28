@@ -11,6 +11,9 @@
   {% if project.doi %}
   "identifier": "https://doi.org/{{ project.doi|escapejs }}",
   {% endif %}
+  {% if project.funding.exists %}
+  "funding": {{ project.schema_org_funding_json }},
+  {% endif %}
   "creator": [
   {% for author in authors %}
     {

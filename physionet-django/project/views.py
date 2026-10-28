@@ -14,7 +14,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import Q
-from django.forms import inlineformset_factory, modelformset_factory
+from django.forms import ModelForm, inlineformset_factory, modelformset_factory
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
@@ -42,6 +42,7 @@ from project.models import (
     DUASignature,
     GCPLog,
     DUA,
+    Funding,
     Publication,
     PublishedAuthor,
     PublishedProject,
@@ -713,19 +714,24 @@ def edit_content_item(request, project_slug):
         raise Http404()
 
     model_dict = {'reference': Reference, 'publication': Publication,
-                  'topic': Topic}
+                  'topic': Topic, 'funding': Funding}
     # Whether the item relation is generic
     is_generic_relation = {'reference': True, 'publication':True,
-                           'topic': True}
+                           'topic': True, 'funding': True}
 
-    custom_formsets = {'reference':forms.ReferenceFormSet,
-                       'publication':forms.PublicationFormSet,
-                       'topic':forms.TopicFormSet}
+    custom_formsets = {'reference': forms.ReferenceFormSet,
+                       'publication': forms.PublicationFormSet,
+                       'topic': forms.TopicFormSet,
+                       'funding': forms.FundingFormSet}
+
+    # Custom forms for formsets that need them
+    custom_forms = {'funding': forms.FundingForm}
 
     # The fields of each formset
     content_item_fields = {'reference': ('description',),
                             'publication': ('citation', 'url'),
-                            'topic': ('description',)}
+                            'topic': ('description',),
+                            'funding': forms.FundingForm._meta.fields}
 
     # Reload the formset with the first empty form
     if request.method == 'GET' and 'add_first' in request.GET:
@@ -744,13 +750,16 @@ def edit_content_item(request, project_slug):
         except (KeyError, ValueError):
             raise Http404()
         extra_forms = 0
-        model.objects.filter(id=item_id).delete()
+        model.objects.filter(
+            id=item_id, object_id=project.id,
+            content_type=ContentType.objects.get_for_model(ActiveProject)).delete()
     else:
         raise Http404()
 
     # Create the formset
     if is_generic_relation[item]:
-        ItemFormSet = generic_inlineformset_factory(model,
+        ItemFormSet = generic_inlineformset_factory(
+            model, form=custom_forms.get(item, ModelForm),
             fields=content_item_fields[item], extra=extra_forms,
             max_num=custom_formsets[item].max_forms, can_delete=False,
             formset=custom_formsets[item], validate_max=True)
@@ -878,12 +887,14 @@ def project_discovery(request, project_slug, **kwargs):
         fields=('citation', 'url'), extra=0,
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
+    FundingFormSet = forms.funding_formset_factory()
 
     discovery_form = forms.DiscoveryForm(
         resource_type=project.resource_type.id,
         instance=project, editable=editable)
     publication_formset = PublicationFormSet(instance=project)
     topic_formset = TopicFormSet(instance=project)
+    funding_formset = FundingFormSet(instance=project)
 
     if request.method == 'POST':
         discovery_form = forms.DiscoveryForm(
@@ -892,22 +903,28 @@ def project_discovery(request, project_slug, **kwargs):
         publication_formset = PublicationFormSet(request.POST,
                                                  instance=project)
         topic_formset = TopicFormSet(request.POST, instance=project)
+        funding_formset = FundingFormSet(request.POST, instance=project)
 
-        if discovery_form.is_valid() and publication_formset.is_valid() and topic_formset.is_valid():
+        all_valid = all([discovery_form.is_valid(), publication_formset.is_valid(),
+                         topic_formset.is_valid(), funding_formset.is_valid()])
+        if all_valid:
             discovery_form.save()
             publication_formset.save()
             topic_formset.save()
+            funding_formset.save()
             messages.success(request, 'Your discovery information has been updated.')
             topic_formset = TopicFormSet(instance=project)
             publication_formset = PublicationFormSet(instance=project)
+            funding_formset = FundingFormSet(instance=project)
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     edit_url = reverse('edit_content_item', args=[project.slug])
-    return render(request, 'project/project_discovery.html',
-        {'project':project, 'discovery_form':discovery_form,
-         'publication_formset':publication_formset,
-         'topic_formset':topic_formset, 'add_item_url':edit_url,
-         'remove_item_url':edit_url, 'is_submitting':is_submitting})
+    return render(request, 'project/project_discovery.html', {
+        'project': project, 'discovery_form': discovery_form,
+        'publication_formset': publication_formset,
+        'topic_formset': topic_formset, 'funding_formset': funding_formset,
+        'add_item_url': edit_url, 'remove_item_url': edit_url,
+        'is_submitting': is_submitting})
 
 
 @project_auth(auth_mode=0, post_auth_mode=2)

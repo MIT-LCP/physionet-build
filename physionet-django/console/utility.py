@@ -316,6 +316,9 @@ def generate_doi_payload(project, core_project=False, event="draft"):
                 "relatedIdentifierType": "URL",
             })
 
+    funding_references = [funding.datacite_funding_reference()
+                          for funding in project.funding.all()]
+
     resource_type = 'Dataset'
     if project.resource_type.name == 'Software':
         resource_type = 'Software'
@@ -342,6 +345,7 @@ def generate_doi_payload(project, core_project=False, event="draft"):
                 }],
                 "url": project_url,
                 "relatedIdentifiers": relation,
+                "fundingReferences": funding_references,
             }
         }
     }
