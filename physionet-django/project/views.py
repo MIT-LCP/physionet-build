@@ -68,6 +68,8 @@ from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
     add_user_to_access_point_policy,
+    public_s3_download_url,
+    PROJECT_ZIP_FILE,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 from physionet.utility import get_client_ip, get_country_code
@@ -1929,6 +1931,43 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
     return utility.require_http_auth(request)
 
 
+# S3 serves every file as binary/octet-stream.  Browsers only display
+# these types with the right Content-Type, and project descriptions can
+# link to them without the '?inline' flag.
+LOCAL_ONLY_EXTENSIONS = ('.svg', '.html', '.htm')
+
+# Files embedded in a page (as reported by the browser's Sec-Fetch-Dest
+# header) are served locally.  Local HTML files are served with
+# "default-src 'self'", which blocks anything redirected to S3, and S3
+# does not set the Content-Type that stylesheets and SVG images need.
+LOCAL_ONLY_FETCH_DESTINATIONS = {
+    'audio', 'embed', 'font', 'frame', 'iframe', 'image', 'object',
+    'script', 'style', 'track', 'video',
+}
+
+# The checksum list is always served by PhysioNet, so users can check
+# files downloaded from the cloud against it.
+CHECKSUM_FILE = 'SHA256SUMS.txt'
+
+
+def _can_redirect_to_cloud(request, full_file_name, file_path):
+    """
+    Check if a request for a published file can be sent to the cloud.
+
+    Pages that display a file in the browser add the '?inline' flag,
+    and those requests are served locally, as are files embedded in a
+    page.
+    """
+    fetch_dest = request.headers.get('Sec-Fetch-Dest', '')
+    return (
+        'inline' not in request.GET
+        and fetch_dest not in LOCAL_ONLY_FETCH_DESTINATIONS
+        and full_file_name != CHECKSUM_FILE
+        and not file_path.lower().endswith(LOCAL_ONLY_EXTENSIONS)
+        and os.path.isfile(file_path)
+    )
+
+
 def serve_published_project_file(request, project_slug, version,
         full_file_name):
     """
@@ -1951,6 +1990,14 @@ def serve_published_project_file(request, project_slug, version,
 
     if can_view_project_files(project, user, request) or has_passphrase:
         file_path = os.path.join(project.file_root(), full_file_name)
+
+        # Send requests to the cloud copy of the file, if there is one.
+        # Directory listings and inline views are served locally.
+        if _can_redirect_to_cloud(request, full_file_name, file_path):
+            cloud_url = public_s3_download_url(project, full_file_name)
+            if cloud_url:
+                return redirect(cloud_url)
+
         try:
             attach = ('download' in request.GET)
 
@@ -2027,6 +2074,10 @@ def serve_published_project_zip(request, project_slug, version):
     has_passphrase = project.get_anonymous_url() == an_url
 
     if can_view_project_files(project, user, request) or has_passphrase:
+        if os.path.isfile(project.zip_name(full=True)):
+            cloud_url = public_s3_download_url(project, PROJECT_ZIP_FILE)
+            if cloud_url:
+                return redirect(cloud_url)
         try:
             return serve_file(project.zip_name(full=True))
         except FileNotFoundError:

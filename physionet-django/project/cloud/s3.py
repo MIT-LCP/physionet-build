@@ -4,6 +4,7 @@ from math import ceil
 import os
 import re
 import typing
+import urllib.parse
 
 import boto3
 import botocore
@@ -94,6 +95,52 @@ def files_sent_to_S3(project):
         return bool(aws_instance.sent_files)
     except AWS.DoesNotExist:
         return False
+
+
+# Pass as the file_path to public_s3_download_url to get the project's
+# ZIP file.
+PROJECT_ZIP_FILE = object()
+
+
+def public_s3_download_url(project, file_path):
+    """
+    Return the public S3 URL for a published project file, if any.
+
+    Only open-access projects that are not georestricted are stored in
+    a public bucket, so only those can be downloaded from S3 without
+    credentials.  Returns None if the file should be served locally.
+
+    Args:
+        project (PublishedProject): The published project.
+        file_path (str or PROJECT_ZIP_FILE): Path of the file relative
+            to the project's file root, or PROJECT_ZIP_FILE for the
+            project's ZIP file.
+
+    Returns:
+        str or None: The HTTPS URL of the S3 object.
+    """
+    if not settings.REDIRECT_DOWNLOADS_TO_CLOUD:
+        return None
+    if project.access_policy != AccessPolicy.OPEN or project.georestricted:
+        return None
+    try:
+        aws = project.aws
+    except AWS.DoesNotExist:
+        return None
+    if aws.is_private or aws.access_disabled or not aws.bucket_name:
+        return None
+
+    if file_path is PROJECT_ZIP_FILE:
+        if not aws.sent_zip:
+            return None
+        key = f'{project.slug}/{project.zip_name(legacy=False)}'
+    else:
+        if not aws.sent_files:
+            return None
+        key = f'{project.slug}/{project.version}/{file_path}'
+
+    return 'https://{}.s3.amazonaws.com/{}'.format(
+        aws.bucket_name, urllib.parse.quote(key))
 
 
 def create_s3_client():

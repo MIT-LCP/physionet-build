@@ -120,6 +120,9 @@ def make_zip_background(pid):
     # Create zip file if there are files. Should always be the case.
     project.make_zip()
     project.set_storage_info()
+    # Any copy of the zip file in the cloud is now out of date, so stop
+    # sending downloads to it until it is uploaded again.
+    AWS.objects.filter(project=project).update(sent_zip=False)
 
 
 @associated_task(PublishedProject, 'pid')
@@ -1273,10 +1276,11 @@ def delete_project_files_task(pid):
     bucket = s3.Bucket(bucket_name)
     bucket.objects.filter(Prefix=prefix).delete()
 
-    # Delete zip file if it was uploaded
-    if project.aws.sent_zip:
-        zip_key = os.path.join(f"{project.slug}/", project.zip_name(legacy=False))
-        bucket.Object(zip_key).delete()
+    # Delete the zip file.  This is done even if sent_zip is false,
+    # since that is cleared when the zip file is regenerated, and
+    # deleting a missing object is not an error.
+    zip_key = os.path.join(f"{project.slug}/", project.zip_name(legacy=False))
+    bucket.Object(zip_key).delete()
 
     # Delete the AWS record from the database
     project.aws.sent_zip = False

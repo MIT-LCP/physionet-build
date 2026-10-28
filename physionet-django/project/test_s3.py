@@ -404,6 +404,31 @@ class TestS3(TestMixin):
 
         return users
 
+    def test_delete_files_removes_regenerated_zip(self):
+        """
+        Test that deleting S3 files also deletes the zip file, even if
+        sent_zip was cleared because the zip file was regenerated.
+        """
+        from console.views import delete_project_files_task
+
+        create_s3_server_access_log_bucket()
+        project = PublishedProject.objects.get(slug='demobsn', version='1.0')
+        upload_project_to_S3(project)
+        AWS.objects.create(project=project, bucket_name=settings.S3_OPEN_ACCESS_BUCKET,
+                           sent_files=True, sent_zip=False)
+
+        s3 = create_s3_client()
+        bucket = settings.S3_OPEN_ACCESS_BUCKET
+        zip_key = f'{project.slug}/{project.zip_name(legacy=False)}'
+        s3.head_object(Bucket=bucket, Key=zip_key)
+
+        delete_project_files_task.now(project.id)
+
+        with self.assertRaises(s3.exceptions.ClientError):
+            s3.head_object(Bucket=bucket, Key=zip_key)
+        response = s3.list_objects_v2(Bucket=bucket, Prefix=f'{project.slug}/')
+        self.assertEqual(response['KeyCount'], 0)
+
     def test_disable_project_access(self):
         """
         Test that disabling access deletes access points from S3 and
