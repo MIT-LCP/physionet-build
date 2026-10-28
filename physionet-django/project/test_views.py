@@ -14,6 +14,7 @@ from background_task.models import Task
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
+from django.core import signing
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
@@ -1423,16 +1424,19 @@ class TestAccessPublished(TestMixin):
         self.assertNotContains(response, 'wget -r -N -c -np')
         self.assertNotContains(response, 'Download the ZIP file')
 
-        # Anonymous downloads are refused. Command-line tools are asked for
-        # HTTP Basic credentials, as for restricted data.
+        # Anonymous downloads are refused with an explanation. Command-line
+        # tools are asked for HTTP Basic credentials, as for restricted data.
         for url in (file_url, zip_url):
-            self.assertEqual(self.client.get(url).status_code, 403)
+            response = self.client.get(url)
+            self.assertContains(response, 'requires an account', status_code=403)
+            self.assertEqual(response['X-Download-Denied'], 'login-required')
             response = self.client.get(url, secure=True, HTTP_USER_AGENT='Wget/1.18')
-            self.assertEqual(response.status_code, 401)
+            self.assertContains(response, 'requires an account', status_code=401)
             self.assertIn('WWW-Authenticate', response)
+            self.assertEqual(response['X-Download-Denied'], 'login-required')
         response = self.client.get(display_url)
-        self.assertEqual(response.status_code, 403)
         self.assertContains(response, 'to access the files', status_code=403)
+        self.assertEqual(response['X-Download-Denied'], 'login-required')
         response = self.client.get(panel_url, {'subdir': ''})
         self.assertEqual(response.status_code, 404)
 
@@ -1451,6 +1455,40 @@ class TestAccessPublished(TestMixin):
         self.assertEqual(self.client.get(file_url).status_code, 200)
         self.assertEqual(self.client.get(display_url).status_code, 200)
         self.assertEqual(self.client.get(panel_url, {'subdir': ''}).status_code, 200)
+
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_require_login_for_download_disabled_files(self):
+        """
+        Don't ask users to sign in when the authors have disabled downloads.
+        """
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        project.allow_file_downloads = False
+        project.save()
+        response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+        self.assertNotContains(response, 'to access the files')
+        response = self.client.get(reverse('display_published_project_file',
+                                           args=(project.slug, project.version, 'Makefile')))
+        self.assertNotContains(response, 'to access the files', status_code=403)
+        self.assertNotIn('X-Download-Denied', response)
+
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_require_login_for_download_anonymous_access_link(self):
+        """
+        Reviewers with an anonymous access link can download, and the page
+        doesn't show commands with a username.
+        """
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        anonymous_url = '/anonymous/test/'
+        self.client.cookies['anonymousaccess'] = signing.get_cookie_signer(
+            salt='anonymousaccess').sign(anonymous_url)
+        with mock.patch.object(PublishedProject, 'get_anonymous_url', return_value=anonymous_url):
+            response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+            self.assertNotContains(response, 'to access the files')
+            self.assertContains(response, 'wget -r -N -c -np http')
+            self.assertNotContains(response, '--user')
+            response = self.client.get(reverse('serve_published_project_file',
+                                               args=(project.slug, project.version, 'Makefile')))
+            self.assertEqual(response.status_code, 200)
 
     @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
     def test_require_login_for_download_restricted(self):

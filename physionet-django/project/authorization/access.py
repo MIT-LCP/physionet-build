@@ -157,6 +157,15 @@ def login_required_for_download(user):
     return settings.REQUIRE_LOGIN_FOR_DOWNLOAD and not user.is_authenticated
 
 
+def must_sign_in_for_files(project, user, request=None):
+    """
+    Whether signing in is all the user needs to download the project files.
+    """
+    return (login_required_for_download(user)
+            and project.allow_file_downloads
+            and can_access_project(project, user, request))
+
+
 def can_view_project_files(project, user, request=None):
     """
     Checks if the project files are  directly accessible by the user

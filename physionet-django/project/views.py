@@ -15,7 +15,7 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, Validat
 from django.db import transaction
 from django.db.models import Q
 from django.forms import ModelForm, inlineformset_factory, modelformset_factory
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse
@@ -61,7 +61,7 @@ from project.modelcomponents.activeproject import ArchiveReason
 from project.modelcomponents.review import ReviewerInvitation
 from project.authorization.access import (
     can_access_project, can_view_project_files, has_required_trainings, is_region_blocked,
-    login_required_for_download,
+    must_sign_in_for_files,
 )
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
@@ -1991,6 +1991,29 @@ def _can_redirect_to_cloud(request, full_file_name, file_path):
     )
 
 
+def login_required_response(request):
+    """
+    Refuse an anonymous download because REQUIRE_LOGIN_FOR_DOWNLOAD is on.
+
+    Command-line tools that support it are asked for a username and
+    password (401); other clients get a 403. The body says why, and the
+    X-Download-Denied header lets the web server log these refusals.
+    """
+    if utility.http_auth_allowed(request):
+        response = utility.require_http_auth(request)
+    else:
+        response = HttpResponse(status=403)
+    site = get_current_site(request)
+    response.content = (
+        f'{site.name} requires an account to download files, including open-access data. '
+        f'Sign in at {request.build_absolute_uri(reverse("login"))}, or provide your '
+        f'username and password.\n')
+    response['Content-Type'] = 'text/plain; charset=utf-8'
+    response['X-Download-Denied'] = 'login-required'
+    LOGGER.info('Download refused, login required: %s', request.path)
+    return response
+
+
 def serve_published_project_file(request, project_slug, version,
         full_file_name):
     """
@@ -2041,6 +2064,8 @@ def serve_published_project_file(request, project_slug, version,
         except (NotADirectoryError, FileNotFoundError):
             raise Http404()
 
+    if must_sign_in_for_files(project, user, request):
+        return login_required_response(request)
     return utility.require_http_auth(request)
 
 
@@ -2072,11 +2097,14 @@ def display_published_project_file(request, project_slug, version,
     context = {
         'project': project,
         'breadcrumbs': breadcrumbs,
-        'must_sign_in': (login_required_for_download(user)
-                         and can_access_project(project, user, request)),
+        'must_sign_in': must_sign_in_for_files(project, user, request),
     }
-    return render(request, 'project/file_view_unauthorized.html',
-                  context, status=403)
+    response = render(request, 'project/file_view_unauthorized.html',
+                      context, status=403)
+    if context['must_sign_in']:
+        response['X-Download-Denied'] = 'login-required'
+        LOGGER.info('Download refused, login required: %s', request.path)
+    return response
 
 
 def serve_published_project_zip(request, project_slug, version):
@@ -2108,6 +2136,8 @@ def serve_published_project_zip(request, project_slug, version):
         except FileNotFoundError:
             raise Http404()
 
+    if must_sign_in_for_files(project, user, request):
+        return login_required_response(request)
     return utility.require_http_auth(request)
 
 
@@ -2200,8 +2230,7 @@ def published_project(request, project_slug, version, subdir=''):
     can_view_files = can_view_project_files(project, user, request) or has_passphrase
     is_authorized = can_access_project(project, user, request) or has_passphrase
     # Shown instead of the download options when only sign-in is missing
-    must_sign_in = (is_authorized and not can_view_files and project.allow_file_downloads
-                    and login_required_for_download(user))
+    must_sign_in = not has_passphrase and must_sign_in_for_files(project, user, request)
 
     # Check if user is from a blocked country
     user_country_blocked = is_region_blocked(project, request)
@@ -2293,7 +2322,9 @@ def published_project(request, project_slug, version, subdir=''):
         'can_view_files': can_view_files,
         'must_sign_in': must_sign_in,
         # Whether command-line downloads need a username and password
-        'download_requires_account': bool(project.access_policy) or settings.REQUIRE_LOGIN_FOR_DOWNLOAD,
+        'download_requires_account': (
+            user.is_authenticated
+            and (bool(project.access_policy) or settings.REQUIRE_LOGIN_FOR_DOWNLOAD)),
         'has_signed_dua': has_signed_dua,
         'has_accepted_access_request': has_accepted_access_request,
         'requires_training': requires_training,
