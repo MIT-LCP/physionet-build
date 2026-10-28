@@ -204,6 +204,17 @@ class TestFundingMetadata(TestCase):
             'funderIdentifierType': 'Crossref Funder ID',
         }])
 
+    def test_datacite_payload_award_details(self):
+        funding = self.project.funding.get()
+        funding.award_title = 'Critical care research'
+        funding.award_uri = 'https://reporter.nih.gov/project-details/R01EB017205'
+        funding.save()
+        payload = generate_doi_payload(self.project, event='publish')
+        reference = payload['data']['attributes']['fundingReferences'][0]
+        self.assertEqual(reference['awardTitle'], 'Critical care research')
+        self.assertEqual(reference['awardUri'],
+                         'https://reporter.nih.gov/project-details/R01EB017205')
+
     def test_published_page_and_schema_org(self):
         self.project.funding.create(
             funder_name='Fund </script> & Co', award_number='A1', order=1)
