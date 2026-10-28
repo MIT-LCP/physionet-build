@@ -21,7 +21,7 @@ from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
-from project.cloud.s3 import public_s3_download_url
+from project.cloud.s3 import PROJECT_ZIP_FILE, public_s3_download_url
 from project.forms import ContentForm
 from project.models import (
     AccessLog,
@@ -2099,7 +2099,7 @@ class TestCloudDownloadRedirect(TestMixin):
         # Georestricted files are kept in a bucket that requires login
         self.project.georestricted = True
         self.assertIsNone(public_s3_download_url(self.project, 'Makefile'))
-        self.assertIsNone(public_s3_download_url(self.project))
+        self.assertIsNone(public_s3_download_url(self.project, PROJECT_ZIP_FILE))
 
     def test_protected_project_not_redirected(self):
         project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')

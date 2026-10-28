@@ -97,7 +97,12 @@ def files_sent_to_S3(project):
         return False
 
 
-def public_s3_download_url(project, file_path=None):
+# Pass as the file_path to public_s3_download_url to get the project's
+# ZIP file.
+PROJECT_ZIP_FILE = object()
+
+
+def public_s3_download_url(project, file_path):
     """
     Return the public S3 URL for a published project file, if any.
 
@@ -107,8 +112,9 @@ def public_s3_download_url(project, file_path=None):
 
     Args:
         project (PublishedProject): The published project.
-        file_path (str or None): Path of the file relative to the
-            project's file root, or None for the project's ZIP file.
+        file_path (str or PROJECT_ZIP_FILE): Path of the file relative
+            to the project's file root, or PROJECT_ZIP_FILE for the
+            project's ZIP file.
 
     Returns:
         str or None: The HTTPS URL of the S3 object.
@@ -124,7 +130,7 @@ def public_s3_download_url(project, file_path=None):
     if aws.is_private or aws.access_disabled or not aws.bucket_name:
         return None
 
-    if file_path is None:
+    if file_path is PROJECT_ZIP_FILE:
         if not aws.sent_zip:
             return None
         key = f'{project.slug}/{project.zip_name(legacy=False)}'

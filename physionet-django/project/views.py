@@ -65,6 +65,7 @@ from project.cloud.s3 import (
     files_sent_to_S3,
     add_user_to_access_point_policy,
     public_s3_download_url,
+    PROJECT_ZIP_FILE,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 from physionet.utility import get_client_ip, get_country_code
@@ -2031,7 +2032,7 @@ def serve_published_project_zip(request, project_slug, version):
 
     if can_view_project_files(project, user, request) or has_passphrase:
         if os.path.isfile(project.zip_name(full=True)):
-            cloud_url = public_s3_download_url(project)
+            cloud_url = public_s3_download_url(project, PROJECT_ZIP_FILE)
             if cloud_url:
                 return redirect(cloud_url)
         try:
