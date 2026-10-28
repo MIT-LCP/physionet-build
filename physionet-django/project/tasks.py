@@ -157,7 +157,11 @@ def refresh_citing_works(core_project_id):
     try:
         works = openalex.fetch_citing_works(dataset_dois, publication_dois)
     except Exception as e:
-        LOGGER.warning('Unable to fetch citing works for core project %s: %r', core_project_id, e)
+        # Request errors include the URL, which contains the API key
+        error = repr(e)
+        if settings.OPENALEX_API_KEY:
+            error = error.replace(settings.OPENALEX_API_KEY, '[api_key]')
+        LOGGER.warning('Unable to fetch citing works for core project %s: %s', core_project_id, error)
         return
 
     with transaction.atomic():
