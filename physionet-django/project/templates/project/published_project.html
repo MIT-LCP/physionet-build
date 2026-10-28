@@ -334,6 +334,8 @@
       <div class="alert alert-danger col-md-8" role="alert">
         The files in this project version are under embargo until: {{ project.embargo_end_date|date }}
       </div>
+    {% elif must_sign_in %}
+      {% include "project/published_project_sign_in.html" %}
     {% else %}
       {% if is_authorized %}
         {% if project.allow_file_downloads %}
@@ -374,15 +376,15 @@
             {% if show_physionet_package_download %}
               <li>
                 Download with the <a href="https://github.com/MIT-LCP/physionet#installation">PhysioNet Python package</a>:
-                <pre class="shell-command">physionet download {{ project.slug }} --version {{ project.version }}{% if project.access_policy %} --username {{ user }}{% endif %}</pre>
-                {% if project.access_policy %}
-                  The command prompts for your password. Your account must meet this project's access requirements.
+                <pre class="shell-command">physionet download {{ project.slug }} --version {{ project.version }}{% if download_requires_account %} --username {{ user }}{% endif %}</pre>
+                {% if download_requires_account %}
+                  The command prompts for your password.{% if project.access_policy %} Your account must meet this project's access requirements.{% endif %}
                 {% endif %}
               </li>
             {% endif %}
             <li>
               Download the files using your terminal:
-              <pre class="shell-command">wget -r -N -c -np{% if project.access_policy %} --user {{ user }} --ask-password{% endif %} {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre>
+              <pre class="shell-command">wget -r -N -c -np{% if download_requires_account %} --user {{ user }} --ask-password{% endif %} {{ bulk_url_prefix }}{% url 'serve_published_project_file' project.slug project.version '' %}</pre>
             </li>
           {% endif %}
 
