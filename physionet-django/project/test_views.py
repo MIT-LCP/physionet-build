@@ -2007,7 +2007,6 @@ class TestCloudDownloadRedirect(TestMixin):
     Test that downloads of open-access files are redirected to S3.
     """
     S3_BASE = 'https://physionet-open.s3.amazonaws.com/'
-    WGET = 'Wget/1.25.0'
 
     def setUp(self):
         super().setUp()
@@ -2032,24 +2031,40 @@ class TestCloudDownloadRedirect(TestMixin):
             response, self.S3_BASE + 'demoecg/10.5.24/Makefile', fetch_redirect_response=False
         )
 
-    def test_wget_redirects(self):
-        response = self.client.get(self.file_url(self.project, 'doc/'), HTTP_USER_AGENT=self.WGET)
+    def test_plain_request_redirects(self):
+        # Directory listings stay local, so wget -r can follow them
+        response = self.client.get(self.file_url(self.project, 'doc/'))
         self.assertEqual(response.status_code, 200)
 
         path = os.path.join(self.project.file_root(), 'doc')
         name = sorted(os.listdir(path))[0]
-        response = self.client.get(self.file_url(self.project, 'doc/' + name), HTTP_USER_AGENT=self.WGET)
+        response = self.client.get(self.file_url(self.project, 'doc/' + name))
         self.assertRedirects(
             response, self.S3_BASE + 'demoecg/10.5.24/doc/' + urllib.parse.quote(name),
             fetch_redirect_response=False,
         )
 
     def test_inline_view_served_locally(self):
-        response = self.client.get(self.file_url(self.project, 'Makefile'))
+        response = self.client.get(self.file_url(self.project, 'Makefile') + '?inline')
         self.assertEqual(response.status_code, 200)
 
-        response = self.client.get(self.file_url(self.project, 'Makefile'), HTTP_USER_AGENT='curl/8.7.1')
-        self.assertEqual(response.status_code, 200)
+    def test_viewer_urls_are_inline(self):
+        self.assertTrue(self.project.files.raw_url(self.project, 'Makefile').endswith('/Makefile?inline'))
+        self.assertTrue(self.project.files.download_url(self.project, 'Makefile').endswith('/Makefile?download'))
+
+        response = self.client.get(reverse(
+            'display_published_project_file', args=(self.project.slug, self.project.version, 'Makefile')))
+        self.assertContains(response, 'Makefile?inline')
+
+    def test_content_type_sensitive_files_served_locally(self):
+        root = self.project.file_root()
+        os.chmod(root, 0o755)
+        for name in ('diagram.svg', 'page.HTML', 'intro.htm'):
+            with self.subTest(name=name):
+                with open(os.path.join(root, name), 'w') as f:
+                    f.write('<p>test</p>')
+                response = self.client.get(self.file_url(self.project, name))
+                self.assertEqual(response.status_code, 200)
 
     @prevent_request_warnings
     def test_missing_file_not_redirected(self):

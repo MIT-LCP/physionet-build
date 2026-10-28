@@ -1911,17 +1911,24 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
     return utility.require_http_auth(request)
 
 
-def _is_file_download(request):
-    """
-    Check if a file request is a download rather than an inline view.
+# S3 serves every file as binary/octet-stream.  Browsers only display
+# these types with the right Content-Type, and project descriptions can
+# embed or link them without the '?inline' flag.
+LOCAL_ONLY_EXTENSIONS = ('.svg', '.html', '.htm')
 
-    Browser downloads use the '?download' link.  Requests from wget
-    are always downloads.  Other clients (such as curl, which does not
-    follow redirects by default) are treated as inline views.
+
+def _can_redirect_to_cloud(request, file_path):
     """
-    if 'download' in request.GET:
-        return True
-    return request.META.get('HTTP_USER_AGENT', '').startswith('Wget/')
+    Check if a request for a published file can be sent to the cloud.
+
+    Pages that display a file in the browser add the '?inline' flag,
+    and those requests are served locally.
+    """
+    return (
+        'inline' not in request.GET
+        and not file_path.lower().endswith(LOCAL_ONLY_EXTENSIONS)
+        and os.path.isfile(file_path)
+    )
 
 
 def serve_published_project_file(request, project_slug, version,
@@ -1947,10 +1954,9 @@ def serve_published_project_file(request, project_slug, version,
     if can_view_project_files(project, user, request) or has_passphrase:
         file_path = os.path.join(project.file_root(), full_file_name)
 
-        # Send downloads to the cloud copy of the file, if there is
-        # one.  Directory listings and inline views are served locally,
-        # since S3 does not set a useful Content-Type.
-        if _is_file_download(request) and os.path.isfile(file_path):
+        # Send requests to the cloud copy of the file, if there is one.
+        # Directory listings and inline views are served locally.
+        if _can_redirect_to_cloud(request, file_path):
             cloud_url = public_s3_download_url(project, full_file_name)
             if cloud_url:
                 return redirect(cloud_url)

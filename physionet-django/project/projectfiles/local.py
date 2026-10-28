@@ -122,10 +122,12 @@ class LocalProjectFiles(BaseProjectFiles):
                     pass
 
     def raw_url(self, project, path):
-        return project.file_url('', path)
+        # '?inline' keeps the file on PhysioNet, so it is served with
+        # the right Content-Type rather than redirected to the cloud.
+        return project.file_url('', path) + '?inline'
 
     def download_url(self, project, path):
-        return self.raw_url(project, path) + '?download'
+        return project.file_url('', path) + '?download'
 
     def rm_dir(self, path, remove_zip):
         # Published project directories are read-only (0o555), and
