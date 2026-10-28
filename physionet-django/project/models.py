@@ -10,6 +10,7 @@ from project.modelcomponents.license import License
 
 from project.modelcomponents.activeproject import *
 from project.modelcomponents.authors import *
+from project.modelcomponents.citingworks import *
 from project.modelcomponents.coreproject import *
 from project.modelcomponents.legacy import *
 from project.modelcomponents.metadata import *

@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import path, re_path
 
 from search import views
@@ -63,6 +64,11 @@ urlpatterns = [
         'content/<project_slug>/metrics/<version>/',
         project_views.published_project_metrics,
         name='published_project_metrics',
+    ),
+    path(
+        'content/<project_slug>/citations/<version>/',
+        project_views.published_project_citations,
+        name='published_project_citations',
     ),
 
     path('sign-dua/<project_slug>/<version>/', project_views.sign_dua,
@@ -136,6 +142,9 @@ TEST_CASES = {
     'data_access_request_view': {**_demo_access_manager, 'pk': '1'},
     'data_access_requests_overview': _demo_access_manager,
     'manage_data_access_reviewers': _demo_access_manager,
+
+    # only available when the OpenAlex integration is enabled
+    'published_project_citations': {'_skip_': lambda: not settings.ENABLE_OPENALEX_API},
 
     # not implemented in demo
     'redirect_challenge_project': {'year': '2001', '_skip_': True},

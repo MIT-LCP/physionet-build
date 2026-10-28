@@ -934,6 +934,11 @@ OAUTH2_PROVIDER = {
 ENABLE_SCHOLAR_DATA_API = config('ENABLE_SCHOLAR_DATA_API', default=False, cast=bool)
 SCHOLAR_DATA_API_URL = config('SCHOLAR_DATA_API_URL', default='https://scholardata.io/api/v1')
 
+# OpenAlex API for listing works that cite a project
+ENABLE_OPENALEX_API = config('ENABLE_OPENALEX_API', default=False, cast=bool)
+OPENALEX_API_URL = config('OPENALEX_API_URL', default='https://api.openalex.org')
+OPENALEX_API_KEY = config('OPENALEX_API_KEY', default='')
+
 # Path to GeoIP2 database directory
 GEOIP_PATH = config('GEOIP_PATH', default=None)
 

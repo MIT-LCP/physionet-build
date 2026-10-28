@@ -27,6 +27,8 @@ from project.models import (
     ActiveProject,
     Author,
     AuthorInvitation,
+    CitingWork,
+    CitingWorksRefresh,
     CoreProject,
     DataAccessRequest,
     DataAccessRequestReviewer,
@@ -36,12 +38,14 @@ from project.models import (
     ProjectType,
     PublishedAuthor,
     PublishedProject,
+    PublishedPublication,
     ScholarData,
     StorageRequest,
     SubmissionStatus,
     UploadAgreement,
     AWS
 )
+from project import openalex
 from project.validators import validate_abstract_word_count
 from user.enums import TrainingStatus
 from user.models import Training, TrainingType, User
@@ -2698,6 +2702,231 @@ class TestScholarDataIntegration(TestMixin):
                 ScholarData.objects.get(doi=self.project.doi).data,
                 self.SCHOLAR_DATA_RESPONSE,
             )
+
+
+def openalex_work(work_id, title, doi=None, date='2025-01-02', authors=('Ann Lee',), venue='Journal A'):
+    """Return a work record in the form the OpenAlex API returns it."""
+    return {
+        'id': f'https://openalex.org/{work_id}',
+        'doi': f'https://doi.org/{doi}' if doi else None,
+        'display_name': title,
+        'publication_date': date,
+        'authorships': [{'author': {'display_name': name}} for name in authors],
+        'primary_location': {'source': {'display_name': venue}},
+    }
+
+
+class FakeOpenAlex:
+    """
+    Stand-in for requests.get that answers OpenAlex API requests.
+
+    The project's DOIs map to work W1 (two DOIs, as OpenAlex merges
+    dataset versions) and its paper to W2. W1 is cited by A, B and W2
+    (over two pages); W2 is cited by B and C.
+    """
+    WORK_IDS = {
+        'doi:10.1234/test': 'W1',
+        'doi:10.1234/core': 'W1',
+        'doi:10.5555/paper': 'W2',
+    }
+    CITING = {
+        ('W1', '*'): ([openalex_work('A', 'Paper <i>A</i>', doi='10.1000/A', date='2024-05-01',
+                                     authors=('Ann Lee', 'Bo Chen', 'Cy Diaz', 'Di Evans'))],
+                      'page2'),
+        ('W1', 'page2'): ([openalex_work('B', 'Paper B &amp; more', doi='10.1000/B', date='2026-03-01'),
+                           openalex_work('W2', 'The project paper')], 'page3'),
+        ('W1', 'page3'): ([], None),
+        ('W2', '*'): ([openalex_work('B', 'Paper B', doi='10.1000/B', date='2026-03-01'),
+                       openalex_work('C', 'Paper C', date=None, venue=None, authors=())], None),
+    }
+
+    def __call__(self, url, params=None, timeout=None):
+        path = url.removeprefix(settings.OPENALEX_API_URL + '/')
+        response = mock.Mock()
+        if path.startswith('works/doi:'):
+            work_id = self.WORK_IDS.get(path.removeprefix('works/'))
+            if work_id is None:
+                error = requests.HTTPError(response=mock.Mock(status_code=404))
+                response.raise_for_status.side_effect = error
+            response.json.return_value = {'id': f'https://openalex.org/{work_id}'}
+        else:
+            target = params['filter'].removeprefix('cites:')
+            # Cursor paging needs an API key; without one, numbered pages are used.
+            if settings.OPENALEX_API_KEY:
+                assert params['api_key'] == settings.OPENALEX_API_KEY
+                position = params['cursor']
+            else:
+                assert 'cursor' not in params
+                position = {1: '*'}.get(params['page'], f"page{params['page']}")
+            results, next_cursor = self.CITING.get((target, position), ([], None))
+            response.json.return_value = {'meta': {'next_cursor': next_cursor}, 'results': results}
+        return response
+
+
+@override_settings(OPENALEX_API_URL='https://openalex.test', OPENALEX_API_KEY='test-key')
+class TestCitingWorks(TestMixin):
+    """
+    Test the list of works citing a project, fetched from OpenAlex.
+
+    Pages only read stored data; fetching happens in a background task,
+    so the external API is never called during a web request.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        self.project.doi = '10.1234/test'
+        self.project.save()
+        self.core_project = self.project.core_project
+        self.core_project.doi = '10.1234/core'
+        self.core_project.save()
+        self.project.publications.all().delete()
+        PublishedPublication.objects.create(
+            project=self.project, citation='The project paper', url='https://doi.org/10.5555/PAPER')
+        self.landing_url = reverse('published_project', args=(self.project.slug, self.project.version))
+        self.citations_url = reverse('published_project_citations',
+                                     args=(self.project.slug, self.project.version))
+
+    def get_page(self, url, status=200):
+        """Request a page, failing if it calls the external API."""
+        with mock.patch('project.openalex.requests.get') as mock_get:
+            response = self.client.get(url)
+        mock_get.assert_not_called()
+        self.assertEqual(response.status_code, status)
+        return response
+
+    def run_refresh(self, fake=None):
+        """Run the queued refresh task against a fake OpenAlex API."""
+        with mock.patch('project.openalex.requests.get', side_effect=fake or FakeOpenAlex()):
+            self.assertBackgroundTasks(1)
+
+    def stored_works(self):
+        return {
+            w.openalex_id: (w.cites_dataset, w.cites_publication)
+            for w in CitingWork.objects.filter(core_project=self.core_project)
+        }
+
+    @override_settings(ENABLE_OPENALEX_API=False)
+    def test_disabled(self):
+        """Nothing is shown or queued when ENABLE_OPENALEX_API is False."""
+        response = self.get_page(self.landing_url)
+        self.assertEqual(response.context['citing_works_count'], 0)
+        self.assertNotContains(response, 'id="cited-by"')
+        self.get_page(self.citations_url, status=404)
+        self.assertFalse(CitingWorksRefresh.objects.exists())
+        self.assertEqual(Task.objects.count(), 0)
+
+    @override_settings(ENABLE_OPENALEX_API=True)
+    def test_first_view_queues_fetch(self):
+        """The first view queues one fetch; the stored list is shown afterwards."""
+        response = self.get_page(self.landing_url)
+        self.assertNotContains(response, 'id="cited-by"')
+        self.get_page(self.landing_url)
+        self.get_page(self.citations_url)
+        self.assertEqual(Task.objects.count(), 1)
+        self.assertEqual(Task.objects.get().priority, -1)
+
+        self.run_refresh()
+        self.assertEqual(self.stored_works(), {
+            'A': (True, False),
+            'B': (True, True),
+            'C': (False, True),
+        })
+        self.assertIsNotNone(CitingWorksRefresh.objects.get(core_project=self.core_project).fetch_datetime)
+        # HTML tags and entities are removed from titles
+        self.assertEqual(CitingWork.objects.get(openalex_id='A').title, 'Paper A')
+        self.assertEqual(CitingWork.objects.get(openalex_id='B').title, 'Paper B & more')
+
+        response = self.get_page(self.landing_url)
+        self.assertEqual(response.context['citing_works_count'], 3)
+        # Newest first, undated last
+        self.assertEqual([w.openalex_id for w in response.context['citing_works']], ['B', 'A', 'C'])
+        self.assertContains(response, 'id="cited-by"')
+        self.assertContains(response, 'Paper A')
+        self.assertContains(response, 'Ann Lee, Bo Chen, Cy Diaz et al.\n')
+        self.assertNotContains(response, 'et al..')
+        self.assertContains(response, 'https://doi.org/10.1000/a')
+        self.assertContains(response, 'https://openalex.org/C')
+        self.assertContains(response, self.citations_url)
+
+        response = self.get_page(self.citations_url)
+        self.assertContains(response, 'or its primary paper')
+        self.assertContains(response, 'Cites:\n          dataset, paper')
+        self.assertEqual(Task.objects.count(), 0)
+
+    @override_settings(ENABLE_OPENALEX_API=True, OPENALEX_API_KEY='')
+    def test_without_api_key(self):
+        """Without an API key, numbered pages are used and give the same list."""
+        self.get_page(self.landing_url)
+        self.run_refresh()
+        self.assertEqual(self.stored_works(), {
+            'A': (True, False),
+            'B': (True, True),
+            'C': (False, True),
+        })
+
+    @override_settings(ENABLE_OPENALEX_API=True)
+    def test_stale_list_queues_one_refresh(self):
+        """A stale list is still shown, and exactly one refresh is queued."""
+        self.get_page(self.landing_url)
+        self.run_refresh()
+        CitingWorksRefresh.objects.update(
+            refresh_datetime=timezone.now() - CitingWorksRefresh.REFRESH_INTERVAL - timedelta(minutes=1))
+        response = self.get_page(self.landing_url)
+        self.assertEqual(response.context['citing_works_count'], 3)
+        self.get_page(self.landing_url)
+        self.assertEqual(Task.objects.count(), 1)
+
+    @override_settings(ENABLE_OPENALEX_API=True)
+    def test_fetch_failure_keeps_previous_list(self):
+        """A failed fetch keeps the stored list and does not fail the task."""
+        self.get_page(self.landing_url)
+        self.run_refresh()
+        for error in (requests.ConnectionError, requests.Timeout):
+            CitingWorksRefresh.objects.update(refresh_datetime=timezone.now() - timedelta(days=30))
+            self.get_page(self.landing_url)
+            self.run_refresh(fake=mock.Mock(side_effect=error))
+            self.assertEqual(len(self.stored_works()), 3)
+
+    @override_settings(ENABLE_OPENALEX_API=True)
+    def test_fetch_failure_does_not_log_api_key(self):
+        """The API key is sent in the URL, so it is removed from logged errors."""
+        self.get_page(self.landing_url)
+        error = requests.ConnectionError(
+            f'Max retries exceeded with url: /works?select=id&api_key={settings.OPENALEX_API_KEY}')
+        with self.assertLogs('project.tasks', level='WARNING') as logs:
+            self.run_refresh(fake=mock.Mock(side_effect=error))
+        self.assertIn('api_key=[api_key]', logs.output[0])
+        self.assertNotIn(settings.OPENALEX_API_KEY, logs.output[0])
+
+    @override_settings(ENABLE_OPENALEX_API=True)
+    def test_unknown_dois_and_no_publication(self):
+        """DOIs unknown to OpenAlex are skipped; with no paper, only dataset citations are listed."""
+        self.project.publications.all().delete()
+        self.project.doi = '10.1234/unknown'
+        self.project.save()
+        self.get_page(self.landing_url)
+        self.run_refresh()
+        self.assertEqual(self.stored_works(), {'A': (True, False), 'B': (True, False), 'W2': (True, False)})
+        response = self.get_page(self.citations_url)
+        self.assertNotContains(response, 'Cites:')
+
+    @override_settings(ENABLE_OPENALEX_API=True)
+    def test_queued_fetch_skipped_when_disabled(self):
+        """A queued fetch does not call the API if the feature is turned off."""
+        self.get_page(self.landing_url)
+        with override_settings(ENABLE_OPENALEX_API=False), \
+                mock.patch('project.openalex.requests.get') as mock_get:
+            self.assertBackgroundTasks(1)
+        mock_get.assert_not_called()
+        self.assertFalse(CitingWork.objects.exists())
+
+    def test_extract_doi(self):
+        self.assertEqual(openalex.extract_doi('https://doi.org/10.1038/S41597-022-01899-X'),
+                         '10.1038/s41597-022-01899-x')
+        self.assertEqual(openalex.extract_doi('doi:10.13026/kpb9-mt58.'), '10.13026/kpb9-mt58')
+        self.assertIsNone(openalex.extract_doi('https://example.com/paper'))
+        self.assertIsNone(openalex.extract_doi(''))
 
 
 class TestViewArchiveProject(TestMixin):

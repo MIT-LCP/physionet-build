@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}
+Publications citing {{ project }}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Cited by</h1>
+  <p class="text-muted">
+    <a href="{% url 'published_project' project.slug project.version %}">{{ project.title }} (v{{ project.version }})</a>
+  </p>
+  <hr>
+
+  {% if citing_works_count %}
+    <p>
+      {{ citing_works_count }} publication{{ citing_works_count|pluralize }}
+      cite{{ citing_works_count|pluralize:"s," }} any version of this project{% if has_publication %} or its primary paper{% endif %}, newest first.
+    </p>
+    {% include "project/citing_works_list.html" with works=citing_works show_cited_item=has_publication %}
+    {% include "console/pagination.html" with pagination=citing_works %}
+  {% else %}
+    <p>No citing publications have been found yet.</p>
+  {% endif %}
+
+  <p><small class="text-muted">
+    Citation data from <a href="https://openalex.org" rel="noopener">OpenAlex</a>, updated weekly.
+    Papers that use the project without citing it may be missing.
+  </small></p>
+</div>
+{% endblock %}
