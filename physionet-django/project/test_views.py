@@ -2889,6 +2889,17 @@ class TestCitingWorks(TestMixin):
             self.assertEqual(len(self.stored_works()), 3)
 
     @override_settings(ENABLE_OPENALEX_API=True)
+    def test_fetch_failure_does_not_log_api_key(self):
+        """The API key is sent in the URL, so it is removed from logged errors."""
+        self.get_page(self.landing_url)
+        error = requests.ConnectionError(
+            f'Max retries exceeded with url: /works?select=id&api_key={settings.OPENALEX_API_KEY}')
+        with self.assertLogs('project.tasks', level='WARNING') as logs:
+            self.run_refresh(fake=mock.Mock(side_effect=error))
+        self.assertIn('api_key=[api_key]', logs.output[0])
+        self.assertNotIn(settings.OPENALEX_API_KEY, logs.output[0])
+
+    @override_settings(ENABLE_OPENALEX_API=True)
     def test_unknown_dois_and_no_publication(self):
         """DOIs unknown to OpenAlex are skipped; with no paper, only dataset citations are listed."""
         self.project.publications.all().delete()
