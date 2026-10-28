@@ -64,6 +64,7 @@ from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
     add_user_to_access_point_policy,
+    public_s3_download_url,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
 from physionet.utility import get_client_ip, get_country_code
@@ -1909,6 +1910,19 @@ def serve_active_project_file_editor(request, project_slug, full_file_name):
     return utility.require_http_auth(request)
 
 
+def _is_file_download(request):
+    """
+    Check if a file request is a download rather than an inline view.
+
+    Browser downloads use the '?download' link.  Requests from wget
+    are always downloads.  Other clients (such as curl, which does not
+    follow redirects by default) are treated as inline views.
+    """
+    if 'download' in request.GET:
+        return True
+    return request.META.get('HTTP_USER_AGENT', '').startswith('Wget/')
+
+
 def serve_published_project_file(request, project_slug, version,
         full_file_name):
     """
@@ -1931,6 +1945,15 @@ def serve_published_project_file(request, project_slug, version,
 
     if can_view_project_files(project, user, request) or has_passphrase:
         file_path = os.path.join(project.file_root(), full_file_name)
+
+        # Send downloads to the cloud copy of the file, if there is
+        # one.  Directory listings and inline views are served locally,
+        # since S3 does not set a useful Content-Type.
+        if _is_file_download(request) and os.path.isfile(file_path):
+            cloud_url = public_s3_download_url(project, full_file_name)
+            if cloud_url:
+                return redirect(cloud_url)
+
         try:
             attach = ('download' in request.GET)
 
@@ -2007,6 +2030,10 @@ def serve_published_project_zip(request, project_slug, version):
     has_passphrase = project.get_anonymous_url() == an_url
 
     if can_view_project_files(project, user, request) or has_passphrase:
+        if os.path.isfile(project.zip_name(full=True)):
+            cloud_url = public_s3_download_url(project)
+            if cloud_url:
+                return redirect(cloud_url)
         try:
             return serve_file(project.zip_name(full=True))
         except FileNotFoundError:

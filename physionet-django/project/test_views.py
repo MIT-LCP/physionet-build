@@ -3,6 +3,7 @@ from datetime import timedelta
 from dateutil.relativedelta import relativedelta
 import html.parser
 import os
+import urllib.parse
 import uuid
 from http import HTTPStatus
 import json
@@ -20,6 +21,7 @@ from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
+from project.cloud.s3 import public_s3_download_url
 from project.forms import ContentForm
 from project.models import (
     AccessLog,
@@ -1997,6 +1999,121 @@ class TestGenerateSignedUrl(TestMixin):
                 format='json'
             )
             self.assertEqual(response.status_code, HTTPStatus.FORBIDDEN)
+
+
+@override_settings(REDIRECT_DOWNLOADS_TO_CLOUD=True)
+class TestCloudDownloadRedirect(TestMixin):
+    """
+    Test that downloads of open-access files are redirected to S3.
+    """
+    S3_BASE = 'https://physionet-open.s3.amazonaws.com/'
+    WGET = 'Wget/1.25.0'
+
+    def setUp(self):
+        super().setUp()
+        self.project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        self.aws = AWS.objects.create(
+            project=self.project,
+            bucket_name='physionet-open',
+            is_private=False,
+            sent_zip=True,
+            sent_files=True,
+        )
+
+    def file_url(self, project, path):
+        return reverse('serve_published_project_file', args=(project.slug, project.version, path))
+
+    def zip_url(self, project):
+        return reverse('serve_published_project_zip', args=(project.slug, project.version))
+
+    def test_browser_download_redirects(self):
+        response = self.client.get(self.file_url(self.project, 'Makefile') + '?download')
+        self.assertRedirects(
+            response, self.S3_BASE + 'demoecg/10.5.24/Makefile', fetch_redirect_response=False
+        )
+
+    def test_wget_redirects(self):
+        response = self.client.get(self.file_url(self.project, 'doc/'), HTTP_USER_AGENT=self.WGET)
+        self.assertEqual(response.status_code, 200)
+
+        path = os.path.join(self.project.file_root(), 'doc')
+        name = sorted(os.listdir(path))[0]
+        response = self.client.get(self.file_url(self.project, 'doc/' + name), HTTP_USER_AGENT=self.WGET)
+        self.assertRedirects(
+            response, self.S3_BASE + 'demoecg/10.5.24/doc/' + urllib.parse.quote(name),
+            fetch_redirect_response=False,
+        )
+
+    def test_inline_view_served_locally(self):
+        response = self.client.get(self.file_url(self.project, 'Makefile'))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(self.file_url(self.project, 'Makefile'), HTTP_USER_AGENT='curl/8.7.1')
+        self.assertEqual(response.status_code, 200)
+
+    @prevent_request_warnings
+    def test_missing_file_not_redirected(self):
+        response = self.client.get(self.file_url(self.project, 'fnord') + '?download')
+        self.assertEqual(response.status_code, 404)
+
+    def test_zip_redirects(self):
+        response = self.client.get(self.zip_url(self.project))
+        self.assertRedirects(
+            response, self.S3_BASE + 'demoecg/demoecg-10.5.24.zip', fetch_redirect_response=False
+        )
+
+    def test_key_is_quoted(self):
+        self.assertEqual(
+            public_s3_download_url(self.project, 'a b/c%#.txt'),
+            self.S3_BASE + 'demoecg/10.5.24/a%20b/c%25%23.txt',
+        )
+
+    def test_not_redirected_when_cloud_copy_unavailable(self):
+        url = self.file_url(self.project, 'Makefile') + '?download'
+        cases = [
+            {'sent_files': False},
+            {'is_private': True},
+            {'access_disabled': True},
+            {'bucket_name': ''},
+        ]
+        defaults = {'bucket_name': 'physionet-open', 'is_private': False,
+                    'access_disabled': False, 'sent_files': True}
+        for case in cases:
+            with self.subTest(**case):
+                AWS.objects.filter(pk=self.aws.pk).update(**{**defaults, **case})
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
+
+        AWS.objects.filter(pk=self.aws.pk).update(sent_files=True, sent_zip=False)
+        response = self.client.get(self.zip_url(self.project))
+        self.assertEqual(response.status_code, 200)
+
+    def test_not_redirected_when_setting_disabled(self):
+        with self.settings(REDIRECT_DOWNLOADS_TO_CLOUD=False):
+            response = self.client.get(self.file_url(self.project, 'Makefile') + '?download')
+            self.assertEqual(response.status_code, 200)
+            response = self.client.get(self.zip_url(self.project))
+            self.assertEqual(response.status_code, 200)
+
+    def test_georestricted_not_redirected(self):
+        # Georestricted files are kept in a bucket that requires login
+        self.project.georestricted = True
+        self.assertIsNone(public_s3_download_url(self.project, 'Makefile'))
+        self.assertIsNone(public_s3_download_url(self.project))
+
+    def test_protected_project_not_redirected(self):
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        AWS.objects.create(project=project, bucket_name='physionet-open', is_private=False,
+                           sent_zip=True, sent_files=True)
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        self.client.post(reverse('sign_dua', args=(project.slug, project.version)),
+                         data={'agree': '', 'initials': 'RGM'})
+
+        name = sorted(os.listdir(project.file_root()))[0]
+        response = self.client.get(self.file_url(project, name) + '?download')
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(self.zip_url(project))
+        self.assertEqual(response.status_code, 200)
 
 
 @override_settings(BLOCKED_REGIONS={'localhost'})
