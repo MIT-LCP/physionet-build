@@ -198,6 +198,23 @@ class ChallengeConfigurationForm(ChallengeDateValidationMixin, forms.ModelForm):
     def clean_test_labels_archive(self):
         return self._validate_archive('test_labels_archive')
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if settings.CHALLENGE_STAGING_BUCKET and not settings.CHALLENGE_EVAL_BUCKET:
+            eval_fields = (
+                'validation_labels_archive',
+                'test_labels_archive',
+                'evaluation_script_file',
+            )
+            for field in eval_fields:
+                if cleaned_data.get(field):
+                    self.add_error(
+                        field,
+                        'CHALLENGE_EVAL_BUCKET must be configured'
+                        ' to upload labels or evaluation scripts.',
+                    )
+        return cleaned_data
+
 
 class ChallengeConfigForm(ChallengeDateValidationMixin, forms.ModelForm):
     class Meta:
