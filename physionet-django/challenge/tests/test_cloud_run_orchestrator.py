@@ -376,6 +376,8 @@ class TestCloudRunOrchestratorRun(TestCase):
         limits = rr_call.call_args.kwargs['limits']
         self.assertEqual(limits['nvidia.com/gpu'], '1')
         self.assertIn('cpu', limits)
+        self.mock_run_v2.NodeSelector.assert_called_once_with(
+            accelerator='nvidia-l4')
 
     def test_create_job_omits_gpu_when_none(self):
         """_create_and_run_job omits nvidia.com/gpu by default."""
