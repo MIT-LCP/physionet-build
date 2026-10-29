@@ -461,6 +461,10 @@ class ContainerOrchestrator:
             'SUBMISSION_ID': str(self.submission.pk),
         }
 
+        # VPC restriction on the eval phase is intentional
+        # defense-in-depth: eval scripts are trusted but do not need
+        # internet access, and restricting egress limits the blast
+        # radius if an eval script is compromised.
         try:
             eval_op = self._create_and_run_job(
                 job_name=self.eval_job_name,
