@@ -16,7 +16,6 @@ from challenge.services import ContainerOrchestrator, get_orchestrator
 # Mock run_v2 so tests work without google-cloud-run installed.
 _mock_run_v2 = mock.MagicMock()
 _mock_run_v2.ExecutionEnvironment.EXECUTION_ENVIRONMENT_GEN2 = 2
-_mock_run_v2.LaunchStage.GA = 1
 _mock_run_v2.VpcAccess.VpcEgress.ALL_TRAFFIC = 1
 
 
@@ -37,7 +36,7 @@ def _make_submission_mock(**overrides):
     spec.cpu_count = 1
     spec.max_runtime_seconds = 300
     spec.evaluation_script_gcs_uri = (
-        'challenge-submissions/eval/evaluate.py')
+        'challenge-evaluation/eval/evaluate.py')
     spec.gpu_enabled = False
     spec.gpu_type = ''
 
@@ -49,9 +48,9 @@ def _make_submission_mock(**overrides):
     challenge.validation_data_gcs_uri = (
         'challenge-submissions/data/val')
     challenge.test_labels_gcs_uri = (
-        'challenge-submissions/labels/test')
+        'challenge-evaluation/labels/test')
     challenge.validation_labels_gcs_uri = (
-        'challenge-submissions/labels/val')
+        'challenge-evaluation/labels/val')
 
     submission = mock.MagicMock()
     submission.pk = 42

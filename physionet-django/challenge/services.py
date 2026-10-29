@@ -326,19 +326,27 @@ class ContainerOrchestrator:
             'mkdir -p /workspace /mnt/input /mnt/output-local; '
             'cd /workspace; '
             f"tar xf '/mnt/gcs-archive/{archive_key}' "
-            f'  2>/dev/null '
-            f"  || cp -r '/mnt/gcs-archive/{archive_key}' .; "
+            f'2>/dev/null '
+            f"|| python -m zipfile -e "
+            f"'/mnt/gcs-archive/{archive_key}' .; "
         )
         if input_data_uri:
             entrypoint += (
-                'cp -r "$GCS_INPUT_MOUNT"/* '
-                '  /mnt/input/ 2>/dev/null || true; '
+                'if [ -d "$GCS_INPUT_MOUNT" ]; then '
+                '  cp -r "$GCS_INPUT_MOUNT"/. /mnt/input/; '
+                'elif tar tf "$GCS_INPUT_MOUNT" '
+                '  >/dev/null 2>&1; then '
+                '  tar xf "$GCS_INPUT_MOUNT" -C /mnt/input; '
+                'else '
+                '  python -m zipfile -e '
+                '  "$GCS_INPUT_MOUNT" /mnt/input; '
+                'fi; '
             )
         entrypoint += (
             f'{self.spec.entrypoint_command}; '
+            f"mkdir -p '/mnt/output/{predictions_prefix}'; "
             f'cp -r /mnt/output-local/* '
-            f"  '/mnt/output/{predictions_prefix}/' "
-            f'  2>/dev/null || true'
+            f"  '/mnt/output/{predictions_prefix}/'"
         )
 
         env_vars = {
@@ -455,13 +463,22 @@ class ContainerOrchestrator:
             'set -e; '
             'mkdir -p /predictions /labels /eval /output-local; '
             f"cp '/mnt/gcs-eval/{eval_key}' /eval/evaluate.py; "
-            f"cp -r '/mnt/gcs-labels/{labels_key}'/* "
-            f'  /labels/ 2>/dev/null || '
-            f"  cp '/mnt/gcs-labels/{labels_key}' /labels/; "
-            f"cp -r '/mnt/gcs-predictions/{predictions_prefix}'/* "
-            f'  /predictions/ 2>/dev/null || true; '
+            f"if [ -d '/mnt/gcs-labels/{labels_key}' ]; then "
+            f"  cp -r '/mnt/gcs-labels/{labels_key}'/. "
+            f'    /labels/; '
+            f"elif tar tf '/mnt/gcs-labels/{labels_key}' "
+            f'  >/dev/null 2>&1; then '
+            f"  tar xf '/mnt/gcs-labels/{labels_key}' "
+            f'  -C /labels; '
+            f'else '
+            f"  python -m zipfile -e "
+            f"'/mnt/gcs-labels/{labels_key}' /labels; "
+            f"fi; "
+            f"cp -r '/mnt/gcs-predictions/{predictions_prefix}'/. "
+            f'  /predictions/; '
             'python /eval/evaluate.py '
             '  /predictions /labels /output-local/scores.json; '
+            f"mkdir -p '/mnt/output/{scores_prefix}'; "
             f'cp /output-local/scores.json '
             f"  '/mnt/output/{scores_prefix}/scores.json'"
         )
