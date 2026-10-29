@@ -1,8 +1,9 @@
 cff-version: 1.2.0
 message: >-
   If you use this software, or build a new repository or deployment from it,
-  please acknowledge the MIT Laboratory for Computational Physiology and the
-  NIH funding below, and link back to this repository.
+  please cite the paper below, acknowledge the MIT Laboratory for
+  Computational Physiology and the NIH funding, and link back to this
+  repository.
 title: PhysioNet platform
 type: software
 authors:
@@ -14,6 +15,38 @@ keywords:
   - PhysioNet
   - research data repository
   - Django
+preferred-citation:
+  type: article
+  title: PhysioNet as a global platform for biomedical research
+  authors:
+    - family-names: Pollard
+      given-names: Tom
+    - family-names: Moody
+      given-names: Benjamin E.
+    - family-names: Lehman
+      given-names: Li-wei H.
+    - family-names: Gow
+      given-names: Brian J.
+    - family-names: Fernandes
+      given-names: Chrystinne
+    - family-names: Xie
+      given-names: Chen
+    - family-names: Johnson
+      given-names: Alistair
+    - family-names: Mark
+      given-names: Roger G.
+    - family-names: Heldt
+      given-names: Thomas
+  journal: Nature Health
+  volume: 1
+  issue: 8
+  start: 792
+  end: 795
+  year: 2026
+  month: 8
+  issn: 3005-0693
+  doi: 10.1038/s44360-026-00096-z
+  url: https://doi.org/10.1038/s44360-026-00096-z
 references:
   - type: grant
     title: >-
