@@ -65,6 +65,15 @@
           {% endif %}
         </div>
       </div>
+      {% comment %}
+        Credit for the software, shown on every site that runs it. The lines
+        above describe the site's own operator and are set in .env. Please
+        keep this line if you deploy this software (see the NOTICE file).
+      {% endcomment %}
+      <p class="footer__software-credit dark-light-text text-center mt-4 mb-0">
+        Built with <a class="dark-light-text" href="https://github.com/MIT-LCP/physionet-build">PhysioNet software</a>
+        from the MIT Laboratory for Computational Physiology, supported by NIH grant U24EB037545.
+      </p>
     </div>
   </footer>
 </div>

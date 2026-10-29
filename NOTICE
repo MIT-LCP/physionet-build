@@ -16,6 +16,11 @@ this NOTICE file, acknowledge the MIT Laboratory for Computational Physiology
 and the funding above, and link back to
 https://github.com/MIT-LCP/physionet-build.
 
+If you run a website using this software, please keep the credit line at the
+bottom of the site footer (physionet-django/templates/footer.html). It credits
+the software, and is separate from the footer text that describes your own
+site, which is set with FOOTER_MANAGED_BY and FOOTER_SUPPORTED_BY.
+
 Third-party code
 ----------------
 
