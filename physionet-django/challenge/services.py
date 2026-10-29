@@ -235,7 +235,7 @@ class ContainerOrchestrator:
         )
 
         try:
-            self.client.delete_job(name=full_job_name)
+            self.client.delete_job(name=full_job_name).result()
         except gapi_exceptions.NotFound:
             pass
 
