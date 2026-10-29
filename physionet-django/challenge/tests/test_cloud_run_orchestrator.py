@@ -1,31 +1,17 @@
 """
 Tests for ContainerOrchestrator (Cloud Run backend).
 
-Uses mocked Cloud Run and GCS clients to verify the orchestrator
-correctly creates jobs, polls execution status, and extracts scores.
+Uses real run_v2 protobuf types with only the RPC clients mocked,
+so field names are validated at test time.
 """
 import json
-import sys
 from unittest import mock
 
 from django.test import TestCase, override_settings
+from google.cloud import run_v2
 
 from challenge.enums import DatasetType
 from challenge.services import ContainerOrchestrator, get_orchestrator
-
-# Mock run_v2 so tests work without google-cloud-run installed.
-_mock_run_v2 = mock.MagicMock()
-_mock_run_v2.ExecutionEnvironment.EXECUTION_ENVIRONMENT_GEN2 = 2
-_mock_run_v2.VpcAccess.VpcEgress.ALL_TRAFFIC = 1
-
-
-def _install_mock_run_v2():
-    sys.modules['google.cloud.run_v2'] = _mock_run_v2
-    return _mock_run_v2
-
-
-def _uninstall_mock_run_v2():
-    sys.modules.pop('google.cloud.run_v2', None)
 
 
 def _make_submission_mock(**overrides):
@@ -88,12 +74,6 @@ _CLOUD_RUN_SETTINGS = {
 
 @override_settings(**_CLOUD_RUN_SETTINGS)
 class TestCloudRunOrchestratorRun(TestCase):
-
-    def setUp(self):
-        self.mock_run_v2 = _install_mock_run_v2()
-
-    def tearDown(self):
-        _uninstall_mock_run_v2()
 
     def _make_orchestrator(self, submission=None):
         if submission is None:
@@ -365,7 +345,6 @@ class TestCloudRunOrchestratorRun(TestCase):
 
     def test_create_job_includes_gpu_in_resource_limits(self):
         """_create_and_run_job sets nvidia.com/gpu in limits."""
-        self.mock_run_v2.reset_mock()
         submission = _make_submission_mock()
         orch, mock_client, _ = self._make_orchestrator(submission)
 
@@ -380,17 +359,18 @@ class TestCloudRunOrchestratorRun(TestCase):
             gpu_type='nvidia-l4',
         )
 
-        # Check the limits dict passed to ResourceRequirements.
-        rr_call = self.mock_run_v2.ResourceRequirements
-        limits = rr_call.call_args.kwargs['limits']
+        job = mock_client.create_job.call_args.kwargs['job']
+        task_template = job.template.template
+        container = task_template.containers[0]
+        limits = dict(container.resources.limits)
         self.assertEqual(limits['nvidia.com/gpu'], '1')
         self.assertIn('cpu', limits)
-        self.mock_run_v2.NodeSelector.assert_called_once_with(
-            accelerator='nvidia-l4')
+        self.assertEqual(
+            task_template.node_selector.accelerator,
+            'nvidia-l4')
 
     def test_create_job_omits_gpu_when_none(self):
         """_create_and_run_job omits nvidia.com/gpu by default."""
-        self.mock_run_v2.reset_mock()
         submission = _make_submission_mock()
         orch, mock_client, _ = self._make_orchestrator(submission)
 
@@ -404,19 +384,87 @@ class TestCloudRunOrchestratorRun(TestCase):
             max_runtime_seconds=60,
         )
 
-        rr_call = self.mock_run_v2.ResourceRequirements
-        limits = rr_call.call_args.kwargs['limits']
+        job = mock_client.create_job.call_args.kwargs['job']
+        container = job.template.template.containers[0]
+        limits = dict(container.resources.limits)
         self.assertNotIn('nvidia.com/gpu', limits)
+
+    @mock.patch('challenge.services._gcs_path')
+    def test_submission_job_spec_structure(self, mock_gcs_path):
+        """Job spec uses Gen2, VPC-restricted egress, and correct SA."""
+        mock_obj = mock.MagicMock()
+        mock_obj.bucket.return_value.name = 'challenge-submissions'
+        mock_obj.key.return_value = 'archives/42/code.tar.gz'
+        mock_gcs_path.return_value = mock_obj
+
+        orch, mock_client, _ = self._make_orchestrator()
+        orch.run()
+
+        sub_job = (
+            mock_client.create_job.call_args_list[0].kwargs['job'])
+        tt = sub_job.template.template
+        self.assertEqual(
+            tt.execution_environment,
+            run_v2.ExecutionEnvironment.EXECUTION_ENVIRONMENT_GEN2)
+        self.assertEqual(
+            tt.vpc_access.egress,
+            run_v2.VpcAccess.VpcEgress.ALL_TRAFFIC)
+        self.assertEqual(
+            tt.service_account,
+            'sub-runner@test.iam.gserviceaccount.com')
+        self.assertEqual(tt.max_retries, 0)
+
+        eval_job = (
+            mock_client.create_job.call_args_list[1].kwargs['job'])
+        ett = eval_job.template.template
+        self.assertEqual(
+            ett.service_account,
+            'eval-runner@test.iam.gserviceaccount.com')
+        self.assertEqual(
+            ett.execution_environment,
+            run_v2.ExecutionEnvironment.EXECUTION_ENVIRONMENT_GEN2)
+
+    def test_create_job_mounts_gcs_volumes(self):
+        """_create_and_run_job creates GCS FUSE volumes from mounts."""
+        submission = _make_submission_mock()
+        orch, mock_client, _ = self._make_orchestrator(submission)
+
+        orch._create_and_run_job(
+            job_name='test-job',
+            full_job_name=orch.full_job_name,
+            service_account='sa@test.iam.gserviceaccount.com',
+            entrypoint='echo ok',
+            env_vars={},
+            gcs_mounts=[
+                ('/mnt/gcs-archive', 'my-bucket', ['ro']),
+                ('/mnt/output', 'output-bucket', ['rw']),
+            ],
+            max_runtime_seconds=60,
+        )
+
+        job = mock_client.create_job.call_args.kwargs['job']
+        tt = job.template.template
+        self.assertEqual(len(tt.volumes), 2)
+
+        archive_vol = tt.volumes[0]
+        self.assertEqual(archive_vol.gcs.bucket, 'my-bucket')
+        self.assertTrue(archive_vol.gcs.read_only)
+
+        output_vol = tt.volumes[1]
+        self.assertEqual(output_vol.gcs.bucket, 'output-bucket')
+        self.assertFalse(output_vol.gcs.read_only)
+
+        container = tt.containers[0]
+        self.assertEqual(len(container.volume_mounts), 2)
+        self.assertEqual(
+            container.volume_mounts[0].mount_path,
+            '/mnt/gcs-archive')
+        self.assertEqual(
+            container.volume_mounts[1].mount_path, '/mnt/output')
 
 
 @override_settings(**_CLOUD_RUN_SETTINGS)
 class TestCloudRunOrchestratorPoll(TestCase):
-
-    def setUp(self):
-        self.mock_run_v2 = _install_mock_run_v2()
-
-    def tearDown(self):
-        _uninstall_mock_run_v2()
 
     def test_poll_returns_true_when_no_execution(self):
         submission = _make_submission_mock()

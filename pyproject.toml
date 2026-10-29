@@ -19,6 +19,7 @@ django-static-mathjax = "^3.2.2.1"
 django-tinymce = "^5.0.0"
 djangorestframework = "3.18.2"
 geoip2 = "^5.1.0"
+google-api-core = {version = "^2.25", extras = ["grpc"]}
 google-cloud-run = "^0.16"
 google-cloud-storage = "^3.0"
 html2text = "^2018.1.9"
