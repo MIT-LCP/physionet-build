@@ -55,6 +55,7 @@ class ContainerOrchestrator:
         self.region = getattr(
             settings, 'CHALLENGE_GCP_REGION', 'us-central1')
         self._client = None
+        self._executions_client = None
         self._execution_name = None
 
     @property
@@ -66,8 +67,10 @@ class ContainerOrchestrator:
 
     @property
     def executions_client(self):
-        from google.cloud import run_v2
-        return run_v2.ExecutionsClient()
+        if self._executions_client is None:
+            from google.cloud import run_v2
+            self._executions_client = run_v2.ExecutionsClient()
+        return self._executions_client
 
     @property
     def job_name(self):
@@ -117,13 +120,28 @@ class ContainerOrchestrator:
     def _save_submission_field(self, field, value):
         setattr(self.submission, field, value)
         if self.attempt_id:
-            type(self.submission).objects.filter(
+            updated = type(self.submission).objects.filter(
                 pk=self.submission.pk,
                 test_scoring_claim_id=self.attempt_id,
                 test_scoring_in_progress=True,
             ).update(**{field: value})
+            return updated > 0
         else:
             self.submission.save(update_fields=[field])
+            return True
+
+    def _check_claim(self):
+        if not self.attempt_id:
+            return
+        still_held = type(self.submission).objects.filter(
+            pk=self.submission.pk,
+            test_scoring_claim_id=self.attempt_id,
+            test_scoring_in_progress=True,
+        ).exists()
+        if not still_held:
+            raise RuntimeError(
+                f'Claim {self.attempt_id} expired for '
+                f'submission {self.submission.pk}')
 
     def _save_run_error(self, message, dataset):
         field = ('test_scoring_error_message'
@@ -261,6 +279,8 @@ class ContainerOrchestrator:
             input_data_uri = getattr(
                 self.challenge, 'validation_data_gcs_uri', '')
 
+        self._check_claim()
+
         # Resolve code archive bucket and prefix for GCS FUSE.
         archive_uri = self.submission.code_archive_gcs_uri
         archive_path = _gcs_path(archive_uri)
@@ -287,7 +307,8 @@ class ContainerOrchestrator:
             input_key = input_path.key()
             gcs_mounts.append(
                 ('/mnt/gcs-input', input_bucket_name, ['ro']))
-            input_env['GCS_INPUT_PREFIX'] = input_key
+            input_env['GCS_INPUT_MOUNT'] = (
+                f'/mnt/gcs-input/{input_key}')
 
         predictions_prefix = _gcs_path(
             self._predictions_gcs_prefix).key()
@@ -295,19 +316,19 @@ class ContainerOrchestrator:
             'set -e; '
             'mkdir -p /workspace /mnt/input /mnt/output-local; '
             'cd /workspace; '
-            f'tar xf /mnt/gcs-archive/{archive_key} '
+            f"tar xf '/mnt/gcs-archive/{archive_key}' "
             f'  2>/dev/null '
-            f'  || cp -r /mnt/gcs-archive/{archive_key} .; '
+            f"  || cp -r '/mnt/gcs-archive/{archive_key}' .; "
         )
         if input_data_uri:
             entrypoint += (
-                'cp -r /mnt/gcs-input/$GCS_INPUT_PREFIX/* '
+                'cp -r "$GCS_INPUT_MOUNT"/* '
                 '  /mnt/input/ 2>/dev/null || true; '
             )
         entrypoint += (
             f'{self.spec.entrypoint_command}; '
             f'cp -r /mnt/output-local/* '
-            f'  /mnt/output/{predictions_prefix}/ '
+            f"  '/mnt/output/{predictions_prefix}/' "
             f'  2>/dev/null || true'
         )
 
@@ -378,6 +399,8 @@ class ContainerOrchestrator:
         )
 
         # --- Phase 2: Evaluation ---
+        self._check_claim()
+
         eval_uri = self.spec.evaluation_script_gcs_uri
         if not eval_uri:
             raise RuntimeError(
@@ -422,16 +445,16 @@ class ContainerOrchestrator:
         eval_entrypoint = (
             'set -e; '
             'mkdir -p /predictions /labels /eval /output-local; '
-            f'cp /mnt/gcs-eval/{eval_key} /eval/evaluate.py; '
-            f'cp -r /mnt/gcs-labels/{labels_key}/* '
+            f"cp '/mnt/gcs-eval/{eval_key}' /eval/evaluate.py; "
+            f"cp -r '/mnt/gcs-labels/{labels_key}'/* "
             f'  /labels/ 2>/dev/null || '
-            f'  cp /mnt/gcs-labels/{labels_key} /labels/; '
-            f'cp -r /mnt/gcs-predictions/{predictions_prefix}/* '
+            f"  cp '/mnt/gcs-labels/{labels_key}' /labels/; "
+            f"cp -r '/mnt/gcs-predictions/{predictions_prefix}'/* "
             f'  /predictions/ 2>/dev/null || true; '
             'python /eval/evaluate.py '
             '  /predictions /labels /output-local/scores.json; '
             f'cp /output-local/scores.json '
-            f'  /mnt/output/{scores_prefix}/scores.json'
+            f"  '/mnt/output/{scores_prefix}/scores.json'"
         )
 
         eval_env = {
@@ -571,13 +594,28 @@ class LocalContainerOrchestrator:
         """Do not let an expired test attempt modify the submission."""
         setattr(self.submission, field, value)
         if self.attempt_id:
-            type(self.submission).objects.filter(
+            updated = type(self.submission).objects.filter(
                 pk=self.submission.pk,
                 test_scoring_claim_id=self.attempt_id,
                 test_scoring_in_progress=True,
             ).update(**{field: value})
+            return updated > 0
         else:
             self.submission.save(update_fields=[field])
+            return True
+
+    def _check_claim(self):
+        if not self.attempt_id:
+            return
+        still_held = type(self.submission).objects.filter(
+            pk=self.submission.pk,
+            test_scoring_claim_id=self.attempt_id,
+            test_scoring_in_progress=True,
+        ).exists()
+        if not still_held:
+            raise RuntimeError(
+                f'Claim {self.attempt_id} expired for '
+                f'submission {self.submission.pk}')
 
     def _save_run_error(self, message, dataset):
         """Keep official test diagnostics out of participant-visible errors."""
@@ -605,6 +643,8 @@ class LocalContainerOrchestrator:
         """Run the submission container locally using Docker."""
         if dataset is None:
             dataset = DatasetType.VAL
+
+        self._check_claim()
 
         self._tmpdir = tempfile.mkdtemp(prefix='challenge_')
         code_dir = os.path.join(self._tmpdir, 'code')
@@ -730,6 +770,8 @@ class LocalContainerOrchestrator:
                 'No evaluation script configured. Submissions cannot '
                 'be scored without a trusted evaluation script.'
             )
+
+        self._check_claim()
 
         # Download the evaluation script
         eval_dir = os.path.join(self._tmpdir, 'evaluation')
