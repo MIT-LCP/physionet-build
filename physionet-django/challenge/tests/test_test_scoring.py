@@ -23,7 +23,8 @@ from challenge.tasks import (
 class TestScoringClaims(TestCase):
     fixtures = [
         'demo-training-type.json', 'demo-user.json',
-        'site-data.json', 'project-types.json', 'demo-challenge.json',
+        'site-data.json', 'project-types.json', 'demo-project.json',
+        'demo-challenge.json',
     ]
 
     def setUp(self):
