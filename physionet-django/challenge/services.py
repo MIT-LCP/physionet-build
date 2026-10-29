@@ -232,7 +232,6 @@ class ContainerOrchestrator:
             template=run_v2.ExecutionTemplate(
                 template=task_template,
             ),
-            launch_stage=run_v2.LaunchStage.GA,
         )
 
         try:
