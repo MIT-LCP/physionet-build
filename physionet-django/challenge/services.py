@@ -224,6 +224,9 @@ class ContainerOrchestrator:
         )
         if vpc_access:
             task_template.vpc_access = vpc_access
+        if gpu_type:
+            task_template.node_selector = run_v2.NodeSelector(
+                accelerator=gpu_type)
 
         job = run_v2.Job(
             template=run_v2.ExecutionTemplate(
