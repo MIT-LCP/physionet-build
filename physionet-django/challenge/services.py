@@ -33,8 +33,8 @@ class ContainerOrchestrator:
 
     Two-phase execution:
         Phase 1 (submission): Runs untrusted participant code against
-        input data with network restricted via VPC connector. Writes
-        predictions to a GCS prefix via GCS FUSE.
+        input data with network restricted via Direct VPC egress.
+        Writes predictions to a GCS prefix via GCS FUSE.
 
         Phase 2 (evaluation): Runs the trusted evaluation script
         against predictions and ground-truth labels. Writes
@@ -263,15 +263,18 @@ class ContainerOrchestrator:
             settings, 'CHALLENGE_SUBMISSION_SA_EMAIL', '')
         eval_sa = getattr(
             settings, 'CHALLENGE_EVAL_SA_EMAIL', '')
-        vpc_connector = getattr(
-            settings, 'CHALLENGE_VPC_CONNECTOR', '')
+        vpc_network = getattr(
+            settings, 'CHALLENGE_VPC_NETWORK', '')
+        vpc_subnetwork = getattr(
+            settings, 'CHALLENGE_VPC_SUBNETWORK', '')
 
         required = {
             'CHALLENGE_STAGING_BUCKET': bucket,
             'CHALLENGE_EVAL_BUCKET': eval_bucket,
             'CHALLENGE_SUBMISSION_SA_EMAIL': submission_sa,
             'CHALLENGE_EVAL_SA_EMAIL': eval_sa,
-            'CHALLENGE_VPC_CONNECTOR': vpc_connector,
+            'CHALLENGE_VPC_NETWORK': vpc_network,
+            'CHALLENGE_VPC_SUBNETWORK': vpc_subnetwork,
         }
         missing = [name for name, value in required.items() if not value]
         if missing:
@@ -356,12 +359,15 @@ class ContainerOrchestrator:
             **input_env,
         }
 
-        vpc_access = None
-        if vpc_connector:
-            vpc_access = run_v2.VpcAccess(
-                connector=vpc_connector,
-                egress=run_v2.VpcAccess.VpcEgress.ALL_TRAFFIC,
-            )
+        vpc_access = run_v2.VpcAccess(
+            network_interfaces=[
+                run_v2.VpcAccess.NetworkInterface(
+                    network=vpc_network,
+                    subnetwork=vpc_subnetwork,
+                ),
+            ],
+            egress=run_v2.VpcAccess.VpcEgress.ALL_TRAFFIC,
+        )
 
         # GPU is optional — only requested when the challenge
         # SubmissionSpec has gpu_enabled=True.

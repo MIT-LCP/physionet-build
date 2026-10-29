@@ -65,9 +65,11 @@ _CLOUD_RUN_SETTINGS = {
         'sub-runner@test.iam.gserviceaccount.com'),
     'CHALLENGE_EVAL_SA_EMAIL': (
         'eval-runner@test.iam.gserviceaccount.com'),
-    'CHALLENGE_VPC_CONNECTOR': (
-        'projects/test-project/locations/us-central1'
-        '/connectors/challenge-vpc-conn'
+    'CHALLENGE_VPC_NETWORK': (
+        'projects/test-project/global/networks/challenge-jobs'),
+    'CHALLENGE_VPC_SUBNETWORK': (
+        'projects/test-project/regions/us-central1'
+        '/subnetworks/challenge-jobs'
     ),
 }
 
@@ -196,13 +198,13 @@ class TestCloudRunOrchestratorRun(TestCase):
                 'must be configured', str(ctx.exception))
 
     @mock.patch('challenge.services._gcs_path')
-    def test_run_fails_without_vpc_connector(self, mock_gcs_path):
+    def test_run_fails_without_vpc_network(self, mock_gcs_path):
         """Untrusted code is never run without network restriction."""
         orch, mock_client, _ = self._make_orchestrator()
-        with self.settings(CHALLENGE_VPC_CONNECTOR=''):
+        with self.settings(CHALLENGE_VPC_NETWORK=''):
             with self.assertRaises(RuntimeError) as ctx:
                 orch.run()
-        self.assertIn('CHALLENGE_VPC_CONNECTOR', str(ctx.exception))
+        self.assertIn('CHALLENGE_VPC_NETWORK', str(ctx.exception))
         mock_client.create_job.assert_not_called()
 
     @mock.patch('challenge.services._gcs_path')
@@ -409,6 +411,9 @@ class TestCloudRunOrchestratorRun(TestCase):
         self.assertEqual(
             tt.vpc_access.egress,
             run_v2.VpcAccess.VpcEgress.ALL_TRAFFIC)
+        nic = tt.vpc_access.network_interfaces[0]
+        self.assertIn('challenge-jobs', nic.network)
+        self.assertIn('challenge-jobs', nic.subnetwork)
         self.assertEqual(
             tt.service_account,
             'sub-runner@test.iam.gserviceaccount.com')
