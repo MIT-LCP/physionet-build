@@ -482,6 +482,10 @@ class ContainerOrchestrator:
             f"fi; "
             f"cp -r '/mnt/gcs-predictions/{predictions_prefix}'/. "
             f'  /predictions/; '
+            'if find /predictions ! -type f ! -type d '
+            '  | grep -q .; then '
+            '  echo "Predictions contain symlinks or special files" '
+            '  >&2; exit 1; fi; '
             'python /eval/evaluate.py '
             '  /predictions /labels /output-local/scores.json; '
             f"mkdir -p '/mnt/output/{scores_prefix}'; "

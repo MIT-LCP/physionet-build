@@ -1640,6 +1640,16 @@ def _upload_challenge_data_files(form, config, slug):
          'evaluation_script_gcs_uri'),
     ]
 
+    if not eval_bucket:
+        has_eval_file = any(
+            form.cleaned_data.get(f) for f, _, _ in eval_uploads
+        )
+        if has_eval_file:
+            raise RuntimeError(
+                'CHALLENGE_EVAL_BUCKET must be configured to '
+                'upload labels or evaluation scripts.'
+            )
+
     from physionet.gcp import ObjectPath, get_challenge_storage_client
 
     client = get_challenge_storage_client()
