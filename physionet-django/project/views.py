@@ -1618,44 +1618,65 @@ def project_challenge_config(request, project_slug, **kwargs):
 
 
 def _upload_challenge_data_files(form, config, slug):
-    """Upload challenge evaluation files to GCS and save URIs on config."""
-    bucket = getattr(settings, 'CHALLENGE_STAGING_BUCKET', '')
-    if not bucket:
+    """Upload challenge evaluation files to GCS and save URIs on config.
+
+    Input data goes to CHALLENGE_STAGING_BUCKET (visible to submission
+    runner).  Labels and evaluation scripts go to CHALLENGE_EVAL_BUCKET
+    (only visible to the eval runner), enforcing the trust boundary so
+    that participant code cannot read ground truth or scoring logic.
+    """
+    staging_bucket = getattr(settings, 'CHALLENGE_STAGING_BUCKET', '')
+    eval_bucket = getattr(settings, 'CHALLENGE_EVAL_BUCKET', '')
+    if not staging_bucket:
         return
 
-    upload_map = [
-        ('validation_data_archive', 'validation', 'validation_data_gcs_uri'),
-        ('test_data_archive', 'test', 'test_data_gcs_uri'),
-        ('validation_labels_archive', 'validation_labels', 'validation_labels_gcs_uri'),
-        ('test_labels_archive', 'test_labels', 'test_labels_gcs_uri'),
-        ('evaluation_script_file', 'evaluation', 'evaluation_script_gcs_uri'),
+    staging_uploads = [
+        ('validation_data_archive', 'validation',
+         'validation_data_gcs_uri'),
+        ('test_data_archive', 'test',
+         'test_data_gcs_uri'),
+    ]
+    eval_uploads = [
+        ('validation_labels_archive', 'validation_labels',
+         'validation_labels_gcs_uri'),
+        ('test_labels_archive', 'test_labels',
+         'test_labels_gcs_uri'),
+        ('evaluation_script_file', 'evaluation',
+         'evaluation_script_gcs_uri'),
     ]
 
     from physionet.gcp import ObjectPath, get_challenge_storage_client
 
     client = get_challenge_storage_client()
     updated = False
-    for field_name, subdir, uri_field in upload_map:
-        uploaded_file = form.cleaned_data.get(field_name)
-        if not uploaded_file:
+    for bucket, upload_map in [
+        (staging_bucket, staging_uploads),
+        (eval_bucket, eval_uploads),
+    ]:
+        if not bucket:
             continue
+        for field_name, subdir, uri_field in upload_map:
+            uploaded_file = form.cleaned_data.get(field_name)
+            if not uploaded_file:
+                continue
 
-        key = f'challenges/{slug}/{subdir}/{uploaded_file.name}'
-        gcs_uri = f'{bucket}/{key}'
+            key = (f'challenges/{slug}/{subdir}/'
+                   f'{uploaded_file.name}')
+            gcs_uri = f'{bucket}/{key}'
 
-        try:
-            obj = ObjectPath(gcs_uri, client=client)
-            blob = obj.bucket().blob(obj.key())
-            blob.upload_from_file(uploaded_file, rewind=True)
-        except Exception:
-            LOGGER.exception(
-                'Failed to upload %s to GCS for challenge %s',
-                field_name, slug,
-            )
-            raise
+            try:
+                obj = ObjectPath(gcs_uri, client=client)
+                blob = obj.bucket().blob(obj.key())
+                blob.upload_from_file(uploaded_file, rewind=True)
+            except Exception:
+                LOGGER.exception(
+                    'Failed to upload %s to GCS for challenge %s',
+                    field_name, slug,
+                )
+                raise
 
-        setattr(config, uri_field, gcs_uri)
-        updated = True
+            setattr(config, uri_field, gcs_uri)
+            updated = True
 
     if updated:
         config.save()

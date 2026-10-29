@@ -12,7 +12,7 @@ from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from challenge.forms import CodeSubmissionForm, ChallengeConfigForm
+from challenge.forms import ChallengeConfigForm, ChallengeConfigurationForm, CodeSubmissionForm
 from challenge.models import (
     Challenge,
     ChallengeConfiguration,
@@ -233,6 +233,32 @@ class ChallengeConfigViewTests(TestCase):
         response = self.client.get(self.url)
         for name in response.context['challenge_config_form'].fields:
             self.assertContains(response, f'name="{name}"')
+
+    @override_settings(
+        CHALLENGE_STAGING_BUCKET='staging-bucket',
+        CHALLENGE_EVAL_BUCKET='')
+    def test_labels_rejected_without_eval_bucket(self):
+        form = ChallengeConfigurationForm(
+            data={},
+            files={'test_labels_archive': SimpleUploadedFile(
+                'labels.zip', b'x')},
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn(
+            'CHALLENGE_EVAL_BUCKET',
+            form.errors['test_labels_archive'][0])
+
+    @override_settings(
+        CHALLENGE_STAGING_BUCKET='staging-bucket',
+        CHALLENGE_EVAL_BUCKET='eval-bucket')
+    def test_labels_accepted_with_eval_bucket(self):
+        form = ChallengeConfigurationForm(
+            data={},
+            files={'test_labels_archive': SimpleUploadedFile(
+                'labels.zip', b'x')},
+        )
+        form.is_valid()
+        self.assertNotIn('test_labels_archive', form.errors)
 
     def test_post_saves_config(self):
         response = self.client.post(self.url, data={

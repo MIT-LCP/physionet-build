@@ -17,8 +17,8 @@
       "training_dataset": null,
       "validation_data_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/validation/",
       "test_data_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/test/",
-      "validation_labels_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/validation_labels/",
-      "test_labels_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/test_labels/",
+      "validation_labels_gcs_uri": "challenge-evaluation/challenges/ecg-beat-classification/validation_labels/",
+      "test_labels_gcs_uri": "challenge-evaluation/challenges/ecg-beat-classification/test_labels/",
       "rules": "<h3>Eligibility</h3><p>The challenge is open to all individuals and teams worldwide. Organizers and their immediate collaborators are not eligible for prizes but may submit entries for benchmarking purposes.</p><h3>Submissions</h3><ul><li>Each participant or team may submit up to <strong>5 entries per day</strong> and <strong>100 entries total</strong> during the unofficial phase.</li><li>Submissions must be fully automated—no manual annotation or interactive steps are permitted.</li><li>Code must be original work by the submitting participant or team. Use of pre-trained models is permitted provided the training data and model weights are publicly available and cited.</li></ul><h3>Evaluation</h3><ul><li>During the unofficial phase, submissions are scored against the <em>validation</em> dataset. Scores on the validation set are shown on the public leaderboard.</li><li>During the official phase, selected submissions are re-evaluated against the <em>hidden test</em> dataset. Final rankings are based on test-set performance.</li></ul><h3>Publication</h3><p>All participants with accepted entries are invited to submit a short paper describing their methods to the Computing in Cardiology conference.</p>",
       "evaluation_description": "<h3>Metrics</h3><p>The primary evaluation metric is the <strong>F1 score</strong>, the harmonic mean of precision and recall for the Abnormal class. F1 balances the cost of missed abnormal beats (false negatives) against false alarms (false positives).</p><p>Secondary metrics reported for each submission:</p><ul><li><strong>Accuracy</strong>: fraction of all beats classified correctly.</li><li><strong>Sensitivity</strong> (recall): proportion of truly abnormal beats that were correctly identified.</li></ul><h3>Scoring Procedure</h3><p>Each submission container receives a directory of patient subdirectories as input, each containing a <code>record.csv</code> file with beat segments. The submission must write a <code>predictions.json</code> file containing one object per beat with <code>beat_id</code> and <code>classification</code> (0 for Normal, 1 for Abnormal). The evaluation script computes all metrics by comparing the submitted classifications against the ground-truth labels.</p>",
       "prizes": "<p><strong>First place:</strong> $3,000 and an invitation to present at Computing in Cardiology.</p><p><strong>Second place:</strong> $1,500.</p><p><strong>Third place:</strong> $750.</p>",
@@ -63,7 +63,7 @@
         ],
         "description": "One object per beat with its identifier and binary classification"
       },
-      "evaluation_script_gcs_uri": "challenge-staging/challenges/ecg-beat-classification/evaluation/evaluate.py",
+      "evaluation_script_gcs_uri": "challenge-evaluation/challenges/ecg-beat-classification/evaluation/evaluate.py",
       "additional_metrics": [
         {
           "name": "Accuracy",

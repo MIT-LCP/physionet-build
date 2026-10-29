@@ -40,24 +40,28 @@ class Command(BaseCommand):
         # Ensure the env var is set for the google-cloud-storage SDK.
         os.environ['STORAGE_EMULATOR_HOST'] = emulator_host
 
-        bucket_name = getattr(settings, 'CHALLENGE_STAGING_BUCKET', 'challenge-staging')
+        staging_bucket_name = getattr(
+            settings, 'CHALLENGE_STAGING_BUCKET', 'challenge-staging')
+        eval_bucket_name = getattr(
+            settings, 'CHALLENGE_EVAL_BUCKET', 'challenge-evaluation')
 
         client = storage.Client(
             project='test',
             credentials=None,
         )
 
-        # Create the staging bucket if it doesn't exist.
-        try:
-            client.get_bucket(bucket_name)
-            self.stdout.write(f'Bucket "{bucket_name}" already exists.')
-        except Exception:
-            client.create_bucket(bucket_name)
-            self.stdout.write(self.style.SUCCESS(
-                f'Created bucket "{bucket_name}".'
-            ))
+        for name in [staging_bucket_name, eval_bucket_name]:
+            try:
+                client.get_bucket(name)
+                self.stdout.write(f'Bucket "{name}" already exists.')
+            except Exception:
+                client.create_bucket(name)
+                self.stdout.write(self.style.SUCCESS(
+                    f'Created bucket "{name}".'
+                ))
 
-        bucket = client.bucket(bucket_name)
+        staging_bucket = client.bucket(staging_bucket_name)
+        eval_bucket = client.bucket(eval_bucket_name)
         fixtures_dir = Path(__file__).resolve().parent.parent.parent / 'fixtures'
 
         from challenge.models import Challenge, Submission
@@ -76,63 +80,81 @@ class Command(BaseCommand):
             spec = challenge.submission_spec
             uploaded = 0
 
-            prefix_str = f'{bucket_name}/'
+            staging_prefix = f'{staging_bucket_name}/'
+            eval_prefix_str = f'{eval_bucket_name}/'
 
             def strip_bucket(uri):
-                if uri.startswith(prefix_str):
-                    return uri[len(prefix_str):]
+                for prefix in [staging_prefix, eval_prefix_str]:
+                    if uri.startswith(prefix):
+                        return uri[len(prefix):]
                 return uri
 
-            # Upload test data (input records only)
+            # Upload test data (input records only) → staging
             test_data_dir = demo_dir / 'test_data'
             if test_data_dir.exists():
                 prefix = strip_bucket(challenge.test_data_gcs_uri)
-                uploaded += self._upload_dir(bucket, test_data_dir, prefix)
+                uploaded += self._upload_dir(
+                    staging_bucket, test_data_dir, prefix)
 
-            # Upload validation data (input records only)
+            # Upload validation data (input records only) → staging
             validation_dir = demo_dir / 'validation'
             if validation_dir.exists():
-                prefix = strip_bucket(challenge.validation_data_gcs_uri)
-                old_labels = bucket.blob(f'{prefix}labels.csv')
+                prefix = strip_bucket(
+                    challenge.validation_data_gcs_uri)
+                old_labels = staging_bucket.blob(
+                    f'{prefix}labels.csv')
                 if old_labels.exists():
                     old_labels.delete()
-                uploaded += self._upload_dir(bucket, validation_dir, prefix)
+                uploaded += self._upload_dir(
+                    staging_bucket, validation_dir, prefix)
 
-            # Upload validation labels (ground truth, separate from input data)
+            # Upload validation labels → eval bucket
             validation_labels_dir = demo_dir / 'validation_labels'
-            if validation_labels_dir.exists() and challenge.validation_labels_gcs_uri:
-                prefix = strip_bucket(challenge.validation_labels_gcs_uri)
-                uploaded += self._upload_dir(bucket, validation_labels_dir, prefix)
+            if (validation_labels_dir.exists()
+                    and challenge.validation_labels_gcs_uri):
+                prefix = strip_bucket(
+                    challenge.validation_labels_gcs_uri)
+                uploaded += self._upload_dir(
+                    eval_bucket, validation_labels_dir, prefix)
 
-            # Upload test labels (ground truth, separate from input data)
+            # Upload test labels → eval bucket
             test_labels_dir = demo_dir / 'test_labels'
-            if test_labels_dir.exists() and challenge.test_labels_gcs_uri:
-                prefix = strip_bucket(challenge.test_labels_gcs_uri)
-                uploaded += self._upload_dir(bucket, test_labels_dir, prefix)
+            if (test_labels_dir.exists()
+                    and challenge.test_labels_gcs_uri):
+                prefix = strip_bucket(
+                    challenge.test_labels_gcs_uri)
+                uploaded += self._upload_dir(
+                    eval_bucket, test_labels_dir, prefix)
 
-            # Upload evaluation script
+            # Upload evaluation script → eval bucket
             eval_dir = demo_dir / 'evaluation'
             if eval_dir.exists() and spec.evaluation_script_gcs_uri:
-                eval_uri = strip_bucket(spec.evaluation_script_gcs_uri)
+                eval_uri = strip_bucket(
+                    spec.evaluation_script_gcs_uri)
                 eval_prefix = eval_uri.rsplit('/', 1)[0] + '/'
-                uploaded += self._upload_dir(bucket, eval_dir, eval_prefix)
+                uploaded += self._upload_dir(
+                    eval_bucket, eval_dir, eval_prefix)
 
-            # Upload code archive for each demo submission
+            # Upload code archive for each demo submission → staging
             code_archive_dir = demo_dir / 'code_archive'
             if code_archive_dir.exists():
                 archive_data = self._create_tar_gz(code_archive_dir)
-                submissions = Submission.objects.filter(challenge=challenge)
+                submissions = Submission.objects.filter(
+                    challenge=challenge)
                 for submission in submissions:
                     if not submission.code_archive_gcs_uri:
                         continue
-                    gcs_key = strip_bucket(submission.code_archive_gcs_uri)
-                    blob = bucket.blob(gcs_key)
-                    blob.upload_from_file(io.BytesIO(archive_data), rewind=True)
-                    self.stdout.write(f'  Uploaded code archive -> {gcs_key}')
+                    gcs_key = strip_bucket(
+                        submission.code_archive_gcs_uri)
+                    blob = staging_bucket.blob(gcs_key)
+                    blob.upload_from_file(
+                        io.BytesIO(archive_data), rewind=True)
+                    self.stdout.write(
+                        f'  Uploaded code archive -> {gcs_key}')
                     uploaded += 1
 
             self.stdout.write(self.style.SUCCESS(
-                f'Uploaded {uploaded} file(s) to "{bucket_name}" for {slug}.'
+                f'Uploaded {uploaded} file(s) for {slug}.'
             ))
             total_uploaded += uploaded
 
