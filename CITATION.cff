@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, or build a new repository or deployment from it,
+  please acknowledge the MIT Laboratory for Computational Physiology and the
+  NIH funding below, and link back to this repository.
+title: PhysioNet platform
+type: software
+authors:
+  - name: MIT Laboratory for Computational Physiology
+repository-code: https://github.com/MIT-LCP/physionet-build
+url: https://physionet.org
+license: BSD-3-Clause
+keywords:
+  - PhysioNet
+  - research data repository
+  - Django
+references:
+  - type: grant
+    title: >-
+      National Institute of Biomedical Imaging and Bioengineering (NIBIB),
+      National Heart, Lung, and Blood Institute (NHLBI), and NIH Office of
+      the Director
+    authors:
+      - name: National Institutes of Health
+    number: U24EB037545

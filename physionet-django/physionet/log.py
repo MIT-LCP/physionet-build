@@ -7,7 +7,9 @@ from django.utils import log
 from django.conf import settings
 from django import template
 
-# Below is based on django/views/templates/technical_500.txt.
+# Below is based on django/views/templates/technical_500.txt, from Django
+# (Copyright (c) Django Software Foundation and individual contributors;
+# BSD 3-Clause License, see the NOTICE file).
 #  - Values in POST are replaced with stars
 #  - Values in FILES are replaced with stars
 #  - Values in COOKIES are replaced with stars
