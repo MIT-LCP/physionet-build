@@ -29,14 +29,20 @@ def _gcs_path(uri):
 
 class ContainerOrchestrator:
     """
-    Manages the lifecycle of a Cloud Run Job for a challenge submission.
+    Manages Cloud Run Jobs for challenge submissions.
 
-    Workflow:
-        1. build()  - Verify code archive, prepare staging area
-        2. run()    - Create and execute Cloud Run Job
-        3. poll()   - Wait for job completion
-        4. extract_scores() - Read scores.json from output
-        5. cleanup() - Delete Cloud Run Job
+    Two-phase execution:
+        Phase 1 (submission): Runs untrusted participant code against
+        input data with network restricted via VPC connector. Writes
+        predictions to a GCS prefix via GCS FUSE.
+
+        Phase 2 (evaluation): Runs the trusted evaluation script
+        against predictions and ground-truth labels. Writes
+        scores.json to GCS.
+
+    Both phases use Gen2 execution environment for GCS FUSE and
+    network policy enforcement. GPU is provisioned when the
+    challenge's SubmissionSpec sets gpu_enabled=True.
     """
 
     def __init__(self, submission, attempt_id=None):
@@ -44,9 +50,12 @@ class ContainerOrchestrator:
         self.attempt_id = attempt_id
         self.challenge = submission.challenge
         self.spec = self.challenge.submission_spec
-        self.project_id = getattr(settings, 'CHALLENGE_GCP_PROJECT_ID', '')
-        self.region = getattr(settings, 'CHALLENGE_GCP_REGION', 'us-central1')
+        self.project_id = getattr(
+            settings, 'CHALLENGE_GCP_PROJECT_ID', '')
+        self.region = getattr(
+            settings, 'CHALLENGE_GCP_REGION', 'us-central1')
         self._client = None
+        self._execution_name = None
 
     @property
     def client(self):
@@ -56,8 +65,19 @@ class ContainerOrchestrator:
         return self._client
 
     @property
+    def executions_client(self):
+        from google.cloud import run_v2
+        return run_v2.ExecutionsClient()
+
+    @property
     def job_name(self):
-        return f'challenge-{self.challenge.slug}-sub-{self.submission.pk}'
+        return (f'challenge-{self.challenge.slug}'
+                f'-sub-{self.submission.pk}')
+
+    @property
+    def eval_job_name(self):
+        return (f'challenge-{self.challenge.slug}'
+                f'-eval-{self.submission.pk}')
 
     @property
     def parent(self):
@@ -68,49 +88,453 @@ class ContainerOrchestrator:
         return f'{self.parent}/jobs/{self.job_name}'
 
     @property
+    def full_eval_job_name(self):
+        return f'{self.parent}/jobs/{self.eval_job_name}'
+
+    @property
     def output_gcs_path(self):
         bucket = getattr(settings, 'CHALLENGE_STAGING_BUCKET', '')
-        path = f'{bucket}/challenges/{self.challenge.slug}/output/{self.submission.pk}'
-        return f'{path}/attempts/{self.attempt_id}' if self.attempt_id else path
+        path = (f'{bucket}/challenges/{self.challenge.slug}'
+                f'/output/{self.submission.pk}')
+        if self.attempt_id:
+            return f'{path}/attempts/{self.attempt_id}'
+        return path
+
+    @property
+    def _predictions_gcs_prefix(self):
+        return f'{self.output_gcs_path}/predictions'
+
+    @property
+    def _scores_gcs_prefix(self):
+        eval_bucket = getattr(
+            settings, 'CHALLENGE_EVAL_BUCKET', '')
+        path = (f'{eval_bucket}/challenges/{self.challenge.slug}'
+                f'/output/{self.submission.pk}')
+        if self.attempt_id:
+            return f'{path}/attempts/{self.attempt_id}/scores'
+        return f'{path}/scores'
+
+    def _save_submission_field(self, field, value):
+        setattr(self.submission, field, value)
+        if self.attempt_id:
+            type(self.submission).objects.filter(
+                pk=self.submission.pk,
+                test_scoring_claim_id=self.attempt_id,
+                test_scoring_in_progress=True,
+            ).update(**{field: value})
+        else:
+            self.submission.save(update_fields=[field])
+
+    def _save_run_error(self, message, dataset):
+        field = ('test_scoring_error_message'
+                 if dataset == DatasetType.TEST
+                 else 'error_message')
+        self._save_submission_field(field, message)
 
     def build(self):
-        """Verify the code archive exists in GCS and prepare staging."""
+        """Verify the code archive exists in GCS."""
         if not self.submission.code_archive_gcs_uri:
             raise FileNotFoundError(
-                f'No code archive URI set for submission {self.submission.pk}'
+                f'No code archive URI set for submission '
+                f'{self.submission.pk}'
             )
 
-        archive_path = _gcs_path(self.submission.code_archive_gcs_uri)
+        archive_path = _gcs_path(
+            self.submission.code_archive_gcs_uri)
         blob = archive_path.bucket().blob(archive_path.key())
         if not blob.exists():
             raise FileNotFoundError(
-                f'Code archive not found: {self.submission.code_archive_gcs_uri}'
+                f'Code archive not found: '
+                f'{self.submission.code_archive_gcs_uri}'
             )
 
-        logger.info('Build verified for submission %s', self.submission.pk)
+        logger.info(
+            'Build verified for submission %s', self.submission.pk)
+
+    def _create_and_run_job(self, job_name, full_job_name,
+                            service_account, entrypoint, env_vars,
+                            gcs_mounts, max_runtime_seconds,
+                            vpc_access=None, gpu_type=None):
+        """Create a Cloud Run Job and execute it."""
+        from google.cloud import run_v2
+        from google.api_core import exceptions as gapi_exceptions
+
+        volumes = []
+        volume_mounts = []
+        for mount_path, bucket_name, mount_options in gcs_mounts:
+            vol_name = mount_path.strip('/').replace('/', '-')
+            volumes.append(run_v2.Volume(
+                name=vol_name,
+                gcs=run_v2.GCSVolumeSource(
+                    bucket=bucket_name,
+                    read_only='ro' in mount_options,
+                ),
+            ))
+            volume_mounts.append(run_v2.VolumeMount(
+                name=vol_name,
+                mount_path=mount_path,
+            ))
+
+        resource_limits = {
+            'cpu': str(self.spec.cpu_count),
+            'memory': f'{self.spec.max_memory_mb}Mi',
+        }
+        if gpu_type:
+            resource_limits['nvidia.com/gpu'] = '1'
+
+        container = run_v2.Container(
+            image=self.spec.base_image,
+            command=['sh', '-c', entrypoint],
+            env=[run_v2.EnvVar(name=k, value=v)
+                 for k, v in env_vars.items()],
+            resources=run_v2.ResourceRequirements(
+                limits=resource_limits,
+            ),
+            volume_mounts=volume_mounts,
+        )
+
+        task_template = run_v2.TaskTemplate(
+            containers=[container],
+            volumes=volumes,
+            max_retries=0,
+            timeout=f'{max_runtime_seconds}s',
+            service_account=service_account,
+            execution_environment=(
+                run_v2.ExecutionEnvironment
+                .EXECUTION_ENVIRONMENT_GEN2
+            ),
+        )
+        if vpc_access:
+            task_template.vpc_access = vpc_access
+
+        job = run_v2.Job(
+            template=run_v2.ExecutionTemplate(
+                template=task_template,
+            ),
+            launch_stage=run_v2.LaunchStage.GA,
+        )
+
+        try:
+            self.client.delete_job(name=full_job_name)
+        except gapi_exceptions.NotFound:
+            pass
+
+        operation = self.client.create_job(
+            parent=self.parent,
+            job=job,
+            job_id=job_name,
+        )
+        operation.result()
+
+        return self.client.run_job(name=full_job_name)
 
     def run(self, dataset=None):
-        raise NotImplementedError(
-            'Cloud Run backend does not yet stage code, input data, '
-            'or run evaluation. Use CHALLENGE_CONTAINER_BACKEND='
-            'local_docker until the Cloud Run pipeline is complete.'
+        """Execute the two-phase Cloud Run pipeline."""
+        from google.cloud import run_v2
+
+        if dataset is None:
+            dataset = DatasetType.VAL
+
+        bucket = getattr(
+            settings, 'CHALLENGE_STAGING_BUCKET', '')
+        eval_bucket = getattr(
+            settings, 'CHALLENGE_EVAL_BUCKET', '')
+        submission_sa = getattr(
+            settings, 'CHALLENGE_SUBMISSION_SA_EMAIL', '')
+        eval_sa = getattr(
+            settings, 'CHALLENGE_EVAL_SA_EMAIL', '')
+        vpc_connector = getattr(
+            settings, 'CHALLENGE_VPC_CONNECTOR', '')
+
+        if not submission_sa or not eval_sa:
+            raise RuntimeError(
+                'CHALLENGE_SUBMISSION_SA_EMAIL and '
+                'CHALLENGE_EVAL_SA_EMAIL must be configured '
+                'for the cloud_run backend.'
+            )
+
+        # Resolve input data URI for the requested dataset.
+        if dataset == DatasetType.TEST:
+            input_data_uri = getattr(
+                self.challenge, 'test_data_gcs_uri', '')
+        else:
+            input_data_uri = getattr(
+                self.challenge, 'validation_data_gcs_uri', '')
+
+        # Resolve code archive bucket and prefix for GCS FUSE.
+        archive_uri = self.submission.code_archive_gcs_uri
+        archive_path = _gcs_path(archive_uri)
+        archive_bucket = archive_path.bucket().name
+        archive_key = archive_path.key()
+
+        if not self.submission.started_datetime:
+            self._save_submission_field(
+                'started_datetime', timezone.now())
+
+        # --- Phase 1: Submission ---
+        gcs_mounts = [
+            ('/mnt/gcs-archive', archive_bucket, ['ro']),
+            ('/mnt/output', bucket, ['rw']),
+        ]
+
+        input_env = {}
+        if input_data_uri:
+            clean_uri = input_data_uri
+            if clean_uri.startswith('gs://'):
+                clean_uri = clean_uri[5:]
+            input_path = _gcs_path(clean_uri)
+            input_bucket_name = input_path.bucket().name
+            input_key = input_path.key()
+            gcs_mounts.append(
+                ('/mnt/gcs-input', input_bucket_name, ['ro']))
+            input_env['GCS_INPUT_PREFIX'] = input_key
+
+        predictions_prefix = _gcs_path(
+            self._predictions_gcs_prefix).key()
+        entrypoint = (
+            'set -e; '
+            'mkdir -p /workspace /mnt/input /mnt/output-local; '
+            'cd /workspace; '
+            f'tar xf /mnt/gcs-archive/{archive_key} '
+            f'  2>/dev/null '
+            f'  || cp -r /mnt/gcs-archive/{archive_key} .; '
+        )
+        if input_data_uri:
+            entrypoint += (
+                'cp -r /mnt/gcs-input/$GCS_INPUT_PREFIX/* '
+                '  /mnt/input/ 2>/dev/null || true; '
+            )
+        entrypoint += (
+            f'{self.spec.entrypoint_command}; '
+            f'cp -r /mnt/output-local/* '
+            f'  /mnt/output/{predictions_prefix}/ '
+            f'  2>/dev/null || true'
+        )
+
+        env_vars = {
+            'INPUT_DIR': '/mnt/input',
+            'OUTPUT_DIR': '/mnt/output-local',
+            'SUBMISSION_ID': str(self.submission.pk),
+            **input_env,
+        }
+
+        vpc_access = None
+        if vpc_connector:
+            vpc_access = run_v2.VpcAccess(
+                connector=vpc_connector,
+                egress=run_v2.VpcAccess.VpcEgress.ALL_TRAFFIC,
+            )
+
+        # GPU is optional — only requested when the challenge
+        # SubmissionSpec has gpu_enabled=True.
+        gpu_type = None
+        if self.spec.gpu_enabled and self.spec.gpu_type:
+            gpu_type = self.spec.gpu_type
+
+        try:
+            execution_op = self._create_and_run_job(
+                job_name=self.job_name,
+                full_job_name=self.full_job_name,
+                service_account=submission_sa,
+                entrypoint=entrypoint,
+                env_vars=env_vars,
+                gcs_mounts=gcs_mounts,
+                max_runtime_seconds=self.spec.max_runtime_seconds,
+                vpc_access=vpc_access,
+                gpu_type=gpu_type,
+            )
+        except Exception as exc:
+            message = f'Failed to create submission job: {exc}'
+            self._save_run_error(message[:2000], dataset)
+            raise RuntimeError(message[:2000])
+
+        self._execution_name = execution_op.metadata.name
+        self.submission.cloud_run_job_name = self.job_name
+        self.submission.cloud_run_execution_name = (
+            self._execution_name)
+        self.submission.save(update_fields=[
+            'cloud_run_job_name', 'cloud_run_execution_name',
+        ])
+
+        try:
+            execution_result = execution_op.result(
+                timeout=self.spec.max_runtime_seconds + 60)
+        except Exception as exc:
+            message = f'Submission container failed: {exc}'
+            self._save_run_error(message[:2000], dataset)
+            raise RuntimeError(message[:2000])
+
+        if execution_result.failed_count > 0:
+            message = (
+                'Submission container exited with errors '
+                f'(failed tasks: {execution_result.failed_count}).'
+            )
+            self._save_run_error(message, dataset)
+            raise RuntimeError(message)
+
+        logger.info(
+            'Submission phase complete for %s',
+            self.submission.pk,
+        )
+
+        # --- Phase 2: Evaluation ---
+        eval_uri = self.spec.evaluation_script_gcs_uri
+        if not eval_uri:
+            raise RuntimeError(
+                'No evaluation script configured. Submissions '
+                'cannot be scored without a trusted evaluation '
+                'script.'
+            )
+
+        if dataset == DatasetType.TEST:
+            labels_uri = getattr(
+                self.challenge, 'test_labels_gcs_uri', '')
+        else:
+            labels_uri = getattr(
+                self.challenge, 'validation_labels_gcs_uri', '')
+        if not labels_uri:
+            raise RuntimeError(
+                f'No {dataset.label.lower()} labels URI '
+                f'configured.'
+            )
+
+        eval_path = _gcs_path(eval_uri)
+        eval_bucket_name = eval_path.bucket().name
+        eval_key = eval_path.key()
+
+        clean_labels = labels_uri
+        if clean_labels.startswith('gs://'):
+            clean_labels = clean_labels[5:]
+        labels_path = _gcs_path(clean_labels)
+        labels_bucket_name = labels_path.bucket().name
+        labels_key = labels_path.key()
+
+        scores_prefix = _gcs_path(
+            self._scores_gcs_prefix).key()
+
+        eval_gcs_mounts = [
+            ('/mnt/gcs-eval', eval_bucket_name, ['ro']),
+            ('/mnt/gcs-labels', labels_bucket_name, ['ro']),
+            ('/mnt/gcs-predictions', bucket, ['ro']),
+            ('/mnt/output', eval_bucket, ['rw']),
+        ]
+
+        eval_entrypoint = (
+            'set -e; '
+            'mkdir -p /predictions /labels /eval /output-local; '
+            f'cp /mnt/gcs-eval/{eval_key} /eval/evaluate.py; '
+            f'cp -r /mnt/gcs-labels/{labels_key}/* '
+            f'  /labels/ 2>/dev/null || '
+            f'  cp /mnt/gcs-labels/{labels_key} /labels/; '
+            f'cp -r /mnt/gcs-predictions/{predictions_prefix}/* '
+            f'  /predictions/ 2>/dev/null || true; '
+            'python /eval/evaluate.py '
+            '  /predictions /labels /output-local/scores.json; '
+            f'cp /output-local/scores.json '
+            f'  /mnt/output/{scores_prefix}/scores.json'
+        )
+
+        eval_env = {
+            'SUBMISSION_ID': str(self.submission.pk),
+        }
+
+        try:
+            eval_op = self._create_and_run_job(
+                job_name=self.eval_job_name,
+                full_job_name=self.full_eval_job_name,
+                service_account=eval_sa,
+                entrypoint=eval_entrypoint,
+                env_vars=eval_env,
+                gcs_mounts=eval_gcs_mounts,
+                max_runtime_seconds=120,
+                vpc_access=vpc_access,
+            )
+        except Exception as exc:
+            message = f'Failed to create evaluation job: {exc}'
+            self._save_run_error(message[:2000], dataset)
+            raise RuntimeError(message[:2000])
+
+        try:
+            eval_result = eval_op.result(timeout=180)
+        except Exception as exc:
+            message = f'Evaluation container failed: {exc}'
+            self._save_run_error(message[:2000], dataset)
+            raise RuntimeError(message[:2000])
+
+        if eval_result.failed_count > 0:
+            message = (
+                'Evaluation script failed '
+                f'(failed tasks: {eval_result.failed_count}).'
+            )
+            self._save_run_error(message[:2000], dataset)
+            raise RuntimeError(message)
+
+        logger.info(
+            'Evaluation phase complete for %s',
+            self.submission.pk,
         )
 
     def poll(self, poll_interval=10, max_polls=360):
-        raise NotImplementedError
+        """Verify the execution completed successfully.
+
+        run() already waits via the LRO, so this checks the final
+        execution state for callers that resume after a crash.
+        """
+        if not self._execution_name:
+            execution_name = (
+                self.submission.cloud_run_execution_name)
+            if not execution_name:
+                return True
+            self._execution_name = execution_name
+
+        from google.api_core import exceptions as gapi_exceptions
+
+        try:
+            execution = self.executions_client.get_execution(
+                name=self._execution_name,
+            )
+        except gapi_exceptions.NotFound:
+            logger.warning(
+                'Execution %s not found', self._execution_name)
+            return False
+
+        if execution.reconciling:
+            return False
+
+        return execution.failed_count == 0
 
     def extract_scores(self):
-        raise NotImplementedError
+        """Read scores.json from the evaluation output in GCS."""
+        scores_uri = f'{self._scores_gcs_prefix}/scores.json'
+        scores_path = _gcs_path(scores_uri)
+        blob = scores_path.bucket().blob(scores_path.key())
+
+        if not blob.exists():
+            raise FileNotFoundError(
+                f'scores.json not found at {scores_uri}'
+            )
+
+        raw = blob.download_as_text()
+        scores = json.loads(raw)
+        logger.info(
+            'Extracted scores for submission %s: %s',
+            self.submission.pk, scores,
+        )
+        return scores
 
     def cleanup(self):
-        """Delete the Cloud Run Job after execution."""
-        if not self.submission.cloud_run_job_name:
-            return
-        try:
-            self.client.delete_job(name=self.full_job_name)
-            logger.info('Cleaned up job %s', self.full_job_name)
-        except Exception:
-            logger.exception('Failed to cleanup job %s', self.full_job_name)
+        """Delete both Cloud Run Jobs after execution."""
+        from google.api_core import exceptions as gapi_exceptions
+
+        for name in [self.full_job_name, self.full_eval_job_name]:
+            try:
+                self.client.delete_job(name=name)
+                logger.info('Cleaned up job %s', name)
+            except gapi_exceptions.NotFound:
+                pass
+            except Exception:
+                logger.exception(
+                    'Failed to cleanup job %s', name)
 
 
 class LocalContainerOrchestrator:
