@@ -266,10 +266,17 @@ class ContainerOrchestrator:
         vpc_connector = getattr(
             settings, 'CHALLENGE_VPC_CONNECTOR', '')
 
-        if not submission_sa or not eval_sa:
+        required = {
+            'CHALLENGE_STAGING_BUCKET': bucket,
+            'CHALLENGE_EVAL_BUCKET': eval_bucket,
+            'CHALLENGE_SUBMISSION_SA_EMAIL': submission_sa,
+            'CHALLENGE_EVAL_SA_EMAIL': eval_sa,
+            'CHALLENGE_VPC_CONNECTOR': vpc_connector,
+        }
+        missing = [name for name, value in required.items() if not value]
+        if missing:
             raise RuntimeError(
-                'CHALLENGE_SUBMISSION_SA_EMAIL and '
-                'CHALLENGE_EVAL_SA_EMAIL must be configured '
+                f'{", ".join(missing)} must be configured '
                 'for the cloud_run backend.'
             )
 
