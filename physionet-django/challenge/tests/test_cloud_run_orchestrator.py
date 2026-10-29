@@ -217,6 +217,16 @@ class TestCloudRunOrchestratorRun(TestCase):
                 'must be configured', str(ctx.exception))
 
     @mock.patch('challenge.services._gcs_path')
+    def test_run_fails_without_vpc_connector(self, mock_gcs_path):
+        """Untrusted code is never run without network restriction."""
+        orch, mock_client, _ = self._make_orchestrator()
+        with self.settings(CHALLENGE_VPC_CONNECTOR=''):
+            with self.assertRaises(RuntimeError) as ctx:
+                orch.run()
+        self.assertIn('CHALLENGE_VPC_CONNECTOR', str(ctx.exception))
+        mock_client.create_job.assert_not_called()
+
+    @mock.patch('challenge.services._gcs_path')
     def test_run_fails_without_eval_script(self, mock_gcs_path):
         mock_obj = mock.MagicMock()
         mock_obj.bucket.return_value.name = 'challenge-submissions'
