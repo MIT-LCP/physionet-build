@@ -19,7 +19,11 @@ from django.utils.html import strip_tags
 from console.tasks import associated_task
 from physionet.settings.base import StorageTypes
 from project.enums import AccessPolicy
-from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
+from project.modelcomponents.authors import (
+    GEORESTRICTED_AFFILIATION_COUNTRIES,
+    PublishedAffiliation,
+    PublishedAuthor,
+)
 from project.modelcomponents.metadata import (
     Contact,
     Metadata,
@@ -282,6 +286,26 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         Whether the project is under submission
         """
         return bool(self.submission_status)
+
+    def get_georestricted_affiliation_authors(self):
+        """Return authors whose recorded affiliations are all restricted.
+
+        Affiliations without a country are intentionally not flagged. This
+        avoids treating older records, which may not have country data, as a
+        positive match.
+        """
+        authors = self.authors.all().order_by('display_order').prefetch_related(
+            'affiliations'
+        )
+        georestricted_authors = []
+        for author in authors:
+            countries = {
+                affiliation.country for affiliation in author.affiliations.all()
+            }
+            if countries and countries.issubset(
+                    GEORESTRICTED_AFFILIATION_COUNTRIES):
+                georestricted_authors.append(author)
+        return georestricted_authors
 
     def submission_deadline(self):
         return self.creation_datetime + timedelta(days=180)

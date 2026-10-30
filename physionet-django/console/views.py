@@ -430,6 +430,9 @@ def submission_info_card_params(request,
     return {
         'project': project,
         'authors': authors,
+        'georestricted_affiliation_authors': (
+            project.get_georestricted_affiliation_authors()
+        ),
         'author_emails': author_emails,
         'storage_info': project.get_storage_info(force_calculate=force_calculate),
         'edit_logs': edit_logs,

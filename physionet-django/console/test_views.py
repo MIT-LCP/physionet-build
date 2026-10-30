@@ -89,6 +89,46 @@ class TestSubmissionFileComparison(TestCase):
         self.assertEqual(snapshot_files(None), (None, False))
 
 
+class TestGeorestrictedAffiliationWarning(TestMixin):
+    """Submission information warns about authors needing geographic review."""
+
+    PROJECT_TITLE = 'MIT-BIH Arrhythmia Database'
+
+    def setUp(self):
+        super().setUp()
+        self.project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        self.author = self.project.authors.order_by('display_order').first()
+        self.author.affiliations.all().delete()
+        self.client.login(username='admin', password='Tester11!')
+
+    def submission_info(self):
+        return self.client.get(
+            reverse('submission_info', args=(self.project.slug,))
+        )
+
+    def test_warning_shown_for_author_with_only_restricted_affiliations(self):
+        self.author.affiliations.create(name='Example University', country='CN')
+
+        response = self.submission_info()
+
+        self.assertContains(response, 'Georestriction review')
+
+    def test_warning_not_shown_when_author_has_nonrestricted_affiliation(self):
+        self.author.affiliations.create(name='Example University', country='CN')
+        self.author.affiliations.create(name='MIT', country='US')
+
+        response = self.submission_info()
+
+        self.assertNotContains(response, 'Georestriction review')
+
+    def test_warning_not_shown_when_affiliation_country_is_missing(self):
+        self.author.affiliations.create(name='Legacy Institution', country='')
+
+        response = self.submission_info()
+
+        self.assertNotContains(response, 'Georestriction review')
+
+
 class TestUserManagement(TestMixin):
     def test_update_host_permission(self):
         self.client.login(username='admin', password='Tester11!')
