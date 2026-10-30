@@ -206,6 +206,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Bound the database storage and submission-time work for file snapshots.
     SUBMISSION_FILE_MANIFEST_MAX_FILES = 1000
 
+    # Formats that are generally unsuitable for publication as project data.
+    # These are warnings, rather than restrictions, because there can be valid
+    # reasons for an author to include them in a project.
+    RESTRICTED_FILE_EXTENSIONS = (
+        '.pkl', '.pickle', '.xlsx', '.docx', '.mat', '.sav', '.xpt',
+        '.sas7bdat', '.pth', '.pt', '.joblib', '.pkl.gz', '.joblib.gz',
+    )
+
     SUBMISSION_STATUS_LABELS = {
         SubmissionStatus.UNSUBMITTED: 'Not submitted.',
         SubmissionStatus.ARCHIVED: 'Archived.',
@@ -412,6 +420,17 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.integrity_warnings.append(
                 'No references have been added to this project.')
 
+        file_manifest = self.files.submission_file_manifest(
+            self.file_root(), self.SUBMISSION_FILE_MANIFEST_MAX_FILES)
+        restricted_file_extensions = self.restricted_file_extensions(file_manifest)
+        if restricted_file_extensions:
+            self.integrity_warnings.append(
+                'This project contains files in formats that are typically '
+                'not published: {}.'.format(
+                    ', '.join(restricted_file_extensions)))
+        if not file_manifest:
+            self.integrity_warnings.append('This project has no files.')
+
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
             published_versions = [p.version for p in published_projects]
@@ -463,6 +482,22 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return False
         else:
             return True
+
+    def restricted_file_extensions(self, manifest=None):
+        """Return restricted extensions found in the bounded file manifest.
+
+        The submission manifest stops after ``SUBMISSION_FILE_MANIFEST_MAX_FILES``
+        files (plus one entry to detect truncation), so this check does not read
+        file contents or turn submission into an unbounded file-system scan.
+        """
+        if manifest is None:
+            manifest = self.files.submission_file_manifest(
+                self.file_root(), self.SUBMISSION_FILE_MANIFEST_MAX_FILES)
+        paths = [entry['path'].lower() for entry in manifest]
+        return [
+            extension for extension in self.RESTRICTED_FILE_EXTENSIONS
+            if any(path.endswith(extension) for path in paths)
+        ]
 
     def has_valid_reference_order(self):
         """

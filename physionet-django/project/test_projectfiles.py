@@ -13,6 +13,32 @@ from project.projectfiles.local import LocalProjectFiles
 
 
 class TestProjectFiles(TestCase):
+    def test_restricted_file_extensions_uses_a_bounded_manifest(self):
+        project = ActiveProject(slug='test-project')
+        calls = []
+
+        def manifest(path, max_files):
+            calls.append((path, max_files))
+            return [
+                {'path': 'data/records.PKL.GZ'},
+                {'path': 'notes/readme.txt'},
+                {'path': 'model.JOBLIB'},
+            ]
+
+        project.__dict__['files'] = SimpleNamespace(
+            file_root='projects',
+            submission_file_manifest=manifest,
+        )
+
+        self.assertEqual(
+            project.restricted_file_extensions(),
+            ['.joblib', '.pkl.gz'],
+        )
+        self.assertEqual(
+            calls,
+            [('projects/active-projects/test-project', 1000)],
+        )
+
     def test_local_submission_manifest_is_capped_before_scanning_all_files(self):
         files = LocalProjectFiles()
         with tempfile.TemporaryDirectory() as directory:
