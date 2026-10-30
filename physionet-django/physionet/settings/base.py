@@ -218,7 +218,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend', 'oauth2_provider.backends.OAuth2Backend']
+AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend']
 if ORCID_LOGIN_ENABLED:
     AUTHENTICATION_BACKENDS.append('user.backends.OrcidAuthBackend')
 
