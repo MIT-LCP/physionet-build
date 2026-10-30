@@ -21,6 +21,7 @@ from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
+from oauth2_provider.models import AccessToken, Application
 from project.cloud.s3 import PROJECT_ZIP_FILE, public_s3_download_url
 from project.forms import ContentForm
 from project.models import (
@@ -1333,6 +1334,65 @@ class TestAccessPublished(TestMixin):
             args=(project.slug, '')), secure=True,
             HTTP_USER_AGENT='Wget/1.18',
             HTTP_AUTHORIZATION=_basic_auth('admin@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_bearer_token_downloads(self):
+        """
+        Access tokens with the download scope can download files, and only files.
+        """
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        self.client.post(reverse('sign_dua', args=(project.slug, project.version)),
+                         data={'agree': '', 'initials': 'RGM'})
+        self.client.logout()
+
+        user = User.objects.get(email='rgmark@mit.edu')
+        application = Application.objects.create(
+            name='Bearer download test', user=user,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE)
+
+        def bearer(token, scope, expires_in=timedelta(hours=1)):
+            AccessToken.objects.create(user=user, application=application, token=token,
+                                       scope=scope, expires=timezone.now() + expires_in)
+            return 'Bearer ' + token
+
+        download = bearer('download-token', 'data:download')
+        profile = bearer('profile-token', 'profile:read')
+        expired = bearer('expired-token', 'data:download', expires_in=-timedelta(hours=1))
+
+        file_url = reverse('serve_published_project_file',
+                           args=(project.slug, project.version, 'admissions.csv'))
+        zip_url = reverse('serve_published_project_zip', args=(project.slug, project.version))
+
+        # Any client may use a download token, over HTTPS
+        for url in (file_url, zip_url):
+            response = self.client.get(url, secure=True, HTTP_USER_AGENT='curl/8.0',
+                                       HTTP_AUTHORIZATION=download)
+            self.assertEqual(response.status_code, 200)
+
+        # Tokens without the download scope, expired tokens and plain HTTP are refused
+        for header, secure in ((profile, True), (expired, True), (download, False)):
+            response = self.client.get(file_url, secure=secure, HTTP_USER_AGENT='curl/8.0',
+                                       HTTP_AUTHORIZATION=header)
+            self.assertEqual(response.status_code, 403)
+
+        # A token does not sign the user in to other pages
+        response = self.client.get(reverse('edit_credentialing'), secure=True,
+                                   HTTP_AUTHORIZATION=download)
+        self.assertEqual(response.status_code, 302)
+
+        # Nor can a token be exchanged for a session through the login form
+        self.client.post(reverse('login'), {'username': 'nobody', 'password': 'wrong'},
+                         secure=True, HTTP_AUTHORIZATION=download)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+        # SHA256SUMS also requires the download scope
+        sha256sums_url = reverse('published_project_sha256sums',
+                                 kwargs={'project_slug': project.slug, 'version': project.version})
+        response = self.client.get(sha256sums_url, secure=True, HTTP_AUTHORIZATION=profile)
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(sha256sums_url, secure=True, HTTP_AUTHORIZATION=download)
         self.assertEqual(response.status_code, 200)
 
     def test_package_download_recommendation_is_off_by_default(self):

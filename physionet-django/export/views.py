@@ -2,6 +2,7 @@ import os
 
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from oauth2_provider.models import AccessToken
 from rest_framework import generics, mixins, status, permissions
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.response import Response
@@ -10,6 +11,7 @@ from rest_framework.views import APIView
 
 from project.authorization.access import can_access_project
 from project.models import PublishedProject, ProjectType
+from project.utility import DOWNLOAD_TOKEN_SCOPE
 from export.serializers import (
     PublishedProjectSerializer,
     PublishedProjectDetailSerializer,
@@ -192,11 +194,20 @@ class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
         return self.list(request, *args, **kwargs)
 
 
+class TokenHasDownloadScope(permissions.BasePermission):
+    """
+    OAuth access tokens must have the download scope. Session and Basic authentication are unaffected.
+    """
+    def has_permission(self, request, view):
+        token = request.auth
+        return not isinstance(token, AccessToken) or token.allow_scopes([DOWNLOAD_TOKEN_SCOPE])
+
+
 class ProjectSHA256Sums(APIView):
     """
     Download SHA256SUMS.txt file for a project.
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, TokenHasDownloadScope]
 
     def get(self, request, project_slug, version):
         project = get_object_or_404(PublishedProject, slug=project_slug, version=version)

@@ -21,6 +21,7 @@ from django.db import transaction
 from django.http import Http404, HttpResponse
 from django.utils.crypto import constant_time_compare
 from googleapiclient.errors import HttpError
+from oauth2_provider.oauth2_backends import get_oauthlib_core
 
 
 LOGGER = logging.getLogger(__name__)
@@ -438,6 +439,31 @@ def http_auth_allowed(request):
         return False
 
 
+# OAuth scope that lets an access token download project files.
+DOWNLOAD_TOKEN_SCOPE = 'data:download'
+
+
+def check_bearer_token(request):
+    """
+    Set request.user from an OAuth access token with the download scope.
+
+    Browsers do not send bearer tokens on their own, so any user agent
+    may use one.  For safety, tokens are only accepted for GET and HEAD
+    requests and (unless settings.DEBUG is set) only via HTTPS.
+    """
+    if request.method not in ('GET', 'HEAD'):
+        return
+    if not request.is_secure() and not settings.DEBUG:
+        return
+    if request.user.is_authenticated:
+        return
+
+    valid, oauth_request = get_oauthlib_core().verify_request(
+        request, scopes=[DOWNLOAD_TOKEN_SCOPE])
+    if valid and oauth_request.access_token.user.is_active:
+        request.user = oauth_request.access_token.user
+
+
 def check_http_auth(request):
     """
     Check if a request includes HTTP authentication.
@@ -448,12 +474,18 @@ def check_http_auth(request):
     modified.
 
     For safety, HTTP authentication is only used for certain requests
-    from non-interactive user agents; see http_auth_allowed().
+    from non-interactive user agents; see http_auth_allowed().  OAuth
+    access tokens are also accepted; see check_bearer_token().
 
     This should be invoked at the start of the view before checking
     user credentials, and should be paired with require_http_auth().
     """
     from user.models import User
+
+    auth_scheme = request.META.get('HTTP_AUTHORIZATION', '').split(' ', 1)[0]
+    if auth_scheme.lower() == 'bearer':
+        check_bearer_token(request)
+        return
 
     if 'HTTP_AUTHORIZATION' in request.META:
         # If an Authorization header is supplied, but this request is

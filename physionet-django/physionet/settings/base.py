@@ -150,7 +150,6 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # RedirectFallbackMiddleware should go at end of list, according
@@ -219,7 +218,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend', 'oauth2_provider.backends.OAuth2Backend']
+AUTHENTICATION_BACKENDS = ['user.backends.DualAuthModelBackend']
 if ORCID_LOGIN_ENABLED:
     AUTHENTICATION_BACKENDS.append('user.backends.OrcidAuthBackend')
 
