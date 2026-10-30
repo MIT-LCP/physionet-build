@@ -11,6 +11,14 @@ from user.validators import validate_affiliation
 COUNTRY_NAMES = dict(COUNTRIES)
 
 
+# ISO 3166-1 alpha-2 country codes for jurisdictions subject to the
+# affiliation-based submission review. Hong Kong and Macao are included with
+# China because they are separately represented in the country choices.
+GEORESTRICTED_AFFILIATION_COUNTRIES = frozenset({
+    'CN', 'CU', 'HK', 'IR', 'KP', 'MO', 'RU', 'VE',
+})
+
+
 class AuthorInvitation(BaseInvitation):
     """
     Invitation to join a project as an author
