@@ -1,9 +1,11 @@
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
-from project.models import PublishedProject, ProjectType, AccessPolicy
+from project.models import CoreProject, PublishedProject, ProjectType, AccessPolicy
+from user.models import User
 
 
 class TestRateLimiting(TestCase):
@@ -11,20 +13,27 @@ class TestRateLimiting(TestCase):
 
     def setUp(self):
         """Set up test data"""
+        # Throttle counts are kept in the cache, so clear it before and after each test
+        cache.clear()
+        self.addCleanup(cache.clear)
         self.client = APIClient()
 
-        # Create test project
+        self.resource_type = ProjectType.objects.create(
+            id=125, name='TestType'
+        )
         self.project = PublishedProject.objects.create(
             slug='test-project',
+            submission_slug='test-project',
             version='1.0.0',
             title='Test Project',
             abstract='Test abstract',
+            resource_type=self.resource_type,
+            core_project=CoreProject.objects.create(),
             access_policy=AccessPolicy.CREDENTIALED
         )
-
-        # Create test resource type
-        self.resource_type = ProjectType.objects.create(
-            name='TestType'
+        self.user = User.objects.create_user(
+            email='rate-limit@example.com', username='ratelimituser',
+            password='rate-limit-password', is_active=True,
         )
 
     def test_anonymous_rate_limit(self):
@@ -44,8 +53,7 @@ class TestRateLimiting(TestCase):
         """Test rate limiting for authenticated users"""
         url = reverse('published_project_list')
 
-        # Create and authenticate test user
-        self.client.force_authenticate(user=self.project.authors.first())
+        self.client.force_authenticate(user=self.user)
 
         # Make requests up to the limit
         for _ in range(100):
@@ -72,7 +80,8 @@ class TestRateLimiting(TestCase):
     def test_project_detail_rate_limit(self):
         """Test rate limiting on project detail endpoint"""
         url = reverse('published_project_detail',
-                      kwargs={'project_slug': 'demopsn', 'version': '1.0'})
+                      kwargs={'project_slug': self.project.slug,
+                              'version': self.project.version})
 
         # Make requests up to the limit
         for _ in range(20):
@@ -93,6 +102,8 @@ class TestAPIFieldSerialization(TestCase):
         from datetime import datetime
         from django.utils import timezone as tz
 
+        cache.clear()
+        self.addCleanup(cache.clear)
         self.client = APIClient()
 
         # Create core project
@@ -128,6 +139,7 @@ class TestAPIFieldSerialization(TestCase):
         # Create published project
         self.project = PublishedProject.objects.create(
             slug='test-api-project',
+            submission_slug='test-api-project',
             version='1.0.0',
             title='Test API Project',
             abstract='Test abstract for API',
@@ -212,6 +224,7 @@ class TestAPIFieldSerialization(TestCase):
 
                 project = PublishedProject.objects.create(
                     slug=f'test-policy-{policy_value}',
+                    submission_slug=f'test-policy-{policy_value}',
                     version='1.0.0',
                     title=f'Test Policy {policy_value}',
                     abstract='Test',
@@ -250,6 +263,7 @@ class TestAPIFieldSerialization(TestCase):
 
                 project = PublishedProject.objects.create(
                     slug=f'test-type-{project_type.id}',
+                    submission_slug=f'test-type-{project_type.id}',
                     version='1.0.0',
                     title=f'Test Type {type_name}',
                     abstract='Test',
@@ -278,6 +292,7 @@ class TestAPIFieldSerialization(TestCase):
 
         project = PublishedProject.objects.create(
             slug='test-no-topics',
+            submission_slug='test-no-topics',
             version='1.0.0',
             title='Test No Topics',
             abstract='Test',
