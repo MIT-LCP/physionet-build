@@ -38,6 +38,7 @@ def is_login_limited(request, username):
 def _record_login_failure(request, username):
     if request is None:
         return
+    cache = caches['login_failures']
     for key, _ in _login_failure_counters(request, username):
         # The window starts at the first failure and is not extended by later ones
         if not cache.add(key, 1, settings.LOGIN_FAILURE_WINDOW):
