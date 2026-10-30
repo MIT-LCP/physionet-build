@@ -244,6 +244,9 @@ CACHES = {
     'login_failures': {
         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
         'LOCATION': 'login_failure_cache',
+        # Each failing client and account uses two entries. Past this limit the
+        # cache deletes a share of all entries, which would reset counts early.
+        'OPTIONS': {'MAX_ENTRIES': 100000},
     },
 }
 

@@ -1,6 +1,6 @@
 import base64
 
-from django.core.cache import cache
+from django.core.cache import caches
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
@@ -14,8 +14,8 @@ def basic_auth(username, password):
 @override_settings(LOGIN_FAILURE_LIMIT=3, LOGIN_FAILURE_CLIENT_LIMIT=5)
 class LoginLimitTests(TestCase):
     def setUp(self):
-        cache.clear()
-        self.addCleanup(cache.clear)
+        caches['login_failures'].clear()
+        self.addCleanup(caches['login_failures'].clear)
         self.user = User.objects.create_user(
             email='login-limit@example.com', username='loginlimit',
             password='correct-password', is_active=True,
@@ -35,6 +35,14 @@ class LoginLimitTests(TestCase):
         response = self.login('correct-password')
         self.assertContains(response, 'Too many failed login attempts')
         self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_counts_are_not_kept_in_the_default_cache(self):
+        """Counts must be shared by every server process, unlike the per-process default cache."""
+        for _ in range(3):
+            self.login('wrong-password')
+        caches['default'].clear()
+        response = self.login('correct-password')
+        self.assertContains(response, 'Too many failed login attempts')
 
     def test_other_clients_can_still_log_in(self):
         for _ in range(3):
