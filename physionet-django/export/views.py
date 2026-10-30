@@ -1,3 +1,4 @@
+import logging
 import os
 
 from django.contrib.auth import SESSION_KEY
@@ -26,6 +27,8 @@ from export.serializers import (
     ProjectVersionsSerializer
 )
 from search.views import get_content
+
+logger = logging.getLogger(__name__)
 
 
 class StandardRateThrottle(UserRateThrottle):
@@ -154,10 +157,11 @@ class ProjectAccessStatus(APIView):
     Response includes:
         - slug, resolved version and access policy
         - authenticated: whether the request was authenticated
-        - can_download: the same file access decision used for direct downloads
+        - can_download: the file access decision used for direct downloads, and false
+          while the files are under embargo
         - status: ready, sign_in_required, action_required or unavailable
-        - reason: why files are unavailable (deprecated_files, downloads_disabled,
-          region_blocked or other), otherwise null
+        - reason: why files are unavailable (deprecated_files, embargoed,
+          downloads_disabled, region_blocked or other), otherwise null
         - requirements: a list of steps, each with an id (unique in the list), code,
           label, status (complete, pending, required or unknown) and url
         - project_url: full URL to the project page
@@ -193,12 +197,15 @@ class ProjectAccessStatus(APIView):
         for item in requirements:
             item['url'] = step_urls[item['code']]
 
-        can_download = can_view_project_files(project, user, request)
+        embargoed = project.embargo_active()
+        can_download = not embargoed and can_view_project_files(project, user, request)
         reason = None
         if can_download:
             state = 'ready'
         elif project.deprecated_files:
             state, reason = 'unavailable', 'deprecated_files'
+        elif embargoed:
+            state, reason = 'unavailable', 'embargoed'
         elif not project.allow_file_downloads:
             state, reason = 'unavailable', 'downloads_disabled'
         elif is_region_blocked(project, request):
@@ -209,6 +216,12 @@ class ProjectAccessStatus(APIView):
                  for item in requirements):
             state = 'action_required'
         else:
+            # Every step is complete but access is denied, so get_access_requirements and
+            # can_access_project disagree. Log it so the mismatch can be fixed.
+            logger.warning(
+                'Access requirements complete but access denied: project=%s version=%s user=%s policy=%s',
+                project.slug, project.version, user.pk, project.access_policy,
+            )
             state, reason = 'unavailable', 'other'
 
         return Response({

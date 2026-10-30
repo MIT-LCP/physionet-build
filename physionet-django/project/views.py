@@ -59,7 +59,9 @@ from project.models import (
 )
 from project.modelcomponents.activeproject import ArchiveReason
 from project.modelcomponents.review import ReviewerInvitation
-from project.authorization.access import can_view_project_files, can_access_project, has_required_trainings
+from project.authorization.access import (
+    can_access_project, can_view_project_files, has_required_trainings, is_region_blocked,
+)
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
@@ -72,7 +74,6 @@ from project.cloud.s3 import (
     PROJECT_ZIP_FILE,
 )
 from django.db.models import F, DateTimeField, ExpressionWrapper
-from physionet.utility import get_client_ip, get_country_code
 from user.awsverification import aws_verification_available
 
 LOGGER = logging.getLogger(__name__)
@@ -2147,7 +2148,6 @@ def published_project_dua(request, project_slug, version):
     )
 
 
-
 def published_project_latest(request, project_slug):
     """
     Redirect to latest project version
@@ -2159,17 +2159,6 @@ def published_project_latest(request, project_slug):
         raise Http404()
     return redirect('published_project', project_slug=project_slug,
         version=version)
-
-
-def is_user_country_blocked(project, request):
-    """
-    Helper function to check if user is from a georestricted country.
-    """
-    if not project.georestricted or not request:
-        return False
-    ip = get_client_ip(request)
-    country_code = get_country_code(ip)
-    return country_code in settings.BLOCKED_REGIONS
 
 
 def published_project(request, project_slug, version, subdir=''):
@@ -2209,7 +2198,7 @@ def published_project(request, project_slug, version, subdir=''):
     is_authorized = can_access_project(project, user, request) or has_passphrase
 
     # Check if user is from a blocked country
-    user_country_blocked = is_user_country_blocked(project, request)
+    user_country_blocked = is_region_blocked(project, request)
 
     has_signed_dua = False if not user.is_authenticated else DUASignature.objects.filter(
         project=project,

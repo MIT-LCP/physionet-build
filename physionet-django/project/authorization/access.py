@@ -221,7 +221,8 @@ def get_access_requirements(project, user):
         if signed_in and training_types:
             user_trainings = Training.objects.filter(user=user, training_type__in=training_types)
             valid_ids = set(user_trainings.get_valid().values_list('training_type_id', flat=True))
-            pending_ids = set(user_trainings.get_review().values_list('training_type_id', flat=True))
+            for pending in (user_trainings.get_review(), user_trainings.get_in_progress()):
+                pending_ids.update(pending.values_list('training_type_id', flat=True))
         for training_type in training_types:
             add(f'training:{training_type.pk}', 'training', training_type.name,
                 done=training_type.pk in valid_ids,

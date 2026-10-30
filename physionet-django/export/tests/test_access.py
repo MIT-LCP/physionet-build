@@ -5,6 +5,7 @@ import itertools
 from datetime import timedelta
 from unittest import mock
 
+from django.conf import settings
 from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -14,7 +15,7 @@ from rest_framework.test import APIClient
 
 from project.authorization.access import can_access_project, get_access_requirements
 from project.models import AccessPolicy, CoreProject, DataAccessRequest, DUASignature, PublishedProject, ProjectType
-from user.enums import TrainingStatus
+from user.enums import RequiredField, TrainingStatus
 from user.models import CredentialApplication, Training, TrainingType, User
 
 
@@ -133,6 +134,54 @@ class ProjectAccessStatusTests(TestCase):
         self.assertFalse(response.json()['can_download'])
         self.assertEqual(response.json()['status'], 'unavailable')
         self.assertEqual(response.json()['reason'], 'deprecated_files')
+
+    def test_embargoed_files_are_unavailable(self):
+        self.project.access_policy = AccessPolicy.OPEN
+        self.project.embargo_files_days = 30
+        self.project.save(update_fields=['access_policy', 'embargo_files_days'])
+        response = self.client.get(self.url())
+        self.assertFalse(response.json()['can_download'])
+        self.assertEqual(response.json()['status'], 'unavailable')
+        self.assertEqual(response.json()['reason'], 'embargoed')
+
+    def test_in_progress_platform_training_is_pending(self):
+        self.training.required_field = RequiredField.PLATFORM
+        self.training.save(update_fields=['required_field'])
+        Training.objects.create(
+            slug='in-progress-training', user=self.user, training_type=self.training,
+            status=TrainingStatus.IN_PROGRESS,
+        )
+        self.client.force_authenticate(self.user)
+        self.assertEqual(self.requirements(self.client.get(self.url()))['training']['status'], 'pending')
+
+    def test_requirements_disagreeing_with_access_decision_are_logged(self):
+        self.client.force_authenticate(self.user)
+        complete = [{'id': 'sign_in', 'code': 'sign_in', 'label': 'Sign in', 'status': 'complete'}]
+        with mock.patch('export.views.get_access_requirements', return_value=complete), \
+                self.assertLogs('export.views', level='WARNING') as logs:
+            response = self.client.get(self.url())
+        self.assertEqual(response.json()['reason'], 'other')
+        self.assertIn('project=access-test', logs.output[0])
+
+    @override_settings(
+        MIDDLEWARE=settings.MIDDLEWARE + ['oauth2_provider.middleware.OAuth2TokenMiddleware'],
+        AUTHENTICATION_BACKENDS=settings.AUTHENTICATION_BACKENDS + ['oauth2_provider.backends.OAuth2Backend'],
+    )
+    def test_user_set_by_token_middleware_is_not_session_authenticated(self):
+        """A user attached by middleware without a session login is treated as anonymous."""
+        app = Application.objects.create(
+            name='Middleware test client', user=self.user, client_type=Application.CLIENT_CONFIDENTIAL,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+        )
+        AccessToken.objects.create(
+            user=self.user, application=app, token='middleware-test-token',
+            scope='profile:read', expires=timezone.now() + timedelta(hours=1),
+        )
+        self.client.credentials(HTTP_AUTHORIZATION='Bearer middleware-test-token')
+        response = self.client.get(self.url())
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()['authenticated'])
+        self.assertEqual(self.requirements(response)['credentialing']['status'], 'unknown')
 
     def test_contributor_review_uses_active_request(self):
         self.project.access_policy = AccessPolicy.CONTRIBUTOR_REVIEW
