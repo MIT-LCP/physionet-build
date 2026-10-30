@@ -37,6 +37,7 @@ from user.models import (
     RequiredField,
     Orcid,
 )
+from user.backends import is_login_limited
 from user.trainingreport import TrainingCertificateError, find_training_report_url
 from user.userfiles import UserFiles
 from user.validators import (
@@ -136,7 +137,17 @@ class LoginForm(auth_forms.AuthenticationForm):
         ),
         'inactive': gettext_lazy("This account has not been activated. Please check your "
             "email for the activation link."),
+        'too_many_attempts': gettext_lazy(
+            "Too many failed login attempts. Please wait a few minutes and try again, or "
+            "reset your password."
+        ),
     }
+
+    def get_invalid_login_error(self):
+        if is_login_limited(self.request, self.cleaned_data.get('username')):
+            return forms.ValidationError(self.error_messages['too_many_attempts'],
+                                         code='too_many_attempts')
+        return super().get_invalid_login_error()
 
 
 class ResendActivationForm(forms.Form):
