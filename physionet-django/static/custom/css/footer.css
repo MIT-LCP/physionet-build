@@ -27,3 +27,6 @@
     /* inline-block space fix */
     margin-right:-4px;
 }
+.footer__software-credit {
+    font-size: 0.875em;
+}

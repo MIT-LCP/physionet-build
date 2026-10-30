@@ -2,6 +2,14 @@
 
 The new PhysioNet platform built using Django. The new site is currently hosted at [https://physionet.org/](https://physionet.org/)
 
+## Acknowledgement
+
+This software is developed by the [MIT Laboratory for Computational Physiology](https://lcp.mit.edu/) and contributors. The work is supported by the National Institute of Biomedical Imaging and Bioengineering (NIBIB), the National Heart, Lung, and Blood Institute (NHLBI), and the NIH Office of the Director under NIH grant number U24EB037545.
+
+The code is released under the BSD 3-Clause License (see [LICENSE](LICENSE)). Copies of the source code, and of works based on it, must keep the copyright notice in that file. If you build a new repository or deployment from this software, please keep the [NOTICE](NOTICE) file, acknowledge the MIT Laboratory for Computational Physiology and the funding above, and link back to [https://github.com/MIT-LCP/physionet-build](https://github.com/MIT-LCP/physionet-build).
+
+If you run a website using this software, please keep the credit line at the bottom of the site footer (`physionet-django/templates/footer.html`). The footer text that describes your own site is set separately with `FOOTER_MANAGED_BY` and `FOOTER_SUPPORTED_BY`.
+
 ## Running Local Instance Using Django Server
 
 - Install sqlite3: `sudo apt-get install sqlite3`.
