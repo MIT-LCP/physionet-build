@@ -6,7 +6,7 @@ from django.conf import settings
 from events.models import Event, EventDataset
 from project.authorization.events import has_access_to_event_dataset
 from project.models import AccessPolicy, DUASignature, DataAccessRequest, PublishedProject
-from user.models import Training, TrainingType
+from user.models import CredentialApplication, Training, TrainingType
 from physionet.utility import get_country_code, get_client_ip
 
 
@@ -120,12 +120,8 @@ def can_access_project(project, user, request=None):
     if project.deprecated_files:
         return False
 
-    # Check country-based restrictions if project is georestricted and request is provided
-    if project.georestricted and request:
-        ip = get_client_ip(request)
-        country_code = get_country_code(ip)
-        if country_code in settings.BLOCKED_REGIONS:
-            return False
+    if is_region_blocked(project, request):
+        return False
 
     if project.access_policy == AccessPolicy.OPEN:
         return True
@@ -158,3 +154,88 @@ def can_view_project_files(project, user, request=None):
     Currently used to allow direct file downloads and to show project files on the platform
     """
     return can_access_project(project, user, request) and project.allow_file_downloads
+
+
+def is_region_blocked(project, request=None):
+    """
+    Returns True if the project is georestricted and the request comes from a blocked region.
+    Without a request, the region is unknown and nothing is blocked.
+    """
+    if not (project.georestricted and request):
+        return False
+    return get_country_code(get_client_ip(request)) in settings.BLOCKED_REGIONS
+
+
+class RequirementStatus:
+    COMPLETE = 'complete'
+    PENDING = 'pending'
+    REQUIRED = 'required'
+    UNKNOWN = 'unknown'
+
+
+def get_access_requirements(project, user):
+    """
+    Lists the standard steps a user must complete to access a project.
+
+    Describes the same access path that can_access_project checks, step by step, so that
+    users can see what is missing. It does not grant access.
+
+    Returns a list of dicts with:
+        id: unique within the list (each required training has its own id)
+        code: the kind of step (sign_in, credentialing, training, dua or review)
+        label: human-readable name
+        status: a RequirementStatus value; UNKNOWN means the user is anonymous
+    """
+    policy = project.access_policy
+    signed_in = user.is_authenticated
+    requirements = []
+
+    def add(item_id, code, label, done, pending=False):
+        if done:
+            state = RequirementStatus.COMPLETE
+        elif pending:
+            state = RequirementStatus.PENDING
+        elif signed_in:
+            state = RequirementStatus.REQUIRED
+        else:
+            state = RequirementStatus.UNKNOWN
+        requirements.append({'id': item_id, 'code': code, 'label': label, 'status': state})
+
+    if policy == AccessPolicy.OPEN:
+        return requirements
+
+    requirements.append({
+        'id': 'sign_in', 'code': 'sign_in', 'label': 'Sign in to PhysioNet',
+        'status': RequirementStatus.COMPLETE if signed_in else RequirementStatus.REQUIRED,
+    })
+
+    if policy in (AccessPolicy.CREDENTIALED, AccessPolicy.CONTRIBUTOR_REVIEW):
+        add('credentialing', 'credentialing', 'PhysioNet credentialing',
+            done=signed_in and user.is_credentialed,
+            pending=signed_in and CredentialApplication.objects.filter(
+                user=user, status=CredentialApplication.Status.PENDING
+            ).exists())
+
+        training_types = list(project.required_trainings.all())
+        valid_ids, pending_ids = set(), set()
+        if signed_in and training_types:
+            user_trainings = Training.objects.filter(user=user, training_type__in=training_types)
+            valid_ids = set(user_trainings.get_valid().values_list('training_type_id', flat=True))
+            for pending in (user_trainings.get_review(), user_trainings.get_in_progress()):
+                pending_ids.update(pending.values_list('training_type_id', flat=True))
+        for training_type in training_types:
+            add(f'training:{training_type.pk}', 'training', training_type.name,
+                done=training_type.pk in valid_ids,
+                pending=training_type.pk in pending_ids)
+
+    if policy in (AccessPolicy.RESTRICTED, AccessPolicy.CREDENTIALED):
+        add('dua', 'dua', 'Data use agreement',
+            done=signed_in and DUASignature.objects.filter(project=project, user=user).exists())
+
+    if policy == AccessPolicy.CONTRIBUTOR_REVIEW:
+        requests = DataAccessRequest.objects.filter(project=project, requester=user) if signed_in else None
+        add('review', 'review', 'Contributor approval and data use agreement',
+            done=signed_in and requests.get_active().exists(),
+            pending=signed_in and requests.filter(status=DataAccessRequest.PENDING_VALUE).exists())
+
+    return requirements
