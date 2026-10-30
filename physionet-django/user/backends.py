@@ -31,6 +31,7 @@ def is_login_limited(request, username):
     """
     if request is None or not username:
         return False
+    cache = caches['login_failures']
     return any((cache.get(key) or 0) >= limit
                for key, limit in _login_failure_counters(request, username))
 
