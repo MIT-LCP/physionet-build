@@ -51,7 +51,7 @@ def _clear_login_failures(request, username):
     if request is None:
         return
     account_key, _ = _login_failure_counters(request, username)[0]
-    cache.delete(account_key)
+    caches['login_failures'].delete(account_key)
 
 
 class DualAuthModelBackend(ModelBackend):
