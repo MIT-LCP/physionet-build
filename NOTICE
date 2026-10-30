@@ -24,6 +24,10 @@ site, which is set with FOOTER_MANAGED_BY and FOOTER_SUPPORTED_BY.
 Third-party code
 ----------------
 
+The JavaScript, CSS and font libraries bundled under physionet-django/static/
+(such as Bootstrap, jQuery, MathJax and Font Awesome) are third-party code,
+distributed under their own licenses.
+
 The error report template in physionet-django/physionet/log.py is adapted
 from Django (django/views/templates/technical_500.txt), which is distributed
 under the following license:
