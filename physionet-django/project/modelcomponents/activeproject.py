@@ -209,9 +209,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Formats that are generally unsuitable for publication as project data.
     # These are warnings, rather than restrictions, because there can be valid
     # reasons for an author to include them in a project.
-    RESTRICTED_FILE_EXTENSIONS = (
+    Discouraged_FILE_EXTENSIONS = (
         '.pkl', '.pickle', '.xlsx', '.docx', '.mat', '.sav', '.xpt',
         '.sas7bdat', '.pth', '.pt', '.joblib', '.pkl.gz', '.joblib.gz',
+        '.xls', '.doc',
     )
 
     SUBMISSION_STATUS_LABELS = {
@@ -420,17 +421,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.integrity_warnings.append(
                 'No references have been added to this project.')
 
-        file_manifest = self.files.submission_file_manifest(
-            self.file_root(), self.SUBMISSION_FILE_MANIFEST_MAX_FILES)
-        restricted_file_extensions = self.restricted_file_extensions(file_manifest)
-        if restricted_file_extensions:
-            self.integrity_warnings.append(
-                'This project contains files in formats that are typically '
-                'not published: {}.'.format(
-                    ', '.join(restricted_file_extensions)))
-        if not file_manifest:
-            self.integrity_warnings.append('This project has no files.')
-
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
             published_versions = [p.version for p in published_projects]
@@ -483,21 +473,32 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         else:
             return True
 
-    def restricted_file_extensions(self, manifest=None):
-        """Return restricted extensions found in the bounded file manifest.
-
-        The submission manifest stops after ``SUBMISSION_FILE_MANIFEST_MAX_FILES``
-        files (plus one entry to detect truncation), so this check does not read
-        file contents or turn submission into an unbounded file-system scan.
-        """
-        if manifest is None:
-            manifest = self.files.submission_file_manifest(
-                self.file_root(), self.SUBMISSION_FILE_MANIFEST_MAX_FILES)
+    def discouraged_file_extensions(self, manifest):
+        """Return discouraged extensions found in a submission manifest."""
         paths = [entry['path'].lower() for entry in manifest]
         return [
-            extension for extension in self.RESTRICTED_FILE_EXTENSIONS
+            extension for extension in self.Discouraged_FILE_EXTENSIONS
             if any(path.endswith(extension) for path in paths)
         ]
+
+    def file_integrity_warnings(self, manifest):
+        """Return non-blocking warnings based on a bounded file manifest.
+
+        A truncated manifest is only a partial scan, so formats beyond its
+        cap are not considered here.
+        """
+        entries = manifest['entries']
+        warnings = ErrorList()
+        discourages_file_extensions = self.discouraged_file_extensions(entries)
+        if discourages_file_extensions:
+            warning = (
+                'This project contains files in formats that are typically '
+                'not published: {}.'.format(
+                    ', '.join(discourages_file_extensions)))
+            warnings.append(warning)
+        if not entries:
+            warnings.append('This project has no files.')
+        return warnings
 
     def has_valid_reference_order(self):
         """
