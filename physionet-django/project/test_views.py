@@ -1347,6 +1347,19 @@ class TestAccessPublished(TestMixin):
                                    HTTP_AUTHORIZATION=download)
         self.assertEqual(response.status_code, 302)
 
+        # Nor can a token be exchanged for a session through the login form
+        self.client.post(reverse('login'), {'username': 'nobody', 'password': 'wrong'},
+                         secure=True, HTTP_AUTHORIZATION=download)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+        # SHA256SUMS also requires the download scope
+        sha256sums_url = reverse('published_project_sha256sums',
+                                 kwargs={'project_slug': project.slug, 'version': project.version})
+        response = self.client.get(sha256sums_url, secure=True, HTTP_AUTHORIZATION=profile)
+        self.assertEqual(response.status_code, 403)
+        response = self.client.get(sha256sums_url, secure=True, HTTP_AUTHORIZATION=download)
+        self.assertEqual(response.status_code, 200)
+
     def test_package_download_recommendation_is_off_by_default(self):
         project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
         response = self.client.get(reverse(
