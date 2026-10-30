@@ -48,6 +48,7 @@ from project.models import (
     AWS
 )
 from project import openalex
+from project.authorization.access import can_access_project
 from project.validators import validate_abstract_word_count
 from user.enums import TrainingStatus
 from user.models import Training, TrainingType, User
@@ -1098,6 +1099,40 @@ class TestAccessPublished(TestMixin):
         response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
 
         self.assertContains(response, 'Your training report is under review.')
+
+    def test_each_required_training_type_must_be_completed(self):
+        """
+        Several valid trainings of one type do not stand in for another required type.
+        """
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        user = User.objects.get(email='rgmark@mit.edu')
+        first_training = TrainingType.objects.create(name='First required training')
+        second_training = TrainingType.objects.create(name='Second required training')
+        project.required_trainings.set([first_training, second_training])
+        DUASignature.objects.create(project=project, user=user)
+
+        def complete(training_type, slug):
+            Training.objects.create(
+                user=user, slug=slug, training_type=training_type,
+                status=TrainingStatus.ACCEPTED, process_datetime=timezone.now(),
+                reviewer_comments='',
+            )
+
+        complete(first_training, 'first-training-1')
+        complete(first_training, 'first-training-2')
+        self.assertFalse(can_access_project(project, user))
+        self.client.login(username=user.username, password='Tester11!')
+        response = self.client.get(reverse(
+            'serve_published_project_file',
+            args=(project.slug, project.version, 'SHA256SUMS.txt')))
+        self.assertEqual(response.status_code, 403)
+
+        complete(second_training, 'second-training-1')
+        self.assertTrue(can_access_project(project, user))
+        response = self.client.get(reverse(
+            'serve_published_project_file',
+            args=(project.slug, project.version, 'SHA256SUMS.txt')))
+        self.assertEqual(response.status_code, 200)
 
     @override_settings(SHOW_PHYSIONET_PACKAGE_DOWNLOAD=True)
     @prevent_request_warnings

@@ -59,7 +59,7 @@ from project.models import (
 )
 from project.modelcomponents.activeproject import ArchiveReason
 from project.modelcomponents.review import ReviewerInvitation
-from project.authorization.access import can_view_project_files, can_access_project
+from project.authorization.access import can_view_project_files, can_access_project, has_required_trainings
 from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
@@ -2226,12 +2226,7 @@ def published_project(request, project_slug, version, subdir=''):
     else:
         requires_training = False
 
-    has_required_training = (
-        False
-        if not user.is_authenticated
-        else Training.objects.get_valid().filter(training_type__in=project.required_trainings.all(), user=user).count()
-        == project.required_trainings.count()
-    )
+    has_required_training = user.is_authenticated and has_required_trainings(project, user)
     has_training_under_review = False
     if user.is_authenticated:
         valid_training_type_ids = Training.objects.get_valid().filter(

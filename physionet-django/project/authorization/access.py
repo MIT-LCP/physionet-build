@@ -89,6 +89,21 @@ def get_accessible_projects(user):
     return PublishedProject.objects.filter(query).distinct()
 
 
+def has_required_trainings(project, user):
+    """
+    Returns True if the user has a valid training of every type the project requires.
+    """
+    required_trainings = project.required_trainings.all()
+    completed_types = (
+        Training.objects.get_valid()
+        .filter(training_type__in=required_trainings, user=user)
+        .values('training_type')
+        .distinct()
+        .count()
+    )
+    return completed_types == required_trainings.count()
+
+
 def can_access_project(project, user, request=None):
     """
     Checks if the project is accessible by the user
@@ -121,10 +136,7 @@ def can_access_project(project, user, request=None):
             user.is_authenticated
             and user.is_credentialed
             and DUASignature.objects.filter(project=project, user=user).exists()
-            and Training.objects.get_valid()
-            .filter(training_type__in=project.required_trainings.all(), user=user)
-            .count()
-            == project.required_trainings.count()
+            and has_required_trainings(project, user)
         )
     elif project.access_policy == AccessPolicy.CONTRIBUTOR_REVIEW:
         return (
@@ -135,10 +147,7 @@ def can_access_project(project, user, request=None):
                 requester=user,
                 status=DataAccessRequest.ACCEPT_REQUEST_VALUE
             ).exists()
-            and Training.objects.get_valid()
-            .filter(training_type__in=project.required_trainings.all(), user=user)
-            .count()
-            == project.required_trainings.count()
+            and has_required_trainings(project, user)
         )
     return False
 
