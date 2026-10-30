@@ -3,7 +3,7 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend, BaseBackend
-from django.core.cache import cache
+from django.core.cache import caches
 
 from physionet.utility import get_client_ip
 from user.models import User
