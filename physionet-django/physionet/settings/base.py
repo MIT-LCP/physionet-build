@@ -229,6 +229,27 @@ AUTH_USER_MODEL = 'user.User'
 
 LOGIN_URL = '/login/'
 
+# Failed password attempts allowed within LOGIN_FAILURE_WINDOW seconds, per client
+# address and account (LOGIN_FAILURE_LIMIT) and per client address overall
+# (LOGIN_FAILURE_CLIENT_LIMIT). Counts are kept in the database, so that every
+# server process shares them.
+LOGIN_FAILURE_LIMIT = config('LOGIN_FAILURE_LIMIT', default=10, cast=int)
+LOGIN_FAILURE_CLIENT_LIMIT = config('LOGIN_FAILURE_CLIENT_LIMIT', default=100, cast=int)
+LOGIN_FAILURE_WINDOW = config('LOGIN_FAILURE_WINDOW', default=15 * 60, cast=int)
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+    'login_failures': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'login_failure_cache',
+        # Each failing client and account uses two entries. Past this limit the
+        # cache deletes a share of all entries, which would reset counts early.
+        'OPTIONS': {'MAX_ENTRIES': 100000},
+    },
+}
+
 LOGIN_REDIRECT_URL = '/projects/'
 
 LOGOUT_REDIRECT_URL = '/'
