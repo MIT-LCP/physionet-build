@@ -21,6 +21,10 @@ urlpatterns = [
          views.PublishedProjectDetail.as_view(),
          name='published_project_detail'),
 
+    path('v1/projects/<str:project_slug>/versions/<str:version>/access/',
+         views.ProjectAccessStatus.as_view(),
+         name='published_project_access_status'),
+
     path('v1/projects/published/<str:project_slug>/<str:version>/sha256sums/',
          views.ProjectSHA256Sums.as_view(),
          name='published_project_sha256sums'),

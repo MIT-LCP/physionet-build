@@ -1,16 +1,24 @@
 import os
 
+from django.contrib.auth import SESSION_KEY
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from oauth2_provider.models import AccessToken
+from django.urls import reverse
 from rest_framework import generics, mixins, status, permissions
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle, AnonRateThrottle
 from rest_framework.views import APIView
 
-from project.authorization.access import can_access_project
-from project.models import PublishedProject, ProjectType
+from project.authorization.access import (
+    RequirementStatus,
+    can_access_project,
+    can_view_project_files,
+    get_access_requirements,
+    is_region_blocked,
+)
+from project.models import AccessPolicy, PublishedProject, ProjectType
 from project.utility import DOWNLOAD_TOKEN_SCOPE
 from export.serializers import (
     PublishedProjectSerializer,
@@ -28,6 +36,18 @@ class StandardRateThrottle(UserRateThrottle):
 class StandardAnonRateThrottle(AnonRateThrottle):
     """Rate limit for anonymous users"""
     rate = '20/hour'
+
+
+class SessionOnlyAuthentication(SessionAuthentication):
+    """
+    Session authentication that only accepts users logged in through the Django session,
+    not users attached to the request by other middleware.
+    """
+    def authenticate(self, request):
+        result = super().authenticate(request)
+        if result and str(result[0].pk) != str(request._request.session.get(SESSION_KEY)):
+            return None
+        return result
 
 
 class PublishedProjectList(mixins.ListModelMixin, generics.GenericAPIView):
@@ -121,6 +141,87 @@ class PublishedProjectDetail(mixins.RetrieveModelMixin, generics.GenericAPIView)
         project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
         serializer = PublishedProjectDetailSerializer(project, context={'request': request})
         return Response(serializer.data)
+
+
+class ProjectAccessStatus(APIView):
+    """
+    Describe whether the requester can download a published version directly from PhysioNet.
+
+    Use "latest" as the version to resolve the latest published version. The response lists
+    the standard access steps and their status. This endpoint is informational: it does not
+    grant access, and each file request is authorized separately. Cloud access is separate.
+
+    Response includes:
+        - slug, resolved version and access policy
+        - authenticated: whether the request was authenticated
+        - can_download: the same file access decision used for direct downloads
+        - status: ready, sign_in_required, action_required or unavailable
+        - reason: why files are unavailable (deprecated_files, downloads_disabled,
+          region_blocked or other), otherwise null
+        - requirements: a list of steps, each with an id (unique in the list), code,
+          label, status (complete, pending, required or unknown) and url
+        - project_url: full URL to the project page
+
+    Authentication:
+        - Session or Basic authentication. OAuth tokens are not accepted, because the
+          response reveals credentialing and training status.
+        - Rate limited: 100 requests/hour for authenticated users
+        - Rate limited: 20 requests/hour for anonymous users
+    """
+    authentication_classes = [BasicAuthentication, SessionOnlyAuthentication]
+    throttle_classes = [StandardRateThrottle, StandardAnonRateThrottle]
+
+    def get(self, request, project_slug, version):
+        projects = PublishedProject.objects.filter(slug=project_slug)
+        if version == 'latest':
+            project = get_object_or_404(projects, is_latest_version=True)
+        else:
+            project = get_object_or_404(projects, version=version)
+
+        user = request.user
+        project_url = request.build_absolute_uri(
+            reverse('published_project', args=(project.slug, project.version))
+        )
+        step_urls = {
+            'sign_in': request.build_absolute_uri(reverse('login')),
+            'credentialing': request.build_absolute_uri(reverse('edit_credentialing')),
+            'training': request.build_absolute_uri(reverse('edit_training')),
+            'dua': project_url,
+            'review': project_url,
+        }
+        requirements = get_access_requirements(project, user)
+        for item in requirements:
+            item['url'] = step_urls[item['code']]
+
+        can_download = can_view_project_files(project, user, request)
+        reason = None
+        if can_download:
+            state = 'ready'
+        elif project.deprecated_files:
+            state, reason = 'unavailable', 'deprecated_files'
+        elif not project.allow_file_downloads:
+            state, reason = 'unavailable', 'downloads_disabled'
+        elif is_region_blocked(project, request):
+            state, reason = 'unavailable', 'region_blocked'
+        elif not user.is_authenticated and project.access_policy != AccessPolicy.OPEN:
+            state = 'sign_in_required'
+        elif any(item['status'] in (RequirementStatus.REQUIRED, RequirementStatus.PENDING)
+                 for item in requirements):
+            state = 'action_required'
+        else:
+            state, reason = 'unavailable', 'other'
+
+        return Response({
+            'slug': project.slug,
+            'version': project.version,
+            'access_policy': project.get_access_policy_display(),
+            'authenticated': user.is_authenticated,
+            'can_download': can_download,
+            'status': state,
+            'reason': reason,
+            'requirements': requirements,
+            'project_url': project_url,
+        })
 
 
 class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
