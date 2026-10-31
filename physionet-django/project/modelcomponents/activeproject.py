@@ -206,6 +206,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Bound the database storage and submission-time work for file snapshots.
     SUBMISSION_FILE_MANIFEST_MAX_FILES = 1000
 
+    # Formats that are generally unsuitable for publication as project data.
+    # These are warnings, rather than restrictions, because there can be valid
+    # reasons for an author to include them in a project.
+    Discouraged_FILE_EXTENSIONS = (
+        '.pkl', '.pickle', '.xlsx', '.docx', '.mat', '.sav', '.xpt',
+        '.sas7bdat', '.pth', '.pt', '.joblib', '.pkl.gz', '.joblib.gz',
+        '.xls', '.doc',
+    )
+
     SUBMISSION_STATUS_LABELS = {
         SubmissionStatus.UNSUBMITTED: 'Not submitted.',
         SubmissionStatus.ARCHIVED: 'Archived.',
@@ -463,6 +472,33 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return False
         else:
             return True
+
+    def discouraged_file_extensions(self, manifest):
+        """Return discouraged extensions found in a submission manifest."""
+        paths = [entry['path'].lower() for entry in manifest]
+        return [
+            extension for extension in self.Discouraged_FILE_EXTENSIONS
+            if any(path.endswith(extension) for path in paths)
+        ]
+
+    def file_integrity_warnings(self, manifest):
+        """Return non-blocking warnings based on a bounded file manifest.
+
+        A truncated manifest is only a partial scan, so formats beyond its
+        cap are not considered here.
+        """
+        entries = manifest['entries']
+        warnings = ErrorList()
+        discourages_file_extensions = self.discouraged_file_extensions(entries)
+        if discourages_file_extensions:
+            warning = (
+                'This project contains files in formats that are typically '
+                'not published: {}.'.format(
+                    ', '.join(discourages_file_extensions)))
+            warnings.append(warning)
+        if not entries:
+            warnings.append('This project has no files.')
+        return warnings
 
     def has_valid_reference_order(self):
         """

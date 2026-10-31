@@ -1468,6 +1468,8 @@ def check_integrity(request, project_slug, **kwargs):
     """
     project = kwargs['project']
     result = project.check_integrity()
+    project.integrity_warnings.extend(
+        project.file_integrity_warnings(project.submission_file_manifest()))
 
     return JsonResponse({
         'passes_checks': result,

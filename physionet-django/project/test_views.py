@@ -797,6 +797,40 @@ class TestUploadAgreement(TestMixin):
         )
 
 
+class TestProjectIntegrityWarnings(TestMixin):
+    def test_check_integrity_reports_nonblocking_file_warnings(self):
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        UploadAgreement.objects.update_or_create(
+            author=project.submitting_author(),
+            defaults={'accepted': True, 'no_human_subjects': True},
+        )
+
+        cases = (
+            (
+                {
+                    'entries': [{'path': 'data/model.PKL'}],
+                    'truncated': False,
+                },
+                'This project contains files in formats that are typically '
+                'not published: .pkl.',
+            ),
+            (
+                {'entries': [], 'truncated': False},
+                'This project has no files.',
+            ),
+        )
+        for manifest, warning in cases:
+            with self.subTest(manifest=manifest), mock.patch.object(
+                    ActiveProject, 'submission_file_manifest',
+                    return_value=manifest):
+                response = self.client.get(
+                    reverse('check_integrity', args=(project.slug,)))
+
+            self.assertTrue(response.json()['passes_checks'])
+            self.assertIn(warning, response.json()['integrity_warnings'])
+
+
 class TestProjectEditing(TestCase):
     """
     Tests for the submitting author to edit the project information.
