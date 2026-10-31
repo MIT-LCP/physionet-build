@@ -90,10 +90,17 @@ class EmbargoDownloadTests(TestCase):
     def test_lightwave_hides_embargoed_project_and_denies_its_files(self):
         self.project.has_wfdb = True
         self.project.save(update_fields=['has_wfdb'])
+        PublishedProject.objects.create(
+            core_project=CoreProject.objects.create(), resource_type=self.project.resource_type,
+            slug='available-test', submission_slug='available-test', version='1.0',
+            title='Available Test', access_policy=AccessPolicy.OPEN, has_wfdb=True,
+        )
         url = reverse('lightwave_server')
         with mock.patch('lightwave.views.serve_lightwave', return_value=HttpResponse()) as serve:
             self.assertEqual(self.client.get(url).status_code, 200)
-            self.assertEqual(serve.call_args.kwargs['dblist'], '')
+            dataset_list = serve.call_args.kwargs['dblist']
+            self.assertIn('available-test/1.0\t', dataset_list)
+            self.assertNotIn('embargo-test/1.0\t', dataset_list)
         response = self.client.get(url, {'db': 'embargo-test/1.0/data.txt'})
         self.assertEqual(response.json()['code'], 'FORBIDDEN')
 
