@@ -823,6 +823,8 @@ SHOW_PHYSIONET_PACKAGE_DOWNLOAD = config('SHOW_PHYSIONET_PACKAGE_DOWNLOAD', cast
 # Redirect downloads of open-access files to the public S3 bucket, if
 # the files have been sent there.
 REDIRECT_DOWNLOADS_TO_CLOUD = config('REDIRECT_DOWNLOADS_TO_CLOUD', cast=bool, default=False)
+# If enabled, users must sign in to download project files, including open-access files
+REQUIRE_LOGIN_FOR_DOWNLOAD = config('REQUIRE_LOGIN_FOR_DOWNLOAD', cast=bool, default=False)
 COPY_FILES_TO_NEW_VERSION = config('COPY_FILES_TO_NEW_VERSION', cast=bool, default=True)
 
 LOG_TIMEDELTA = config('LOG_TIMEDELTA', cast=int, default='10')

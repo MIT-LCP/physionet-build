@@ -148,11 +148,31 @@ def can_access_project(project, user, request=None):
     return False
 
 
+def login_required_for_download(user):
+    """
+    Whether the user must sign in before downloading any project files.
+
+    Set by REQUIRE_LOGIN_FOR_DOWNLOAD, which also covers open-access projects.
+    """
+    return settings.REQUIRE_LOGIN_FOR_DOWNLOAD and not user.is_authenticated
+
+
+def must_sign_in_for_files(project, user, request=None):
+    """
+    Whether signing in is all the user needs to download the project files.
+    """
+    return (login_required_for_download(user)
+            and project.allow_file_downloads
+            and can_access_project(project, user, request))
+
+
 def can_view_project_files(project, user, request=None):
     """
     Checks if the project files are  directly accessible by the user
     Currently used to allow direct file downloads and to show project files on the platform
     """
+    if login_required_for_download(user):
+        return False
     return can_access_project(project, user, request) and project.allow_file_downloads
 
 
@@ -201,7 +221,7 @@ def get_access_requirements(project, user):
             state = RequirementStatus.UNKNOWN
         requirements.append({'id': item_id, 'code': code, 'label': label, 'status': state})
 
-    if policy == AccessPolicy.OPEN:
+    if policy == AccessPolicy.OPEN and not settings.REQUIRE_LOGIN_FOR_DOWNLOAD:
         return requirements
 
     requirements.append({

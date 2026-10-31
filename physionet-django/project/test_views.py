@@ -14,6 +14,7 @@ from background_task.models import Task
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
+from django.core import signing
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
@@ -1401,6 +1402,107 @@ class TestAccessPublished(TestMixin):
             'published_project', args=(project.slug, project.version)))
         self.assertNotContains(response, 'PhysioNet Python package')
         self.assertContains(response, 'wget -r -N -c -np')
+
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_require_login_for_download(self):
+        """
+        With REQUIRE_LOGIN_FOR_DOWNLOAD, open files need a signed-in user.
+        """
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        page_url = reverse('published_project', args=(project.slug, project.version))
+        file_url = reverse('serve_published_project_file',
+                           args=(project.slug, project.version, 'Makefile'))
+        display_url = reverse('display_published_project_file',
+                              args=(project.slug, project.version, 'Makefile'))
+        zip_url = reverse('serve_published_project_zip', args=(project.slug, project.version))
+        panel_url = reverse('published_files_panel', args=(project.slug, project.version))
+
+        # Anonymous users see a sign-in prompt instead of the download options
+        response = self.client.get(page_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'to access the files')
+        self.assertNotContains(response, 'wget -r -N -c -np')
+        self.assertNotContains(response, 'Download the ZIP file')
+
+        # Anonymous downloads are refused with an explanation. Command-line
+        # tools are asked for HTTP Basic credentials, as for restricted data.
+        for url in (file_url, zip_url):
+            with self.assertLogs('project.views', level='INFO') as logs:
+                response = self.client.get(url)
+            self.assertIn('Download refused, login required', logs.output[0])
+            self.assertContains(response, 'requires an account', status_code=403)
+            self.assertEqual(response['X-Download-Denied'], 'login-required')
+            with self.assertLogs('project.views', level='INFO') as logs:
+                response = self.client.get(url, secure=True, HTTP_USER_AGENT='Wget/1.18')
+            self.assertIn('Download challenged, login required', logs.output[0])
+            self.assertContains(response, 'requires an account', status_code=401)
+            self.assertIn('WWW-Authenticate', response)
+            self.assertEqual(response['X-Download-Denied'], 'login-challenge')
+        response = self.client.get(display_url)
+        self.assertContains(response, 'to access the files', status_code=403)
+        self.assertEqual(response['X-Download-Denied'], 'login-required')
+        response = self.client.get(panel_url, {'subdir': ''})
+        self.assertEqual(response.status_code, 404)
+
+        # Command-line tools can download with a username and password
+        response = self.client.get(
+            file_url, secure=True, HTTP_USER_AGENT='Wget/1.18',
+            HTTP_AUTHORIZATION=_basic_auth('rgmark@mit.edu', 'Tester11!'))
+        self.assertEqual(response.status_code, 200)
+        self.client.logout()
+
+        # Signed-in users can download, and the wget command asks for a password
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        response = self.client.get(page_url)
+        self.assertNotContains(response, 'to access the files')
+        self.assertContains(response, 'wget -r -N -c -np --user rgmark --ask-password')
+        self.assertEqual(self.client.get(file_url).status_code, 200)
+        self.assertEqual(self.client.get(display_url).status_code, 200)
+        self.assertEqual(self.client.get(panel_url, {'subdir': ''}).status_code, 200)
+
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_require_login_for_download_disabled_files(self):
+        """
+        Don't ask users to sign in when the authors have disabled downloads.
+        """
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        project.allow_file_downloads = False
+        project.save()
+        response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+        self.assertNotContains(response, 'to access the files')
+        response = self.client.get(reverse('display_published_project_file',
+                                           args=(project.slug, project.version, 'Makefile')))
+        self.assertNotContains(response, 'to access the files', status_code=403)
+        self.assertNotIn('X-Download-Denied', response)
+
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_require_login_for_download_anonymous_access_link(self):
+        """
+        Reviewers with an anonymous access link can download, and the page
+        doesn't show commands with a username.
+        """
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        anonymous_url = '/anonymous/test/'
+        self.client.cookies['anonymousaccess'] = signing.get_cookie_signer(
+            salt='anonymousaccess').sign(anonymous_url)
+        with mock.patch.object(PublishedProject, 'get_anonymous_url', return_value=anonymous_url):
+            response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+            self.assertNotContains(response, 'to access the files')
+            self.assertContains(response, 'wget -r -N -c -np http')
+            self.assertNotContains(response, '--user')
+            response = self.client.get(reverse('serve_published_project_file',
+                                               args=(project.slug, project.version, 'Makefile')))
+            self.assertEqual(response.status_code, 200)
+
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_require_login_for_download_restricted(self):
+        """
+        Anonymous users still see the access requirements for restricted projects.
+        """
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+        self.assertContains(response, 'This is a restricted-access resource')
+        self.assertNotContains(response, 'to access the files')
 
     @override_settings(SHOW_PHYSIONET_PACKAGE_DOWNLOAD=True)
     def test_open(self):
