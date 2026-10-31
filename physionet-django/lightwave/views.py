@@ -158,7 +158,9 @@ def lightwave_server(request):
         'access_policy',
         'allow_file_downloads',
         'deprecated_files',
+        'embargo_files_days',
         'georestricted',
+        'publish_datetime',
     ).order_by('title', '-version_order')
 
     params = request.GET.copy()
@@ -167,7 +169,10 @@ def lightwave_server(request):
     dblist = None
 
     if path is None:
-        dblist = '\n'.join('{}/{}\t{}'.format(p.slug, p.version, p) for p in projects)
+        dblist = '\n'.join(
+            '{}/{}\t{}'.format(p.slug, p.version, p)
+            for p in projects if can_view_project_files(p, request.user, request)
+        )
     elif '/' in path:
         parts = path.split('/', 2)
         project_alias = '/'.join(parts[0:2])

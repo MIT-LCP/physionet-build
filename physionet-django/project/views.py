@@ -1904,7 +1904,7 @@ def published_files_panel(request, project_slug, version):
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    if can_view_project_files(project, user, request) or has_passphrase:
+    if can_view_project_files(project, user, request, has_passphrase=has_passphrase):
         (display_files, display_dirs, dir_breadcrumbs, parent_dir,
          file_error) = get_project_file_info(project=project, subdir=subdir)
 
@@ -2010,7 +2010,7 @@ def serve_published_project_file(request, project_slug, version,
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    if can_view_project_files(project, user, request) or has_passphrase:
+    if can_view_project_files(project, user, request, has_passphrase=has_passphrase):
         file_path = os.path.join(project.file_root(), full_file_name)
 
         # Send requests to the cloud copy of the file, if there is one.
@@ -2061,7 +2061,7 @@ def display_published_project_file(request, project_slug, version,
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    if can_view_project_files(project, user, request) or has_passphrase:
+    if can_view_project_files(project, user, request, has_passphrase=has_passphrase):
         return display_project_file(request, project, full_file_name)
 
     # Display error message: "you must [be a credentialed user and]
@@ -2095,7 +2095,7 @@ def serve_published_project_zip(request, project_slug, version):
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    if can_view_project_files(project, user, request) or has_passphrase:
+    if can_view_project_files(project, user, request, has_passphrase=has_passphrase):
         if os.path.isfile(project.zip_name(full=True)):
             cloud_url = public_s3_download_url(project, PROJECT_ZIP_FILE)
             if cloud_url:
@@ -2194,8 +2194,8 @@ def published_project(request, project_slug, version, subdir=''):
     an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60 * 60)
     has_passphrase = project.get_anonymous_url() == an_url
 
-    can_view_files = can_view_project_files(project, user, request) or has_passphrase
-    is_authorized = can_access_project(project, user, request) or has_passphrase
+    can_view_files = can_view_project_files(project, user, request, has_passphrase=has_passphrase)
+    is_authorized = can_access_project(project, user, request) or can_view_files
 
     # Check if user is from a blocked country
     user_country_blocked = is_region_blocked(project, request)
