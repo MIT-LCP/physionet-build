@@ -221,7 +221,7 @@ def get_access_requirements(project, user):
             state = RequirementStatus.UNKNOWN
         requirements.append({'id': item_id, 'code': code, 'label': label, 'status': state})
 
-    if policy == AccessPolicy.OPEN:
+    if policy == AccessPolicy.OPEN and not settings.REQUIRE_LOGIN_FOR_DOWNLOAD:
         return requirements
 
     requirements.append({

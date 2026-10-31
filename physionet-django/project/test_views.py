@@ -1427,13 +1427,17 @@ class TestAccessPublished(TestMixin):
         # Anonymous downloads are refused with an explanation. Command-line
         # tools are asked for HTTP Basic credentials, as for restricted data.
         for url in (file_url, zip_url):
-            response = self.client.get(url)
+            with self.assertLogs('project.views', level='INFO') as logs:
+                response = self.client.get(url)
+            self.assertIn('Download refused, login required', logs.output[0])
             self.assertContains(response, 'requires an account', status_code=403)
             self.assertEqual(response['X-Download-Denied'], 'login-required')
-            response = self.client.get(url, secure=True, HTTP_USER_AGENT='Wget/1.18')
+            with self.assertLogs('project.views', level='INFO') as logs:
+                response = self.client.get(url, secure=True, HTTP_USER_AGENT='Wget/1.18')
+            self.assertIn('Download challenged, login required', logs.output[0])
             self.assertContains(response, 'requires an account', status_code=401)
             self.assertIn('WWW-Authenticate', response)
-            self.assertEqual(response['X-Download-Denied'], 'login-required')
+            self.assertEqual(response['X-Download-Denied'], 'login-challenge')
         response = self.client.get(display_url)
         self.assertContains(response, 'to access the files', status_code=403)
         self.assertEqual(response['X-Download-Denied'], 'login-required')

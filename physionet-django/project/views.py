@@ -1997,20 +1997,26 @@ def login_required_response(request):
 
     Command-line tools that support it are asked for a username and
     password (401); other clients get a 403. The body says why, and the
-    X-Download-Denied header lets the web server log these refusals.
+    X-Download-Denied header lets the web server log these responses.
+
+    Tools like wget only send a password after a 401, so a 401 is often
+    followed by a successful download. It is tagged "login-challenge",
+    and the 403 "login-required", so the two can be counted separately.
     """
     if utility.http_auth_allowed(request):
         response = utility.require_http_auth(request)
+        response['X-Download-Denied'] = 'login-challenge'
+        LOGGER.info('Download challenged, login required: %s', request.path)
     else:
         response = HttpResponse(status=403)
+        response['X-Download-Denied'] = 'login-required'
+        LOGGER.info('Download refused, login required: %s', request.path)
     site = get_current_site(request)
     response.content = (
         f'{site.name} requires an account to download files, including open-access data. '
         f'Sign in at {request.build_absolute_uri(reverse("login"))}, or provide your '
         f'username and password.\n')
     response['Content-Type'] = 'text/plain; charset=utf-8'
-    response['X-Download-Denied'] = 'login-required'
-    LOGGER.info('Download refused, login required: %s', request.path)
     return response
 
 

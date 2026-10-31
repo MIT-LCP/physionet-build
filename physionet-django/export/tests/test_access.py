@@ -116,6 +116,20 @@ class ProjectAccessStatusTests(TestCase):
         self.assertEqual(response.json()['status'], 'unavailable')
         self.assertEqual(response.json()['reason'], 'downloads_disabled')
 
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_open_project_requires_sign_in_when_login_required_for_download(self):
+        self.project.access_policy = AccessPolicy.OPEN
+        self.project.save(update_fields=['access_policy'])
+        with self.assertNoLogs('export.views', level='WARNING'):
+            response = self.client.get(self.url())
+        self.assertFalse(response.json()['can_download'])
+        self.assertEqual(response.json()['status'], 'sign_in_required')
+        self.assertEqual(self.requirements(response)['sign_in']['status'], 'required')
+        self.client.force_authenticate(self.user)
+        response = self.client.get(self.url())
+        self.assertEqual(response.json()['status'], 'ready')
+        self.assertEqual(self.requirements(response)['sign_in']['status'], 'complete')
+
     def test_restricted_project_only_requires_sign_in_and_dua(self):
         self.project.access_policy = AccessPolicy.RESTRICTED
         self.project.save(update_fields=['access_policy'])
