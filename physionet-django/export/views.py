@@ -18,6 +18,7 @@ from project.authorization.access import (
     can_view_project_files,
     get_access_requirements,
     is_region_blocked,
+    login_required_for_download,
 )
 from project.models import AccessPolicy, PublishedProject, ProjectType
 from project.utility import DOWNLOAD_TOKEN_SCOPE
@@ -210,7 +211,9 @@ class ProjectAccessStatus(APIView):
             state, reason = 'unavailable', 'downloads_disabled'
         elif is_region_blocked(project, request):
             state, reason = 'unavailable', 'region_blocked'
-        elif not user.is_authenticated and project.access_policy != AccessPolicy.OPEN:
+        elif not user.is_authenticated and (
+            project.access_policy != AccessPolicy.OPEN or login_required_for_download(user)
+        ):
             state = 'sign_in_required'
         elif any(item['status'] in (RequirementStatus.REQUIRED, RequirementStatus.PENDING)
                  for item in requirements):
