@@ -119,7 +119,7 @@ def public_s3_download_url(project, file_path):
     Returns:
         str or None: The HTTPS URL of the S3 object.
     """
-    if not settings.REDIRECT_DOWNLOADS_TO_CLOUD:
+    if project.embargo_active() or not settings.REDIRECT_DOWNLOADS_TO_CLOUD:
         return None
     if project.access_policy != AccessPolicy.OPEN or project.georestricted:
         return None
@@ -1483,7 +1483,12 @@ def upload_project_to_S3(project):
     - Ensure that AWS credentials (Access Key and Secret Key)
     are properly configured for the S3 client used in this function.
     - Ensure that the project object contains valid AWS and version information.
+    - Embargoed projects cannot be uploaded, because open bucket objects may
+    be accessible without passing through PhysioNet's access checks.
     """
+    if project.embargo_active():
+        raise ValueError('Cannot upload an embargoed project to S3')
+
     bucket_name = get_bucket_name(project)
     s3 = create_s3_client()
     if s3 is None or bucket_name is None:
@@ -1540,7 +1545,8 @@ def upload_list_of_projects(projects):
       function.
     """
     for project in projects:
-        upload_project_to_S3(project)
+        if not project.embargo_active():
+            upload_project_to_S3(project)
 
 
 def upload_all_projects():
@@ -1565,7 +1571,8 @@ def upload_all_projects():
     """
     published_projects = PublishedProject.objects.all()
     for project in published_projects:
-        upload_project_to_S3(project)
+        if not project.embargo_active():
+            upload_project_to_S3(project)
 
 
 def create_s3_server_access_log_bucket():
