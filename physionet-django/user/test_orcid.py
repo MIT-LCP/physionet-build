@@ -521,6 +521,23 @@ class OrcidLoginTests(TestCase):
         # change that keeps less will change this; update the test then.
         self.assertEqual(self.client.session['orcid_token'], LOGIN_TOKEN)
 
+    def test_invalid_id_token_does_not_log_in(self):
+        self.create_linked_user(is_active=True)
+        state = self.start_login()
+        with patch('user.views.OAuth2Session.fetch_token', return_value=dict(LOGIN_TOKEN)):
+            with patch(
+                'user.validators.validate_orcid_id_token', side_effect=ValidationError('bad signature'),
+            ) as mock_validate_id_token:
+                with self.assertLogs('user.views', 'ERROR'):
+                    response = self.client.get(reverse('auth_orcid_login'), {'code': 'abc123', 'state': state})
+
+        mock_validate_id_token.assert_called_once_with(LOGIN_TOKEN['id_token'])
+        self.assertRedirects(response, reverse('login'), fetch_redirect_response=False)
+        messages = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertEqual(messages, ['Validation Error: ORCID token validation failed.'])
+        self.assertNotIn(SESSION_KEY, self.client.session)
+        self.assertNotIn('orcid_token', self.client.session)
+
     def test_register_page_shows_the_form(self):
         self.login(LOGIN_TOKEN)
 
