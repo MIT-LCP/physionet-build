@@ -4,7 +4,6 @@ ORCID helpers, including the OAuth state check.
 """
 import importlib.util
 import re
-from decimal import Decimal
 from unittest import skipIf
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
@@ -319,7 +318,8 @@ class OrcidLinkTests(TestCase):
         self.assertEqual(orcid.refresh_token, ORCID_TOKEN['refresh_token'])
         self.assertEqual(orcid.token_type, ORCID_TOKEN['token_type'])
         self.assertEqual(orcid.token_scope, ORCID_TOKEN['scope'])
-        self.assertEqual(orcid.token_expiration, Decimal(ORCID_TOKEN['expires_at']))
+        # expires_at is a float; SQLite and PostgreSQL round-trip the DecimalField differently.
+        self.assertAlmostEqual(float(orcid.token_expiration), ORCID_TOKEN['expires_at'], places=3)
 
     def test_link_same_id_again_updates_the_row(self):
         self.link(ORCID_TOKEN)
@@ -551,7 +551,7 @@ class OrcidLoginTests(TestCase):
         self.assertEqual(orcid.refresh_token, LOGIN_TOKEN['refresh_token'])
         self.assertEqual(orcid.token_type, LOGIN_TOKEN['token_type'])
         self.assertEqual(orcid.token_scope, LOGIN_TOKEN['scope'])
-        self.assertEqual(orcid.token_expiration, Decimal(LOGIN_TOKEN['expires_at']))
+        self.assertAlmostEqual(float(orcid.token_expiration), LOGIN_TOKEN['expires_at'], places=3)
 
         # One activation email, whose link opens the ORCID activation page for this user.
         self.assertEqual(len(mail.outbox), 1)
