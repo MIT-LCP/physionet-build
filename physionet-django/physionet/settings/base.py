@@ -72,7 +72,7 @@ ORCID_LOGIN_BUTTON_TEXT = config('ORCID_LOGIN_BUTTON_TEXT', default="Log in usin
 
 # Geographic restrictions
 # BLOCKED_REGIONS: Comma-separated list of region codes to block access from
-# Example: BLOCKED_REGIONS=localhost,RU,CN,IR,NK
+# Example: BLOCKED_REGIONS=localhost,RU,CN,IR,KP
 BLOCKED_REGIONS_STR = config('BLOCKED_REGIONS', default='')
 BLOCKED_REGIONS = set(
     region.strip()

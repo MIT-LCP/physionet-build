@@ -19,11 +19,7 @@ from django.utils.html import strip_tags
 from console.tasks import associated_task
 from physionet.settings.base import StorageTypes
 from project.enums import AccessPolicy
-from project.modelcomponents.authors import (
-    GEORESTRICTED_AFFILIATION_COUNTRIES,
-    PublishedAffiliation,
-    PublishedAuthor,
-)
+from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
 from project.modelcomponents.metadata import (
     Contact,
     Metadata,
@@ -287,23 +283,25 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         return bool(self.submission_status)
 
-    def get_georestricted_affiliation_authors(self):
+    def get_georestricted_affiliation_authors(self, authors=None):
         """Return authors whose recorded affiliations are all restricted.
 
-        Affiliations without a country are intentionally not flagged. This
-        avoids treating older records, which may not have country data, as a
-        positive match.
+        Affiliations without a country are ignored. An author is flagged when
+        they have at least one recorded country and every recorded country is
+        in ``settings.BLOCKED_REGIONS``.
         """
-        authors = self.authors.all().order_by('display_order').prefetch_related(
-            'affiliations'
-        )
+        if authors is None:
+            authors = self.authors.all().order_by(
+                'display_order'
+            ).prefetch_related('affiliations')
         georestricted_authors = []
         for author in authors:
             countries = {
                 affiliation.country for affiliation in author.affiliations.all()
+                if affiliation.country
             }
             if countries and countries.issubset(
-                    GEORESTRICTED_AFFILIATION_COUNTRIES):
+                    settings.BLOCKED_REGIONS):
                 georestricted_authors.append(author)
         return georestricted_authors
 

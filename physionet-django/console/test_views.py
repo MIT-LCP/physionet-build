@@ -12,7 +12,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.test.utils import get_runner
 from django.urls import reverse
 from console.forms import CredentialReviewForm
@@ -89,6 +89,7 @@ class TestSubmissionFileComparison(TestCase):
         self.assertEqual(snapshot_files(None), (None, False))
 
 
+@override_settings(BLOCKED_REGIONS={'CN'})
 class TestGeorestrictedAffiliationWarning(TestMixin):
     """Submission information warns about authors needing geographic review."""
 
@@ -112,6 +113,10 @@ class TestGeorestrictedAffiliationWarning(TestMixin):
         response = self.submission_info()
 
         self.assertContains(response, 'Georestriction review')
+        self.assertEqual(
+            response.context['georestricted_affiliation_author_names'],
+            self.author.get_full_name(),
+        )
 
     def test_warning_not_shown_when_author_has_nonrestricted_affiliation(self):
         self.author.affiliations.create(name='Example University', country='CN')
@@ -124,6 +129,19 @@ class TestGeorestrictedAffiliationWarning(TestMixin):
     def test_warning_not_shown_when_affiliation_country_is_missing(self):
         self.author.affiliations.create(name='Legacy Institution', country='')
 
+        response = self.submission_info()
+
+        self.assertNotContains(response, 'Georestriction review')
+
+    def test_warning_shown_when_restricted_affiliation_has_blank_companion(self):
+        self.author.affiliations.create(name='Example University', country='CN')
+        self.author.affiliations.create(name='Legacy Institution', country='')
+
+        response = self.submission_info()
+
+        self.assertContains(response, 'Georestriction review')
+
+    def test_warning_not_shown_when_author_has_no_affiliations(self):
         response = self.submission_info()
 
         self.assertNotContains(response, 'Georestriction review')
