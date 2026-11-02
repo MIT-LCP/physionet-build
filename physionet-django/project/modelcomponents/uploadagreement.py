@@ -31,7 +31,7 @@ class UploadAgreement(models.Model):
         'project.Author',
         null=True,
         blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name='upload_agreement'
     )
 
