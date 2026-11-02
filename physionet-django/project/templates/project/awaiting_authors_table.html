@@ -42,6 +42,14 @@
                   <div class="modal-body">
                     {% csrf_token %}
                     <p>If you are satisfied with the final state of the project, you may approve the publication.</p>
+                    {% if deposit_terms_url %}
+                      <label class="d-flex align-items-start mb-0">
+                        <input type="checkbox" name="accept_deposit_terms" id="accept-deposit-terms-{{ author.id }}" required
+                               style="width: auto; flex: none; margin: 0.3rem 0.5rem 0 0;">
+                        <span>I confirm that {{ author.name }} has reviewed this project, agreed to the <a href="{{ deposit_terms_url }}" target="_blank">Deposit Terms</a>, and asked me to approve it on their behalf.</span>
+                      </label>
+                      <p class="mt-2 mb-0"><small class="text-muted">{{ author.name }} will be sent an email to let them know.</small></p>
+                    {% endif %}
                   </div>
                   <div class="modal-footer">
                     <button id="approve-publication-button-{{ author.id }}" class="btn btn-success" type="submit" value="{{ author.id }}" name="approve_publication">Approve Publication</button>

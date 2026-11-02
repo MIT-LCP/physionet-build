@@ -1,0 +1,23 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Deposit Terms Agreed To{% endblock %}
+
+{% block content %}
+<h1>Deposit Terms Agreed To</h1>
+<hr>
+<p>
+  This is a stored copy of the deposit terms, exactly as they were when authors agreed to them.
+  The live page may have changed since.
+</p>
+<ul>
+  <li>Page: {{ version.title }} ({{ version.url }})</li>
+  <li>First agreed to: {{ version.created_datetime|date:"N j, Y, H:i" }}</li>
+  <li>Agreements to this text: {{ acceptance_count }}</li>
+  <li>Fingerprint (SHA-256): <code>{{ version.content_hash }}</code></li>
+</ul>
+<div class="card">
+  <div class="card-body">
+    {{ version.content|safe }}
+  </div>
+</div>
+{% endblock %}

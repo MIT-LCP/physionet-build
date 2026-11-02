@@ -5,6 +5,7 @@
 {% block title %}{{ page }} page - sections {% endblock %}
 
 {% block content %}
+{% include "console/deposit_terms_page_note.html" %}
  <div class="card mb-3">
   <div class="card-header">
     {{ page|title }} page - sections <span class="badge badge-pill badge-info">{{ sections|length }}</span>

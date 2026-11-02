@@ -20,6 +20,11 @@ from console.tasks import associated_task
 from physionet.settings.base import StorageTypes
 from project.enums import AccessPolicy
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
+from project.modelcomponents.depositterms import (
+    DepositTermsAcceptance,
+    DepositTermsVersion,
+    deposit_terms_enabled,
+)
 from project.modelcomponents.metadata import (
     Contact,
     Metadata,
@@ -646,6 +651,35 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.save()
             return True
 
+    def authors_missing_deposit_terms(self):
+        """
+        Return the authors who approved publication without agreeing to
+        the deposit terms.
+
+        Authors who approved before the deposit terms were first shown
+        (before any version of them was stored) are not included, since
+        they had nothing to agree to.
+        """
+        if not deposit_terms_enabled():
+            return []
+        first_version = DepositTermsVersion.objects.order_by('created_datetime').first()
+        if first_version is None:
+            return []
+
+        acceptances = DepositTermsAcceptance.for_project(self).filter(
+            stage=DepositTermsAcceptance.Stage.APPROVAL)
+        if self.copyedit_completion_datetime:
+            acceptances = acceptances.filter(
+                accepted_datetime__gte=self.copyedit_completion_datetime)
+        accepted_users = set(acceptances.values_list('author_user', flat=True))
+
+        return [
+            author for author in self.authors.all().order_by('display_order')
+            if author.approval_datetime
+            and author.approval_datetime >= first_version.created_datetime
+            and author.user_id not in accepted_users
+        ]
+
     def all_authors_approved(self):
         """
         Whether all authors have approved the publication
@@ -674,6 +708,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.submission_status == SubmissionStatus.NEEDS_PUBLICATION
             and self.check_integrity()
             and self.all_authors_approved()
+            and not self.authors_missing_deposit_terms()
             and self.checksums_valid()
         ):
             return True
@@ -818,6 +853,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                             affiliations='; '.join(a.name for a in affiliations),
                             email=author.corresponding_email, project=published_project
                         )
+
+                # Move the deposit terms agreements
+                DepositTermsAcceptance.for_project(self).update(
+                    content_type=ContentType.objects.get_for_model(PublishedProject),
+                    object_id=published_project.pk,
+                )
 
                 # Move the edit and copyedit logs
                 for edit_log in self.edit_logs.all():

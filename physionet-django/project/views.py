@@ -58,6 +58,12 @@ from project.models import (
     AWS,
 )
 from project.modelcomponents.activeproject import ArchiveReason
+from project.modelcomponents.depositterms import (
+    DepositTermsAcceptance,
+    DepositTermsUnavailable,
+    DepositTermsVersion,
+    deposit_terms_enabled,
+)
 from project.modelcomponents.review import ReviewerInvitation
 from project.authorization.access import (
     can_access_project, can_view_project_files, has_required_trainings, is_region_blocked,
@@ -933,6 +939,23 @@ def project_discovery(request, project_slug, **kwargs):
         'is_submitting': is_submitting})
 
 
+def current_deposit_terms():
+    """
+    Return the current deposit terms version, or None if the deposit
+    terms are turned off.
+
+    Raises DepositTermsUnavailable (and logs an error) if they are turned
+    on but the page holding them is missing or empty.
+    """
+    if not deposit_terms_enabled():
+        return None
+    try:
+        return DepositTermsVersion.current()
+    except DepositTermsUnavailable:
+        LOGGER.error('Deposit terms unavailable', exc_info=True)
+        raise
+
+
 @project_auth(auth_mode=0, post_auth_mode=2)
 def project_upload_agreement(request, project_slug, **kwargs):
     """
@@ -944,21 +967,41 @@ def project_upload_agreement(request, project_slug, **kwargs):
     submitting_author = project.submitting_author()
     existing_agreement = getattr(submitting_author, 'upload_agreement', None)
 
-    if request.method == 'POST':
-        upload_agreement_form = forms.UploadAgreementForm(author=submitting_author,
-                                                          data=request.POST,
-                                                          instance=existing_agreement)
+    try:
+        deposit_terms = current_deposit_terms()
+        deposit_terms_unavailable = False
+    except DepositTermsUnavailable:
+        deposit_terms = None
+        deposit_terms_unavailable = True
+    form_kwargs = {
+        'author': submitting_author,
+        'instance': existing_agreement,
+        'require_deposit_terms': deposit_terms_enabled(),
+    }
 
-        if upload_agreement_form.is_valid():
-            upload_agreement_form.save()
+    if request.method == 'POST':
+        upload_agreement_form = forms.UploadAgreementForm(data=request.POST, **form_kwargs)
+
+        if deposit_terms_unavailable:
+            messages.error(request, 'The Deposit Terms are unavailable. Please contact the editors.')
+        elif upload_agreement_form.is_valid():
+            with transaction.atomic():
+                upload_agreement_form.save()
+                if deposit_terms:
+                    DepositTermsAcceptance.record(
+                        project=project,
+                        stage=DepositTermsAcceptance.Stage.UPLOAD,
+                        author_user=submitting_author.user,
+                        accepted_by=request.user,
+                        terms_version=deposit_terms,
+                    )
             messages.success(request, 'Upload agreement has been accepted.')
             return redirect('project_files', project_slug=project.slug)
         else:
             messages.error(request, 'Invalid submission. See errors below.')
     else:
         # Get existing agreement or create new form
-        upload_agreement_form = forms.UploadAgreementForm(author=submitting_author,
-                                                          instance=existing_agreement)
+        upload_agreement_form = forms.UploadAgreementForm(**form_kwargs)
 
     # Disable form fields if not editable
     if not editable:
@@ -970,7 +1013,10 @@ def project_upload_agreement(request, project_slug, **kwargs):
         'upload_agreement_form': upload_agreement_form,
         'existing_agreement': existing_agreement,
         'is_submitting': is_submitting,
-        'editable': editable,
+        'editable': editable and not deposit_terms_unavailable,
+        'deposit_terms': deposit_terms,
+        'deposit_terms_unavailable': deposit_terms_unavailable,
+        'deposit_terms_url': settings.DEPOSIT_TERMS_URL,
     })
 
 
@@ -1530,16 +1576,44 @@ def project_submission(request, project_slug, **kwargs):
                      on behalf of {2}'.format(user, project, author.user))
                 except Author.DoesNotExist:
                     pass
-            # Register the approval if valid
-            if project.approve_author(author):
-                if project.submission_status == SubmissionStatus.NEEDS_PUBLICATION:
-                    messages.success(request, 'You have approved the project for publication. The editor will publish it shortly')
-                    notification.authors_approved_notify(request, project)
+            # Authors must agree to the deposit terms, if they are turned on
+            terms_ok = True
+            deposit_terms = None
+            if deposit_terms_enabled():
+                try:
+                    deposit_terms = current_deposit_terms()
+                except DepositTermsUnavailable:
+                    terms_ok = False
+                    messages.error(request, 'The Deposit Terms are unavailable. Please contact the editors.')
                 else:
-                    messages.success(request, 'You have approved the project for publication.')
-                authors = project.authors.all().order_by('display_order')
-            else:
-                messages.error(request, 'Invalid')
+                    if not request.POST.get('accept_deposit_terms'):
+                        terms_ok = False
+                        messages.error(request, 'Please agree to the Deposit Terms to approve publication.')
+
+            # Register the approval if valid
+            if terms_ok:
+                with transaction.atomic():
+                    approved = project.approve_author(author)
+                    if approved and deposit_terms:
+                        DepositTermsAcceptance.record(
+                            project=project,
+                            stage=DepositTermsAcceptance.Stage.APPROVAL,
+                            author_user=author.user,
+                            accepted_by=user,
+                            terms_version=deposit_terms,
+                        )
+                if approved:
+                    if deposit_terms and author.user != user:
+                        notification.approved_on_behalf_notify(request, project, author, user)
+                    if project.submission_status == SubmissionStatus.NEEDS_PUBLICATION:
+                        messages.success(request, 'You have approved the project for publication. '
+                                                  'The editor will publish it shortly')
+                        notification.authors_approved_notify(request, project)
+                    else:
+                        messages.success(request, 'You have approved the project for publication.')
+                    authors = project.authors.all().order_by('display_order')
+                else:
+                    messages.error(request, 'Invalid')
 
     # Whether the submission is currently waiting for the user to approve
     awaiting_user_approval = False
@@ -1570,6 +1644,7 @@ def project_submission(request, project_slug, **kwargs):
             "copyedit_logs": copyedit_logs,
             "awaiting_user_approval": awaiting_user_approval,
             "contact_email": project.editor_contact_email,
+            "deposit_terms_url": settings.DEPOSIT_TERMS_URL if deposit_terms_enabled() else None,
         },
     )
 
