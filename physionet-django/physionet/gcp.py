@@ -11,11 +11,27 @@ def get_client():
     return GoogleCloudStorage().client
 
 
+def get_challenge_credentials():
+    """Load explicit GCP credentials for the challenge pipeline.
+
+    Returns credentials from CHALLENGE_GOOGLE_CREDENTIALS when set,
+    so the challenge pipeline authenticates independently of the
+    ambient GOOGLE_APPLICATION_CREDENTIALS used by other services.
+    Returns None to fall back to default credentials.
+    """
+    cred_file = getattr(settings, 'CHALLENGE_GOOGLE_CREDENTIALS', '')
+    if not cred_file:
+        return None
+    import google.auth
+    return google.auth.load_credentials_from_file(cred_file)[0]
+
+
 def get_challenge_storage_client():
     """Return a GCS client for challenge data.
 
     Uses the storage emulator when CHALLENGE_STORAGE_EMULATOR_HOST is
-    configured; otherwise falls back to the default GCS client.
+    configured; otherwise uses CHALLENGE_GOOGLE_CREDENTIALS if set,
+    falling back to the default GCS client.
     """
     emulator_host = getattr(settings, 'CHALLENGE_STORAGE_EMULATOR_HOST', '')
     if emulator_host:
@@ -28,6 +44,9 @@ def get_challenge_storage_client():
                 os.environ.pop('STORAGE_EMULATOR_HOST', None)
             else:
                 os.environ['STORAGE_EMULATOR_HOST'] = saved
+    credentials = get_challenge_credentials()
+    if credentials:
+        return Client(credentials=credentials)
     return get_client()
 
 

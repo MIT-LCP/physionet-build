@@ -62,14 +62,20 @@ class ContainerOrchestrator:
     def client(self):
         if self._client is None:
             from google.cloud import run_v2
-            self._client = run_v2.JobsClient()
+            from physionet.gcp import get_challenge_credentials
+            credentials = get_challenge_credentials()
+            self._client = run_v2.JobsClient(
+                credentials=credentials)
         return self._client
 
     @property
     def executions_client(self):
         if self._executions_client is None:
             from google.cloud import run_v2
-            self._executions_client = run_v2.ExecutionsClient()
+            from physionet.gcp import get_challenge_credentials
+            credentials = get_challenge_credentials()
+            self._executions_client = run_v2.ExecutionsClient(
+                credentials=credentials)
         return self._executions_client
 
     @property
