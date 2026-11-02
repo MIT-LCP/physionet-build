@@ -984,6 +984,8 @@ def project_upload_agreement(request, project_slug, **kwargs):
 
         if deposit_terms_unavailable:
             messages.error(request, 'The Deposit Terms are unavailable. Please contact the editors.')
+        elif deposit_terms and request.POST.get('deposit_terms_version') != str(deposit_terms.id):
+            messages.error(request, 'The Deposit Terms have changed. Please read them again below.')
         elif upload_agreement_form.is_valid():
             with transaction.atomic():
                 upload_agreement_form.save()
