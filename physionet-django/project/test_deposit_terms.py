@@ -76,7 +76,10 @@ class TestDepositTerms(TestMixin):
             DepositTermsVersion.current()
 
     def test_upload_agreement_requires_terms(self):
-        UploadAgreement.objects.filter(author=self.project.submitting_author()).delete()
+        # Check the agreement itself, since upload_agreement_accepted() is
+        # always true for projects created before UPLOAD_AGREEMENT_START_DATE
+        submitting_author = self.project.submitting_author()
+        UploadAgreement.objects.filter(author=submitting_author).delete()
         url = reverse('project_upload_agreement', args=(self.project.slug,))
         self.client.force_login(self.submitting_user)
 
@@ -87,12 +90,12 @@ class TestDepositTerms(TestMixin):
         # Without agreeing to the terms
         response = self.client.post(url, data={'no_human_subjects': 'on'})
         self.assertContains(response, 'Please agree to the Deposit Terms.')
-        self.assertFalse(self.project.upload_agreement_accepted())
+        self.assertFalse(UploadAgreement.objects.filter(author=submitting_author).exists())
         self.assertFalse(DepositTermsAcceptance.for_project(self.project).exists())
 
         # Agreeing to the terms
         self.client.post(url, data={'no_human_subjects': 'on', 'accept_deposit_terms': 'on'})
-        self.assertTrue(self.project.upload_agreement_accepted())
+        self.assertTrue(UploadAgreement.objects.get(author=submitting_author).accepted)
         acceptance = DepositTermsAcceptance.for_project(self.project).get()
         self.assertEqual(acceptance.stage, DepositTermsAcceptance.Stage.UPLOAD)
         self.assertEqual(acceptance.author_user, self.submitting_user)
