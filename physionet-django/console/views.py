@@ -63,6 +63,9 @@ from project.models import (
     StorageRequest,
     SubmissionStatus,
     Topic,
+    DepositTermsAcceptance,
+    DepositTermsVersion,
+    deposit_terms_enabled,
     exists_project_slug,
     InternalNote
 )
@@ -443,7 +446,21 @@ def submission_info_card_params(request,
         'internal_note_form': internal_note_form,
         'reviewer_invitations': reviewer_invitations,
         'upload_agreement': upload_agreement,
+        'deposit_terms_acceptances': DepositTermsAcceptance.for_project(project),
+        'deposit_terms_enabled': deposit_terms_enabled(),
     }
+
+
+@console_permission_required('project.change_activeproject')
+def deposit_terms_version(request, version_id):
+    """
+    Show a stored copy of the deposit terms, as agreed to by authors.
+    """
+    version = get_object_or_404(DepositTermsVersion, id=version_id)
+    return render(request, 'console/deposit_terms_version.html', {
+        'version': version,
+        'acceptance_count': version.acceptances.count(),
+    })
 
 
 @console_permission_required('project.change_activeproject')
@@ -1496,6 +1513,7 @@ def manage_published_project(request, project_slug, version):
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
     upload_agreement = getattr(project.submitting_author(), 'upload_agreement', None)
+    deposit_terms_acceptances = DepositTermsAcceptance.for_project(project)
 
     tasks = list(get_associated_tasks(project))
     ro_tasks = [task for (task, read_only) in tasks if read_only]
@@ -1521,6 +1539,7 @@ def manage_published_project(request, project_slug, version):
             'latest_version': latest_version,
             'published': True,
             'upload_agreement': upload_agreement,
+            'deposit_terms_acceptances': deposit_terms_acceptances,
             'topic_form': topic_form,
             'has_credentials': has_credentials,
             'has_s3_credentials': has_s3_credentials(),
@@ -3887,7 +3906,8 @@ def static_page_sections(request, page_pk):
     return render(
         request,
         'console/static_page_sections.html',
-        {'sections': sections, 'page': static_page, 'section_form': section_form},
+        {'sections': sections, 'page': static_page, 'section_form': section_form,
+         'is_deposit_terms_page': static_page.url == settings.DEPOSIT_TERMS_URL},
     )
 
 
@@ -3917,7 +3937,8 @@ def static_page_sections_edit(request, page_pk, section_pk):
     return render(
         request,
         'console/static_page_sections_edit.html',
-        {'section_form': section_form, 'page': static_page, 'section': section},
+        {'section_form': section_form, 'page': static_page, 'section': section,
+         'is_deposit_terms_page': static_page.url == settings.DEPOSIT_TERMS_URL},
     )
 
 

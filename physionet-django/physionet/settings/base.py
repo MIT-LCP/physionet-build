@@ -818,6 +818,11 @@ if _upload_agreement_start:
 else:
     UPLOAD_AGREEMENT_START_DATE = None
 
+# The URL of the static page (managed in the console) holding the terms
+# that authors agree to when submitting and approving a project, e.g.
+# '/about/deposit-terms/'. Leave unset to turn off the deposit terms.
+DEPOSIT_TERMS_URL = config('DEPOSIT_TERMS_URL', default=None)
+
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
 SHOW_PHYSIONET_PACKAGE_DOWNLOAD = config('SHOW_PHYSIONET_PACKAGE_DOWNLOAD', cast=bool, default=False)
 # Redirect downloads of open-access files to the public S3 bucket, if

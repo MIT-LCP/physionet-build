@@ -8,11 +8,12 @@ import pdb
 
 
 import requests_mock
+from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.test.utils import get_runner
 from django.urls import reverse
 from console.forms import CredentialReviewForm
@@ -33,9 +34,11 @@ from project.models import (
     StorageRequest,
     SubmissionStatus,
     UploadAgreement,
+    DepositTermsAcceptance,
+    DepositTermsVersion,
 )
 from user.models import AssociatedEmail, User
-from physionet.models import FrontPageButton, StaticPage
+from physionet.models import FrontPageButton, Section, StaticPage
 from user.test_views import TestMixin, prevent_request_warnings
 
 LOGGER = logging.getLogger(__name__)
@@ -454,6 +457,18 @@ class TestState(TestMixin):
         project = ActiveProject.objects.get(id=project.id)
         self.assertFalse(project.copyeditable())
 
+    def deposit_terms_data(self):
+        """
+        Form data for agreeing to the current deposit terms, if they are
+        turned on.
+        """
+        if not settings.DEPOSIT_TERMS_URL:
+            return {}
+        return {
+            'accept_deposit_terms': 'on',
+            'deposit_terms_version': DepositTermsVersion.current().id,
+        }
+
     def test_approve_publish(self):
         """
         Author approves publication
@@ -508,7 +523,7 @@ class TestState(TestMixin):
         self.client.login(username='rgmark', password='Tester11!')
         response = self.client.post(reverse(
             'project_submission', args=(project.slug,)),
-            data={'approve_publication':''})
+            data={'approve_publication': '', **self.deposit_terms_data()})
         self.assertEqual(get_project().modified_datetime, timestamp)
 
         # Wait for task to prepare project files
@@ -546,6 +561,7 @@ class TestState(TestMixin):
             'project_submission', args=(project.slug,)
         ), data={
             'approve_publication': '',
+            **self.deposit_terms_data(),
         })
         project.refresh_from_db()
         self.assertTrue(project.is_publishable())
@@ -701,6 +717,33 @@ class TestState(TestMixin):
         self.assertContains(response, agreement.selected_data_types()[0])
         self.assertNotContains(
             response, previous_agreement.selected_data_types()[0])
+
+    @override_settings(DEPOSIT_TERMS_URL='/about/deposit-terms/')
+    def test_publish_with_deposit_terms(self):
+        """
+        The authors' agreements to the deposit terms move to the
+        published project.
+        """
+        page = StaticPage.objects.create(title='Deposit Terms', url='/about/deposit-terms/')
+        Section.objects.create(static_page=page, title='Terms', order=1,
+                               content='<p>Publication is permanent.</p>')
+
+        self.test_publish()
+
+        # The author approved twice (before and after the copyedit was
+        # reopened), and both agreements move to the published project
+        project = PublishedProject.objects.get(slug='mitbih')
+        acceptances = DepositTermsAcceptance.for_project(project)
+        self.assertEqual(acceptances.count(), 2)
+        self.assertEqual(DepositTermsAcceptance.objects.count(), 2)
+        acceptance = acceptances.last()
+        self.assertEqual(acceptance.stage, DepositTermsAcceptance.Stage.APPROVAL)
+        self.assertEqual(acceptance.author_user.username, 'rgmark')
+
+        self.client.login(username='admin', password='Tester11!')
+        response = self.client.get(reverse(
+            'manage_published_project', args=(project.slug, project.version)))
+        self.assertContains(response, reverse('deposit_terms_version', args=(acceptance.terms_version_id,)))
 
     def test_publish_with_versions(self):
         """

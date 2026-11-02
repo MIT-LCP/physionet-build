@@ -63,6 +63,7 @@ urlpatterns = [
     # Individual edit pages
     path('submitted-projects/<project_slug>/', views.submission_info_redirect, name='submission_info_redirect'),
     path('submitted-projects/<project_slug>/info/', views.submission_info, name='submission_info'),
+    path('deposit-terms/<int:version_id>/', views.deposit_terms_version, name='deposit_terms_version'),
     path('submitted-projects/<project_slug>/edit/', views.edit_submission, name='edit_submission'),
     path('submitted-projects/<project_slug>/copyedit/', views.copyedit_submission, name='copyedit_submission'),
     path('submitted-projects/<project_slug>/reopen/', views.reopen_copyedit, name='reopen_copyedit'),
@@ -270,6 +271,11 @@ TEST_CASES = {
     },
     'submission_info': {
         'project_slug': 'p7TCIMkltNswuOB9FZH1',
+    },
+    # No deposit terms versions in the demo data
+    'deposit_terms_version': {
+        'version_id': 1,
+        '_skip_': True,
     },
     # Missing demo data (projects in appropriate submission states)
     'edit_submission': {

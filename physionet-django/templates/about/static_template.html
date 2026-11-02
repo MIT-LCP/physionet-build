@@ -28,6 +28,9 @@
         </ul>
       </nav>
     </div><div class="main-content">
+      {% if deposit_terms_version %}
+        {% include "project/deposit_terms_version_label.html" with version=deposit_terms_version %}
+      {% endif %}
       {% for section in sections %}
         <section class="about-section" id="{{ section.title | underscore | lower }}">
           <h2>{{ section.title }}</h2>

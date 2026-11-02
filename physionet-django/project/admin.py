@@ -152,3 +152,32 @@ admin.site.register(GCPLog, LogAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(CompletedTask, CompletedTaskAdmin)
 admin.site.register(models.UploadAgreement, UploadAgreementAdmin)
+
+
+class ReadOnlyAdmin(admin.ModelAdmin):
+    """
+    Records that must not be changed or deleted.
+    """
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class DepositTermsVersionAdmin(ReadOnlyAdmin):
+    list_display = ('title', 'number', 'url', 'created_datetime', 'content_hash')
+
+
+class DepositTermsAcceptanceAdmin(ReadOnlyAdmin):
+    list_display = ('author_name', 'stage', 'on_behalf', 'accepted_by_name', 'accepted_datetime',
+                    'content_type', 'object_id')
+    list_filter = ('stage', 'on_behalf')
+    search_fields = ('author_name', 'author_email', 'accepted_by_name')
+
+
+admin.site.register(models.DepositTermsVersion, DepositTermsVersionAdmin)
+admin.site.register(models.DepositTermsAcceptance, DepositTermsAcceptanceAdmin)
