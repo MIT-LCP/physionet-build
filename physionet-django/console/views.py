@@ -63,7 +63,6 @@ from project.models import (
     StorageRequest,
     SubmissionStatus,
     Topic,
-    UploadAgreement,
     exists_project_slug,
     InternalNote
 )
