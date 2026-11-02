@@ -570,6 +570,14 @@ class TestState(TestMixin):
                 object_id=project.pk, funder_name='Wellcome Trust',
                 funder_identifier='https://ror.org/029chgv08', award_number='123')])
 
+        # The submitting author has accepted the upload agreement
+        submitting_author = project.submitting_author()
+        UploadAgreement.objects.update_or_create(
+            author=submitting_author,
+            defaults={'accepted': True, 'no_human_subjects': True},
+        )
+        agreement_id = submitting_author.upload_agreement.id
+
         # The project description includes links to internal files
         active_file_url = reverse('serve_active_project_file',
                                   args=(project.slug, 'RECORDS'))
@@ -610,6 +618,18 @@ class TestState(TestMixin):
             user__username='rgmark'
         ).affiliations.first()
         self.assertEqual(published_affiliation.country, 'US')
+
+        # The upload agreement is kept, and moves to the published author
+        agreement = UploadAgreement.objects.get(id=agreement_id)
+        self.assertIsNone(agreement.author)
+        self.assertEqual(agreement.published_author,
+                         project.authors.get(is_submitting=True))
+        self.assertTrue(agreement.accepted)
+        response = self.client.get(reverse(
+            'manage_published_project', args=(project.slug, project.version)))
+        self.assertContains(response, 'Upload Agreement:')
+        self.assertContains(response, agreement.selected_data_types()[0])
+
         self.assertEqual(
             [(f.funder_name, f.funder_identifier, f.award_number)
              for f in project.funding.all()],

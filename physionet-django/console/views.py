@@ -63,6 +63,7 @@ from project.models import (
     StorageRequest,
     SubmissionStatus,
     Topic,
+    UploadAgreement,
     exists_project_slug,
     InternalNote
 )
@@ -1495,6 +1496,8 @@ def manage_published_project(request, project_slug, version):
 
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+    upload_agreement = UploadAgreement.objects.filter(
+        published_author__project=project).first()
 
     tasks = list(get_associated_tasks(project))
     ro_tasks = [task for (task, read_only) in tasks if read_only]
@@ -1519,6 +1522,7 @@ def manage_published_project(request, project_slug, version):
             'copyedit_logs': copyedit_logs,
             'latest_version': latest_version,
             'published': True,
+            'upload_agreement': upload_agreement,
             'topic_form': topic_form,
             'has_credentials': has_credentials,
             'has_s3_credentials': has_s3_credentials(),

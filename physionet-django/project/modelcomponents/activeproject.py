@@ -787,6 +787,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         last_name=author_profile.last_name,
                     )
 
+                    # Keep the upload agreement, which would otherwise be
+                    # deleted with the active project's authors
+                    upload_agreement = getattr(author, 'upload_agreement', None)
+                    if upload_agreement:
+                        upload_agreement.published_author = published_author
+                        upload_agreement.author = None
+                        upload_agreement.save(update_fields=['author', 'published_author'])
+
                     affiliations = author.affiliations.all()
                     for affiliation in affiliations:
                         PublishedAffiliation.objects.create(
