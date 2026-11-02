@@ -8,10 +8,13 @@ import json
 from unittest import mock
 
 from django.test import TestCase, override_settings
+from google.auth.credentials import AnonymousCredentials
+from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import run_v2
 
 from challenge.enums import DatasetType
 from challenge.services import ContainerOrchestrator, get_orchestrator
+from physionet.gcp import get_challenge_storage_client
 
 
 def _make_submission_mock(**overrides):
@@ -682,3 +685,41 @@ class TestCloudRunGetOrchestrator(TestCase):
             submission, attempt_id='second')
         self.assertNotEqual(
             first.output_gcs_path, second.output_gcs_path)
+
+
+@override_settings(
+    **_CLOUD_RUN_SETTINGS,
+    CHALLENGE_GOOGLE_CREDENTIALS='/etc/challenge/credentials.json',
+    CHALLENGE_STORAGE_EMULATOR_HOST='',
+)
+class TestChallengeCredentials(TestCase):
+
+    @mock.patch('google.auth.load_credentials_from_file')
+    def test_cloud_run_clients_use_challenge_credentials(
+            self, load_credentials):
+        credentials = AnonymousCredentials()
+        load_credentials.return_value = (credentials, None)
+        orch = ContainerOrchestrator(_make_submission_mock())
+
+        with mock.patch.object(run_v2, 'JobsClient') as jobs, \
+                mock.patch.object(run_v2, 'ExecutionsClient') as executions:
+            orch.client
+            orch.executions_client
+
+        jobs.assert_called_once_with(credentials=credentials)
+        executions.assert_called_once_with(credentials=credentials)
+
+    @mock.patch('google.auth.default')
+    @mock.patch('google.auth.load_credentials_from_file')
+    def test_storage_client_does_not_use_default_credentials(
+            self, load_credentials, default):
+        load_credentials.return_value = (AnonymousCredentials(), None)
+        default.side_effect = DefaultCredentialsError(
+            'No default credentials')
+
+        client = get_challenge_storage_client()
+
+        load_credentials.assert_called_once_with(
+            '/etc/challenge/credentials.json')
+        default.assert_not_called()
+        self.assertEqual(client.project, 'test-project')
