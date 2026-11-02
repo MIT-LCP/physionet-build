@@ -11,7 +11,7 @@
 </p>
 <ul>
   <li>Page: {{ version.title }} ({{ version.url }})</li>
-  <li>In effect since: {{ version.created_datetime|date:"N j, Y, H:i" }} (when this text was first shown)</li>
+  <li>In effect since: {{ version.created_datetime|date:"N j, Y, H:i" }} (when this version was first shown)</li>
   <li>Agreements to this text: {{ acceptance_count }}</li>
   <li>Fingerprint (SHA-256): <code>{{ version.content_hash }}</code></li>
 </ul>

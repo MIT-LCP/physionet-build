@@ -28,18 +28,20 @@ class DepositTermsVersion(models.Model):
 
     The terms are kept on a static page that can be edited in the console,
     and static pages keep no history. Whenever the page is shown or agreed
-    to, its current text is stored here (once for each distinct text), so
+    to, its text is stored here if it differs from the latest version, so
     we can always show exactly what someone agreed to.
 
-    Each new text gets the next version number, and created_datetime is
-    when that text was first shown. The page itself shouldn't contain a
-    version number or date, since the site displays these.
+    Each change gets the next version number, and created_datetime is when
+    that version was first shown. Going back to an earlier text creates a
+    new version, so the date shown is when the text most recently took
+    effect. The page itself shouldn't contain a version number or date,
+    since the site displays these.
     """
     url = models.CharField(max_length=64)
     number = models.PositiveIntegerField()
     title = models.CharField(max_length=64)
     content = models.TextField()
-    content_hash = models.CharField(max_length=64, unique=True)
+    content_hash = models.CharField(max_length=64, db_index=True)
     created_datetime = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -75,13 +77,12 @@ class DepositTermsVersion(models.Model):
         content_hash = hashlib.sha256(
             '\n'.join([page.url, page.title, content]).encode()
         ).hexdigest()
-        # Two requests may store a new text at the same moment, so retry
-        # if the hash or the version number is taken.
+        # Two requests may store a new version at the same moment, so retry
+        # if the version number is taken.
         for _ in range(3):
-            version = cls.objects.filter(content_hash=content_hash).first()
-            if version:
-                return version
             last = cls.objects.filter(url=page.url).order_by('-number').first()
+            if last and last.content_hash == content_hash:
+                return last
             try:
                 with transaction.atomic():
                     return cls.objects.create(
@@ -93,7 +94,10 @@ class DepositTermsVersion(models.Model):
                     )
             except IntegrityError:
                 continue
-        return cls.objects.get(content_hash=content_hash)
+        last = cls.objects.filter(url=page.url).order_by('-number').first()
+        if last and last.content_hash == content_hash:
+            return last
+        raise DepositTermsUnavailable(f'Could not store the terms at {page.url}')
 
 
 class DepositTermsAcceptance(models.Model):

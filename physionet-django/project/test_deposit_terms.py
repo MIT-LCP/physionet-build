@@ -81,10 +81,15 @@ class TestDepositTerms(TestMixin):
         self.assertEqual(DepositTermsVersion.objects.count(), 2)
         self.assertEqual((version.number, new_version.number), (1, 2))
 
-        # Going back to an earlier text reuses its version
+        # Going back to an earlier text creates a new version, so the
+        # version shown is in effect from the date it was restored
         self.section.content = '<p>You keep the copyright in your work.</p>'
         self.section.save()
-        self.assertEqual(DepositTermsVersion.current(), version)
+        restored = DepositTermsVersion.current()
+        self.assertEqual(restored.number, 3)
+        self.assertEqual(restored.content, version.content)
+        self.assertGreater(restored.created_datetime, new_version.created_datetime)
+        self.assertEqual(DepositTermsVersion.current(), restored)
 
     def test_terms_page_shows_version(self):
         # Showing the page stores its text as a version, before anyone

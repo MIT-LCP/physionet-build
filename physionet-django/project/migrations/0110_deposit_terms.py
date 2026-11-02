@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                 ('number', models.PositiveIntegerField()),
                 ('title', models.CharField(max_length=64)),
                 ('content', models.TextField()),
-                ('content_hash', models.CharField(max_length=64, unique=True)),
+                ('content_hash', models.CharField(db_index=True, max_length=64)),
                 ('created_datetime', models.DateTimeField(auto_now_add=True)),
             ],
             options={
