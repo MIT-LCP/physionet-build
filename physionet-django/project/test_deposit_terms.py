@@ -88,7 +88,8 @@ class TestDepositTerms(TestMixin):
         self.assertContains(response, 'I have read and agree to the Deposit Terms.')
 
         # Without agreeing to the terms
-        response = self.client.post(url, data={'no_human_subjects': 'on'})
+        response = self.client.post(url, data={
+            'no_human_subjects': 'on', 'deposit_terms_version': version_id})
         self.assertContains(response, 'Please agree to the Deposit Terms.')
         self.assertFalse(UploadAgreement.objects.filter(author=submitting_author).exists())
         self.assertFalse(DepositTermsAcceptance.for_project(self.project).exists())
