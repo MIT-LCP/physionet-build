@@ -96,6 +96,7 @@
         <div class="deposit-terms-text border rounded p-3 mb-3" style="max-height: 20rem; overflow-y: auto;">
           {{ deposit_terms.content|safe }}
         </div>
+        <input type="hidden" name="deposit_terms_version" value="{{ deposit_terms.id }}">
         <div class="form-group">
           <div class="form-check">
             {{ upload_agreement_form.accept_deposit_terms }}
