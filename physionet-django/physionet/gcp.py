@@ -46,7 +46,9 @@ def get_challenge_storage_client():
                 os.environ['STORAGE_EMULATOR_HOST'] = saved
     credentials = get_challenge_credentials()
     if credentials:
-        return Client(credentials=credentials)
+        return Client(
+            project=getattr(settings, 'CHALLENGE_GCP_PROJECT_ID', '') or None,
+            credentials=credentials)
     return get_client()
 
 
