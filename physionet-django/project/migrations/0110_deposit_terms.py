@@ -21,6 +21,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(
                     auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('url', models.CharField(max_length=64)),
+                ('number', models.PositiveIntegerField()),
                 ('title', models.CharField(max_length=64)),
                 ('content', models.TextField()),
                 ('content_hash', models.CharField(max_length=64, unique=True)),
@@ -29,6 +30,8 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ('created_datetime',),
                 'default_permissions': (),
+                'constraints': [models.UniqueConstraint(
+                    fields=('url', 'number'), name='unique_deposit_terms_version_number')],
             },
         ),
         migrations.CreateModel(

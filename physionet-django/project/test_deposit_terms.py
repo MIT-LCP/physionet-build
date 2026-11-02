@@ -49,11 +49,21 @@ class TestDepositTerms(TestMixin):
         project.copyedit_completion_datetime = timezone.now()
         project.save()
 
-    def approve(self, user, on_behalf_of=None, accept=True):
+    def approve(self, user, on_behalf_of=None, accept=True, version_id=None):
+        """
+        Approve publication, agreeing to the given version of the terms
+        (by default, the current version, as shown in the dialog).
+        """
         self.client.force_login(user)
         data = {'approve_publication': str(on_behalf_of.id) if on_behalf_of else ''}
         if accept:
             data['accept_deposit_terms'] = 'on'
+        if version_id is None:
+            try:
+                version_id = DepositTermsVersion.current().id
+            except DepositTermsUnavailable:
+                version_id = ''
+        data['deposit_terms_version'] = version_id
         return self.client.post(
             reverse('project_submission', args=(self.project.slug,)), data=data, follow=True)
 
@@ -69,6 +79,33 @@ class TestDepositTerms(TestMixin):
         new_version = DepositTermsVersion.current()
         self.assertNotEqual(new_version, version)
         self.assertEqual(DepositTermsVersion.objects.count(), 2)
+        self.assertEqual((version.number, new_version.number), (1, 2))
+
+        # Going back to an earlier text reuses its version
+        self.section.content = '<p>You keep the copyright in your work.</p>'
+        self.section.save()
+        self.assertEqual(DepositTermsVersion.current(), version)
+
+    def test_terms_page_shows_version(self):
+        # Showing the page stores its text as a version, before anyone
+        # has agreed to it
+        self.assertFalse(DepositTermsVersion.objects.exists())
+        response = self.client.get(TERMS_URL)
+        version = DepositTermsVersion.objects.get()
+        self.assertContains(response, 'Version 1 · In effect since')
+        self.assertContains(response, 'You keep the copyright in your work.')
+
+        self.section.content = '<p>You keep ownership of your work.</p>'
+        self.section.save()
+        response = self.client.get(TERMS_URL)
+        self.assertContains(response, 'Version 2 · In effect since')
+        self.assertEqual(DepositTermsVersion.objects.exclude(id=version.id).get().number, 2)
+
+    @override_settings(DEPOSIT_TERMS_URL=None)
+    def test_terms_page_has_no_version_when_turned_off(self):
+        response = self.client.get(TERMS_URL)
+        self.assertNotContains(response, 'In effect since')
+        self.assertFalse(DepositTermsVersion.objects.exists())
 
     @override_settings(DEPOSIT_TERMS_URL='/about/missing/')
     def test_missing_page_is_unavailable(self):
@@ -145,7 +182,26 @@ class TestDepositTerms(TestMixin):
         self.client.force_login(self.submitting_user)
         response = self.client.get(reverse('project_submission', args=(self.project.slug,)))
         self.assertContains(response, 'name="accept_deposit_terms"', count=2)
+        version = DepositTermsVersion.current()
+        self.assertContains(
+            response, f'name="deposit_terms_version" value="{version.id}"', count=2)
+        self.assertContains(response, 'Deposit Terms</a> (version 1)', count=2)
         self.assertContains(response, f'I confirm that {self.coauthor_user.get_full_name()} has reviewed')
+
+    def test_approval_refused_when_terms_changed(self):
+        self.make_awaiting_approval()
+        version_id = DepositTermsVersion.current().id
+
+        # The terms are edited after the author opened the page
+        self.section.content = '<p>You keep ownership of your work.</p>'
+        self.section.save()
+        response = self.approve(self.submitting_user, version_id=version_id)
+        self.assertContains(response, 'The Deposit Terms have changed since you opened this page.')
+        self.assertIsNone(self.project.authors.get(user=self.submitting_user).approval_datetime)
+        self.assertFalse(DepositTermsAcceptance.objects.exists())
+
+        # The page now shows the new version
+        self.assertContains(response, 'Deposit Terms</a> (version 2)')
 
     def test_approval_on_behalf_is_recorded_and_notified(self):
         self.make_awaiting_approval()

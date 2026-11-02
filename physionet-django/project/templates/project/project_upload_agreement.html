@@ -8,8 +8,10 @@
 {% block local_css %}
 {{ block.super }}
 <style>
-  .deposit-terms-text h2 { font-size: 1.1rem; font-weight: bold; margin-top: 1rem; }
-  .deposit-terms-text h2:first-child { margin-top: 0; }
+  /* Also match .modern-ui, whose h2 style would otherwise take precedence */
+  .deposit-terms-text h2, .modern-ui .deposit-terms-text h2 { font-size: 1.1rem; font-weight: bold; margin-top: 1rem; }
+  .deposit-terms-text .deposit-terms-version + h2,
+  .modern-ui .deposit-terms-text .deposit-terms-version + h2 { margin-top: 0; }
 </style>
 {% endblock %}
 
@@ -94,6 +96,7 @@
         <hr>
         <p><strong>Deposit Terms</strong> (<a href="{{ deposit_terms_url }}" target="_blank">open in a new tab</a>)</p>
         <div class="deposit-terms-text border rounded p-3 mb-3" style="max-height: 20rem; overflow-y: auto;">
+          {% include "project/deposit_terms_version_label.html" with version=deposit_terms %}
           {{ deposit_terms.content|safe }}
         </div>
         <input type="hidden" name="deposit_terms_version" value="{{ deposit_terms.id }}">

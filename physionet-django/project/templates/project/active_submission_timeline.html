@@ -29,11 +29,12 @@
                       <div class="modal-body">
                         {% csrf_token %}
                         <p>If you are satisfied with the final state of the project, you may approve the publication.</p>
-                        {% if deposit_terms_url %}
+                        {% if deposit_terms %}
+                          <input type="hidden" name="deposit_terms_version" value="{{ deposit_terms.id }}">
                           <label class="d-flex align-items-start mb-0">
                             <input type="checkbox" name="accept_deposit_terms" id="accept-deposit-terms" required
                                    style="width: auto; flex: none; margin: 0.3rem 0.5rem 0 0;">
-                            <span>I have read and agree to the <a href="{{ deposit_terms_url }}" target="_blank">Deposit Terms</a>.</span>
+                            <span>I have read and agree to the <a href="{{ deposit_terms_url }}" target="_blank">Deposit Terms</a> (version {{ deposit_terms.number }}).</span>
                           </label>
                         {% endif %}
                       </div>

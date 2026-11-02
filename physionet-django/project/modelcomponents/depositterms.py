@@ -3,7 +3,7 @@ import hashlib
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 from django.utils.html import escape
 
@@ -27,11 +27,16 @@ class DepositTermsVersion(models.Model):
     A copy of the deposit terms, as they were when an author agreed to them.
 
     The terms are kept on a static page that can be edited in the console,
-    and static pages keep no history. Each time someone agrees to the
-    terms, the page's current text is stored here (once for each distinct
-    text), so we can always show exactly what they agreed to.
+    and static pages keep no history. Whenever the page is shown or agreed
+    to, its current text is stored here (once for each distinct text), so
+    we can always show exactly what someone agreed to.
+
+    Each new text gets the next version number, and created_datetime is
+    when that text was first shown. The page itself shouldn't contain a
+    version number or date, since the site displays these.
     """
     url = models.CharField(max_length=64)
+    number = models.PositiveIntegerField()
     title = models.CharField(max_length=64)
     content = models.TextField()
     content_hash = models.CharField(max_length=64, unique=True)
@@ -40,9 +45,12 @@ class DepositTermsVersion(models.Model):
     class Meta:
         default_permissions = ()
         ordering = ('created_datetime',)
+        constraints = [
+            models.UniqueConstraint(fields=['url', 'number'], name='unique_deposit_terms_version_number'),
+        ]
 
     def __str__(self):
-        return f'{self.title} ({self.created_datetime:%Y-%m-%d}, {self.content_hash[:10]})'
+        return f'{self.title}, version {self.number}'
 
     @classmethod
     def current(cls):
@@ -67,11 +75,25 @@ class DepositTermsVersion(models.Model):
         content_hash = hashlib.sha256(
             '\n'.join([page.url, page.title, content]).encode()
         ).hexdigest()
-        version, _ = cls.objects.get_or_create(
-            content_hash=content_hash,
-            defaults={'url': page.url, 'title': page.title, 'content': content},
-        )
-        return version
+        # Two requests may store a new text at the same moment, so retry
+        # if the hash or the version number is taken.
+        for _ in range(3):
+            version = cls.objects.filter(content_hash=content_hash).first()
+            if version:
+                return version
+            last = cls.objects.filter(url=page.url).order_by('-number').first()
+            try:
+                with transaction.atomic():
+                    return cls.objects.create(
+                        url=page.url,
+                        number=(last.number + 1) if last else 1,
+                        title=page.title,
+                        content=content,
+                        content_hash=content_hash,
+                    )
+            except IntegrityError:
+                continue
+        return cls.objects.get(content_hash=content_hash)
 
 
 class DepositTermsAcceptance(models.Model):

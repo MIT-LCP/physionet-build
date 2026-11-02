@@ -8,6 +8,7 @@ import pdb
 
 
 import requests_mock
+from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
@@ -34,6 +35,7 @@ from project.models import (
     SubmissionStatus,
     UploadAgreement,
     DepositTermsAcceptance,
+    DepositTermsVersion,
 )
 from user.models import AssociatedEmail, User
 from physionet.models import FrontPageButton, Section, StaticPage
@@ -455,6 +457,18 @@ class TestState(TestMixin):
         project = ActiveProject.objects.get(id=project.id)
         self.assertFalse(project.copyeditable())
 
+    def deposit_terms_data(self):
+        """
+        Form data for agreeing to the current deposit terms, if they are
+        turned on.
+        """
+        if not settings.DEPOSIT_TERMS_URL:
+            return {}
+        return {
+            'accept_deposit_terms': 'on',
+            'deposit_terms_version': DepositTermsVersion.current().id,
+        }
+
     def test_approve_publish(self):
         """
         Author approves publication
@@ -509,7 +523,7 @@ class TestState(TestMixin):
         self.client.login(username='rgmark', password='Tester11!')
         response = self.client.post(reverse(
             'project_submission', args=(project.slug,)),
-            data={'approve_publication': '', 'accept_deposit_terms': 'on'})
+            data={'approve_publication': '', **self.deposit_terms_data()})
         self.assertEqual(get_project().modified_datetime, timestamp)
 
         # Wait for task to prepare project files
@@ -547,7 +561,7 @@ class TestState(TestMixin):
             'project_submission', args=(project.slug,)
         ), data={
             'approve_publication': '',
-            'accept_deposit_terms': 'on',
+            **self.deposit_terms_data(),
         })
         project.refresh_from_db()
         self.assertTrue(project.is_publishable())

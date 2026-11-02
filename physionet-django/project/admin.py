@@ -169,7 +169,7 @@ class ReadOnlyAdmin(admin.ModelAdmin):
 
 
 class DepositTermsVersionAdmin(ReadOnlyAdmin):
-    list_display = ('title', 'url', 'created_datetime', 'content_hash')
+    list_display = ('title', 'number', 'url', 'created_datetime', 'content_hash')
 
 
 class DepositTermsAcceptanceAdmin(ReadOnlyAdmin):

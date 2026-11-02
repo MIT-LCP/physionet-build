@@ -16,6 +16,11 @@ from notification.models import News
 from physionet.models import FrontPageButton, Section, StaticPage
 from physionet.middleware.maintenance import allow_post_during_maintenance
 from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
+from project.modelcomponents.depositterms import (
+    DepositTermsUnavailable,
+    DepositTermsVersion,
+    deposit_terms_enabled,
+)
 
 
 def home(request):
@@ -189,5 +194,13 @@ def static_view(request, static_url=None):
 
     sections = Section.objects.filter(static_page=static_page)
     params = {'static_page': static_page, 'sections': sections}
+
+    # The deposit terms page shows its version, which is stored (if new)
+    # when the page is first shown
+    if deposit_terms_enabled() and static_page.url == settings.DEPOSIT_TERMS_URL:
+        try:
+            params['deposit_terms_version'] = DepositTermsVersion.current()
+        except DepositTermsUnavailable:
+            pass
 
     return render(request, 'about/static_template.html', params)

@@ -1591,6 +1591,11 @@ def project_submission(request, project_slug, **kwargs):
                     if not request.POST.get('accept_deposit_terms'):
                         terms_ok = False
                         messages.error(request, 'Please agree to the Deposit Terms to approve publication.')
+                    elif request.POST.get('deposit_terms_version') != str(deposit_terms.id):
+                        # The terms were edited after the page was loaded
+                        terms_ok = False
+                        messages.error(request, 'The Deposit Terms have changed since you opened this page. '
+                                                'Please read them again before approving.')
 
             # Register the approval if valid
             if terms_ok:
@@ -1616,6 +1621,14 @@ def project_submission(request, project_slug, **kwargs):
                     authors = project.authors.all().order_by('display_order')
                 else:
                     messages.error(request, 'Invalid')
+
+    # The deposit terms shown in the approval dialogs
+    deposit_terms = None
+    if deposit_terms_enabled():
+        try:
+            deposit_terms = current_deposit_terms()
+        except DepositTermsUnavailable:
+            pass
 
     # Whether the submission is currently waiting for the user to approve
     awaiting_user_approval = False
@@ -1647,6 +1660,7 @@ def project_submission(request, project_slug, **kwargs):
             "awaiting_user_approval": awaiting_user_approval,
             "contact_email": project.editor_contact_email,
             "deposit_terms_url": settings.DEPOSIT_TERMS_URL if deposit_terms_enabled() else None,
+            "deposit_terms": deposit_terms,
         },
     )
 

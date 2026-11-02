@@ -7,7 +7,7 @@
         {% if acceptance.on_behalf %}
           <span class="badge badge-warning">On behalf</span> agreed by {{ acceptance.accepted_by_name }}
         {% endif %}
-        (<a href="{% url 'deposit_terms_version' acceptance.terms_version_id %}" target="_blank">terms agreed to</a>)
+        (<a href="{% url 'deposit_terms_version' acceptance.terms_version_id %}" target="_blank">terms version {{ acceptance.terms_version.number }}</a>)
       </li>
     {% endfor %}
   </ul>
