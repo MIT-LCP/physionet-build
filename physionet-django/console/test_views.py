@@ -570,6 +570,14 @@ class TestState(TestMixin):
                 object_id=project.pk, funder_name='Wellcome Trust',
                 funder_identifier='https://ror.org/029chgv08', award_number='123')])
 
+        # The submitting author has accepted the upload agreement
+        submitting_author = project.submitting_author()
+        UploadAgreement.objects.update_or_create(
+            author=submitting_author,
+            defaults={'accepted': True, 'no_human_subjects': True},
+        )
+        agreement_id = submitting_author.upload_agreement.id
+
         # The project description includes links to internal files
         active_file_url = reverse('serve_active_project_file',
                                   args=(project.slug, 'RECORDS'))
@@ -610,6 +618,18 @@ class TestState(TestMixin):
             user__username='rgmark'
         ).affiliations.first()
         self.assertEqual(published_affiliation.country, 'US')
+
+        # The upload agreement is kept, and moves to the published author
+        agreement = UploadAgreement.objects.get(id=agreement_id)
+        self.assertIsNone(agreement.author)
+        self.assertEqual(agreement.published_author,
+                         project.authors.get(is_submitting=True))
+        self.assertTrue(agreement.accepted)
+        response = self.client.get(reverse(
+            'manage_published_project', args=(project.slug, project.version)))
+        self.assertContains(response, 'Upload Agreement:')
+        self.assertContains(response, agreement.selected_data_types()[0])
+
         self.assertEqual(
             [(f.funder_name, f.funder_identifier, f.award_number)
              for f in project.funding.all()],
@@ -645,6 +665,42 @@ class TestState(TestMixin):
                       project.usage_notes)
         self.assertIn('href="{}"'.format(published_preview_url),
                       project.usage_notes)
+
+    def test_published_project_shows_submitting_author_agreement(self):
+        """
+        Test that the published project page shows the submitting author's
+        upload agreement, not one accepted by a previous submitting author.
+        """
+        self.test_approve_publish()
+        self.client.login(username='admin', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        submitting_author = project.submitting_author()
+
+        # A co-author accepted an agreement before the project was
+        # transferred to the current submitting author, who then accepted
+        # their own
+        UploadAgreement.objects.filter(author=submitting_author).delete()
+        previous_author = Author.objects.create(
+            project=project, user=User.objects.get(username='aewj'),
+            display_order=2,
+            approval_datetime=submitting_author.approval_datetime)
+        previous_author.affiliations.create(name='MIT')
+        previous_agreement = UploadAgreement.objects.create(
+            author=previous_author, accepted=True, derived_data=True)
+        agreement = UploadAgreement.objects.create(
+            author=submitting_author, accepted=True, no_human_subjects=True)
+
+        self.client.post(reverse(
+            'publish_submission', args=(project.slug,)),
+            data={'slug': 'mitbih', 'doi': False, 'make_zip': 1, 'georestricted': False})
+        self.assertBackgroundTasks(2)
+
+        project = PublishedProject.objects.get(slug='mitbih')
+        response = self.client.get(reverse(
+            'manage_published_project', args=(project.slug, project.version)))
+        self.assertContains(response, agreement.selected_data_types()[0])
+        self.assertNotContains(
+            response, previous_agreement.selected_data_types()[0])
 
     def test_publish_with_versions(self):
         """

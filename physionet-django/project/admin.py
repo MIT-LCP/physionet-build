@@ -90,14 +90,15 @@ class LogAdmin(admin.ModelAdmin):
 
 
 class UploadAgreementAdmin(admin.ModelAdmin):
-    list_display = ('author', 'accepted', 'accepted_datetime', 'created_datetime')
+    list_display = ('__str__', 'accepted', 'accepted_datetime', 'created_datetime')
     list_filter = ('accepted', 'no_human_subjects', 'derived_data', 'human_subjects_deidentified')
-    search_fields = ('author__user__username',)
+    search_fields = ('author__user__username', 'published_author__user__username')
+    raw_id_fields = ('author', 'published_author')
     readonly_fields = ('created_datetime', 'updated_datetime')
 
     fieldsets = (
         ('Author Information', {
-            'fields': ('author',)
+            'fields': ('author', 'published_author')
         }),
         ('Agreement Status', {
             'fields': ('accepted', 'accepted_datetime')
