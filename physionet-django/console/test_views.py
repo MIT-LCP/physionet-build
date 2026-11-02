@@ -666,6 +666,42 @@ class TestState(TestMixin):
         self.assertIn('href="{}"'.format(published_preview_url),
                       project.usage_notes)
 
+    def test_published_project_shows_submitting_author_agreement(self):
+        """
+        Test that the published project page shows the submitting author's
+        upload agreement, not one accepted by a previous submitting author.
+        """
+        self.test_approve_publish()
+        self.client.login(username='admin', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        submitting_author = project.submitting_author()
+
+        # A co-author accepted an agreement before the project was
+        # transferred to the current submitting author, who then accepted
+        # their own
+        UploadAgreement.objects.filter(author=submitting_author).delete()
+        previous_author = Author.objects.create(
+            project=project, user=User.objects.get(username='aewj'),
+            display_order=2,
+            approval_datetime=submitting_author.approval_datetime)
+        previous_author.affiliations.create(name='MIT')
+        previous_agreement = UploadAgreement.objects.create(
+            author=previous_author, accepted=True, derived_data=True)
+        agreement = UploadAgreement.objects.create(
+            author=submitting_author, accepted=True, no_human_subjects=True)
+
+        self.client.post(reverse(
+            'publish_submission', args=(project.slug,)),
+            data={'slug': 'mitbih', 'doi': False, 'make_zip': 1, 'georestricted': False})
+        self.assertBackgroundTasks(2)
+
+        project = PublishedProject.objects.get(slug='mitbih')
+        response = self.client.get(reverse(
+            'manage_published_project', args=(project.slug, project.version)))
+        self.assertContains(response, agreement.selected_data_types()[0])
+        self.assertNotContains(
+            response, previous_agreement.selected_data_types()[0])
+
     def test_publish_with_versions(self):
         """
         Test publishing a project with multiple versions.
