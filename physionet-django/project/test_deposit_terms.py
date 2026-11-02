@@ -106,6 +106,24 @@ class TestDepositTerms(TestMixin):
         self.assertFalse(acceptance.on_behalf)
         self.assertEqual(acceptance.terms_version, DepositTermsVersion.current())
 
+    def test_upload_agreement_refused_when_terms_changed(self):
+        submitting_author = self.project.submitting_author()
+        UploadAgreement.objects.filter(author=submitting_author).delete()
+        url = reverse('project_upload_agreement', args=(self.project.slug,))
+        self.client.force_login(self.submitting_user)
+        version_id = DepositTermsVersion.current().id
+
+        # The terms are edited after the author opened the page
+        self.section.content = '<p>You keep ownership of your work.</p>'
+        self.section.save()
+        response = self.client.post(url, data={
+            'no_human_subjects': 'on', 'accept_deposit_terms': 'on',
+            'deposit_terms_version': version_id})
+        self.assertContains(response, 'The Deposit Terms have changed.')
+        self.assertContains(response, 'You keep ownership of your work.')
+        self.assertFalse(UploadAgreement.objects.filter(author=submitting_author).exists())
+        self.assertFalse(DepositTermsAcceptance.for_project(self.project).exists())
+
     def test_approval_requires_terms(self):
         self.make_awaiting_approval()
 
