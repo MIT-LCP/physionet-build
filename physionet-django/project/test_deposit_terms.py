@@ -95,7 +95,9 @@ class TestDepositTerms(TestMixin):
         self.assertFalse(DepositTermsAcceptance.for_project(self.project).exists())
 
         # Agreeing to the terms
-        self.client.post(url, data={'no_human_subjects': 'on', 'accept_deposit_terms': 'on'})
+        self.client.post(url, data={
+            'no_human_subjects': 'on', 'accept_deposit_terms': 'on',
+            'deposit_terms_version': version_id})
         self.assertTrue(UploadAgreement.objects.get(author=submitting_author).accepted)
         acceptance = DepositTermsAcceptance.for_project(self.project).get()
         self.assertEqual(acceptance.stage, DepositTermsAcceptance.Stage.UPLOAD)
