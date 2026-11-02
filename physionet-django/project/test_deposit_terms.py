@@ -86,6 +86,7 @@ class TestDepositTerms(TestMixin):
         response = self.client.get(url)
         self.assertContains(response, 'You keep the copyright in your work.')
         self.assertContains(response, 'I have read and agree to the Deposit Terms.')
+        version_id = DepositTermsVersion.current().id
 
         # Without agreeing to the terms
         response = self.client.post(url, data={
