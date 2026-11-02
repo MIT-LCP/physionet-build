@@ -1496,8 +1496,7 @@ def manage_published_project(request, project_slug, version):
 
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
-    upload_agreement = UploadAgreement.objects.filter(
-        published_author__project=project).first()
+    upload_agreement = getattr(project.submitting_author(), 'upload_agreement', None)
 
     tasks = list(get_associated_tasks(project))
     ro_tasks = [task for (task, read_only) in tasks if read_only]
