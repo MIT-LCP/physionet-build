@@ -79,13 +79,42 @@ ln -s $install_dir/.env $working_dir/.env
 
 . $venv_dir/bin/activate
 
-# Install new dependencies from 'requirements.txt' into $venv_dir
+# Install new dependencies from 'uv.lock' into $venv_dir
 if [ -n "$no_pip" ]; then
     echo "- SKIPPING requirements due to --push-option=no-pip"
 else
     echo "* Installing new requirements..."
-    pip3 install -r $working_dir/requirements.txt \
-         --quiet --require-hashes --log $log_file
+    (
+        cd $working_dir
+        # Install into the existing virtualenv, using its Python.
+        # Never download a Python, and copy files rather than linking
+        # them from pn's uv cache. Dev packages are still installed,
+        # as they were with requirements.txt.
+        export UV_PROJECT_ENVIRONMENT=$venv_dir
+        export UV_PYTHON_DOWNLOADS=never
+        export UV_LINK_MODE=copy
+        # Write .pyc files now, as pip did. The server runs as www-data,
+        # which can't write them into pn's environment, so without this
+        # every process would recompile every module it imports.
+        export UV_COMPILE_BYTECODE=1
+
+        # uv deletes and recreates the environment if it doesn't match
+        # the project (e.g. a different Python version). Doing that to
+        # the live environment would break the running server, so
+        # refuse and leave it to an administrator.
+        if ! plan=$(uv sync --locked --dry-run --no-progress 2>&1); then
+            echo "$plan" >&2
+            exit 1
+        fi
+        echo "$plan" >> $log_file
+        if echo "$plan" | grep -q "Would replace project environment"; then
+            echo "ERROR: uv would replace $venv_dir. Aborting." >&2
+            echo "$plan" >&2
+            exit 1
+        fi
+
+        uv sync --locked --no-progress
+    )
     echo >> $log_file
 fi
 

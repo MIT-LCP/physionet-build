@@ -87,6 +87,14 @@ fi
 
 ################################################################
 
+# uv installs the site's Python packages from uv.lock (see deploy/update).
+# Install a pinned version in its own virtualenv.
+virtualenv --no-download -ppython3 /opt/uv
+/opt/uv/bin/pip3 install uv==0.13.6
+ln -sf /opt/uv/bin/uv /usr/local/bin/uv
+
+################################################################
+
 cd /
 
 DBPASSWORD=$(dd if=/dev/urandom bs=1 count=24 | base64)
@@ -153,8 +161,11 @@ su pn -c '
    #cd /physionet/physionet-build.git
    #./hooks/post-receive
 
+   cd /physionet/physionet-build
+   UV_PROJECT_ENVIRONMENT=/physionet/python-env/physionet \
+       UV_PYTHON_DOWNLOADS=never UV_LINK_MODE=copy UV_COMPILE_BYTECODE=1 \
+       uv sync --locked
    cd /physionet/physionet-build/physionet-django
-   pip3 install -r ../requirements.txt
    python3 manage.py compilestatic
    python3 manage.py collectstatic --no-input
 

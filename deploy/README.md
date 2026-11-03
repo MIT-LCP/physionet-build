@@ -49,6 +49,10 @@ apt-get install -y python3-dev python3-pip build-essential libpq-dev postgresql 
 apt-get install upgrade
 pip3 install --upgrade pip
 pip3 install virtualenv uwsgi
+# uv installs the site's Python packages (see "Python packages" below)
+virtualenv -p/usr/bin/python3 /opt/uv
+/opt/uv/bin/pip3 install uv==0.13.6
+ln -sf /opt/uv/bin/uv /usr/local/bin/uv
 ```
 
 ## Dedicated User
@@ -142,6 +146,38 @@ Touch the uwsgi vassal file to force the emperor process to start new workers wh
 
 `touch /etc/uwsgi/vassals/physionet_uwsgi.ini`
 
+
+## Python packages
+
+The `update` hook (`deploy/update`, copied to `/physionet/physionet-build.git/hooks/update`) installs Python packages on every push. It runs `uv sync --locked` to make `/physionet/python-env/physionet` match `uv.lock` exactly: changed packages are upgraded, and packages that are no longer in `uv.lock` are removed. uWSGI, the background task services and cron all use that environment, so their configuration doesn't change.
+
+The hook runs as `pn`, so the environment stays owned by `pn` and readable by `www-data`, which runs the site. It also compiles `.pyc` files at install time (`UV_COMPILE_BYTECODE=1`), as pip did: `www-data` can't write them into `pn`'s environment, so otherwise every process would recompile every module it imports. **Never run `uv sync` on the environment as root or with `sudo`**: root-owned files would make the next push fail.
+
+Before installing anything, the hook does a dry run. If uv would delete and recreate the environment (for example, because its Python version doesn't satisfy `pyproject.toml`), the hook aborts and the push is rejected, so the running site is never left without its packages.
+
+### Switching an existing server from pip to uv
+
+Servers set up before the move to uv install packages from `requirements.txt` with pip. To switch one, as the `pn` user:
+
+1. Install uv (as root), as in "System Packages" above.
+2. Check what uv would change, from a checkout that contains `uv.lock`:
+   ```
+   cd /physionet/physionet-build
+   . /physionet/python-env/physionet/bin/activate
+   UV_PROJECT_ENVIRONMENT=/physionet/python-env/physionet UV_PYTHON_DOWNLOADS=never \
+       uv sync --locked --dry-run
+   ```
+   The output should say "Would use project environment", not "Would replace project environment". Check the packages it would install or remove.
+3. Keep a copy of the old hook, then install the new one:
+   ```
+   cd /physionet/physionet-build.git/hooks
+   cp -p update update.pip
+   cp /physionet/physionet-build/deploy/update update
+   chmod +x update
+   ```
+   The new hook takes effect on the next push. To roll back, restore `update.pip`.
+
+Do this on staging first, push, and check the site and the background tasks before switching production.
 
 ## Setting up nginx and uwsgi
 
