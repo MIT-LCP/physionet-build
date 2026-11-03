@@ -73,7 +73,7 @@ Check that the `pn` user can run it with the minimal `PATH` that the deploy hook
 su -s /bin/bash pn -c 'env -i HOME=/home/pn PATH=/usr/local/bin:/usr/bin:/bin uv --version'
 ```
 
-To upgrade uv later, repeat with the new version and its checksum (from the `.sha256` file next to the download on the release page). Keep `required-version` in `pyproject.toml` no newer than the version installed on the servers.
+To upgrade uv later, repeat with the new version and its checksum (from the `.sha256` file next to the download on the release page). Upgrade it in the `Dockerfile`, the CI workflows and `deploy/test-server/install-pn-test-server` too (that script also needs the `aarch64` checksum), so every environment uses the same version.
 
 ## Dedicated User
 
