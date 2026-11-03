@@ -138,11 +138,11 @@ def author_popover(author, show_submitting=False, show_email=False,
     """
     parts = []
     if show_submitting and author.is_submitting:
-        parts.append(format_html('<p><strong>Submitting Author</strong></p>'))
+        parts.append(mark_safe('<p><strong>Submitting Author</strong></p>'))
 
     affiliations = format_html(
         '<p><strong>Affiliations</strong><br>{}</p>',
-        format_html('<br>'.join(escape(a) for a in author.text_affiliations)),
+        mark_safe('<br>'.join(escape(a) for a in author.text_affiliations)),
     )
     parts.append(affiliations)
     parts.append(format_html(
