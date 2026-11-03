@@ -68,9 +68,9 @@ install -o root -g root -m 755 uv-x86_64-unknown-linux-gnu/uv /usr/local/bin/uv
 uv --version
 ```
 
-Check that the `pn` user can run it with the minimal `PATH` that the deploy hook gets:
+Check that the `pn` user can run it with the minimal `PATH` that the deploy hook gets. (`pn`'s login shell may be `git-shell`, which only accepts git commands, so ask `su` for bash.)
 ```
-su pn -c 'env -i HOME=/home/pn PATH=/usr/local/bin:/usr/bin:/bin uv --version'
+su -s /bin/bash pn -c 'env -i HOME=/home/pn PATH=/usr/local/bin:/usr/bin:/bin uv --version'
 ```
 
 To upgrade uv later, repeat with the new version and its checksum (from the `.sha256` file next to the download on the release page). Keep `required-version` in `pyproject.toml` no newer than the version installed on the servers.
@@ -177,23 +177,26 @@ Before installing anything, the hook does a dry run. If uv would delete and recr
 
 ### Switching an existing server from pip to uv
 
-Servers set up before the move to uv install packages from `requirements.txt` with pip. To switch one, as the `pn` user:
+Servers set up before the move to uv install packages from `requirements.txt` with pip. To switch one, starting as root (the commands below run as `pn` with `su -s /bin/bash pn`, since `pn`'s login shell may be `git-shell`):
 
-1. Install uv (as root), as in "Installing uv" above.
-2. Check what uv would change, from a checkout that contains `uv.lock`:
+1. Install uv, as in "Installing uv" above.
+2. Check that the deployed code includes `uv.lock`. If not, deploy a version that does first (the old hook still works, as `requirements.txt` is still generated):
    ```
-   cd /physionet/physionet-build
-   . /physionet/python-env/physionet/bin/activate
-   UV_PROJECT_ENVIRONMENT=/physionet/python-env/physionet UV_PYTHON_DOWNLOADS=never \
-       uv sync --locked --dry-run
+   ls -l /physionet/physionet-build/uv.lock
+   ```
+3. Check what uv would change. This only reports; it doesn't install anything:
+   ```
+   su -s /bin/bash pn -c 'cd /physionet/physionet-build &&
+       UV_PROJECT_ENVIRONMENT=/physionet/python-env/physionet UV_PYTHON_DOWNLOADS=never \
+       uv sync --locked --dry-run'
    ```
    The output should say "Would use project environment", not "Would replace project environment". Check the packages it would install or remove.
-3. Keep a copy of the old hook, then install the new one:
+4. Keep a copy of the old hook, then install the new one:
    ```
-   cd /physionet/physionet-build.git/hooks
-   cp -p update update.pip
-   cp /physionet/physionet-build/deploy/update update
-   chmod +x update
+   su -s /bin/bash pn -c 'cd /physionet/physionet-build.git/hooks &&
+       cp -p update update.pip &&
+       cp /physionet/physionet-build/deploy/update update &&
+       chmod +x update'
    ```
    The new hook takes effect on the next push. To roll back, restore `update.pip`.
 
