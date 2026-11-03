@@ -51,6 +51,30 @@ pip3 install --upgrade pip
 pip3 install virtualenv uwsgi
 ```
 
+### Installing uv
+
+uv installs the site's Python packages (see "Python packages" below). Install the pinned release binary, and check it against the checksum recorded here. Run as root:
+```
+UV_VERSION=0.13.6
+UV_SHA256=f29c3e94ffabd7e6f3ba521dba169a9b7ec12100bf3257087f0f24f6123f3645
+UV_FILE=uv-x86_64-unknown-linux-gnu.tar.gz
+
+uname -m          # must print x86_64
+cd "$(mktemp -d)"
+wget "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/$UV_FILE"
+echo "$UV_SHA256  $UV_FILE" | sha256sum -c -     # must print: OK
+tar -xzf "$UV_FILE"
+install -o root -g root -m 755 uv-x86_64-unknown-linux-gnu/uv /usr/local/bin/uv
+uv --version
+```
+
+Check that the `pn` user can run it with the minimal `PATH` that the deploy hook gets. (`pn`'s login shell may be `git-shell`, which only accepts git commands, so ask `su` for bash.)
+```
+su -s /bin/bash pn -c 'env -i HOME=/home/pn PATH=/usr/local/bin:/usr/bin:/bin uv --version'
+```
+
+To upgrade uv later, repeat with the new version and its checksum (from the `.sha256` file next to the download on the release page). Keep `required-version` in `pyproject.toml` no newer than the version installed on the servers.
+
 ## Dedicated User
 
 Create a user for the site. ie: `pn`. They should own all the site's files, and all interactions with the site should be run by them.
@@ -142,6 +166,41 @@ Touch the uwsgi vassal file to force the emperor process to start new workers wh
 
 `touch /etc/uwsgi/vassals/physionet_uwsgi.ini`
 
+
+## Python packages
+
+The `update` hook (`deploy/update`, copied to `/physionet/physionet-build.git/hooks/update`) installs Python packages on every push. It runs `uv sync --locked` to make `/physionet/python-env/physionet` match `uv.lock` exactly: changed packages are upgraded, and packages that are no longer in `uv.lock` are removed. uWSGI, the background task services and cron all use that environment, so their configuration doesn't change.
+
+The hook runs as `pn`, so the environment stays owned by `pn` and readable by `www-data`, which runs the site. It also compiles `.pyc` files at install time (`UV_COMPILE_BYTECODE=1`), as pip did: `www-data` can't write them into `pn`'s environment, so otherwise every process would recompile every module it imports. **Never run `uv sync` on the environment as root or with `sudo`**: root-owned files would make the next push fail.
+
+Before installing anything, the hook does a dry run. If uv would delete and recreate the environment (for example, because its Python version doesn't satisfy `pyproject.toml`), the hook aborts and the push is rejected, so the running site is never left without its packages.
+
+### Switching an existing server from pip to uv
+
+Servers set up before the move to uv install packages from `requirements.txt` with pip. To switch one, starting as root (the commands below run as `pn` with `su -s /bin/bash pn`, since `pn`'s login shell may be `git-shell`):
+
+1. Install uv, as in "Installing uv" above.
+2. Check that the deployed code includes `uv.lock`. If not, deploy a version that does first (the old hook still works, as `requirements.txt` is still generated):
+   ```
+   ls -l /physionet/physionet-build/uv.lock
+   ```
+3. Check what uv would change. This only reports; it doesn't install anything:
+   ```
+   su -s /bin/bash pn -c 'cd /physionet/physionet-build &&
+       UV_PROJECT_ENVIRONMENT=/physionet/python-env/physionet UV_PYTHON_DOWNLOADS=never \
+       uv sync --locked --dry-run'
+   ```
+   The output should say "Would use project environment", not "Would replace project environment". Check the packages it would install or remove.
+4. Keep a copy of the old hook, then install the new one:
+   ```
+   su -s /bin/bash pn -c 'cd /physionet/physionet-build.git/hooks &&
+       cp -p update update.pip &&
+       cp /physionet/physionet-build/deploy/update update &&
+       chmod +x update'
+   ```
+   The new hook takes effect on the next push. To roll back, restore `update.pip`.
+
+Do this on staging first, push, and check the site and the background tasks before switching production.
 
 ## Setting up nginx and uwsgi
 

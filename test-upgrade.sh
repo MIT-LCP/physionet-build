@@ -18,16 +18,16 @@
 # order.  Some steps might not actually change anything, and the
 # corresponding tests may be skipped.
 #
-# STEP 1: Upgrade dependencies according to requirements.txt.
+# STEP 1: Upgrade dependencies according to uv.lock.
 #
 #   At this point, the database has not been modified, and the old
 #   server code is still running, but new Python libraries may have
 #   been installed.  (Some of those might include database migrations
 #   of their own, which will not have been applied.)  We simulate this
 #   condition by loading the demo database (manage.py
-#   resetdb/loaddemo) from OLD-REVISION, then using pip to upgrade the
-#   dependencies.  The old server tests should still pass under these
-#   circumstances.
+#   resetdb/loaddemo) from OLD-REVISION, then using uv to upgrade the
+#   dependencies (as deploy/update does).  The old server tests should
+#   still pass under these circumstances.
 #
 # STEP 2: Apply "early" migrations from the new version.
 #
@@ -176,6 +176,31 @@ prereq_cmd()
 }
 
 ################################################################
+# Functions for installing dependencies
+
+# Print the file that pins the Python dependencies of source tree $1.
+# (Old revisions may have requirements.txt instead of uv.lock.)
+deps_file()
+{
+    if [ -f "$1/uv.lock" ]; then
+        echo "$1/uv.lock"
+    else
+        echo "$1/requirements.txt"
+    fi
+}
+
+# Install the dependencies of source tree $1 into $venvdir
+install_deps()
+{
+    if [ -f "$1/uv.lock" ]; then
+        prereq_cmd UV_PROJECT_ENVIRONMENT="$venvdir" UV_PYTHON_DOWNLOADS=never \
+                   uv sync --locked --no-progress --project "$1"
+    else
+        prereq_cmd pip3 install --require-hashes -r "$1/requirements.txt"
+    fi
+}
+
+################################################################
 # Set up logging
 
 logfile=$(echo "test-upgrade_$(date +%Y%m%d%H%M)_${currevname}.log" | tr / ,)
@@ -223,8 +248,8 @@ venvdir=$workdir/VE
 if [ -x "$(command -v md5sum)" ]; then
     venvcachedir=$topdir/test-upgrade.cache
     mkdir -p "$venvcachedir"
-    old_reqs_hash=$(md5sum "$olddir/requirements.txt" | cut -d' ' -f1)
-    new_reqs_hash=$(md5sum "$topdir/requirements.txt" | cut -d' ' -f1)
+    old_reqs_hash=$(md5sum "$(deps_file "$olddir")" | cut -d' ' -f1)
+    new_reqs_hash=$(md5sum "$(deps_file "$topdir")" | cut -d' ' -f1)
 else
     venvcachedir=
 fi
@@ -251,8 +276,7 @@ export PATH=$venvdir/bin:$PATH
     else
         prereq_cmd virtualenv --quiet --quiet \
                    --no-download -p"$PYTHON" "$venvdir"
-        prereq_cmd pip3 install --require-hashes \
-                   -r "$olddir/requirements.txt"
+        install_deps "$olddir"
         if [ -n "$venvcachedir" ]; then
             prereq_cmd tar -czf "$cachefile" -C "$venvdir" .
         fi
@@ -270,15 +294,14 @@ export PATH=$venvdir/bin:$PATH
     cd "$topdir/physionet-django"
 
     msg_testing "Installing new requirements"
-    if ! cmp -s "$olddir/requirements.txt" "$topdir/requirements.txt"; then
+    if ! cmp -s "$(deps_file "$olddir")" "$(deps_file "$topdir")"; then
         cachefile=$venvcachedir/$old_reqs_hash-$new_reqs_hash-$py_ver.tar.gz
         if [ -n "$venvcachedir" ] && [ -f "$cachefile" ]; then
             prereq_cmd rm -rf "$venvdir"
             prereq_cmd mkdir "$venvdir"
             prereq_cmd tar -xzf "$cachefile" -C "$venvdir"
         else
-            prereq_cmd pip3 install --require-hashes \
-                       -r "$topdir/requirements.txt"
+            install_deps "$topdir"
             if [ -n "$venvcachedir" ]; then
                 prereq_cmd tar -czf "$cachefile" -C "$venvdir" .
             fi
@@ -305,7 +328,7 @@ export PATH=$venvdir/bin:$PATH
 # (between upgrade steps 1 and 2)
 (
     cd "$olddir/physionet-django"
-    if cmp -s "$olddir/requirements.txt" "$topdir/requirements.txt"; then
+    if cmp -s "$(deps_file "$olddir")" "$(deps_file "$topdir")"; then
         msg_skip "Skipping tests - requirements haven't changed."
     else
         msg_testing "Testing old server (with new libraries)"
