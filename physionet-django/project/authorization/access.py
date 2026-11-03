@@ -120,6 +120,9 @@ def can_access_project(project, user, request=None):
     if project.deprecated_files:
         return False
 
+    if project.embargo_active():
+        return False
+
     if is_region_blocked(project, request):
         return False
 
@@ -148,11 +151,17 @@ def can_access_project(project, user, request=None):
     return False
 
 
-def can_view_project_files(project, user, request=None):
+def can_view_project_files(project, user, request=None, *, has_passphrase=False):
     """
     Checks if the project files are  directly accessible by the user
     Currently used to allow direct file downloads and to show project files on the platform
     """
+    # A signed anonymous-access link bypasses normal account requirements,
+    # but cannot bypass a project-wide embargo.
+    if project.embargo_active():
+        return False
+    if has_passphrase:
+        return True
     return can_access_project(project, user, request) and project.allow_file_downloads
 
 

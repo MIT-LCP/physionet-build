@@ -1638,6 +1638,10 @@ def aws_bucket_management(request, project, user):
     - Ensure that AWS credentials and configurations are correctly set
     up for the S3 client.
     """
+    if project.embargo_active():
+        messages.error(request, 'Files cannot be uploaded to AWS while the project is under embargo.')
+        return
+
     if any(get_associated_tasks(project, name=send_files_to_aws.name)):
         messages.info(request, 'Project is already scheduled to be uploaded.')
         return
