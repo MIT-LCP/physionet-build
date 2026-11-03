@@ -178,26 +178,17 @@ prereq_cmd()
 ################################################################
 # Functions for installing dependencies
 
-# Print the file that pins the Python dependencies of source tree $1.
-# (Old revisions may have requirements.txt instead of uv.lock.)
+# Print the file that pins the Python dependencies of source tree $1
 deps_file()
 {
-    if [ -f "$1/uv.lock" ]; then
-        echo "$1/uv.lock"
-    else
-        echo "$1/requirements.txt"
-    fi
+    echo "$1/uv.lock"
 }
 
 # Install the dependencies of source tree $1 into $venvdir
 install_deps()
 {
-    if [ -f "$1/uv.lock" ]; then
-        prereq_cmd UV_PROJECT_ENVIRONMENT="$venvdir" UV_PYTHON_DOWNLOADS=never \
-                   uv sync --locked --no-progress --project "$1"
-    else
-        prereq_cmd pip3 install --require-hashes -r "$1/requirements.txt"
-    fi
+    prereq_cmd UV_PROJECT_ENVIRONMENT="$venvdir" UV_PYTHON_DOWNLOADS=never \
+               uv sync --locked --no-progress --project "$1"
 }
 
 ################################################################

@@ -88,8 +88,7 @@ else
         cd $working_dir
         # Install into the existing virtualenv, using its Python.
         # Never download a Python, and copy files rather than linking
-        # them from pn's uv cache. Dev packages are still installed,
-        # as they were with requirements.txt.
+        # them from pn's uv cache. Dev packages are still installed.
         export UV_PROJECT_ENVIRONMENT=$venv_dir
         export UV_PYTHON_DOWNLOADS=never
         export UV_LINK_MODE=copy

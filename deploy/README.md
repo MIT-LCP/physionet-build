@@ -175,32 +175,29 @@ The hook runs as `pn`, so the environment stays owned by `pn` and readable by `w
 
 Before installing anything, the hook does a dry run. If uv would delete and recreate the environment (for example, because its Python version doesn't satisfy `pyproject.toml`), the hook aborts and the push is rejected, so the running site is never left without its packages.
 
-### Switching an existing server from pip to uv
+### Updating the hook on a server
 
-Servers set up before the move to uv install packages from `requirements.txt` with pip. To switch one, starting as root (the commands below run as `pn` with `su -s /bin/bash pn`, since `pn`'s login shell may be `git-shell`):
+The hooks in `/physionet/physionet-build.git/hooks/` are copies, so changes to `deploy/update` or `deploy/post-receive` only take effect once they are copied there. After deploying a version with a changed hook, as root (the command runs as `pn` with `su -s /bin/bash pn`, since `pn`'s login shell may be `git-shell`):
+```
+su -s /bin/bash pn -c 'cd /physionet/physionet-build.git/hooks &&
+    cp -p update update.old &&
+    cp /physionet/physionet-build/deploy/update update &&
+    chmod +x update'
+```
+To roll back, restore `update.old`. Do this on staging first.
 
-1. Install uv, as in "Installing uv" above.
-2. Check that the deployed code includes `uv.lock`. If not, deploy a version that does first (the old hook still works, as `requirements.txt` is still generated):
-   ```
-   ls -l /physionet/physionet-build/uv.lock
-   ```
-3. Check what uv would change. This only reports; it doesn't install anything:
-   ```
-   su -s /bin/bash pn -c 'cd /physionet/physionet-build &&
-       UV_PROJECT_ENVIRONMENT=/physionet/python-env/physionet UV_PYTHON_DOWNLOADS=never \
-       uv sync --locked --dry-run'
-   ```
-   The output should say "Would use project environment", not "Would replace project environment". Check the packages it would install or remove.
-4. Keep a copy of the old hook, then install the new one:
-   ```
-   su -s /bin/bash pn -c 'cd /physionet/physionet-build.git/hooks &&
-       cp -p update update.pip &&
-       cp /physionet/physionet-build/deploy/update update &&
-       chmod +x update'
-   ```
-   The new hook takes effect on the next push. To roll back, restore `update.pip`.
+To see what the next push would change in the Python environment, without installing anything:
+```
+su -s /bin/bash pn -c 'cd /physionet/physionet-build &&
+    UV_PROJECT_ENVIRONMENT=/physionet/python-env/physionet UV_PYTHON_DOWNLOADS=never \
+    uv sync --locked --dry-run'
+```
 
-Do this on staging first, push, and check the site and the background tasks before switching production.
+### Troubleshooting
+
+- **`Permission denied` while uninstalling a package:** some files in the environment aren't owned by `pn`, usually because a package was once installed with `sudo pip`. List them with `find /physionet/python-env/physionet ! -user pn`, fix with `chown -R pn:pn /physionet/python-env/physionet`, and push again. The rejected push didn't install the new code, but uv may already have removed some packages, so push again promptly.
+- **`uv would replace /physionet/python-env/physionet`:** the environment no longer matches `pyproject.toml` (for example, after a Python upgrade). The hook refuses to rebuild the live environment. Rebuilding it needs planning, because the site uses it while it runs.
+- **`uv: command not found`:** install uv as in "Installing uv" above.
 
 ## Setting up nginx and uwsgi
 
