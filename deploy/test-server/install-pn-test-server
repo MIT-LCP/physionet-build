@@ -54,7 +54,7 @@ apt-get install -y \
         `# Other tools required by PhysioNet` \
         zip unzip xfsprogs \
         `# Development and administration tools` \
-        git sudo psmisc \
+        git sudo psmisc wget \
         `# SMTP and IMAP servers, for testing email` \
         postfix postfix-pcre dovecot-imapd
 
@@ -88,10 +88,21 @@ fi
 ################################################################
 
 # uv installs the site's Python packages from uv.lock (see deploy/update).
-# Install a pinned version in its own virtualenv.
-virtualenv --no-download -ppython3 /opt/uv
-/opt/uv/bin/pip3 install uv==0.13.6
-ln -sf /opt/uv/bin/uv /usr/local/bin/uv
+# Install the pinned release binary (see "Installing uv" in deploy/README.md).
+UV_VERSION=0.13.6
+UV_FILE=uv-$(uname -m)-unknown-linux-gnu.tar.gz
+case $(uname -m) in
+    x86_64)  UV_SHA256=f29c3e94ffabd7e6f3ba521dba169a9b7ec12100bf3257087f0f24f6123f3645 ;;
+    aarch64) UV_SHA256=229e194255c7958d86d56e8790d969a6f74736592133f0dfd0076f754c642c1d ;;
+    *) echo "No uv checksum for $(uname -m)" >&2; exit 1 ;;
+esac
+(
+    cd "$(mktemp -d)"
+    wget -q "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/$UV_FILE"
+    echo "$UV_SHA256  $UV_FILE" | sha256sum -c -
+    tar -xzf "$UV_FILE"
+    install -o root -g root -m 755 "${UV_FILE%.tar.gz}/uv" /usr/local/bin/uv
+)
 
 ################################################################
 

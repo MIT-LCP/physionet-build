@@ -49,11 +49,31 @@ apt-get install -y python3-dev python3-pip build-essential libpq-dev postgresql 
 apt-get install upgrade
 pip3 install --upgrade pip
 pip3 install virtualenv uwsgi
-# uv installs the site's Python packages (see "Python packages" below)
-virtualenv -p/usr/bin/python3 /opt/uv
-/opt/uv/bin/pip3 install uv==0.13.6
-ln -sf /opt/uv/bin/uv /usr/local/bin/uv
 ```
+
+### Installing uv
+
+uv installs the site's Python packages (see "Python packages" below). Install the pinned release binary, and check it against the checksum recorded here. Run as root:
+```
+UV_VERSION=0.13.6
+UV_SHA256=f29c3e94ffabd7e6f3ba521dba169a9b7ec12100bf3257087f0f24f6123f3645
+UV_FILE=uv-x86_64-unknown-linux-gnu.tar.gz
+
+uname -m          # must print x86_64
+cd "$(mktemp -d)"
+wget "https://github.com/astral-sh/uv/releases/download/$UV_VERSION/$UV_FILE"
+echo "$UV_SHA256  $UV_FILE" | sha256sum -c -     # must print: OK
+tar -xzf "$UV_FILE"
+install -o root -g root -m 755 uv-x86_64-unknown-linux-gnu/uv /usr/local/bin/uv
+uv --version
+```
+
+Check that the `pn` user can run it with the minimal `PATH` that the deploy hook gets:
+```
+su pn -c 'env -i HOME=/home/pn PATH=/usr/local/bin:/usr/bin:/bin uv --version'
+```
+
+To upgrade uv later, repeat with the new version and its checksum (from the `.sha256` file next to the download on the release page). Keep `required-version` in `pyproject.toml` no newer than the version installed on the servers.
 
 ## Dedicated User
 
@@ -159,7 +179,7 @@ Before installing anything, the hook does a dry run. If uv would delete and recr
 
 Servers set up before the move to uv install packages from `requirements.txt` with pip. To switch one, as the `pn` user:
 
-1. Install uv (as root), as in "System Packages" above.
+1. Install uv (as root), as in "Installing uv" above.
 2. Check what uv would change, from a checkout that contains `uv.lock`:
    ```
    cd /physionet/physionet-build
