@@ -402,6 +402,9 @@ def submission_info_card_params(request,
     submission_info.html
     """
     authors, author_emails = project.get_author_info(include_emails=True)
+    georestricted_affiliation_authors = (
+        project.get_georestricted_affiliation_authors(authors=authors)
+    )
     latest_version = project.core_project.latest_published_version()
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=bulk_download)
@@ -433,6 +436,11 @@ def submission_info_card_params(request,
     return {
         'project': project,
         'authors': authors,
+        'georestricted_affiliation_authors': georestricted_affiliation_authors,
+        'georestricted_affiliation_author_names': ', '.join(
+            author.get_full_name()
+            for author in georestricted_affiliation_authors
+        ),
         'author_emails': author_emails,
         'storage_info': project.get_storage_info(force_calculate=force_calculate),
         'edit_logs': edit_logs,

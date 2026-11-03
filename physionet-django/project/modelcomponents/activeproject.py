@@ -297,6 +297,28 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         return bool(self.submission_status)
 
+    def get_georestricted_affiliation_authors(self, authors=None):
+        """Return authors whose recorded affiliations are all restricted.
+
+        Affiliations without a country are ignored. An author is flagged when
+        they have at least one recorded country and every recorded country is
+        in ``settings.BLOCKED_REGIONS``.
+        """
+        if authors is None:
+            authors = self.authors.all().order_by(
+                'display_order'
+            ).prefetch_related('affiliations')
+        georestricted_authors = []
+        for author in authors:
+            countries = {
+                affiliation.country for affiliation in author.affiliations.all()
+                if affiliation.country
+            }
+            if countries and countries.issubset(
+                    settings.BLOCKED_REGIONS):
+                georestricted_authors.append(author)
+        return georestricted_authors
+
     def submission_deadline(self):
         return self.creation_datetime + timedelta(days=180)
 
