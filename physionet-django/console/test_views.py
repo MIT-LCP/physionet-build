@@ -8,11 +8,12 @@ import pdb
 
 
 import requests_mock
+from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.test.utils import get_runner
 from django.urls import reverse
 from console.forms import CredentialReviewForm
@@ -33,9 +34,11 @@ from project.models import (
     StorageRequest,
     SubmissionStatus,
     UploadAgreement,
+    DepositTermsAcceptance,
+    DepositTermsVersion,
 )
 from user.models import AssociatedEmail, User
-from physionet.models import FrontPageButton, StaticPage
+from physionet.models import FrontPageButton, Section, StaticPage
 from user.test_views import TestMixin, prevent_request_warnings
 
 LOGGER = logging.getLogger(__name__)
@@ -87,6 +90,64 @@ class TestSubmissionFileComparison(TestCase):
 
     def test_none_snapshot_has_no_manifest(self):
         self.assertEqual(snapshot_files(None), (None, False))
+
+
+@override_settings(BLOCKED_REGIONS={'CN'})
+class TestGeorestrictedAffiliationWarning(TestMixin):
+    """Submission information warns about authors needing geographic review."""
+
+    PROJECT_TITLE = 'MIT-BIH Arrhythmia Database'
+
+    def setUp(self):
+        super().setUp()
+        self.project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
+        self.author = self.project.authors.order_by('display_order').first()
+        self.author.affiliations.all().delete()
+        self.client.login(username='admin', password='Tester11!')
+
+    def submission_info(self):
+        return self.client.get(
+            reverse('submission_info', args=(self.project.slug,))
+        )
+
+    def test_warning_shown_for_author_with_only_restricted_affiliations(self):
+        self.author.affiliations.create(name='Example University', country='CN')
+
+        response = self.submission_info()
+
+        self.assertContains(response, 'Georestriction review')
+        self.assertEqual(
+            response.context['georestricted_affiliation_author_names'],
+            self.author.get_full_name(),
+        )
+
+    def test_warning_not_shown_when_author_has_nonrestricted_affiliation(self):
+        self.author.affiliations.create(name='Example University', country='CN')
+        self.author.affiliations.create(name='MIT', country='US')
+
+        response = self.submission_info()
+
+        self.assertNotContains(response, 'Georestriction review')
+
+    def test_warning_not_shown_when_affiliation_country_is_missing(self):
+        self.author.affiliations.create(name='Legacy Institution', country='')
+
+        response = self.submission_info()
+
+        self.assertNotContains(response, 'Georestriction review')
+
+    def test_warning_shown_when_restricted_affiliation_has_blank_companion(self):
+        self.author.affiliations.create(name='Example University', country='CN')
+        self.author.affiliations.create(name='Legacy Institution', country='')
+
+        response = self.submission_info()
+
+        self.assertContains(response, 'Georestriction review')
+
+    def test_warning_not_shown_when_author_has_no_affiliations(self):
+        response = self.submission_info()
+
+        self.assertNotContains(response, 'Georestriction review')
 
 
 class TestUserManagement(TestMixin):
@@ -454,6 +515,18 @@ class TestState(TestMixin):
         project = ActiveProject.objects.get(id=project.id)
         self.assertFalse(project.copyeditable())
 
+    def deposit_terms_data(self):
+        """
+        Form data for agreeing to the current deposit terms, if they are
+        turned on.
+        """
+        if not settings.DEPOSIT_TERMS_URL:
+            return {}
+        return {
+            'accept_deposit_terms': 'on',
+            'deposit_terms_version': DepositTermsVersion.current().id,
+        }
+
     def test_approve_publish(self):
         """
         Author approves publication
@@ -508,7 +581,7 @@ class TestState(TestMixin):
         self.client.login(username='rgmark', password='Tester11!')
         response = self.client.post(reverse(
             'project_submission', args=(project.slug,)),
-            data={'approve_publication':''})
+            data={'approve_publication': '', **self.deposit_terms_data()})
         self.assertEqual(get_project().modified_datetime, timestamp)
 
         # Wait for task to prepare project files
@@ -546,6 +619,7 @@ class TestState(TestMixin):
             'project_submission', args=(project.slug,)
         ), data={
             'approve_publication': '',
+            **self.deposit_terms_data(),
         })
         project.refresh_from_db()
         self.assertTrue(project.is_publishable())
@@ -569,6 +643,14 @@ class TestState(TestMixin):
                 content_type=ContentType.objects.get_for_model(ActiveProject),
                 object_id=project.pk, funder_name='Wellcome Trust',
                 funder_identifier='https://ror.org/029chgv08', award_number='123')])
+
+        # The submitting author has accepted the upload agreement
+        submitting_author = project.submitting_author()
+        UploadAgreement.objects.update_or_create(
+            author=submitting_author,
+            defaults={'accepted': True, 'no_human_subjects': True},
+        )
+        agreement_id = submitting_author.upload_agreement.id
 
         # The project description includes links to internal files
         active_file_url = reverse('serve_active_project_file',
@@ -610,6 +692,18 @@ class TestState(TestMixin):
             user__username='rgmark'
         ).affiliations.first()
         self.assertEqual(published_affiliation.country, 'US')
+
+        # The upload agreement is kept, and moves to the published author
+        agreement = UploadAgreement.objects.get(id=agreement_id)
+        self.assertIsNone(agreement.author)
+        self.assertEqual(agreement.published_author,
+                         project.authors.get(is_submitting=True))
+        self.assertTrue(agreement.accepted)
+        response = self.client.get(reverse(
+            'manage_published_project', args=(project.slug, project.version)))
+        self.assertContains(response, 'Upload Agreement:')
+        self.assertContains(response, agreement.selected_data_types()[0])
+
         self.assertEqual(
             [(f.funder_name, f.funder_identifier, f.award_number)
              for f in project.funding.all()],
@@ -645,6 +739,69 @@ class TestState(TestMixin):
                       project.usage_notes)
         self.assertIn('href="{}"'.format(published_preview_url),
                       project.usage_notes)
+
+    def test_published_project_shows_submitting_author_agreement(self):
+        """
+        Test that the published project page shows the submitting author's
+        upload agreement, not one accepted by a previous submitting author.
+        """
+        self.test_approve_publish()
+        self.client.login(username='admin', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        submitting_author = project.submitting_author()
+
+        # A co-author accepted an agreement before the project was
+        # transferred to the current submitting author, who then accepted
+        # their own
+        UploadAgreement.objects.filter(author=submitting_author).delete()
+        previous_author = Author.objects.create(
+            project=project, user=User.objects.get(username='aewj'),
+            display_order=2,
+            approval_datetime=submitting_author.approval_datetime)
+        previous_author.affiliations.create(name='MIT')
+        previous_agreement = UploadAgreement.objects.create(
+            author=previous_author, accepted=True, derived_data=True)
+        agreement = UploadAgreement.objects.create(
+            author=submitting_author, accepted=True, no_human_subjects=True)
+
+        self.client.post(reverse(
+            'publish_submission', args=(project.slug,)),
+            data={'slug': 'mitbih', 'doi': False, 'make_zip': 1, 'georestricted': False})
+        self.assertBackgroundTasks(2)
+
+        project = PublishedProject.objects.get(slug='mitbih')
+        response = self.client.get(reverse(
+            'manage_published_project', args=(project.slug, project.version)))
+        self.assertContains(response, agreement.selected_data_types()[0])
+        self.assertNotContains(
+            response, previous_agreement.selected_data_types()[0])
+
+    @override_settings(DEPOSIT_TERMS_URL='/about/deposit-terms/')
+    def test_publish_with_deposit_terms(self):
+        """
+        The authors' agreements to the deposit terms move to the
+        published project.
+        """
+        page = StaticPage.objects.create(title='Deposit Terms', url='/about/deposit-terms/')
+        Section.objects.create(static_page=page, title='Terms', order=1,
+                               content='<p>Publication is permanent.</p>')
+
+        self.test_publish()
+
+        # The author approved twice (before and after the copyedit was
+        # reopened), and both agreements move to the published project
+        project = PublishedProject.objects.get(slug='mitbih')
+        acceptances = DepositTermsAcceptance.for_project(project)
+        self.assertEqual(acceptances.count(), 2)
+        self.assertEqual(DepositTermsAcceptance.objects.count(), 2)
+        acceptance = acceptances.last()
+        self.assertEqual(acceptance.stage, DepositTermsAcceptance.Stage.APPROVAL)
+        self.assertEqual(acceptance.author_user.username, 'rgmark')
+
+        self.client.login(username='admin', password='Tester11!')
+        response = self.client.get(reverse(
+            'manage_published_project', args=(project.slug, project.version)))
+        self.assertContains(response, reverse('deposit_terms_version', args=(acceptance.terms_version_id,)))
 
     def test_publish_with_versions(self):
         """

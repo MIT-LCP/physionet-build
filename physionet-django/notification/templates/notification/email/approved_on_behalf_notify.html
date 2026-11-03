@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+{{ approver_name }}, the submitting author, has approved the publication of the project entitled "{{ project.title }}" on your behalf. In doing so, they confirmed that you have reviewed the project, agreed to the {{ SITE_NAME }} Deposit Terms, and asked them to approve it for you.
+
+The Deposit Terms are available at: {{ url_prefix }}{{ deposit_terms_url }}
+
+If this is not correct, please contact the editor at {{ contact_email }} before the project is published.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

@@ -537,6 +537,31 @@ def authors_approved_notify(request, project):
                   [email], fail_silently=False)
 
 
+def approved_on_behalf_notify(request, project, author, approver):
+    """
+    Tell an author that the submitting author approved publication, and
+    agreed to the deposit terms, on their behalf.
+    """
+    subject = 'Publication of your project was approved on your behalf: {0}'.format(
+        project.title)
+    body = loader.render_to_string(
+        'notification/email/approved_on_behalf_notify.html', {
+            'name': author.user.get_full_name(),
+            'approver_name': approver.get_full_name(),
+            'project': project,
+            'url_prefix': get_url_prefix(request),
+            'deposit_terms_url': settings.DEPOSIT_TERMS_URL,
+            'contact_email': project.editor_contact_email,
+            'signature': settings.EMAIL_SIGNATURE,
+            'project_info': email_project_info(project),
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
+        })
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [author.user.email], fail_silently=False)
+
+
 def publish_notify(request, published_project):
     """
     Notify authors and administrators when a project is published

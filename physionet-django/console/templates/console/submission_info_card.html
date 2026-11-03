@@ -60,7 +60,13 @@
     <div class="tab-content">
       {# Project Information #}
       <div class="tab-pane fade {% if not passphrase %} show active {% endif %}" id="info" role="tabpanel" aria-labelledby="info-tab">
-        <p>{{ project.resource_type.id|resource_badge|safe }} {{ project.access_policy|access_badge|safe }}</p>
+        <p>{{ project.resource_type.id|resource_badge|safe }} {{ project.access_policy|access_badge|safe }}
+          {% if georestricted_affiliation_authors %}
+            <span class="badge badge-warning" title="Affiliations only in georestricted countries: {{ georestricted_affiliation_author_names }}">
+              <i class="fa fa-globe"></i> Georestriction review
+            </span>
+          {% endif %}
+        </p>
         <h4 class="card-title">{{ project.title }}</h4>
         <p class="card-text">
           Authors: {% for author in authors %}{{ author|show_all_author_info|safe }} {% endfor %}<br>
@@ -82,17 +88,8 @@
           {% else %}
             <br>Embargo: none
           {% endif %}
-          <br>Upload Agreement:
-          {% if upload_agreement and upload_agreement.accepted %}
-            <span class="badge badge-success">Accepted</span> ({{ upload_agreement.accepted_datetime|date }})
-            <ul class="mb-0">
-              {% for label in upload_agreement.selected_data_types %}
-                <li>{{ label }}</li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <span class="badge badge-danger">Not accepted</span>
-          {% endif %}
+          <br>{% include "console/upload_agreement_status.html" %}
+          {% include "console/deposit_terms_status.html" %}
         </p>
         <p class="card-text">
           Description: {{ project.short_description }}

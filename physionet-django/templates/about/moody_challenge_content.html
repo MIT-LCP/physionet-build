@@ -33,7 +33,7 @@
                  class="btn btn-sm btn-primary" role="button">{{ md_challenge.get_program_count }}
                 <div class="fa fa-code"></div></a>
             {% elif md_challenge.sources %}
-              <a href="{% url 'serve_published_project_file' md_challenge.slug md_challenge.version 'sources' %}"
+              <a href="{% url 'published_project_subdir' md_challenge.slug md_challenge.version 'sources' %}#files-panel"
                  class="btn btn-sm btn-primary" role="button">{{ md_challenge.get_program_count }}
                 <div class="fa fa-code"></div></a>
             {% endif %}

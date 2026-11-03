@@ -52,6 +52,10 @@
     <p>
       {% if publishable %}
         The project is ready to publish. You may choose a unique slug of lowercase alphanumerics and hyphens, of length 1-{{ max_slug_length }}. Must begin and end with an alphanumeric. Must not contain consecutive hyphens or end with hyphen number.
+      {% elif project.authors_missing_deposit_terms %}
+        The following authors approved publication without agreeing to the Deposit Terms:
+        {% for author in project.authors_missing_deposit_terms %}{{ author.user.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+        Reopen the copyedit so that they can approve the project again.
       {% elif not project.checksums_valid %}
         {% if tasks %}
           The project will be ready to publish once pending tasks have completed.

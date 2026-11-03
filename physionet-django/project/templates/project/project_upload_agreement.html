@@ -5,6 +5,16 @@
 {% load static %}
 {% load project_templatetags %}
 
+{% block local_css %}
+{{ block.super }}
+<style>
+  /* Also match .modern-ui, whose h2 style would otherwise take precedence */
+  .deposit-terms-text h2, .modern-ui .deposit-terms-text h2 { font-size: 1.1rem; font-weight: bold; margin-top: 1rem; }
+  .deposit-terms-text .deposit-terms-version + h2,
+  .modern-ui .deposit-terms-text .deposit-terms-version + h2 { margin-top: 0; }
+</style>
+{% endblock %}
+
 {% block main_content %}
 <h2 class="form-signin-heading">{% project_step_header 'upload_agreement' %}</h2>
 <hr>
@@ -16,7 +26,16 @@
     <li>You are the original creator, or copyright holder, or you have permission from the creators and copyright holders to share these files.</li>
     <li>These files do not contain any personally identifiable information.</li>
   </ul>
+  {% if deposit_terms %}
+    <p class="mb-0">You also agree to the <a href="{{ deposit_terms_url }}" target="_blank">Deposit Terms</a>, shown below.</p>
+  {% endif %}
 </div>
+
+{% if deposit_terms_unavailable %}
+  <div class="alert alert-danger">
+    The Deposit Terms are unavailable, so the upload agreement can't be accepted right now. Please contact the editors.
+  </div>
+{% endif %}
 
 {% if not project.author_editable %}
   <div class="alert alert-form alert-warning alert-dismissible">
@@ -72,6 +91,27 @@
           </label>
         </div>
       </div>
+
+      {% if deposit_terms %}
+        <hr>
+        <p><strong>Deposit Terms</strong> (<a href="{{ deposit_terms_url }}" target="_blank">open in a new tab</a>)</p>
+        <div class="deposit-terms-text border rounded p-3 mb-3" style="max-height: 20rem; overflow-y: auto;">
+          {% include "project/deposit_terms_version_label.html" with version=deposit_terms %}
+          {{ deposit_terms.content|safe }}
+        </div>
+        <input type="hidden" name="deposit_terms_version" value="{{ deposit_terms.id }}">
+        <div class="form-group">
+          <div class="form-check">
+            {{ upload_agreement_form.accept_deposit_terms }}
+            <label class="form-check-label" for="{{ upload_agreement_form.accept_deposit_terms.id_for_label }}">
+              {{ upload_agreement_form.accept_deposit_terms.label }}
+            </label>
+            {% for error in upload_agreement_form.accept_deposit_terms.errors %}
+              <div class="text-danger small">{{ error }}</div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
 
       {% if upload_agreement_form.non_field_errors %}
         <div class="alert alert-danger">

@@ -1,0 +1,13 @@
+Upload Agreement:
+{% if upload_agreement and upload_agreement.accepted %}
+  <span class="badge badge-success">Accepted</span> ({{ upload_agreement.accepted_datetime|date }})
+  <ul class="mb-0">
+    {% for label in upload_agreement.selected_data_types %}
+      <li>{{ label }}</li>
+    {% endfor %}
+  </ul>
+{% elif published %}
+  <span class="badge badge-secondary">No record</span>
+{% else %}
+  <span class="badge badge-danger">Not accepted</span>
+{% endif %}

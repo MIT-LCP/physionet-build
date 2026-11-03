@@ -22,10 +22,24 @@ class UploadAgreement(models.Model):
     """
     Model to track upload agreements for projects.
     Each author can have one upload agreement.
+
+    The agreement is accepted by the submitting author of an active
+    project. When the project is published, the agreement moves to the
+    published author, so the record is kept.
     """
     author = models.OneToOneField(
         'project.Author',
+        null=True,
+        blank=True,
         on_delete=models.CASCADE,
+        related_name='upload_agreement'
+    )
+
+    published_author = models.OneToOneField(
+        'project.PublishedAuthor',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
         related_name='upload_agreement'
     )
 
@@ -90,6 +104,6 @@ class UploadAgreement(models.Model):
 
     def __str__(self):
         return (
-            f"Upload Agreement for {self.author} - "
+            f"Upload Agreement for {self.author or self.published_author} - "
             f"{'Accepted' if self.accepted else 'Pending'}"
         )

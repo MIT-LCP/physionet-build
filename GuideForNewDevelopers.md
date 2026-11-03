@@ -233,13 +233,20 @@ source env/bin/activate
 
 Now that we have the virtual environment set up, let's install the python libraries needed for the project.
 
-On the same terminal from step [2.1.7.2](#2172-activate-the-virtual-environment), enter the following command to install the requirements.
+On the same terminal from step [2.1.7.2](#2172-activate-the-virtual-environment), install the requirements.
+
+We use [uv](https://docs.astral.sh/uv/) to install the exact package versions listed in `uv.lock`. Install uv with:
 
 ```sh
-pip install -r requirements.txt
+brew install uv
 ```
 
-TIP : If you see an error message about psycopg2-binary, you can open the requirements.txt inside the project directory and remove psycopg2-binary temporarily (and run the `pip install -r requirements.txt` command again). Since we are using sqlite3, psycopg2-binary which is a PostgreSQL database adapter for the Python, is not needed for local development. After you have installed all the requirements, you can add it back to the requirements.txt file.
+Then, from the project directory, install the requirements into the active virtual environment:
+
+```sh
+uv sync --active
+```
+
 
 
 
@@ -431,13 +438,20 @@ source env/bin/activate
 
 Now that we have the virtual environment set up, let's install the python libraries needed for the project.
 
-On the same terminal from step [2.2.8.2](#2282-activate-the-virtual-environment), enter the following command to install the requirements.
+On the same terminal from step [2.2.8.2](#2282-activate-the-virtual-environment), install the requirements.
+
+We use [uv](https://docs.astral.sh/uv/) to install the exact package versions listed in `uv.lock`. Install uv with:
 
 ```sh
-pip install -r requirements.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-TIP : If you see an error message about psycopg2-binary, you can open the requirements.txt inside the project directory and remove psycopg2-binary temporarily (and run the `pip install -r requirements.txt` command again). Since we are using sqlite3, psycopg2-binary which is a PostgreSQL database adapter for the Python, is not needed for local development. After you have installed all the requirements, you can add it back to the requirements.txt file.
+Then, from the project directory, install the requirements into the active virtual environment:
+
+```sh
+uv sync --active
+```
+
 
 TIP : If you are having difficulty in opening the project in VS Code, you could open a Ubuntu terminal and enter the following command to open the project in VS Code.
 
@@ -613,13 +627,20 @@ source env/bin/activate
 
 Now that we have the virtual environment set up, let's install the python libraries needed for the project.
 
-On the same terminal from step [2.3.6.2](#2362-activate-the-virtual-environment), enter the following command to install the requirements.
+On the same terminal from step [2.3.6.2](#2362-activate-the-virtual-environment), install the requirements.
+
+We use [uv](https://docs.astral.sh/uv/) to install the exact package versions listed in `uv.lock`. Install uv with:
 
 ```sh
-pip install -r requirements.txt
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-TIP : If you see an error message about psycopg2-binary, you can open the requirements.txt inside the project directory and remove psycopg2-binary temporarily (and run the `pip install -r requirements.txt` command again). Since we are using sqlite3, psycopg2-binary which is a PostgreSQL database adapter for the Python, is not needed for local development. After you have installed all the requirements, you can add it back to the requirements.txt file.
+Then, from the project directory, install the requirements into the active virtual environment:
+
+```sh
+uv sync --active
+```
+
 
 #### 2.3.8 Run the project
 

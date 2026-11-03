@@ -1537,9 +1537,15 @@ class UploadAgreementForm(forms.ModelForm):
             ),
         }
 
-    def __init__(self, author, *args, **kwargs):
+    def __init__(self, author, *args, require_deposit_terms=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.author = author
+        if require_deposit_terms:
+            self.fields['accept_deposit_terms'] = forms.BooleanField(
+                required=True,
+                label='I have read and agree to the Deposit Terms.',
+                error_messages={'required': 'Please agree to the Deposit Terms.'},
+            )
 
     def save(self):
         agreement = super().save(commit=False)

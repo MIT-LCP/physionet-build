@@ -13,9 +13,9 @@ If you run a website using this software, please keep the credit line at the bot
 ## Running Local Instance Using Django Server
 
 - Install sqlite3: `sudo apt-get install sqlite3`.
-- Create python environment with python 11. Example: `conda create --name physionet python=3.11`.
-- Activate virtual python environment. Example: `conda activate physionet`
-- Install python packages in `requirements.txt`.
+- Install [uv](https://docs.astral.sh/uv/getting-started/installation/).
+- From the repository root, run `uv sync`. This creates a `.venv` virtual environment (Python 3.11 or later) with the exact package versions in `uv.lock`, including development tools.
+- Activate the environment: `source .venv/bin/activate`. Alternatively, prefix commands with `uv run`, e.g. `uv run python manage.py runserver`.
 - Copy `.env.example` file to `.env`.
 - Within the `physionet-django` directory:
   - Run: `python manage.py resetdb` to reset the database.
@@ -178,10 +178,17 @@ Here is an example of existing cronjob from `deploy/production/etc/cron.d/physio
 
 ## Package management
 
-`pyproject.toml` is the primary record of dependencies. This file is typically [used by pip](https://pip.pypa.io/en/stable/reference/build-system/pyproject-toml/) for package management. Dependencies are also tracked in [`pyproject.toml`](https://python-poetry.org/docs/pyproject/) and [`requirements.txt`](https://pip.pypa.io/en/stable/reference/requirements-file-format/).
+Dependencies are managed with [uv](https://docs.astral.sh/uv/):
 
-The process for updating packages is:
+- `pyproject.toml` lists the packages we depend on and the versions we allow. Development-only packages (test tools, debug toolbar) are in the `dev` dependency group.
+- `uv.lock` records the exact version and hashes of every package that gets installed. The Docker image (used for Health Data Nexus) and CI install from this file.
+- `requirements.txt` is generated from `uv.lock` and is used by the staging and production servers (see `deploy/update`). Do not edit it by hand.
 
-1. Add the dependency to `pyproject.toml`
-2. Generate a new `poetry.lock` file with: `poetry lock`
-3. Generate a new requirements.txt with: `poetry export -f requirements.txt --output requirements.txt --with dev`
+To add, remove or upgrade a package:
+
+1. Edit `pyproject.toml`, or use `uv add <package>` / `uv remove <package>`. To upgrade a single locked package without changing `pyproject.toml`, use `uv lock --upgrade-package <package>`.
+2. Update the lock file: `uv lock`
+3. Regenerate `requirements.txt`: `./export-requirements.py`. This runs `uv export` and keeps package extras such as `google-api-core[grpc]` that older versions of pip need.
+4. Commit `pyproject.toml`, `uv.lock` and `requirements.txt` together.
+
+CI checks that `uv.lock` and `requirements.txt` are up to date.

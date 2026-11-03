@@ -90,14 +90,15 @@ class LogAdmin(admin.ModelAdmin):
 
 
 class UploadAgreementAdmin(admin.ModelAdmin):
-    list_display = ('author', 'accepted', 'accepted_datetime', 'created_datetime')
+    list_display = ('__str__', 'accepted', 'accepted_datetime', 'created_datetime')
     list_filter = ('accepted', 'no_human_subjects', 'derived_data', 'human_subjects_deidentified')
-    search_fields = ('author__user__username',)
+    search_fields = ('author__user__username', 'published_author__user__username')
+    raw_id_fields = ('author', 'published_author')
     readonly_fields = ('created_datetime', 'updated_datetime')
 
     fieldsets = (
         ('Author Information', {
-            'fields': ('author',)
+            'fields': ('author', 'published_author')
         }),
         ('Agreement Status', {
             'fields': ('accepted', 'accepted_datetime')
@@ -151,3 +152,32 @@ admin.site.register(GCPLog, LogAdmin)
 admin.site.register(Task, TaskAdmin)
 admin.site.register(CompletedTask, CompletedTaskAdmin)
 admin.site.register(models.UploadAgreement, UploadAgreementAdmin)
+
+
+class ReadOnlyAdmin(admin.ModelAdmin):
+    """
+    Records that must not be changed or deleted.
+    """
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class DepositTermsVersionAdmin(ReadOnlyAdmin):
+    list_display = ('title', 'number', 'url', 'created_datetime', 'content_hash')
+
+
+class DepositTermsAcceptanceAdmin(ReadOnlyAdmin):
+    list_display = ('author_name', 'stage', 'on_behalf', 'accepted_by_name', 'accepted_datetime',
+                    'content_type', 'object_id')
+    list_filter = ('stage', 'on_behalf')
+    search_fields = ('author_name', 'author_email', 'accepted_by_name')
+
+
+admin.site.register(models.DepositTermsVersion, DepositTermsVersionAdmin)
+admin.site.register(models.DepositTermsAcceptance, DepositTermsAcceptanceAdmin)

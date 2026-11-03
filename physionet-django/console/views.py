@@ -63,6 +63,9 @@ from project.models import (
     StorageRequest,
     SubmissionStatus,
     Topic,
+    DepositTermsAcceptance,
+    DepositTermsVersion,
+    deposit_terms_enabled,
     exists_project_slug,
     InternalNote
 )
@@ -399,6 +402,9 @@ def submission_info_card_params(request,
     submission_info.html
     """
     authors, author_emails = project.get_author_info(include_emails=True)
+    georestricted_affiliation_authors = (
+        project.get_georestricted_affiliation_authors(authors=authors)
+    )
     latest_version = project.core_project.latest_published_version()
     url_prefix = notification.get_url_prefix(request)
     bulk_url_prefix = notification.get_url_prefix(request, bulk_download=bulk_download)
@@ -430,6 +436,11 @@ def submission_info_card_params(request,
     return {
         'project': project,
         'authors': authors,
+        'georestricted_affiliation_authors': georestricted_affiliation_authors,
+        'georestricted_affiliation_author_names': ', '.join(
+            author.get_full_name()
+            for author in georestricted_affiliation_authors
+        ),
         'author_emails': author_emails,
         'storage_info': project.get_storage_info(force_calculate=force_calculate),
         'edit_logs': edit_logs,
@@ -443,7 +454,21 @@ def submission_info_card_params(request,
         'internal_note_form': internal_note_form,
         'reviewer_invitations': reviewer_invitations,
         'upload_agreement': upload_agreement,
+        'deposit_terms_acceptances': DepositTermsAcceptance.for_project(project),
+        'deposit_terms_enabled': deposit_terms_enabled(),
     }
+
+
+@console_permission_required('project.change_activeproject')
+def deposit_terms_version(request, version_id):
+    """
+    Show a stored copy of the deposit terms, as agreed to by authors.
+    """
+    version = get_object_or_404(DepositTermsVersion, id=version_id)
+    return render(request, 'console/deposit_terms_version.html', {
+        'version': version,
+        'acceptance_count': version.acceptances.count(),
+    })
 
 
 @console_permission_required('project.change_activeproject')
@@ -1495,6 +1520,8 @@ def manage_published_project(request, project_slug, version):
 
     data_access = DataAccess.objects.filter(project=project)
     authors, author_emails, storage_info, edit_logs, copyedit_logs, latest_version = project.info_card()
+    upload_agreement = getattr(project.submitting_author(), 'upload_agreement', None)
+    deposit_terms_acceptances = DepositTermsAcceptance.for_project(project)
 
     tasks = list(get_associated_tasks(project))
     ro_tasks = [task for (task, read_only) in tasks if read_only]
@@ -1519,6 +1546,8 @@ def manage_published_project(request, project_slug, version):
             'copyedit_logs': copyedit_logs,
             'latest_version': latest_version,
             'published': True,
+            'upload_agreement': upload_agreement,
+            'deposit_terms_acceptances': deposit_terms_acceptances,
             'topic_form': topic_form,
             'has_credentials': has_credentials,
             'has_s3_credentials': has_s3_credentials(),
@@ -3889,7 +3918,8 @@ def static_page_sections(request, page_pk):
     return render(
         request,
         'console/static_page_sections.html',
-        {'sections': sections, 'page': static_page, 'section_form': section_form},
+        {'sections': sections, 'page': static_page, 'section_form': section_form,
+         'is_deposit_terms_page': static_page.url == settings.DEPOSIT_TERMS_URL},
     )
 
 
@@ -3919,7 +3949,8 @@ def static_page_sections_edit(request, page_pk, section_pk):
     return render(
         request,
         'console/static_page_sections_edit.html',
-        {'section_form': section_form, 'page': static_page, 'section': section},
+        {'section_form': section_form, 'page': static_page, 'section': section,
+         'is_deposit_terms_page': static_page.url == settings.DEPOSIT_TERMS_URL},
     )
 
 

@@ -51,6 +51,8 @@ CHALLENGE_VPC_NETWORK = config(
     'CHALLENGE_VPC_NETWORK', default='')
 CHALLENGE_VPC_SUBNETWORK = config(
     'CHALLENGE_VPC_SUBNETWORK', default='')
+CHALLENGE_GOOGLE_CREDENTIALS = config(
+    'CHALLENGE_GOOGLE_CREDENTIALS', default='')
 SSO_REMOTE_USER_HEADER = config('SSO_REMOTE_USER_HEADER', default='HTTP_REMOTE_USER')
 SSO_LOGIN_BUTTON_TEXT = config('SSO_LOGIN_BUTTON_TEXT', default='Login')
 PRIVACY_POLICY_HTML = config('PRIVACY_POLICY_HTML', default=None)
@@ -72,7 +74,7 @@ ORCID_LOGIN_BUTTON_TEXT = config('ORCID_LOGIN_BUTTON_TEXT', default="Log in usin
 
 # Geographic restrictions
 # BLOCKED_REGIONS: Comma-separated list of region codes to block access from
-# Example: BLOCKED_REGIONS=localhost,RU,CN,IR,NK
+# Example: BLOCKED_REGIONS=localhost,RU,CN,IR,KP
 BLOCKED_REGIONS_STR = config('BLOCKED_REGIONS', default='')
 BLOCKED_REGIONS = set(
     region.strip()
@@ -817,6 +819,11 @@ if _upload_agreement_start:
     UPLOAD_AGREEMENT_START_DATE = _parsed
 else:
     UPLOAD_AGREEMENT_START_DATE = None
+
+# The URL of the static page (managed in the console) holding the terms
+# that authors agree to when submitting and approving a project, e.g.
+# '/about/deposit-terms/'. Leave unset to turn off the deposit terms.
+DEPOSIT_TERMS_URL = config('DEPOSIT_TERMS_URL', default=None)
 
 ENABLE_FILE_DOWNLOADS_OPTION = config('ENABLE_FILE_DOWNLOADS_OPTION', cast=bool, default=False)
 SHOW_PHYSIONET_PACKAGE_DOWNLOAD = config('SHOW_PHYSIONET_PACKAGE_DOWNLOAD', cast=bool, default=False)

@@ -24,7 +24,7 @@ The blocked regions are configured using the `BLOCKED_REGIONS` environment varia
 BLOCKED_REGIONS=localhost
 
 # Custom configuration
-BLOCKED_REGIONS=localhost,RU,CN,IR,NK
+BLOCKED_REGIONS=localhost,RU,CN,IR,KP
 
 # Single region
 BLOCKED_REGIONS=RU
@@ -71,7 +71,7 @@ To test geographic restrictions:
 - `RU` - Russia
 - `CN` - China
 - `IR` - Iran
-- `NK` - North Korea
+- `KP` - North Korea
 - `US` - United States
 - `CA` - Canada
 - `MX` - Mexico

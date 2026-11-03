@@ -20,6 +20,11 @@ from console.tasks import associated_task
 from physionet.settings.base import StorageTypes
 from project.enums import AccessPolicy
 from project.modelcomponents.authors import PublishedAffiliation, PublishedAuthor
+from project.modelcomponents.depositterms import (
+    DepositTermsAcceptance,
+    DepositTermsVersion,
+    deposit_terms_enabled,
+)
 from project.modelcomponents.metadata import (
     Contact,
     Metadata,
@@ -206,6 +211,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Bound the database storage and submission-time work for file snapshots.
     SUBMISSION_FILE_MANIFEST_MAX_FILES = 1000
 
+    # Formats that are generally unsuitable for publication as project data.
+    # These are warnings, rather than restrictions, because there can be valid
+    # reasons for an author to include them in a project.
+    DISCOURAGED_FILE_EXTENSIONS = (
+        '.pkl', '.pickle', '.xlsx', '.docx', '.mat', '.sav', '.xpt',
+        '.sas7bdat', '.pth', '.pt', '.joblib', '.pkl.gz', '.joblib.gz',
+        '.xls', '.doc',
+    )
+
     SUBMISSION_STATUS_LABELS = {
         SubmissionStatus.UNSUBMITTED: 'Not submitted.',
         SubmissionStatus.ARCHIVED: 'Archived.',
@@ -282,6 +296,28 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         Whether the project is under submission
         """
         return bool(self.submission_status)
+
+    def get_georestricted_affiliation_authors(self, authors=None):
+        """Return authors whose recorded affiliations are all restricted.
+
+        Affiliations without a country are ignored. An author is flagged when
+        they have at least one recorded country and every recorded country is
+        in ``settings.BLOCKED_REGIONS``.
+        """
+        if authors is None:
+            authors = self.authors.all().order_by(
+                'display_order'
+            ).prefetch_related('affiliations')
+        georestricted_authors = []
+        for author in authors:
+            countries = {
+                affiliation.country for affiliation in author.affiliations.all()
+                if affiliation.country
+            }
+            if countries and countries.issubset(
+                    settings.BLOCKED_REGIONS):
+                georestricted_authors.append(author)
+        return georestricted_authors
 
     def submission_deadline(self):
         return self.creation_datetime + timedelta(days=180)
@@ -463,6 +499,33 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             return False
         else:
             return True
+
+    def discouraged_file_extensions(self, manifest):
+        """Return discouraged extensions found in a submission manifest."""
+        paths = [entry['path'].lower() for entry in manifest]
+        return [
+            extension for extension in self.DISCOURAGED_FILE_EXTENSIONS
+            if any(path.endswith(extension) for path in paths)
+        ]
+
+    def file_integrity_warnings(self, manifest):
+        """Return non-blocking warnings based on a bounded file manifest.
+
+        A truncated manifest is only a partial scan, so formats beyond its
+        cap are not considered here.
+        """
+        entries = manifest['entries']
+        warnings = ErrorList()
+        discouraged_file_extensions = self.discouraged_file_extensions(entries)
+        if discouraged_file_extensions:
+            warning = (
+                'This project contains files in formats that are typically '
+                'not published: {}.'.format(
+                    ', '.join(discouraged_file_extensions)))
+            warnings.append(warning)
+        if not entries:
+            warnings.append('This project has no files.')
+        return warnings
 
     def has_valid_reference_order(self):
         """
@@ -646,6 +709,35 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.save()
             return True
 
+    def authors_missing_deposit_terms(self):
+        """
+        Return the authors who approved publication without agreeing to
+        the deposit terms.
+
+        Authors who approved before the deposit terms were first shown
+        (before any version of them was stored) are not included, since
+        they had nothing to agree to.
+        """
+        if not deposit_terms_enabled():
+            return []
+        first_version = DepositTermsVersion.objects.order_by('created_datetime').first()
+        if first_version is None:
+            return []
+
+        acceptances = DepositTermsAcceptance.for_project(self).filter(
+            stage=DepositTermsAcceptance.Stage.APPROVAL)
+        if self.copyedit_completion_datetime:
+            acceptances = acceptances.filter(
+                accepted_datetime__gte=self.copyedit_completion_datetime)
+        accepted_users = set(acceptances.values_list('author_user', flat=True))
+
+        return [
+            author for author in self.authors.all().order_by('display_order')
+            if author.approval_datetime
+            and author.approval_datetime >= first_version.created_datetime
+            and author.user_id not in accepted_users
+        ]
+
     def all_authors_approved(self):
         """
         Whether all authors have approved the publication
@@ -674,6 +766,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.submission_status == SubmissionStatus.NEEDS_PUBLICATION
             and self.check_integrity()
             and self.all_authors_approved()
+            and not self.authors_missing_deposit_terms()
             and self.checksums_valid()
         ):
             return True
@@ -787,6 +880,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                         last_name=author_profile.last_name,
                     )
 
+                    # Keep the upload agreement, which would otherwise be
+                    # deleted with the active project's authors
+                    upload_agreement = getattr(author, 'upload_agreement', None)
+                    if upload_agreement:
+                        upload_agreement.published_author = published_author
+                        upload_agreement.author = None
+                        upload_agreement.save(update_fields=['author', 'published_author'])
+
                     affiliations = author.affiliations.all()
                     for affiliation in affiliations:
                         PublishedAffiliation.objects.create(
@@ -810,6 +911,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                             affiliations='; '.join(a.name for a in affiliations),
                             email=author.corresponding_email, project=published_project
                         )
+
+                # Move the deposit terms agreements
+                DepositTermsAcceptance.for_project(self).update(
+                    content_type=ContentType.objects.get_for_model(PublishedProject),
+                    object_id=published_project.pk,
+                )
 
                 # Move the edit and copyedit logs
                 for edit_log in self.edit_logs.all():
