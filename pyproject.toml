@@ -1,65 +1,67 @@
-[tool.poetry]
+[project]
 name = "physionet-build"
 version = "0.1.0"
 description = ""
-authors = []
+requires-python = ">=3.11,<4.0"
+dependencies = [
+    "bleach>=3.3.0,<4",
+    "boto3>=1.28.53,<2",
+    "botocore>=1.31.53,<2",
+    "chardet>=3.0.4,<4",
+    "cryptography>=44.0.1,<51.0.0",
+    "django>=5.2.17,<6",
+    "django-autocomplete-light>=4.0,<5",
+    "django-background-tasks-updated>=1.2.7,<2",
+    "django-q2==1.6.2",
+    "django-static-mathjax>=3.2.2.1,<4",
+    "django-tinymce>=5.0.0,<6",
+    "djangorestframework==3.18.2",
+    "geoip2>=5.1.0,<6",
+    "google-api-core[grpc]>=2.25,<3",
+    "google-cloud-run>=0.16,<0.17",
+    "google-cloud-storage>=3.0,<4",
+    "html2text>=2018.1.9,<2019",
+    "Pillow>=12.2,<14.0",
+    "python-decouple>=3.1,<4",
+    "renameat2==0.4.4; sys_platform == 'linux'",
+    "uWSGI==2.0.31",
+    "google-api-python-client>=2.177.0,<3",
+    "psycopg2>=2.9.5,<3",
+    "oauthlib>=3.2.2,<5.0.0",
+    "requests-oauthlib>=1.3.0,<2",
+    "sentry-sdk>=2.8.0,<3",
+    "python-json-logger>=2.0.2,<3",
+    "django-storages[google]>=1.11.1,<2",
+    "pdfminer.six>=20251107,<20251108",
+    "requests==2.33.0",
+    "pytz>=2022.1,<2023",
+    "packaging>=25.0,<26",
+    "django-sass==1.1.0",
+    "zxcvbn>=4.4.28,<5",
+    "setuptools==83.0.0",
+    "hdn-research-environment==3.2.26",
+    "django-oauth-toolkit>=2.2.0,<3",
+    "django-cors-headers>=3.14.0,<4",
+    "pyjwt>=2.15.0,<3",
+    "jsonschema>=4.0.0,<5",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-bleach = "^3.3.0"
-boto3 = "^1.28.53"
-botocore = "^1.31.53"
-chardet = "^3.0.4"
-cryptography = ">=44.0.1,<51.0.0"
-django = "^5.2.17"
-django-autocomplete-light = "^4.0"
-django-background-tasks-updated = "^1.2.7"
-django-q2 = "1.6.2"
-django-static-mathjax = "^3.2.2.1"
-django-tinymce = "^5.0.0"
-djangorestframework = "3.18.2"
-geoip2 = "^5.1.0"
-google-api-core = {version = "^2.25", extras = ["grpc"]}
-google-cloud-run = "^0.16"
-google-cloud-storage = "^3.0"
-html2text = "^2018.1.9"
-Pillow = ">=12.2,<14.0"
-python-decouple = "^3.1"
-renameat2 = { version = "0.4.4", platform = "linux" }
-uWSGI = "2.0.31"
-google-api-python-client = "^2.177.0"
-psycopg2 = "^2.9.5"
-oauthlib = ">=3.2.2,<5.0.0"
-requests-oauthlib = "^1.3.0"
-sentry-sdk = "^2.8.0"
-python-json-logger = "^2.0.2"
-django-storages = { version = "^1.11.1", extras = ["google"] }
-"pdfminer.six" = "^20251107"
-requests = "2.33.0"
-pytz = "^2022.1"
-packaging = "^25.0"
-django-sass = "1.1.0"
-zxcvbn = "^4.4.28"
-setuptools = "83.0.0"
-hdn-research-environment = "3.2.26"
-django-oauth-toolkit = "^2.2.0"
-django-cors-headers = "^3.14.0"
-pyjwt = "^2.15.0"
-jsonschema = "^4.0.0"
+[dependency-groups]
+dev = [
+    "coverage>=7.2.3,<8",
+    "docker>=7.0,<8",
+    "django-coverage-plugin>=3.1.0,<4",
+    "django-debug-toolbar>=5.1.0,<6",
+    "moto[s3,s3control]>=5.0.14,<6",
+    "requests>=2.32.4,<3",
+    "requests-mock>=1.7.0,<2",
+    "selenium>=3.141.0,<4",
+]
 
-[tool.poetry.group.dev.dependencies]
-coverage = "^7.2.3"
-docker = "^7.0"
-django-coverage-plugin = "^3.1.0"
-django-debug-toolbar = "^5.1.0"
-moto = { version = "^5.0.14", extras = ["s3", "s3control"] }
-requests = "^2.32.4"
-requests-mock = "^1.7.0"
-selenium = "^3.141.0"
-
-[build-system]
-requires = ["poetry-core>=2.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv]
+# This is a Django site, not an installable package.
+package = false
+required-version = ">=0.13.6"
 
 [tool.codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file

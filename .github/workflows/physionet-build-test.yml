@@ -1,4 +1,4 @@
-# Installs PhysioNet dependencies on Debian 10 and runs tests on the `dev` branch and PRs against the `dev` branch.
+# Installs PhysioNet dependencies on Debian and runs tests on the `dev` branch and PRs against the `dev` branch.
 
 name: Debian / Build and Test
 
@@ -11,6 +11,30 @@ on:
       - checks_requested
 
 jobs:
+  lock-check:
+    name: Check lock files are up to date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout physionet-build repo
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.13.6"
+
+      - name: Check uv.lock matches pyproject.toml
+        run: uv lock --check
+
+      - name: Check requirements.txt matches uv.lock
+        run: |
+          uv export --format requirements-txt --frozen --no-emit-project --output-file requirements.txt
+          git diff --exit-code requirements.txt || {
+            echo "requirements.txt is out of date. Regenerate it with:"
+            echo "  uv export --format requirements-txt --frozen --no-emit-project --output-file requirements.txt"
+            exit 1
+          }
+
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -26,7 +50,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pip3: ['poetry', 'requirements.txt']
+        installer: ['uv', 'requirements.txt']
         container: ['debian:12', 'debian:13']
     steps:
 
@@ -62,21 +86,29 @@ jobs:
         run: |
           ln -sT .env.example .env
 
+      - name: Install uv
+        if: matrix.installer == 'uv'
+        uses: astral-sh/setup-uv@v10
+        with:
+          version: "0.13.6"
+
       - name: Install repo dependencies
         # add virtual env path to github_path so each run: process will see it
         run: |
           export VIRTUAL_ENV=/env3
-          virtualenv -ppython3 $VIRTUAL_ENV
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
-          source $VIRTUAL_ENV/bin/activate
-          if [ ${{matrix.pip3}} = 'poetry' ]; then
-            pip3 install poetry
-            poetry config virtualenvs.create false
-            poetry install --no-root
+          if [ ${{ matrix.installer }} = 'uv' ]; then
+            # Use Debian's Python, as on the production servers
+            export UV_PYTHON_DOWNLOADS=never
+            UV_PROJECT_ENVIRONMENT=$VIRTUAL_ENV uv sync --locked --python /usr/bin/python3
+            uv pip list --python $VIRTUAL_ENV
           else
-            pip3 install -r requirements.txt
+            # Same install command as deploy/update on the servers
+            virtualenv -ppython3 $VIRTUAL_ENV
+            source $VIRTUAL_ENV/bin/activate
+            pip3 install -r requirements.txt --require-hashes
+            pip3 freeze
           fi
-          pip3 freeze
 
       - name: Setup postgres
         run: |
