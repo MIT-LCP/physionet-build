@@ -354,7 +354,7 @@ The challenge submission pipeline uses GCS for file storage and a container orch
 4. **Install dev dependencies** (includes the `docker` Python SDK):
 
    ```
-   poetry install
+   uv sync
    ```
 
 5. **Load the demo challenge and seed test data:**

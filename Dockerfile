@@ -16,15 +16,18 @@ RUN wget https://github.com/bemoody/lightwave/archive/0.73.tar.gz -O lightwave.t
     && (cd lightwave-* && make sandboxed-lightwave && mkdir -p /usr/local/bin && install -m 4755 sandboxed-lightwave /usr/local/bin) \
     && rm -rf lightwave*
 
-RUN pip install poetry \
-    && rm -rf /root/.cache/pip
+COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /uvx /usr/local/bin/
+
+# Install packages from uv.lock into the system Python (/usr/local), so
+# `python`, `coverage`, etc. work without activating a virtualenv.
+ENV UV_PROJECT_ENVIRONMENT=/usr/local \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1
 
 WORKDIR /code
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml uv.lock ./
 
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-root \
-    && rm -rf /root/.cache/pypoetry /root/.cache/pip
+RUN uv sync --locked --inexact --no-install-project --no-cache
 
 COPY docker/uwsgi-json-logging-plugin docker/uwsgi-json-logging-plugin
 RUN cd docker/uwsgi-json-logging-plugin \
