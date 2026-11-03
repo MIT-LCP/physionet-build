@@ -27,13 +27,7 @@ jobs:
         run: uv lock --check
 
       - name: Check requirements.txt matches uv.lock
-        run: |
-          uv export --format requirements-txt --frozen --no-emit-project --output-file requirements.txt
-          git diff --exit-code requirements.txt || {
-            echo "requirements.txt is out of date. Regenerate it with:"
-            echo "  uv export --format requirements-txt --frozen --no-emit-project --output-file requirements.txt"
-            exit 1
-          }
+        run: ./export-requirements.py --check
 
   test:
     name: Test

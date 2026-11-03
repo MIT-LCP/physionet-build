@@ -188,7 +188,7 @@ To add, remove or upgrade a package:
 
 1. Edit `pyproject.toml`, or use `uv add <package>` / `uv remove <package>`. To upgrade a single locked package without changing `pyproject.toml`, use `uv lock --upgrade-package <package>`.
 2. Update the lock file: `uv lock`
-3. Regenerate `requirements.txt`: `uv export --format requirements-txt --frozen --no-emit-project --output-file requirements.txt`
+3. Regenerate `requirements.txt`: `./export-requirements.py`. This runs `uv export` and keeps package extras such as `google-api-core[grpc]` that older versions of pip need.
 4. Commit `pyproject.toml`, `uv.lock` and `requirements.txt` together.
 
 CI checks that `uv.lock` and `requirements.txt` are up to date.
