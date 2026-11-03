@@ -12,7 +12,7 @@ on:
 
 jobs:
   lock-check:
-    name: Check lock files are up to date
+    name: Check lock file is up to date
     runs-on: ubuntu-latest
     steps:
       - name: Checkout physionet-build repo
@@ -25,9 +25,6 @@ jobs:
 
       - name: Check uv.lock matches pyproject.toml
         run: uv lock --check
-
-      - name: Check requirements.txt matches uv.lock
-        run: ./export-requirements.py --check
 
   test:
     name: Test
@@ -44,7 +41,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        installer: ['uv', 'requirements.txt']
+        # Only uv now; kept as a matrix so the job names (and the
+        # required status checks) stay "Test (uv, debian:NN)".
+        installer: ['uv']
         container: ['debian:12', 'debian:13']
     steps:
 
@@ -81,7 +80,6 @@ jobs:
           ln -sT .env.example .env
 
       - name: Install uv
-        if: matrix.installer == 'uv'
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           version: "0.13.6"
@@ -91,18 +89,10 @@ jobs:
         run: |
           export VIRTUAL_ENV=/env3
           echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
-          if [ ${{ matrix.installer }} = 'uv' ]; then
-            # Use Debian's Python, as on the production servers
-            export UV_PYTHON_DOWNLOADS=never
-            UV_PROJECT_ENVIRONMENT=$VIRTUAL_ENV uv sync --locked --python /usr/bin/python3
-            uv pip list --python $VIRTUAL_ENV
-          else
-            # Same install command as deploy/update on the servers
-            virtualenv -ppython3 $VIRTUAL_ENV
-            source $VIRTUAL_ENV/bin/activate
-            pip3 install -r requirements.txt --require-hashes
-            pip3 freeze
-          fi
+          # Use Debian's Python, as on the production servers
+          export UV_PYTHON_DOWNLOADS=never
+          UV_PROJECT_ENVIRONMENT=$VIRTUAL_ENV uv sync --locked --python /usr/bin/python3
+          uv pip list --python $VIRTUAL_ENV
 
       - name: Setup postgres
         run: |

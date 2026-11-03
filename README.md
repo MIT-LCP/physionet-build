@@ -181,14 +181,12 @@ Here is an example of existing cronjob from `deploy/production/etc/cron.d/physio
 Dependencies are managed with [uv](https://docs.astral.sh/uv/):
 
 - `pyproject.toml` lists the packages we depend on and the versions we allow. Development-only packages (test tools, debug toolbar) are in the `dev` dependency group.
-- `uv.lock` records the exact version and hashes of every package that gets installed. The Docker image (used for Health Data Nexus) and CI install from this file.
-- `requirements.txt` is generated from `uv.lock` and is used by the staging and production servers (see `deploy/update`). Do not edit it by hand.
+- `uv.lock` records the exact version and hashes of every package that gets installed. The staging and production servers (see `deploy/update`), the Docker image (used for Health Data Nexus) and CI all install from this file.
 
 To add, remove or upgrade a package:
 
 1. Edit `pyproject.toml`, or use `uv add <package>` / `uv remove <package>`. To upgrade a single locked package without changing `pyproject.toml`, use `uv lock --upgrade-package <package>`.
 2. Update the lock file: `uv lock`
-3. Regenerate `requirements.txt`: `./export-requirements.py`. This runs `uv export` and keeps package extras such as `google-api-core[grpc]` that older versions of pip need.
-4. Commit `pyproject.toml`, `uv.lock` and `requirements.txt` together.
+3. Commit `pyproject.toml` and `uv.lock` together.
 
-CI checks that `uv.lock` and `requirements.txt` are up to date.
+CI checks that `uv.lock` is up to date with `pyproject.toml`.
