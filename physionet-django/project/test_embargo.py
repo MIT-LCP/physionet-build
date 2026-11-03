@@ -15,6 +15,7 @@ from project.authorization.access import can_access_project, can_view_project_fi
 from project.cloud.s3 import public_s3_download_url, upload_list_of_projects, upload_project_to_S3
 from project.models import AccessPolicy, AWS, CoreProject, DUASignature, PublishedProject, ProjectType
 from user.models import User
+from user.test_views import TestMixin
 
 
 class EmbargoDownloadTests(TestCase):
@@ -144,3 +145,21 @@ class EmbargoDownloadTests(TestCase):
         with mock.patch('project.cloud.s3.upload_project_to_S3') as upload:
             upload_list_of_projects([self.project, ready])
         upload.assert_called_once_with(ready)
+
+
+@override_settings(
+    AWS_PROFILE='default', AWS_ACCOUNT_ID='123456789012',
+    S3_OPEN_ACCESS_BUCKET='physionet-open', S3_SERVER_ACCESS_LOG_BUCKET='physionet-logs',
+    S3_CONTROLLED_ACCESS_BUCKET='physionet-controlled',
+    S3_OPEN_ACCESS_BUCKET_WITH_LOGIN='physionet-open-login',
+)
+class EmbargoConsoleUploadTests(TestMixin):
+    def test_console_refuses_s3_upload_during_embargo(self):
+        self.client.login(username='admin', password='Tester11!')
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        PublishedProject.objects.filter(pk=project.pk).update(
+            publish_datetime=timezone.now(), embargo_files_days=30)
+        url = reverse('manage_published_project', args=(project.slug, project.version))
+        response = self.client.post(url, {'aws-bucket': project.slug})
+        self.assertContains(response, 'Files cannot be uploaded to AWS while the project is under embargo.')
+        self.assertBackgroundTasks(0)
