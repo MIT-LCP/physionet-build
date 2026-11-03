@@ -5,6 +5,7 @@ from django.shortcuts import reverse
 from django.utils import timezone
 from django.utils.html import format_html, escape
 from django.utils.http import urlencode
+from django.utils.safestring import mark_safe
 import html2text
 
 from project.authorization.access import can_view_project_files as can_view_project_files_func
