@@ -586,3 +586,46 @@ body .tox .tox-dialog-wrap__backdrop {
     padding-left: 0.5em;
     text-align: right;
 }
+
+/* Author name that opens an author info popover */
+.author-popover-trigger {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+}
+.author-popover-trigger:hover,
+.author-popover-trigger[aria-expanded="true"] {
+    color: #DA1259;
+    text-decoration-style: solid;
+}
+.author-popover-trigger:focus {
+    outline: none;
+}
+.author-popover-trigger:focus-visible {
+    border-radius: 2px;
+    box-shadow: 0 0 0 0.2rem rgba(218, 18, 89, 0.3);
+}
+.author-popover-trigger .fa-caret-down {
+    margin-left: 0.2em;
+    font-size: 0.8em;
+    transition: transform 0.15s;
+}
+.author-popover-trigger[aria-expanded="true"] .fa-caret-down {
+    transform: rotate(180deg);
+}
+
+/* Popover body */
+.popover {
+    max-width: 320px;
+    font-size: 0.875rem;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.12);
+}
+.popover-body p:last-child {
+    margin-bottom: 0;
+}

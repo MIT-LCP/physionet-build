@@ -5,6 +5,7 @@ from django.shortcuts import reverse
 from django.utils import timezone
 from django.utils.html import format_html, escape
 from django.utils.http import urlencode
+from django.utils.safestring import mark_safe
 import html2text
 
 from project.authorization.access import can_view_project_files as can_view_project_files_func
@@ -131,23 +132,41 @@ def author_popover(author, show_submitting=False, show_email=False,
                    show_corresponding=False):
     """
     Helper function for the popover of show_author_info and
-    show_all_author_info
-    """
-    affiliation_info = escape('<b>Affiliations</b><p>{}</p>'.format('<br>'.join(escape(a) for a in author.text_affiliations)))
-    profile_info = '<p><b>Profile</b><br><a href=/users/{} target=_blank>{}</a></p>'.format(author.username, author.username)
-    popover_body = ''.join((affiliation_info, profile_info))
+    show_all_author_info.
 
+    The author's name is rendered as a button that opens a popover
+    with their affiliations and profile link.
+    """
+    parts = []
     if show_submitting and author.is_submitting:
-        popover_body = '<p><strong>Submitting Author</strong></p>' + popover_body
+        parts.append(mark_safe('<p><strong>Submitting Author</strong></p>'))
+
+    affiliations = format_html(
+        '<p><strong>Affiliations</strong><br>{}</p>',
+        mark_safe('<br>'.join(escape(a) for a in author.text_affiliations)),
+    )
+    parts.append(affiliations)
+    parts.append(format_html(
+        '<p><strong>Profile</strong><br><a href="{}" target="_blank">{}</a></p>',
+        reverse('public_profile', args=[author.username]), author.username,
+    ))
 
     if show_email:
-        popover_body += '<p><strong>User Email</strong><br> {}</p>'.format(author.email)
+        parts.append(format_html('<p><strong>User Email</strong><br>{}</p>', author.email))
 
     if show_corresponding and author.is_corresponding:
-        popover_body += '<p><strong>Corresponding Email</strong><br> {}</p>'.format(author.corresponding_email)
+        parts.append(format_html('<p><strong>Corresponding Email</strong><br>{}</p>',
+                                 author.corresponding_email))
 
-    return '<a class="author">{}</a> <i class="fas fa-info-circle" data-toggle="popover" data-original-title="<strong>Author Info</strong>" data-placement="bottom" data-content="{}" data-html="true" style="cursor: pointer;"></i>'.format(
-        author.name, popover_body)
+    popover_body = ''.join(parts)
+
+    return format_html(
+        '<button type="button" class="author-popover-trigger" data-toggle="popover" '
+        'data-placement="bottom" data-html="true" data-content="{}" '
+        'aria-label="{}: show author information" aria-expanded="false">'
+        '{}<i class="fas fa-caret-down" aria-hidden="true"></i></button>',
+        popover_body, author.name, author.name,
+    )
 
 
 @register.filter(name='show_author_info')
