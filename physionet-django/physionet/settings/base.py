@@ -801,6 +801,8 @@ SITE_NAME = config('SITE_NAME')
 STRAPLINE = config('STRAPLINE')
 SITE_HEADER_LOGO = config('SITE_HEADER_LOGO', default=None)
 SITE_FOOTER_LOGO = config('SITE_FOOTER_LOGO', default=None)
+# Homepage banner image: a path under the static files, or a full URL
+HOMEPAGE_BANNER_IMAGE = config('HOMEPAGE_BANNER_IMAGE', default='') or 'images/banner.webp'
 
 SITE_DESCRIPTION = config('SITE_DESCRIPTION', default=None)
 EMAIL_SIGNATURE = config('EMAIL_SIGNATURE')

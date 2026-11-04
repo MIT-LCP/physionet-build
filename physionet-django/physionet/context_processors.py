@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.templatetags.static import static
 from physionet.models import FrontPageButton
 
 from notification.models import Notification
@@ -37,6 +38,16 @@ def cloud_research_environments_config(request):
     }
 
 
+def static_or_url(path):
+    """
+    Return a full or root-relative URL unchanged, otherwise treat the path as a
+    static file.
+    """
+    if path.startswith(('http://', 'https://', '/')):
+        return path
+    return static(path)
+
+
 def homepage_config(request):
     front_page_buttons = FrontPageButton.objects.all()
     return {
@@ -49,6 +60,7 @@ def homepage_config(request):
         "FRONT_PAGE_BUTTONS": front_page_buttons,
         "SITE_HEADER_LOGO": settings.SITE_HEADER_LOGO,
         "SITE_FOOTER_LOGO": settings.SITE_FOOTER_LOGO,
+        "HOMEPAGE_BANNER_IMAGE_URL": static_or_url(settings.HOMEPAGE_BANNER_IMAGE),
     }
 
 
