@@ -2900,7 +2900,7 @@ class TestProjectViewsMetric(TestMixin):
 
         response = self.client.get(reverse('published_project_metrics',
                                            args=(project.slug, project.version)))
-        month = timezone.now().strftime('%b %Y')
+        month = timezone.localtime().strftime('%b %Y')
         self.assertContains(
             response,
             '<script id="views-chart-data" type="application/json">'
