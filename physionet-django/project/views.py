@@ -2491,6 +2491,14 @@ def published_project_citations(request, project_slug, version):
     })
 
 
+def _format_chart_data(views):
+    """Format views-over-time records for the D3 line chart."""
+    return [
+        {'month': v['month'].strftime('%b %Y'), 'count': v['count']}
+        for v in views
+    ]
+
+
 def published_project_metrics(request, project_slug, version):
     """
     Public metrics page for a published project.
@@ -2498,6 +2506,7 @@ def published_project_metrics(request, project_slug, version):
     project = get_object_or_404(PublishedProject, slug=project_slug, version=version)
     views_over_time = project.views_over_time()
     tracking_start_date = views_over_time[0]['month'] if views_over_time else None
+    chart_data = _format_chart_data(views_over_time)
 
     # Display newest months first, paginated
     views_over_time.reverse()
@@ -2514,6 +2523,7 @@ def published_project_metrics(request, project_slug, version):
         'views_over_time': views_over_time,
         'views_by_version': project.views_by_version(),
         'tracking_start_date': tracking_start_date,
+        'chart_data': chart_data,
         'scholar_data': scholar_data,
     })
 
