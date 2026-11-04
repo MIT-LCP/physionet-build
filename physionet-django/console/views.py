@@ -73,7 +73,7 @@ from project.authorization.access import can_view_project_files
 import project.tasks as project_tasks
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
-from project.views import get_file_forms, get_project_file_info, process_files_post
+from project.views import can_unpack_archives, get_file_forms, get_project_file_info, process_files_post
 from project.modelcomponents.activeproject import ArchiveReason
 from user.forms import AssociatedEmailChoiceForm
 from user.models import (
@@ -864,7 +864,9 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                     messages.error(request, 'Submission unsuccessful. See form for errors.')
         else:
             # process the file manipulation post
-            subdir = process_files_post(request, project)
+            subdir = process_files_post(
+                request, project,
+                allow_unpack=can_unpack_archives(project, request.user))
 
     if 'subdir' not in vars():
         subdir = ''
@@ -919,6 +921,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
          'is_editor': True,
          'files_editable': True,
          'can_upload_files': project.can_upload_files(request.user),
+         'can_unpack_archives': can_unpack_archives(project, request.user),
          'copyedit_form': copyedit_form,
          'copyedit_logs': copyedit_logs,
          'add_item_url': edit_url,

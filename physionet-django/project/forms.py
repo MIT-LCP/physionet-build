@@ -19,7 +19,7 @@ from django.utils.html import format_html
 
 from physionet.exceptions import HtmlValidationError
 from physionet.settings.base import StorageTypes
-from project import utility, validators
+from project import archives, utility, validators
 from project.models import (
     AccessPolicy,
     ActiveProject,
@@ -395,6 +395,63 @@ class MoveItemsForm(EditItemsForm):
                     errors.append(format_html(
                         'Unable to move <i>{}</i> into <i>{}</i>', item, dest))
         return 'Your items have been moved', errors
+
+
+class UnpackArchiveForm(EditItemsForm):
+    """
+    Form for unpacking a zip or tar archive into the folder containing
+    it. Only supported with local file storage.
+    """
+    delete_archive = forms.BooleanField(
+        required=False, label='Delete the archive after unpacking')
+
+    def clean_items(self):
+        items = super().clean_items()
+        if len(items) != 1:
+            raise forms.ValidationError('Must specify one archive to unpack')
+        if not archives.is_supported_archive(items[0]):
+            raise forms.ValidationError(format_html(
+                '<i>{}</i> is not a supported archive', items[0]))
+        return items
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if settings.STORAGE_TYPE != StorageTypes.LOCAL:
+            raise forms.ValidationError('Unpacking archives is not supported with this storage type')
+        if 'items' in cleaned_data and 'subdir' in cleaned_data:
+            self.archive_path = os.path.join(self.file_dir, cleaned_data['items'][0])
+            if os.path.islink(self.archive_path) or not os.path.isfile(self.archive_path):
+                raise HtmlValidationError(format_html(
+                    'File named <i>{}</i> does not exist', cleaned_data['items'][0]))
+        return cleaned_data
+
+    def perform_action(self):
+        """
+        Unpack the archive
+        """
+        errors = ErrorList()
+        name = self.cleaned_data['items'][0]
+        remaining = (self.project.core_project.storage_allowance
+                     - self.project.storage_used())
+        try:
+            count = archives.extract_archive(self.archive_path, self.file_dir,
+                                             max_size=max(remaining, 0))
+        except archives.ArchiveError as e:
+            errors.append(format_html('Unable to unpack <i>{}</i>: {}', name, str(e)))
+            return '', errors
+        except OSError:
+            errors.append(format_html('Unable to unpack <i>{}</i>', name))
+            return '', errors
+
+        message = f'Unpacked {count} file{"" if count == 1 else "s"} from {name}'
+        if self.cleaned_data['delete_archive']:
+            try:
+                self.project.files.rm(self.archive_path)
+                message += ' and deleted the archive'
+            except OSError:
+                errors.append(format_html(
+                    'Files were unpacked, but <i>{}</i> could not be deleted', name))
+        return message, errors
 
 
 class CreateProjectForm(forms.ModelForm):
