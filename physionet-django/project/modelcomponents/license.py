@@ -1,4 +1,5 @@
 from django.db import models
+from html2text import html2text
 
 from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
@@ -28,3 +29,11 @@ class License(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if update_fields is None or 'html_content' in update_fields:
+            self.text_content = html2text(self.html_content)
+            if update_fields is not None:
+                kwargs['update_fields'] = set(update_fields) | {'text_content'}
+        super().save(*args, **kwargs)
