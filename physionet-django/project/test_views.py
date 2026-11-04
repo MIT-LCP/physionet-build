@@ -1,5 +1,5 @@
 import base64
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import html.parser
 import os
@@ -54,7 +54,7 @@ from project.validators import validate_abstract_word_count
 from user.enums import TrainingStatus
 from user.models import Training, TrainingType, User
 from user.test_views import TestMixin, prevent_request_warnings
-from project.views import ARCHIVE_VIEW_DAYS
+from project.views import ARCHIVE_VIEW_DAYS, _format_chart_data
 
 PROJECT_VIEWS = [
     'project_overview', 'project_authors', 'project_content',
@@ -2857,6 +2857,160 @@ class TestProjectViewsMetric(TestMixin):
         self.assertGreater(len(page), 0)
         self.assertLessEqual(len(page), 12)
         self.assertFalse(page.has_next())
+
+    def test_chart_data_in_context(self):
+        """chart_data is present in the metrics page context."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertIn('chart_data', response.context)
+
+    def test_chart_data_empty_when_no_views(self):
+        """chart_data is empty and no chart is rendered when there are no views."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        self.assertEqual(response.context['chart_data'], [])
+        self.assertNotContains(response, 'id="views-chart"')
+
+    def test_chart_data_structure(self):
+        """chart_data entries have 'month' and 'count' keys."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user = User.objects.get(email='rgmark@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        AccessLog.objects.create(
+            user=user, object_id=project.id, content_type=content_type, data='')
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        data = response.context['chart_data']
+        self.assertGreater(len(data), 0)
+        self.assertIn('month', data[0])
+        self.assertIn('count', data[0])
+
+    def test_chart_data_rendered_as_json_script(self):
+        """chart_data is embedded in the page with json_script."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user = User.objects.get(email='rgmark@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        AccessLog.objects.create(
+            user=user, object_id=project.id, content_type=content_type, data='')
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        month = timezone.localtime().strftime('%b %Y')
+        self.assertContains(
+            response,
+            '<script id="views-chart-data" type="application/json">'
+            f'[{{"month": "{month}", "count": 1}}]</script>',
+            html=False)
+
+    def test_chart_data_chronological_order(self):
+        """chart_data is in chronological order (oldest first)."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user = User.objects.get(email='rgmark@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        now = timezone.now()
+        old_month = now - timedelta(days=60)
+
+        log1 = AccessLog.objects.create(
+            user=user, object_id=project.id, content_type=content_type, data='')
+        AccessLog.objects.filter(pk=log1.pk).update(creation_datetime=old_month)
+        AccessLog.objects.create(
+            user=user, object_id=project.id, content_type=content_type, data='')
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        data = response.context['chart_data']
+        self.assertEqual(len(data), 2)
+        dates = [datetime.strptime(d['month'], '%b %Y') for d in data]
+        self.assertLess(dates[0], dates[1])
+
+    def test_chart_data_single_month(self):
+        """chart_data with a single month of views produces one entry."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user = User.objects.get(email='rgmark@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        AccessLog.objects.create(
+            user=user, object_id=project.id, content_type=content_type, data='')
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        data = response.context['chart_data']
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]['count'], 1)
+
+    def test_chart_data_long_history(self):
+        """chart_data spans the full history, not just the first page of the table."""
+        project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
+        user = User.objects.get(email='rgmark@mit.edu')
+        content_type = ContentType.objects.get_for_model(project)
+
+        now = timezone.now()
+        # Create access logs spanning 36 months
+        for i in range(36):
+            log = AccessLog.objects.create(
+                user=user, object_id=project.id, content_type=content_type, data='')
+            AccessLog.objects.filter(pk=log.pk).update(
+                creation_datetime=now - relativedelta(months=i))
+
+        response = self.client.get(reverse('published_project_metrics',
+                                           args=(project.slug, project.version)))
+        data = response.context['chart_data']
+        self.assertEqual(len(data), 36)
+        self.assertEqual(len(response.context['views_over_time']), 12)
+        for entry in data:
+            datetime.strptime(entry['month'], '%b %Y')
+            self.assertEqual(entry['count'], 1)
+
+
+class TestFormatChartData(TestCase):
+    """Unit tests for the _format_chart_data helper."""
+
+    def test_empty_list(self):
+        self.assertEqual(_format_chart_data([]), [])
+
+    def test_formats_month_and_count(self):
+        views = [
+            {'month': date(2024, 1, 1), 'count': 5},
+            {'month': date(2024, 12, 1), 'count': 10},
+        ]
+        self.assertEqual(_format_chart_data(views), [
+            {'month': 'Jan 2024', 'count': 5},
+            {'month': 'Dec 2024', 'count': 10},
+        ])
+
+    def test_single_month(self):
+        """A single data point produces one entry."""
+        views = [{'month': date(2025, 6, 1), 'count': 3}]
+        self.assertEqual(_format_chart_data(views),
+                         [{'month': 'Jun 2025', 'count': 3}])
+
+    def test_long_history(self):
+        """100 months of data keep their count and chronological order."""
+        views = [
+            {'month': date(2017 + i // 12, 1 + i % 12, 1), 'count': i + 1}
+            for i in range(100)
+        ]
+        result = _format_chart_data(views)
+        self.assertEqual(len(result), 100)
+        self.assertEqual(result[0], {'month': 'Jan 2017', 'count': 1})
+        self.assertEqual(result[99], {'month': 'Apr 2025', 'count': 100})
+
+    def test_all_zero_counts(self):
+        """Months with zero counts are preserved in the output."""
+        views = [
+            {'month': date(2025, 1, 1), 'count': 0},
+            {'month': date(2025, 2, 1), 'count': 0},
+            {'month': date(2025, 3, 1), 'count': 0},
+        ]
+        result = _format_chart_data(views)
+        self.assertEqual(len(result), 3)
+        self.assertTrue(all(d['count'] == 0 for d in result))
 
 
 class TestScholarDataIntegration(TestMixin):
