@@ -2,6 +2,7 @@ from django.db import models
 
 from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
+from project.license_content import license_html_to_text
 from project.validators import validate_version
 
 
@@ -28,3 +29,11 @@ class License(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if update_fields is None or 'html_content' in update_fields:
+            self.text_content = license_html_to_text(self.html_content)
+            if update_fields is not None:
+                kwargs['update_fields'] = set(update_fields) | {'text_content'}
+        super().save(*args, **kwargs)
