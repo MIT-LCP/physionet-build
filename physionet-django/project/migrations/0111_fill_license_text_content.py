@@ -1,5 +1,6 @@
 from django.db import migrations
-from html2text import html2text
+
+from project.license_content import license_html_to_text
 
 
 def fill_license_text_content(apps, schema_editor):
@@ -7,7 +8,7 @@ def fill_license_text_content(apps, schema_editor):
     licenses = License.objects.using(schema_editor.connection.alias)
     for license in licenses.filter(text_content='').iterator():
         licenses.filter(pk=license.pk, text_content='').update(
-            text_content=html2text(license.html_content),
+            text_content=license_html_to_text(license.html_content),
         )
 
 
