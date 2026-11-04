@@ -11,7 +11,9 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from project.authorization.access import can_access_project, can_view_project_files
+from project.authorization.access import (
+    can_access_project, can_view_project_files, must_sign_in_for_files,
+)
 from project.cloud.s3 import public_s3_download_url, upload_list_of_projects, upload_project_to_S3
 from project.models import AccessPolicy, AWS, CoreProject, DUASignature, PublishedProject, ProjectType
 from user.models import User
@@ -87,6 +89,23 @@ class EmbargoDownloadTests(TestCase):
             for url in (self.file_url(), self.zip_url()):
                 with self.subTest(url=url):
                     self.assertEqual(self.client.get(url).status_code, 403)
+
+    @override_settings(REQUIRE_LOGIN_FOR_DOWNLOAD=True)
+    def test_embargo_does_not_ask_anonymous_users_to_sign_in(self):
+        """
+        Signing in would not lift the embargo, so don't ask for it.
+        """
+        self.assertFalse(must_sign_in_for_files(self.project, AnonymousUser()))
+        display_url = reverse('display_published_project_file', args=(
+            self.project.slug, self.project.version, 'data.txt',
+        ))
+        for url in (self.file_url(), self.zip_url(), display_url):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 403)
+                self.assertNotIn('X-Download-Denied', response)
+                self.assertNotContains(response, 'requires an account', status_code=403)
+                self.assertNotContains(response, 'to access the files', status_code=403)
 
     def test_lightwave_hides_embargoed_project_and_denies_its_files(self):
         self.project.has_wfdb = True
