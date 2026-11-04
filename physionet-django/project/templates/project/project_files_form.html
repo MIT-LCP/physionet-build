@@ -16,6 +16,11 @@
       <button id="rename-item-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#rename-item-modal" disabled="true" onclick="prepareRename()">
         <i class="fa fa-edit"></i> Rename Item
       </button>
+      {% if can_unpack_archives %}
+      <button id="unpack-archive-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#unpack-archive-modal" disabled="true" onclick="prepareUnpack()" title="Select a .zip or .tar archive to unpack">
+        <i class="fas fa-box-open"></i> Unpack Archive
+      </button>
+      {% endif %}
       <button id="move-items-button" type="button" class="btn btn-primary" data-toggle="modal" data-target="#move-items-modal" disabled="true" onclick="prepareMove()">
         <i class="fas fa-arrow-right"></i> Move Items
       </button>
@@ -135,6 +140,35 @@
       </div>
     </div>
   </div>
+
+  {% if can_unpack_archives %}
+  <div class="modal fade" id="unpack-archive-modal" tabindex="-1" role="dialog" aria-labelledby="unpack-archive-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="unpack-archive-modal-title">Unpack Archive</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+          <div class="modal-body">
+            <p id="unpack-archive-message"></p>
+            <p>The contents will be unpacked into this folder. Nothing will be
+              unpacked if any item in the archive already exists here, or if
+              the files would exceed the project's storage allowance.</p>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="delete_archive" id="id_delete_archive">
+              <label class="form-check-label" for="id_delete_archive">Delete the archive after unpacking</label>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="unpack-archive-button-submit" class="btn btn-primary" name="unpack_archive" type="submit"><i class="fas fa-box-open"></i> Unpack Archive</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <div class="modal fade" id="delete-items-modal" tabindex="-1" role="dialog" aria-labelledby="delete-items-modal" aria-hidden="true">
     <div class="modal-dialog" role="document">

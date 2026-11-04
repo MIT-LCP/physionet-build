@@ -23,6 +23,7 @@ from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from physionet.forms import set_saved_fields_cookie
 from physionet.middleware.maintenance import ServiceUnavailable
+from physionet.settings.base import StorageTypes
 from physionet.storage import generate_signed_url_helper
 from physionet.utility import paginate, serve_file
 from challenge.utility import published_challenge_context
@@ -1166,6 +1167,7 @@ def project_files_panel(request, project_slug, **kwargs):
             'is_submitting': is_submitting,
             'is_editor': is_editor,
             'files_editable': files_editable,
+            'can_unpack_archives': can_unpack_archives(project, request.user),
             'can_upload_files': project.can_upload_files(request.user),
             'max_files_per_upload': settings.DATA_UPLOAD_MAX_NUMBER_FILES,
             'individual_size_limit': utility.readable_size(ActiveProject.INDIVIDUAL_FILE_SIZE_LIMIT),
@@ -1196,13 +1198,27 @@ def process_items(request, form):
         else:
             return ''
 
-def process_files_post(request, project):
+
+def can_unpack_archives(project, user):
+    """
+    Whether the user may unpack archives in the project's files: the
+    project's editor during copyediting, with local file storage.
+    """
+    return (user == project.editor and project.copyeditable()
+            and settings.STORAGE_TYPE == StorageTypes.LOCAL)
+
+
+def process_files_post(request, project, allow_unpack=False):
     """
     Helper function for `project_files`
+
+    allow_unpack enables unpacking archives, which is only offered to
+    editors during copyediting.
     """
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
         raise ServiceUnavailable()
 
+    subdir = ''
     if 'upload_files' in request.POST:
         if not project.can_upload_files(request.user):
             messages.error(request, 'You must accept the upload agreement before uploading files.')
@@ -1222,6 +1238,9 @@ def process_files_post(request, project):
         subdir = process_items(request, form)
     elif 'delete_items' in request.POST:
         form = forms.DeleteItemsForm(project=project, data=request.POST)
+        subdir = process_items(request, form)
+    elif 'unpack_archive' in request.POST and allow_unpack:
+        form = forms.UnpackArchiveForm(project=project, data=request.POST)
         subdir = process_items(request, form)
 
     return subdir

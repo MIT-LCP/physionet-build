@@ -83,7 +83,7 @@
             <td><a href="{{ file.url }}?return=files">{{ file.name }}</a></td>
             <td>{{ file.size }}</td>
             <td>{{ file.last_modified }}</td>
-            <td>{% if files_editable %}<input type="checkbox" name="items" value="{{ file.name }}" onchange="countSelected()">{% endif %}</td>
+            <td>{% if files_editable %}<input type="checkbox" name="items" value="{{ file.name }}" data-file="true" onchange="countSelected()">{% endif %}</td>
           </tr>
         {% endfor %}
         </tbody>
@@ -158,6 +158,14 @@
       selectAll.indeterminate = n_selected > 0 && n_selected < boxes.length;
     }
     document.getElementById('rename-item-button').disabled = n_selected !== 1;
+    const unpackButton = document.getElementById('unpack-archive-button');
+    if (unpackButton) {
+      const selected = Array.from(boxes).filter(box => box.checked);
+      // Keep in sync with SUPPORTED_EXTENSIONS in project/archives.py
+      const archivePattern = /\.(zip|tar|tar\.gz|tgz|tar\.bz2|tbz2|tar\.xz|txz)$/i;
+      unpackButton.disabled = !(selected.length === 1 && selected[0].dataset.file
+                                && archivePattern.test(selected[0].value));
+    }
     document.getElementById('move-items-button').disabled = n_selected === 0;
     document.getElementById('delete-items-button').disabled = n_selected === 0;
   }
@@ -232,6 +240,16 @@
   function prepareMove(){
     setInputRequirements("id_destination_folder")
     document.getElementById("move-items-message").innerHTML = "Move "+ n_selected + " selected item(s)."
+  }
+
+  function prepareUnpack(){
+    setInputRequirements("")
+    const itemName = document.querySelector('#files-panel input[name="items"]:checked').value
+    const message = document.getElementById("unpack-archive-message")
+    message.textContent = "Selected archive: "
+    const strong = document.createElement("strong")
+    strong.textContent = itemName
+    message.appendChild(strong)
   }
 
   function prepareDelete(){
