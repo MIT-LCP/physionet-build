@@ -580,6 +580,68 @@ class OrcidLoginTests(TestCase):
         self.assertEqual(force_str(urlsafe_base64_decode(match.kwargs['uidb64'])), str(user.pk))
         self.assertTrue(default_token_generator.check_token(user, match.kwargs['token']))
 
+    def test_register_without_token_redirects_to_login(self):
+        response = self.client.get(reverse('orcid_register'))
+
+        self.assertRedirects(response, reverse('orcid_init_login'), fetch_redirect_response=False)
+
+    def test_register_without_token_creates_nothing(self):
+        orcid_count = Orcid.objects.count()
+
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidnew@example.com', 'username': 'orcidnew', 'first_names': 'Orcid', 'last_name': 'New',
+            'privacy_policy': 'on',
+        })
+
+        self.assertRedirects(response, reverse('orcid_init_login'), fetch_redirect_response=False)
+        self.assertFalse(User.objects.filter(email='orcidnew@example.com').exists())
+        self.assertFalse(User.objects.filter(username='orcidnew').exists())
+        self.assertEqual(Orcid.objects.count(), orcid_count)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_register_twice_creates_one_account(self):
+        self.login(LOGIN_TOKEN)
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidnew@example.com', 'username': 'orcidnew', 'first_names': 'Orcid', 'last_name': 'New',
+            'privacy_policy': 'on',
+        })
+        self.assertTemplateUsed(response, 'user/register_done.html')
+        self.assertNotIn('orcid_token', self.client.session)
+
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidagain@example.com', 'username': 'orcidagain', 'first_names': 'Orcid', 'last_name': 'Again',
+            'privacy_policy': 'on',
+        })
+
+        self.assertRedirects(response, reverse('orcid_init_login'), fetch_redirect_response=False)
+        self.assertFalse(User.objects.filter(email='orcidagain@example.com').exists())
+        self.assertFalse(User.objects.filter(username='orcidagain').exists())
+        self.assertEqual(Orcid.objects.filter(orcid_id=LOGIN_TOKEN['orcid']).count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_register_invalid_form_keeps_token(self):
+        self.login(LOGIN_TOKEN)
+
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidnew@example.com', 'first_names': 'Orcid', 'last_name': 'New', 'privacy_policy': 'on',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'user/orcid_register.html')
+        self.assertIn('username', response.context['form'].errors)
+        self.assertEqual(self.client.session['orcid_token'], LOGIN_TOKEN)
+        self.assertFalse(User.objects.filter(email='orcidnew@example.com').exists())
+
+    def test_register_when_logged_in_goes_to_projects(self):
+        user = User.objects.create_user(
+            username='orcidloggedin', email='orcidloggedin@example.com', password='testpass123', is_active=True,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('orcid_register'))
+
+        self.assertRedirects(response, reverse('project_home'), fetch_redirect_response=False)
+
     def test_activation_with_valid_link(self):
         user = self.create_linked_user(is_active=False)
         self.assertFalse(user.associated_emails.get(is_primary_email=True).is_verified)
