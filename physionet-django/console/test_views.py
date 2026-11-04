@@ -13,11 +13,13 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
+from django.db import connection
 from django.test import TestCase, override_settings
-from django.test.utils import get_runner
+from django.test.utils import CaptureQueriesContext, get_runner
 from django.urls import reverse
+from django.utils import timezone
 from console.forms import CredentialReviewForm
-from console.views import snapshot_files, submission_file_changes
+from console.views import get_submission_stats, snapshot_files, submission_file_changes
 from events.models import EventAgreement
 from project.models import (
     AccessPolicy,
@@ -36,6 +38,7 @@ from project.models import (
     UploadAgreement,
     DepositTermsAcceptance,
     DepositTermsVersion,
+    EditLog,
 )
 from user.models import AssociatedEmail, User
 from physionet.models import FrontPageButton, Section, StaticPage
@@ -90,6 +93,78 @@ class TestSubmissionFileComparison(TestCase):
 
     def test_none_snapshot_has_no_manifest(self):
         self.assertEqual(snapshot_files(None), (None, False))
+
+
+class TestSubmissionStats(TestCase):
+    def setUp(self):
+        self.client.login(username='admin', password='Tester11!')
+
+    @staticmethod
+    def bucket_count(stats):
+        return sum(len(months) for months in stats.values())
+
+    @staticmethod
+    def current_month_bucket(stats):
+        return next(iter(next(iter(stats.values())).values()))
+
+    def test_period_control_accepts_valid_value(self):
+        response = self.client.get(reverse('submission_stats'), {'months': 6})
+
+        self.assertEqual(response.context['months'], 6)
+        self.assertEqual(self.bucket_count(response.context['stats']), 6)
+
+    def test_period_control_rejects_invalid_value(self):
+        response = self.client.get(reverse('submission_stats'), {'months': 0})
+        self.assertTrue(response.context['period_form'].errors)
+
+    def test_stats_use_bounded_queries_without_selecting_snapshots(self):
+        ContentType.objects.clear_cache()
+
+        with CaptureQueriesContext(connection) as queries:
+            stats = get_submission_stats(18)
+
+        self.assertEqual(self.bucket_count(stats), 18)
+        self.assertLessEqual(len(queries), 6)
+        sql = ' '.join(query['sql'].lower() for query in queries.captured_queries)
+        self.assertNotIn('metadata_snapshot', sql)
+        self.assertIn('creation_datetime', sql)
+        self.assertIn('submission_datetime', sql)
+        self.assertIn('decision_datetime', sql)
+
+    def test_current_month_submission_and_rejection_are_counted(self):
+        before = self.current_month_bucket(get_submission_stats(1))
+        project = ActiveProject.objects.first()
+        log = EditLog.objects.create(
+            project=project,
+            author_comments='',
+            editor_comments='',
+            decision=0,
+            decision_datetime=timezone.now(),
+            metadata_snapshot={'large': 'x' * 10000},
+        )
+        EditLog.objects.filter(pk=log.pk).update(submission_datetime=timezone.now())
+
+        after = self.current_month_bucket(get_submission_stats(1))
+
+        self.assertEqual(after[1], before[1] + 1)
+        self.assertEqual(after[4], before[4] + 1)
+
+    def test_edit_log_history_defers_snapshots_unless_requested(self):
+        project = ActiveProject.objects.first()
+        log = EditLog.objects.create(
+            project=project,
+            author_comments='',
+            editor_comments='',
+            metadata_snapshot={'sections': []},
+        )
+
+        default_log = project.edit_log_history().get(pk=log.pk)
+        snapshot_log = project.edit_log_history(
+            include_metadata_snapshot=True,
+        ).get(pk=log.pk)
+
+        self.assertIn('metadata_snapshot', default_log.get_deferred_fields())
+        self.assertNotIn('metadata_snapshot', snapshot_log.get_deferred_fields())
 
 
 @override_settings(BLOCKED_REGIONS={'CN'})
@@ -216,7 +291,7 @@ class TestState(TestMixin):
         project.save()
         project.resubmit(author_comments='Revised submission')
 
-        edit_logs = list(project.edit_log_history())
+        edit_logs = list(project.edit_log_history(include_metadata_snapshot=True))
         self.assertEqual(len(edit_logs), 2)
         self.assertEqual(
             {section['html_id']: section['body']

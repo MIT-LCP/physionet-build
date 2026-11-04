@@ -4,9 +4,20 @@
 {% block content %}
 <div class="card mb-3">
   <div class="card-header">
-    New projects (past 18 months)
+    New projects (past {{ months }} month{{ months|pluralize }})
   </div>
   <div class="card-body">
+    <form method="get" class="form-inline mb-3">
+      <label for="{{ period_form.months.id_for_label }}" class="mr-2 mb-0">Time period</label>
+      {{ period_form.months }}
+      <span class="ml-2 mr-3">month{{ months|pluralize }}</span>
+      <button type="submit" class="btn btn-primary">Update</button>
+    </form>
+    {% if period_form.months.errors %}
+      <div class="alert alert-danger">
+        {{ period_form.months.errors }}
+      </div>
+    {% endif %}
     <div class="table-responsive">
 
       <table class="table table-bordered">
