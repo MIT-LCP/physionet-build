@@ -801,7 +801,8 @@ def orcid_register(request):
 
     orcid_token = request.session.get('orcid_token')
     if orcid_token is None:
-        return redirect('orcid_init_login')
+        messages.error(request, 'Please log in with ORCID before creating an account.')
+        return redirect('login')
 
     if request.method == 'POST':
         form = forms.OrcidRegistrationForm(request.POST, orcid_token=orcid_token)
