@@ -37,11 +37,64 @@ from project.models import (
     DepositTermsAcceptance,
     DepositTermsVersion,
 )
+from project.utility import normalize_copyedit_html
 from user.models import AssociatedEmail, User
 from physionet.models import FrontPageButton, Section, StaticPage
 from user.test_views import TestMixin, prevent_request_warnings
 
 LOGGER = logging.getLogger(__name__)
+
+
+class TestCopyeditHTMLNormalization(TestCase):
+    def test_normalizes_inline_markup_and_whitespace(self):
+        self.assertEqual(
+            normalize_copyedit_html('<p><span><em> First&nbsp;second </em></span> </p>'),
+            '<p><em>First second</em></p>',
+        )
+
+    def test_moves_spaces_that_separate_inline_text_outside_formatting(self):
+        html = '<p><em>one </em>two and<strong> three</strong></p>'
+        self.assertEqual(
+            normalize_copyedit_html(html),
+            '<p><em>one</em> two and <strong>three</strong></p>',
+        )
+
+    def test_only_removes_redundant_spans_from_preformatted_content(self):
+        html = '<pre>    x = 1\n<span>keep&nbsp;this</span>\n</pre>'
+        self.assertEqual(
+            normalize_copyedit_html(html),
+            '<pre>    x = 1\nkeep this\n</pre>',
+        )
+
+    def test_removes_spans_with_attributes(self):
+        html = '<p><span lang="fr" title="Greeting">Bonjour</span></p>'
+        self.assertEqual(normalize_copyedit_html(html), '<p>Bonjour</p>')
+
+    def test_removes_bold_from_headers_and_unwraps_nested_paragraphs(self):
+        self.assertEqual(
+            normalize_copyedit_html('<h3><strong> Heading </strong></h3><ul><li><p>Item</p></li></ul>'),
+            '<h3>Heading</h3><ul><li>Item</li></ul>',
+        )
+
+    def test_removes_empty_tags_and_converts_divs(self):
+        self.assertEqual(
+            normalize_copyedit_html('<p></p><div>Paragraph<br></div><div><p>Second</p></div>'),
+            '<p>Paragraph</p><p>Second</p>',
+        )
+
+    def test_promotes_a_bold_first_table_row(self):
+        self.assertEqual(
+            normalize_copyedit_html(
+                '<table><tbody><tr><td><strong>One</strong></td><td><b>Two</b></td></tr>'
+                '<tr><td><p>A</p></td><td>B</td></tr></tbody></table>'
+            ),
+            '<table><thead><tr><th>One</th><th>Two</th></tr></thead>'
+            '<tbody><tr><td>A</td><td>B</td></tr></tbody></table>',
+        )
+
+    def test_does_not_promote_a_partially_bold_row(self):
+        html = '<table><tbody><tr><td><strong>One</strong> extra</td><td>Two</td></tr></tbody></table>'
+        self.assertEqual(normalize_copyedit_html(html), html)
 
 
 class TestCredentialReviewForm(TestCase):

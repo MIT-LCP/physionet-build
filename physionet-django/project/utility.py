@@ -27,6 +27,203 @@ from oauth2_provider.oauth2_backends import get_oauthlib_core
 LOGGER = logging.getLogger(__name__)
 
 
+# Main-body fields normalized as a submission enters copyediting.
+COPYEDIT_CONTENT_FIELDS = (
+    'abstract', 'background', 'methods', 'content_description', 'usage_notes',
+    'installation', 'release_notes', 'ethics_statement', 'acknowledgements',
+    'conflicts_of_interest',
+)
+_VOID_HTML_TAGS = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
+                   'link', 'meta', 'param', 'source', 'track', 'wbr'}
+_TABLE_TAGS = {'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th'}
+_BLOCK_HTML_TAGS = {'address', 'blockquote', 'div', 'dl', 'fieldset', 'figure',
+                    'h3', 'h4', 'h5', 'h6', 'hr', 'ol', 'p', 'pre', 'table', 'ul'}
+_STRUCTURAL_WHITESPACE_TAGS = {'p', 'li', 'td', 'th', 'h3', 'h4', 'h5', 'h6'}
+_INLINE_WHITESPACE_TAGS = {'b', 'em', 'strong'}
+
+
+class _CopyeditHTMLNode:
+    def __init__(self, tag=None, attrs=(), data=None):
+        self.tag, self.attrs, self.data = tag, list(attrs), data
+        self.children = []
+
+    @property
+    def is_text(self):
+        return self.tag is None
+
+
+class _CopyeditHTMLParser(html.parser.HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.root = _CopyeditHTMLNode('fragment')
+        self.stack = [self.root]
+
+    def handle_starttag(self, tag, attrs):
+        node = _CopyeditHTMLNode(tag.lower(), attrs)
+        self.stack[-1].children.append(node)
+        if node.tag not in _VOID_HTML_TAGS:
+            self.stack.append(node)
+
+    def handle_startendtag(self, tag, attrs):
+        self.handle_starttag(tag, attrs)
+        if tag.lower() not in _VOID_HTML_TAGS:
+            self.handle_endtag(tag)
+
+    def handle_endtag(self, tag):
+        for index in range(len(self.stack) - 1, 0, -1):
+            if self.stack[index].tag == tag.lower():
+                del self.stack[index:]
+                break
+
+    def handle_data(self, data):
+        self.stack[-1].children.append(_CopyeditHTMLNode(data=data))
+
+    def handle_entityref(self, name):
+        self.handle_data(' ' if name.lower() == 'nbsp' else '&{};'.format(name))
+
+    def handle_charref(self, name):
+        self.handle_data('&#{};'.format(name))
+
+
+def _copyedit_has_content(node):
+    if node.is_text:
+        return bool(node.data.strip())
+    return node.tag in _VOID_HTML_TAGS or any(_copyedit_has_content(c) for c in node.children)
+
+
+def _trim_copyedit_whitespace(node):
+    """Trim whitespace at structural element boundaries only."""
+    if node.tag in _STRUCTURAL_WHITESPACE_TAGS:
+        if node.children and node.children[0].is_text:
+            node.children[0].data = node.children[0].data.lstrip()
+        if node.children and node.children[-1].is_text:
+            node.children[-1].data = node.children[-1].data.rstrip()
+
+
+def _move_inline_edge_whitespace(node):
+    """Move whitespace from inline formatting tags to their surrounding text."""
+    for child in list(node.children):
+        if child.is_text or child.tag not in _INLINE_WHITESPACE_TAGS or not child.children:
+            continue
+        index = node.children.index(child)
+        if child.children[0].is_text:
+            leading = child.children[0].data[:len(child.children[0].data) - len(child.children[0].data.lstrip())]
+            if leading:
+                child.children[0].data = child.children[0].data[len(leading):]
+                if (index and node.children[index - 1].is_text
+                        and node.children[index - 1].data.endswith(tuple(' \t\r\n'))):
+                    pass
+                elif index and node.children[index - 1].is_text:
+                    node.children[index - 1].data += leading
+                else:
+                    node.children.insert(index, _CopyeditHTMLNode(data=leading))
+                    index += 1
+        if child.children and child.children[-1].is_text:
+            trailing = child.children[-1].data[len(child.children[-1].data.rstrip()):]
+            if trailing:
+                child.children[-1].data = child.children[-1].data[:-len(trailing)]
+                if (index + 1 < len(node.children) and node.children[index + 1].is_text
+                        and node.children[index + 1].data.startswith(tuple(' \t\r\n'))):
+                    pass
+                elif index + 1 < len(node.children) and node.children[index + 1].is_text:
+                    node.children[index + 1].data = trailing + node.children[index + 1].data
+                else:
+                    node.children.insert(index + 1, _CopyeditHTMLNode(data=trailing))
+
+
+def _unwrap_copyedit_spans(node):
+    """Remove span wrappers, including those in preformatted content."""
+    if node.is_text:
+        return [node]
+    node.children = [result for child in node.children
+                     for result in _unwrap_copyedit_spans(child)]
+    if node.tag == 'span':
+        return node.children
+    return [node]
+
+
+def _normalize_copyedit_node(node, parent=None):
+    if node.is_text:
+        node.data = node.data.replace('\xa0', ' ')
+        return [node]
+    # Do not rewrite entities, whitespace, or structure inside preformatted
+    # text, except for redundant span wrappers.
+    if node.tag == 'pre':
+        node.children = [result for child in node.children
+                         for result in _unwrap_copyedit_spans(child)]
+        return [node]
+    node.children = [result for child in node.children
+                     for result in _normalize_copyedit_node(child, node)]
+    if node.tag == 'span' or (
+            node.tag == 'p' and parent and parent.tag in {'li', 'td', 'th'}):
+        return node.children
+    if node.tag == 'div':
+        if any(not c.is_text and c.tag in _BLOCK_HTML_TAGS for c in node.children):
+            return node.children
+        node.tag = 'p'
+        if node.children and not node.children[-1].is_text and node.children[-1].tag == 'br':
+            node.children.pop()
+    _move_inline_edge_whitespace(node)
+    _trim_copyedit_whitespace(node)
+    if node.tag in {'h3', 'h4', 'h5', 'h6', 'th'}:
+        node.children = [result for child in node.children
+                         for result in (child.children if not child.is_text and child.tag in {'b', 'strong'} else [child])]
+    if node.tag not in _TABLE_TAGS and node.tag not in _VOID_HTML_TAGS and not _copyedit_has_content(node):
+        return []
+    return [node]
+
+
+def _promote_copyedit_table_headers(node):
+    if not node.is_text:
+        for child in node.children:
+            _promote_copyedit_table_headers(child)
+    if node.tag != 'table' or any(c.tag == 'thead' for c in node.children):
+        return
+    tbody = next((c for c in node.children if c.tag == 'tbody'), None)
+    row = next((c for c in tbody.children if c.tag == 'tr'), None) if tbody else None
+    cells = [c for c in row.children if c.tag in {'td', 'th'}] if row else []
+    significant = [c for c in row.children if not (c.is_text and not c.data.strip())] if row else []
+    def bold_cell(cell):
+        contents = [c for c in cell.children if not (c.is_text and not c.data.strip())]
+        return len(contents) == 1 and not contents[0].is_text and contents[0].tag in {'b', 'strong'} and _copyedit_has_content(contents[0])
+    if not cells or len(cells) != len(significant) or not all(c.tag == 'td' and bold_cell(c) for c in cells):
+        return
+    for cell in cells:
+        cell.tag = 'th'
+    tbody.children.remove(row)
+    header = _CopyeditHTMLNode('thead')
+    header.children.append(row)
+    node.children.insert(node.children.index(tbody), header)
+
+
+def _serialize_copyedit_node(node):
+    if node.is_text:
+        return node.data if node.data.startswith('&') and node.data.endswith(';') else html.escape(node.data, quote=False)
+    if node.tag == 'fragment':
+        return ''.join(_serialize_copyedit_node(c) for c in node.children)
+    attrs = ''.join(' {}="{}"'.format(name, html.escape(value or '', quote=True)) for name, value in node.attrs)
+    if node.tag in _VOID_HTML_TAGS:
+        return '<{}{}>'.format(node.tag, attrs)
+    return '<{}{}>{}</{}>'.format(node.tag, attrs, ''.join(_serialize_copyedit_node(c) for c in node.children), node.tag)
+
+
+def normalize_copyedit_html(value):
+    """Normalize one already-sanitized SafeHTMLField value for copyediting."""
+    parser = _CopyeditHTMLParser()
+    parser.feed(value or '')
+    parser.close()
+    parser.root.children = [result for child in parser.root.children for result in _normalize_copyedit_node(child)]
+    _promote_copyedit_table_headers(parser.root)
+    for child in parser.root.children:
+        _normalize_copyedit_node(child)
+    return _serialize_copyedit_node(parser.root)
+
+
+def normalize_project_content(project):
+    for field in COPYEDIT_CONTENT_FIELDS:
+        setattr(project, field, normalize_copyedit_html(getattr(project, field)))
+
+
 def move_author(author, authors, direction):
     """Move an author one position in the requested direction."""
     n_authors = authors.count()
