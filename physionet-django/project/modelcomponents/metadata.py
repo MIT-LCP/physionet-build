@@ -144,9 +144,9 @@ class Metadata(models.Model):
         Get the project's authors, setting information needed to display
         their attributes.
         """
-        authors = self.authors.all().order_by('display_order').prefetch_related(
-            'affiliations'
-        )
+        authors = self.authors.all().order_by('display_order').select_related(
+            'user__orcid'
+        ).prefetch_related('affiliations')
         author_emails = ';'.join(a.user.email for a in authors)
 
         if separate_submitting:

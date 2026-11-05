@@ -190,6 +190,7 @@ class Author(BaseAuthor):
         self.name = user.profile.get_full_name()
         self.email = user.email
         self.username = user.username
+        self.orcid_id = user.get_orcid_id()
 
         if set_affiliations:
             self.text_affiliations = [
@@ -231,6 +232,7 @@ class PublishedAuthor(BaseAuthor):
         self.name = self.get_full_name()
         self.username = self.user.username
         self.email = self.user.email
+        self.orcid_id = self.user.get_orcid_id()
         self.text_affiliations = [
             a.display_name() for a in self.affiliations.all()
         ]
