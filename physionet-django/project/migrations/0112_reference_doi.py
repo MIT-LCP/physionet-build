@@ -15,14 +15,14 @@ class Migration(migrations.Migration):
             model_name='publishedreference',
             name='doi',
             field=models.CharField(
-                blank=True, default='', max_length=255, validators=[project.validators.validate_doi]
+                blank=True, default='', db_default='', max_length=255, validators=[project.validators.validate_doi]
             ),
         ),
         migrations.AddField(
             model_name='reference',
             name='doi',
             field=models.CharField(
-                blank=True, default='', max_length=255, validators=[project.validators.validate_doi]
+                blank=True, default='', db_default='', max_length=255, validators=[project.validators.validate_doi]
             ),
         ),
     ]

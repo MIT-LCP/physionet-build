@@ -779,7 +779,9 @@ class BaseReference(models.Model):
 
     order = models.PositiveIntegerField(null=True)
     description = models.CharField(max_length=1000)
-    doi = models.CharField(max_length=255, blank=True, default='', validators=[validate_doi])
+    # db_default lets the previous version's code add references while
+    # migrations are applied during an upgrade
+    doi = models.CharField(max_length=255, blank=True, default='', db_default='', validators=[validate_doi])
 
     def __str__(self):
         return self.description
