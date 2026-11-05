@@ -846,9 +846,10 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
         self.help_text = (
             'Numbered references specified in the metadata. If a reference '
             'has a DOI, enter it and click the Look up button to fill in the citation. '
-            'Otherwise, article citations must be in '
-            '<a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> '
-            'format. Maximum of {}.').format(self.max_forms)
+            'Otherwise, citations must be in '
+            '<a href=https://apastyle.apa.org/style-grammar-guidelines/references/examples target=_blank>APA</a> '
+            'format, with the DOI written as a URL (https://doi.org/...) if the work has one. '
+            'Maximum of {}.').format(self.max_forms)
 
         # If user checked the "confirm reference order" box then they
         # are confirming the order of references (as displayed in the

@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from project.citation import CitationLookupError, fetch_citation
-from project.models import ActiveProject, Reference
+from project.models import ActiveProject, PublishedReference, Reference
 from project.test_funding import FIXTURES, bound_form_data, bound_formset_data
 from project.validators import normalize_doi
 
@@ -30,7 +30,9 @@ class TestNormalizeDoi(TestCase):
     def test_prefixes(self):
         for value in ('10.1109/51.932724', ' https://doi.org/10.1109/51.932724 ',
                       'http://dx.doi.org/10.1109/51.932724', 'DOI: 10.1109/51.932724',
-                      'doi.org/10.1109/51.932724', '10.1109/51.932724.'):
+                      'doi.org/10.1109/51.932724', '10.1109/51.932724.',
+                      'https://www.doi.org/10.1109/51.932724', 'www.doi.org/10.1109/51.932724',
+                      'dx.doi.org/10.1109/51.932724'):
             self.assertEqual(normalize_doi(value), '10.1109/51.932724')
 
     def test_other_values_unchanged(self):
@@ -86,6 +88,40 @@ class TestReferenceDisplay(TestCase):
         reference = Reference(description='A paper. https://doi.org/10.13026/c2xw26',
                               doi='10.13026/C2XW26')
         self.assertEqual(reference.html_description.count('https://doi.org/'), 2)
+
+    def test_doi_in_citation_with_other_prefix(self):
+        # The DOI written in the citation is linked, not added again
+        link = ('<a href="https://doi.org/10.13026/C2XW26">'
+                'https://doi.org/10.13026/C2XW26</a>')
+        for written in ('doi:10.13026/C2XW26', 'DOI: 10.13026/c2xw26',
+                        'http://dx.doi.org/10.13026/C2XW26', 'https://www.doi.org/10.13026/C2XW26'):
+            reference = Reference(description='Pollard TJ (2016). MIMIC-III. ' + written + '.',
+                                  doi='10.13026/C2XW26')
+            self.assertEqual(reference.html_description,
+                             'Pollard TJ (2016). MIMIC-III. ' + link + '.')
+
+        # A published reference whose stored link is the old form
+        reference = PublishedReference(
+            description='Pollard TJ (2016). MIMIC-III. http://dx.doi.org/10.13026/C2XW26',
+            url='http://dx.doi.org/10.13026/C2XW26', doi='10.13026/C2XW26')
+        self.assertEqual(reference.html_description.count('<a '), 1)
+
+    def test_doi_in_publisher_link_left_alone(self):
+        # The DOI link is added, and the publisher's link is not changed
+        reference = Reference(
+            description='A paper (2020). https://example.org/doi/10.13026/C2XW26',
+            doi='10.13026/C2XW26')
+        self.assertEqual(
+            reference.html_description,
+            'A paper (2020). https://example.org/doi/10.13026/C2XW26 '
+            '<a href="https://doi.org/10.13026/C2XW26">https://doi.org/10.13026/C2XW26</a>')
+
+    def test_published_url_fits_doi_link(self):
+        # Publishing stores the DOI link (or a URL from the citation)
+        url_length = PublishedReference._meta.get_field('url').max_length
+        self.assertGreaterEqual(
+            url_length, len('https://doi.org/') + Reference._meta.get_field('doi').max_length)
+        self.assertGreaterEqual(url_length, Reference._meta.get_field('description').max_length)
 
     def test_url_without_doi(self):
         reference = Reference(description='A <site>: https://example.org/page')

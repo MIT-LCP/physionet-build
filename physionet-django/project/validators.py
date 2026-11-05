@@ -76,7 +76,8 @@ def validate_doi(value):
 
 DOI_PREFIXES = (
     'https://doi.org/', 'http://doi.org/', 'https://dx.doi.org/',
-    'http://dx.doi.org/', 'doi.org/', 'doi:',
+    'http://dx.doi.org/', 'https://www.doi.org/', 'http://www.doi.org/',
+    'doi.org/', 'dx.doi.org/', 'www.doi.org/', 'doi:',
 )
 
 

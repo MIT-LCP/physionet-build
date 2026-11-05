@@ -803,7 +803,12 @@ class BaseReference(models.Model):
         if url:
             escaped_url = escape(url)
             link = format_html('<a href="{0}">{0}</a>', url)
-            url_pattern = re.compile(re.escape(escaped_url), re.IGNORECASE)
+            url_pattern = re.escape(escaped_url)
+            if self.doi:
+                # Also match the DOI written with another prefix, e.g.
+                # doi:10.1/abc or http://dx.doi.org/10.1/abc
+                url_pattern += r'|(?:https?://(?:dx\.|www\.)?doi\.org/|doi:\s*)' + re.escape(escape(self.doi))
+            url_pattern = re.compile(url_pattern, re.IGNORECASE)
             if url_pattern.search(description):
                 description = url_pattern.sub(lambda m: link, description)
             else:
@@ -853,7 +858,9 @@ class PublishedReference(BaseReference):
     """
     project = models.ForeignKey('project.PublishedProject',
         related_name='references', on_delete=models.CASCADE)
-    url = models.URLField(blank=True, null=True)
+    # The reference's DOI link, or the first URL in its citation, so it
+    # may be as long as the DOI link (271 characters) or the citation
+    url = models.URLField(max_length=1000, blank=True, null=True)
 
     class Meta:
         default_permissions = ()

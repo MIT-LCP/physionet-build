@@ -25,4 +25,9 @@ class Migration(migrations.Migration):
                 blank=True, default='', db_default='', max_length=255, validators=[project.validators.validate_doi]
             ),
         ),
+        migrations.AlterField(
+            model_name='publishedreference',
+            name='url',
+            field=models.URLField(blank=True, max_length=1000, null=True),
+        ),
     ]

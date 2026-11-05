@@ -212,6 +212,7 @@ class TestState(TestMixin):
         project.references.create(
             order=reference_order + 2,
             description='Revised reference',
+            doi='10.13026/C2XW26',
         )
         project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
         project.save()
@@ -248,6 +249,9 @@ class TestState(TestMixin):
         self.assertContains(response, 'Submitted Metadata')
         self.assertContains(response, 'Initial abstract')
         self.assertContains(response, 'Revised abstract')
+        # A DOI entered separately from the citation is shown to editors
+        self.assertContains(
+            response, 'DOI: <a href="https://doi.org/10.13026/C2XW26">10.13026/C2XW26</a>', html=False)
 
     def test_assign_editor(self):
         """
