@@ -1,6 +1,8 @@
 import os
 
 from django import template
+from django.conf import settings
+from django.templatetags.static import static
 from django.shortcuts import reverse
 from django.utils import timezone
 from django.utils.html import format_html, escape
@@ -160,12 +162,29 @@ def author_popover(author, show_submitting=False, show_email=False,
 
     popover_body = ''.join(parts)
 
-    return format_html(
+    trigger = format_html(
         '<button type="button" class="author-popover-trigger" data-toggle="popover" '
         'data-placement="bottom" data-html="true" data-content="{}" '
         'aria-label="{}: show author information" aria-expanded="false">'
         '{}<i class="fas fa-caret-down" aria-hidden="true"></i></button>',
         popover_body, author.name, author.name,
+    )
+    return format_html('{}{}', trigger, orcid_icon_link(author))
+
+
+def orcid_icon_link(author):
+    """
+    Return a small ORCID iD icon linking to the author's ORCID record,
+    or an empty string if the author has no linked ORCID iD.
+    """
+    orcid_id = getattr(author, 'orcid_id', None)
+    if not orcid_id:
+        return ''
+    url = f'{settings.ORCID_DOMAIN}/{orcid_id}'
+    return format_html(
+        '<a class="author-orcid" href="{}" target="_blank" rel="noopener" title="ORCID iD: {}">'
+        '<img src="{}" alt="ORCID iD for {}" width="16" height="16"></a>',
+        url, url, static('images/orcid-id-icon.svg'), author.name,
     )
 
 

@@ -52,7 +52,7 @@ from project import openalex
 from project.authorization.access import can_access_project
 from project.validators import validate_abstract_word_count
 from user.enums import TrainingStatus
-from user.models import Training, TrainingType, User
+from user.models import Orcid, Training, TrainingType, User
 from user.test_views import TestMixin, prevent_request_warnings
 from project.views import ARCHIVE_VIEW_DAYS, _format_chart_data
 
@@ -1104,6 +1104,24 @@ class TestAccessPublished(TestMixin):
     Published projects.
 
     """
+    def test_author_orcid_icon(self):
+        """
+        Authors with a linked ORCID iD get an icon linking to their record.
+        """
+        project = PublishedProject.objects.filter(access_policy=AccessPolicy.OPEN).first()
+        authors = list(project.authors.order_by('display_order'))
+        url = reverse('published_project', args=(project.slug, project.version))
+
+        Orcid.objects.filter(user__in=[a.user for a in authors]).delete()
+        response = self.client.get(url)
+        self.assertNotContains(response, 'class="author-orcid"')
+
+        orcid_id = '0000-0002-1825-0097'
+        Orcid.objects.create(user=authors[0].user, orcid_id=orcid_id)
+        response = self.client.get(url)
+        self.assertContains(response, 'class="author-orcid"', count=1)
+        self.assertContains(response, f'href="{settings.ORCID_DOMAIN}/{orcid_id}"')
+
     def test_pending_training_requirements(self):
         project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
         user = User.objects.get(email='rgmark@mit.edu')

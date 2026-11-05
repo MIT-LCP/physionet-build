@@ -2264,7 +2264,12 @@ def published_project(request, project_slug, version, subdir=''):
     except ObjectDoesNotExist:
         raise Http404()
 
-    authors = project.authors.all().order_by('display_order')
+    authors = (
+        project.authors.all()
+        .order_by('display_order')
+        .select_related('user__orcid')
+        .prefetch_related('affiliations')
+    )
     for a in authors:
         a.set_display_info()
     references = project.references.all().order_by('order')
