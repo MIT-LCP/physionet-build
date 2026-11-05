@@ -88,6 +88,10 @@ class _CopyeditHTMLParser(html.parser.HTMLParser):
 def _copyedit_has_content(node):
     if node.is_text:
         return bool(node.data.strip())
+    # MathML has valid semantic elements with neither text nor descendants
+    # (for example, mspace, none, and mprescripts).
+    if node.tag == 'math':
+        return True
     return node.tag in _VOID_HTML_TAGS or any(_copyedit_has_content(c) for c in node.children)
 
 
@@ -142,7 +146,7 @@ def _unwrap_copyedit_spans(node):
     return [node]
 
 
-def _normalize_copyedit_node(node, parent=None):
+def _normalize_copyedit_node(node, parent=None, in_math=False):
     if node.is_text:
         node.data = node.data.replace('\xa0', ' ')
         return [node]
@@ -152,8 +156,27 @@ def _normalize_copyedit_node(node, parent=None):
         node.children = [result for child in node.children
                          for result in _unwrap_copyedit_spans(child)]
         return [node]
-    node.children = [result for child in node.children
-                     for result in _normalize_copyedit_node(child, node)]
+    # Formula markup has its own syntax and empty elements with semantic
+    # meaning. Within MathML, remove span wrappers only; do not apply any
+    # structural or whitespace transformations.
+    if node.tag == 'math':
+        node.children = [result for child in node.children
+                         for result in _unwrap_copyedit_spans(child)]
+        return [node]
+    within_math = in_math or node.tag == 'math'
+    normalized_children = []
+    for index, child in enumerate(node.children):
+        child_results = _normalize_copyedit_node(child, node, within_math)
+        normalized_children.extend(child_results)
+        # Paragraphs are not valid inside list items or table cells. When
+        # removing a paragraph wrapper, retain its visible block boundary if
+        # more non-whitespace content follows it.
+        if (node.tag in {'li', 'td', 'th'} and child.tag == 'p'
+                and any(_copyedit_has_content(result) for result in child_results)
+                and any(_copyedit_has_content(sibling)
+                        for sibling in node.children[index + 1:])):
+            normalized_children.append(_CopyeditHTMLNode('br'))
+    node.children = normalized_children
     if node.tag == 'span' or (
             node.tag == 'p' and parent and parent.tag in {'li', 'td', 'th'}):
         return node.children
@@ -166,14 +189,25 @@ def _normalize_copyedit_node(node, parent=None):
     _move_inline_edge_whitespace(node)
     _trim_copyedit_whitespace(node)
     if node.tag in {'h3', 'h4', 'h5', 'h6', 'th'}:
-        node.children = [result for child in node.children
-                         for result in (child.children if not child.is_text and child.tag in {'b', 'strong'} else [child])]
-    if node.tag not in _TABLE_TAGS and node.tag not in _VOID_HTML_TAGS and not _copyedit_has_content(node):
+        node.children = [
+            result
+            for child in node.children
+            for result in (
+                child.children
+                if not child.is_text and child.tag in {'b', 'strong'}
+                else [child]
+            )
+        ]
+    if (not within_math and node.tag not in _TABLE_TAGS
+            and node.tag not in _VOID_HTML_TAGS
+            and not _copyedit_has_content(node)):
         return []
     return [node]
 
 
 def _promote_copyedit_table_headers(node):
+    if node.tag == 'math':
+        return
     if not node.is_text:
         for child in node.children:
             _promote_copyedit_table_headers(child)
@@ -183,9 +217,15 @@ def _promote_copyedit_table_headers(node):
     row = next((c for c in tbody.children if c.tag == 'tr'), None) if tbody else None
     cells = [c for c in row.children if c.tag in {'td', 'th'}] if row else []
     significant = [c for c in row.children if not (c.is_text and not c.data.strip())] if row else []
+
     def bold_cell(cell):
         contents = [c for c in cell.children if not (c.is_text and not c.data.strip())]
-        return len(contents) == 1 and not contents[0].is_text and contents[0].tag in {'b', 'strong'} and _copyedit_has_content(contents[0])
+        return (
+            len(contents) == 1
+            and not contents[0].is_text
+            and contents[0].tag in {'b', 'strong'}
+            and _copyedit_has_content(contents[0])
+        )
     if not cells or len(cells) != len(significant) or not all(c.tag == 'td' and bold_cell(c) for c in cells):
         return
     for cell in cells:
@@ -198,13 +238,21 @@ def _promote_copyedit_table_headers(node):
 
 def _serialize_copyedit_node(node):
     if node.is_text:
-        return node.data if node.data.startswith('&') and node.data.endswith(';') else html.escape(node.data, quote=False)
+        return (
+            node.data if node.data.startswith('&')
+            and node.data.endswith(';') else html.escape(node.data, quote=False)
+        )
     if node.tag == 'fragment':
         return ''.join(_serialize_copyedit_node(c) for c in node.children)
     attrs = ''.join(' {}="{}"'.format(name, html.escape(value or '', quote=True)) for name, value in node.attrs)
     if node.tag in _VOID_HTML_TAGS:
         return '<{}{}>'.format(node.tag, attrs)
-    return '<{}{}>{}</{}>'.format(node.tag, attrs, ''.join(_serialize_copyedit_node(c) for c in node.children), node.tag)
+    return '<{}{}>{}</{}>'.format(
+        node.tag,
+        attrs,
+        ''.join(_serialize_copyedit_node(c) for c in node.children),
+        node.tag
+    )
 
 
 def normalize_copyedit_html(value):

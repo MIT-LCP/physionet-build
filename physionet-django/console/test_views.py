@@ -37,7 +37,7 @@ from project.models import (
     DepositTermsAcceptance,
     DepositTermsVersion,
 )
-from project.utility import normalize_copyedit_html
+from project.utility import COPYEDIT_CONTENT_FIELDS, normalize_copyedit_html
 from user.models import AssociatedEmail, User
 from physionet.models import FrontPageButton, Section, StaticPage
 from user.test_views import TestMixin, prevent_request_warnings
@@ -76,10 +76,46 @@ class TestCopyeditHTMLNormalization(TestCase):
             '<h3>Heading</h3><ul><li>Item</li></ul>',
         )
 
+    def test_preserves_paragraph_breaks_when_unwrapping_table_cells(self):
+        self.assertEqual(
+            normalize_copyedit_html('<table><tbody><tr><td><p>First</p><p>Second</p></td></tr></tbody></table>'),
+            '<table><tbody><tr><td>First<br>Second</td></tr></tbody></table>',
+        )
+
+    def test_does_not_create_breaks_for_empty_paragraphs_in_table_cells(self):
+        self.assertEqual(
+            normalize_copyedit_html('<table><tbody><tr><td><p></p><p>Second</p></td></tr></tbody></table>'),
+            '<table><tbody><tr><td>Second</td></tr></tbody></table>',
+        )
+
+    def test_preserves_empty_mathml_elements(self):
+        html = (
+            '<math><msubsup><mi>x</mi><none/><mi>2</mi></msubsup>'
+            '<mprescripts/><mspace/><mtext><span>keep</span>&nbsp;text</mtext></math>'
+        )
+        self.assertEqual(
+            normalize_copyedit_html(html),
+            '<math><msubsup><mi>x</mi><none></none><mi>2</mi></msubsup>'
+            '<mprescripts></mprescripts><mspace></mspace>'
+            '<mtext>keep text</mtext></math>',
+        )
+
+    def test_preserves_mathml_with_semantic_empty_elements_in_paragraphs(self):
+        self.assertEqual(
+            normalize_copyedit_html('<p><math><mspace width="1em"/></math></p>'),
+            '<p><math><mspace width="1em"></mspace></math></p>',
+        )
+
     def test_removes_empty_tags_and_converts_divs(self):
         self.assertEqual(
             normalize_copyedit_html('<p></p><div>Paragraph<br></div><div><p>Second</p></div>'),
             '<p>Paragraph</p><p>Second</p>',
+        )
+
+    def test_unwraps_divs_around_blockquotes(self):
+        self.assertEqual(
+            normalize_copyedit_html('<div><blockquote>Quote</blockquote></div>'),
+            '<blockquote>Quote</blockquote>',
         )
 
     def test_promotes_a_bold_first_table_row(self):
@@ -589,10 +625,12 @@ class TestState(TestMixin):
         def get_project():
             return ActiveProject.objects.get(id=project.id)
 
-        # The following steps should not alter the project timestamp,
-        # since project "Metadata" fields are not being changed (only
-        # "SubmissionInfo").
+        # These submission-state steps do not alter metadata. Acceptance is
+        # the exception: it normalizes the project's main-body HTML.
         timestamp = project.modified_datetime
+        content_before_acceptance = {
+            field: getattr(project, field) for field in COPYEDIT_CONTENT_FIELDS
+        }
 
         project.submit(author_comments='')
         self.assertEqual(get_project().modified_datetime, timestamp)
@@ -621,7 +659,16 @@ class TestState(TestMixin):
                 'ethics_included': 1,
             },
         )
-        self.assertEqual(get_project().modified_datetime, timestamp)
+        accepted_project = get_project()
+        content_changed = any(
+            getattr(accepted_project, field) != value
+            for field, value in content_before_acceptance.items()
+        )
+        if content_changed:
+            self.assertGreater(accepted_project.modified_datetime, timestamp)
+        else:
+            self.assertEqual(accepted_project.modified_datetime, timestamp)
+        timestamp = accepted_project.modified_datetime
 
         # Complete copyedit
         response = self.client.post(reverse(
