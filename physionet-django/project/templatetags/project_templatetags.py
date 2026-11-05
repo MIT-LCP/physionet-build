@@ -169,7 +169,7 @@ def author_popover(author, show_submitting=False, show_email=False,
         '{}<i class="fas fa-caret-down" aria-hidden="true"></i></button>',
         popover_body, author.name, author.name,
     )
-    return trigger + orcid_icon_link(author)
+    return format_html('{}{}', trigger, orcid_icon_link(author))
 
 
 def orcid_icon_link(author):
