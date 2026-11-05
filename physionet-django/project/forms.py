@@ -815,6 +815,14 @@ class ReferenceForm(forms.ModelForm):
         fields = ('doi', 'description')
         labels = {'description': 'Citation'}
 
+    def warnings(self):
+        """
+        Possible problems with the saved reference, shown below the form.
+        """
+        if self.instance.pk is None or self.is_bound:
+            return []
+        return [f'This reference {warning}.' for warning in self.instance.quality_warnings()]
+
     def clean_doi(self):
         return validators.normalize_doi(self.cleaned_data['doi'])
 

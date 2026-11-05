@@ -17,6 +17,8 @@ from project.modelcomponents.authors import Affiliation
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import (
     ROR_URL_REGEX,
+    DOI_IN_TEXT_REGEX,
+    find_dois,
     validate_doi,
     validate_funder_identifier,
     validate_title,
@@ -378,6 +380,23 @@ class Metadata(models.Model):
         """
         grants = [funding.schema_org_grant() for funding in self.funding.all()]
         return mark_safe(json.dumps(grants).translate(JSON_SCRIPT_ESCAPES))
+
+    def schema_org_citation_json(self):
+        """
+        Return the project's references as a JSON array of schema.org
+        CreativeWorks.
+
+        The result is safe to embed in a <script> element.
+        """
+        works = []
+        for reference in self.references.order_by('order', 'id'):
+            work = {'@type': 'CreativeWork', 'name': reference.description}
+            if reference.doi:
+                work['identifier'] = reference.doi_url
+            if reference.url:
+                work['url'] = reference.url
+            works.append(work)
+        return mark_safe(json.dumps(works).translate(JSON_SCRIPT_ESCAPES))
 
     def is_valid_passphrase(self, raw_passphrase):
         """
@@ -770,6 +789,13 @@ class PublishedTopic(models.Model):
         return self.description
 
 
+# A URL written in running text, such as a citation
+URL_IN_TEXT_REGEX = re.compile(r'\bhttps?://[^\s<>"\']+', re.IGNORECASE)
+
+# A publication year (or "n.d." for no date), as written in APA citations
+CITATION_YEAR_REGEX = re.compile(r'\b(1[5-9]|20)\d{2}[a-z]?\b|\bn\.\s?d\.', re.IGNORECASE)
+
+
 class BaseReference(models.Model):
     """
     Abstract base class for a bibliographic reference.
@@ -816,6 +842,32 @@ class BaseReference(models.Model):
             description = mark_safe(description)
         return description
 
+    def quality_warnings(self):
+        """
+        Return possible problems with this reference, as phrases such as
+        'has no publication year'.
+
+        These are hints for authors and editors, and do not prevent
+        submission. They never include the citation text.
+        """
+        warnings = []
+        text_dois = find_dois(self.description)
+
+        # Ignore digits in links and DOIs when looking for the year
+        text = DOI_IN_TEXT_REGEX.sub(' ', URL_IN_TEXT_REGEX.sub(' ', self.description))
+        if not CITATION_YEAR_REGEX.search(text):
+            warnings.append('has no publication year')
+
+        if self.doi:
+            if text_dois and self.doi.lower() not in text_dois:
+                warnings.append('has a DOI in the citation that does not match the DOI box')
+        elif text_dois:
+            warnings.append('has a DOI in the citation, which should also be entered in the DOI box')
+        elif not URL_IN_TEXT_REGEX.search(self.description):
+            warnings.append('has no DOI or URL')
+
+        return warnings
+
 
 class Reference(BaseReference):
     """
@@ -825,7 +877,7 @@ class Reference(BaseReference):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    URL_PATTERN = re.compile(r'\bhttps?://[^\s<>"\']+', re.IGNORECASE)
+    URL_PATTERN = URL_IN_TEXT_REGEX
 
     class Meta:
         default_permissions = ()

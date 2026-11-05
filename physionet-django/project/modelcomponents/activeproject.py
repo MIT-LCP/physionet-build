@@ -448,6 +448,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.integrity_warnings.append(
                 'No references have been added to this project.')
 
+        for number, reference in enumerate(self.references.order_by('order', 'id'), start=1):
+            for warning in reference.quality_warnings():
+                self.integrity_warnings.append(f'Reference {number} {warning}.')
+
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
             published_versions = [p.version for p in published_projects]

@@ -51,6 +51,12 @@
             {{ error|wrap_if_unformatted:"strong" }}
           </div>
         {% endfor %}
+        {# Hints that do not prevent saving or submission #}
+        {% for warning in form.warnings %}
+          <div class="item-warning small text-muted mt-1">
+            <i class="fas fa-exclamation-triangle" style="color:orange"></i> {{ warning }}
+          </div>
+        {% endfor %}
       </div>
       <div class='col-md-1'>
         <button class="btn btn-sm btn-danger" type="button" title="Remove {{ item }}" onclick="removeItem(this, '{{ item }}', '{{ form_name }}', '{{ remove_item_url }}')"><i class="fas fa-times"></i></button>

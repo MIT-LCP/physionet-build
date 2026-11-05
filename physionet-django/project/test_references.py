@@ -1,13 +1,15 @@
+import json
 from unittest import mock
 
 import requests
 from django.test import TestCase
 from django.urls import reverse
 
+from console.utility import generate_doi_payload
 from project.citation import CitationLookupError, fetch_citation
-from project.models import ActiveProject, PublishedReference, Reference
+from project.models import ActiveProject, PublishedProject, PublishedReference, Reference
 from project.test_funding import FIXTURES, bound_form_data, bound_formset_data
-from project.validators import normalize_doi
+from project.validators import find_dois, normalize_doi
 
 CITATION = ('Moody, G. B., &amp; Mark, R. G. (2001). The impact of the MIT-BIH '
             'Arrhythmia Database. <i>IEEE Engineering in Medicine and Biology '
@@ -251,3 +253,134 @@ class TestReferenceSubmission(TestCase):
         response = self.client.get(self.lookup_url, {'doi': '10.1109/51.932724'})
         self.assertEqual(response.status_code, 302)
         mock_get.assert_not_called()
+
+
+class TestFindDois(TestCase):
+    def test_find_dois(self):
+        self.assertEqual(
+            find_dois('See https://doi.org/10.1109/51.932724. Also doi:10.13026/C2XW26, and more.'),
+            ['10.1109/51.932724', '10.13026/c2xw26'])
+        self.assertEqual(find_dois('No identifier, 2001.'), [])
+
+
+class TestQualityWarnings(TestCase):
+    def warnings(self, description, doi=''):
+        return Reference(description=description, doi=doi).quality_warnings()
+
+    def test_good_references(self):
+        self.assertEqual(self.warnings('Moody GB (2001). A paper.', doi='10.1109/51.932724'), [])
+        self.assertEqual(self.warnings('Moody GB (2001). A paper. https://doi.org/10.1109/51.932724',
+                                       doi='10.1109/51.932724'), [])
+        self.assertEqual(self.warnings('PhysioNet. (n.d.). WFDB. https://physionet.org/wfdb/'), [])
+        self.assertEqual(self.warnings('Moody GB (2001b). A paper. https://example.org'), [])
+
+    def test_no_year(self):
+        self.assertEqual(self.warnings('https://physionet.org/physiotools/wag/'),
+                         ['has no publication year'])
+        # Digits in DOIs and links are not mistaken for a year
+        self.assertEqual(self.warnings('A paper. https://example.org/2016/paper',
+                                       doi='10.1001/jama.2016.0287'),
+                         ['has no publication year'])
+
+    def test_no_link(self):
+        self.assertEqual(self.warnings('Collins FS. A comment. Nature 505, 612 (2014).'),
+                         ['has no DOI or URL'])
+
+    def test_doi_in_citation_only(self):
+        self.assertEqual(
+            self.warnings('Pollard TJ. MIMIC-III http://dx.doi.org/10.13026/C2XW26 (2016)'),
+            ['has a DOI in the citation, which should also be entered in the DOI box'])
+        self.assertEqual(
+            self.warnings('Pollard TJ (2016). MIMIC-III. doi:10.13026/C2XW26'),
+            ['has a DOI in the citation, which should also be entered in the DOI box'])
+
+    def test_doi_mismatch(self):
+        self.assertEqual(
+            self.warnings('Pollard TJ (2016). MIMIC-III. https://doi.org/10.13026/C2XW26',
+                          doi='10.1109/51.932724'),
+            ['has a DOI in the citation that does not match the DOI box'])
+        # DOIs are not case sensitive
+        self.assertEqual(
+            self.warnings('Pollard TJ (2016). MIMIC-III. https://doi.org/10.13026/c2xw26',
+                          doi='10.13026/C2XW26'), [])
+
+
+class TestReferenceWarningDisplay(TestCase):
+    fixtures = FIXTURES
+
+    def setUp(self):
+        self.project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        Reference.objects.create(project=self.project, order=1,
+                                 description='Moody GB (2001). A paper.', doi='10.1109/51.932724')
+        Reference.objects.create(project=self.project, order=2,
+                                 description='https://physionet.org/physiotools/wag/')
+
+    def test_integrity_warnings(self):
+        self.assertTrue(self.project.check_integrity())
+        self.assertIn('Reference 2 has no publication year.', self.project.integrity_warnings)
+        self.assertFalse(any(w.startswith('Reference 1 ') for w in self.project.integrity_warnings))
+
+        response = self.client.get(reverse('check_integrity', args=(self.project.slug,)))
+        self.assertTrue(response.json()['passes_checks'])
+        self.assertIn('Reference 2 has no publication year.', response.json()['integrity_warnings'])
+
+    def test_content_page(self):
+        response = self.client.get(reverse('project_content', args=(self.project.slug,)))
+        self.assertContains(response, 'This reference has no publication year.', count=1)
+
+
+class TestReferenceMetadata(TestCase):
+    fixtures = FIXTURES
+
+    def setUp(self):
+        self.project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.project.references.create(description='Moody GB (2001). A </script> paper.',
+                                       doi='10.1109/51.932724', url='https://doi.org/10.1109/51.932724',
+                                       order=1)
+        self.project.references.create(description='A copy of the same paper.',
+                                       doi='10.1109/51.932724', order=2)
+        self.project.references.create(description='Pollard TJ (2016). MIMIC-III.',
+                                       doi='10.13026/C2XW26', order=3)
+
+    def test_datacite_payload(self):
+        payload = generate_doi_payload(self.project, event='publish')
+        related = payload['data']['attributes']['relatedIdentifiers']
+        self.assertEqual(
+            [r for r in related if r['relationType'] == 'References'], [
+                {'relationType': 'References', 'relatedIdentifier': '10.1109/51.932724',
+                 'relatedIdentifierType': 'DOI'},
+                {'relationType': 'References', 'relatedIdentifier': '10.13026/C2XW26',
+                 'relatedIdentifierType': 'DOI'},
+            ])
+        # The version relation is kept
+        self.assertEqual(related[0]['relationType'], 'IsVersionOf')
+
+    def test_draft_payload_for_active_project(self):
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        Reference.objects.create(project=project, description='A paper.', doi='10.1109/51.932724', order=1)
+        payload = generate_doi_payload(project, event='draft')
+        self.assertEqual(payload['data']['attributes']['relatedIdentifiers'], [
+            {'relationType': 'References', 'relatedIdentifier': '10.1109/51.932724',
+             'relatedIdentifierType': 'DOI'},
+        ])
+
+    def test_schema_org_citation(self):
+        response = self.client.get(reverse('published_project',
+                                           args=(self.project.slug, self.project.version)))
+        content = response.content.decode()
+        start = content.index('<script type="application/ld+json">') + len(
+            '<script type="application/ld+json">')
+        end = content.index('</script>', start)
+        citation = json.loads(content[start:end])['citation']
+        # The demo references have no order, so their position depends
+        # on the database
+        works = {work['name']: work for work in citation}
+        self.assertEqual(len(citation), 5)
+        self.assertEqual(works['Moody GB (2001). A </script> paper.'], {
+            '@type': 'CreativeWork', 'name': 'Moody GB (2001). A </script> paper.',
+            'identifier': 'https://doi.org/10.1109/51.932724',
+            'url': 'https://doi.org/10.1109/51.932724',
+        })
+        url = 'https://eicu-crd.mit.edu/eicutables/apachepatientresult/'
+        self.assertEqual(works[url], {'@type': 'CreativeWork', 'name': url, 'url': url})

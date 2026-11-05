@@ -14,6 +14,9 @@
   {% if project.funding.exists %}
   "funding": {{ project.schema_org_funding_json }},
   {% endif %}
+  {% if project.references.exists %}
+  "citation": {{ project.schema_org_citation_json }},
+  {% endif %}
   "creator": [
   {% for author in authors %}
     {

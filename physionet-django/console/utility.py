@@ -316,6 +316,17 @@ def generate_doi_payload(project, core_project=False, event="draft"):
                 "relatedIdentifierType": "URL",
             })
 
+    # works that this project cites
+    cited_dois = set()
+    for reference in project.references.order_by('order', 'id'):
+        if reference.doi and reference.doi.lower() not in cited_dois:
+            cited_dois.add(reference.doi.lower())
+            relation.append({
+                "relationType": "References",
+                "relatedIdentifier": reference.doi,
+                "relatedIdentifierType": "DOI",
+            })
+
     funding_references = [funding.datacite_funding_reference()
                           for funding in project.funding.all()]
 
