@@ -2,8 +2,9 @@ import os
 import re
 from unittest import mock
 
+from botocore.exceptions import NoCredentialsError
 from django.conf import settings
-from django.test import TestCase, override_settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 import moto
@@ -33,6 +34,44 @@ from user.models import (
     TrainingStatus,
 )
 from user.test_views import TestMixin
+
+
+@override_settings(AWS_PROFILE='test-profile', AWS_HTTP_PROXY='')
+class TestS3ClientProxy(SimpleTestCase):
+    @override_settings(AWS_HTTP_PROXY='http://proxy.example.com:8080')
+    @mock.patch('project.cloud.s3.has_s3_credentials', return_value=True)
+    @mock.patch('project.cloud.s3.boto3.Session')
+    def test_configured_proxy(self, session, credentials):
+        client = create_s3_client()
+
+        session.assert_called_once_with(profile_name='test-profile')
+        config = session.return_value.client.call_args.kwargs['config']
+        self.assertEqual(config.proxies, {
+            'http': 'http://proxy.example.com:8080',
+            'https': 'http://proxy.example.com:8080',
+        })
+        session.return_value.client.assert_called_once_with(
+            's3', region_name='us-east-1', config=config,
+        )
+        self.assertIs(client, session.return_value.client.return_value)
+
+    @mock.patch('project.cloud.s3.has_s3_credentials', return_value=True)
+    @mock.patch('project.cloud.s3.boto3.Session')
+    def test_unset_proxy_leaves_proxies_unspecified(self, session, credentials):
+        create_s3_client()
+
+        config = session.return_value.client.call_args.kwargs['config']
+        self.assertIsNone(config.proxies)
+        session.return_value.client.assert_called_once_with(
+            's3', region_name='us-east-1', config=config,
+        )
+
+    @mock.patch('project.cloud.s3.has_s3_credentials', return_value=False)
+    @mock.patch('project.cloud.s3.boto3.Session')
+    def test_missing_credentials_still_raise(self, session, credentials):
+        with self.assertRaises(NoCredentialsError):
+            create_s3_client()
+        session.assert_not_called()
 
 
 @override_settings(

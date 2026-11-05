@@ -8,7 +8,8 @@ import urllib.parse
 
 import boto3
 import botocore
-from botocore.exceptions import ClientError
+import botocore.config
+from botocore.exceptions import ClientError, NoCredentialsError
 from django.conf import settings
 from django.db.models import Q
 from project.authorization.access import can_view_project_files
@@ -166,9 +167,16 @@ def create_s3_client():
     """
     if has_s3_credentials():
         session = boto3.Session(profile_name=settings.AWS_PROFILE)
-        s3 = session.client("s3", region_name="us-east-1")
+        proxies = None
+        if settings.AWS_HTTP_PROXY:
+            proxies = {
+                'http': settings.AWS_HTTP_PROXY,
+                'https': settings.AWS_HTTP_PROXY,
+            }
+        config = botocore.config.Config(proxies=proxies)
+        s3 = session.client("s3", region_name="us-east-1", config=config)
         return s3
-    raise botocore.exceptions.NoCredentialsError("S3 credentials are undefined.")
+    raise NoCredentialsError()
 
 
 def create_s3_resource():
