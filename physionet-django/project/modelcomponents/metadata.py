@@ -851,7 +851,7 @@ class BaseReference(models.Model):
         submission. They never include the citation text.
         """
         warnings = []
-        text_dois = find_dois(self.description)
+        text_dois = [doi.lower() for doi in find_dois(self.description)]
 
         # Ignore digits in links and DOIs when looking for the year
         text = DOI_IN_TEXT_REGEX.sub(' ', URL_IN_TEXT_REGEX.sub(' ', self.description))

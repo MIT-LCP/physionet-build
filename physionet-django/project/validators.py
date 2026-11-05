@@ -82,14 +82,33 @@ DOI_PREFIXES = (
 
 
 # A DOI written in running text, such as a citation
-DOI_IN_TEXT_REGEX = re.compile(r'\b10\.\d{4,9}/[^\s"<>]+', re.IGNORECASE)
+DOI_IN_TEXT_REGEX = re.compile(r'\b10\.\d{4,9}/[^\s"<>?#]+', re.IGNORECASE)
+
+
+def _trim_doi(doi):
+    """
+    Remove punctuation that follows a DOI in running text, such as a
+    full stop, or the closing bracket of '(https://doi.org/10.1/abc)'.
+    Brackets that are part of the DOI, as in '10.1/abc(1)', are kept.
+    """
+    while doi:
+        if doi[-1] in '.,;:':
+            doi = doi[:-1]
+        elif doi[-1] == ')' and doi.count(')') > doi.count('('):
+            doi = doi[:-1]
+        elif doi[-1] == ']' and doi.count(']') > doi.count('['):
+            doi = doi[:-1]
+        else:
+            break
+    return doi
 
 
 def find_dois(text):
     """
-    Return the DOIs written in a piece of text, in lower case.
+    Return the DOIs written in a piece of text, as written. DOIs are not
+    case sensitive, so compare them in lower case.
     """
-    return [doi.rstrip('.,;').lower() for doi in DOI_IN_TEXT_REGEX.findall(text or '')]
+    return [_trim_doi(doi) for doi in DOI_IN_TEXT_REGEX.findall(text or '')]
 
 
 def normalize_doi(value):
