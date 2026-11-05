@@ -12,7 +12,7 @@ from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
 from django.forms.widgets import HiddenInput
 from django.template.defaultfilters import slugify
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
@@ -513,6 +513,7 @@ class NewProjectVersionForm(forms.ModelForm):
         for p_reference in self.latest_project.references.order_by('order'):
             reference = Reference.objects.create(
                 description=p_reference.description,
+                doi=p_reference.doi,
                 order=p_reference.order,
                 project=project,
             )
@@ -790,6 +791,47 @@ class AffiliationFormSet(forms.BaseInlineFormSet):
                 names.append(name)
 
 
+class DoiLookupInput(forms.TextInput):
+    """
+    A DOI text box with a button that fills in the citation from doi.org.
+
+    The lookup URL is passed in the 'data-lookup-url' attribute.
+    """
+    template_name = 'project/doi_lookup_input.html'
+
+
+class ReferenceForm(forms.ModelForm):
+    """
+    A single reference for an ActiveProject
+    """
+    # A plain text field so authors can paste a DOI URL or "doi:" form;
+    # the value is normalized and then checked by the model validators.
+    doi = forms.CharField(
+        max_length=255, required=False, label='DOI (optional)',
+        widget=DoiLookupInput(attrs={'placeholder': 'e.g. 10.13026/C2XW26'}))
+
+    class Meta:
+        model = Reference
+        fields = ('doi', 'description')
+        labels = {'description': 'Citation'}
+
+    def clean_doi(self):
+        return validators.normalize_doi(self.cleaned_data['doi'])
+
+    def clean_description(self):
+        return ' '.join(self.cleaned_data['description'].split())
+
+
+def reference_formset_factory(extra=0):
+    """
+    Return the formset class used to edit an ActiveProject's references.
+    """
+    return generic_inlineformset_factory(
+        Reference, form=ReferenceForm, fields=ReferenceForm._meta.fields,
+        extra=extra, max_num=ReferenceFormSet.max_forms, can_delete=False,
+        formset=ReferenceFormSet, validate_max=True)
+
+
 class ReferenceFormSet(BaseGenericInlineFormSet):
     """
     Formset for adding a ActiveProject's references
@@ -801,7 +843,12 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
     def __init__(self, data=None, *args, **kwargs):
         super().__init__(data, *args, **kwargs)
         self.max_forms = ReferenceFormSet.max_forms
-        self.help_text = 'Numbered references specified in the metadata. Article citations must be in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of {}.'.format(self.max_forms)
+        self.help_text = (
+            'Numbered references specified in the metadata. If a reference '
+            'has a DOI, enter it and click the Look up button to fill in the citation. '
+            'Otherwise, article citations must be in '
+            '<a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> '
+            'format. Maximum of {}.').format(self.max_forms)
 
         # If user checked the "confirm reference order" box then they
         # are confirming the order of references (as displayed in the
@@ -811,6 +858,13 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
             self.confirm_reference_order = True
         else:
             self.confirm_reference_order = False
+
+    def _construct_form(self, i, **kwargs):
+        form = super()._construct_form(i, **kwargs)
+        if 'doi' in form.fields and self.instance.pk:
+            form.fields['doi'].widget.attrs['data-lookup-url'] = reverse(
+                'reference_doi_lookup', args=[self.instance.slug])
+        return form
 
     def clean(self):
         """
@@ -826,6 +880,7 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
             raise forms.ValidationError('Maximum number of allowed items exceeded.')
 
         descriptions = []
+        dois = []
         for form in self.forms:
             # This is to allow empty unsaved form
             if 'description' in form.cleaned_data:
@@ -833,6 +888,11 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                 if description in descriptions:
                     raise forms.ValidationError('References must be unique.')
                 descriptions.append(description)
+            doi = form.cleaned_data.get('doi', '').lower()
+            if doi:
+                if doi in dois:
+                    raise forms.ValidationError('Each DOI may only be used for one reference.')
+                dois.append(doi)
 
     def save(self, *args, **kwargs):
         if self.confirm_reference_order:
