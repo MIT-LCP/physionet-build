@@ -1427,7 +1427,7 @@ def project_preview(request, project_slug, subdir='', **kwargs):
         a.display_name() for a in corresponding_author.affiliations.all()
     )
 
-    references = project.references.all().order_by('order')
+    references = project.ordered_references()
     publication = project.publications.all().first()
     topics = project.topics.all()
     parent_projects = project.parent_projects.all()
@@ -2304,7 +2304,7 @@ def published_project(request, project_slug, version, subdir=''):
     )
     for a in authors:
         a.set_display_info()
-    references = project.references.all().order_by('order')
+    references = project.ordered_references()
     publication = project.publications.all().first()
     topics = project.topics.all()
     languages = project.programming_languages.all()

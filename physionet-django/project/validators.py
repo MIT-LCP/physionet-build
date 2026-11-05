@@ -81,6 +81,13 @@ DOI_PREFIXES = (
 )
 
 
+# A URL written in running text, such as a citation
+URL_IN_TEXT_REGEX = re.compile(r'\bhttps?://[^\s<>"\']+', re.IGNORECASE)
+
+# A publication year (or "n.d." for no date), as written in APA citations
+CITATION_YEAR_REGEX = re.compile(r'\b(1[5-9]|20)\d{2}[a-z]?\b|\bn\.\s?d\.', re.IGNORECASE)
+
+
 # A DOI written in running text, such as a citation
 DOI_IN_TEXT_REGEX = re.compile(r'\b10\.\d{4,9}/[^\s"<>?#]+', re.IGNORECASE)
 
@@ -126,6 +133,21 @@ def normalize_doi(value):
             value = value[len(prefix):].strip()
             break
     return value.rstrip('.,;')
+
+
+# A reference's key, used to cite it as [@key]: letters, digits and
+# "_:.-", starting with a letter or digit, and not ending with punctuation
+REFERENCE_KEY_PATTERN = r'[A-Za-z0-9](?:[A-Za-z0-9_:.\-]*[A-Za-z0-9_])?'
+
+
+def validate_reference_key(value):
+    """
+    Validate a reference's key.
+    """
+    if not re.fullmatch(REFERENCE_KEY_PATTERN, value):
+        raise ValidationError(
+            'A key may contain letters, digits and the characters _ : . - '
+            'and must start with a letter or digit, for example moody2001.')
 
 
 def validate_subdir(value):

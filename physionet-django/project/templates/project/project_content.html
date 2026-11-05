@@ -5,11 +5,16 @@
 
 {% block title %}Project Content - {{ project }}{% endblock %}
 
+{% block local_css %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'project/css/reference-form.css' %}">
+{% endblock %}
+
 {% block local_js_top %}
 <script src="{% static 'custom/js/cookie.js' %}"></script>
 <script src="{% static 'custom/js/clear-autosave.js' %}"></script>
-<script src="{% static 'project/js/dynamic-formset.js' %}"></script>
-<script src="{% static 'project/js/doi-lookup.js' %}"></script>
+<script src="{% static 'project/js/dynamic-formset.js' %}?v=2"></script>
+<script src="{% static 'project/js/reference-form.js' %}"></script>
 {% endblock %}
 
 {% block main_content %}

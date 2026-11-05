@@ -220,7 +220,7 @@ class TestReferenceSubmission(TestCase):
         response = self.client.get(
             reverse('edit_content_item', args=(self.project.slug,)),
             {'item': 'reference', 'add_first': 'true'})
-        self.assertContains(response, 'DOI (optional)')
+        self.assertContains(response, 'class="reference-body reference-card" id="reference-1"')
         self.assertContains(response, f'data-lookup-url="{self.lookup_url}"')
 
     @mock.patch('project.citation.requests.get')

@@ -12,11 +12,21 @@ import html2text
 
 from project.authorization.access import can_view_project_files as can_view_project_files_func
 from project.models import AccessPolicy
+from project.reference_citations import link_citations as link_citations_func
 from notification.utility import mailto_url
 from datetime import timedelta
 
 
 register = template.Library()
+
+
+@register.filter(name='link_citations')
+def link_citations(html, references):
+    """
+    Link numbered citations, such as [1], in a project's (cleaned) HTML
+    description to its reference list.
+    """
+    return mark_safe(link_citations_func(html, references or []))
 
 
 @register.filter(name='html_to_text')

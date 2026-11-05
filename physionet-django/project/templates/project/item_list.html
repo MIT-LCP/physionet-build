@@ -16,6 +16,9 @@
     </div>
   </div>
   {% for form in formset %}
+    {% if item == 'reference' %}
+      {% include 'project/reference_form.html' with number=forloop.counter %}
+    {% else %}
     {# This {{ item }}-%d id is identifying the form number on the page #}
     <div class="form-group row {{ item }}-body" id="{{ item }}-{{ forloop.counter }}">
       <div class="col-md-1"></div>
@@ -62,6 +65,7 @@
         <button class="btn btn-sm btn-danger" type="button" title="Remove {{ item }}" onclick="removeItem(this, '{{ item }}', '{{ form_name }}', '{{ remove_item_url }}')"><i class="fas fa-times"></i></button>
       </div>
     </div>
+    {% endif %}
   {% endfor %}
 
   {% for error in formset.non_form_errors %}

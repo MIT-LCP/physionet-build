@@ -76,17 +76,33 @@ def _parse_html_form_fields(content):
     """
     Parse HTML and return all form fields as a dictionary.
 
-    Note that this currently only handles input elements, not other
-    form elements such as select or textarea.  It also makes no
+    Note that this currently only handles input and textarea elements,
+    not other form elements such as select.  It also makes no
     distinction between multiple forms.
     """
     fields = {}
 
     class Parser(html.parser.HTMLParser):
+        textarea = None
+
         def handle_starttag(self, tag, attrs):
             attrs = dict(attrs)
             if tag == 'input' and 'name' in attrs:
                 fields[attrs['name']] = attrs.get('value', '')
+            elif tag == 'textarea' and 'name' in attrs:
+                self.textarea = attrs['name']
+                fields[self.textarea] = ''
+
+        def handle_data(self, data):
+            if self.textarea:
+                fields[self.textarea] += data
+
+        def handle_endtag(self, tag):
+            if tag == 'textarea' and self.textarea:
+                # As in browsers, a newline at the start is ignored
+                if fields[self.textarea].startswith('\n'):
+                    fields[self.textarea] = fields[self.textarea][1:]
+                self.textarea = None
 
     Parser().feed(content)
     return fields
@@ -496,6 +512,9 @@ class TestProjectCreation(TestMixin):
         oldproject = PublishedProject.objects.get(
             title='Demo eICU Collaborative Research Database')
         oldproject.references.create(description='A dataset.', doi='10.13026/C2XW26', order=99)
+        PublishedProject.objects.filter(pk=oldproject.pk).update(
+            background=oldproject.background + '<p>Tables [1, 2] and a dataset [3]. Not [9].</p>')
+        old_references = list(oldproject.references.order_by('order', 'id'))
         response = self.client.post(
             reverse('new_project_version', args=(oldproject.slug,)),
             data={
@@ -519,6 +538,16 @@ class TestProjectCreation(TestMixin):
              for f in oldproject.funding.all()])
         self.assertTrue(newproject.funding.exists())
         self.assertEqual(newproject.references.get(description='A dataset.').doi, '10.13026/C2XW26')
+        # The published numbers are turned back into keys, made from the
+        # citations since the published references have none
+        new_references = list(newproject.references.order_by('order'))
+        self.assertEqual([r.description for r in new_references],
+                         [r.description for r in old_references])
+        keys = [r.key for r in new_references]
+        self.assertEqual(len(set(keys)), 3)
+        self.assertTrue(all(keys))
+        self.assertIn('<p>Tables [@{}; @{}] and a dataset [@{}]. Not [9].</p>'.format(*keys),
+                      newproject.background)
 
         # Load overview page
         response = self.client.get(

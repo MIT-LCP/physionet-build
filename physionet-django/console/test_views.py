@@ -655,7 +655,12 @@ class TestState(TestMixin):
             Reference.objects.bulk_create([Reference(
                 content_type=ContentType.objects.get_for_model(ActiveProject),
                 object_id=project.pk, description='A dataset with a DOI.',
-                doi='10.13026/C2XW26', order=1000)])
+                doi='10.13026/C2XW26', key='mimic2016', order=1000)])
+        # Cite it by key. New versions cite it by key already, since the
+        # published number is turned back into the key.
+        if '[@mimic2016]' not in project.background:
+            ActiveProject.objects.filter(pk=project.pk).update(
+                background=project.background + '<p>See also [@mimic2016].</p>')
 
         # The submitting author has accepted the upload agreement
         submitting_author = project.submitting_author()
@@ -724,6 +729,11 @@ class TestState(TestMixin):
         published_reference = project.references.get(description='A dataset with a DOI.')
         self.assertEqual(published_reference.doi, '10.13026/C2XW26')
         self.assertEqual(published_reference.url, 'https://doi.org/10.13026/C2XW26')
+        # The key citation is published as the reference's number
+        self.assertEqual(published_reference.key, 'mimic2016')
+        self.assertEqual(published_reference.order, 1)
+        self.assertIn('<p>See also [1].</p>', project.background)
+        self.assertNotIn('[@', project.background)
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))
