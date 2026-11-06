@@ -114,6 +114,12 @@ class Command(BaseCommand):
                 for change in changes:
                     type(change.reference).objects.filter(
                         id=change.reference.id, doi='').update(doi=change.doi)
+                    # A published reference's link is stored, so give it
+                    # the DOI link if it has none
+                    if isinstance(change.reference, PublishedReference):
+                        PublishedReference.objects.filter(
+                            id=change.reference.id, url__isnull=True,
+                        ).update(url=f'https://doi.org/{change.doi}')
             summary = f'Filled in {count(len(changes), "DOI")}.'
         else:
             summary = (f'Would fill in {count(len(changes), "DOI")}. '
