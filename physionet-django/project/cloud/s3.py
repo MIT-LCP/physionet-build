@@ -10,7 +10,7 @@ import urllib.parse
 import boto3
 import botocore
 import botocore.config
-from botocore.exceptions import ClientError, NoCredentialsError
+from botocore.exceptions import ClientError, ConnectTimeoutError, NoCredentialsError, ProxyConnectionError
 from django.conf import settings
 from django.db.models import Q
 from project.authorization.access import can_view_project_files
@@ -648,6 +648,23 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
 
     s3 = create_s3_client()
     upload_s3 = create_s3_client(for_upload=True)
+    using_proxy = bool(settings.AWS_HTTP_PROXY)
+
+    def upload(key, file_path, existing_file):
+        nonlocal upload_s3, using_proxy
+        try:
+            send_file_to_s3(upload_s3, bucket_name, key, file_path, existing_file)
+        except (ProxyConnectionError, ConnectTimeoutError) as error:
+            if not using_proxy:
+                raise
+            LOGGER.warning(
+                'S3 upload proxy connection failed (%s); using default routing for the rest of this upload task',
+                type(error).__name__,
+            )
+            using_proxy = False
+            upload_s3 = s3
+            send_file_to_s3(upload_s3, bucket_name, key, file_path, existing_file)
+
     for root, subdirs, files in os.walk(folder_path):
         subdirs.sort()
         files.sort()
@@ -669,10 +686,7 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
             )
 
             # Upload file if not already up-to-date
-            send_file_to_s3(
-                upload_s3, bucket_name, s3_key, local_file_path,
-                existing_files.get(s3_key)
-            )
+            upload(s3_key, local_file_path, existing_files.get(s3_key))
 
     # If project has a ZIP file, upload it as well
     if project.compressed_storage_size:
@@ -688,7 +702,7 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
             existing_file = get_s3_object_info(s3, bucket_name, s3_key)
         except s3.exceptions.ClientError:
             existing_file = None
-        send_file_to_s3(upload_s3, bucket_name, s3_key, zip_file_path, existing_file)
+        upload(s3_key, zip_file_path, existing_file)
 
 
 def send_file_to_s3(s3, bucket_name, key, file_path, existing_file=None):
