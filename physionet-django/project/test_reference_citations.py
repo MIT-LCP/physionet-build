@@ -8,6 +8,7 @@ from project.reference_citations import (
     find_cited_keys,
     find_citations,
     link_citations,
+    order_references,
     suggest_key,
 )
 from project.test_funding import FIXTURES, bound_form_data, bound_formset_data
@@ -80,6 +81,17 @@ class TestKeyCitations(TestCase):
             link_citations(self.DOCUMENT, self.REFERENCES),
             f'<p>First [{goldberger}], then [{moody}' + '; ' + f'{mark}, {goldberger}]. '
             'Not a@b.com or <code>[@extra2020]</code>, and [@unknown].</p>')
+
+    def test_order_references(self):
+        ordered = order_references([None, self.DOCUMENT, '<p>[@extra2020]</p>'], self.REFERENCES)
+        self.assertEqual([r.key for r in ordered], ['goldberger2000', 'moody2001', 'mark1997', 'extra2020'])
+        # Uncited references follow, in their original order
+        ordered = order_references(['<p>[@mark1997]</p>'], self.REFERENCES)
+        self.assertEqual([r.key for r in ordered], ['mark1997', 'moody2001', 'goldberger2000', 'extra2020'])
+        # Numbered citations need the original order to point to the
+        # right references
+        ordered = order_references(['<p>[@mark1997] and [2]</p>'], self.REFERENCES)
+        self.assertEqual(ordered, self.REFERENCES)
 
     def test_numbers_not_linked(self):
         document = '<p>Graded [3-5] by clinicians [1, 2].</p>'
@@ -214,15 +226,17 @@ class TestReferenceKeys(TestCase):
         self.project.refresh_from_db()
 
         response = self.client.get(reverse('project_preview', args=(self.project.slug,)))
-        goldberger = link(3, 'goldberger2000', 'Goldberger (2000).')
-        moody = link(1, 'moody2001', 'Moody (2001).')
+        goldberger = link(1, 'goldberger2000', 'Goldberger (2000).')
+        moody = link(2, 'moody2001', 'Moody (2001).')
         self.assertContains(response, f'Reviewed [{goldberger}]', html=False)
         self.assertContains(response, f'described [{moody}' + '; ' + f'{goldberger}]', html=False)
-        # The list is in the saved order, and shows the keys
-        self.assertContains(response, '<li id="ref-1"><strong class="reference-key">@moody2001</strong> '
-                            'Moody (2001).</li>', html=False)
-        self.assertContains(response, '<li id="ref-3"><strong class="reference-key">@goldberger2000</strong> '
+        # The list is in the order of first citation, and shows the keys
+        self.assertContains(response, '<li id="ref-1"><code class="reference-key">@goldberger2000</code> '
                             'Goldberger (2000).</li>', html=False)
+        self.assertContains(response, '<li id="ref-2"><code class="reference-key">@moody2001</code> '
+                            'Moody (2001).</li>', html=False)
+        self.assertContains(response, '<li id="ref-3"><code class="reference-key">@mark1997</code> '
+                            'Mark (1997).</li>', html=False)
 
         self.assertTrue(self.project.check_integrity())
         self.assertIn('Reference @mark1997 is not cited in the description.', self.project.integrity_warnings)
@@ -247,7 +261,7 @@ class TestPublishedCitations(TestCase):
         response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
         self.assertContains(response, '[' + link(1, 'eicu2018', reference.description) + ']', html=False)
         self.assertContains(response, 'Graded [1-3].')
-        self.assertContains(response, '<li id="ref-1"><strong class="reference-key">@eicu2018</strong>',
+        self.assertContains(response, '<li id="ref-1"><code class="reference-key">@eicu2018</code>',
                             html=False)
 
     def test_published_page_without_keys(self):

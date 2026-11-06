@@ -847,13 +847,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.set_version_order()
 
                 # Same content, different objects.
-                for reference in self.references.all().order_by('order'):
+                # References are published in the order they are cited
+                for number, reference in enumerate(self.ordered_references(), start=1):
                     published_reference = PublishedReference.objects.create(
                         description=reference.description,
                         doi=reference.doi,
                         key=reference.key,
                         url=reference.url,
-                        order=reference.order,
+                        order=number,
                         project=published_project)
 
                 for publication in self.publications.all():

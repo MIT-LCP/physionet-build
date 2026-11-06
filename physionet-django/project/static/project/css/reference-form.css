@@ -20,10 +20,6 @@
   margin-bottom: 0.5rem;
 }
 
-.reference-number {
-  font-size: 1rem;
-}
-
 .reference-cite {
   font-size: 0.875rem;
   color: #343a40;
@@ -46,4 +42,21 @@
 
 .reference-form textarea {
   resize: vertical;
+}
+
+/* The button below the cards that adds a reference, in the link colour */
+.reference-add,
+.reference-add:disabled {
+  color: #0366d6;
+  background-color: #f1f7fe;
+  border: 2px dashed #0366d6;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.reference-add:not(:disabled):hover,
+.reference-add:not(:disabled):focus {
+  color: #fff;
+  background-color: #0366d6;
+  border: 2px solid #0366d6;
 }

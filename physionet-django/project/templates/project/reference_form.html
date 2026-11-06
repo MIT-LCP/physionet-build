@@ -4,8 +4,9 @@
 
   dynamic-formset.js relies on this structure: the card has the class
   "reference-body" and the id "reference-N", the remove button's
-  grandparent is the card, the number is in ".reference-number", and the
-  hidden fields are direct children of ".reference-form". It must not
+  grandparent is the card, and the hidden fields are direct children of
+  ".reference-form". The card shows no number, since the references are
+  listed in the order they are cited, not the order of the form. It must not
   contain span elements, which are removed from copies. Elements with
   the class "item-saved-only" are removed when the card is copied to add
   a new reference.
@@ -16,7 +17,6 @@
   </div>
 
   <div class="reference-card-header">
-    <strong class="reference-number">{{ number }}.</strong>
     {% if form.instance.key %}
       <div class="item-saved-only d-inline-block">
         <code class="reference-cite" title="Cite this reference in the description with this text">[@{{ form.instance.key }}]</code>

@@ -14,6 +14,7 @@ from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
 from project.modelcomponents.anonymousaccess import AnonymousAccess
 from project.modelcomponents.authors import Affiliation
+from project.reference_citations import order_references
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import (
     CITATION_YEAR_REGEX,
@@ -210,6 +211,15 @@ class Metadata(models.Model):
         Returns abstract as plain text.
         """
         return html2text(self.abstract)
+
+    def ordered_references(self):
+        """
+        Return the project's references in the order they are first
+        cited in the description, followed by those that are not cited.
+        References are published in this order.
+        """
+        return order_references([section.body for section in self.content_sections()],
+                                self.references.order_by('order', 'id'))
 
     def update_internal_links(self, old_project):
         """
