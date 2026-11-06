@@ -273,8 +273,9 @@ def citation_problems(documents, references):
     Return (errors, warnings) about the citations in a project's
     description, given its HTML sections and its references.
 
-    Errors are citations of keys that no reference has. Warnings are references that are not cited,
-    and numbered citations such as [1], which should be keys.
+    Errors are citations of keys that no reference has. Warnings are
+    references that are not cited, and numbered citations such as [1],
+    which should be keys.
     """
     documents = [document for document in documents if document]
     references = list(references)
