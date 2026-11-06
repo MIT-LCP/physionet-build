@@ -538,16 +538,17 @@ class TestProjectCreation(TestMixin):
              for f in oldproject.funding.all()])
         self.assertTrue(newproject.funding.exists())
         self.assertEqual(newproject.references.get(description='A dataset.').doi, '10.13026/C2XW26')
-        # The published numbers are turned back into keys, made from the
-        # citations since the published references have none
+        # The references are given keys, made from the citations since
+        # the published references have none. Numbered citations are left
+        # for the authors to change, since they can't be told apart from
+        # other numbers in brackets.
         new_references = list(newproject.references.order_by('order'))
         self.assertEqual([r.description for r in new_references],
                          [r.description for r in old_references])
         keys = [r.key for r in new_references]
         self.assertEqual(len(set(keys)), 3)
         self.assertTrue(all(keys))
-        self.assertIn('<p>Tables [@{}; @{}] and a dataset [@{}]. Not [9].</p>'.format(*keys),
-                      newproject.background)
+        self.assertIn('<p>Tables [1, 2] and a dataset [3]. Not [9].</p>', newproject.background)
 
         # Load overview page
         response = self.client.get(

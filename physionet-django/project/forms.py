@@ -20,7 +20,7 @@ from django.utils.html import format_html
 from physionet.exceptions import HtmlValidationError
 from physionet.settings.base import StorageTypes
 from project import utility, validators
-from project.reference_citations import key_numbered_citations, suggest_key
+from project.reference_citations import suggest_key
 from project.models import (
     AccessPolicy,
     ActiveProject,
@@ -481,18 +481,16 @@ class NewProjectVersionForm(forms.ModelForm):
         # active project
         project.update_internal_links(old_project=self.latest_project)
 
-        # The published description cites references by number. Give
-        # each reference a key (references published before keys existed
-        # have none), and cite them by key in the new version.
+        # Give each reference a key, so that authors can cite it by key
+        # (references published before keys existed have none). Numbered
+        # citations in the description are left as they are, since only
+        # the authors can tell which bracketed numbers are citations.
         p_references = list(self.latest_project.references.order_by('order', 'id'))
         taken = [r.key for r in p_references if r.key]
         for p_reference in p_references:
             if not p_reference.key:
                 p_reference.key = suggest_key(p_reference.description, taken)
                 taken.append(p_reference.key)
-        for section in project.content_sections():
-            setattr(project, section.field_name,
-                    key_numbered_citations(section.body, p_references))
 
         project.save()
 
@@ -886,8 +884,7 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
         self.help_text = (
             'References cited in the description. Cite each reference by its key, '
             'for example [@moody2001], or [@moody2001; @mark1997] for several. '
-            'The published project shows these as numbers, such as [1, 2], with '
-            'the references listed in the order they are first cited. If a reference '
+            'Each citation links to its reference on the project page. If a reference '
             'has a DOI, enter it and click the Look up button to fill in the citation. '
             'Otherwise, citations must be in '
             '<a href=https://apastyle.apa.org/style-grammar-guidelines/references/examples target=_blank>APA</a> '

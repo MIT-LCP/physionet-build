@@ -1,13 +1,14 @@
 """
 In-text citations in a project's description.
 
-While a project is edited, authors cite references by key, such as
-[@moody2001] or [@moody2001; @mark1997]. The preview shows these as
-numbers, such as [1] or [1, 2], with the references listed in the order
-they are first cited. When the project is published, the citations are
-saved as those numbers, so published descriptions contain numbered
-citations, which are linked to the reference list when displayed. When
-a new version is created, the numbers are turned back into keys.
+Authors cite references by key, such as [@moody2001] or
+[@moody2001; @mark1997]. The citations are saved and published as they
+are written. When a description is displayed, each cited key is linked
+to its reference in the list.
+
+Descriptions written before keys were introduced may cite references by
+number, such as [1]. These are left as they are, and a warning asks
+authors to cite by key instead.
 
 Only plain text is affected: citations inside links, code, maths,
 scripts and styles are left alone. A numbered citation must not follow
@@ -135,16 +136,13 @@ def _process(document, regex, replace):
     return ''.join(parser.result)
 
 
-def _link(number, references):
+def _link(key, number, reference):
     """
-    Return a link to item number of the reference list, or the number
-    alone if there is no such item.
+    Return a link to a cited key's item in the reference list.
     """
-    if not 1 <= number <= len(references):
-        return str(number)
     # The title shows the citation when hovering over the link
-    title = escape(str(references[number - 1]))
-    return '<a href="#ref-{0}" class="citation-link" title="{1}">{0}</a>'.format(number, title)
+    return '<a href="#ref-{0}" class="citation-link" title="{1}">@{2}</a>'.format(
+        number, escape(str(reference)), key)
 
 
 def _join(items):
@@ -173,20 +171,6 @@ def find_citations(document):
     return cited
 
 
-def _link_numbers(document, references):
-    def replace(match):
-        citation = match.group(0)
-        if citation_numbers(citation) is None:
-            return citation
-        # Link each number, keeping the brackets, commas and dashes
-        return ITEM_REGEX.sub(
-            lambda m: _link(int(m.group(1)), references) + (
-                m.group(2) + _link(int(m.group(3)), references) if m.group(3) else ''),
-            citation)
-
-    return _process(document, CITATION_REGEX, replace)
-
-
 # Citations by key, such as [@moody2001] or [@moody2001; @mark1997]
 
 KEY_PATTERN = REFERENCE_KEY_PATTERN
@@ -212,111 +196,32 @@ def find_cited_keys(document):
     return keys
 
 
-def order_references(documents, references):
+def link_citations(document, references):
     """
-    Return a project's references in the order they are first cited in
-    its description (a list of HTML fragments), followed by those that
-    are not cited, in their original order.
-    """
-    references = list(references)
-    by_key = {r.key.lower(): r for r in references if r.key}
-    ordered = []
-    for document in documents:
-        for key in find_cited_keys(document):
-            reference = by_key.get(key)
-            if reference is not None and reference not in ordered:
-                ordered.append(reference)
-    return ordered + [r for r in references if r not in ordered]
+    Return an HTML fragment with each key in its citations, such as
+    [@moody2001; @mark1997], linked to the reference list, whose items
+    have the IDs 'ref-1', 'ref-2', and so on.
 
-
-def _format_numbers(numbers, format_number=str):
-    """
-    Return a list of citation numbers as text, e.g. '1, 3–5', with runs
-    of three or more numbers shown as a range.
-    """
-    numbers = sorted(set(numbers))
-    parts = []
-    start = 0
-    while start < len(numbers):
-        end = start
-        while end + 1 < len(numbers) and numbers[end + 1] == numbers[end] + 1:
-            end += 1
-        if end - start >= 2:
-            parts.append(format_number(numbers[start]) + '–' + format_number(numbers[end]))
-            start = end + 1
-        else:
-            parts.append(format_number(numbers[start]))
-            start += 1
-    return ', '.join(parts)
-
-
-def number_key_citations(document, references, link=False):
-    """
-    Return an HTML fragment with its key citations, such as
-    [@moody2001; @mark1997], replaced by the references' numbers in the
-    list, such as [1, 2]. If link is true, the numbers are linked to the
-    list.
-
-    references is the list of references, in display order. Citations
-    of keys that are not in the list are left unchanged.
+    references is the list of references, in display order. Keys that
+    are not in the list are not linked.
     """
     references = list(references)
     numbers = {r.key.lower(): n for n, r in enumerate(references, start=1) if r.key}
+    if not numbers:
+        return document
+
+    def link_key(match):
+        key = match.group(1)
+        number = numbers.get(key.lower())
+        if number is None:
+            return match.group(0)
+        return _link(key, number, references[number - 1])
 
     def replace(match):
-        keys = [key.lower() for key in KEY_ITEM_REGEX.findall(match.group(0))]
-        if any(key not in numbers for key in keys):
-            return match.group(0)
-        if link:
-            text = _format_numbers((numbers[key] for key in keys), lambda n: _link(n, references))
-        else:
-            text = _format_numbers(numbers[key] for key in keys)
-        return '[' + text + ']'
+        # Link each key, keeping the brackets and separators
+        return KEY_ITEM_REGEX.sub(link_key, match.group(0))
 
     return _process(document, KEY_CITATION_REGEX, replace)
-
-
-def key_numbered_citations(document, references):
-    """
-    Return an HTML fragment with its numbered citations, such as [1, 2],
-    replaced by the keys of those items in the reference list, such as
-    [@moody2001; @mark1997].
-
-    This is the reverse of number_key_citations, used when a published
-    description becomes editable again. Citations of numbers that are
-    not in the list, or of references without a key, are left unchanged.
-    """
-    references = list(references)
-
-    def replace(match):
-        numbers = citation_numbers(match.group(0))
-        if not numbers or any(n > len(references) or not references[n - 1].key for n in numbers):
-            return match.group(0)
-        keys = []
-        for n in numbers:
-            if references[n - 1].key not in keys:
-                keys.append(references[n - 1].key)
-        return '[' + '; '.join('@' + key for key in keys) + ']'
-
-    return _process(document, CITATION_REGEX, replace)
-
-
-def link_citations(document, references):
-    """
-    Return an HTML fragment with its citations linked to the reference
-    list, whose items have the IDs 'ref-1', 'ref-2', and so on.
-
-    Key citations, such as [@moody2001], are shown as numbers. Numbered
-    citations, such as [1], are linked as they are.
-
-    references is the list of references, in display order. Numbers and
-    keys that are not in the list are not linked.
-    """
-    references = list(references)
-    if not references:
-        return document
-    document = number_key_citations(document, references, link=True)
-    return _link_numbers(document, references)
 
 
 # Keys for new references
@@ -368,8 +273,7 @@ def citation_problems(documents, references):
     Return (errors, warnings) about the citations in a project's
     description, given its HTML sections and its references.
 
-    Errors are citations of keys that no reference has, which would be
-    published as they are. Warnings are references that are not cited,
+    Errors are citations of keys that no reference has. Warnings are references that are not cited,
     and numbered citations such as [1], which should be keys.
     """
     documents = [document for document in documents if document]

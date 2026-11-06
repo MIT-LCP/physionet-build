@@ -7,17 +7,14 @@ from project.reference_citations import (
     citation_problems,
     find_cited_keys,
     find_citations,
-    key_numbered_citations,
     link_citations,
-    number_key_citations,
-    order_references,
     suggest_key,
 )
 from project.test_funding import FIXTURES, bound_form_data, bound_formset_data
 
 
-def link(number, title):
-    return f'<a href="#ref-{number}" class="citation-link" title="{title}">{number}</a>'
+def link(number, key, title):
+    return f'<a href="#ref-{number}" class="citation-link" title="{title}">@{key}</a>'
 
 
 class Ref:
@@ -62,42 +59,8 @@ class TestFindCitations(TestCase):
         self.assertEqual(find_citations(None), set())
 
 
-class TestLinkCitations(TestCase):
-    REFERENCES = [Ref('', 'Moody & Mark (2001). "The paper".'), Ref('', 'Second (2002).'),
-                  Ref('', 'Third (2003).')]
-
-    def test_link(self):
-        a1 = link(1, 'Moody &amp; Mark (2001). &quot;The paper&quot;.')
-        a2 = link(2, 'Second (2002).')
-        a3 = link(3, 'Third (2003).')
-        self.assertEqual(
-            link_citations('<p>As shown [1], [2, 3] and [1–3].</p>', self.REFERENCES),
-            f'<p>As shown [{a1}], [{a2}, {a3}] and [{a1}–{a3}].</p>')
-
-    def test_entity_dash(self):
-        # The editor may save an en dash as an HTML entity
-        a1 = link(1, 'Moody &amp; Mark (2001). &quot;The paper&quot;.')
-        a3 = link(3, 'Third (2003).')
-        for dash in ('&ndash;', '&#8211;', '&#x2013;'):
-            self.assertEqual(link_citations('<p>[1' + dash + '3] &amp;</p>', self.REFERENCES),
-                             '<p>[' + a1 + dash + a3 + '] &amp;</p>')
-            self.assertEqual(find_citations('<p>[1' + dash + '3]</p>'), {1, 2, 3})
-
-    def test_numbers_not_in_list(self):
-        self.assertEqual(link_citations('<p>[4] and [2, 9]</p>', self.REFERENCES),
-                         f'<p>[4] and [{link(2, "Second (2002).")}, 9]</p>')
-
-    def test_rest_of_document_unchanged(self):
-        document = ('<p class="x">A &amp; B &#65; &nbsp;<br>x[1] <a href="/a">[1]</a>'
-                    '<code>[1]</code><img src="/i.png" alt="[1]"/></p><!-- [1] -->')
-        self.assertEqual(link_citations(document, self.REFERENCES), document)
-
-    def test_no_references(self):
-        self.assertEqual(link_citations('<p>[1]</p>', []), '<p>[1]</p>')
-
-
 class TestKeyCitations(TestCase):
-    REFERENCES = [Ref('moody2001', 'Moody (2001).'), Ref('mark1997', 'Mark (1997).'),
+    REFERENCES = [Ref('moody2001', 'Moody & Mark (2001). "The paper".'), Ref('mark1997', 'Mark (1997).'),
                   Ref('goldberger2000', 'Goldberger (2000).'), Ref('extra2020', 'Extra (2020).')]
     DOCUMENT = ('<p>First [@goldberger2000], then [@Moody2001; @mark1997, @goldberger2000]. '
                 'Not a@b.com or <code>[@extra2020]</code>, and [@unknown].</p>')
@@ -107,39 +70,29 @@ class TestKeyCitations(TestCase):
         self.assertEqual(find_cited_keys('<p>[@a.b-c:d_e] [@x.] @y [@ z]</p>'), ['a.b-c:d_e'])
         self.assertEqual(find_cited_keys(None), [])
 
-    def test_order_references(self):
-        ordered = order_references([self.DOCUMENT], self.REFERENCES)
-        self.assertEqual([r.key for r in ordered], ['goldberger2000', 'moody2001', 'mark1997', 'extra2020'])
-        # Uncited references keep their order
-        self.assertEqual(order_references(['<p>None</p>'], self.REFERENCES), self.REFERENCES)
-
-    def test_number_key_citations(self):
-        ordered = order_references([self.DOCUMENT], self.REFERENCES)
+    def test_link(self):
+        moody = link(1, 'Moody2001', 'Moody &amp; Mark (2001). &quot;The paper&quot;.')
+        mark = link(2, 'mark1997', 'Mark (1997).')
+        goldberger = link(3, 'goldberger2000', 'Goldberger (2000).')
+        # Keys are linked as they are written, keeping the brackets and
+        # separators. Unknown keys are not linked.
         self.assertEqual(
-            number_key_citations(self.DOCUMENT, ordered),
-            '<p>First [1], then [1–3]. Not a@b.com or <code>[@extra2020]</code>, and [@unknown].</p>')
-        self.assertEqual(number_key_citations('<p>[@moody2001; @goldberger2000]</p>', self.REFERENCES),
-                         '<p>[1, 3]</p>')
+            link_citations(self.DOCUMENT, self.REFERENCES),
+            f'<p>First [{goldberger}], then [{moody}' + '; ' + f'{mark}, {goldberger}]. '
+            'Not a@b.com or <code>[@extra2020]</code>, and [@unknown].</p>')
 
-    def test_link_key_citations(self):
-        self.assertEqual(
-            link_citations('<p>[@mark1997; @moody2001]</p>', self.REFERENCES),
-            '<p>[' + link(1, 'Moody (2001).') + ', ' + link(2, 'Mark (1997).') + ']</p>')
+    def test_numbers_not_linked(self):
+        document = '<p>Graded [3-5] by clinicians [1, 2].</p>'
+        self.assertEqual(link_citations(document, self.REFERENCES), document)
 
-    def test_key_numbered_citations(self):
-        self.assertEqual(
-            key_numbered_citations('<p>[1, 3] [2–4] [1, 1] [9] x[1]</p>', self.REFERENCES),
-            '<p>[@moody2001; @goldberger2000] [@mark1997; @goldberger2000; @extra2020] '
-            '[@moody2001] [9] x[1]</p>')
-        # References without keys are not cited by key
-        self.assertEqual(key_numbered_citations('<p>[1]</p>', [Ref('')]), '<p>[1]</p>')
+    def test_rest_of_document_unchanged(self):
+        document = ('<p class="x">A &amp; B &#65; &nbsp;<br><a href="/a">[@mark1997]</a>'
+                    '<code>[@mark1997]</code><img src="/i.png" alt="[@mark1997]"/></p><!-- [@mark1997] -->')
+        self.assertEqual(link_citations(document, self.REFERENCES), document)
 
-    def test_round_trip(self):
-        ordered = order_references([self.DOCUMENT], self.REFERENCES)
-        published = number_key_citations('<p>[@mark1997] and [@extra2020; @moody2001]</p>', ordered)
-        self.assertEqual(published, '<p>[3] and [2, 4]</p>')
-        self.assertEqual(key_numbered_citations(published, ordered),
-                         '<p>[@mark1997] and [@moody2001; @extra2020]</p>')
+    def test_no_keys(self):
+        self.assertEqual(link_citations('<p>[@moody2001]</p>', []), '<p>[@moody2001]</p>')
+        self.assertEqual(link_citations('<p>[@moody2001]</p>', [Ref('')]), '<p>[@moody2001]</p>')
 
 
 class TestCitationProblems(TestCase):
@@ -261,12 +214,15 @@ class TestReferenceKeys(TestCase):
         self.project.refresh_from_db()
 
         response = self.client.get(reverse('project_preview', args=(self.project.slug,)))
-        self.assertContains(response, 'Reviewed [' + link(1, 'Goldberger (2000).') + ']', html=False)
-        self.assertContains(response, 'described [' + link(1, 'Goldberger (2000).') + ', '
-                            + link(2, 'Moody (2001).') + ']', html=False)
-        # The list is in the order of first citation
-        self.assertContains(response, '<li id="ref-1">Goldberger (2000).</li>', html=False)
-        self.assertContains(response, '<li id="ref-3">Mark (1997).</li>', html=False)
+        goldberger = link(3, 'goldberger2000', 'Goldberger (2000).')
+        moody = link(1, 'moody2001', 'Moody (2001).')
+        self.assertContains(response, f'Reviewed [{goldberger}]', html=False)
+        self.assertContains(response, f'described [{moody}' + '; ' + f'{goldberger}]', html=False)
+        # The list is in the saved order, and shows the keys
+        self.assertContains(response, '<li id="ref-1"><strong class="reference-key">@moody2001</strong> '
+                            'Moody (2001).</li>', html=False)
+        self.assertContains(response, '<li id="ref-3"><strong class="reference-key">@goldberger2000</strong> '
+                            'Goldberger (2000).</li>', html=False)
 
         self.assertTrue(self.project.check_integrity())
         self.assertIn('Reference @mark1997 is not cited in the description.', self.project.integrity_warnings)
@@ -283,8 +239,22 @@ class TestPublishedCitations(TestCase):
 
     def test_published_page(self):
         project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
-        references = list(project.ordered_references())
-        PublishedProject.objects.filter(pk=project.pk).update(background='<p>See the tables [1].</p>')
+        reference = project.references.order_by('order').first()
+        reference.key = 'eicu2018'
+        reference.save()
+        PublishedProject.objects.filter(pk=project.pk).update(
+            background='<p>See the tables [@eicu2018]. Graded [1-3].</p>')
         response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
-        self.assertContains(response, '[' + link(1, references[0].description) + ']', html=False)
-        self.assertContains(response, '<li id="ref-1">', html=False)
+        self.assertContains(response, '[' + link(1, 'eicu2018', reference.description) + ']', html=False)
+        self.assertContains(response, 'Graded [1-3].')
+        self.assertContains(response, '<li id="ref-1"><strong class="reference-key">@eicu2018</strong>',
+                            html=False)
+
+    def test_published_page_without_keys(self):
+        # References published before keys existed are listed as before
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        self.assertFalse(project.references.exclude(key='').exists())
+        response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
+        reference = project.references.order_by('order').first()
+        self.assertContains(response, '<li id="ref-1">' + reference.html_description, html=False)
+        self.assertNotContains(response, 'reference-key')

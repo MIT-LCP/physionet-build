@@ -656,8 +656,7 @@ class TestState(TestMixin):
                 content_type=ContentType.objects.get_for_model(ActiveProject),
                 object_id=project.pk, description='A dataset with a DOI.',
                 doi='10.13026/C2XW26', key='mimic2016', order=1000)])
-        # Cite it by key. New versions cite it by key already, since the
-        # published number is turned back into the key.
+        # Cite it by key. New versions carry the citation over.
         if '[@mimic2016]' not in project.background:
             ActiveProject.objects.filter(pk=project.pk).update(
                 background=project.background + '<p>See also [@mimic2016].</p>')
@@ -729,16 +728,16 @@ class TestState(TestMixin):
         published_reference = project.references.get(description='A dataset with a DOI.')
         self.assertEqual(published_reference.doi, '10.13026/C2XW26')
         self.assertEqual(published_reference.url, 'https://doi.org/10.13026/C2XW26')
-        # The key citation is published as the reference's number
+        # The key citation is published as it is written
         self.assertEqual(published_reference.key, 'mimic2016')
-        self.assertEqual(published_reference.order, 1)
-        self.assertIn('<p>See also [1].</p>', project.background)
-        self.assertNotIn('[@', project.background)
+        self.assertIn('<p>See also [@mimic2016].</p>', project.background)
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="https://doi.org/10.13026/C2XW26">')
+        self.assertContains(response, 'class="citation-link" title="A dataset with a DOI.">@mimic2016</a>]')
+        self.assertContains(response, '<strong class="reference-key">@mimic2016</strong>')
         response = self.client.get(reverse('serve_published_project_file', args=(
             project.slug, project.version, 'subject-100/100.atr')))
         self.assertEqual(response.status_code, 200)

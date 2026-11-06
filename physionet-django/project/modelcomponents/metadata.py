@@ -14,7 +14,6 @@ from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
 from project.modelcomponents.anonymousaccess import AnonymousAccess
 from project.modelcomponents.authors import Affiliation
-from project.reference_citations import number_key_citations, order_references
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import (
     CITATION_YEAR_REGEX,
@@ -209,22 +208,8 @@ class Metadata(models.Model):
     def abstract_text_content(self):
         """
         Returns abstract as plain text.
-
-        Citations by key, such as [@moody2001], are shown as numbers.
         """
-        return html2text(number_key_citations(self.abstract, self.ordered_references()))
-
-    def ordered_references(self):
-        """
-        Return the project's references in display order: the order in
-        which they are first cited by key in the description, followed
-        by the others.
-
-        Published descriptions cite references by number, so published
-        references are in their saved order.
-        """
-        return order_references([section.body for section in self.content_sections()],
-                                self.references.order_by('order', 'id'))
+        return html2text(self.abstract)
 
     def update_internal_links(self, old_project):
         """

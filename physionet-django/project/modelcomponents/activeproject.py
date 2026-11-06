@@ -36,7 +36,7 @@ from project.modelcomponents.metadata import (
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
-from project.reference_citations import citation_problems, number_key_citations
+from project.reference_citations import citation_problems
 import project.tasks as tasks
 from project.validators import validate_subdir
 
@@ -812,14 +812,6 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         published_project.slug = slug or self.slug
         published_project.submission_slug = self.slug
 
-        # Citations by key, such as [@moody2001], are published as the
-        # references' numbers, with the references listed in the order
-        # they are first cited
-        references = self.ordered_references()
-        for section in self.content_sections():
-            setattr(published_project, section.field_name,
-                    number_key_citations(section.body, references))
-
         # Create project file root if this is first version or the first
         # version with a different access policy
 
@@ -855,13 +847,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.set_version_order()
 
                 # Same content, different objects.
-                for number, reference in enumerate(references, start=1):
+                for reference in self.references.all().order_by('order'):
                     published_reference = PublishedReference.objects.create(
                         description=reference.description,
                         doi=reference.doi,
                         key=reference.key,
                         url=reference.url,
-                        order=number,
+                        order=reference.order,
                         project=published_project)
 
                 for publication in self.publications.all():

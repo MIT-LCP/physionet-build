@@ -23,8 +23,8 @@ register = template.Library()
 @register.filter(name='link_citations')
 def link_citations(html, references):
     """
-    Link numbered citations, such as [1], in a project's (cleaned) HTML
-    description to its reference list.
+    Link citations by key, such as [@moody2001], in a project's (cleaned)
+    HTML description to its reference list.
     """
     return mark_safe(link_citations_func(html, references or []))
 
