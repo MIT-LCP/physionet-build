@@ -77,6 +77,21 @@ YES_NO_NA_UNDETERMINED = (
 )
 
 
+class SubmissionStatsPeriodForm(forms.Form):
+    DEFAULT_MONTHS = 18
+    MAX_MONTHS = 120
+
+    months = forms.IntegerField(
+        initial=DEFAULT_MONTHS,
+        min_value=1,
+        max_value=MAX_MONTHS,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'style': 'width: 6rem;',
+        }),
+    )
+
+
 class InternalNoteForm(forms.ModelForm):
     class Meta:
         widgets = {
