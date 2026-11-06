@@ -37,6 +37,7 @@
       <div class="mb-2">
         {{ project.resource_type.id|resource_badge|safe }}
         {{ project.access_policy|access_badge|safe }}
+        {% dataset_index_badge project scholar_data %}
       </div>
       <h1>{{ project.title }}</h1>
       <p class="project-authors">

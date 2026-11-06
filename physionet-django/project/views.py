@@ -2405,6 +2405,10 @@ def published_project(request, project_slug, version, subdir=''):
     all_versions_views_count = project.view_count(all_versions=True)
     citing_works, citing_works_count = recent_citing_works(project)
 
+    scholar_data = None
+    if settings.ENABLE_SCHOLAR_DATA_API and project.doi:
+        scholar_data = ScholarData.get_data(project.doi)
+
     context = {
         'project': project,
         'authors': authors,
@@ -2444,6 +2448,7 @@ def published_project(request, project_slug, version, subdir=''):
         'all_versions_views_count': all_versions_views_count,
         'citing_works': citing_works,
         'citing_works_count': citing_works_count,
+        'scholar_data': scholar_data,
     }
     context.update(published_challenge_context(project, user))
     # The file and directory contents

@@ -3180,6 +3180,59 @@ class TestScholarDataIntegration(TestMixin):
                 self.SCHOLAR_DATA_RESPONSE,
             )
 
+    def get_landing_page(self):
+        """Request the project landing page, failing if it calls the external API."""
+        url = reverse('published_project', args=(self.project.slug, self.project.version))
+        with mock.patch('project.tasks.requests.get') as mock_get:
+            response = self.client.get(url)
+        mock_get.assert_not_called()
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_landing_page_badge(self):
+        """The landing page header shows the stored Dataset Index, linked to the metrics page."""
+        ScholarData.objects.create(
+            doi=self.project.doi,
+            data=self.SCHOLAR_DATA_RESPONSE,
+            refresh_datetime=timezone.now(),
+        )
+        response = self.get_landing_page()
+        self.assertContains(response, 'class="badge badge-dataset-index"', count=1)
+        self.assertContains(response, '<span class="badge-dataset-index-value">7</span>')
+        self.assertContains(response, f'href="{self.metrics_url}" class="badge badge-dataset-index"')
+        self.assertEqual(Task.objects.count(), 0)
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_landing_page_first_view_queues_fetch(self):
+        """With no stored data, the landing page has no badge and queues one fetch."""
+        response = self.get_landing_page()
+        self.assertNotContains(response, 'badge-dataset-index')
+        self.assertEqual(Task.objects.count(), 1)
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_landing_page_no_score(self):
+        """No badge is shown if the stored data has no D-Index score."""
+        for data in ({}, {'latestDIndex': None}, {'latestDIndex': {'score': None, 'year': 2025}}):
+            ScholarData.objects.update_or_create(
+                doi=self.project.doi,
+                defaults={'data': data, 'refresh_datetime': timezone.now()},
+            )
+            response = self.get_landing_page()
+            self.assertNotContains(response, 'badge-dataset-index')
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=False)
+    def test_landing_page_disabled(self):
+        """No badge is shown, and nothing is stored, when the feature is off."""
+        ScholarData.objects.create(
+            doi=self.project.doi,
+            data=self.SCHOLAR_DATA_RESPONSE,
+            refresh_datetime=timezone.now(),
+        )
+        response = self.get_landing_page()
+        self.assertNotContains(response, 'badge-dataset-index')
+        self.assertEqual(Task.objects.count(), 0)
+
 
 def openalex_work(work_id, title, doi=None, date='2025-01-02', authors=('Ann Lee',), venue='Journal A'):
     """Return a work record in the form the OpenAlex API returns it."""
