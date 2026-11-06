@@ -4,6 +4,7 @@ ORCID helpers, including the OAuth state check.
 """
 import importlib.util
 import re
+from smtplib import SMTPException
 from unittest import skipIf
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
@@ -439,21 +440,23 @@ class OrcidLoginTests(TestCase):
     registered when ORCID_LOGIN_ENABLED is set at startup, so this class adds them.
     """
 
-    def start_login(self):
-        response = self.client.get(reverse('orcid_init_login'))
+    def start_login(self, client=None):
+        client = client or self.client
+        response = client.get(reverse('orcid_init_login'))
         self.assertEqual(response.status_code, 302)
         return parse_qs(urlparse(response.url).query)['state'][0]
 
-    def login(self, token):
+    def login(self, token, client=None):
         """
         Run the login flow with ORCID's token endpoint mocked to return `token`. The
         id_token signature check is mocked too, as it fetches ORCID's public keys;
         the view's access token validation still runs.
         """
-        state = self.start_login()
+        client = client or self.client
+        state = self.start_login(client)
         with patch('user.views.OAuth2Session.fetch_token', return_value=dict(token)) as mock_fetch_token:
             with patch('user.validators.validate_orcid_id_token') as mock_validate_id_token:
-                response = self.client.get(reverse('auth_orcid_login'), {'code': 'abc123', 'state': state})
+                response = client.get(reverse('auth_orcid_login'), {'code': 'abc123', 'state': state})
         mock_fetch_token.assert_called_once()
         mock_validate_id_token.assert_called_once_with(token['id_token'])
         return response
@@ -468,6 +471,18 @@ class OrcidLoginTests(TestCase):
     def activation_url(self, user, token):
         uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
         return reverse('orcid_activate_user', kwargs={'uidb64': uidb64, 'token': token})
+
+    def assert_sent_to_login(self, response):
+        self.assertRedirects(response, reverse('login'), fetch_redirect_response=False)
+        messages = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertEqual(messages, ['Please log in with ORCID before creating an account.'])
+
+    def assert_register_refused(self, response):
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'user/orcid_register.html')
+        errors = response.context['form'].non_field_errors()
+        self.assertEqual(errors, ['This ORCID iD is already linked to an account.'])
+        self.assertContains(response, 'This ORCID iD is already linked to an account.')
 
     def test_init_login_redirects_to_orcid(self):
         response = self.client.get(reverse('orcid_init_login'))
@@ -579,6 +594,118 @@ class OrcidLoginTests(TestCase):
         self.assertEqual(match.func, views.activate_orcid_user)
         self.assertEqual(force_str(urlsafe_base64_decode(match.kwargs['uidb64'])), str(user.pk))
         self.assertTrue(default_token_generator.check_token(user, match.kwargs['token']))
+
+    def test_register_without_token_redirects_to_login(self):
+        response = self.client.get(reverse('orcid_register'))
+
+        self.assert_sent_to_login(response)
+
+    def test_register_without_token_creates_nothing(self):
+        orcid_count = Orcid.objects.count()
+
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidnew@example.com', 'username': 'orcidnew', 'first_names': 'Orcid', 'last_name': 'New',
+            'privacy_policy': 'on',
+        })
+
+        self.assert_sent_to_login(response)
+        self.assertFalse(User.objects.filter(email='orcidnew@example.com').exists())
+        self.assertFalse(User.objects.filter(username='orcidnew').exists())
+        self.assertEqual(Orcid.objects.count(), orcid_count)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_register_twice_creates_one_account(self):
+        self.login(LOGIN_TOKEN)
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidnew@example.com', 'username': 'orcidnew', 'first_names': 'Orcid', 'last_name': 'New',
+            'privacy_policy': 'on',
+        })
+        self.assertTemplateUsed(response, 'user/register_done.html')
+        self.assertNotIn('orcid_token', self.client.session)
+
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidagain@example.com', 'username': 'orcidagain', 'first_names': 'Orcid', 'last_name': 'Again',
+            'privacy_policy': 'on',
+        })
+
+        self.assert_sent_to_login(response)
+        self.assertFalse(User.objects.filter(email='orcidagain@example.com').exists())
+        self.assertFalse(User.objects.filter(username='orcidagain').exists())
+        self.assertEqual(Orcid.objects.filter(orcid_id=LOGIN_TOKEN['orcid']).count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_register_invalid_form_keeps_token(self):
+        self.login(LOGIN_TOKEN)
+
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidnew@example.com', 'first_names': 'Orcid', 'last_name': 'New', 'privacy_policy': 'on',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'user/orcid_register.html')
+        self.assertIn('username', response.context['form'].errors)
+        self.assertEqual(self.client.session['orcid_token'], LOGIN_TOKEN)
+        self.assertFalse(User.objects.filter(email='orcidnew@example.com').exists())
+
+    def test_register_when_logged_in_goes_to_projects(self):
+        user = User.objects.create_user(
+            username='orcidloggedin', email='orcidloggedin@example.com', password='testpass123', is_active=True,
+        )
+        self.client.force_login(user)
+
+        response = self.client.get(reverse('orcid_register'))
+
+        self.assertRedirects(response, reverse('project_home'), fetch_redirect_response=False)
+
+    def test_register_id_already_linked_is_refused(self):
+        # Two browsers sign in with the same ORCID iD before either signs up. The first
+        # sign-up links the iD, so the second is refused.
+        other_client = self.client_class()
+        self.login(LOGIN_TOKEN)
+        self.login(LOGIN_TOKEN, client=other_client)
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidnew@example.com', 'username': 'orcidnew', 'first_names': 'Orcid', 'last_name': 'New',
+            'privacy_policy': 'on',
+        })
+        self.assertTemplateUsed(response, 'user/register_done.html')
+
+        response = other_client.post(reverse('orcid_register'), {
+            'email': 'orcidagain@example.com', 'username': 'orcidagain', 'first_names': 'Orcid', 'last_name': 'Again',
+            'privacy_policy': 'on',
+        })
+
+        self.assert_register_refused(response)
+        self.assertFalse(User.objects.filter(email='orcidagain@example.com').exists())
+        self.assertFalse(User.objects.filter(username='orcidagain').exists())
+        self.assertEqual(Orcid.objects.filter(orcid_id=LOGIN_TOKEN['orcid']).count(), 1)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_register_after_email_failure_is_refused(self):
+        # The activation email fails after the account is saved. The server error means
+        # the session isn't saved, so the token is still there, but signing up again
+        # with it is refused.
+        self.login(LOGIN_TOKEN)
+        with patch('django.core.mail.backends.locmem.EmailBackend.send_messages', side_effect=SMTPException):
+            with self.assertLogs('django.request', 'ERROR'):
+                with self.assertRaises(SMTPException):
+                    self.client.post(reverse('orcid_register'), {
+                        'email': 'orcidnew@example.com', 'username': 'orcidnew', 'first_names': 'Orcid',
+                        'last_name': 'New', 'privacy_policy': 'on',
+                    })
+
+        self.assertFalse(User.objects.get(email='orcidnew@example.com').is_active)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(self.client.session['orcid_token'], LOGIN_TOKEN)
+
+        response = self.client.post(reverse('orcid_register'), {
+            'email': 'orcidagain@example.com', 'username': 'orcidagain', 'first_names': 'Orcid', 'last_name': 'Again',
+            'privacy_policy': 'on',
+        })
+
+        self.assert_register_refused(response)
+        self.assertFalse(User.objects.filter(email='orcidagain@example.com').exists())
+        self.assertFalse(User.objects.filter(username='orcidagain').exists())
+        self.assertEqual(Orcid.objects.filter(orcid_id=LOGIN_TOKEN['orcid']).count(), 1)
 
     def test_activation_with_valid_link(self):
         user = self.create_linked_user(is_active=False)
