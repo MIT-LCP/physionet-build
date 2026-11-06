@@ -81,6 +81,17 @@ DOI_PREFIXES = (
 )
 
 
+# A DOI written in running text, such as a citation
+DOI_IN_TEXT_REGEX = re.compile(r'\b10\.\d{4,9}/[^\s"<>]+', re.IGNORECASE)
+
+
+def find_dois(text):
+    """
+    Return the DOIs written in a piece of text, in lower case.
+    """
+    return [doi.rstrip('.,;').lower() for doi in DOI_IN_TEXT_REGEX.findall(text or '')]
+
+
 def normalize_doi(value):
     """
     Return a DOI without its resolver prefix, e.g. '10.13026/abc' for
