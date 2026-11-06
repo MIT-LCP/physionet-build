@@ -37,6 +37,14 @@ function cloneFormElement(selector, form_name){
 
 
 // Add another form to a formset
+// Set the number shown on an item, if it shows one
+function setItemNumber(item_div, item, number){
+  var label = item_div.getElementsByClassName(item + "-number")[0];
+  if (label){
+    label.innerHTML = number + ".";
+  }
+};
+
 function addItem(trigger_button, item, form_name, max_forms, add_item_url){
   var total_forms = parseInt($('#id_' + form_name + '-TOTAL_FORMS').val())
 
@@ -48,7 +56,7 @@ function addItem(trigger_button, item, form_name, max_forms, add_item_url){
       new_item_div = document.getElementsByClassName(item + "-body")[total_forms];
       total_forms++;
       new_item_div.id = item + "-" + (total_forms);
-      new_item_div.getElementsByClassName(item + "-number")[0].innerHTML = total_forms + ".";
+      setItemNumber(new_item_div, item, total_forms);
       if (total_forms == max_forms){
         trigger_button.disabled = true;
       }
@@ -99,7 +107,7 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
     // All item forms with greater numbers must be decremented
     for (i=item_number+1; i<total_forms+1; i++){
       var higher_item_div = document.getElementById(item + "-" + i);
-      higher_item_div.getElementsByClassName(item + "-number")[0].innerHTML = (i-1) + ".";
+      setItemNumber(higher_item_div, item, i-1);
       higher_item_div.id = item + "-" + (i-1);
     }
     // update the form count
