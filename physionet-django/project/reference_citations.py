@@ -338,6 +338,8 @@ def suggest_key(description, taken=()):
     text = URL_IN_TEXT_REGEX.sub(' ', description or '')
     # The first author's surname comes before the first comma or full stop
     surname = re.split(r'[,.(]', text.strip(), maxsplit=1)[0]
+    # Drop initials written after the surname, as in 'Moody GB'
+    surname = re.sub(r'\s+[A-Z]{1,3}$', '', surname.strip())
     surname = surname.translate(_LETTERS)
     surname = unicodedata.normalize('NFKD', surname).encode('ascii', 'ignore').decode()
     surname = re.sub(r'[^a-z0-9]', '', surname.lower())[:30]
