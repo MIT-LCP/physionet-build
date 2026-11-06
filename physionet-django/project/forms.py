@@ -884,7 +884,9 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
         self.help_text = (
             'References cited in the description. Cite each reference by its key, '
             'for example [@moody2001], or [@moody2001; @mark1997] for several. '
-            'Each citation links to its reference on the project page. If a reference '
+            'Each citation links to its reference on the project page. The references '
+            'are listed in the order they are first cited, which is shown in the preview '
+            'and applied automatically when the project is published. If a reference '
             'has a DOI, enter it and click the Look up button to fill in the citation. '
             'Otherwise, citations must be in '
             '<a href=https://apastyle.apa.org/style-grammar-guidelines/references/examples target=_blank>APA</a> '
