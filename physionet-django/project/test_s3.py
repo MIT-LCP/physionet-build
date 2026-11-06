@@ -1,5 +1,7 @@
 import os
 import re
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest import mock
 
 from botocore.exceptions import NoCredentialsError
@@ -14,12 +16,14 @@ from project.cloud.s3 import (
     check_s3_bucket_exists,
     create_s3_client,
     create_s3_control_client,
+    create_s3_resource,
     create_s3_server_access_log_bucket,
     get_bucket_name,
     has_s3_credentials,
     upload_project_to_S3,
     disable_project_access_in_s3,
     restore_project_access_in_s3,
+    send_files_to_s3,
 )
 from project.models import (
     AWS,
@@ -42,7 +46,7 @@ class TestS3ClientProxy(SimpleTestCase):
     @mock.patch('project.cloud.s3.has_s3_credentials', return_value=True)
     @mock.patch('project.cloud.s3.boto3.Session')
     def test_configured_proxy(self, session, credentials):
-        client = create_s3_client()
+        client = create_s3_client(for_upload=True)
 
         session.assert_called_once_with(profile_name='test-profile')
         config = session.return_value.client.call_args.kwargs['config']
@@ -50,28 +54,80 @@ class TestS3ClientProxy(SimpleTestCase):
             'http': 'http://proxy.example.com:8080',
             'https': 'http://proxy.example.com:8080',
         })
-        session.return_value.client.assert_called_once_with(
-            's3', region_name='us-east-1', config=config,
-        )
+        self.assertEqual(config.connect_timeout, 10)
+        self.assertEqual(config.retries, {'total_max_attempts': 3, 'mode': 'standard'})
+        self.assertEqual(session.return_value.client.call_args.args, ('s3',))
+        self.assertEqual(session.return_value.client.call_args.kwargs['region_name'], 'us-east-1')
         self.assertIs(client, session.return_value.client.return_value)
 
     @mock.patch('project.cloud.s3.has_s3_credentials', return_value=True)
     @mock.patch('project.cloud.s3.boto3.Session')
     def test_unset_proxy_leaves_proxies_unspecified(self, session, credentials):
-        create_s3_client()
+        create_s3_client(for_upload=True)
 
         config = session.return_value.client.call_args.kwargs['config']
         self.assertIsNone(config.proxies)
-        session.return_value.client.assert_called_once_with(
-            's3', region_name='us-east-1', config=config,
-        )
+        self.assertEqual(config.connect_timeout, 60)
+        self.assertIsNone(config.retries)
+        self.assertEqual(session.return_value.client.call_args.args, ('s3',))
+        self.assertEqual(session.return_value.client.call_args.kwargs['region_name'], 'us-east-1')
+
+    @override_settings(AWS_HTTP_PROXY='http://proxy.example.com:8080')
+    @mock.patch('project.cloud.s3.has_s3_credentials', return_value=True)
+    @mock.patch('project.cloud.s3.boto3.Session')
+    def test_non_upload_client_ignores_upload_proxy(self, session, credentials):
+        create_s3_client()
+        config = session.return_value.client.call_args.kwargs['config']
+        self.assertIsNone(config.proxies)
+        self.assertEqual(config.connect_timeout, 60)
+        self.assertIsNone(config.retries)
+
+    @override_settings(AWS_HTTP_PROXY='http://proxy.example.com:8080')
+    @mock.patch('project.cloud.s3.has_s3_credentials', return_value=True)
+    @mock.patch('project.cloud.s3.boto3.Session')
+    def test_resource_and_control_client_ignore_upload_proxy(self, session, credentials):
+        create_s3_resource()
+        create_s3_control_client()
+        session.return_value.resource.assert_called_once_with('s3', region_name='us-east-1')
+        session.return_value.client.assert_called_once_with('s3control', region_name='us-east-1')
 
     @mock.patch('project.cloud.s3.has_s3_credentials', return_value=False)
     @mock.patch('project.cloud.s3.boto3.Session')
     def test_missing_credentials_still_raise(self, session, credentials):
-        with self.assertRaises(NoCredentialsError):
-            create_s3_client()
+        for factory in (create_s3_client, create_s3_resource, create_s3_control_client):
+            with self.subTest(factory=factory.__name__), self.assertRaises(NoCredentialsError):
+                factory()
         session.assert_not_called()
+
+    @mock.patch('project.cloud.s3.has_s3_credentials', return_value=True)
+    @mock.patch('project.cloud.s3.get_s3_object_info', return_value=None)
+    @mock.patch('project.cloud.s3.list_s3_subdir_object_info', return_value=({}, []))
+    @mock.patch('project.cloud.s3.create_s3_client')
+    def test_only_file_and_zip_uploads_use_upload_client(self, factory, listing, info, credentials):
+        metadata_client, upload_client = mock.Mock(), mock.Mock()
+        factory.side_effect = [metadata_client, upload_client]
+        with TemporaryDirectory() as directory:
+            folder = Path(directory) / 'files'
+            folder.mkdir()
+            file_path = folder / 'data.txt'
+            file_path.write_text('test')
+            zip_path = Path(directory) / 'test-1.0.zip'
+            zip_path.write_bytes(b'test zip')
+            project = mock.Mock(slug='test', compressed_storage_size=8)
+            project.zip_name.side_effect = lambda **kwargs: (
+                str(zip_path) if kwargs.get('full') else zip_path.name
+            )
+
+            send_files_to_s3(str(folder), 'test/1.0/', 'test-bucket', project)
+
+            self.assertEqual(factory.call_args_list, [mock.call(), mock.call(for_upload=True)])
+            listing.assert_called_once_with(metadata_client, 'test-bucket', 'test/1.0/')
+            info.assert_called_once_with(metadata_client, 'test-bucket', 'test/test-1.0.zip')
+            self.assertEqual(upload_client.upload_file.call_args_list, [
+                mock.call(Filename=str(file_path), Bucket='test-bucket', Key='test/1.0/data.txt'),
+                mock.call(Filename=str(zip_path), Bucket='test-bucket', Key='test/test-1.0.zip'),
+            ])
+            metadata_client.upload_file.assert_not_called()
 
 
 @override_settings(
