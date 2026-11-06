@@ -4,7 +4,7 @@
 // Init a timeout variable to be used below
 var loadresults = null;
 
-function search(url, value){
+function search(url, value, filters){
     var csrftoken = getCookie('csrftoken');
 
     // Clear the timeout if it has already been set.
@@ -14,9 +14,18 @@ function search(url, value){
 
     // Make a new timeout set to go off in <N>ms
     loadresults = setTimeout(function(){
-        var data = {'csrfmiddlewaretoken':csrftoken, 'search': value};
+        var data = $.extend(
+            {'csrfmiddlewaretoken':csrftoken, 'search': value},
+            filters || {}
+        );
         $('#searchitems').load(url, data);
     }, 500);
+}
+
+function searchArchived(url) {
+    search(url, $('#archived-project-search').val(), {
+        'has_assigned_editor': $('#has-assigned-editor').is(':checked')
+    });
 }
 
 // Search the submitted-projects page: Displays only the projects

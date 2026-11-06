@@ -16,6 +16,7 @@ from django.core import mail
 from django.test import TestCase, override_settings
 from django.test.utils import get_runner
 from django.urls import reverse
+from django.utils import timezone
 from console.forms import CredentialReviewForm
 from console.views import snapshot_files, submission_file_changes
 from events.models import EventAgreement
@@ -38,6 +39,7 @@ from project.models import (
     DepositTermsAcceptance,
     DepositTermsVersion,
 )
+from project.modelcomponents.activeproject import ArchiveReason
 from user.models import AssociatedEmail, User
 from physionet.models import FrontPageButton, Section, StaticPage
 from user.test_views import TestMixin, prevent_request_warnings
@@ -2447,6 +2449,109 @@ class TestArchivePermission(TestMixin):
                 submission_status=SubmissionStatus.ARCHIVED
             )
         )
+
+
+class TestArchivedSubmissions(TestMixin):
+    """Tests for the console archived-project list and its filters."""
+
+    PROJECT_TITLES = (
+        'MIT-BIH Arrhythmia Database',
+        'MIMIC-III Clinical Database',
+        'Demo Limited Clinical Dataset',
+    )
+
+    fixtures = [
+        'demo-training-type.json', 'demo-user.json',
+        'site-data.json', 'demo-project.json',
+    ]
+
+    def setUp(self):
+        super().setUp()
+        self.client.login(username='admin', password='Tester11!')
+        self.editor = User.objects.get(username='admin')
+        self.projects = [
+            ActiveProject.objects.get(title=title)
+            for title in self.PROJECT_TITLES
+        ]
+        now = timezone.now()
+
+        ActiveProject.objects.filter(pk=self.projects[0].pk).update(
+            title='Archived console test one',
+            submission_status=SubmissionStatus.ARCHIVED,
+            archive_reason=ArchiveReason.REJECTED,
+            archive_datetime=now,
+            creation_datetime=now - datetime.timedelta(days=3),
+            editor=self.editor,
+        )
+        ActiveProject.objects.filter(pk=self.projects[1].pk).update(
+            title='Archived console test two',
+            submission_status=SubmissionStatus.ARCHIVED,
+            archive_reason=ArchiveReason.DELETED_BY_AUTHOR,
+            archive_datetime=now - datetime.timedelta(days=1),
+            creation_datetime=now - datetime.timedelta(days=1),
+            editor=None,
+        )
+        ActiveProject.objects.filter(pk=self.projects[2].pk).update(
+            title='Archived console test three',
+            submission_status=SubmissionStatus.ARCHIVED,
+            archive_reason=ArchiveReason.REJECTED,
+            archive_datetime=now - datetime.timedelta(days=1),
+            creation_datetime=now - datetime.timedelta(days=2),
+            editor=self.editor,
+        )
+
+    def test_archived_projects_order_by_archive_then_creation_datetime(self):
+        response = self.client.get(reverse('archived_submissions'))
+
+        self.assertEqual(response.status_code, 200)
+        projects = list(response.context['projects'])
+        test_project_ids = {project.pk for project in self.projects}
+        self.assertEqual(
+            [project.pk for project in projects if project.pk in test_project_ids],
+            [self.projects[0].pk, self.projects[1].pk, self.projects[2].pk],
+        )
+
+    def test_assigned_editor_filter_excludes_projects_without_an_editor(self):
+        response = self.client.get(
+            reverse('archived_submissions'),
+            {'has_assigned_editor': 'true'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        projects = list(response.context['projects'])
+        project_ids = {project.pk for project in projects}
+        self.assertIn(self.projects[0].pk, project_ids)
+        self.assertIn(self.projects[2].pk, project_ids)
+        self.assertNotIn(self.projects[1].pk, project_ids)
+
+    def test_assigned_editor_filter_is_retained_in_pagination_links(self):
+        response = self.client.get(
+            reverse('archived_submissions'),
+            {'has_assigned_editor': 'true', 'page': 2},
+        )
+
+        self.assertEqual(response.context['querystring'], 'has_assigned_editor=true')
+
+    def test_assigned_editor_filter_is_retained_during_search(self):
+        response = self.client.post(
+            reverse('project_search', kwargs={'bucket': 'archived'}),
+            {'search': 'Archived console test', 'has_assigned_editor': 'true'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        projects = list(response.context['projects'])
+        self.assertEqual(
+            [project.pk for project in projects],
+            [self.projects[0].pk, self.projects[2].pk],
+        )
+
+    def test_assigned_editor_filter_is_retained_when_search_is_cleared(self):
+        response = self.client.post(
+            reverse('project_search', kwargs={'bucket': 'archived'}),
+            {'search': '', 'has_assigned_editor': 'true'},
+        )
+
+        self.assertEqual(response.context['querystring'], 'has_assigned_editor=true')
 
 
 class TestUsersSearch(TestCase):
