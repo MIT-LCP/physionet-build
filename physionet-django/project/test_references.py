@@ -1,7 +1,10 @@
 import json
+from io import StringIO
 from unittest import mock
 
 import requests
+from django.contrib.contenttypes.models import ContentType
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
@@ -259,8 +262,17 @@ class TestFindDois(TestCase):
     def test_find_dois(self):
         self.assertEqual(
             find_dois('See https://doi.org/10.1109/51.932724. Also doi:10.13026/C2XW26, and more.'),
-            ['10.1109/51.932724', '10.13026/c2xw26'])
+            ['10.1109/51.932724', '10.13026/C2XW26'])
         self.assertEqual(find_dois('No identifier, 2001.'), [])
+
+    def test_trailing_punctuation(self):
+        self.assertEqual(find_dois('A paper (https://doi.org/10.1000/abc).'), ['10.1000/abc'])
+        self.assertEqual(find_dois('[doi:10.1000/abc]'), ['10.1000/abc'])
+        # Brackets that are part of the DOI are kept
+        self.assertEqual(find_dois('doi:10.1002/(SICI)1097-4571(199806)49:8.'),
+                         ['10.1002/(SICI)1097-4571(199806)49:8'])
+        self.assertEqual(find_dois('https://example.org/doi/10.1000/abc?download=true'),
+                         ['10.1000/abc'])
 
 
 class TestQualityWarnings(TestCase):
@@ -384,3 +396,84 @@ class TestReferenceMetadata(TestCase):
         })
         url = 'https://eicu-crd.mit.edu/eicutables/apachepatientresult/'
         self.assertEqual(works[url], {'@type': 'CreativeWork', 'name': url, 'url': url})
+
+
+class TestBackfillReferenceDois(TestCase):
+    fixtures = FIXTURES
+
+    def setUp(self):
+        self.project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.published = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        content_type = ContentType.objects.get_for_model(ActiveProject)
+
+        def reference(description, doi='', order=1):
+            return Reference(content_type=content_type, object_id=self.project.id,
+                             description=description, doi=doi, order=order)
+
+        # Created without changing the project's modification time
+        Reference.objects.bulk_create([
+            reference('Moody GB (2001). A paper. https://doi.org/10.1109/51.932724.', order=1),
+            reference('Pollard TJ (2016). MIMIC-III. doi:10.13026/C2XW26 and 10.1109/x', order=2),
+            reference('Another copy. https://doi.org/10.1109/51.932724', order=3),
+            reference('Has a DOI box (2020). https://doi.org/10.5555/other', doi='10.5555/box', order=4),
+            reference('Bad DOI (2020). https://doi.org/10.1234/a,b', order=5),
+            reference('Already entered (2020). https://doi.org/10.5555/taken', order=6),
+            reference('Already entered (2021).', doi='10.5555/TAKEN', order=7),
+            reference('A book (2014).', order=8),
+        ])
+        self.project.refresh_from_db()
+        self.modified = self.project.modified_datetime
+        self.published_reference = self.published.references.create(
+            description='Johnson A (2016). MIMIC-III. http://dx.doi.org/10.1038/sdata.2016.35',
+            url='http://dx.doi.org/10.1038/sdata.2016.35', order=1)
+
+    def run_command(self, *args):
+        out = StringIO()
+        call_command('backfill_reference_dois', *args, stdout=out)
+        return out.getvalue()
+
+    def dois(self):
+        return dict(self.project.references.values_list('order', 'doi'))
+
+    # The counts include a reference in the demo fixtures with a DOI in
+    # its citation.
+    def test_dry_run(self):
+        before = self.dois()
+        out = self.run_command()
+        self.assertIn('Would fill in 3 DOIs.', out)
+        self.assertIn('Skipped 4 references.', out)
+        self.assertIn(f'{self.project.slug}: reference ', out)
+        self.assertIn('demoeicu v2.0.0: reference ', out)
+        self.assertEqual(self.dois(), before)
+
+    def test_apply(self):
+        out = self.run_command('--apply')
+        self.assertIn('Filled in 3 DOIs. Skipped 4 references.', out)
+        self.assertEqual(self.dois(), {
+            1: '10.1109/51.932724',
+            2: '',  # more than one DOI
+            3: '',  # the same DOI as reference 1
+            4: '10.5555/box',  # DOI box already filled in
+            5: '',  # not a valid DOI
+            6: '',  # DOI already used by reference 7
+            7: '10.5555/TAKEN',
+            8: '',  # no DOI
+        })
+        self.assertIn('more than one DOI', out)
+        self.assertIn('10.1234/a,b is not a valid DOI', out)
+        self.assertIn('another reference in the project has the DOI 10.1109/51.932724', out)
+        self.assertIn('another reference in the project has the DOI 10.5555/taken', out)
+
+        # Published references are filled in too, keeping their link
+        self.published_reference.refresh_from_db()
+        self.assertEqual(self.published_reference.doi, '10.1038/sdata.2016.35')
+        self.assertEqual(self.published_reference.url, 'http://dx.doi.org/10.1038/sdata.2016.35')
+
+        # The citations and the project's content are unchanged
+        self.assertTrue(self.project.references.filter(
+            description='Moody GB (2001). A paper. https://doi.org/10.1109/51.932724.').exists())
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.modified_datetime, self.modified)
+
+        # Running it again changes nothing
+        self.assertIn('Filled in 0 DOIs.', self.run_command('--apply'))
