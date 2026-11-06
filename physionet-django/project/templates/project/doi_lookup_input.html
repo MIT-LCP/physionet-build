@@ -1,3 +1,7 @@
-{% include "django/forms/widgets/input.html" %}
-<button class="btn btn-sm btn-outline-secondary doi-lookup-button" type="button" title="Fill in the citation from doi.org">Look up</button>
-<div class="doi-lookup-status small mb-2" role="status"></div>
+<div class="input-group">
+  {% include "django/forms/widgets/input.html" %}
+  <div class="input-group-append">
+    <button class="btn btn-outline-secondary doi-lookup-button" type="button" title="Fill in the citation from doi.org">Look up</button>
+  </div>
+</div>
+<div class="doi-lookup-status small mt-1" role="status"></div>

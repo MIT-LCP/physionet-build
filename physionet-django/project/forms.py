@@ -20,6 +20,7 @@ from django.utils.html import format_html
 from physionet.exceptions import HtmlValidationError
 from physionet.settings.base import StorageTypes
 from project import utility, validators
+from project.reference_citations import suggest_key
 from project.models import (
     AccessPolicy,
     ActiveProject,
@@ -480,6 +481,17 @@ class NewProjectVersionForm(forms.ModelForm):
         # active project
         project.update_internal_links(old_project=self.latest_project)
 
+        # Give each reference a key, so that authors can cite it by key
+        # (references published before keys existed have none). Numbered
+        # citations in the description are left as they are, since only
+        # the authors can tell which bracketed numbers are citations.
+        p_references = list(self.latest_project.references.order_by('order', 'id'))
+        taken = [r.key for r in p_references if r.key]
+        for p_reference in p_references:
+            if not p_reference.key:
+                p_reference.key = suggest_key(p_reference.description, taken)
+                taken.append(p_reference.key)
+
         project.save()
 
         # Copy over the author/affiliation objects
@@ -510,11 +522,12 @@ class NewProjectVersionForm(forms.ModelForm):
                 )
 
         # Other related objects
-        for p_reference in self.latest_project.references.order_by('order'):
+        for number, p_reference in enumerate(p_references, start=1):
             reference = Reference.objects.create(
                 description=p_reference.description,
                 doi=p_reference.doi,
-                order=p_reference.order,
+                key=p_reference.key,
+                order=number,
                 project=project,
             )
 
@@ -808,12 +821,22 @@ class ReferenceForm(forms.ModelForm):
     # the value is normalized and then checked by the model validators.
     doi = forms.CharField(
         max_length=255, required=False, label='DOI (optional)',
-        widget=DoiLookupInput(attrs={'placeholder': 'e.g. 10.13026/C2XW26'}))
+        widget=DoiLookupInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 10.13026/C2XW26'}))
+    key = forms.CharField(
+        max_length=50, required=False, label='Key',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. moody2001'}))
 
     class Meta:
         model = Reference
-        fields = ('doi', 'description')
+        fields = ('doi', 'description', 'key')
         labels = {'description': 'Citation'}
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'class': 'form-control', 'rows': 2,
+                'placeholder': 'e.g. Moody, G. B., & Mark, R. G. (2001). The impact of the '
+                               'MIT-BIH Arrhythmia Database. IEEE Engineering in Medicine and '
+                               'Biology Magazine, 20(3), 45-50.'}),
+        }
 
     def warnings(self):
         """
@@ -828,6 +851,13 @@ class ReferenceForm(forms.ModelForm):
 
     def clean_description(self):
         return ' '.join(self.cleaned_data['description'].split())
+
+    def clean_key(self):
+        # Allow a key to be pasted as it is cited, e.g. "[@moody2001]"
+        key = self.cleaned_data['key'].strip().strip('[]').strip().lstrip('@')
+        if key:
+            validators.validate_reference_key(key)
+        return key
 
 
 def reference_formset_factory(extra=0):
@@ -852,7 +882,9 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
         super().__init__(data, *args, **kwargs)
         self.max_forms = ReferenceFormSet.max_forms
         self.help_text = (
-            'Numbered references specified in the metadata. If a reference '
+            'References cited in the description. Cite each reference by its key, '
+            'for example [@moody2001], or [@moody2001; @mark1997] for several. '
+            'Each citation links to its reference on the project page. If a reference '
             'has a DOI, enter it and click the Look up button to fill in the citation. '
             'Otherwise, citations must be in '
             '<a href=https://apastyle.apa.org/style-grammar-guidelines/references/examples target=_blank>APA</a> '
@@ -903,6 +935,15 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                     raise forms.ValidationError('Each DOI may only be used for one reference.')
                 dois.append(doi)
 
+        keys = []
+        for form in self.forms:
+            key = form.cleaned_data.get('key', '').lower()
+            if key:
+                if key in keys:
+                    raise forms.ValidationError(
+                        'Each key may only be used for one reference: {}'.format(key))
+                keys.append(key)
+
     def save(self, *args, **kwargs):
         if self.confirm_reference_order:
             # If "confirm reference order" was checked, set the order
@@ -924,7 +965,21 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                     form.instance.order = max_order + 1
                     max_order += 1
 
+        # Give each reference without a key one made from its citation
+        taken = [form.instance.key for form in self.forms if form.instance.key]
+        generated = []
+        for form in self.forms:
+            if form.instance.description and not form.instance.key:
+                form.instance.key = suggest_key(form.instance.description, taken)
+                taken.append(form.instance.key)
+                generated.append(form)
+
         super().save(*args, **kwargs)
+
+        # Forms that are otherwise unchanged are not saved by the formset
+        for form in generated:
+            if not form.has_changed():
+                form.instance.save()
 
 
 class PublicationFormSet(BaseGenericInlineFormSet):

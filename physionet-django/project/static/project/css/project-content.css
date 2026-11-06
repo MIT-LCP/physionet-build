@@ -803,3 +803,9 @@ input[type="checkbox"] {
     padding: 2rem 1.25rem;
   }
 }
+
+/* Highlight a reference reached from an in-text citation such as [@moody2001] */
+li[id^="ref-"]:target {
+  background-color: #fff3cd;
+  transition: background-color 0.3s;
+}

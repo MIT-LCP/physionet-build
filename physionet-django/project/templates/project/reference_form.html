@@ -1,0 +1,67 @@
+{% load physionet_templatetags %}
+{% comment %}
+  One reference in the reference formset, shown as a card.
+
+  dynamic-formset.js relies on this structure: the card has the class
+  "reference-body" and the id "reference-N", the remove button's
+  grandparent is the card, the number is in ".reference-number", and the
+  hidden fields are direct children of ".reference-form". It must not
+  contain span elements, which are removed from copies. Elements with
+  the class "item-saved-only" are removed when the card is copied to add
+  a new reference.
+{% endcomment %}
+<div class="reference-body reference-card" id="reference-{{ number }}">
+  <div class="reference-remove">
+    <button class="btn btn-sm btn-outline-danger" type="button" title="Remove reference" aria-label="Remove reference" onclick="removeItem(this, 'reference', '{{ form_name }}', '{{ remove_item_url }}')"><i class="fas fa-times"></i></button>
+  </div>
+
+  <div class="reference-card-header">
+    <strong class="reference-number">{{ number }}.</strong>
+    {% if form.instance.key %}
+      <div class="item-saved-only d-inline-block">
+        <code class="reference-cite" title="Cite this reference in the description with this text">[@{{ form.instance.key }}]</code>
+        <button class="btn btn-link btn-sm p-0 reference-copy-key" type="button" data-cite="[@{{ form.instance.key }}]" title="Copy to the clipboard">Copy</button>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="reference-form">
+    {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+
+    <div class="form-row">
+      <div class="col-md-8 form-group mb-2">
+        <label class="reference-label" for="{{ form.doi.id_for_label }}">DOI <small class="text-muted">(optional)</small></label>
+        {{ form.doi }}
+        {% for error in form.doi.errors %}
+          <div class="alert alert-danger py-1 mt-1 mb-0">{{ error|wrap_if_unformatted:"strong" }}</div>
+        {% endfor %}
+      </div>
+      <div class="col-md-4 form-group mb-2">
+        <label class="reference-label" for="{{ form.key.id_for_label }}">Key</label>
+        {{ form.key }}
+        <small class="form-text text-muted">Cite as [@key]. Made from the citation if left blank.</small>
+        {% for error in form.key.errors %}
+          <div class="alert alert-danger py-1 mt-1 mb-0">{{ error|wrap_if_unformatted:"strong" }}</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="form-group mb-0">
+      <label class="reference-label" for="{{ form.description.id_for_label }}">Citation</label>
+      {{ form.description }}
+      {% for error in form.description.errors %}
+        <div class="alert alert-danger py-1 mt-1 mb-0">{{ error|wrap_if_unformatted:"strong" }}</div>
+      {% endfor %}
+    </div>
+
+    {% for error in form.non_field_errors %}
+      <div class="alert alert-danger py-1 mt-2 mb-0">{{ error|wrap_if_unformatted:"strong" }}</div>
+    {% endfor %}
+    {# Hints that do not prevent saving or submission #}
+    {% for warning in form.warnings %}
+      <div class="item-warning small text-muted mt-2">
+        <i class="fas fa-exclamation-triangle" style="color:orange"></i> {{ warning }}
+      </div>
+    {% endfor %}
+  </div>
+</div>

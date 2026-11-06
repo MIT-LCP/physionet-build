@@ -16,11 +16,14 @@ from project.modelcomponents.anonymousaccess import AnonymousAccess
 from project.modelcomponents.authors import Affiliation
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import (
-    ROR_URL_REGEX,
+    CITATION_YEAR_REGEX,
     DOI_IN_TEXT_REGEX,
+    ROR_URL_REGEX,
+    URL_IN_TEXT_REGEX,
     find_dois,
     validate_doi,
     validate_funder_identifier,
+    validate_reference_key,
     validate_title,
     validate_topic,
     validate_version,
@@ -789,13 +792,6 @@ class PublishedTopic(models.Model):
         return self.description
 
 
-# A URL written in running text, such as a citation
-URL_IN_TEXT_REGEX = re.compile(r'\bhttps?://[^\s<>"\']+', re.IGNORECASE)
-
-# A publication year (or "n.d." for no date), as written in APA citations
-CITATION_YEAR_REGEX = re.compile(r'\b(1[5-9]|20)\d{2}[a-z]?\b|\bn\.\s?d\.', re.IGNORECASE)
-
-
 class BaseReference(models.Model):
     """
     Abstract base class for a bibliographic reference.
@@ -808,6 +804,10 @@ class BaseReference(models.Model):
     # db_default lets the previous version's code add references while
     # migrations are applied during an upgrade
     doi = models.CharField(max_length=255, blank=True, default='', db_default='', validators=[validate_doi])
+    # Used to cite the reference in the description, as [@key]. Unique
+    # within a project, ignoring case.
+    key = models.CharField(max_length=50, blank=True, default='', db_default='',
+                           validators=[validate_reference_key])
 
     def __str__(self):
         return self.description

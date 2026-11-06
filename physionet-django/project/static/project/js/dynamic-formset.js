@@ -13,17 +13,22 @@ function cloneFormElement(selector, form_name){
   var total_forms = $('#id_' + form_name + '-TOTAL_FORMS').val();
 
   // Set the names and ids of each input element of the new form
-  newElement.find('input, select').each(function() {
+  newElement.find('input, select, textarea').each(function() {
       var name = $(this).attr('name').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-');
       var id = 'id_' + name;
       // What about the actual object id hidden input?
       
       $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
   });
+  // Point the labels at the new inputs
+  newElement.find('label[for]').each(function() {
+      $(this).attr('for', $(this).attr('for').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-'));
+  });
 
   newElement.find('span').remove();
   newElement.find('.doi-lookup-status').empty();
-  newElement.find('.item-warning').remove();
+  // Remove hints and details that only apply to the saved item
+  newElement.find('.item-warning, .item-saved-only').remove();
   // Update the formset total forms indicator
   $('#id_' + form_name + '-TOTAL_FORMS').val(++total_forms);
   // Insert the new content after the original selected content
@@ -124,7 +129,7 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
 // Block submission of a formset if there are duplicate items
 function validateItems(list_div_id, input_id_suffix, item_name) {
   item_div = document.getElementById(list_div_id);
-  item_inputs = item_div.getElementsByTagName("input");
+  item_inputs = item_div.querySelectorAll("input, textarea");
   var counts = {};
 
   for (var i=0; i < item_inputs.length; i++) {

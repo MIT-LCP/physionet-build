@@ -1,6 +1,9 @@
+// Scripts for the reference forms (project/reference_form.html).
+// Handlers are delegated so that they work for reference forms added or
+// reloaded after the page loads.
+
 // Fill in a reference's citation from its DOI, using the lookup URL in
-// the DOI input's data-lookup-url attribute. Handlers are delegated so
-// that they work for reference forms added or reloaded after page load.
+// the DOI input's data-lookup-url attribute.
 
 function setDoiLookupStatus(status, message, isError) {
   status.empty().removeClass('text-danger text-muted');
@@ -9,9 +12,10 @@ function setDoiLookupStatus(status, message, isError) {
 }
 
 function lookupDoi(button) {
-  var doiInput = button.siblings('input[name$="-doi"]');
-  var status = button.siblings('.doi-lookup-status');
-  var citationInput = button.closest('.reference-form').find('input[name$="-description"]');
+  var form = button.closest('.reference-form');
+  var doiInput = form.find('input[name$="-doi"]');
+  var status = form.find('.doi-lookup-status');
+  var citationInput = form.find('[name$="-description"]');
   var doi = $.trim(doiInput.val());
 
   if (!doi) {
@@ -62,6 +66,16 @@ $(document).on('click', '.doi-lookup-button', function() {
 $(document).on('keydown', 'input[name$="-doi"]', function(event) {
   if (event.key === 'Enter') {
     event.preventDefault();
-    lookupDoi($(this).siblings('.doi-lookup-button'));
+    lookupDoi($(this).closest('.reference-form').find('.doi-lookup-button'));
   }
+});
+
+// Copy a reference's citation key, e.g. "[@moody2001]", to paste into
+// the description.
+$(document).on('click', '.reference-copy-key', function() {
+  var button = $(this);
+  navigator.clipboard.writeText(button.data('cite')).then(function() {
+    button.text('Copied');
+    setTimeout(function() { button.text('Copy'); }, 1500);
+  });
 });
