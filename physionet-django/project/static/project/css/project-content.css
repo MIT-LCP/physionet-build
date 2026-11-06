@@ -809,3 +809,16 @@ li[id^="ref-"]:target {
   background-color: #fff3cd;
   transition: background-color 0.3s;
 }
+
+/* A reference's key in the reference list, set apart from its citation */
+.reference-key {
+  display: inline-block;
+  font-size: 0.8em;
+  color: #495057;
+  background-color: #f1f3f5;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  padding: 0 0.35rem;
+  margin-right: 0.4rem;
+  white-space: nowrap;
+}

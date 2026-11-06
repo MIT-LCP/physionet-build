@@ -231,11 +231,11 @@ class TestReferenceKeys(TestCase):
         self.assertContains(response, f'Reviewed [{goldberger}]', html=False)
         self.assertContains(response, f'described [{moody}' + '; ' + f'{goldberger}]', html=False)
         # The list is in the order of first citation, and shows the keys
-        self.assertContains(response, '<li id="ref-1"><strong class="reference-key">@goldberger2000</strong> '
+        self.assertContains(response, '<li id="ref-1"><code class="reference-key">@goldberger2000</code> '
                             'Goldberger (2000).</li>', html=False)
-        self.assertContains(response, '<li id="ref-2"><strong class="reference-key">@moody2001</strong> '
+        self.assertContains(response, '<li id="ref-2"><code class="reference-key">@moody2001</code> '
                             'Moody (2001).</li>', html=False)
-        self.assertContains(response, '<li id="ref-3"><strong class="reference-key">@mark1997</strong> '
+        self.assertContains(response, '<li id="ref-3"><code class="reference-key">@mark1997</code> '
                             'Mark (1997).</li>', html=False)
 
         self.assertTrue(self.project.check_integrity())
@@ -261,7 +261,7 @@ class TestPublishedCitations(TestCase):
         response = self.client.get(reverse('published_project', args=(project.slug, project.version)))
         self.assertContains(response, '[' + link(1, 'eicu2018', reference.description) + ']', html=False)
         self.assertContains(response, 'Graded [1-3].')
-        self.assertContains(response, '<li id="ref-1"><strong class="reference-key">@eicu2018</strong>',
+        self.assertContains(response, '<li id="ref-1"><code class="reference-key">@eicu2018</code>',
                             html=False)
 
     def test_published_page_without_keys(self):

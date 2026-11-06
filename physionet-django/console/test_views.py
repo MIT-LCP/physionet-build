@@ -739,7 +739,7 @@ class TestState(TestMixin):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<a href="https://doi.org/10.13026/C2XW26">')
         self.assertContains(response, 'class="citation-link" title="A dataset with a DOI.">@mimic2016</a>]')
-        self.assertContains(response, '<strong class="reference-key">@mimic2016</strong>')
+        self.assertContains(response, '<code class="reference-key">@mimic2016</code>')
         response = self.client.get(reverse('serve_published_project_file', args=(
             project.slug, project.version, 'subject-100/100.atr')))
         self.assertEqual(response.status_code, 200)
