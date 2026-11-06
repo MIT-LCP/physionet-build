@@ -495,6 +495,7 @@ class TestProjectCreation(TestMixin):
 
         oldproject = PublishedProject.objects.get(
             title='Demo eICU Collaborative Research Database')
+        oldproject.references.create(description='A dataset.', doi='10.13026/C2XW26', order=99)
         response = self.client.post(
             reverse('new_project_version', args=(oldproject.slug,)),
             data={
@@ -517,6 +518,7 @@ class TestProjectCreation(TestMixin):
             [(f.funder_name, f.funder_identifier, f.award_number)
              for f in oldproject.funding.all()])
         self.assertTrue(newproject.funding.exists())
+        self.assertEqual(newproject.references.get(description='A dataset.').doi, '10.13026/C2XW26')
 
         # Load overview page
         response = self.client.get(

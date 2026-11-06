@@ -22,6 +22,7 @@ function cloneFormElement(selector, form_name){
   });
 
   newElement.find('span').remove();
+  newElement.find('.doi-lookup-status').empty();
   // Update the formset total forms indicator
   $('#id_' + form_name + '-TOTAL_FORMS').val(++total_forms);
   // Insert the new content after the original selected content

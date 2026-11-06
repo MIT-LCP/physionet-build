@@ -647,6 +647,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 {
                     'order': reference.order,
                     'description': reference.description,
+                    'doi': reference.doi,
                 }
                 for reference in self.references.order_by('order', 'id')
             ],
@@ -838,6 +839,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 for reference in self.references.all().order_by('order'):
                     published_reference = PublishedReference.objects.create(
                         description=reference.description,
+                        doi=reference.doi,
                         url=reference.url,
                         order=reference.order,
                         project=published_project)

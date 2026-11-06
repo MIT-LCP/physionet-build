@@ -58,7 +58,6 @@ from project.models import (
     Publication,
     PublishedAuthor,
     PublishedProject,
-    Reference,
     ReviewerInvitation,
     StorageRequest,
     SubmissionStatus,
@@ -687,11 +686,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         corresponding_email_form = None
 
     # Metadata forms and formsets
-    ReferenceFormSet = generic_inlineformset_factory(Reference,
-                                                     fields=('description',), extra=0,
-                                                     max_num=project_forms.ReferenceFormSet.max_forms,
-                                                     can_delete=False,
-                                                     formset=project_forms.ReferenceFormSet, validate_max=True)
+    ReferenceFormSet = project_forms.reference_formset_factory()
     TopicFormSet = generic_inlineformset_factory(Topic,
                                                  fields=('description',), extra=0,
                                                  max_num=project_forms.TopicFormSet.max_forms,

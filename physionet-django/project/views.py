@@ -26,7 +26,8 @@ from physionet.middleware.maintenance import ServiceUnavailable
 from physionet.storage import generate_signed_url_helper
 from physionet.utility import paginate, serve_file
 from challenge.utility import published_challenge_context
-from project import forms, utility
+from project import forms, utility, validators
+from project.citation import CitationLookupError, fetch_citation
 from project.fileviews import display_project_file
 from project.models import (
     AccessPolicy,
@@ -701,6 +702,50 @@ def project_authors(request, project_slug, **kwargs):
     )
 
 
+def get_content_editable_project(user, project_slug):
+    """
+    Return the ActiveProject whose metadata items the user may edit.
+
+    That is the submitting author during the edit stage, or the editor
+    during the copyedit stage. Raises Http404 otherwise.
+    """
+    project = ActiveProject.objects.filter(slug=project_slug).first()
+    if project is None:
+        raise Http404()
+
+    is_submitting = bool(project.authors.filter(user=user, is_submitting=True))
+
+    if not (is_submitting and project.author_editable()) and not (project.copyeditable() and user == project.editor):
+        raise Http404()
+    return project
+
+
+@login_required
+def reference_doi_lookup(request, project_slug):
+    """
+    Return the APA citation for a DOI, as JSON, to fill in a reference.
+
+    Accessed via ajax by the people who can edit the project's references.
+    """
+    get_content_editable_project(request.user, project_slug)
+
+    doi = validators.normalize_doi(request.GET.get('doi', ''))
+    if not doi:
+        return JsonResponse({'error': 'Enter a DOI.'})
+    try:
+        validators.validate_doi(doi)
+        citation = fetch_citation(doi)
+    except ValidationError:
+        return JsonResponse({'error': 'This is not a valid DOI.'})
+    except CitationLookupError as e:
+        return JsonResponse({'error': str(e)})
+
+    max_length = Reference._meta.get_field('description').max_length
+    if len(citation) > max_length:
+        return JsonResponse({'error': 'The citation for this DOI is too long. Please enter a shorter one by hand.'})
+    return JsonResponse({'doi': doi, 'citation': citation})
+
+
 def edit_content_item(request, project_slug):
     """
     Function accessed via ajax for editing a project's related item
@@ -713,17 +758,7 @@ def edit_content_item(request, project_slug):
     copyedit stage
 
     """
-    user = request.user
-    project = ActiveProject.objects.filter(slug=project_slug)
-    if project:
-        project = project.get()
-    else:
-        raise Http404()
-
-    is_submitting = bool(project.authors.filter(user=user, is_submitting=True))
-
-    if not (is_submitting and project.author_editable()) and not (project.copyeditable() and user == project.editor):
-        raise Http404()
+    project = get_content_editable_project(request.user, project_slug)
 
     model_dict = {'reference': Reference, 'publication': Publication,
                   'topic': Topic, 'funding': Funding}
@@ -737,10 +772,10 @@ def edit_content_item(request, project_slug):
                        'funding': forms.FundingFormSet}
 
     # Custom forms for formsets that need them
-    custom_forms = {'funding': forms.FundingForm}
+    custom_forms = {'reference': forms.ReferenceForm, 'funding': forms.FundingForm}
 
     # The fields of each formset
-    content_item_fields = {'reference': ('description',),
+    content_item_fields = {'reference': forms.ReferenceForm._meta.fields,
                             'publication': ('citation', 'url'),
                             'topic': ('description',),
                             'funding': forms.FundingForm._meta.fields}
@@ -804,10 +839,7 @@ def project_content(request, project_slug, **kwargs):
         editable = False
 
     # There are several forms for different types of content
-    ReferenceFormSet = generic_inlineformset_factory(Reference,
-        fields=('description',), extra=0,
-        max_num=forms.ReferenceFormSet.max_forms, can_delete=False,
-        formset=forms.ReferenceFormSet, validate_max=True)
+    ReferenceFormSet = forms.reference_formset_factory()
 
     description_form = forms.ContentForm(instance=project, editable=editable)
     reference_formset = ReferenceFormSet(instance=project)

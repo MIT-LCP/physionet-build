@@ -30,6 +30,7 @@ from project.models import (
     Funding,
     License,
     PublishedProject,
+    Reference,
     ReviewerInvitation,
     StorageRequest,
     SubmissionStatus,
@@ -211,6 +212,7 @@ class TestState(TestMixin):
         project.references.create(
             order=reference_order + 2,
             description='Revised reference',
+            doi='10.13026/C2XW26',
         )
         project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
         project.save()
@@ -247,6 +249,9 @@ class TestState(TestMixin):
         self.assertContains(response, 'Submitted Metadata')
         self.assertContains(response, 'Initial abstract')
         self.assertContains(response, 'Revised abstract')
+        # A DOI entered separately from the citation is shown to editors
+        self.assertContains(
+            response, 'DOI: <a href="https://doi.org/10.13026/C2XW26">10.13026/C2XW26</a>', html=False)
 
     def test_assign_editor(self):
         """
@@ -644,6 +649,14 @@ class TestState(TestMixin):
                 object_id=project.pk, funder_name='Wellcome Trust',
                 funder_identifier='https://ror.org/029chgv08', award_number='123')])
 
+        # Add a reference with a DOI, again without changing the
+        # approved content. New versions carry it over.
+        if not project.references.filter(doi='10.13026/C2XW26').exists():
+            Reference.objects.bulk_create([Reference(
+                content_type=ContentType.objects.get_for_model(ActiveProject),
+                object_id=project.pk, description='A dataset with a DOI.',
+                doi='10.13026/C2XW26', order=1000)])
+
         # The submitting author has accepted the upload agreement
         submitting_author = project.submitting_author()
         UploadAgreement.objects.update_or_create(
@@ -708,10 +721,14 @@ class TestState(TestMixin):
             [(f.funder_name, f.funder_identifier, f.award_number)
              for f in project.funding.all()],
             [('Wellcome Trust', 'https://ror.org/029chgv08', '123')])
+        published_reference = project.references.get(description='A dataset with a DOI.')
+        self.assertEqual(published_reference.doi, '10.13026/C2XW26')
+        self.assertEqual(published_reference.url, 'https://doi.org/10.13026/C2XW26')
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<a href="https://doi.org/10.13026/C2XW26">')
         response = self.client.get(reverse('serve_published_project_file', args=(
             project.slug, project.version, 'subject-100/100.atr')))
         self.assertEqual(response.status_code, 200)

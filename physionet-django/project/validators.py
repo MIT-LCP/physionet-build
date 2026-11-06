@@ -74,6 +74,30 @@ def validate_doi(value):
         raise ValidationError('Invalid DOI: %(doi)s', params={'doi': value})
 
 
+DOI_PREFIXES = (
+    'https://doi.org/', 'http://doi.org/', 'https://dx.doi.org/',
+    'http://dx.doi.org/', 'https://www.doi.org/', 'http://www.doi.org/',
+    'doi.org/', 'dx.doi.org/', 'www.doi.org/', 'doi:',
+)
+
+
+def normalize_doi(value):
+    """
+    Return a DOI without its resolver prefix, e.g. '10.13026/abc' for
+    'https://doi.org/10.13026/abc' or 'doi: 10.13026/abc'.
+
+    Surrounding whitespace and trailing punctuation copied along with a
+    citation are removed. Other values are returned stripped but
+    otherwise unchanged, so that validate_doi can reject them.
+    """
+    value = (value or '').strip()
+    for prefix in DOI_PREFIXES:
+        if value.lower().startswith(prefix):
+            value = value[len(prefix):].strip()
+            break
+    return value.rstrip('.,;')
+
+
 def validate_subdir(value):
     """
     Validate a subdirectory used to explore a project's files.

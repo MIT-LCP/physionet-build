@@ -162,7 +162,12 @@
                   <h5>References</h5>
                   <ol>
                     {% for reference in edit_log.metadata_snapshot.references %}
-                      <li>{{ reference.description|urlize }}</li>
+                      <li>
+                        {{ reference.description|urlize }}
+                        {% if reference.doi %}
+                          <br><small class="text-muted">DOI: <a href="https://doi.org/{{ reference.doi|urlencode:'/:;()' }}">{{ reference.doi }}</a></small>
+                        {% endif %}
+                      </li>
                     {% endfor %}
                   </ol>
                 {% endif %}

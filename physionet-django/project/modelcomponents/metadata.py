@@ -17,6 +17,7 @@ from project.modelcomponents.authors import Affiliation
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import (
     ROR_URL_REGEX,
+    validate_doi,
     validate_funder_identifier,
     validate_title,
     validate_topic,
@@ -778,18 +779,40 @@ class BaseReference(models.Model):
 
     order = models.PositiveIntegerField(null=True)
     description = models.CharField(max_length=1000)
+    # db_default lets the previous version's code add references while
+    # migrations are applied during an upgrade
+    doi = models.CharField(max_length=255, blank=True, default='', db_default='', validators=[validate_doi])
 
     def __str__(self):
         return self.description
 
     @property
+    def doi_url(self):
+        if self.doi:
+            return 'https://doi.org/' + self.doi
+
+    @property
     def html_description(self):
+        """
+        The citation as HTML, with its URL as a link. If the URL is not
+        written in the citation (for example a DOI entered separately),
+        it is added at the end.
+        """
         description = escape(self.description)
         url = self.url
         if url:
             escaped_url = escape(url)
             link = format_html('<a href="{0}">{0}</a>', url)
-            description = description.replace(escaped_url, link)
+            url_pattern = re.escape(escaped_url)
+            if self.doi:
+                # Also match the DOI written with another prefix, e.g.
+                # doi:10.1/abc or http://dx.doi.org/10.1/abc
+                url_pattern += r'|(?:https?://(?:dx\.|www\.)?doi\.org/|doi:\s*)' + re.escape(escape(self.doi))
+            url_pattern = re.compile(url_pattern, re.IGNORECASE)
+            if url_pattern.search(description):
+                description = url_pattern.sub(lambda m: link, description)
+            else:
+                description = format_html('{} {}', mark_safe(description), link)
             description = mark_safe(description)
         return description
 
@@ -810,6 +833,12 @@ class Reference(BaseReference):
 
     @property
     def url(self):
+        """
+        The reference's link: its DOI if it has one, otherwise the first
+        URL in the citation.
+        """
+        if self.doi:
+            return self.doi_url
         m = self.URL_PATTERN.search(self.description)
         if m:
             return m.group()
@@ -829,7 +858,9 @@ class PublishedReference(BaseReference):
     """
     project = models.ForeignKey('project.PublishedProject',
         related_name='references', on_delete=models.CASCADE)
-    url = models.URLField(blank=True, null=True)
+    # The reference's DOI link, or the first URL in its citation, so it
+    # may be as long as the DOI link (271 characters) or the citation
+    url = models.URLField(max_length=1000, blank=True, null=True)
 
     class Meta:
         default_permissions = ()
