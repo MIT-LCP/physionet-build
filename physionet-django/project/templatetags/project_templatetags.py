@@ -86,6 +86,29 @@ def access_badge(access_policy):
         return format_html('<!-- unknown access_policy: {} -->', access_policy)
 
 
+@register.simple_tag
+def dataset_index_badge(project, scholar_data):
+    """
+    Badge showing a project's Dataset Index (D-Index) from stored
+    Scholar Data, linking to the project's metrics page.
+
+    Returns an empty string if no score is available.
+    """
+    d_index = (scholar_data or {}).get('latestDIndex') or {}
+    score = d_index.get('score')
+    if not isinstance(score, (int, float)):
+        return ''
+    url = reverse('published_project_metrics', args=(project.slug, project.version))
+    year = d_index.get('year')
+    title = f'Dataset Index ({year}) from Scholar Data' if year else 'Dataset Index from Scholar Data'
+    return format_html(
+        '<a href="{}" class="badge badge-dataset-index" title="{}">'
+        '<span class="badge-dataset-index-label"><i class="fas fa-chart-line"></i> Dataset Index</span>'
+        '<span class="badge-dataset-index-value">{}</span></a>',
+        url, title, round(score),
+    )
+
+
 @register.filter(name='access_description')
 def access_description(access_policy):
     descriptions = {
