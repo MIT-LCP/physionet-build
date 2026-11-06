@@ -728,8 +728,10 @@ class TestState(TestMixin):
         published_reference = project.references.get(description='A dataset with a DOI.')
         self.assertEqual(published_reference.doi, '10.13026/C2XW26')
         self.assertEqual(published_reference.url, 'https://doi.org/10.13026/C2XW26')
-        # The key citation is published as it is written
+        # The key citation is published as it is written, and the
+        # references in the order they are first cited
         self.assertEqual(published_reference.key, 'mimic2016')
+        self.assertEqual(published_reference.order, 1)
         self.assertIn('<p>See also [@mimic2016].</p>', project.background)
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',

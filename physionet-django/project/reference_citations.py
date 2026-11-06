@@ -4,11 +4,14 @@ In-text citations in a project's description.
 Authors cite references by key, such as [@moody2001] or
 [@moody2001; @mark1997]. The citations are saved and published as they
 are written. When a description is displayed, each cited key is linked
-to its reference in the list.
+to its reference in the list. The list is in the order the references
+are first cited, followed by those that are not cited, and references
+are published in that order.
 
 Descriptions written before keys were introduced may cite references by
-number, such as [1]. These are left as they are, and a warning asks
-authors to cite by key instead.
+number, such as [1]. These are left as they are, along with the order
+of the references they point to, and a warning asks authors to cite by
+key instead.
 
 Only plain text is affected: citations inside links, code, maths,
 scripts and styles are left alone. A numbered citation must not follow
@@ -194,6 +197,30 @@ def find_cited_keys(document):
 
     _process(document, KEY_CITATION_REGEX, replace)
     return keys
+
+
+def order_references(documents, references):
+    """
+    Return a project's references in the order they are first cited in
+    its description (a list of HTML fragments), followed by those that
+    are not cited, in their original order.
+
+    If the description has numbered citations, such as [1], the
+    references keep their original order, so that the numbers still
+    point to the right references.
+    """
+    references = list(references)
+    documents = [document for document in documents if document]
+    if any(find_citations(document) for document in documents):
+        return references
+    by_key = {r.key.lower(): r for r in references if r.key}
+    ordered = []
+    for document in documents:
+        for key in find_cited_keys(document):
+            reference = by_key.get(key)
+            if reference is not None and reference not in ordered:
+                ordered.append(reference)
+    return ordered + [r for r in references if r not in ordered]
 
 
 def link_citations(document, references):
