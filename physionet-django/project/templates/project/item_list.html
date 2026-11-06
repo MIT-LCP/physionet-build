@@ -11,9 +11,11 @@
       <i class="fas fa-question-circle" data-toggle="popover" data-placement="right" data-content="{{ formset.help_text|safe }}" data-html="true" onmouseover="" style="cursor: pointer;"></i>
     </div>
 
+    {% if item != 'reference' %}
     <div class="col-md-1">
       <button class="btn btn-sm btn-info" id="add-{{ item }}-button" type="button" onclick="addItem(this, '{{ item }}', '{{ form_name }}', '{{ formset.max_forms }}', '{{ add_item_url }}')" title="Add {{ item }} (max {{ formset.max_forms }})"><i class="fas fa-plus"></i></button>
     </div>
+    {% endif %}
   </div>
   {% for form in formset %}
     {% if item == 'reference' %}
@@ -73,4 +75,9 @@
       {{ error|wrap_if_unformatted:"strong" }}
     </div>
   {% endfor %}
+
+  {% if item == 'reference' %}
+    {# Below the cards, where the next reference will appear #}
+    <button class="btn btn-block reference-add" id="add-{{ item }}-button" type="button" onclick="addItem(this, '{{ item }}', '{{ form_name }}', '{{ formset.max_forms }}', '{{ add_item_url }}')" title="Add a reference (max {{ formset.max_forms }})"><i class="fas fa-plus"></i> Add reference</button>
+  {% endif %}
 </div>
