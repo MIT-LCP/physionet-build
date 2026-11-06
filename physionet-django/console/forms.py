@@ -28,6 +28,7 @@ from project.models import (
     exists_project_slug,
     InternalNote,
 )
+from project.utility import normalize_project_content
 from search.models import FederatedSite
 import project.tasks as project_tasks
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
@@ -265,6 +266,7 @@ class EditSubmissionForm(forms.ModelForm):
                 project.submission_status = SubmissionStatus.NEEDS_COPYEDIT
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
+                normalize_project_content(project)
 
                 CopyeditLog.objects.create(project=project)
                 project.save()
