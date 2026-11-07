@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 from math import ceil
 import os
 import re
@@ -8,7 +9,8 @@ import urllib.parse
 
 import boto3
 import botocore
-from botocore.exceptions import ClientError
+import botocore.config
+from botocore.exceptions import ClientError, ConnectTimeoutError, NoCredentialsError, ProxyConnectionError
 from django.conf import settings
 from django.db.models import Q
 from project.authorization.access import can_view_project_files
@@ -17,6 +19,8 @@ from user.models import (
     User,
     CloudInformation
 )
+
+LOGGER = logging.getLogger(__name__)
 
 MAX_PRINCIPALS_PER_AP_POLICY = 500
 MAX_RETRIES = 500
@@ -143,7 +147,7 @@ def public_s3_download_url(project, file_path):
         aws.bucket_name, urllib.parse.quote(key))
 
 
-def create_s3_client():
+def create_s3_client(*, for_upload=False):
     """
     Create and return an AWS S3 client object if
     AWS_PROFILE is not None.
@@ -157,6 +161,7 @@ def create_s3_client():
     - Ensure that the AWS credentials (Access Key and Secret
     Key) are properly configured in the AWS CLI profile.
     - The AWS_PROFILE should be defined in the settings module.
+    - AWS_HTTP_PROXY applies only when for_upload=True.
 
     Returns:
         botocore.client.S3: An initialized AWS S3 client object.
@@ -166,9 +171,19 @@ def create_s3_client():
     """
     if has_s3_credentials():
         session = boto3.Session(profile_name=settings.AWS_PROFILE)
-        s3 = session.client("s3", region_name="us-east-1")
+        config = botocore.config.Config()
+        if for_upload and settings.AWS_HTTP_PROXY:
+            config = botocore.config.Config(
+                proxies={
+                    'http': settings.AWS_HTTP_PROXY,
+                    'https': settings.AWS_HTTP_PROXY,
+                },
+                connect_timeout=10,
+                retries={'total_max_attempts': 3, 'mode': 'standard'},
+            )
+        s3 = session.client("s3", region_name="us-east-1", config=config)
         return s3
-    raise botocore.exceptions.NoCredentialsError("S3 credentials are undefined.")
+    raise NoCredentialsError()
 
 
 def create_s3_resource():
@@ -186,7 +201,7 @@ def create_s3_resource():
         session = boto3.Session(profile_name=settings.AWS_PROFILE)
         s3 = session.resource("s3", region_name="us-east-1")
         return s3
-    raise botocore.exceptions.NoCredentialsError("S3 credentials are undefined.")
+    raise NoCredentialsError()
 
 
 def create_s3_control_client():
@@ -204,7 +219,7 @@ def create_s3_control_client():
         session = boto3.Session(profile_name=settings.AWS_PROFILE)
         s3 = session.client("s3control", region_name="us-east-1")
         return s3
-    raise botocore.exceptions.NoCredentialsError("S3 credentials are undefined.")
+    raise NoCredentialsError()
 
 
 class S3ObjectInfo(typing.NamedTuple):
@@ -632,6 +647,24 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
         raise ValueError("AWS_PROFILE is undefined. Please set it in your settings.")
 
     s3 = create_s3_client()
+    upload_s3 = create_s3_client(for_upload=True)
+    using_proxy = bool(settings.AWS_HTTP_PROXY)
+
+    def upload(key, file_path, existing_file):
+        nonlocal upload_s3, using_proxy
+        try:
+            send_file_to_s3(upload_s3, bucket_name, key, file_path, existing_file)
+        except (ProxyConnectionError, ConnectTimeoutError) as error:
+            if not using_proxy:
+                raise
+            LOGGER.warning(
+                'S3 upload proxy connection failed (%s); using default routing for the rest of this upload task',
+                type(error).__name__,
+            )
+            using_proxy = False
+            upload_s3 = s3
+            send_file_to_s3(upload_s3, bucket_name, key, file_path, existing_file)
+
     for root, subdirs, files in os.walk(folder_path):
         subdirs.sort()
         files.sort()
@@ -653,10 +686,7 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
             )
 
             # Upload file if not already up-to-date
-            send_file_to_s3(
-                s3, bucket_name, s3_key, local_file_path,
-                existing_files.get(s3_key)
-            )
+            upload(s3_key, local_file_path, existing_files.get(s3_key))
 
     # If project has a ZIP file, upload it as well
     if project.compressed_storage_size:
@@ -672,7 +702,7 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
             existing_file = get_s3_object_info(s3, bucket_name, s3_key)
         except s3.exceptions.ClientError:
             existing_file = None
-        send_file_to_s3(s3, bucket_name, s3_key, zip_file_path, existing_file)
+        upload(s3_key, zip_file_path, existing_file)
 
 
 def send_file_to_s3(s3, bucket_name, key, file_path, existing_file=None):
@@ -1489,6 +1519,7 @@ def upload_project_to_S3(project):
     if project.embargo_active():
         raise ValueError('Cannot upload an embargoed project to S3')
 
+    LOGGER.info('Starting S3 project upload: upload proxy configured=%s', bool(settings.AWS_HTTP_PROXY))
     bucket_name = get_bucket_name(project)
     s3 = create_s3_client()
     if s3 is None or bucket_name is None:
