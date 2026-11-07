@@ -84,7 +84,7 @@ class News(models.Model):
         default=False,
         help_text='Check this to link the news item to all versions of the selected project'
     )
-    guid = models.CharField(max_length=64, default=uuid.uuid4)
+    guid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     front_page_banner = models.BooleanField(default=False)
     slug = models.SlugField(max_length=100, unique=True)
 
@@ -93,3 +93,11 @@ class News(models.Model):
 
     def __str__(self):
         return '{} - {}'.format(self.title, self.publish_datetime.date())
+
+
+class NewsImage(models.Model):
+    filename = models.CharField(max_length=255, unique=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.filename
