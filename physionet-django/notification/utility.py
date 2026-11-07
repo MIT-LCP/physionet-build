@@ -1392,3 +1392,71 @@ def all_reviews_complete_notify(project):
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
               [project.editor.email], fail_silently=False)
+
+
+def reviewer_access_request_notify(request, access_request):
+    """
+    Tell the editor that an author would like a private link for
+    journal reviewers. If no editor is assigned yet, tell the
+    editorial team instead.
+    """
+    project = access_request.project
+    editor = project.editor
+    subject = 'Reviewer access requested: {0}'.format(project.title)
+    body = loader.render_to_string(
+        'notification/email/reviewer_access_request_notify_editor.html', {
+            'name': editor.get_full_name() if editor else 'Colleague',
+            'project': project,
+            'access_request': access_request,
+            'url_prefix': get_url_prefix(request),
+            'signature': settings.EMAIL_SIGNATURE,
+            'project_info': email_project_info(project),
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
+        })
+    recipient = editor.email if editor else settings.CONTACT_EMAIL
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [recipient], fail_silently=False)
+
+    if editor:
+        create_notification(
+            recipient=editor,
+            notification_type=NotificationType.REVIEWER_ACCESS,
+            message='Reviewer access requested: {}'.format(project.title),
+            url=reverse('submission_info', args=(project.slug,)) + '?tab=anonymous',
+            actor=access_request.requester,
+        )
+
+
+def reviewer_access_response_notify(request, access_request, access_url=None, passphrase=None):
+    """
+    Tell the author who asked for a reviewer link whether it was
+    granted. A granted request includes the link and passphrase.
+    """
+    project = access_request.project
+    requester = access_request.requester
+    granted = bool(access_request.response)
+    subject = 'Reviewer access {0}: {1}'.format('granted' if granted else 'declined', project.title)
+    body = loader.render_to_string(
+        'notification/email/reviewer_access_response_notify.html', {
+            'name': requester.get_full_name(),
+            'project': project,
+            'access_request': access_request,
+            'granted': granted,
+            'access_url': access_url,
+            'passphrase': passphrase,
+            'expiry_datetime': project.anonymous.first().expiry_datetime if granted else None,
+            'url_prefix': get_url_prefix(request),
+            'signature': settings.EMAIL_SIGNATURE,
+            'project_info': email_project_info(project),
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
+        })
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [requester.email], fail_silently=False)
+
+    create_notification(
+        recipient=requester,
+        notification_type=NotificationType.REVIEWER_ACCESS,
+        message='Reviewer access {0}: {1}'.format('granted' if granted else 'declined', project.title),
+        url=reverse('project_submission', args=(project.slug,)) + '#reviewer-access',
+        actor=access_request.responder,
+    )

@@ -329,6 +329,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     def submission_status_label(self):
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
+    def can_request_reviewer_access(self):
+        """
+        Whether authors may ask for a private link for journal reviewers.
+        This is only possible while the project is with the editors.
+        """
+        return self.under_submission() and self.submission_status != SubmissionStatus.ARCHIVED
 
     def author_editable(self):
         """

@@ -58,6 +58,7 @@ from project.models import (
     Publication,
     PublishedAuthor,
     PublishedProject,
+    ReviewerAccessRequest,
     ReviewerInvitation,
     StorageRequest,
     SubmissionStatus,
@@ -494,6 +495,36 @@ def submission_info(request, project_slug):
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
         anonymous_url, passphrase = '', 'revoked'
+    elif 'grant_reviewer_access' in request.POST or 'decline_reviewer_access' in request.POST:
+        access_request = get_object_or_404(
+            ReviewerAccessRequest, project=project, id=request.POST.get('access_request_id'))
+        response_message = request.POST.get('response_message', '').strip()[:2000]
+        granting = 'grant_reviewer_access' in request.POST
+        if not access_request.is_active:
+            messages.error(request, 'This reviewer access request has already been answered or withdrawn.')
+        elif granting and project.submission_status == SubmissionStatus.ARCHIVED:
+            messages.error(request, 'Reviewer access cannot be granted for an archived project.')
+        elif not granting and not response_message:
+            messages.error(request, 'Please give the authors a reason for declining the request.')
+        else:
+            access_url = None
+            if granting:
+                hide_authors = request.POST.get('link_type') == 'masked'
+                anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=hide_authors)
+                access_url = notification.get_url_prefix(request) + reverse('anonymous_login', args=(anonymous_url,))
+            access_request.response = granting
+            access_request.response_message = response_message
+            access_request.responder = user
+            access_request.response_datetime = timezone.now()
+            access_request.is_active = False
+            access_request.save()
+            notification.reviewer_access_response_notify(request, access_request, access_url, passphrase)
+            if granting:
+                messages.success(request, 'A reviewer link was created and emailed to {0}.'.format(
+                    access_request.requester.email))
+            else:
+                messages.success(request, 'The request was declined and {0} has been told.'.format(
+                    access_request.requester.email))
     elif (
         'reassign_editor' in request.POST
         and user == project.editor
@@ -580,6 +611,7 @@ def submission_info(request, project_slug):
                    'passphrase': passphrase,
                    'anonymous_url': anonymous_url,
                    'hide_authors': hide_authors,
+                   'pending_reviewer_access_request': project.revieweraccessrequests.filter(is_active=True).first(),
                    }
                   )
 

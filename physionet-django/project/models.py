@@ -1,6 +1,6 @@
 from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
-from project.modelcomponents.anonymousaccess import AnonymousAccess
+from project.modelcomponents.anonymousaccess import AnonymousAccess, ReviewerAccessRequest
 from project.modelcomponents.dataaccess import DataAccess
 from project.modelcomponents.dataaccessrequest import DataAccessRequest
 from project.modelcomponents.dataaccessrequestreviewer import DataAccessRequestReviewer

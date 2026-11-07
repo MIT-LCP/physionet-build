@@ -1,0 +1,20 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+{{ access_request.requester.get_full_name }} has asked for a private reviewer link for the project entitled "{{ project.title }}".
+
+Journal or conference: {{ access_request.journal }}
+Link type: {% if access_request.hide_authors %}Author-masked (author information hidden){% else %}Standard (author information shown){% endif %}
+{% if access_request.message %}
+The author included the following message:
+
+{{ access_request.message }}
+{% endif %}
+You can grant or decline the request in the Anonymous Access tab at: {{ url_prefix }}{% url 'submission_info' project.slug %}?tab=anonymous
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

@@ -1,0 +1,96 @@
+{# Lets authors ask the editors for a private link for journal reviewers #}
+<div class="card mt-4" id="reviewer-access">
+  <div class="card-header">Reviewer Access</div>
+  <div class="card-body">
+    <p>
+      If a manuscript that describes this project is under review at a journal, the editors can
+      create a private link and passphrase so that the journal's reviewers can see the project
+      before it is published.
+    </p>
+    <p>
+      Reviewers see the project as it currently appears to the editors. Any changes made during the
+      {{ SITE_NAME }} review will also be visible to them. Links stay valid for 180 days.
+    </p>
+    <p>
+      Providing a reviewer link is not a decision on the submission, and there is no guarantee that the
+      project will be accepted.
+    </p>
+    {% if not is_submitting %}
+      <p>Only the submitting author can request a reviewer link.</p>
+    {% endif %}
+
+    {% if anonymous_access and anonymous_access.is_expired %}
+      <div class="alert alert-secondary">
+        <p class="mb-0">
+          The previous reviewer link expired on {{ anonymous_access.expiry_datetime|date }}.
+          Request a new link if reviewers still need access.
+        </p>
+      </div>
+    {% elif anonymous_access %}
+      <div class="alert alert-success">
+        <p class="mb-2">
+          <strong>A reviewer link is active</strong>
+          ({% if anonymous_access.hide_authors %}author-masked{% else %}standard{% endif %} link,
+          valid until {{ anonymous_access.expiry_datetime|date }}):
+        </p>
+        <p class="mb-2"><a href="{{ anonymous_access_url }}" target="_blank" class="text-break">{{ anonymous_access_url }}</a></p>
+        <p class="mb-0 small">
+          The passphrase was sent by email when the link was created. For security, it cannot be
+          shown again. If it has been lost, request a new link. The current link will stop working
+          when the new one is created.
+        </p>
+      </div>
+    {% endif %}
+
+    {% if pending_reviewer_access_request %}
+      <div class="alert alert-info">
+        <p class="mb-2">
+          <strong>Request pending.</strong>
+          {{ pending_reviewer_access_request.requester.get_full_name }} asked for
+          {% if pending_reviewer_access_request.hide_authors %}an author-masked{% else %}a standard{% endif %}
+          link for <em>{{ pending_reviewer_access_request.journal }}</em> on
+          {{ pending_reviewer_access_request.request_datetime|date }}.
+          The editors will email the link and passphrase to {{ pending_reviewer_access_request.requester.email }}.
+        </p>
+        {% if is_submitting %}
+        <form action="{% url 'project_submission' project.slug %}#reviewer-access" method="post" class="mb-0">
+          {% csrf_token %}
+          <button class="btn btn-sm btn-outline-secondary" type="submit" name="cancel_reviewer_access_request">
+            Withdraw Request
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    {% elif reviewer_access_request and reviewer_access_request.response is False %}
+      <div class="alert alert-warning">
+        <p class="mb-0">
+          Your request on {{ reviewer_access_request.request_datetime|date }} was declined.
+          {% if reviewer_access_request.response_message %}
+            The editor wrote: "{{ reviewer_access_request.response_message }}"
+          {% endif %}
+        </p>
+      </div>
+    {% endif %}
+
+    {% if reviewer_access_form %}
+      <button class="btn btn-primary btn-rsp" type="button" data-toggle="collapse"
+              data-target="#reviewer-access-form" aria-expanded="{% if reviewer_access_form.errors %}true{% else %}false{% endif %}"
+              aria-controls="reviewer-access-form">
+        {% if anonymous_access %}Request a New Reviewer Link{% else %}Request a Reviewer Link{% endif %}
+      </button>
+      <div class="collapse mt-3 {% if reviewer_access_form.errors %}show{% endif %}" id="reviewer-access-form">
+        <form action="{% url 'project_submission' project.slug %}#reviewer-access" method="post">
+          {% csrf_token %}
+          {% include "inline_form_snippet.html" with form=reviewer_access_form %}
+          <div class="alert alert-secondary small">
+            <strong>Note:</strong> a reviewer link does not mean that the project has been, or will be, accepted
+            for publication on {{ SITE_NAME }}. The editorial review continues as normal and may still result in the
+            project being rejected. A DOI is not assigned at this stage. A DOI is only assigned if the project is
+            accepted and published.
+          </div>
+          <button class="btn btn-primary btn-rsp" type="submit" name="request_reviewer_access">Send Request</button>
+        </form>
+      </div>
+    {% endif %}
+  </div>
+</div>
