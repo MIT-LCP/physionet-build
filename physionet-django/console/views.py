@@ -3171,7 +3171,18 @@ def download_projects_view_counts(request):
                      "count_all_versions",
                      ])
 
-    projects = PublishedProject.objects.filter(is_latest_version=True)
+    projects = PublishedProject.objects.filter(is_latest_version=True).select_related(
+        'resource_type', 'core_project',
+    )
+    current_counts = dict(projects.order_by().values('id').annotate(
+        viewers=Count('logs__user', distinct=True, filter=Q(logs__category=LogCategory.ACCESS)),
+    ).values_list('id', 'viewers'))
+    # Count each registered user once across every published version of a slug.
+    all_counts = dict(PublishedProject.objects.filter(
+        slug__in=projects.values('slug'),
+    ).order_by().values('slug').annotate(
+        viewers=Count('logs__user', distinct=True, filter=Q(logs__category=LogCategory.ACCESS)),
+    ).values_list('slug', 'viewers'))
 
     for project in projects:
         project_data = [project.title,
@@ -3179,8 +3190,8 @@ def download_projects_view_counts(request):
                         project.resource_type.name,
                         f"https://doi.org/{project.core_project.doi}" if project.core_project.doi else None,
                         project.version,
-                        project.view_count(),
-                        project.view_count(all_versions=True),
+                        current_counts[project.id],
+                        all_counts[project.slug],
                         ]
 
         writer.writerow(project_data)
