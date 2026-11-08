@@ -19,7 +19,7 @@ from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db import transaction
-from django.db.models import Count, DurationField, F, Q, Prefetch
+from django.db.models import Count, DurationField, F, Min, Q, Prefetch
 from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory, inlineformset_factory
 from django.forms.models import model_to_dict
@@ -2809,32 +2809,29 @@ def editorial_stats(request):
         except StatisticsError:
             stats[y].append(None)
 
-    # Submission to decision  for all projects (published + active)
-    all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all()]
-
-    # Calculate durations by decision year
+    # One duration per project, from initial submission to its first decision.
+    # Aggregate in SQL rather than fetching each project's edit history.
     sub_dec_by_year = {}
-    for project_set in all_projects:
-        for project in project_set:
-            for log in project.edit_log_history():
-                if log.decision_datetime and project.submission_datetime:
-                    duration = log.decision_datetime - project.submission_datetime
-                    if duration.days >= 0:
-                        yr = log.decision_datetime.year
-                        if yr not in sub_dec_by_year:
-                            sub_dec_by_year[yr] = []
-                        sub_dec_by_year[yr].append(duration.days)
+    for project_set in (projects, ActiveProject.objects.all()):
+        durations = project_set.filter(submission_datetime__isnull=False).annotate(
+            first_decision=Min(
+                'edit_logs__decision_datetime',
+                filter=Q(edit_logs__decision__isnull=False),
+            ),
+        ).annotate(
+            tm=Cast(F('first_decision') - F('submission_datetime'), DurationField()),
+        ).values_list('first_decision', 'tm')
+        for decision_date, duration in durations:
+            if duration is not None and duration.total_seconds() >= 0:
+                sub_dec_by_year.setdefault(decision_date.year, []).append(duration.days)
 
-    # Add median submission-to-decision per year to stats
-    # Include years not already in stats (e.g. active projects with no published project)
-    for y in sorted(set(list(stats.keys()) + list(sub_dec_by_year.keys()))):
-        if y not in stats:
-            stats[y] = [0, None, None]  # no published projects that year
+    # Include decision-only years and explicitly restore chronological order.
+    for y in sub_dec_by_year:
+        stats.setdefault(y, [0, None, None])
+    stats = OrderedDict(sorted(stats.items()))
+    for y in stats:
         days = sub_dec_by_year.get(y, [])
-        try:
-            stats[y].append(median(days))
-        except StatisticsError:
-            stats[y].append(None)
+        stats[y].append(median(days) if days else None)
 
     return render(request, 'console/editorial_stats.html', {
                   'submenu': 'editorial', 'stats': stats})
