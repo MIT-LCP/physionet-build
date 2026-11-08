@@ -109,6 +109,7 @@ class TestReviewerAccessRequests(TestMixin):
         body = mail.outbox[0].body
         self.assertIn(reverse('anonymous_login', args=(anonymous.url,)), body)
         self.assertIn('no guarantee that it will be accepted', ' '.join(body.split()))
+        self.assertIn('the link will stop working immediately', ' '.join(body.split()))
         passphrase = body.split('Passphrase: ')[1].split()[0]
         self.assertTrue(self.project.is_valid_passphrase(passphrase))
 
@@ -194,6 +195,7 @@ class TestReviewerAccessRequests(TestMixin):
         response = self.client.get(reverse('project_submission', args=(self.project.slug,)))
         self.assertContains(response, 'A DOI is not assigned at this stage')
         self.assertContains(response, 'there is no guarantee that the')
+        self.assertContains(response, 'working immediately if the project is rejected')
 
     def test_only_submitting_author_can_request(self):
         co_author = User.objects.get(username='aewj')
@@ -278,6 +280,20 @@ class TestReviewerLinkEndsWithReview(TestMixin):
         self.project.reject()
         self.assertFalse(self.project.anonymous.exists())
         self.assertLinkRefused()
+
+    def test_submitting_author_keeps_access_after_rejection(self):
+        # The reviewer link stops working straight away, but the submitting
+        # author can still see the project for the usual 30 days.
+        self.project.reject()
+        self.assertLinkRefused()
+
+        author = Client()
+        author.login(username='rgmark', password='Tester11!')
+        self.assertEqual(author.get(self.preview_url).status_code, 200)
+
+        ActiveProject.objects.filter(pk=self.project.pk).update(
+            archive_datetime=timezone.now() - timedelta(days=31))
+        self.assertEqual(author.get(self.preview_url).status_code, 403)
 
     def test_link_ends_when_authors_delete_project(self):
         self.project.archive(archive_reason=ArchiveReason.DELETED_BY_AUTHOR)
