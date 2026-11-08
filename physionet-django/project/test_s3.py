@@ -5,7 +5,16 @@ from tempfile import TemporaryDirectory
 from unittest import mock
 
 from boto3.exceptions import S3UploadFailedError
-from botocore.exceptions import ClientError, ConnectTimeoutError, NoCredentialsError, ProxyConnectionError
+from botocore.exceptions import (
+    ClientError,
+    ConnectionClosedError,
+    ConnectTimeoutError,
+    EndpointConnectionError,
+    NoCredentialsError,
+    ProxyConnectionError,
+    ReadTimeoutError,
+    SSLError,
+)
 from django.conf import settings
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
@@ -56,7 +65,7 @@ class TestS3ClientProxy(SimpleTestCase):
             'https': 'http://proxy.example.com:8080',
         })
         self.assertEqual(config.connect_timeout, 10)
-        self.assertEqual(config.retries, {'total_max_attempts': 3, 'mode': 'standard'})
+        self.assertEqual(config.retries, {'total_max_attempts': 5, 'mode': 'standard'})
         self.assertEqual(session.return_value.client.call_args.args, ('s3',))
         self.assertEqual(session.return_value.client.call_args.kwargs['region_name'], 'us-east-1')
         self.assertIs(client, session.return_value.client.return_value)
@@ -64,14 +73,16 @@ class TestS3ClientProxy(SimpleTestCase):
     @mock.patch('project.cloud.s3.has_s3_credentials', return_value=True)
     @mock.patch('project.cloud.s3.boto3.Session')
     def test_unset_proxy_leaves_proxies_unspecified(self, session, credentials):
-        create_s3_client(for_upload=True)
+        for proxy in ('', None):
+            with self.subTest(proxy=proxy), override_settings(AWS_HTTP_PROXY=proxy):
+                create_s3_client(for_upload=True)
 
-        config = session.return_value.client.call_args.kwargs['config']
-        self.assertIsNone(config.proxies)
-        self.assertEqual(config.connect_timeout, 60)
-        self.assertIsNone(config.retries)
-        self.assertEqual(session.return_value.client.call_args.args, ('s3',))
-        self.assertEqual(session.return_value.client.call_args.kwargs['region_name'], 'us-east-1')
+                config = session.return_value.client.call_args.kwargs['config']
+                self.assertIsNone(config.proxies)
+                self.assertEqual(config.connect_timeout, 60)
+                self.assertIsNone(config.retries)
+                self.assertEqual(session.return_value.client.call_args.args, ('s3',))
+                self.assertEqual(session.return_value.client.call_args.kwargs['region_name'], 'us-east-1')
 
     @override_settings(AWS_HTTP_PROXY='http://proxy.example.com:8080')
     @mock.patch('project.cloud.s3.has_s3_credentials', return_value=True)
@@ -162,30 +173,37 @@ class TestS3UploadProxyFallback(SimpleTestCase):
     def run_upload(self):
         send_files_to_s3(str(self.folder), 'test/1.0/', 'test-bucket', self.project)
 
-    def test_proxy_failure_retries_current_file_and_routes_remaining_files_and_zip(self):
-        self.proxy_client.upload_file.side_effect = ProxyConnectionError(
-            proxy_url='http://user:secret@proxy.example.com:8080',
-        )
-        with self.assertLogs('project.cloud.s3', level='WARNING') as logs:
-            self.run_upload()
-        self.assertEqual(self.proxy_client.upload_file.call_count, 1)
-        self.assertEqual(
-            self.default_client.upload_file.call_args_list,
-            [mock.call(Filename=str(self.folder / name), Bucket='test-bucket', Key=f'test/1.0/{name}')
-             for name in ('a.txt', 'b.txt')] + [
-                mock.call(Filename=str(self.zip_path), Bucket='test-bucket', Key='test/test-1.0.zip'),
-            ],
-        )
-        self.assertEqual(len(logs.output), 1)
-        self.assertNotIn('secret', logs.output[0])
-        self.assertNotIn('proxy.example.com', logs.output[0])
+    def fallback_errors(self):
+        endpoint = 'https://user:secret@proxy.example.com:8080'
+        return [
+            ProxyConnectionError(proxy_url=endpoint),
+            ConnectTimeoutError(endpoint_url=endpoint),
+            EndpointConnectionError(endpoint_url=endpoint),
+            ReadTimeoutError(endpoint_url=endpoint),
+            ConnectionClosedError(endpoint_url=endpoint),
+        ]
 
-    def test_connection_timeout_also_falls_back(self):
-        self.proxy_client.upload_file.side_effect = ConnectTimeoutError(endpoint_url='https://s3.amazonaws.com')
-        with self.assertLogs('project.cloud.s3', level='WARNING'):
-            self.run_upload()
-        self.assertEqual(self.proxy_client.upload_file.call_count, 1)
-        self.assertEqual(self.default_client.upload_file.call_count, 3)
+    def test_proxy_failure_retries_current_file_and_routes_remaining_files_and_zip(self):
+        for error in self.fallback_errors():
+            with self.subTest(error=type(error).__name__):
+                self.proxy_client.reset_mock()
+                self.default_client.reset_mock()
+                self.proxy_client.upload_file.side_effect = error
+                with self.assertLogs('project.cloud.s3', level='WARNING') as logs:
+                    self.run_upload()
+                self.assertEqual(self.proxy_client.upload_file.call_count, 1)
+                self.assertEqual(
+                    self.default_client.upload_file.call_args_list,
+                    [mock.call(Filename=str(self.folder / name), Bucket='test-bucket', Key=f'test/1.0/{name}')
+                     for name in ('a.txt', 'b.txt')] + [
+                        mock.call(Filename=str(self.zip_path), Bucket='test-bucket', Key='test/test-1.0.zip'),
+                    ],
+                )
+                self.assertEqual(len(logs.output), 1)
+                self.assertIn(type(error).__name__, logs.output[0])
+                self.assertNotIn('secret', logs.output[0])
+                self.assertNotIn('proxy.example.com', logs.output[0])
+                self.assertNotIn('https://', logs.output[0])
 
     def test_zip_failure_falls_back_without_reuploading_completed_files(self):
         self.proxy_client.upload_file.side_effect = [None, None, ProxyConnectionError(proxy_url='http://proxy')]
@@ -198,15 +216,18 @@ class TestS3UploadProxyFallback(SimpleTestCase):
     def test_non_connection_errors_do_not_fall_back(self):
         errors = [
             ClientError({'Error': {'Code': 'AccessDenied', 'Message': 'Denied'}}, 'PutObject'),
+            SSLError(endpoint_url='https://s3.amazonaws.com', error='certificate verification failed'),
             FileNotFoundError('missing file'),
             NoCredentialsError(),
             S3UploadFailedError('Access denied'),
         ]
         for error in errors:
             with self.subTest(error=type(error).__name__):
+                self.proxy_client.reset_mock()
                 self.proxy_client.upload_file.side_effect = error
                 with self.assertRaises(type(error)):
                     self.run_upload()
+                self.assertEqual(self.proxy_client.upload_file.call_count, 1)
                 self.default_client.upload_file.assert_not_called()
 
     def test_default_connection_failure_is_propagated(self):
@@ -220,10 +241,16 @@ class TestS3UploadProxyFallback(SimpleTestCase):
 
     @override_settings(AWS_HTTP_PROXY='')
     def test_unset_proxy_does_not_trigger_fallback(self):
-        self.proxy_client.upload_file.side_effect = ConnectTimeoutError(endpoint_url='https://s3.amazonaws.com')
-        with self.assertRaises(ConnectTimeoutError):
-            self.run_upload()
-        self.default_client.upload_file.assert_not_called()
+        for proxy in ('', None):
+            with self.subTest(proxy=proxy), override_settings(AWS_HTTP_PROXY=proxy):
+                for error in self.fallback_errors():
+                    with self.subTest(error=type(error).__name__):
+                        self.proxy_client.reset_mock()
+                        self.proxy_client.upload_file.side_effect = error
+                        with self.assertRaises(type(error)):
+                            self.run_upload()
+                        self.assertEqual(self.proxy_client.upload_file.call_count, 1)
+                        self.default_client.upload_file.assert_not_called()
 
 
 @override_settings(

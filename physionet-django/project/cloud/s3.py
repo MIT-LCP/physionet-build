@@ -10,7 +10,15 @@ import urllib.parse
 import boto3
 import botocore
 import botocore.config
-from botocore.exceptions import ClientError, ConnectTimeoutError, NoCredentialsError, ProxyConnectionError
+from botocore.exceptions import (
+    ClientError,
+    ConnectionClosedError,
+    ConnectTimeoutError,
+    EndpointConnectionError,
+    NoCredentialsError,
+    ProxyConnectionError,
+    ReadTimeoutError,
+)
 from django.conf import settings
 from django.db.models import Q
 from project.authorization.access import can_view_project_files
@@ -25,7 +33,19 @@ LOGGER = logging.getLogger(__name__)
 MAX_PRINCIPALS_PER_AP_POLICY = 500
 MAX_RETRIES = 500
 
+# Keep SSL errors out of fallback so certificate and other TLS failures
+# remain visible instead of being retried through default routing.
+PROXY_FALLBACK_ERRORS = (
+    ProxyConnectionError,
+    ConnectTimeoutError,
+    EndpointConnectionError,
+    ReadTimeoutError,
+    ConnectionClosedError,
+)
+
 # Manage AWS buckets and objects
+
+
 def has_S3_open_data_bucket_name():
     """
     Check if the S3_OPEN_ACCESS_BUCKET setting has a value set in the project's settings.
@@ -149,8 +169,7 @@ def public_s3_download_url(project, file_path):
 
 def create_s3_client(*, for_upload=False):
     """
-    Create and return an AWS S3 client object if
-    AWS_PROFILE is not None.
+    Create and return an AWS S3 client when the required AWS settings are set.
 
     This function establishes a session with AWS using the
     specified AWS profile from the 'settings' module and initializes
@@ -162,6 +181,10 @@ def create_s3_client(*, for_upload=False):
     Key) are properly configured in the AWS CLI profile.
     - The AWS_PROFILE should be defined in the settings module.
     - AWS_HTTP_PROXY applies only when for_upload=True.
+
+    Args:
+        for_upload (bool): Apply the configured upload proxy, connection timeout,
+            and retry settings when True. Defaults to False.
 
     Returns:
         botocore.client.S3: An initialized AWS S3 client object.
@@ -179,7 +202,7 @@ def create_s3_client(*, for_upload=False):
                     'https': settings.AWS_HTTP_PROXY,
                 },
                 connect_timeout=10,
-                retries={'total_max_attempts': 3, 'mode': 'standard'},
+                retries={'total_max_attempts': 5, 'mode': 'standard'},
             )
         s3 = session.client("s3", region_name="us-east-1", config=config)
         return s3
@@ -625,8 +648,10 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
 
     This function walks through the files in the local
     'folder_path' and uploads each file to the specified AWS S3
-    'bucket_name' under the 's3_prefix' directory. It uses an
-    initialized AWS S3 client to perform the file uploads.
+    'bucket_name' under the 's3_prefix' directory. Metadata requests use the
+    default client; file and ZIP uploads use the upload client. If a configured
+    proxy encounters a supported transport failure after SDK retries, the
+    current file is retried using default routing for the rest of the task.
 
     Args:
         folder_path (str): The local folder containing the
@@ -654,11 +679,12 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
         nonlocal upload_s3, using_proxy
         try:
             send_file_to_s3(upload_s3, bucket_name, key, file_path, existing_file)
-        except (ProxyConnectionError, ConnectTimeoutError) as error:
+        except PROXY_FALLBACK_ERRORS as error:
             if not using_proxy:
                 raise
             LOGGER.warning(
-                'S3 upload proxy connection failed (%s); using default routing for the rest of this upload task',
+                'S3 upload through configured proxy failed (%s); '
+                'using default routing for the rest of this upload task',
                 type(error).__name__,
             )
             using_proxy = False
@@ -1519,7 +1545,12 @@ def upload_project_to_S3(project):
     if project.embargo_active():
         raise ValueError('Cannot upload an embargoed project to S3')
 
-    LOGGER.info('Starting S3 project upload: upload proxy configured=%s', bool(settings.AWS_HTTP_PROXY))
+    LOGGER.info(
+        'Starting S3 project upload: project_slug=%s version=%s upload proxy configured=%s',
+        project.slug,
+        project.version,
+        bool(settings.AWS_HTTP_PROXY),
+    )
     bucket_name = get_bucket_name(project)
     s3 = create_s3_client()
     if s3 is None or bucket_name is None:
