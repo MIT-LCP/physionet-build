@@ -799,13 +799,17 @@ def orcid_register(request):
     if user.is_authenticated:
         return redirect('project_home')
 
+    orcid_token = request.session.get('orcid_token')
+    if orcid_token is None:
+        messages.error(request, 'Please log in with ORCID before creating an account.')
+        return redirect('login')
+
     if request.method == 'POST':
-        form = forms.OrcidRegistrationForm(
-            request.POST, orcid_token=request.session['orcid_token']
-        )
+        form = forms.OrcidRegistrationForm(request.POST, orcid_token=orcid_token)
 
         if form.is_valid():
             user = form.save()
+            request.session.pop('orcid_token', None)
             uidb64 = force_str(urlsafe_base64_encode(force_bytes(user.pk)))
             token = default_token_generator.make_token(user)
             notify_account_registration(request, user, uidb64, token, activation_type=ActivateUserType.ORCID)
