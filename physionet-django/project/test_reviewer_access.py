@@ -1,10 +1,12 @@
 from datetime import timedelta
 
 from django.core import mail
+from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
 
 from notification.models import Notification, NotificationType
+from project.modelcomponents.activeproject import ArchiveReason
 from project.models import ActiveProject, ReviewerAccessRequest, SubmissionStatus
 from user.models import User
 from user.test_views import TestMixin
@@ -218,3 +220,90 @@ class TestReviewerAccessRequests(TestMixin):
         self.assertNotContains(response, 'name="cancel_reviewer_access_request"')
         self.client.post(url, data={'cancel_reviewer_access_request': ''})
         self.assertTrue(self.project.revieweraccessrequests.filter(is_active=True).exists())
+
+
+class TestReviewerLinkEndsWithReview(TestMixin):
+    """
+    A reviewer link only works while the project is with the editors.
+    Once the project is archived (including when it is rejected or
+    deleted by its authors), the link stops working.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.project.submit(author_comments='')
+        self.project.assign_editor(User.objects.get(username='admin'))
+        self.url, self.passphrase = self.project.generate_anonymous_access()
+        self.preview_url = reverse('project_preview', args=(self.project.slug,))
+
+    def log_in_with_link(self, client):
+        return client.post(reverse('anonymous_login', args=(self.url,)),
+                           data={'passphrase': self.passphrase})
+
+    def assertLinkWorks(self):
+        reviewer = Client()
+        self.assertRedirects(self.log_in_with_link(reviewer), self.preview_url)
+        self.assertEqual(reviewer.get(self.preview_url).status_code, 200)
+
+    def assertLinkRefused(self, reviewer=None):
+        reviewer = reviewer or Client()
+        self.assertEqual(self.log_in_with_link(reviewer).status_code, 404)
+        response = reviewer.get(self.preview_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('login'), response['Location'])
+
+    def test_link_works_during_review(self):
+        self.assertLinkWorks()
+
+        # Including while the authors are revising the submission
+        self.project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+        self.project.save()
+        self.assertLinkWorks()
+
+    def test_link_ends_when_editor_archives_project(self):
+        self.project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+        self.project.save()
+        self.client.login(username='admin', password='Tester11!')
+        self.client.post(reverse('submission_info', args=(self.project.slug,)),
+                         data={'archive_project': '', 'archive_reason': 'No response from authors'})
+
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.submission_status, SubmissionStatus.ARCHIVED)
+        self.assertFalse(self.project.anonymous.exists())
+        self.client.logout()
+        self.assertLinkRefused()
+
+    def test_link_ends_when_project_is_rejected(self):
+        self.project.reject()
+        self.assertFalse(self.project.anonymous.exists())
+        self.assertLinkRefused()
+
+    def test_link_ends_when_authors_delete_project(self):
+        self.project.archive(archive_reason=ArchiveReason.DELETED_BY_AUTHOR)
+        self.assertFalse(self.project.anonymous.exists())
+        self.assertLinkRefused()
+
+    def test_reviewer_already_viewing_loses_access(self):
+        reviewer = Client()
+        self.log_in_with_link(reviewer)
+        self.assertEqual(reviewer.get(self.preview_url).status_code, 200)
+
+        self.project.reject()
+        self.assertLinkRefused(reviewer)
+
+    def test_link_on_project_archived_earlier_is_refused(self):
+        # Projects archived before links were removed on archiving still
+        # have their links stored. These must not work either.
+        reviewer = Client()
+        self.log_in_with_link(reviewer)
+        ActiveProject.objects.filter(pk=self.project.pk).update(
+            submission_status=SubmissionStatus.ARCHIVED, archive_datetime=timezone.now())
+        self.assertTrue(self.project.anonymous.exists())
+        self.assertLinkRefused(reviewer)
+
+    def test_pending_request_closed_when_project_archived(self):
+        self.project.revieweraccessrequests.create(
+            requester=User.objects.get(username='rgmark'), journal='Some Journal')
+        self.project.reject()
+        self.assertFalse(self.project.revieweraccessrequests.filter(is_active=True).exists())

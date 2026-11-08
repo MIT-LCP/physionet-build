@@ -290,6 +290,11 @@
         </div>
         {% endwith %}
         {% endif %}
+        {% if anonymous_url and project.submission_status == SubmissionStatus.ARCHIVED %}
+        <div class="alert alert-secondary">
+          This project is archived, so its reviewer link no longer works.
+        </div>
+        {% endif %}
         {% if anonymous_url %}
         <div class="alert alert-info">
           <p class="m-0">

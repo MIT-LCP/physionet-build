@@ -360,6 +360,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.archive_datetime = timezone.now()
         self.save()
 
+        # Reviewers should no longer be able to see the project
+        self.anonymous.all().delete()
+        self.revieweraccessrequests.filter(is_active=True).update(is_active=False)
+
         if clear_files:
             self.clear_files()
 

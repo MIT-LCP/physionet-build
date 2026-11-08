@@ -115,9 +115,13 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             except ObjectDoesNotExist:
                 raise PermissionDenied()
 
-            # Authenticate passphrase for anonymous access
+            # Authenticate passphrase for anonymous access. Links stop
+            # working once a project is archived (including rejected).
             an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
-            has_passphrase = project.get_anonymous_url() == an_url
+            has_passphrase = (
+                project.submission_status != SubmissionStatus.ARCHIVED
+                and project.get_anonymous_url() == an_url
+            )
 
             # Check if anonymous access link should hide authors
             anonymous = project.anonymous.first()
@@ -3034,6 +3038,9 @@ def anonymous_login(request, anonymous_url):
     # Validate project url
     try:
         project = AnonymousAccess.objects.get(url=anonymous_url).project
+
+        if isinstance(project, ActiveProject) and project.submission_status == SubmissionStatus.ARCHIVED:
+            raise Http404()
 
         if project.__class__ == PublishedProject:
             response = redirect('published_project', project_slug=project.slug, version=project.version)
