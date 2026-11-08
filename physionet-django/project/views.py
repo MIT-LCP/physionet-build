@@ -77,6 +77,7 @@ from project.cloud.s3 import (
     has_s3_credentials,
     files_sent_to_S3,
     add_user_to_access_point_policy,
+    remove_user_from_access_point_policy,
     public_s3_download_url,
     PROJECT_ZIP_FILE,
 )
@@ -2695,12 +2696,13 @@ def request_data_access(request, project_slug, version):
             access_request = project_request_form.save()
 
             corresponding_author = project.corresponding_author().user
-            reviewers = [reviewer.reviewer for reviewer in DataAccessRequestReviewer.objects.filter(
-                project=project, reviewer=request.user, is_revoked=False
-            )]
+            reviewers = [entry.reviewer for entry in DataAccessRequestReviewer.objects.filter(
+                project=project, is_revoked=False
+            ).select_related('reviewer')]
+            recipients = [corresponding_author] + [r for r in reviewers if r != corresponding_author]
 
             notification.notify_owner_data_access_request(
-                reviewers + [corresponding_author], access_request, request.scheme, request.get_host()
+                recipients, access_request, request.scheme, request.get_host()
             )
             notification.confirm_user_data_access_request(access_request, request.scheme, request.get_host())
 
@@ -2752,9 +2754,13 @@ def data_access_request_status(request, project_slug, version):
         access_request = get_object_or_404(
             DataAccessRequest, requester=request.user, project=project, id=request.POST['withdraw_request_id']
         )
-        access_request.status = DataAccessRequest.WITHDRAWN_VALUE
-        access_request.decision_datetime = timezone.now()
-        access_request.save()
+        if access_request.is_pending():
+            access_request.status = DataAccessRequest.WITHDRAWN_VALUE
+            access_request.decision_datetime = timezone.now()
+            access_request.save()
+        else:
+            messages.error(request, 'Only pending requests can be withdrawn.')
+        return redirect('data_access_request_status', project_slug=project.slug, version=project.version)
 
     return render(request, 'project/data_access_request_status.html', {
         'access_requests': access_requests,
@@ -2774,6 +2780,30 @@ def data_access_request_status_detail(request, project_slug, version, pk):
         'access_request': access_request,
         'project': project,
     })
+
+
+def _revoke_data_access_request(request, access_request):
+    """
+    Revoke an accepted data access request, remove the requester's AWS
+    access if no other active request still grants it, and notify them.
+    """
+    access_request.revoke(request.user)
+
+    project = access_request.project
+    requester = access_request.requester
+    still_has_access = DataAccessRequest.objects.get_active(project=project, requester=requester).exists()
+    if not still_has_access and has_s3_credentials():
+        try:
+            remove_user_from_access_point_policy(project, requester)
+        except Exception:
+            LOGGER.exception('Failed to remove user %s from AWS access points for %s', requester, project)
+            messages.error(
+                request,
+                'Access was revoked, but removing the user from AWS failed. '
+                'Please contact the site administrators.'
+            )
+
+    notification.notify_user_data_access_revoked(access_request, request.scheme, request.get_host())
 
 
 @login_required
@@ -2807,9 +2837,17 @@ def data_access_requests_overview(request, project_slug, version):
             except DataAccessRequestReviewer.DoesNotExist:
                 pass
         elif 'revoke_request_id' in request.POST.keys():
-            access_request = get_object_or_404(DataAccessRequest, pk=request.POST['revoke_request_id'])
-            access_request.status = DataAccessRequest.REVOKED_VALUE
-            access_request.save()
+            access_request = get_object_or_404(
+                DataAccessRequest, pk=request.POST['revoke_request_id'], project=proj
+            )
+            if access_request.is_accepted():
+                _revoke_data_access_request(request, access_request)
+                messages.success(
+                    request, f'Access for {access_request.requester.get_full_name()} has been revoked.'
+                )
+            else:
+                messages.error(request, 'Only active, accepted requests can be revoked.')
+            return redirect('data_access_requests_overview', project_slug=proj.slug, version=proj.version)
 
     all_requests = DataAccessRequest.objects.filter(project_id=proj).order_by(
         '-request_datetime')
@@ -2895,16 +2933,23 @@ def data_access_request_view(request, project_slug, version, pk):
 
     # Process form submission
     if request.method == 'POST':
-        response_form = forms.DataAccessResponseForm(
-            responder=request.user, prefix="proj", data=request.POST, instance=access_request
-        )
+        # Lock the row so two reviewers can't decide the same request at once.
+        with transaction.atomic():
+            locked_request = DataAccessRequest.objects.select_for_update().get(pk=access_request.pk)
+            if not locked_request.is_pending():
+                messages.error(request, 'This request has already been decided or withdrawn.')
+                return redirect('data_access_request_view', project_slug=project_slug, version=version, pk=pk)
 
-        if response_form.is_valid():
-            response_form.save()
-            notification.notify_user_data_access_request(access_request, request.scheme, request.get_host())
+            response_form = forms.DataAccessResponseForm(
+                responder=request.user, prefix="proj", data=request.POST, instance=locked_request
+            )
+            decided = response_form.is_valid()
+            if decided:
+                decided_request = response_form.save()
+
+        if decided:
+            notification.notify_user_data_access_request(decided_request, request.scheme, request.get_host())
             return redirect('data_access_requests_overview', project_slug=project_slug, version=version)
-
-        access_request.refresh_from_db()
     else:
         response_form = forms.DataAccessResponseForm(responder=request.user, prefix="proj")
 

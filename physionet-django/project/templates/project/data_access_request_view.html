@@ -5,6 +5,7 @@
 
 <div class="container col-md-8">
   <h1>Access Request</h1>
+  {% include "message_snippet.html" %}
 
   <p>You have received an access request for: {{ access_request.project.title }}.</p>
 
@@ -160,7 +161,7 @@
                 {% endif %}
                 this request.<br>
                 {% if access_request.is_revoked %}
-                    <strong>The access request was revoked.</strong>
+                    <strong>Access was revoked{% if access_request.revoker %} by {{ access_request.revoker }}{% endif %}{% if access_request.revocation_datetime %} on {{ access_request.revocation_datetime|date }}{% endif %}.</strong><br>
                 {% endif %}
                 {% if access_request.responder_comments %}
                     The response was:

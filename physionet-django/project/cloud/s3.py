@@ -1413,6 +1413,41 @@ def insert_access_point_policy(access_point, data_access_point_name, project, su
     return False
 
 
+def remove_user_from_access_point_policy(project, user):
+    """
+    Remove a user from the access point that grants them access to the
+    project, and rewrite that access point's policy without them.
+
+    Args:
+        project (PublishedProject): The project the user should lose access to.
+        user (User): The user to remove.
+
+    Returns:
+        bool: True if the user was removed, False if they were not linked
+        to any of the project's access points.
+    """
+    link = AWSAccessPointUser.objects.filter(
+        aws__project=project, user=user
+    ).select_related('access_point').first()
+    if not link:
+        return False
+
+    access_point = link.access_point
+    link.delete()
+
+    remaining_users = get_aws_accounts_for_access_point(access_point.name)
+    if remaining_users:
+        insert_access_point_policy(access_point, access_point.name, project, remaining_users)
+    else:
+        # A policy must name at least one principal, so drop the policy
+        # entirely. Without a policy, the access point grants no access.
+        create_s3_control_client().delete_access_point_policy(
+            AccountId=settings.AWS_ACCOUNT_ID,
+            Name=access_point.name,
+        )
+    return True
+
+
 def initialize_access_points(project):
     project_name = project.slug + "-" + project.version
     aws_ids = get_aws_accounts_for_dataset(project_name)

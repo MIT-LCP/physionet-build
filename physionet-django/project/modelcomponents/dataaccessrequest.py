@@ -51,6 +51,12 @@ class DataAccessRequest(models.Model):
 
     responder_comments = SafeHTMLField(blank=True, max_length=10000)
 
+    revocation_datetime = models.DateTimeField(null=True, blank=True)
+
+    revoker = models.ForeignKey('user.User', null=True, blank=True,
+                                related_name='revoked_data_access_requests',
+                                on_delete=models.SET_NULL)
+
     objects = DataAccessRequestManager.from_queryset(DataAccessRequestQuerySet)()
 
     class Meta:
@@ -72,6 +78,16 @@ class DataAccessRequest(models.Model):
 
     def is_revoked(self):
         return self.status == self.REVOKED_VALUE
+
+    def revoke(self, revoker):
+        """
+        Revoke an accepted request, recording who revoked it and when.
+        The original decision (responder, decision_datetime) is kept.
+        """
+        self.status = self.REVOKED_VALUE
+        self.revocation_datetime = timezone.now()
+        self.revoker = revoker
+        self.save()
 
     def status_text(self):
         return self.status_texts.get(self.status, 'unknown')

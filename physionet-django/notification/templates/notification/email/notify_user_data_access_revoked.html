@@ -1,0 +1,12 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+Dear {{ data_access_request.requester.get_full_name }},
+
+The project owners have revoked the access they previously granted you to the project "{{ data_access_request.project }}" for the following use:
+
+{{ data_access_request.data_use_title }}
+
+If you believe this was done in error, or you would like to use the data again, you can contact the project owners or submit a new request. To see your requests, please follow the link below:
+{{ request_protocol }}://{{ request_host }}{% url 'data_access_request_status' data_access_request.project.slug data_access_request.project.version %}
+
+{{ signature }}
+{% endfilter %}{% endautoescape %}
