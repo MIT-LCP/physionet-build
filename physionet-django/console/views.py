@@ -2899,6 +2899,12 @@ def submission_stats(request):
             cur_month = 12
             cur_year -= 1
 
+    # Initialize yearly counts for the last 6 years:
+    # [created, submitted, resubmitted, published, rejected]
+    yearly_stats = OrderedDict()
+    for y in range(todays_date.year - 5, todays_date.year + 1):
+        yearly_stats[y] = [0, 0, 0, 0, 0]
+
     # Get all active and published projects and store their milestone datetimes
     for project_set in all_projects:
 
@@ -2908,6 +2914,8 @@ def submission_stats(request):
             create_mo = project.creation_datetime.strftime("%B")
             if create_yr in stats and create_mo in stats[create_yr]:
                 stats[create_yr][create_mo][0] += 1
+            if create_yr in yearly_stats:
+                yearly_stats[create_yr][0] += 1
 
             # Get times when projects were submitted and count unique submissions vs. resubmissions
             edit_logs = project.edit_log_history()
@@ -2927,34 +2935,11 @@ def submission_stats(request):
                     if reject_yr in stats and reject_mo in stats[reject_yr]:
                         stats[reject_yr][reject_mo][4] += 1
 
-            # Get times when projects were published, if applicable
-            try:
-                pub_yr = project.publish_datetime.year
-                pub_mo = project.publish_datetime.strftime("%B")
-                if pub_yr in stats and pub_mo in stats[pub_yr]:
-                    stats[pub_yr][pub_mo][3] += 1
-            except AttributeError:
-                pass
-
-    # Aggregate counts per year (last 6 years)
-    current_year = datetime.today().year
-    yearly_stats = OrderedDict()
-    for y in range(current_year - 5, current_year + 1):
-        yearly_stats[y] = [0, 0, 0, 0, 0]
-
-    for project_set in all_projects:
-        for project in project_set:
-            create_yr = project.creation_datetime.year
-            if create_yr in yearly_stats:
-                yearly_stats[create_yr][0] += 1
-
-            for log in project.edit_log_history():
-                sub_yr = log.submission_datetime.year
-                if sub_yr in yearly_stats:
+                if sub_date_yr in yearly_stats:
                     if log.is_resubmission:
-                        yearly_stats[sub_yr][2] += 1
+                        yearly_stats[sub_date_yr][2] += 1
                     else:
-                        yearly_stats[sub_yr][1] += 1
+                        yearly_stats[sub_date_yr][1] += 1
                 try:
                     if log.decision == 0 and log.decision_datetime is not None:
                         rej_yr = log.decision_datetime.year
@@ -2963,8 +2948,12 @@ def submission_stats(request):
                 except AttributeError:
                     pass
 
+            # Get times when projects were published, if applicable
             try:
                 pub_yr = project.publish_datetime.year
+                pub_mo = project.publish_datetime.strftime("%B")
+                if pub_yr in stats and pub_mo in stats[pub_yr]:
+                    stats[pub_yr][pub_mo][3] += 1
                 if pub_yr in yearly_stats:
                     yearly_stats[pub_yr][3] += 1
             except AttributeError:
