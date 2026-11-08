@@ -683,9 +683,11 @@ def send_files_to_s3(folder_path, s3_prefix, bucket_name, project):
             if not using_proxy:
                 raise
             LOGGER.warning(
-                'S3 upload through configured proxy failed (%s); '
+                'S3 upload through configured proxy failed (%s): project_slug=%s version=%s; '
                 'using default routing for the rest of this upload task',
                 type(error).__name__,
+                project.slug,
+                project.version,
             )
             using_proxy = False
             upload_s3 = s3

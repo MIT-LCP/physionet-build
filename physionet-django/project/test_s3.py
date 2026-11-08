@@ -153,7 +153,7 @@ class TestS3UploadProxyFallback(SimpleTestCase):
             (self.folder / name).write_text('test')
         self.zip_path = Path(self.directory.name) / 'test-1.0.zip'
         self.zip_path.write_bytes(b'test zip')
-        self.project = mock.Mock(slug='test', compressed_storage_size=8)
+        self.project = mock.Mock(slug='test', version='1.0', compressed_storage_size=8)
         self.project.zip_name.side_effect = lambda **kwargs: (
             str(self.zip_path) if kwargs.get('full') else self.zip_path.name
         )
@@ -201,6 +201,7 @@ class TestS3UploadProxyFallback(SimpleTestCase):
                 )
                 self.assertEqual(len(logs.output), 1)
                 self.assertIn(type(error).__name__, logs.output[0])
+                self.assertIn('project_slug=test version=1.0', logs.output[0])
                 self.assertNotIn('secret', logs.output[0])
                 self.assertNotIn('proxy.example.com', logs.output[0])
                 self.assertNotIn('https://', logs.output[0])
