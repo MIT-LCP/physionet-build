@@ -2038,8 +2038,7 @@ class TestInviteDataAccessReviewer(TestMixin):
             self._see_manage_requests_button(self.ADDITIONAL_REVIEWER))
 
         # reviewer shouldn't be able to manage other reviewers
-        self.assertNotContains(self.client.get(reverse('project_home')),
-                            "Manage reviewers", html=True)
+        self.assertNotContains(self.client.get(reverse('project_home')), "Manage reviewers", html=True)
 
         # check reviewer can access request view
         self.assertContains(self.client.get(reverse('data_access_requests_overview',
