@@ -17,7 +17,11 @@
                   <td>{{ application.user.username }}</td>
                   <td>{{ application.user.get_full_name }}</td>
                   <td>{{ application.user.email }}</td>
-                  <td>{{ application.user.is_credentialed }}</td>
+                  <td>{{ application.user.is_credentialed|yesno:"Yes,No" }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted">No one to show yet.</td>
                 </tr>
               {% endfor %}
             </tbody>

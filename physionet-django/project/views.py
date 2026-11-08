@@ -329,6 +329,14 @@ def project_home(request):
         project__in=[p for p in published_projects if p.can_approve_requests(user)],
         status=0)
 
+    task_count = (
+        len(invitation_response_formset)
+        + len(missing_affiliations)
+        + len(pending_revisions)
+        + len(pending_author_approvals)
+        + len(data_access_requests)
+    )
+
     return render(
         request,
         'project/project_home.html',
@@ -341,6 +349,7 @@ def project_home(request):
             'invitation_response_formset': invitation_response_formset,
             'data_access_requests': data_access_requests,
             'pending_revisions': pending_revisions,
+            'task_count': task_count,
             'archive_view_days': ARCHIVE_VIEW_DAYS,
         },
     )
