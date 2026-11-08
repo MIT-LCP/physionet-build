@@ -8,6 +8,13 @@
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}">
+<style>
+  /* settings.css makes every input full width, which pushes radio buttons away from their labels */
+  .reviewer-link-type .form-check-input {
+    width: auto;
+    padding: 0;
+  }
+</style>
 {% endblock %}
 
 {% load project_templatetags %}

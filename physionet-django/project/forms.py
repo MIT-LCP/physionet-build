@@ -1433,7 +1433,7 @@ class ReviewerAccessRequestForm(forms.ModelForm):
         choices=REVIEWER_LINK_TYPE_CHOICES,
         coerce=lambda value: value in (True, 'True'),
         initial=False,
-        widget=forms.RadioSelect,
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
         label='Link type',
     )
 

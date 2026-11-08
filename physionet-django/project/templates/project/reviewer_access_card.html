@@ -83,7 +83,32 @@
       <div class="collapse mt-3 {% if reviewer_access_form.errors %}show{% endif %}" id="reviewer-access-form">
         <form action="{% url 'project_submission' project.slug %}#reviewer-access" method="post">
           {% csrf_token %}
-          {% include "inline_form_snippet.html" with form=reviewer_access_form %}
+          {% load physionet_templatetags %}
+          {% for field in reviewer_access_form.visible_fields %}
+            <div class="form-group row">
+              {% if field.name == 'hide_authors' %}
+                <div class="col-md-2">{{ field.label }}</div>
+                <div class="col-md-10">
+                  {% for radio in field %}
+                    <div class="form-check reviewer-link-type">
+                      {{ radio.tag }}
+                      <label class="form-check-label" for="{{ radio.id_for_label }}">{{ radio.choice_label }}</label>
+                    </div>
+                  {% endfor %}
+              {% else %}
+                <label class="col-md-2" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div class="col-md-10">
+                  {{ field }}
+              {% endif %}
+                {% for error in field.errors %}
+                  <div class="alert alert-danger">{{ error|wrap_if_unformatted:"strong" }}</div>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+          {% for error in reviewer_access_form.non_field_errors %}
+            <div class="alert alert-danger">{{ error|wrap_if_unformatted:"strong" }}</div>
+          {% endfor %}
           <div class="alert alert-secondary small">
             <strong>Note:</strong> a reviewer link does not mean that the project has been, or will be, accepted
             for publication on {{ SITE_NAME }}. The editorial review continues as normal and may still result in the
