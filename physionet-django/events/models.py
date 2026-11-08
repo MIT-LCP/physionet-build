@@ -61,6 +61,21 @@ class Event(models.Model):
         """
         return self.participants.filter(is_cohost=True)
 
+    def is_cohost(self, user):
+        """
+        Returns True if the user is a cohost of the event.
+        """
+        if not user.is_authenticated:
+            return False
+        return self.participants.filter(user=user, is_cohost=True).exists()
+
+    def is_host_or_cohost(self, user):
+        """
+        Returns True if the user is the host or a cohost of the event.
+        Hosts and cohosts share the rights needed to run the event.
+        """
+        return self.host == user or self.is_cohost(user)
+
 
 class EventParticipant(models.Model):
     """

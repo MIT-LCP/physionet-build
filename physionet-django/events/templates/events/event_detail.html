@@ -56,7 +56,17 @@
             </div>
             <div class="col-md-9">
                     {% for cohost in cohosts %}
+                    <div>
                     <a href="{% url 'public_profile' cohost.user.username %}">{{ cohost.user.username }}</a>
+                    {% if user == event.host %}
+                        <button class="btn btn-sm" type="button" style="background:none" data-toggle="modal"
+                            data-target="#remove-cohost-{{ cohost.id }}-modal" title="Remove cohost"><i class="fas fa-user-times"
+                                style="color:#cb2431"></i></button>
+                    {% elif user == cohost.user %}
+                        <button class="btn btn-sm btn-outline-danger" type="button" data-toggle="modal"
+                            data-target="#remove-cohost-{{ cohost.id }}-modal">Step down as cohost</button>
+                    {% endif %}
+                    </div>
                     {% endfor %}
             </div>
         </div>
@@ -64,7 +74,7 @@
     </div>
     <hr>
 
-    {% if event.gcp_billing_id and event.host == user or user in event.get_cohosts %}
+    {% if event.gcp_billing_id and is_host_or_cohost %}
         <p><strong>Billing Account:</strong> {{ event.gcp_billing_id }}</p>
     {% endif %}
 
@@ -136,6 +146,44 @@
             </div>
         </div>
     </div>
+    {% endfor %}
+
+    {% for cohost in cohosts %}
+    {% if user == event.host or user == cohost.user %}
+    <div class="modal fade" id="remove-cohost-{{ cohost.id }}-modal" tabindex="-1" role="dialog"
+        aria-labelledby="remove-cohost-{{ cohost.id }}-modal-label" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="remove-cohost-{{ cohost.id }}-modal-label">
+                        {% if user == event.host %}Remove Cohost{% else %}Step Down as Cohost{% endif %}
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    {% if user == event.host %}
+                        Are you sure you want to remove <strong>{{ cohost.user.get_full_name }}</strong> as a cohost?
+                        They will remain a participant in the event.
+                    {% else %}
+                        Are you sure you want to step down as a cohost?
+                        You will remain a participant in the event.
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <form action="" method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-danger" name="remove_cohost" value="{{ cohost.id }}" type="submit">
+                            {% if user == event.host %}Remove Cohost{% else %}Step Down{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
     {% endfor %}
 </div>
 {% endif %}
