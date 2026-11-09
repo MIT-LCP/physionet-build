@@ -39,7 +39,6 @@ from notification.utility import (
     training_application_request,
 )
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
-from oauth2_provider.models import get_application_model, AccessToken
 
 from physionet import utility
 from physionet.middleware.maintenance import (
@@ -64,6 +63,7 @@ from user.models import (
     LegacyCredential,
     Orcid,
     KhdpAccount,
+    PersonalAccessToken,
     User,
     Training,
     TrainingType,
@@ -510,101 +510,100 @@ def edit_profile(request):
     return render(request, 'user/edit_profile.html', {'form':form})
 
 
+def _available_token_endpoints():
+    """
+    Group the scopes a user can give a token by API endpoint, for the
+    scope picker on the token settings page.
+    """
+    available_endpoints = {}
+    for scope in settings.OAUTH2_PROVIDER["SCOPES"]:
+        if scope not in SCOPE_TO_ENDPOINT:
+            continue
+        endpoint, name = SCOPE_TO_ENDPOINT[scope]
+        if endpoint not in available_endpoints:
+            available_endpoints[endpoint] = {"name": name, "scope_options": []}
+        # The scope's last part is the access level, "read" or "write".
+        scope_method = scope.split(":")[-1]
+        available_endpoints[endpoint]["scope_options"].append({
+            "value": endpoint + scope_method,
+            "label": scope_method,
+            "id": f"{endpoint.replace('/', '-')}{scope_method}",
+        })
+    return available_endpoints
+
+
+def _create_personal_access_token(request):
+    """
+    Create a token with the scopes chosen in the request, and return the
+    token, or None after adding an error message.
+    """
+    active_count = PersonalAccessToken.active().filter(user=request.user).count()
+    if active_count >= PersonalAccessToken.MAX_ACTIVE_PER_USER:
+        messages.error(
+            request,
+            f"You can only have up to {PersonalAccessToken.MAX_ACTIVE_PER_USER} active tokens. "
+            "Please revoke one first.",
+        )
+        return None
+
+    available_scopes = settings.OAUTH2_PROVIDER["SCOPES"]
+    scopes = []
+    for endpoint in request.POST.getlist("annotation_endpoints"):
+        scope = ENDPOINT_TO_SCOPE.get(endpoint)
+        if scope in available_scopes and scope not in scopes:
+            scopes.append(scope)
+    if not scopes:
+        messages.error(request, "Please select at least one scope for the token.")
+        return None
+
+    _, token = PersonalAccessToken.create_for_user(request.user, scopes)
+    return token
+
+
 @login_required
 def edit_tokens(request):
     """
-    View for users to manage their personal API access tokens.
+    Let users create and revoke personal access tokens.
 
-    - POST: Creates a new access token with selected scopes.
-    - GET with `?delete=<id>`: Deletes an access token.
-    - GET: Lists current active tokens.
+    A new token is shown once, in the response to the request that
+    creates it. Only its hash is stored, so it cannot be shown again.
+    Both creating and revoking use POST, so they are protected against
+    cross-site requests.
     """
-    Application = get_application_model()
-
-    # Creating tokens requires a local OAUTH client to exist.
-    app_name = getattr(settings, "OAUTH_CLIENT_APP_NAME", None)
-    if not app_name:
-        raise Exception("OAUTH_CLIENT_APP_NAME is not defined in settings.")
-
-    try:
-        application = Application.objects.get(name=app_name)
-    except Application.DoesNotExist:
-        raise Exception(f"OAuth application named '{app_name}' not found.")
-
+    new_token = None
     if request.method == "POST":
-        if (AccessToken.objects.filter(
-                user=request.user, application=application).count() >= 3):
-            messages.error(
-                request, "You can only have up to 3 tokens. Please delete one first."
-            )
+        action = request.POST.get("action")
+        if action == "revoke":
+            token_id = request.POST.get("token_id", "")
+            if token_id.isdigit():
+                PersonalAccessToken.objects.filter(user=request.user, id=token_id).delete()
             return redirect("edit_tokens")
-        selected_annotation_endpoints = request.POST.getlist("annotation_endpoints")
-        if not selected_annotation_endpoints:
-            messages.error(request, "Please select at least one scope for the token.")
+        if action != "create":
             return redirect("edit_tokens")
-        selected_scopes = []
-        for endpoint in selected_annotation_endpoints:
-            if endpoint in ENDPOINT_TO_SCOPE:
-                scope = ENDPOINT_TO_SCOPE[endpoint]
-                if scope not in selected_scopes:
-                    selected_scopes.append(scope)
-        # Validate scopes against available scopes
-        available_scopes = list(settings.OAUTH2_PROVIDER["SCOPES"].keys())
-        valid_scopes = [scope for scope in selected_scopes if scope in available_scopes]
-
-        if not valid_scopes:
-            messages.error(request, "Please select valid scopes for the token.")
+        new_token = _create_personal_access_token(request)
+        if new_token is None:
             return redirect("edit_tokens")
 
-        expires_at = timezone.now() + timedelta(days=60)
-        created_token = AccessToken.objects.create(
-            user=request.user,
-            application=application,
-            token=get_random_string(40),
-            expires=expires_at,
-            scope=" ".join(valid_scopes),
-        )
-        messages.success(
-            request,
-            f"Token '{created_token.id}' created successfully with scopes: {', '.join(valid_scopes)}",
-        )
-        return redirect("edit_tokens")
-
-    if request.GET.get("delete"):
-        AccessToken.objects.filter(user=request.user, id=request.GET["delete"]).delete()
-        return redirect("edit_tokens")
-
-    tokens = AccessToken.objects.filter(user=request.user)
+    tokens = PersonalAccessToken.objects.filter(user=request.user).order_by("-created")
     for token in tokens:
-        scopes = token.scope.split(" ")
-        grouped_scopes = group_scopes_by_model(scopes)
-        token.grouped_scopes = grouped_scopes
+        token.grouped_scopes = group_scopes_by_model(sorted(token.scopes))
 
-    available_scopes = settings.OAUTH2_PROVIDER["SCOPES"]
-    available_endpoints = {}
-    for scope in available_scopes:
-        if scope in SCOPE_TO_ENDPOINT:
-            endpoint, name = SCOPE_TO_ENDPOINT[scope]
-            if endpoint not in available_endpoints:
-                available_endpoints[endpoint] = {"name": name, "scope_options": []}
-            # parsing the permission at the end of scope as R/W
-            scope_method = scope.split(":")[-1]
-            # Build complete scope option with value and label
-            available_endpoints[endpoint]["scope_options"].append({
-                "value": endpoint + scope_method,
-                "label": scope_method,
-                "id": f"{endpoint.replace('/', '-')}{scope_method}"
-            })
-        else:
-            pass
-    return render(
+    response = render(
         request,
         "user/edit_tokens.html",
         {
             "tokens": tokens,
-            "available_endpoints": available_endpoints,
+            "new_token": new_token,
+            "available_endpoints": _available_token_endpoints(),
+            "max_tokens": PersonalAccessToken.MAX_ACTIVE_PER_USER,
+            "lifetime_days": PersonalAccessToken.LIFETIME.days,
         },
     )
+    if new_token:
+        # Keep the page that shows the token out of browser and proxy caches.
+        response["Cache-Control"] = "no-store"
+    return response
+
 
 
 ORCID_LINK_STATE_KEY = 'orcid_link_state'

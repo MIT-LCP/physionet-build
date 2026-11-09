@@ -8,14 +8,26 @@
 <hr>
 
 <p>
-  Access tokens allow you to authenticate with the {{ SITE_NAME }} API (e.g. using our Python package) without logging in.
-  Tokens expire automatically after <strong>60 days</strong>. Keep these tokens secret — they act like passwords. You can revoke them at any time.
+  Access tokens let you use the {{ SITE_NAME }} API from scripts (for example, with our Python package) without logging in.
+  Each token can only do what its scopes allow, and it expires after <strong>{{ lifetime_days }} days</strong>.
+  You can have up to {{ max_tokens }} active tokens. Keep tokens secret: anyone with a token can act for you within its scopes.
+  Revoke a token straight away if it may have been exposed.
 </p>
+
+{% if new_token %}
+  <div class="alert alert-success mt-3" role="alert">
+    <h5 class="alert-heading">Your new token</h5>
+    <p>Copy it now. For your security it is not stored, so it will not be shown again.</p>
+    <code id="new-token" class="d-block p-2 bg-white border" style="word-break: break-all;">{{ new_token }}</code>
+    <button class="btn btn-sm btn-outline-secondary mt-2" type="button" id="copy-token-btn">Copy</button>
+  </div>
+{% endif %}
 
 <form action="" method="post" class="form-inline mt-3" id="token-form">
   {% csrf_token %}
+  <input type="hidden" name="action" value="create">
   <div class="form-group">
-    <label for="token-name">Create new token:</label>&nbsp;
+    <label for="create-token-btn">Create new token:</label>&nbsp;
     <button class="btn btn-primary ml-2" type="button" id="create-token-btn">Generate</button>
   </div>
 </form>
@@ -26,25 +38,31 @@
     {% for token in tokens %}
       <li class="list-group-item d-flex justify-content-between align-items-center">
       <div>
-        <strong>ID:</strong> {{ token.id }} – <span class=""><code>{{ token.token }}</code></span>
+        <code>{{ token.display_prefix }}&hellip;</code>
+        {% if token.is_expired %}<span class="badge badge-danger">Expired</span>{% endif %}
         <br>
-        <strong>Scopes:</strong> 
+        <strong>Scopes:</strong>
         <br>
         <div class="ml-4">
           {% for model_type, permissions in token.grouped_scopes.items %}
           {{ model_type }}: <code> {{ permissions|join:", " }}</code>
           <br>
-        {% endfor %}
+          {% endfor %}
         </div>
         <small>
-        Created {{ token.created|date:"Y-m-d H:i" }} —
-        Expires {{ token.expires|date:"Y-m-d H:i" }}
-        {% if token.is_expired %}<span class="badge badge-danger">Expired</span>{% endif %}
+        Created {{ token.created|date:"Y-m-d H:i" }} &mdash;
+        Expires {{ token.expires|date:"Y-m-d H:i" }} &mdash;
+        {% if token.last_used %}Last used {{ token.last_used|date:"Y-m-d" }}{% else %}Never used{% endif %}
         </small>
       </div>
-      <a class="btn btn-sm btn-danger" href="?delete={{ token.id }}">Revoke</a>
+      <form action="" method="post" onsubmit="return confirm('Revoke this token? Scripts using it will stop working.');">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="revoke">
+        <input type="hidden" name="token_id" value="{{ token.id }}">
+        <button class="btn btn-sm btn-danger" type="submit">Revoke</button>
+      </form>
       </li>
-    {% endfor %}  
+    {% endfor %}
   </ul>
 {% else %}
   <p class="mt-4">You don't have any tokens yet.</p>
@@ -107,6 +125,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const scopeForm = document.getElementById('scope-form');
     const tokenForm = document.getElementById('token-form');
     const confirmScopesBtn = document.getElementById('confirm-scopes');
+    const copyTokenBtn = document.getElementById('copy-token-btn');
+
+    if (copyTokenBtn) {
+        copyTokenBtn.addEventListener('click', function() {
+            const token = document.getElementById('new-token').textContent;
+            navigator.clipboard.writeText(token).then(function() {
+                copyTokenBtn.textContent = 'Copied';
+            });
+        });
+    }
 
     createTokenBtn.addEventListener('click', function(e) {
         e.preventDefault();

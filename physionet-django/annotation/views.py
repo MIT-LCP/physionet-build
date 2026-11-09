@@ -10,12 +10,9 @@ from .serializers import (
     AnnotationCollectionSerializer,
     AnnotationTypeSerializer,
 )
-from oauth2_provider.contrib.rest_framework import (
-    TokenHasReadWriteScope,
-    TokenHasScope,
-    OAuth2Authentication,
-)
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from annotation.permissions import AnnotationsScope
+from user.token_auth import PersonalAccessTokenAuthentication
 
 
 class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
@@ -23,7 +20,8 @@ class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
     POST: Create an AnnotationCollection
     """
 
-    authentication_classes = [OAuth2Authentication]
+    authentication_classes = [PersonalAccessTokenAuthentication, OAuth2Authentication]
+    scope_resource = "collections"
     permission_classes = [AnnotationsScope, IsAuthenticated]
     serializer_class = AnnotationCollectionSerializer
     queryset = AnnotationCollection.objects.all()
@@ -34,7 +32,8 @@ class AnnotationTypeCreateAPIView(generics.CreateAPIView):
     POST: Create an AnnotationType
     """
 
-    authentication_classes = [OAuth2Authentication]
+    authentication_classes = [PersonalAccessTokenAuthentication, OAuth2Authentication]
+    scope_resource = "types"
     permission_classes = [AnnotationsScope, IsAuthenticated]
     serializer_class = AnnotationTypeSerializer
     queryset = AnnotationType.objects.all()
@@ -45,7 +44,8 @@ class AnnotationCreateAPIView(generics.CreateAPIView):
     POST: Create an Annotation, return back the create Annotation ID
     """
 
-    authentication_classes = [OAuth2Authentication]
+    authentication_classes = [PersonalAccessTokenAuthentication, OAuth2Authentication]
+    scope_resource = "annotations"
     permission_classes = [AnnotationsScope, IsAuthenticated]
     serializer_class = AnnotationSerializer
     queryset = Annotation.objects.all()

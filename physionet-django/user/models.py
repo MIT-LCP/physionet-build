@@ -1,3 +1,4 @@
+import hashlib
 import logging
 import os
 from datetime import timedelta
@@ -1555,3 +1556,94 @@ class CodeOfConductSignature(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+class PersonalAccessToken(models.Model):
+    """
+    A token that a user creates to call the API from scripts.
+
+    The token is shown to the user once, when it is created. Only its
+    SHA-256 hash is stored, along with its first few characters so the
+    user can tell their tokens apart. Every token starts with PREFIX, so
+    leaked tokens are easy to recognize (for example by secret scanners).
+
+    A token grants only its scopes, and only while it has not expired and
+    its owner's account is active.
+    """
+    PREFIX = 'pnpat_'
+    RANDOM_LENGTH = 40
+    LIFETIME = timedelta(days=60)
+    MAX_ACTIVE_PER_USER = 3
+    # Number of characters shown in listings, including the prefix.
+    DISPLAY_LENGTH = 12
+    # last_used is updated at most this often, to avoid a write per request.
+    LAST_USED_RESOLUTION = timedelta(hours=1)
+
+    user = models.ForeignKey(User, related_name='personal_access_tokens', on_delete=models.CASCADE)
+    token_hash = models.CharField(max_length=64, unique=True)
+    display_prefix = models.CharField(max_length=DISPLAY_LENGTH)
+    scope = models.CharField(max_length=1000)
+    created = models.DateTimeField(auto_now_add=True)
+    expires = models.DateTimeField()
+    last_used = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        default_permissions = ()
+
+    def __str__(self):
+        return f'{self.display_prefix}... ({self.user})'
+
+    @staticmethod
+    def hash_token(token):
+        return hashlib.sha256(token.encode()).hexdigest()
+
+    @classmethod
+    def create_for_user(cls, user, scopes):
+        """
+        Create a token and return (instance, token). The token itself is
+        not stored, so it must be shown to the user now.
+        """
+        token = cls.PREFIX + get_random_string(cls.RANDOM_LENGTH)
+        instance = cls.objects.create(
+            user=user,
+            token_hash=cls.hash_token(token),
+            display_prefix=token[:cls.DISPLAY_LENGTH],
+            scope=' '.join(scopes),
+            expires=timezone.now() + cls.LIFETIME,
+        )
+        return instance, token
+
+    @classmethod
+    def active(cls):
+        """Tokens that have not expired."""
+        return cls.objects.filter(expires__gt=timezone.now())
+
+    @classmethod
+    def authenticate(cls, token):
+        """
+        Return the token's record if it is valid, or None. A token is valid
+        if it exists, has not expired, and belongs to an active account.
+        """
+        if not token.startswith(cls.PREFIX):
+            return None
+        record = cls.active().select_related('user').filter(token_hash=cls.hash_token(token)).first()
+        if record is None or not record.user.is_active:
+            return None
+        record.record_use()
+        return record
+
+    @property
+    def scopes(self):
+        return set(self.scope.split())
+
+    def has_scopes(self, required):
+        return set(required) <= self.scopes
+
+    def is_expired(self):
+        return self.expires <= timezone.now()
+
+    def record_use(self):
+        now = timezone.now()
+        if self.last_used is None or self.last_used < now - self.LAST_USED_RESOLUTION:
+            PersonalAccessToken.objects.filter(pk=self.pk).update(last_used=now)
+            self.last_used = now

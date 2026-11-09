@@ -4,6 +4,7 @@ import os
 from django.contrib.auth import SESSION_KEY
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from oauth2_provider.contrib.rest_framework import OAuth2Authentication
 from oauth2_provider.models import AccessToken
 from django.urls import reverse
 from rest_framework import generics, mixins, status, permissions
@@ -321,6 +322,9 @@ class ProjectSHA256Sums(APIView):
     """
     Download SHA256SUMS.txt file for a project.
     """
+    # OAuth tokens are accepted here (with the download scope), so this view
+    # lists OAuth2Authentication explicitly rather than relying on defaults.
+    authentication_classes = [BasicAuthentication, SessionAuthentication, OAuth2Authentication]
     permission_classes = [permissions.IsAuthenticated, TokenHasDownloadScope]
 
     def get(self, request, project_slug, version):
