@@ -230,8 +230,8 @@ class TestAuthorizationCodeTokenView(BaseAuthorizationCodeTokenView):
 
     def test_device_code_grant_rejected(self):
         """
-        DOT 2.2 doesn't support the device_code grant that oauthlib 4
-        registers, so it should be rejected with a 400 rather than a 500.
+        PhysioNet doesn't offer the device flow, so device_code grants are
+        rejected as unsupported rather than with DOT's 404 or 500.
         """
         token_request_data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
@@ -245,6 +245,19 @@ class TestAuthorizationCodeTokenView(BaseAuthorizationCodeTokenView):
             reverse("oauth2_provider:token"), data=token_request_data, **auth_headers
         )
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"error": "unsupported_grant_type"})
+
+    def test_device_code_grant_without_code_rejected(self):
+        """
+        A device_code grant request with no device_code is rejected with a
+        400 (DOT's TokenView raises a 500 for this).
+        """
+        response = self.client.post(
+            reverse("oauth2_provider:token"),
+            data={"grant_type": "urn:ietf:params:oauth:grant-type:device_code"},
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"error": "unsupported_grant_type"})
 
 
 class TestOAuth2Scopes(BaseTest):
