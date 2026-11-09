@@ -19,7 +19,7 @@ from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db import transaction
-from django.db.models import Count, DurationField, F, Q, Prefetch
+from django.db.models import Count, DurationField, F, Min, Q, Prefetch
 from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory, inlineformset_factory
 from django.forms.models import model_to_dict
@@ -2903,6 +2903,30 @@ def editorial_stats(request):
             stats[y].append(median(days))
         except StatisticsError:
             stats[y].append(None)
+
+    # One duration per project, from initial submission to its first decision.
+    # Aggregate in SQL rather than fetching each project's edit history.
+    sub_dec_by_year = {}
+    for project_set in (projects, ActiveProject.objects.all()):
+        durations = project_set.filter(submission_datetime__isnull=False).annotate(
+            first_decision=Min(
+                'edit_logs__decision_datetime',
+                filter=Q(edit_logs__decision__isnull=False),
+            ),
+        ).annotate(
+            tm=Cast(F('first_decision') - F('submission_datetime'), DurationField()),
+        ).values_list('first_decision', 'tm')
+        for decision_date, duration in durations:
+            if duration is not None and duration.total_seconds() >= 0:
+                sub_dec_by_year.setdefault(decision_date.year, []).append(duration.days)
+
+    # Include decision-only years and explicitly restore chronological order.
+    for y in sub_dec_by_year:
+        stats.setdefault(y, [0, None, None])
+    stats = OrderedDict(sorted(stats.items()))
+    for y in stats:
+        days = sub_dec_by_year.get(y, [])
+        stats[y].append(median(days) if days else None)
 
     return render(request, 'console/editorial_stats.html', {
                   'submenu': 'editorial', 'stats': stats})
