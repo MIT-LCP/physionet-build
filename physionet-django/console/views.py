@@ -763,6 +763,8 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                 messages.success(request,
                                  'The project metadata has been updated.')
                 description_form_saved = True
+                description_form = project_forms.ContentForm(instance=project)
+                ethics_form = project_forms.EthicsForm(instance=project)
                 # Reload formsets
                 reference_formset = ReferenceFormSet(instance=project)
                 publication_formset = PublicationFormSet(instance=project)

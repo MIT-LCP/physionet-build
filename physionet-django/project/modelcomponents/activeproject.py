@@ -36,6 +36,7 @@ from project.modelcomponents.metadata import (
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
+from project.utility import COPYEDIT_CONTENT_FIELDS, copyedit_content_warnings
 import project.tasks as tasks
 from project.validators import validate_subdir
 
@@ -447,6 +448,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if not self.references.exists():
             self.integrity_warnings.append(
                 'No references have been added to this project.')
+
+        copyedit_warnings = {}
+        for field in COPYEDIT_CONTENT_FIELDS:
+            for warning in copyedit_content_warnings(getattr(self, field)):
+                copyedit_warnings.setdefault(warning, []).append(
+                    field.replace('_', ' ').capitalize())
+        for warning, fields in copyedit_warnings.items():
+            self.integrity_warnings.append(
+                'The following fields {}: {}.'.format(warning, ', '.join(fields)))
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:

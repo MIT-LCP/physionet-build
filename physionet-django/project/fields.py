@@ -5,7 +5,7 @@ from django.contrib.admin.widgets import AdminTextareaWidget
 from django.db import models
 from tinymce.widgets import AdminTinyMCE, TinyMCE
 
-from project.utility import LinkFilter
+from project.utility import LinkFilter, normalize_copyedit_html
 
 
 class SafeHTMLField(models.TextField):
@@ -52,7 +52,8 @@ class SafeHTMLField(models.TextField):
     _styles = ['text-align']
 
     def __init__(self, config_name='default', strip=False,
-                 strip_comments=True, strip_nbsp=True, **kwargs):
+                 strip_comments=True, strip_nbsp=True,
+                 normalize_copyedit=False, **kwargs):
         super().__init__(**kwargs)
 
         # Create a bleach.Cleaner for the allowed content, which is
@@ -78,6 +79,7 @@ class SafeHTMLField(models.TextField):
                                        strip_comments=strip_comments)
 
         self._strip_nbsp = strip_nbsp
+        self._normalize_copyedit = normalize_copyedit
 
         # Create a corresponding filter expression (for cleaning data
         # on the client side, e.g. when copying/pasting HTML):
@@ -115,6 +117,9 @@ class SafeHTMLField(models.TextField):
 
         if self._strip_nbsp:
             value = value.replace('&nbsp;', ' ')
+
+        if self._normalize_copyedit:
+            value = normalize_copyedit_html(value)
 
         # Remove scheme/hostname from internal links, and forbid
         # external subresources

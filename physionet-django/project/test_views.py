@@ -798,6 +798,33 @@ class TestUploadAgreement(TestMixin):
 
 
 class TestProjectIntegrityWarnings(TestMixin):
+    def test_check_integrity_names_fields_with_copyedit_warnings(self):
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        UploadAgreement.objects.update_or_create(
+            author=project.submitting_author(),
+            defaults={'accepted': True, 'no_human_subjects': True},
+        )
+        ActiveProject.objects.filter(id=project.id).update(
+            abstract='<div>Text</div>',
+            methods=(
+                '<table><tbody><tr><td><strong>Heading</strong></td></tr>'
+                '<tr><td>Content</td></tr></tbody></table>'
+            ),
+        )
+
+        response = self.client.get(reverse('check_integrity', args=(project.slug,)))
+
+        self.assertTrue(response.json()['passes_checks'])
+        self.assertIn(
+            'The following fields contain div elements: Abstract.',
+            response.json()['integrity_warnings'],
+        )
+        self.assertIn(
+            'The following fields have a table whose first row appears to be a header: Methods.',
+            response.json()['integrity_warnings'],
+        )
+
     def test_check_integrity_reports_nonblocking_file_warnings(self):
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
@@ -914,7 +941,7 @@ class TestProjectEditing(TestCase):
         some ambiguous characters &amp; &lt; &gt;,
         non-breaking spaces,
         &lt;form&gt;invalid tags&lt;/form&gt;,
-        <span>invalid attributes</span>,
+        invalid attributes,
         <img src="/foo.jpg" alt="full URL to image">,
         <img src="/foo.jpg" alt="partial URL to image">,
         <img alt="cross-domain">
@@ -926,6 +953,10 @@ class TestProjectEditing(TestCase):
         self.assertEqual(response.status_code, 200)
         project.refresh_from_db()
         self.assertHTMLEqual(project.background, expected_html)
+        self.assertNotIn('<span', project.background)
+        self.assertNotIn('&nbsp;', project.background)
+        self.assertNotIn('<span', response.context['description_form']['background'].value())
+        self.assertNotIn('&nbsp;', response.context['description_form']['background'].value())
         self.assertGreater(project.modified_datetime, timestamp)
 
         # Post some blank text in a required field and verify that the

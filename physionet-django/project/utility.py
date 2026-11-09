@@ -35,17 +35,25 @@ COPYEDIT_CONTENT_FIELDS = (
 )
 _VOID_HTML_TAGS = {'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
                    'link', 'meta', 'param', 'source', 'track', 'wbr'}
-_TABLE_TAGS = {'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th'}
-_BLOCK_HTML_TAGS = {'address', 'blockquote', 'div', 'dl', 'fieldset', 'figure',
-                    'h3', 'h4', 'h5', 'h6', 'hr', 'ol', 'p', 'pre', 'table', 'ul'}
-_STRUCTURAL_WHITESPACE_TAGS = {'p', 'li', 'td', 'th', 'h3', 'h4', 'h5', 'h6'}
-_INLINE_WHITESPACE_TAGS = {'b', 'em', 'strong'}
+_EMPTY_INLINE_TAGS = {'b', 'code', 'em', 'i', 'strong', 'u'}
+_MAX_COPYEDIT_HTML_DEPTH = 500
+_COPYEDIT_NORMALIZATION_RULE_ORDER = (
+    'replaced non-breaking spaces',
+    'removed span wrappers',
+    'removed empty formatting tags',
+    'removed empty paragraphs',
+    'trimmed trailing paragraph whitespace',
+    'unwrapped a paragraph in a list item or table cell',
+    'removed bold formatting from a heading',
+)
 
 
 class _CopyeditHTMLNode:
     def __init__(self, tag=None, attrs=(), data=None):
         self.tag, self.attrs, self.data = tag, list(attrs), data
         self.children = []
+        self.changed = False
+        self.rules = set()
 
     @property
     def is_text(self):
@@ -54,15 +62,18 @@ class _CopyeditHTMLNode:
 
 class _CopyeditHTMLParser(html.parser.HTMLParser):
     def __init__(self):
-        super().__init__(convert_charrefs=False)
+        super().__init__(convert_charrefs=True)
         self.root = _CopyeditHTMLNode('fragment')
         self.stack = [self.root]
+        self.excessively_nested = False
 
     def handle_starttag(self, tag, attrs):
         node = _CopyeditHTMLNode(tag.lower(), attrs)
         self.stack[-1].children.append(node)
         if node.tag not in _VOID_HTML_TAGS:
             self.stack.append(node)
+            if len(self.stack) > _MAX_COPYEDIT_HTML_DEPTH:
+                self.excessively_nested = True
 
     def handle_startendtag(self, tag, attrs):
         self.handle_starttag(tag, attrs)
@@ -78,11 +89,78 @@ class _CopyeditHTMLParser(html.parser.HTMLParser):
     def handle_data(self, data):
         self.stack[-1].children.append(_CopyeditHTMLNode(data=data))
 
-    def handle_entityref(self, name):
-        self.handle_data(' ' if name.lower() == 'nbsp' else '&{};'.format(name))
 
-    def handle_charref(self, name):
-        self.handle_data('&#{};'.format(name))
+def _normalize_copyedit_node(node, parent=None, include_medium=False,
+                             in_protected_content=False):
+    if node.is_text:
+        normalized = node.data.replace('\xa0', ' ')
+        node.changed = normalized != node.data
+        if node.changed:
+            node.rules.add('replaced non-breaking spaces')
+        node.data = normalized
+        return [node]
+    protected_content = in_protected_content or node.tag in {'math', 'pre'}
+    normalized_children = []
+    for child in node.children:
+        child_results = _normalize_copyedit_node(
+            child,
+            node,
+            include_medium,
+            in_protected_content=protected_content,
+        )
+        if child.changed or len(child_results) != 1 or child_results[0] is not child:
+            node.changed = True
+        node.rules.update(child.rules)
+        normalized_children.extend(child_results)
+    node.children = normalized_children
+    if node.tag == 'span':
+        node.changed = True
+        node.rules.add('removed span wrappers')
+        return node.children
+    if protected_content:
+        return [node]
+    if node.tag in _EMPTY_INLINE_TAGS and not _copyedit_has_content(node):
+        node.changed = True
+        node.rules.add('removed empty formatting tags')
+        return []
+    if include_medium and (
+            node.tag == 'p' and parent and parent.tag in {'li', 'td', 'th'}
+            and all(child is node or (child.is_text and not child.data.strip())
+                    for child in parent.children)):
+        node.changed = True
+        node.rules.add('unwrapped a paragraph in a list item or table cell')
+        return node.children
+    if node.tag == 'p' and node.children and node.children[-1].is_text:
+        trimmed = node.children[-1].data.rstrip()
+        if trimmed != node.children[-1].data:
+            node.children[-1].data = trimmed
+            node.changed = True
+            node.rules.add('trimmed trailing paragraph whitespace')
+    if node.tag == 'p' and not any(
+            not child.is_text or child.data for child in node.children):
+        node.changed = True
+        node.rules.add('removed empty paragraphs')
+        return []
+    if include_medium and node.tag in {'h3', 'h4', 'h5', 'h6'}:
+        node.children = _unwrap_heading_bold(node.children, node)
+    return [node]
+
+
+def _unwrap_heading_bold(children, heading):
+    results = []
+    for child in children:
+        if child.is_text:
+            results.append(child)
+        elif child.tag in {'b', 'strong'}:
+            heading.changed = True
+            heading.rules.add('removed bold formatting from a heading')
+            results.extend(_unwrap_heading_bold(child.children, heading))
+        elif child.tag in {'math', 'pre'}:
+            results.append(child)
+        else:
+            child.children = _unwrap_heading_bold(child.children, heading)
+            results.append(child)
+    return results
 
 
 def _copyedit_has_content(node):
@@ -92,156 +170,13 @@ def _copyedit_has_content(node):
     # (for example, mspace, none, and mprescripts).
     if node.tag == 'math':
         return True
-    return node.tag in _VOID_HTML_TAGS or any(_copyedit_has_content(c) for c in node.children)
-
-
-def _trim_copyedit_whitespace(node):
-    """Trim whitespace at structural element boundaries only."""
-    if node.tag in _STRUCTURAL_WHITESPACE_TAGS:
-        if node.children and node.children[0].is_text:
-            node.children[0].data = node.children[0].data.lstrip()
-        if node.children and node.children[-1].is_text:
-            node.children[-1].data = node.children[-1].data.rstrip()
-
-
-def _move_inline_edge_whitespace(node):
-    """Move whitespace from inline formatting tags to their surrounding text."""
-    for child in list(node.children):
-        if child.is_text or child.tag not in _INLINE_WHITESPACE_TAGS or not child.children:
-            continue
-        index = node.children.index(child)
-        if child.children[0].is_text:
-            leading = child.children[0].data[:len(child.children[0].data) - len(child.children[0].data.lstrip())]
-            if leading:
-                child.children[0].data = child.children[0].data[len(leading):]
-                if (index and node.children[index - 1].is_text
-                        and node.children[index - 1].data.endswith(tuple(' \t\r\n'))):
-                    pass
-                elif index and node.children[index - 1].is_text:
-                    node.children[index - 1].data += leading
-                else:
-                    node.children.insert(index, _CopyeditHTMLNode(data=leading))
-                    index += 1
-        if child.children and child.children[-1].is_text:
-            trailing = child.children[-1].data[len(child.children[-1].data.rstrip()):]
-            if trailing:
-                child.children[-1].data = child.children[-1].data[:-len(trailing)]
-                if (index + 1 < len(node.children) and node.children[index + 1].is_text
-                        and node.children[index + 1].data.startswith(tuple(' \t\r\n'))):
-                    pass
-                elif index + 1 < len(node.children) and node.children[index + 1].is_text:
-                    node.children[index + 1].data = trailing + node.children[index + 1].data
-                else:
-                    node.children.insert(index + 1, _CopyeditHTMLNode(data=trailing))
-
-
-def _unwrap_copyedit_spans(node):
-    """Remove span wrappers, including those in preformatted content."""
-    if node.is_text:
-        return [node]
-    node.children = [result for child in node.children
-                     for result in _unwrap_copyedit_spans(child)]
-    if node.tag == 'span':
-        return node.children
-    return [node]
-
-
-def _normalize_copyedit_node(node, parent=None, in_math=False):
-    if node.is_text:
-        node.data = node.data.replace('\xa0', ' ')
-        return [node]
-    # Do not rewrite entities, whitespace, or structure inside preformatted
-    # text, except for redundant span wrappers.
-    if node.tag == 'pre':
-        node.children = [result for child in node.children
-                         for result in _unwrap_copyedit_spans(child)]
-        return [node]
-    # Formula markup has its own syntax and empty elements with semantic
-    # meaning. Within MathML, remove span wrappers only; do not apply any
-    # structural or whitespace transformations.
-    if node.tag == 'math':
-        node.children = [result for child in node.children
-                         for result in _unwrap_copyedit_spans(child)]
-        return [node]
-    within_math = in_math or node.tag == 'math'
-    normalized_children = []
-    for index, child in enumerate(node.children):
-        child_results = _normalize_copyedit_node(child, node, within_math)
-        normalized_children.extend(child_results)
-        # Paragraphs are not valid inside list items or table cells. When
-        # removing a paragraph wrapper, retain its visible block boundary if
-        # more non-whitespace content follows it.
-        if (node.tag in {'li', 'td', 'th'} and child.tag == 'p'
-                and any(_copyedit_has_content(result) for result in child_results)
-                and any(_copyedit_has_content(sibling)
-                        for sibling in node.children[index + 1:])):
-            normalized_children.append(_CopyeditHTMLNode('br'))
-    node.children = normalized_children
-    if node.tag == 'span' or (
-            node.tag == 'p' and parent and parent.tag in {'li', 'td', 'th'}):
-        return node.children
-    if node.tag == 'div':
-        if any(not c.is_text and c.tag in _BLOCK_HTML_TAGS for c in node.children):
-            return node.children
-        node.tag = 'p'
-        if node.children and not node.children[-1].is_text and node.children[-1].tag == 'br':
-            node.children.pop()
-    _move_inline_edge_whitespace(node)
-    _trim_copyedit_whitespace(node)
-    if node.tag in {'h3', 'h4', 'h5', 'h6', 'th'}:
-        node.children = [
-            result
-            for child in node.children
-            for result in (
-                child.children
-                if not child.is_text and child.tag in {'b', 'strong'}
-                else [child]
-            )
-        ]
-    if (not within_math and node.tag not in _TABLE_TAGS
-            and node.tag not in _VOID_HTML_TAGS
-            and not _copyedit_has_content(node)):
-        return []
-    return [node]
-
-
-def _promote_copyedit_table_headers(node):
-    if node.tag == 'math':
-        return
-    if not node.is_text:
-        for child in node.children:
-            _promote_copyedit_table_headers(child)
-    if node.tag != 'table' or any(c.tag == 'thead' for c in node.children):
-        return
-    tbody = next((c for c in node.children if c.tag == 'tbody'), None)
-    row = next((c for c in tbody.children if c.tag == 'tr'), None) if tbody else None
-    cells = [c for c in row.children if c.tag in {'td', 'th'}] if row else []
-    significant = [c for c in row.children if not (c.is_text and not c.data.strip())] if row else []
-
-    def bold_cell(cell):
-        contents = [c for c in cell.children if not (c.is_text and not c.data.strip())]
-        return (
-            len(contents) == 1
-            and not contents[0].is_text
-            and contents[0].tag in {'b', 'strong'}
-            and _copyedit_has_content(contents[0])
-        )
-    if not cells or len(cells) != len(significant) or not all(c.tag == 'td' and bold_cell(c) for c in cells):
-        return
-    for cell in cells:
-        cell.tag = 'th'
-    tbody.children.remove(row)
-    header = _CopyeditHTMLNode('thead')
-    header.children.append(row)
-    node.children.insert(node.children.index(tbody), header)
+    return node.tag in _VOID_HTML_TAGS or any(
+        _copyedit_has_content(child) for child in node.children)
 
 
 def _serialize_copyedit_node(node):
     if node.is_text:
-        return (
-            node.data if node.data.startswith('&')
-            and node.data.endswith(';') else html.escape(node.data, quote=False)
-        )
+        return html.escape(node.data, quote=False)
     if node.tag == 'fragment':
         return ''.join(_serialize_copyedit_node(c) for c in node.children)
     attrs = ''.join(' {}="{}"'.format(name, html.escape(value or '', quote=True)) for name, value in node.attrs)
@@ -255,21 +190,123 @@ def _serialize_copyedit_node(node):
     )
 
 
-def normalize_copyedit_html(value):
-    """Normalize one already-sanitized SafeHTMLField value for copyediting."""
-    parser = _CopyeditHTMLParser()
-    parser.feed(value or '')
-    parser.close()
-    parser.root.children = [result for child in parser.root.children for result in _normalize_copyedit_node(child)]
-    _promote_copyedit_table_headers(parser.root)
-    for child in parser.root.children:
-        _normalize_copyedit_node(child)
-    return _serialize_copyedit_node(parser.root)
+def normalize_copyedit_html(value, include_medium=False):
+    """Return a normalized SafeHTMLField value."""
+    return normalize_copyedit_html_with_rules(value, include_medium)[0]
+
+
+def normalize_copyedit_html_with_rules(value, include_medium=False):
+    """Normalize one already-sanitized SafeHTMLField value for copyediting.
+
+    Low-risk rules are always applied. The two medium-risk rules are limited
+    to acceptance-time backfill. Values without a matching rule are returned
+    verbatim, so parser serialization cannot alter unrelated content.
+    """
+    try:
+        parser = _CopyeditHTMLParser()
+        parser.feed(value or '')
+        parser.close()
+        if parser.excessively_nested:
+            LOGGER.warning('Skipped copyedit HTML normalization due to excessive nesting')
+            return value or '', ()
+        normalized_children = []
+        for child in parser.root.children:
+            results = _normalize_copyedit_node(child, include_medium=include_medium)
+            if child.changed or len(results) != 1 or results[0] is not child:
+                parser.root.changed = True
+            parser.root.rules.update(child.rules)
+            normalized_children.extend(results)
+        parser.root.children = normalized_children
+        if not _copyedit_node_changed(parser.root):
+            return value or '', ()
+        return (
+            _serialize_copyedit_node(parser.root),
+            tuple(rule for rule in _COPYEDIT_NORMALIZATION_RULE_ORDER
+                  if rule in parser.root.rules),
+        )
+    except RecursionError:
+        LOGGER.warning('Skipped copyedit HTML normalization due to excessive nesting')
+        return value or '', ()
 
 
 def normalize_project_content(project):
+    """Normalize all project content fields without partially updating a project.
+
+    Returns a field-to-rules mapping for the values that changed.
+    """
+    updates = {}
     for field in COPYEDIT_CONTENT_FIELDS:
-        setattr(project, field, normalize_copyedit_html(getattr(project, field)))
+        value = getattr(project, field)
+        normalized, rules = normalize_copyedit_html_with_rules(
+            value, include_medium=True)
+        if normalized != value:
+            updates[field] = (normalized, rules)
+    for field, (normalized, _) in updates.items():
+        setattr(project, field, normalized)
+    return {field: rules for field, (_, rules) in updates.items()}
+
+
+def _copyedit_node_changed(node):
+    return node.changed or any(_copyedit_node_changed(child) for child in node.children)
+
+
+def copyedit_content_warnings(value):
+    """Return higher-risk copyediting patterns that should be reviewed."""
+    try:
+        parser = _CopyeditHTMLParser()
+        parser.feed(value or '')
+        parser.close()
+        if parser.excessively_nested:
+            LOGGER.warning('Skipped copyedit HTML warnings due to excessive nesting')
+            return set()
+        warnings = set()
+
+        def visit(node):
+            if node.is_text:
+                return
+            if node.tag == 'div':
+                warnings.add('contain div elements')
+            if _has_bold_first_table_row(node):
+                warnings.add('have a table whose first row appears to be a header')
+            for child in node.children:
+                visit(child)
+
+        visit(parser.root)
+        return warnings
+    except RecursionError:
+        LOGGER.warning('Skipped copyedit HTML warnings due to excessive nesting')
+        return set()
+
+
+def _has_bold_first_table_row(node):
+    if node.tag != 'table' or any(child.tag == 'thead' for child in node.children):
+        return False
+    tbody = next((child for child in node.children if child.tag == 'tbody'), None)
+    rows = [child for child in tbody.children if child.tag == 'tr'] if tbody else []
+    if len(rows) < 2:
+        return False
+    cells = [child for child in rows[0].children if child.tag in {'td', 'th'}]
+    return bool(cells) and all(_is_bold_header_cell(cell) for cell in cells)
+
+
+def _is_bold_header_cell(cell):
+    if cell.tag != 'td':
+        return False
+    contents = _significant_copyedit_children(cell)
+    if len(contents) == 1 and contents[0].tag == 'p':
+        contents = _significant_copyedit_children(contents[0])
+    return (
+        len(contents) == 1
+        and contents[0].tag in {'b', 'strong'}
+        and _copyedit_has_content(contents[0])
+    )
+
+
+def _significant_copyedit_children(node):
+    return [
+        child for child in node.children
+        if not child.is_text or child.data.strip()
+    ]
 
 
 def move_author(author, authors, direction):

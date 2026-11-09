@@ -266,9 +266,29 @@ class EditSubmissionForm(forms.ModelForm):
                 project.submission_status = SubmissionStatus.NEEDS_COPYEDIT
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
-                normalize_project_content(project)
+                try:
+                    normalization_changes = normalize_project_content(project)
+                except Exception:
+                    LOGGER.exception(
+                        'Could not normalize copyedit content for project %s',
+                        project.slug,
+                    )
+                    normalization_changes = {}
 
-                CopyeditLog.objects.create(project=project)
+                summary = ''
+                if normalization_changes:
+                    summary = 'Automatically normalized:\n{}'.format('\n'.join(
+                        '- {}: {}.'.format(
+                            field.replace('_', ' ').capitalize(),
+                            '; '.join(rules),
+                        )
+                        for field, rules in normalization_changes.items()
+                    ))
+                CopyeditLog.objects.create(
+                    project=project,
+                    made_changes=bool(normalization_changes),
+                    changelog_summary=summary,
+                )
                 project.save()
 
                 if self.cleaned_data['auto_doi']:
@@ -306,6 +326,15 @@ class CopyeditForm(forms.ModelForm):
         project = self.instance.project
         if not project.check_integrity():
             raise forms.ValidationError(project.integrity_errors)
+        automatic_summary = self.instance.changelog_summary
+        is_automatic_summary = automatic_summary.startswith('Automatically normalized: ')
+        editor_summary = self.cleaned_data['changelog_summary']
+        if is_automatic_summary:
+            if editor_summary.startswith(automatic_summary):
+                editor_summary = editor_summary[len(automatic_summary):].lstrip('\n')
+            self.cleaned_data['changelog_summary'] = '\n'.join(
+                part for part in (automatic_summary, editor_summary) if part)
+            self.cleaned_data['made_changes'] = True
         if self.cleaned_data['made_changes'] and not self.cleaned_data['changelog_summary']:
             raise forms.ValidationError('Describe the changes you made.')
         if not self.cleaned_data['made_changes'] and self.cleaned_data['changelog_summary']:
