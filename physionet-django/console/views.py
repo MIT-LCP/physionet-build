@@ -1770,26 +1770,51 @@ def cloud_mirrors(request):
     })
 
 
+ARCHIVED_PROJECT_ORDERING = (
+    # The archive date is displayed without a time, so sort projects archived
+    # on the same displayed date by their creation time.
+    TruncDate('archive_datetime').desc(nulls_last=True),
+    '-creation_datetime',
+    '-pk',
+)
+
+
+def _filter_archived(queryset, data):
+    """Apply archived-project filters and return their active state."""
+    has_assigned_editor = data.get('has_assigned_editor') == 'true'
+    if has_assigned_editor:
+        queryset = queryset.filter(editor__isnull=False)
+    return queryset, has_assigned_editor
+
+
 @console_permission_required('project.change_activeproject')
 def archived_submissions(request):
     """
     List of archived submissions
     """
-    projects = ActiveProject.objects.filter(submission_status=SubmissionStatus.ARCHIVED
-                                            ).order_by('creation_datetime')
+    projects = ActiveProject.objects.filter(
+        submission_status=SubmissionStatus.ARCHIVED
+    ).order_by(*ARCHIVED_PROJECT_ORDERING)
+    projects, has_assigned_editor = _filter_archived(projects, request.GET)
     projects = paginate(request, projects, 50)
+    params = request.GET.copy()
+    params.pop('page', None)
     return render(request, 'console/archived_submissions.html',
-                  {'projects': projects})
+                  {
+                      'projects': projects,
+                      'has_assigned_editor': has_assigned_editor,
+                      'querystring': params.urlencode(),
+                  })
 
 
 PROJECT_SEARCH_BUCKETS = {
-    'unsubmitted': (ActiveProject, SubmissionStatus.UNSUBMITTED, 'creation_datetime',
+    'unsubmitted': (ActiveProject, SubmissionStatus.UNSUBMITTED, ('creation_datetime',),
                     'console/project_search_list.html'),
-    'submitted': (ActiveProject, None, 'submission_datetime',
+    'submitted': (ActiveProject, None, ('submission_datetime',),
                   'console/project_search_list.html'),
-    'published': (PublishedProject, None, '-publish_datetime',
+    'published': (PublishedProject, None, ('-publish_datetime',),
                   'console/published_projects_list.html'),
-    'archived': (ActiveProject, SubmissionStatus.ARCHIVED, 'creation_datetime',
+    'archived': (ActiveProject, SubmissionStatus.ARCHIVED, ARCHIVED_PROJECT_ORDERING,
                  'console/archived_submissions_list.html'),
 }
 
@@ -1846,6 +1871,9 @@ def project_search(request, bucket):
 
     matched = _project_search_filter(base, search_field)
 
+    if bucket == 'archived':
+        matched, _ = _filter_archived(matched, request.POST)
+
     if bucket == 'submitted':
         # The submitted-projects page keeps its existing tab tables and
         # just shows/hides rows by id, so only the matching ids and the
@@ -1855,11 +1883,18 @@ def project_search(request, bucket):
         counts['on_hold'] = matched.filter(is_on_hold=True).count()
         return JsonResponse({'ids': list(matched.values_list('id', flat=True)), 'counts': counts})
 
-    projects = matched.order_by(order)
+    projects = matched.order_by(*order)
     if len(search_field) == 0:
         projects = paginate(request, projects, 50)
 
-    return render(request, template, {'projects': projects, 'bucket': bucket})
+    params = request.POST.copy()
+    for key in ('search', 'page', 'csrfmiddlewaretoken'):
+        params.pop(key, None)
+    return render(request, template, {
+        'projects': projects,
+        'bucket': bucket,
+        'querystring': params.urlencode(),
+    })
 
 
 def _filter_users_by_group(queryset, group):
