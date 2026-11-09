@@ -1811,9 +1811,8 @@ def project_search(request, bucket):
 
     matched = _project_search_filter(base, search_field)
 
-    has_assigned_editor = False
     if bucket == 'archived':
-        matched, has_assigned_editor = _filter_archived(matched, request.POST)
+        matched, _ = _filter_archived(matched, request.POST)
 
     if bucket == 'submitted':
         # The submitted-projects page keeps its existing tab tables and
