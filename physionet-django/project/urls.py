@@ -47,8 +47,8 @@ urlpatterns = [
     path('<project_slug>/content/', views.project_content, name='project_content'),
     # Edit a metadata item and reload the formset section
     path('<project_slug>/content/edit-item/', views.edit_content_item, name='edit_content_item'),
-    # Look up the citation for a reference's DOI
-    path('<project_slug>/content/doi-lookup/', views.reference_doi_lookup, name='reference_doi_lookup'),
+    # Look up the citation for the DOI of a reference or publication
+    path('<project_slug>/content/doi-lookup/', views.doi_lookup, name='doi_lookup'),
     path('<project_slug>/access/', views.project_access, name='project_access'),
     path('<project_slug>/discovery/', views.project_discovery, name='project_discovery'),
     path('<project_slug>/files/', views.project_files, name='project_files'),
@@ -139,7 +139,7 @@ TEST_CASES = {
         {'_query_': {'add_first': 1, 'item': 'topic'}},
     ],
     # Without a DOI, the lookup returns an error without contacting doi.org
-    'reference_doi_lookup': {
+    'doi_lookup': {
         '_query_': {'doi': ''},
     },
     'edit_ethics': {
