@@ -2014,14 +2014,14 @@ class TestInviteDataAccessReviewer(TestMixin):
                           password=self.PASSWORD)
 
         response = self.client.get(reverse('project_home'))
-        return "Requests".encode('UTF-8') in response.content
+        return "Access requests".encode('UTF-8') in response.content
 
     def test_appointing(self):
         self.assertFalse(self._see_manage_requests_button(self.ADDITIONAL_REVIEWER))
 
         self.client.login(username=self.SUBMITTER, password=self.PASSWORD)
-        # corresponding author/submitter should see Manage Reviewers button in project home
-        self.assertContains(self.client.get(reverse('project_home')), "Manage Reviewers", html=True)
+        # corresponding author/submitter should see Manage reviewers button in project home
+        self.assertContains(self.client.get(reverse('project_home')), "Manage reviewers", html=True)
 
         project = PublishedProject.objects.get(title=self.PROJECT_NAME)
         self.client.post(reverse('manage_data_access_reviewers',
@@ -2038,8 +2038,7 @@ class TestInviteDataAccessReviewer(TestMixin):
             self._see_manage_requests_button(self.ADDITIONAL_REVIEWER))
 
         # reviewer shouldn't be able to manage other reviewers
-        self.assertNotContains(self.client.get(reverse('project_home')),
-                            "Manage Reviewers", html=True)
+        self.assertNotContains(self.client.get(reverse('project_home')), "Manage reviewers", html=True)
 
         # check reviewer can access request view
         self.assertContains(self.client.get(reverse('data_access_requests_overview',

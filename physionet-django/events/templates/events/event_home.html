@@ -4,199 +4,108 @@
 
 {% load participation_status %}
 
-{% block title %}Events Home{% endblock %}
+{% block title %}Events{% endblock %}
 
 {% block local_css %}
-<link rel="stylesheet" type="text/css" href="{% static 'project/css/project-home.css' %}">
+<link rel="stylesheet" type="text/css" href="{% static 'custom/css/dashboard.css' %}">
 {% endblock %}
 
 {% block content %}
-
-<div class="container">
+<div class="container dashboard">
   {% include "message_snippet.html" %}
-  <div class="jumbotron">
-    <h1>Events Home</h1>
+
+  <header class="dashboard-header">
+    <div>
+      <h1>Events</h1>
       {% if can_change_event %}
-      <p class="lead">Create new events and access event details.</p>
-      <p>
-        <a class = "btn btn-success" href="{% url 'create_event' %}" >
-          <i class="fa fa-cloud-upload-alt"></i> Create New Event </a>
-      </p>
+        <p>Run courses and workshops that give participants access to datasets for the duration of the event.</p>
       {% else %}
-      <p class="lead">View events that you have registered to attend.</p>
-      {% endif %} 
-</div>
+        <p>Courses and workshops you are hosting or have registered for.</p>
+      {% endif %}
+    </div>
+    {% if can_change_event %}
+      <a class="primary-button primary-button--large" href="{% url 'create_event' %}">
+        <i class="fa fa-plus" aria-hidden="true"></i> New event
+      </a>
+    {% endif %}
+  </header>
 
-    <div class="modal fade" id="edit-event-modal" tabindex="-1" role="dialog" aria-labelledby="edit-event-modal" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Edit Event</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            <div class="container">
-              <form action="" method="post" class="form-signin edit-event" >
-                {% csrf_token %}
-                {% include "form_snippet.html" with form=event_form %}
-                <button class="btn btn-primary btn-fixed" name="edit-event" type="submit">Save</button>
-              </form>
-            </div>
-          </div>
-        </div>
+  {% include 'events/event_notifications.html' %}
+
+  {# Current and upcoming events #}
+  <section class="dashboard-section" aria-labelledby="active-heading">
+    <div class="dashboard-section__header">
+      <h2 id="active-heading">Current and upcoming</h2>
+      <span class="count-pill">{{ events_active|length }}</span>
+    </div>
+
+    {% if events_active %}
+      <ul class="item-list">
+        {% for event in events_active %}
+          {% include 'events/event_home_item.html' %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty-state">
+        <i class="far fa-calendar" aria-hidden="true"></i>
+        <p>You have no current or upcoming events.</p>
+        {% if can_change_event %}
+          <p><a href="{% url 'create_event' %}">Create an event</a> and share its registration link with participants.</p>
+        {% else %}
+          <p>To join an event, follow the registration link shared by its host.</p>
+        {% endif %}
       </div>
+    {% endif %}
+  </section>
 
-{% include 'events/event_notifications.html' %}
-
-<!-- Active events -->
-
-  <div class="card" >
-    <div class="card-header">
-      <h2>Active Events</h2>
-    </div>
-
-    <ul class="list-group list-group-flush">
-      {% for event in events_active %}
-          <li class="list-group-item">
-            <h3>{{ event.title }}</h3>
-            <p class="list-group-item-text text-muted">
-            <strong>Host: {{ event.host.get_full_name }} </strong><br>
-            {% with event_cohosts=event.get_cohosts %}
-              {% if event_cohosts %}
-                <small>Cohost:
-                {% for cohost in event_cohosts %}
-                  {{ cohost.user.get_full_name }}{% if not forloop.last %}, {% endif %}
-                {% endfor %}
-                </small><br>
-              {% endif %}
-            {% endwith %}
-            <small>Created: {{ event.added_datetime|date }}</small><br>
-            {% if event.host == user %} <small>Number of participants: {{ event.participants.all|length }}</small><br>{% endif %}
-            <small>Start Date: {{ event.start_date }}</small><br>
-            <small>End Date: {{ event.end_date }}</small><br>
-
-            {% if user|is_participant:event %}
-              <small>Registration status: Registered</small><br>
-            {% elif user|is_on_waiting_list:event  %}
-                <small>Registration status: On waiting list</small><br>
-            {% endif %}
-
-            {% if user|can_view_participants:event %}
-              <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
-              </p>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#participants-modal-{{ event.id }}">View participants</button>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#pending_applications-modal-{{ event.id }}">Pending Applications</button>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#rejected_applications-modal-{{ event.id }}">Rejected Applications</button>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#withdrawn_applications-modal-{{ event.id }}">Withdrawn Applications</button>
-            {% endif %}
-            {% if user == event.host %}
-              <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
-            {% endif %}
-
-            <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-info">View Event</a>
-          </li>
-      {% empty %}
-        <div class="card-body text-center">
-          <p class="card-text">No events to show</p>
-        </div>
-      {% endfor %}
-    </ul>
-  </div>
-  <br>
-  {% for event in events_active %}
-    {% for info in event_details|get_applicant_info:event.id %}
-      <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ info.id }}-modal" aria-hidden="true">
-        <div class="modal-dialog modal-lg"  role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">{{ info.title }}</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-              {% include 'events/event_applications.html' %}
-            </div>
-          </div>
-        </div>
-    {% endfor %}
-  {% endfor %}   
-
-<!-- Past events -->
-
-  <div class="card" >
-    <div class="card-header">
-      <h2>Past Events</h2>
-    </div>
-    
-    <ul class="list-group list-group-flush">
-      {% for event in events_past %}
-          <li class="list-group-item">
-            <h3>{{ event.title }}</h3>
-            <p class="list-group-item-text text-muted">
-            <strong>Host: {{ event.host.get_full_name }} </strong><br>
-            {% with event_cohosts=event.get_cohosts %}
-              {% if event_cohosts %}
-                <small>Cohost:
-                {% for cohost in event_cohosts %}
-                  {{ cohost.user.get_full_name }}{% if not forloop.last %}, {% endif %}
-                {% endfor %}
-                </small><br>
-              {% endif %}
-            {% endwith %}
-            <small>Created: {{ event.added_datetime|date }}</small><br>
-            {% if event.host == user %} <small>Number of participants: {{ event.participants.all|length }}</small><br>{% endif %}
-            <small>Start Date: {{ event.start_date }}</small><br>
-            <small>End Date: {{ event.end_date }}</small><br>
-
-            {% if user|is_participant:event %}
-              <small>Registration status: Approved</small><br>
-            {% elif user|is_on_waiting_list:event  %}
-                <small>Registration status: Waiting for Approval</small><br>
-            {% endif %}
-
-            {% if event.host == user %}
-              <small>Share the class code: {{ url_prefix }}{% url 'event_detail' event.slug %} </small><br>
-              </p>
-              <button class="btn btn-sm btn-primary" data-toggle ="modal" data-target="#participants-modal-{{ event.id }}">View participants</button>
-              <a class="btn btn-sm btn-secondary"  href="{% url 'update_event' event.slug %}" data-form-url="{% url 'update_event' event.slug %}" >Edit Event</a>
-            {% endif %}
-
-            <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-info">View Event</a>
-          </li>
-      {% empty %}
-        <div class="card-body text-center">
-          <p class="card-text">No events to show</p>
-        </div>
-      {% endfor %}
-    </ul>
-  </div>
-  <br>
+  {# Past events #}
   {% if events_past %}
-    {% for event in events_past %}
-    {% for info in event_details|get_applicant_info:event.id %}
-      <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ info.id }}-modal" aria-hidden="true">
-        <div class="modal-dialog modal-lg"  role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">{{ info.title }}</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-              {% include 'events/event_applications.html' %}
-            </div>
+    <section class="dashboard-section">
+      <details>
+        <summary>
+          <div class="dashboard-section__header">
+            <h2>Past events</h2>
+            <span class="count-pill">{{ events_past|length }}</span>
+            <i class="fa fa-chevron-down details-chevron" aria-hidden="true"></i>
           </div>
-        </div>
-    {% endfor %}
-    {% endfor %}
+        </summary>
+
+        <ul class="item-list">
+          {% for event in events_past %}
+            {% include 'events/event_home_item.html' with is_past=True %}
+          {% endfor %}
+        </ul>
+      </details>
+    </section>
   {% endif %}
-  </div>
+
+  {# Participant and application lists (hosts and co-hosts only) #}
+  {% for event in events_active %}
+    {% include 'events/event_home_modals.html' %}
+  {% endfor %}
+  {% for event in events_past %}
+    {% include 'events/event_home_modals.html' with is_past=True %}
+  {% endfor %}
+</div>
 {% endblock %}
 
-
 {% block local_js_bottom %}
-  <script>
-  </script>
-  <script src="{% static 'custom/js/resize-ck.js' %}"></script>
+<script>
+  document.querySelectorAll('[data-copy-target]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var input = document.getElementById(button.dataset.copyTarget);
+      var done = function () {
+        button.textContent = 'Copied';
+        setTimeout(function () { button.textContent = 'Copy'; }, 2000);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(input.value).then(done);
+      } else {
+        input.select();
+        document.execCommand('copy');
+        done();
+      }
+    });
+  });
+</script>
 {% endblock %}

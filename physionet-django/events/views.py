@@ -110,9 +110,19 @@ def event_home(request):
         applications__status=EventApplication.EventApplicationStatus.WAITLISTED,
     )
 
-    events_active = set(events_all.filter(end_date__gte=datetime.now()))
-    events_past = set(events_all.filter(end_date__lt=datetime.now()))
-    event_form = AddEventForm(user=user)
+    # Upcoming and current events, soonest first; past events, most recent first
+    events_active = sorted(
+        set(events_all.filter(end_date__gte=datetime.now())),
+        key=lambda e: (e.start_date, e.title),
+    )
+    events_past = sorted(
+        set(events_all.filter(end_date__lt=datetime.now())),
+        key=lambda e: (e.end_date, e.title),
+        reverse=True,
+    )
+    today = datetime.now().date()
+    for event in events_active:
+        event.has_started = event.start_date <= today
 
     url_prefix = notification.get_url_prefix(request)
 
@@ -193,7 +203,10 @@ def event_home(request):
         if process_invitation_response(request, invitation_response_formset):
             return redirect('event_home')
 
-    events = Event.objects.all().prefetch_related(
+    # Only the events listed on this page need participant details
+    events = Event.objects.filter(
+        id__in=[event.id for event in events_active + events_past]
+    ).prefetch_related(
         "participants",
         "applications",
     )
@@ -220,25 +233,25 @@ def event_home(request):
         event_details[event.id] = [
             {
                 "id": "participants",
-                "title": "Total participants:",
+                "title": "Participants",
                 "count": len(event.participants.all()),
                 "objects": event.participants.all(),
             },
             {
                 "id": "pending_applications",
-                "title": "Pending applications:",
+                "title": "Pending",
                 "count": len(pending_applications),
                 "objects": pending_applications,
             },
             {
                 "id": "rejected_applications",
-                "title": "Rejected applications:",
+                "title": "Rejected",
                 "count": len(rejected_applications),
                 "objects": rejected_applications,
             },
             {
                 "id": "withdrawn_applications",
-                "title": "Withdrawn applications:",
+                "title": "Withdrawn",
                 "count": len(withdrawn_applications),
                 "objects": withdrawn_applications,
             },
@@ -264,12 +277,12 @@ def event_home(request):
         {
             "events_active": events_active,
             "events_past": events_past,
-            "event_form": event_form,
             "url_prefix": url_prefix,
             "can_change_event": can_change_event,
             "form_error": form_error,
             "participation_response_formset": participation_response_formset,
             "invitation_response_formset": invitation_response_formset,
+            "task_count": len(participation_response_formset) + len(invitation_response_formset),
             "event_details": event_details,
         },
     )

@@ -1,0 +1,389 @@
+/*
+ * Dashboard pages (Projects, Events)
+ * Builds on the tokens and components in style.css.
+ */
+
+.dashboard {
+  padding-top: 2.5rem;
+  padding-bottom: 3rem;
+}
+
+/* Page header */
+
+.dashboard-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.dashboard .dashboard-header h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard .dashboard-header > div {
+  flex: 1 1 24rem;
+}
+
+.dashboard .dashboard-header p {
+  color: var(--gray-color);
+  margin: 0;
+  max-width: 40rem;
+}
+
+/* Buttons */
+
+.dashboard .primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dashboard .primary-button:hover,
+.dashboard .primary-button:focus {
+  color: white;
+  text-decoration: none;
+}
+
+.dashboard .primary-button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.dashboard .primary-button.primary-button--small {
+  padding: 0.45rem 0.875rem;
+  font-size: 0.875rem;
+}
+
+.dashboard .primary-button.primary-button--quiet {
+  background-color: white;
+  border: 1px solid #0000001F;
+  color: var(--secondary-color);
+}
+
+.dashboard .primary-button.primary-button--quiet:hover,
+.dashboard .primary-button.primary-button--quiet:focus {
+  background-color: var(--gray-200);
+  color: var(--secondary-color);
+}
+
+/* Sections */
+
+.dashboard-section {
+  margin-bottom: 3rem;
+}
+
+.dashboard-section__header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard .dashboard-section__header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.dashboard-section__header p {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--gray-color);
+}
+
+.count-pill {
+  display: inline-block;
+  min-width: 1.75rem;
+  padding: 0.1rem 0.6rem;
+  border-radius: 50rem;
+  background-color: var(--gray-200);
+  color: var(--secondary-color);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.count-pill--attention {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* Item cards */
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item-list .card-title {
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.item-list .card-title > span {
+  color: var(--secondary-color);
+}
+
+.item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--gray-color);
+}
+
+.item__meta strong {
+  font-weight: 600;
+  color: var(--secondary-color);
+}
+
+.item__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.item--muted .card-title > a,
+.item--muted .card-title > span {
+  color: var(--gray-color);
+}
+
+/* Status line on active projects */
+
+.item__status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.875rem;
+  color: var(--secondary-color);
+}
+
+.item__status i {
+  color: var(--gray-color);
+}
+
+.item__status--warning,
+.item__status--warning i {
+  color: #8a4b00;
+}
+
+/* Badges */
+
+.dashboard .badge {
+  font-weight: 500;
+}
+
+.dashboard .badge-info {
+  background-color: var(--indigo-100);
+  color: var(--indigo-900);
+}
+
+.dashboard .badge-warning {
+  background-color: #FFF0C2;
+  color: #5C3D00;
+}
+
+.dashboard .badge-light {
+  background-color: white;
+  color: var(--secondary-color);
+  border: 1px solid #0000001F;
+}
+
+.dashboard .badge-pink {
+  background-color: var(--rose-100);
+  color: var(--pink-900);
+}
+
+/* Tasks needing attention */
+
+.task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 0.3rem;
+  background-color: var(--rose-100);
+}
+
+.task-list + .task-list {
+  margin-top: 0.75rem;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+.task + .task {
+  border-top: 1px solid #DA125922;
+}
+
+.task__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background-color: white;
+  color: var(--primary-color);
+}
+
+.task__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.task__label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--primary-color);
+}
+
+.task__title {
+  display: block;
+  font-weight: 600;
+  color: var(--secondary-color);
+  overflow-wrap: anywhere;
+}
+
+a.task__title:hover {
+  color: var(--primary-color);
+}
+
+.task__detail {
+  font-size: 0.875rem;
+  color: var(--gray-color);
+}
+
+@media (max-width: 575.98px) {
+  .task {
+    flex-wrap: wrap;
+  }
+  .task__icon {
+    display: none;
+  }
+  .task__action {
+    width: 100%;
+  }
+}
+
+/* Empty states */
+
+.empty-state {
+  padding: 2.5rem 1.5rem;
+  border: 1px dashed #0000002A;
+  border-radius: 0.3rem;
+  text-align: center;
+  color: var(--gray-color);
+}
+
+.empty-state i {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 1.75rem;
+  color: #ADB5BD;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.empty-state p + p {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/* Copyable link field */
+
+.copy-field {
+  max-width: 36rem;
+  margin-top: 1rem;
+}
+
+.copy-field label {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-color);
+}
+
+.copy-field__row {
+  display: flex;
+  width: 100%;
+}
+
+.dashboard .copy-field input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--secondary-color);
+  background-color: white;
+  border: 1px solid #0000001F;
+  border-right: none;
+  border-radius: 0.3rem 0 0 0.3rem;
+}
+
+.copy-field button {
+  flex-shrink: 0;
+  padding: 0 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+  background-color: var(--gray-200);
+  border: 1px solid #0000001F;
+  border-radius: 0 0.3rem 0.3rem 0;
+  cursor: pointer;
+}
+
+.copy-field button:hover {
+  background-color: #DEE2E6;
+}
+
+/* Collapsible past items */
+
+.dashboard details > summary {
+  cursor: pointer;
+  list-style: none;
+}
+
+.dashboard details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.details-chevron {
+  align-self: center;
+  font-size: 0.875rem;
+  color: var(--gray-color);
+  transition: transform 0.15s ease;
+}
+
+.dashboard details[open] .details-chevron {
+  transform: rotate(180deg);
+}

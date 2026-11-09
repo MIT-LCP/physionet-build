@@ -1,0 +1,64 @@
+{% load participation_status %}
+{% with can_manage=user|can_view_participants:event event_cohosts=event.get_cohosts %}
+<li class="card card--flat{% if is_past %} item--muted{% endif %}">
+  <div>
+    <span class="badge badge-dark">{{ event.get_category_display }}</span>
+    {% if is_past %}
+      <span class="badge badge-light">Ended</span>
+    {% elif event.has_started %}
+      <span class="badge badge-success">In progress</span>
+    {% else %}
+      <span class="badge badge-info">Upcoming</span>
+    {% endif %}
+    {% if event.host == user %}
+      <span class="badge badge-pink">Host</span>
+    {% elif can_manage %}
+      <span class="badge badge-pink">Co-host</span>
+    {% elif user|is_participant:event %}
+      <span class="badge badge-light"><i class="fa fa-check" aria-hidden="true"></i> Registered</span>
+    {% elif user|is_on_waiting_list:event %}
+      <span class="badge badge-warning">Awaiting approval</span>
+    {% endif %}
+  </div>
+
+  <h3 class="card-title"><a href="{% url 'event_detail' event.slug %}">{{ event.title }}</a></h3>
+
+  <ul class="item__meta">
+    <li><i class="far fa-calendar" aria-hidden="true"></i> {{ event.start_date|date:"M j, Y" }} &ndash; {{ event.end_date|date:"M j, Y" }}</li>
+    <li>Host: <strong>{{ event.host.get_full_name }}</strong></li>
+    {% if event_cohosts %}
+      <li>Co-host{{ event_cohosts|length|pluralize }}:
+        <strong>{% for cohost in event_cohosts %}{{ cohost.user.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</strong>
+      </li>
+    {% endif %}
+  </ul>
+
+  {% if can_manage and not is_past %}
+    <div class="copy-field">
+      <label for="event-link-{{ event.id }}">Registration link for participants</label>
+      <div class="copy-field__row">
+        <input id="event-link-{{ event.id }}" type="text" readonly value="{{ url_prefix }}{% url 'event_detail' event.slug %}">
+        <button type="button" data-copy-target="event-link-{{ event.id }}">Copy</button>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="item__actions">
+    <a href="{% url 'event_detail' event.slug %}" class="primary-button primary-button--small">View event</a>
+    {% if event.host == user %}
+      <a href="{% url 'update_event' event.slug %}" class="primary-button primary-button--small primary-button--quiet">
+        <i class="fa fa-pen" aria-hidden="true"></i> Edit
+      </a>
+    {% endif %}
+    {% if can_manage %}
+      {% for info in event_details|get_applicant_info:event.id %}
+        {% if not is_past or info.id == 'participants' %}
+          <button type="button" class="primary-button primary-button--small primary-button--quiet" data-toggle="modal" data-target="#{{ info.id }}-modal-{{ event.id }}">
+            {{ info.title }} <span class="count-pill">{{ info.count }}</span>
+          </button>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </div>
+</li>
+{% endwith %}
