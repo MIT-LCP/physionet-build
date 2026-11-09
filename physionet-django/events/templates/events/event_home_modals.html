@@ -1,5 +1,5 @@
 {% load participation_status %}
-{% with can_manage=user|can_view_participants:event %}
+{% with can_manage=user|is_host_or_cohost:event %}
   {% if can_manage %}
     {% for info in event_details|get_applicant_info:event.id %}
       {% if not is_past or info.id == 'participants' %}

@@ -1,5 +1,5 @@
 {% load participation_status %}
-{% with can_manage=user|can_view_participants:event event_cohosts=event.get_cohosts %}
+{% with can_manage=user|is_host_or_cohost:event event_cohosts=event.get_cohosts %}
 <li class="card card--flat{% if is_past %} item--muted{% endif %}">
   <div>
     <span class="badge badge-dark">{{ event.get_category_display }}</span>
@@ -45,7 +45,7 @@
 
   <div class="item__actions">
     <a href="{% url 'event_detail' event.slug %}" class="primary-button primary-button--small">View event</a>
-    {% if event.host == user %}
+    {% if can_manage %}
       <a href="{% url 'update_event' event.slug %}" class="primary-button primary-button--small primary-button--quiet">
         <i class="fa fa-pen" aria-hidden="true"></i> Edit
       </a>

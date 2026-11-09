@@ -30,11 +30,14 @@ class AddEventForm(forms.ModelForm):
                    }
 
     def __init__(self, user, *args, **kwargs):
-        self.host = user
         super(AddEventForm, self).__init__(*args, **kwargs)
+        # When a cohost edits an event, the event still belongs to its host
+        is_update = bool(self.instance and self.instance.pk)
+        self.host = self.instance.host if is_update else user
 
-        # Add billing account choices if user has cloud identity
-        if user and hasattr(user, 'cloud_identity'):
+        # Add billing account choices if user has cloud identity. Billing
+        # accounts belong to the host, so cohosts cannot change them.
+        if user and hasattr(user, 'cloud_identity') and user == self.host:
             self.fields['gcp_billing_id'] = forms.ChoiceField(
                 required=False,
                 label='Billing Account',
