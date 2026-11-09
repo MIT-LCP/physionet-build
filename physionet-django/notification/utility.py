@@ -1126,6 +1126,9 @@ def task_failed_notify(name, attempts, last_error, date_time, task_name, task_pa
             'signature': settings.EMAIL_SIGNATURE
         })
     subject = name + " has failed"
+    # This runs inside background_task's Task.reschedule(), before the task
+    # is saved or deleted. If sending raised an error, the task would be
+    # stuck in the queue, so don't let email errors propagate.
     mail_admins(subject, body, fail_silently=True)
 
 
@@ -1145,6 +1148,9 @@ def task_rescheduled_notify(name, attempts, last_error, date_time, task_name, ta
             'signature': settings.EMAIL_SIGNATURE
         })
     subject = name + " has been rescheduled"
+    # This runs inside background_task's Task.reschedule(), before the task
+    # is saved or deleted. If sending raised an error, the task would be
+    # stuck in the queue, so don't let email errors propagate.
     mail_admins(subject, body, fail_silently=True)
 
 
