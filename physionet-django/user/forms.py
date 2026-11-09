@@ -893,7 +893,8 @@ class ActivationForm(forms.Form):
 class TrainingForm(forms.ModelForm):
     completion_report = forms.FileField(widget=forms.HiddenInput(), disabled=True, required=False, label="Document",
                                         validators=[validate_training_file_size])
-    completion_report_url = forms.URLField(widget=forms.HiddenInput(), disabled=True, required=False, label="URL")
+    completion_report_url = forms.URLField(widget=forms.HiddenInput(), disabled=True, required=False, label="URL",
+                                           assume_scheme="https")
 
     class Meta:
         model = Training

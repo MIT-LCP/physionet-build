@@ -1088,6 +1088,7 @@ class FederatedSiteForm(forms.Form):
     )
     api_base_url = forms.URLField(
         max_length=500,
+        assume_scheme='https',
         label='API Base URL',
         help_text='Base URL for the federation API (e.g., "https://healthdatanexus.ai")'
     )

@@ -81,7 +81,7 @@ class UploadAgreement(models.Model):
         verbose_name_plural = 'Upload Agreements'
         constraints = [
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(no_human_subjects=True)
                     | models.Q(derived_data=True)
                     | models.Q(human_subjects_deidentified=True)

@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
         migrations.AddConstraint(
             model_name='uploadagreement',
             constraint=models.CheckConstraint(
-                check=models.Q(
+                condition=models.Q(
                     ('no_human_subjects', True),
                     ('derived_data', True),
                     ('human_subjects_deidentified', True),
