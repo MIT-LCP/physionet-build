@@ -249,7 +249,7 @@
             <p class="mb-1"><strong>Message:</strong></p>
             <p class="border rounded p-2" style="white-space: pre-wrap;">{{ access_request.message }}</p>
             {% endif %}
-            {% if project.submission_status != SubmissionStatus.ARCHIVED and not can_respond_to_reviewer_access %}
+            {% if project.submission_status != SubmissionStatus.ARCHIVED and not can_manage_reviewer_access %}
             <p class="mt-3 mb-0 text-muted">
               Only the project's editor{% if project.editor %} ({{ project.editor.get_full_name }}){% endif %}
               or a managing editor can grant or decline this request.
@@ -303,7 +303,7 @@
         <div class="alert alert-warning" id="reviewer-link-expired">
           <p class="m-0">
             <strong>The reviewer link expired on {{ anonymous.expiry_datetime|date }}</strong> and no longer works.
-            Generate a new link if reviewers still need access.
+            {% if can_manage_reviewer_access %}Generate a new link if reviewers still need access.{% endif %}
           </p>
           <p class="mt-2 mb-0">
             <strong>Expired link type:</strong> {% if hide_authors %}Author-Masked Link{% else %}Standard Link{% endif %}
@@ -334,6 +334,12 @@
             <p class="mt-2 mb-0"><strong>Link Type:</strong> {% if hide_authors %}Author-Masked Link{% else %}Standard Link{% endif %}</p>
           {% endif %}
         </div>
+        {% if not can_manage_reviewer_access %}
+        <p class="text-muted" id="reviewer-link-editor-only">
+          Only the project's editor{% if project.editor %} ({{ project.editor.get_full_name }}){% endif %}
+          or a managing editor can create or revoke the reviewer link.
+        </p>
+        {% else %}
         <form action="{% url 'submission_info' project.slug %}" method="POST" id="passphrase_form">
           {% csrf_token %}
           {% if project.submission_status != SubmissionStatus.ARCHIVED %}
@@ -352,6 +358,7 @@
           </button>
           {% endif %}
         </form>
+        {% endif %}
       </div>
       {% endif %}
 

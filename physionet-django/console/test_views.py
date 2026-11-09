@@ -1690,6 +1690,37 @@ class TestAnonymousAccess(TestMixin):
         # Check that anonymous access was deleted
         self.assertEqual(self.project.anonymous.count(), 0)
 
+    def test_only_editors_can_create_or_revoke_links(self):
+        """
+        Console staff who are not the project's editor or a managing
+        editor cannot create or revoke a reviewer link.
+        """
+        staff = User.objects.get(username='amitupreti')
+        self.assertTrue(staff.has_perm('project.change_activeproject'))
+        self.assertNotEqual(self.project.editor, staff)
+        self.client.login(username='amitupreti', password='Tester11!')
+        url = reverse('submission_info', args=[self.project.slug])
+
+        response = self.client.get(url)
+        self.assertContains(response, 'id="reviewer-link-editor-only"')
+        self.assertNotContains(response, 'name="generate_passphrase"')
+
+        self.client.post(url, data={'generate_passphrase': ''})
+        self.client.post(url, data={'generate_passphrase_masked': ''})
+        self.assertEqual(self.project.anonymous.count(), 0)
+
+        self.project.generate_anonymous_access()
+        self.client.post(url, data={'remove_passphrase': ''})
+        self.assertEqual(self.project.anonymous.count(), 1)
+
+        # The assigned editor can
+        self.project.editor = staff
+        self.project.save()
+        response = self.client.get(url)
+        self.assertContains(response, 'name="remove_passphrase"')
+        self.client.post(url, data={'remove_passphrase': ''})
+        self.assertEqual(self.project.anonymous.count(), 0)
+
     def test_author_masked_preview_hides_author_info(self):
         """
         Test that author information is hidden in preview when using author-masked link

@@ -385,10 +385,22 @@ def submission_file_changes(previous_files, current_files,
     }
 
 
-def can_respond_to_reviewer_access(user, project):
+# Submission info actions that create, revoke or respond to requests for
+# reviewer (anonymous access) links
+REVIEWER_ACCESS_ACTIONS = (
+    'generate_passphrase',
+    'generate_passphrase_masked',
+    'remove_passphrase',
+    'grant_reviewer_access',
+    'decline_reviewer_access',
+)
+
+
+def can_manage_reviewer_access(user, project):
     """
-    Whether the user may grant or decline a reviewer access request:
-    the project's editor or a managing editor.
+    Whether the user may create or revoke a project's reviewer link, or
+    grant or decline a request for one: the project's editor or a
+    managing editor.
     """
     return user == project.editor or user.has_perm('project.can_assign_editor')
 
@@ -473,7 +485,7 @@ def submission_info_card_params(request,
         'anonymous_url': anonymous.url if anonymous else '',
         'hide_authors': anonymous.hide_authors if anonymous else False,
         'pending_reviewer_access_request': pending_reviewer_access_request,
-        'can_respond_to_reviewer_access': can_respond_to_reviewer_access(request.user, project),
+        'can_manage_reviewer_access': can_manage_reviewer_access(request.user, project),
     }
 
 
@@ -505,7 +517,13 @@ def submission_info(request, project_slug):
     embargo_form = forms.EmbargoFilesDaysForm()
     passphrase = ''
 
-    if 'generate_passphrase' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
+    if (
+        any(action in request.POST for action in REVIEWER_ACCESS_ACTIONS)
+        and not can_manage_reviewer_access(user, project)
+    ):
+        messages.error(request, 'Only the project editor or a managing editor can create, revoke or '
+                                'respond to requests for reviewer links.')
+    elif 'generate_passphrase' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
         _, passphrase = project.generate_anonymous_access(hide_authors=False)
     elif 'generate_passphrase_masked' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
         _, passphrase = project.generate_anonymous_access(hide_authors=True)
@@ -517,10 +535,7 @@ def submission_info(request, project_slug):
             ReviewerAccessRequest, project=project, id=request.POST.get('access_request_id'))
         response_message = request.POST.get('response_message', '').strip()[:2000]
         granting = 'grant_reviewer_access' in request.POST
-        if not can_respond_to_reviewer_access(user, project):
-            messages.error(request, 'Only the project editor or a managing editor can respond to '
-                                    'reviewer access requests.')
-        elif not access_request.is_active:
+        if not access_request.is_active:
             messages.error(request, 'This reviewer access request has already been answered or withdrawn.')
         elif granting and project.submission_status == SubmissionStatus.ARCHIVED:
             messages.error(request, 'Reviewer access cannot be granted for an archived project.')
