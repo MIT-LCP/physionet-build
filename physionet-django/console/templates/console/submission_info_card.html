@@ -249,7 +249,12 @@
             <p class="mb-1"><strong>Message:</strong></p>
             <p class="border rounded p-2" style="white-space: pre-wrap;">{{ access_request.message }}</p>
             {% endif %}
-            {% if project.submission_status != SubmissionStatus.ARCHIVED %}
+            {% if project.submission_status != SubmissionStatus.ARCHIVED and not can_respond_to_reviewer_access %}
+            <p class="mt-3 mb-0 text-muted">
+              Only the project's editor{% if project.editor %} ({{ project.editor.get_full_name }}){% endif %}
+              or a managing editor can grant or decline this request.
+            </p>
+            {% elif project.submission_status != SubmissionStatus.ARCHIVED %}
             <form action="{% url 'submission_info' project.slug %}?tab=anonymous" method="POST" class="mt-3">
               {% csrf_token %}
               <input type="hidden" name="access_request_id" value="{{ access_request.id }}">
@@ -269,7 +274,7 @@
                   (optional when granting, required when declining)</label>
                 <textarea class="form-control" name="response_message" id="reviewer_access_response_message" rows="3" maxlength="2000"></textarea>
               </div>
-              {% if anonymous_url %}
+              {% if anonymous and not anonymous.is_expired %}
               <p class="text-danger small">
                 This project already has a reviewer link. Granting the request replaces it, and the current link
                 and passphrase will stop working.
@@ -290,15 +295,27 @@
         </div>
         {% endwith %}
         {% endif %}
-        {% if anonymous_url and project.submission_status == SubmissionStatus.ARCHIVED %}
+        {% if anonymous and project.submission_status == SubmissionStatus.ARCHIVED %}
         <div class="alert alert-secondary">
           This project is archived, so its reviewer link no longer works.
         </div>
-        {% endif %}
-        {% if anonymous_url %}
+        {% elif anonymous and anonymous.is_expired %}
+        <div class="alert alert-warning" id="reviewer-link-expired">
+          <p class="m-0">
+            <strong>The reviewer link expired on {{ anonymous.expiry_datetime|date }}</strong> and no longer works.
+            Generate a new link if reviewers still need access.
+          </p>
+          <p class="mt-2 mb-0">
+            <strong>Expired link type:</strong> {% if hide_authors %}Author-Masked Link{% else %}Standard Link{% endif %}
+          </p>
+        </div>
+        {% elif anonymous %}
         <div class="alert alert-info">
           <p class="m-0">
             <strong>Active Link Type:</strong> {% if hide_authors %}Author-Masked Link{% else %}Standard Link{% endif %}
+          </p>
+          <p class="mt-2 mb-0">
+            <strong>Expires:</strong> {{ anonymous.expiry_datetime|date }}
           </p>
           <p class="mt-2 mb-0">
             <strong>URL for reviewer access:</strong><br>
@@ -319,16 +336,19 @@
         </div>
         <form action="{% url 'submission_info' project.slug %}" method="POST" id="passphrase_form">
           {% csrf_token %}
-          {% if not project.anonymous.first and not project.submission_status == SubmissionStatus.ARCHIVED %}
-          <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase">
-            Generate Standard Link
-          </button>
-          <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase_masked">
-            Generate Author-Masked Link
-          </button>
-          {% else %}
+          {% if project.submission_status != SubmissionStatus.ARCHIVED %}
+            {% if not anonymous or anonymous.is_expired %}
+            <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase">
+              Generate {% if anonymous %}New {% endif %}Standard Link
+            </button>
+            <button class="btn btn-primary btn-rsp" type="submit" name="generate_passphrase_masked">
+              Generate {% if anonymous %}New {% endif %}Author-Masked Link
+            </button>
+            {% endif %}
+          {% endif %}
+          {% if anonymous %}
           <button class="btn btn-danger btn-rsp" type="submit" name="remove_passphrase">
-            Revoke Access
+            {% if anonymous.is_expired %}Remove Expired Link{% else %}Revoke Access{% endif %}
           </button>
           {% endif %}
         </form>

@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.contrib.auth.models import Group
 from django.core import mail
 from django.test import Client
 from django.urls import reverse
@@ -222,6 +223,86 @@ class TestReviewerAccessRequests(TestMixin):
         self.assertNotContains(response, 'name="cancel_reviewer_access_request"')
         self.client.post(url, data={'cancel_reviewer_access_request': ''})
         self.assertTrue(self.project.revieweraccessrequests.filter(is_active=True).exists())
+
+    def test_other_console_staff_cannot_respond(self):
+        """
+        Console staff who are not the project's editor or a managing
+        editor can see the request but cannot grant or decline it.
+        """
+        self.request_access()
+        access_request = self.project.revieweraccessrequests.get()
+        staff = User.objects.get(username='amitupreti')
+        self.assertTrue(staff.has_perm('project.change_activeproject'))
+        self.assertFalse(staff.has_perm('project.can_assign_editor'))
+
+        self.client.login(username='amitupreti', password='Tester11!')
+        url = reverse('submission_info', args=(self.project.slug,))
+        response = self.client.get(url)
+        self.assertContains(response, 'Reviewer access requested')
+        self.assertContains(response, 'or a managing editor can grant or decline this request')
+        self.assertNotContains(response, 'name="grant_reviewer_access"')
+
+        for action in ('grant_reviewer_access', 'decline_reviewer_access'):
+            self.client.post(url, data={
+                action: '',
+                'access_request_id': access_request.id,
+                'response_message': 'No',
+            })
+        access_request.refresh_from_db()
+        self.assertTrue(access_request.is_active)
+        self.assertFalse(self.project.anonymous.exists())
+
+    def test_managing_editor_can_respond(self):
+        self.request_access()
+        access_request = self.project.revieweraccessrequests.get()
+        managing_editor = User.objects.get(username='amitupreti')
+        managing_editor.groups.add(Group.objects.get(name='Managing Editor'))
+
+        self.client.login(username='amitupreti', password='Tester11!')
+        self.client.post(reverse('submission_info', args=(self.project.slug,)), data={
+            'grant_reviewer_access': '',
+            'access_request_id': access_request.id,
+            'link_type': 'standard',
+        })
+        access_request.refresh_from_db()
+        self.assertFalse(access_request.is_active)
+        self.assertEqual(access_request.responder, managing_editor)
+        self.assertTrue(self.project.anonymous.exists())
+
+    def test_console_shows_link_expiry(self):
+        self.project.generate_anonymous_access()
+        anonymous = self.project.anonymous.get()
+        self.client.login(username='admin', password='Tester11!')
+        url = reverse('submission_info', args=(self.project.slug,))
+
+        response = self.client.get(url)
+        self.assertContains(response, 'Active Link Type')
+        self.assertContains(response, 'Expires:')
+        self.assertNotContains(response, 'id="reviewer-link-expired"')
+
+        anonymous.creation_datetime = timezone.now() - timedelta(days=365)
+        anonymous.save()
+        response = self.client.get(url)
+        self.assertContains(response, 'id="reviewer-link-expired"')
+        self.assertNotContains(response, 'Active Link Type')
+        self.assertNotContains(response, anonymous.url)
+        # The editor can generate a replacement without revoking first
+        self.assertContains(response, 'name="generate_passphrase"')
+        self.assertContains(response, 'Remove Expired Link')
+
+        self.client.post(url, data={'generate_passphrase': ''})
+        anonymous = self.project.anonymous.get()
+        self.assertFalse(anonymous.is_expired)
+
+    def test_request_shown_in_edit_mode(self):
+        self.project.submission_status = SubmissionStatus.NEEDS_DECISION
+        self.project.save()
+        self.request_access()
+        self.client.login(username='admin', password='Tester11!')
+        response = self.client.get(reverse('edit_submission', args=(self.project.slug,)))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Reviewer access requested')
+        self.assertContains(response, 'name="grant_reviewer_access"')
 
 
 class TestReviewerLinkEndsWithReview(TestMixin):

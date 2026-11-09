@@ -385,6 +385,14 @@ def submission_file_changes(previous_files, current_files,
     }
 
 
+def can_respond_to_reviewer_access(user, project):
+    """
+    Whether the user may grant or decline a reviewer access request:
+    the project's editor or a managing editor.
+    """
+    return user == project.editor or user.has_perm('project.can_assign_editor')
+
+
 def submission_info_card_params(request,
                                 project,
                                 reassign_editor_form,
@@ -433,6 +441,11 @@ def submission_info_card_params(request,
         previous_files = files
         previous_files_truncated = files_truncated
 
+    anonymous = project.anonymous.first()
+    pending_reviewer_access_request = (
+        project.revieweraccessrequests.filter(is_active=True).select_related('requester').first()
+    )
+
     return {
         'project': project,
         'authors': authors,
@@ -456,6 +469,11 @@ def submission_info_card_params(request,
         'upload_agreement': upload_agreement,
         'deposit_terms_acceptances': DepositTermsAcceptance.for_project(project),
         'deposit_terms_enabled': deposit_terms_enabled(),
+        'anonymous': anonymous,
+        'anonymous_url': anonymous.url if anonymous else '',
+        'hide_authors': anonymous.hide_authors if anonymous else False,
+        'pending_reviewer_access_request': pending_reviewer_access_request,
+        'can_respond_to_reviewer_access': can_respond_to_reviewer_access(request.user, project),
     }
 
 
@@ -486,21 +504,23 @@ def submission_info(request, project_slug):
     internal_note_form = forms.InternalNoteForm(data)
     embargo_form = forms.EmbargoFilesDaysForm()
     passphrase = ''
-    anonymous_url = project.get_anonymous_url()
 
     if 'generate_passphrase' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
-        anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=False)
+        _, passphrase = project.generate_anonymous_access(hide_authors=False)
     elif 'generate_passphrase_masked' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
-        anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=True)
+        _, passphrase = project.generate_anonymous_access(hide_authors=True)
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
-        anonymous_url, passphrase = '', 'revoked'
+        passphrase = 'revoked'
     elif 'grant_reviewer_access' in request.POST or 'decline_reviewer_access' in request.POST:
         access_request = get_object_or_404(
             ReviewerAccessRequest, project=project, id=request.POST.get('access_request_id'))
         response_message = request.POST.get('response_message', '').strip()[:2000]
         granting = 'grant_reviewer_access' in request.POST
-        if not access_request.is_active:
+        if not can_respond_to_reviewer_access(user, project):
+            messages.error(request, 'Only the project editor or a managing editor can respond to '
+                                    'reviewer access requests.')
+        elif not access_request.is_active:
             messages.error(request, 'This reviewer access request has already been answered or withdrawn.')
         elif granting and project.submission_status == SubmissionStatus.ARCHIVED:
             messages.error(request, 'Reviewer access cannot be granted for an archived project.')
@@ -593,10 +613,6 @@ def submission_info(request, project_slug):
         messages.success(request, f'Project "{project.title}" has been archived successfully.')
         return redirect('submitted_projects')
 
-    # Check if anonymous access link should hide authors
-    anonymous = project.anonymous.first()
-    hide_authors = anonymous.hide_authors if anonymous else False
-
     return render(request, 'console/submission_info.html',
                   {**submission_info_card_params(
                    request,
@@ -609,9 +625,6 @@ def submission_info(request, project_slug):
                    ),
                    'copyedit_logs': copyedit_logs,
                    'passphrase': passphrase,
-                   'anonymous_url': anonymous_url,
-                   'hide_authors': hide_authors,
-                   'pending_reviewer_access_request': project.revieweraccessrequests.filter(is_active=True).first(),
                    }
                   )
 
