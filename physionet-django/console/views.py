@@ -2902,7 +2902,7 @@ def submission_stats(request):
     # Initialize yearly counts for the last 6 years:
     # [created, submitted, resubmitted, published, rejected]
     yearly_stats = OrderedDict()
-    for y in range(todays_date.year - 5, todays_date.year + 1):
+    for y in range(todays_date.year, todays_date.year - 6, -1):
         yearly_stats[y] = [0, 0, 0, 0, 0]
 
     # Get all active and published projects and store their milestone datetimes
@@ -2922,11 +2922,11 @@ def submission_stats(request):
             for log in edit_logs:
                 sub_date_yr = log.submission_datetime.year
                 sub_date_mo = log.submission_datetime.strftime("%B")
+                idx = 2 if log.is_resubmission else 1
                 if sub_date_yr in stats and sub_date_mo in stats[sub_date_yr]:
-                    if log.is_resubmission:
-                        stats[sub_date_yr][sub_date_mo][2] += 1
-                    else:
-                        stats[sub_date_yr][sub_date_mo][1] += 1
+                    stats[sub_date_yr][sub_date_mo][idx] += 1
+                if sub_date_yr in yearly_stats:
+                    yearly_stats[sub_date_yr][idx] += 1
 
                 # Get times when projects were rejected, if applicable
                 if log.decision == 0 and log.decision_datetime:
@@ -2934,19 +2934,8 @@ def submission_stats(request):
                     reject_mo = log.decision_datetime.strftime("%B")
                     if reject_yr in stats and reject_mo in stats[reject_yr]:
                         stats[reject_yr][reject_mo][4] += 1
-
-                if sub_date_yr in yearly_stats:
-                    if log.is_resubmission:
-                        yearly_stats[sub_date_yr][2] += 1
-                    else:
-                        yearly_stats[sub_date_yr][1] += 1
-                try:
-                    if log.decision == 0 and log.decision_datetime is not None:
-                        rej_yr = log.decision_datetime.year
-                        if rej_yr in yearly_stats:
-                            yearly_stats[rej_yr][4] += 1
-                except AttributeError:
-                    pass
+                    if reject_yr in yearly_stats:
+                        yearly_stats[reject_yr][4] += 1
 
             # Get times when projects were published, if applicable
             try:
