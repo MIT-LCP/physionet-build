@@ -46,7 +46,9 @@ from project.models import (
     StorageRequest,
     SubmissionStatus,
     UploadAgreement,
-    AWS
+    AWS,
+    AWSAccessPoint,
+    AWSAccessPointUser,
 )
 from project import openalex
 from project.authorization.access import can_access_project
@@ -1989,6 +1991,171 @@ class TestSelfManagedProjectWorkflows(TestMixin):
             requester_id=User.objects.get(username=self.REQUESTER),
             project_id=project.id,
             status=DataAccessRequest.ACCEPT_REQUEST_VALUE)), 2)
+
+    def _make_request(self, project, status=DataAccessRequest.ACCEPT_REQUEST_VALUE, title='example title'):
+        decided = status != DataAccessRequest.PENDING_VALUE
+        return DataAccessRequest.objects.create(
+            requester=User.objects.get(username=self.REQUESTER),
+            project=project,
+            data_use_title=title,
+            data_use_purpose='purpose',
+            status=status,
+            decision_datetime=timezone.now() if decided else None,
+            responder=User.objects.get(username=self.SUBMITTER) if decided else None,
+            responder_comments='no' if status == DataAccessRequest.REJECT_REQUEST_VALUE else '',
+        )
+
+    def _revoke(self, project, access_request):
+        self.client.login(username=self.SUBMITTER, password=self.PASSWORD)
+        return self.client.post(
+            reverse('data_access_requests_overview', args=(project.slug, project.version)),
+            data={'revoke_request_id': access_request.id},
+        )
+
+    def test_additional_reviewers_notified_of_new_request(self):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        reviewer = User.objects.get(username='admin')
+        DataAccessRequestReviewer.objects.create(project=project, reviewer=reviewer)
+
+        self.client.login(username=self.REQUESTER, password=self.PASSWORD)
+        self.client.post(
+            reverse('request_data_access', args=(project.slug, project.version)),
+            data={
+                'proj-data_use_purpose': 'purpose',
+                'proj-data_use_title': 'example title',
+                'proj-lay_summary': 'summary',
+                'proj-agree_dua': ['on'],
+            },
+        )
+
+        notified = [m.to[0] for m in mail.outbox if 'New Data Access Request' in m.subject]
+        self.assertCountEqual(notified, [project.corresponding_author().user.email, reviewer.email])
+
+    def test_revoke_records_revoker_and_notifies_requester(self):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        access_request = self._make_request(project)
+
+        response = self._revoke(project, access_request)
+        self.assertRedirects(
+            response, reverse('data_access_requests_overview', args=(project.slug, project.version))
+        )
+
+        access_request.refresh_from_db()
+        self.assertTrue(access_request.is_revoked())
+        self.assertEqual(access_request.revoker.username, self.SUBMITTER)
+        self.assertIsNotNone(access_request.revocation_datetime)
+        # The original decision is kept
+        self.assertEqual(access_request.responder.username, self.SUBMITTER)
+
+        self.assertIn('Data Access Revoked', mail.outbox[-1].subject)
+        self.assertEqual(mail.outbox[-1].to, [access_request.requester.email])
+
+    @prevent_request_warnings
+    def test_cannot_revoke_request_on_another_project(self):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        other_project = PublishedProject.objects.exclude(pk=project.pk).first()
+        other_request = self._make_request(other_project)
+
+        response = self._revoke(project, other_request)
+        self.assertEqual(response.status_code, 404)
+
+        other_request.refresh_from_db()
+        self.assertTrue(other_request.is_accepted())
+
+    def test_cannot_revoke_request_that_is_not_accepted(self):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        access_request = self._make_request(project, status=DataAccessRequest.PENDING_VALUE)
+
+        self._revoke(project, access_request)
+
+        access_request.refresh_from_db()
+        self.assertTrue(access_request.is_pending())
+
+    @mock.patch('project.views.remove_user_from_access_point_policy')
+    @mock.patch('project.views.has_s3_credentials', return_value=True)
+    def test_revoke_removes_aws_access_only_when_no_other_request_is_active(self, _creds, remove_from_aws):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        first = self._make_request(project, title='first')
+        second = self._make_request(project, title='second')
+
+        self._revoke(project, first)
+        remove_from_aws.assert_not_called()
+
+        self._revoke(project, second)
+        remove_from_aws.assert_called_once_with(project, second.requester)
+
+    @mock.patch('project.views.remove_user_from_access_point_policy', side_effect=Exception('AWS error'))
+    @mock.patch('project.views.has_s3_credentials', return_value=True)
+    def test_aws_failure_is_reported_and_can_be_retried(self, _creds, remove_from_aws):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        access_request = self._make_request(project)
+        aws = AWS.objects.create(project=project, bucket_name='bucket', is_private=True)
+        access_point = AWSAccessPoint.objects.create(aws=aws, name='ap-01')
+        AWSAccessPointUser.objects.create(access_point=access_point, user=access_request.requester, aws=aws)
+
+        response = self._revoke(project, access_request)
+        response = self.client.get(response.url)
+        page_messages = [str(m) for m in response.context['messages']]
+        self.assertEqual(len(page_messages), 1)
+        self.assertIn('removing them from AWS failed', page_messages[0])
+        self.assertNotIn('has been revoked', page_messages[0])
+
+        # The request is still revoked on the site, and the reviewer can retry
+        access_request.refresh_from_db()
+        self.assertTrue(access_request.is_revoked())
+        self.assertContains(response, 'Retry AWS removal')
+
+        remove_from_aws.side_effect = None
+        remove_from_aws.return_value = True
+        response = self._revoke(project, access_request)
+        self.assertEqual(remove_from_aws.call_count, 2)
+        AWSAccessPointUser.objects.all().delete()
+        response = self.client.get(response.url)
+        self.assertIn('has been removed from AWS', [str(m) for m in response.context['messages']][0])
+        self.assertNotContains(response, 'Retry AWS removal')
+
+    def test_decided_request_cannot_be_decided_again(self):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        access_request = self._make_request(project, status=DataAccessRequest.REJECT_REQUEST_VALUE)
+        outbox_size = len(mail.outbox)
+
+        self.client.login(username=self.SUBMITTER, password=self.PASSWORD)
+        self.client.post(
+            reverse('data_access_request_view', args=(project.slug, project.version, access_request.id)),
+            data={
+                'proj-status': [str(DataAccessRequest.ACCEPT_REQUEST_VALUE)],
+                'proj-duration': ['0'],
+                'proj-responder_comments': [''],
+            },
+        )
+
+        access_request.refresh_from_db()
+        self.assertTrue(access_request.is_rejected())
+        self.assertEqual(len(mail.outbox), outbox_size)
+
+    def test_each_revoke_button_opens_its_own_dialog(self):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        requests = [self._make_request(project, title=f'use {i}') for i in range(2)]
+
+        self.client.login(username=self.SUBMITTER, password=self.PASSWORD)
+        response = self.client.get(reverse('data_access_requests_overview', args=(project.slug, project.version)))
+
+        for access_request in requests:
+            self.assertContains(response, f'data-target="#revoke-access-request-{access_request.id}"', count=1)
+            self.assertContains(response, f'id="revoke-access-request-{access_request.id}"', count=1)
+
+    def test_only_pending_requests_can_be_withdrawn(self):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        access_request = self._make_request(project)
+
+        self.client.login(username=self.REQUESTER, password=self.PASSWORD)
+        self.client.post(
+            reverse('data_access_request_status', args=(project.slug, project.version)),
+            data={'withdraw_request_id': access_request.id},
+        )
+
+        access_request.refresh_from_db()
+        self.assertTrue(access_request.is_accepted())
 
 
 class TestInviteDataAccessReviewer(TestMixin):

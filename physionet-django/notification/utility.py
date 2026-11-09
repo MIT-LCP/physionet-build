@@ -1074,6 +1074,24 @@ def notify_user_data_access_request(data_access_request, request_protocol,
               fail_silently=False)
 
 
+def notify_user_data_access_revoked(data_access_request, request_protocol,
+                                    request_host):
+    subject = f"{settings.SITE_NAME} Data Access Revoked"
+
+    body = loader.render_to_string(
+        'notification/email/notify_user_data_access_revoked.html', {
+            'data_access_request': data_access_request,
+            'signature': settings.EMAIL_SIGNATURE,
+            'footer': email_footer(), 'SITE_NAME': settings.SITE_NAME,
+            'request_host': request_host,
+            'request_protocol': request_protocol,
+        })
+
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              [data_access_request.requester.email],
+              fail_silently=False)
+
+
 def notify_user_invited_managing_requests(reviewer_invitation, request_protocol, request_host):
     subject = f"{settings.SITE_NAME} Invitation to Review Requests"
 

@@ -4,6 +4,7 @@
 {% block content %}
     <div class="container">
         <h1>Data Access Requests - {{ project }}</h1>
+        {% include "message_snippet.html" %}
         <hr><br>
         <h2>Submitted requests</h2>
         <div class="table-responsive">
@@ -30,9 +31,9 @@
                             {% if access_request.is_pending %}
                             <form method="post" action="{% url 'data_access_request_status' project.slug project.version %}">
                                 {% csrf_token %}
-                                <input type="hidden" name="withdraw_request_id" id="withdraw_request_id" value="{{ access_request.id }}">
-                                <button type="button" data-target="#withdraw-access-request" tabindex="-1" role="dialog" data-toggle="modal" class="btn btn-sm btn-danger">Withdraw</button>
-                                <div class="modal fade" id="withdraw-access-request" tabindex="-1" role="dialog" aria-labelledby="withdraw-access-request-modal" aria-hidden="true">
+                                <input type="hidden" name="withdraw_request_id" value="{{ access_request.id }}">
+                                <button type="button" data-target="#withdraw-access-request-{{ access_request.id }}" data-toggle="modal" class="btn btn-sm btn-danger">Withdraw</button>
+                                <div class="modal fade" id="withdraw-access-request-{{ access_request.id }}" tabindex="-1" role="dialog" aria-hidden="true">
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -42,7 +43,7 @@
                                                 </button>
                                             </div>
                                             <div class="modal-body">
-                                                <p>Are you sure you want to withdraw the access request?</p>
+                                                <p>Are you sure you want to withdraw your request "{{ access_request.data_use_title }}"?</p>
                                             </div>
                                             <div class="modal-footer">
                                                 <button class="btn btn-danger" type="submit">Withdraw</button>

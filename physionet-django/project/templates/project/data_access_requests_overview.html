@@ -7,6 +7,7 @@
 {% block content %}
     <div class="container col-md-8">
         <h1>Requests Overview for {{ project.title }} {{ project.version }}</h1>
+        {% include "message_snippet.html" %}
         {% if requests|length %}
             <p>Total {{ requests|length }} requests, {{ accepted_requests }} accepted requests.</p>
 
@@ -34,19 +35,20 @@
                                 {% if req.is_accepted %}
                                     <form method="post" action="{% url 'data_access_requests_overview' project.slug project.version %}">
                                         {% csrf_token %}
-                                        <input type="hidden" name="revoke_request_id" id="revoke_request_id" value="{{ req.id }}">
-                                        <button type="button" data-target="#revoke-access-request" tabindex="-1" role="dialog" data-toggle="modal" class="btn btn-sm btn-danger">Revoke</button>
-                                        <div class="modal fade" id="revoke-access-request" tabindex="-1" role="dialog" aria-labelledby="revoke-access-request-modal" aria-hidden="true">
+                                        <input type="hidden" name="revoke_request_id" value="{{ req.id }}">
+                                        <button type="button" data-target="#revoke-access-request-{{ req.id }}" data-toggle="modal" class="btn btn-sm btn-danger">Revoke</button>
+                                        <div class="modal fade" id="revoke-access-request-{{ req.id }}" tabindex="-1" role="dialog" aria-labelledby="revoke-access-request-title-{{ req.id }}" aria-hidden="true">
                                             <div class="modal-dialog" role="document">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title">Revoke Access Request</h5>
+                                                        <h5 class="modal-title" id="revoke-access-request-title-{{ req.id }}">Revoke Access Request</h5>
                                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                             <span aria-hidden="true">&times;</span>
                                                         </button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <p>Are you sure you want to revoke the access request?</p>
+                                                        <p>Are you sure you want to revoke access for <strong>{{ req.requester.get_full_name }}</strong> ({{ req.requester.username }}) to use the data for "{{ req.data_use_title }}"?</p>
+                                                        <p>They will be notified by email.</p>
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button class="btn btn-danger" type="submit">Revoke</button>
@@ -55,6 +57,13 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </form>
+                                {% elif req.aws_removal_pending %}
+                                    <form method="post" action="{% url 'data_access_requests_overview' project.slug project.version %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="revoke_request_id" value="{{ req.id }}">
+                                        <button type="submit" class="btn btn-sm btn-warning">Retry AWS removal</button>
+                                        <small class="d-block text-muted">This user may still be able to download the files from AWS.</small>
                                     </form>
                                 {% endif %}
                             </td>

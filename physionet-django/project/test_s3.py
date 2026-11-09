@@ -23,7 +23,10 @@ import moto
 
 from project.authorization.access import can_view_project_files
 from project.cloud.s3 import (
+    AccessPointPolicyError,
     check_s3_bucket_exists,
+    delete_access_point_policy,
+    remove_user_from_access_point_policy,
     create_s3_client,
     create_s3_control_client,
     create_s3_resource,
@@ -37,6 +40,7 @@ from project.cloud.s3 import (
 )
 from project.models import (
     AWS,
+    AWSAccessPointUser,
     DUASignature,
     PublishedProject,
 )
@@ -751,3 +755,136 @@ class TestS3(TestMixin):
         # Access points should still be empty
         self.assertEqual(aws.access_points.count(), 0)
         self.assertTrue(aws.access_disabled)
+
+    def setup_access_point(self, user_count):
+        """
+        Upload the demo controlled project with some AWS users, and return
+        the project, its users, and its single access point.
+        """
+        create_s3_server_access_log_bucket()
+        project = PublishedProject.objects.get(slug='demoeicu', version='2.0.0')
+        users = self.create_example_users(
+            project=project, count=user_count, aws_verified=True, signed_dua=True
+        )
+        aws = AWS.objects.create(
+            project=project,
+            bucket_name=get_bucket_name(project),
+            is_private=True,
+        )
+        upload_project_to_S3(project)
+        aws.sent_files = True
+        aws.save()
+        return project, users, aws.access_points.get()
+
+    def get_policy_userids(self, access_point):
+        s3control = create_s3_control_client()
+        policy = s3control.get_access_point_policy(
+            AccountId=settings.AWS_ACCOUNT_ID, Name=access_point.name
+        )['Policy']
+        return set(re.findall(r'"(AIDA[A-Z0-9]+)"', policy))
+
+    def assert_no_policy(self, access_point):
+        s3control = create_s3_control_client()
+        with self.assertRaises(ClientError) as cm:
+            s3control.get_access_point_policy(
+                AccountId=settings.AWS_ACCOUNT_ID, Name=access_point.name
+            )
+        self.assertEqual(cm.exception.response['Error']['Code'], 'NoSuchAccessPointPolicy')
+
+    def test_remove_user_from_access_point(self):
+        """
+        Removing one of two users leaves only the other in the policy.
+        """
+        project, (removed, kept), access_point = self.setup_access_point(2)
+
+        self.assertTrue(remove_user_from_access_point_policy(project, removed))
+
+        self.assertEqual(
+            self.get_policy_userids(access_point),
+            {kept.cloud_information.aws_userid},
+        )
+        self.assertFalse(AWSAccessPointUser.objects.filter(user=removed).exists())
+        self.assertTrue(AWSAccessPointUser.objects.filter(user=kept).exists())
+
+    def test_remove_last_user_deletes_policy(self):
+        project, (user,), access_point = self.setup_access_point(1)
+
+        self.assertTrue(remove_user_from_access_point_policy(project, user))
+
+        self.assert_no_policy(access_point)
+        self.assertFalse(AWSAccessPointUser.objects.filter(user=user).exists())
+
+        # Deleting a policy that is already gone is not an error
+        delete_access_point_policy(access_point.name)
+
+    def test_remove_user_without_link(self):
+        project, (user,), access_point = self.setup_access_point(1)
+        other = self.create_example_users(
+            project=project, count=1, aws_verified=True, signed_dua=True
+        )[0]
+
+        self.assertFalse(remove_user_from_access_point_policy(project, other))
+        self.assertEqual(
+            self.get_policy_userids(access_point),
+            {user.cloud_information.aws_userid},
+        )
+
+    def test_remove_user_keeps_link_when_aws_raises(self):
+        """
+        If AWS rejects the update, the user stays linked so the removal
+        can be retried, and the error is raised.
+        """
+        project, (removed, kept), access_point = self.setup_access_point(2)
+        error = ClientError({'Error': {'Code': 'AccessDenied'}}, 'PutAccessPointPolicy')
+
+        with mock.patch('project.cloud.s3.set_data_access_point_policy', side_effect=error):
+            with self.assertRaises(ClientError):
+                remove_user_from_access_point_policy(project, removed)
+
+        self.assertTrue(AWSAccessPointUser.objects.filter(user=removed).exists())
+        self.assertEqual(
+            self.get_policy_userids(access_point),
+            {removed.cloud_information.aws_userid, kept.cloud_information.aws_userid},
+        )
+
+    def test_remove_user_keeps_link_when_policy_not_accepted(self):
+        project, (removed, kept), access_point = self.setup_access_point(2)
+
+        with mock.patch('project.cloud.s3.insert_access_point_policy', return_value=False):
+            with self.assertRaises(AccessPointPolicyError):
+                remove_user_from_access_point_policy(project, removed)
+
+        self.assertTrue(AWSAccessPointUser.objects.filter(user=removed).exists())
+
+    def test_remove_user_when_remaining_users_are_invalid(self):
+        """
+        If AWS rejects every remaining user, the old policy is deleted
+        rather than left in place with the removed user still in it.
+        """
+        project, (removed, kept), access_point = self.setup_access_point(2)
+        invalid_userid = kept.cloud_information.aws_userid
+        error = ClientError(
+            {'Error': {'Code': 'MalformedPolicy', 'Detail': f'{{"AWS" : "{invalid_userid}"}}'}},
+            'PutAccessPointPolicy',
+        )
+
+        with mock.patch('project.cloud.s3.set_data_access_point_policy', side_effect=error):
+            self.assertTrue(remove_user_from_access_point_policy(project, removed))
+
+        self.assert_no_policy(access_point)
+        self.assertFalse(AWSAccessPointUser.objects.filter(user=removed).exists())
+
+    def test_users_without_aws_userid_are_left_out_of_policy(self):
+        """
+        A null principal makes AWS reject the whole policy, so a linked
+        user with no AWS user ID is left out instead.
+        """
+        project, (removed, kept, no_userid), access_point = self.setup_access_point(3)
+        CloudInformation.objects.filter(user=no_userid).update(aws_userid=None)
+
+        self.assertTrue(remove_user_from_access_point_policy(project, removed))
+
+        self.assertEqual(
+            self.get_policy_userids(access_point),
+            {kept.cloud_information.aws_userid},
+        )
