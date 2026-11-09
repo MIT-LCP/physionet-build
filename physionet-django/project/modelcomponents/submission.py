@@ -10,6 +10,18 @@ from project.projectfiles.gcs import GCSProjectFiles
 from project.projectfiles.local import LocalProjectFiles
 
 
+class EditLogQuerySet(models.QuerySet):
+    def with_metadata_snapshot(self):
+        """Include submission metadata snapshots in the selected columns."""
+        return self.defer(None)
+
+
+class EditLogManager(models.Manager.from_queryset(EditLogQuerySet)):
+    def get_queryset(self):
+        """Avoid loading potentially large snapshots unless requested."""
+        return super().get_queryset().defer('metadata_snapshot')
+
+
 class EditLog(models.Model):
     """
     Log for an editor decision. Also saves submission info.
@@ -136,6 +148,8 @@ class EditLog(models.Model):
     # Comments for the decision
     editor_comments = models.CharField(max_length=20000)
     auto_doi = models.BooleanField(default=True)
+
+    objects = EditLogManager()
 
     class Meta:
         default_permissions = ()

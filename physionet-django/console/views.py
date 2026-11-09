@@ -20,7 +20,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db import transaction
 from django.db.models import Count, DurationField, F, Q, Prefetch
-from django.db.models.functions import Cast, TruncDate
+from django.db.models.functions import Cast, TruncDate, TruncMonth
 from django.forms import Select, Textarea, modelformset_factory, inlineformset_factory
 from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
@@ -414,7 +414,7 @@ def submission_info_card_params(request,
 
     upload_agreement = getattr(project.submitting_author(), 'upload_agreement', None)
 
-    edit_logs = project.edit_log_history()
+    edit_logs = project.edit_log_history(include_metadata_snapshot=True)
     metadata_edit_logs = [
         edit_log for edit_log in edit_logs
         if (edit_log.metadata_snapshot or {}).get('sections')
@@ -2882,62 +2882,99 @@ def credentialing_stats(request):
 
 @console_permission_required('project.can_view_stats')
 def submission_stats(request):
+    period_form = forms.SubmissionStatsPeriodForm(request.GET or None)
+    if period_form.is_valid():
+        months = period_form.cleaned_data['months']
+    else:
+        months = forms.SubmissionStatsPeriodForm.DEFAULT_MONTHS
+
+    stats = get_submission_stats(months)
+
+    return render(request, 'console/submission_stats.html', {
+        'submenu': 'submission',
+        'stats': stats,
+        'months': months,
+        'period_form': period_form,
+    })
+
+
+def get_submission_stats(months):
+    """Return monthly project milestone counts using aggregate queries."""
     stats = OrderedDict()
-    todays_date = datetime.today()
-    all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all()]
-    cur_year = todays_date.year
-    cur_month = todays_date.month
+    today = timezone.localdate()
+    current_month_index = today.year * 12 + today.month - 1
+    start_month_index = current_month_index - months + 1
+    end_month_index = current_month_index + 1
+    buckets = {}
 
-    # Get last 18 months and initialize all counts to zero
-    for i in range(0, 18):
-        if cur_year not in stats:
-            stats[cur_year] = OrderedDict()
-        month = datetime(cur_year, cur_month, 1).strftime("%B")
-        stats[cur_year][month] = [0, 0, 0, 0, 0]
-        cur_month -= 1
-        if cur_month == 0:
-            cur_month = 12
-            cur_year -= 1
+    for month_index in range(current_month_index, start_month_index - 1, -1):
+        year, zero_based_month = divmod(month_index, 12)
+        month = zero_based_month + 1
+        month_name = datetime(year, month, 1).strftime('%B')
+        stats.setdefault(year, OrderedDict())[month_name] = [0, 0, 0, 0, 0]
+        buckets[(year, month)] = stats[year][month_name]
 
-    # Get all active and published projects and store their milestone datetimes
-    for project_set in all_projects:
+    current_timezone = timezone.get_current_timezone()
 
-        # Get times when projects were created
-        for project in project_set:
-            create_yr = project.creation_datetime.year
-            create_mo = project.creation_datetime.strftime("%B")
-            if create_yr in stats and create_mo in stats[create_yr]:
-                stats[create_yr][create_mo][0] += 1
+    def month_boundary(month_index):
+        year, zero_based_month = divmod(month_index, 12)
+        return timezone.make_aware(
+            datetime(year, zero_based_month + 1, 1),
+            current_timezone,
+        )
 
-            # Get times when projects were submitted and count unique submissions vs. resubmissions
-            edit_logs = project.edit_log_history()
-            for log in edit_logs:
-                sub_date_yr = log.submission_datetime.year
-                sub_date_mo = log.submission_datetime.strftime("%B")
-                if sub_date_yr in stats and sub_date_mo in stats[sub_date_yr]:
-                    if log.is_resubmission:
-                        stats[sub_date_yr][sub_date_mo][2] += 1
-                    else:
-                        stats[sub_date_yr][sub_date_mo][1] += 1
+    window_start = month_boundary(start_month_index)
+    window_end = month_boundary(end_month_index)
 
-                # Get times when projects were rejected, if applicable
-                if log.decision == 0 and log.decision_datetime:
-                    reject_yr = log.decision_datetime.year
-                    reject_mo = log.decision_datetime.strftime("%B")
-                    if reject_yr in stats and reject_mo in stats[reject_yr]:
-                        stats[reject_yr][reject_mo][4] += 1
+    def monthly_counts(queryset, date_field, *group_fields):
+        return (
+            queryset
+            .filter(**{
+                f'{date_field}__gte': window_start,
+                f'{date_field}__lt': window_end,
+            })
+            .annotate(month=TruncMonth(date_field, tzinfo=current_timezone))
+            .values('month', *group_fields)
+            .annotate(count=Count('pk'))
+            .order_by('month', *group_fields)
+        )
 
-            # Get times when projects were published, if applicable
-            try:
-                pub_yr = project.publish_datetime.year
-                pub_mo = project.publish_datetime.strftime("%B")
-                if pub_yr in stats and pub_mo in stats[pub_yr]:
-                    stats[pub_yr][pub_mo][3] += 1
-            except AttributeError:
-                pass
+    def add_counts(rows, bucket_index):
+        for row in rows:
+            month = row['month']
+            bucket = buckets.get((month.year, month.month))
+            if bucket is not None:
+                bucket[bucket_index] += row['count']
 
-    return render(request, 'console/submission_stats.html',
-                  {'submenu': 'submission', 'stats': stats})
+    active_projects = ActiveProject.objects.all()
+    published_projects = PublishedProject.objects.filter(is_legacy=False)
+
+    add_counts(monthly_counts(active_projects, 'creation_datetime'), 0)
+    add_counts(monthly_counts(published_projects, 'creation_datetime'), 0)
+    add_counts(monthly_counts(published_projects, 'publish_datetime'), 3)
+
+    content_types = ContentType.objects.get_for_models(ActiveProject, PublishedProject)
+    edit_logs = EditLog.objects.filter(
+        Q(
+            content_type=content_types[ActiveProject],
+            object_id__in=active_projects.order_by().values('pk'),
+        ) |
+        Q(
+            content_type=content_types[PublishedProject],
+            object_id__in=published_projects.order_by().values('pk'),
+        )
+    )
+
+    for row in monthly_counts(edit_logs, 'submission_datetime', 'is_resubmission'):
+        month = row['month']
+        bucket = buckets.get((month.year, month.month))
+        if bucket is not None:
+            bucket[2 if row['is_resubmission'] else 1] += row['count']
+
+    rejected_logs = edit_logs.filter(decision=0, decision_datetime__isnull=False)
+    add_counts(monthly_counts(rejected_logs, 'decision_datetime'), 4)
+
+    return stats
 
 
 @console_permission_required('project.can_view_stats')
