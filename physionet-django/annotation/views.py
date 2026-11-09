@@ -15,7 +15,11 @@ from oauth2_provider.contrib.rest_framework import (
     TokenHasScope,
     OAuth2Authentication,
 )
-from annotation.permissions import AnnotationsScope
+from annotation.permissions import (
+    AnnotationsScope,
+    AnnotationsTypesScope,
+    AnnotationsCollectionsScope,
+)
 
 
 class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
@@ -24,9 +28,25 @@ class AnnotationCollectionCreateAPIView(generics.CreateAPIView):
     """
 
     authentication_classes = [OAuth2Authentication]
-    permission_classes = [AnnotationsScope, IsAuthenticated]
+    permission_classes = [AnnotationsCollectionsScope, IsAuthenticated]
     serializer_class = AnnotationCollectionSerializer
     queryset = AnnotationCollection.objects.all()
+
+
+class AnnotationCollectionReadAPIView(generics.RetrieveAPIView):
+    authentication_classes = [OAuth2Authentication]
+    permission_classes = [AnnotationsCollectionsScope, IsAuthenticated]
+    serializer_class = AnnotationCollectionSerializer
+    queryset = AnnotationCollection.objects.all()
+    lookup_field = "slug"
+
+    def get_queryset(self):
+        return AnnotationCollection.objects.prefetch_related(
+            "collection_slug",
+            "collection_slug__annotation_type",
+            "collection_slug__location",
+            "collection_slug__project",
+        )
 
 
 class AnnotationTypeCreateAPIView(generics.CreateAPIView):
@@ -35,7 +55,7 @@ class AnnotationTypeCreateAPIView(generics.CreateAPIView):
     """
 
     authentication_classes = [OAuth2Authentication]
-    permission_classes = [AnnotationsScope, IsAuthenticated]
+    permission_classes = [AnnotationsTypesScope, IsAuthenticated]
     serializer_class = AnnotationTypeSerializer
     queryset = AnnotationType.objects.all()
 
