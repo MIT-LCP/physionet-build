@@ -7,6 +7,7 @@ import boto3
 from django.conf import settings
 from django.forms import ValidationError
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 import requests
 
 LOGGER = logging.getLogger(__name__)
@@ -247,7 +248,7 @@ class InvalidVerificationKey(AWSVerificationFailed):
 class InvalidAWSSignature(AWSVerificationFailed):
     """Client-supplied URL cannot be verified by AWS."""
     def __init__(self):
-        message = format_html(
+        message = mark_safe(
             """
             <strong>
             Invalid verification code (access denied by AWS).
@@ -281,7 +282,7 @@ class InvalidAWSSignature(AWSVerificationFailed):
                 """,
                 bucket_name=settings.S3_OPEN_ACCESS_BUCKET,
             )
-        message += format_html('</ul>')
+        message += mark_safe('</ul>')
         super().__init__(message)
 
 
