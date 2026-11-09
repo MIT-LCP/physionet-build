@@ -1,5 +1,5 @@
 <ol>
   {% for reference in references %}
-    <li>{{ reference.html_description }}</li>
+    <li id="ref-{{ forloop.counter }}">{% if reference.key %}<code class="reference-key">@{{ reference.key }}</code> {% endif %}{{ reference.html_description }}</li>
   {% endfor %}
 </ol>

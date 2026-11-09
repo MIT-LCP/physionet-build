@@ -19,7 +19,7 @@ from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db import transaction
-from django.db.models import Count, DurationField, F, Q, Prefetch
+from django.db.models import Count, DurationField, F, Min, Q, Prefetch
 from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory, inlineformset_factory
 from django.forms.models import model_to_dict
@@ -58,7 +58,7 @@ from project.models import (
     Publication,
     PublishedAuthor,
     PublishedProject,
-    Reference,
+    ReviewerAccessRequest,
     ReviewerInvitation,
     StorageRequest,
     SubmissionStatus,
@@ -385,6 +385,26 @@ def submission_file_changes(previous_files, current_files,
     }
 
 
+# Submission info actions that create, revoke or respond to requests for
+# reviewer (anonymous access) links
+REVIEWER_ACCESS_ACTIONS = (
+    'generate_passphrase',
+    'generate_passphrase_masked',
+    'remove_passphrase',
+    'grant_reviewer_access',
+    'decline_reviewer_access',
+)
+
+
+def can_manage_reviewer_access(user, project):
+    """
+    Whether the user may create or revoke a project's reviewer link, or
+    grant or decline a request for one: the project's editor or a
+    managing editor.
+    """
+    return user == project.editor or user.has_perm('project.can_assign_editor')
+
+
 def submission_info_card_params(request,
                                 project,
                                 reassign_editor_form,
@@ -433,6 +453,11 @@ def submission_info_card_params(request,
         previous_files = files
         previous_files_truncated = files_truncated
 
+    anonymous = project.anonymous.first()
+    pending_reviewer_access_request = (
+        project.revieweraccessrequests.filter(is_active=True).select_related('requester').first()
+    )
+
     return {
         'project': project,
         'authors': authors,
@@ -456,6 +481,11 @@ def submission_info_card_params(request,
         'upload_agreement': upload_agreement,
         'deposit_terms_acceptances': DepositTermsAcceptance.for_project(project),
         'deposit_terms_enabled': deposit_terms_enabled(),
+        'anonymous': anonymous,
+        'anonymous_url': anonymous.url if anonymous else '',
+        'hide_authors': anonymous.hide_authors if anonymous else False,
+        'pending_reviewer_access_request': pending_reviewer_access_request,
+        'can_manage_reviewer_access': can_manage_reviewer_access(request.user, project),
     }
 
 
@@ -486,15 +516,50 @@ def submission_info(request, project_slug):
     internal_note_form = forms.InternalNoteForm(data)
     embargo_form = forms.EmbargoFilesDaysForm()
     passphrase = ''
-    anonymous_url = project.get_anonymous_url()
 
-    if 'generate_passphrase' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
-        anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=False)
+    if (
+        any(action in request.POST for action in REVIEWER_ACCESS_ACTIONS)
+        and not can_manage_reviewer_access(user, project)
+    ):
+        messages.error(request, 'Only the project editor or a managing editor can create, revoke or '
+                                'respond to requests for reviewer links.')
+    elif 'generate_passphrase' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
+        _, passphrase = project.generate_anonymous_access(hide_authors=False)
     elif 'generate_passphrase_masked' in request.POST and not project.submission_status == SubmissionStatus.ARCHIVED:
-        anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=True)
+        _, passphrase = project.generate_anonymous_access(hide_authors=True)
     elif 'remove_passphrase' in request.POST:
         project.anonymous.all().delete()
-        anonymous_url, passphrase = '', 'revoked'
+        passphrase = 'revoked'
+    elif 'grant_reviewer_access' in request.POST or 'decline_reviewer_access' in request.POST:
+        access_request = get_object_or_404(
+            ReviewerAccessRequest, project=project, id=request.POST.get('access_request_id'))
+        response_message = request.POST.get('response_message', '').strip()[:2000]
+        granting = 'grant_reviewer_access' in request.POST
+        if not access_request.is_active:
+            messages.error(request, 'This reviewer access request has already been answered or withdrawn.')
+        elif granting and project.submission_status == SubmissionStatus.ARCHIVED:
+            messages.error(request, 'Reviewer access cannot be granted for an archived project.')
+        elif not granting and not response_message:
+            messages.error(request, 'Please give the authors a reason for declining the request.')
+        else:
+            access_url = None
+            if granting:
+                hide_authors = request.POST.get('link_type') == 'masked'
+                anonymous_url, passphrase = project.generate_anonymous_access(hide_authors=hide_authors)
+                access_url = notification.get_url_prefix(request) + reverse('anonymous_login', args=(anonymous_url,))
+            access_request.response = granting
+            access_request.response_message = response_message
+            access_request.responder = user
+            access_request.response_datetime = timezone.now()
+            access_request.is_active = False
+            access_request.save()
+            notification.reviewer_access_response_notify(request, access_request, access_url, passphrase)
+            if granting:
+                messages.success(request, 'A reviewer link was created and emailed to {0}.'.format(
+                    access_request.requester.email))
+            else:
+                messages.success(request, 'The request was declined and {0} has been told.'.format(
+                    access_request.requester.email))
     elif (
         'reassign_editor' in request.POST
         and user == project.editor
@@ -563,10 +628,6 @@ def submission_info(request, project_slug):
         messages.success(request, f'Project "{project.title}" has been archived successfully.')
         return redirect('submitted_projects')
 
-    # Check if anonymous access link should hide authors
-    anonymous = project.anonymous.first()
-    hide_authors = anonymous.hide_authors if anonymous else False
-
     return render(request, 'console/submission_info.html',
                   {**submission_info_card_params(
                    request,
@@ -579,8 +640,6 @@ def submission_info(request, project_slug):
                    ),
                    'copyedit_logs': copyedit_logs,
                    'passphrase': passphrase,
-                   'anonymous_url': anonymous_url,
-                   'hide_authors': hide_authors,
                    }
                   )
 
@@ -687,11 +746,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
         corresponding_email_form = None
 
     # Metadata forms and formsets
-    ReferenceFormSet = generic_inlineformset_factory(Reference,
-                                                     fields=('description',), extra=0,
-                                                     max_num=project_forms.ReferenceFormSet.max_forms,
-                                                     can_delete=False,
-                                                     formset=project_forms.ReferenceFormSet, validate_max=True)
+    ReferenceFormSet = project_forms.reference_formset_factory()
     TopicFormSet = generic_inlineformset_factory(Topic,
                                                  fields=('description',), extra=0,
                                                  max_num=project_forms.TopicFormSet.max_forms,
@@ -1717,26 +1772,51 @@ def cloud_mirrors(request):
     })
 
 
+ARCHIVED_PROJECT_ORDERING = (
+    # The archive date is displayed without a time, so sort projects archived
+    # on the same displayed date by their creation time.
+    TruncDate('archive_datetime').desc(nulls_last=True),
+    '-creation_datetime',
+    '-pk',
+)
+
+
+def _filter_archived(queryset, data):
+    """Apply archived-project filters and return their active state."""
+    has_assigned_editor = data.get('has_assigned_editor') == 'true'
+    if has_assigned_editor:
+        queryset = queryset.filter(editor__isnull=False)
+    return queryset, has_assigned_editor
+
+
 @console_permission_required('project.change_activeproject')
 def archived_submissions(request):
     """
     List of archived submissions
     """
-    projects = ActiveProject.objects.filter(submission_status=SubmissionStatus.ARCHIVED
-                                            ).order_by('creation_datetime')
+    projects = ActiveProject.objects.filter(
+        submission_status=SubmissionStatus.ARCHIVED
+    ).order_by(*ARCHIVED_PROJECT_ORDERING)
+    projects, has_assigned_editor = _filter_archived(projects, request.GET)
     projects = paginate(request, projects, 50)
+    params = request.GET.copy()
+    params.pop('page', None)
     return render(request, 'console/archived_submissions.html',
-                  {'projects': projects})
+                  {
+                      'projects': projects,
+                      'has_assigned_editor': has_assigned_editor,
+                      'querystring': params.urlencode(),
+                  })
 
 
 PROJECT_SEARCH_BUCKETS = {
-    'unsubmitted': (ActiveProject, SubmissionStatus.UNSUBMITTED, 'creation_datetime',
+    'unsubmitted': (ActiveProject, SubmissionStatus.UNSUBMITTED, ('creation_datetime',),
                     'console/project_search_list.html'),
-    'submitted': (ActiveProject, None, 'submission_datetime',
+    'submitted': (ActiveProject, None, ('submission_datetime',),
                   'console/project_search_list.html'),
-    'published': (PublishedProject, None, '-publish_datetime',
+    'published': (PublishedProject, None, ('-publish_datetime',),
                   'console/published_projects_list.html'),
-    'archived': (ActiveProject, SubmissionStatus.ARCHIVED, 'creation_datetime',
+    'archived': (ActiveProject, SubmissionStatus.ARCHIVED, ARCHIVED_PROJECT_ORDERING,
                  'console/archived_submissions_list.html'),
 }
 
@@ -1793,6 +1873,9 @@ def project_search(request, bucket):
 
     matched = _project_search_filter(base, search_field)
 
+    if bucket == 'archived':
+        matched, _ = _filter_archived(matched, request.POST)
+
     if bucket == 'submitted':
         # The submitted-projects page keeps its existing tab tables and
         # just shows/hides rows by id, so only the matching ids and the
@@ -1802,11 +1885,18 @@ def project_search(request, bucket):
         counts['on_hold'] = matched.filter(is_on_hold=True).count()
         return JsonResponse({'ids': list(matched.values_list('id', flat=True)), 'counts': counts})
 
-    projects = matched.order_by(order)
+    projects = matched.order_by(*order)
     if len(search_field) == 0:
         projects = paginate(request, projects, 50)
 
-    return render(request, template, {'projects': projects, 'bucket': bucket})
+    params = request.POST.copy()
+    for key in ('search', 'page', 'csrfmiddlewaretoken'):
+        params.pop(key, None)
+    return render(request, template, {
+        'projects': projects,
+        'bucket': bucket,
+        'querystring': params.urlencode(),
+    })
 
 
 def _filter_users_by_group(queryset, group):
@@ -2816,6 +2906,30 @@ def editorial_stats(request):
         except StatisticsError:
             stats[y].append(None)
 
+    # One duration per project, from initial submission to its first decision.
+    # Aggregate in SQL rather than fetching each project's edit history.
+    sub_dec_by_year = {}
+    for project_set in (projects, ActiveProject.objects.all()):
+        durations = project_set.filter(submission_datetime__isnull=False).annotate(
+            first_decision=Min(
+                'edit_logs__decision_datetime',
+                filter=Q(edit_logs__decision__isnull=False),
+            ),
+        ).annotate(
+            tm=Cast(F('first_decision') - F('submission_datetime'), DurationField()),
+        ).values_list('first_decision', 'tm')
+        for decision_date, duration in durations:
+            if duration is not None and duration.total_seconds() >= 0:
+                sub_dec_by_year.setdefault(decision_date.year, []).append(duration.days)
+
+    # Include decision-only years and explicitly restore chronological order.
+    for y in sub_dec_by_year:
+        stats.setdefault(y, [0, None, None])
+    stats = OrderedDict(sorted(stats.items()))
+    for y in stats:
+        days = sub_dec_by_year.get(y, [])
+        stats[y].append(median(days) if days else None)
+
     return render(request, 'console/editorial_stats.html', {
                   'submenu': 'editorial', 'stats': stats})
 
@@ -3154,6 +3268,51 @@ def download_projects(request):
                         ', '.join(str(author.id) for author in authors),
                         publication.citation if publication else None,
                         publication.url if publication else None,
+                        ]
+
+        writer.writerow(project_data)
+    return response
+
+
+@console_permission_required('user.change_credentialapplication')
+def download_projects_view_counts(request):
+    """
+    Delivers a CSV file containing unique registered project views per published project.
+    """
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="projects_views_counts.csv"'
+
+    writer = csv.writer(response, quoting=csv.QUOTE_ALL)
+    writer.writerow(["title",
+                     "project_slug",
+                     "resource_type",
+                     "DOI (latest version)",
+                     "current_version",
+                     "count_current_version",
+                     "count_all_versions",
+                     ])
+
+    projects = PublishedProject.objects.filter(is_latest_version=True).select_related(
+        'resource_type', 'core_project',
+    )
+    current_counts = dict(projects.order_by().values('id').annotate(
+        viewers=Count('logs__user', distinct=True, filter=Q(logs__category=LogCategory.ACCESS)),
+    ).values_list('id', 'viewers'))
+    # Count each registered user once across every published version of a slug.
+    all_counts = dict(PublishedProject.objects.filter(
+        slug__in=projects.values('slug'),
+    ).order_by().values('slug').annotate(
+        viewers=Count('logs__user', distinct=True, filter=Q(logs__category=LogCategory.ACCESS)),
+    ).values_list('slug', 'viewers'))
+
+    for project in projects:
+        project_data = [project.title,
+                        project.slug,
+                        project.resource_type.name,
+                        f"https://doi.org/{project.core_project.doi}" if project.core_project.doi else None,
+                        project.version,
+                        current_counts[project.id],
+                        all_counts[project.slug],
                         ]
 
         writer.writerow(project_data)

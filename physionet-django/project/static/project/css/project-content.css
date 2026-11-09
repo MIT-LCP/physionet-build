@@ -9,6 +9,40 @@
   margin-bottom: 0.5rem;
 }
 
+/* Dataset Index badge: two-part label/value badge */
+.badge.badge-dataset-index {
+  display: inline-flex;
+  padding: 0;
+  overflow: hidden;
+  vertical-align: baseline;
+}
+
+.badge-dataset-index-label,
+.badge-dataset-index-value {
+  padding: 0.5em;
+}
+
+.badge-dataset-index-label {
+  background-color: var(--gray-200, #e9ecef);
+  color: #212529;
+}
+
+.badge-dataset-index-value {
+  background-color: #cfe2ff;
+  color: #052c65;
+  font-weight: 600;
+}
+
+.badge.badge-dataset-index:hover .badge-dataset-index-value,
+.badge.badge-dataset-index:focus .badge-dataset-index-value {
+  background-color: #9ec5fe;
+}
+
+.badge.badge-dataset-index:hover,
+.badge.badge-dataset-index:focus {
+  text-decoration: none;
+}
+
 .project-authors {
   font-size: 0.95rem;
   color: #495057;
@@ -768,4 +802,23 @@ input[type="checkbox"] {
   .challenge-index-hero {
     padding: 2rem 1.25rem;
   }
+}
+
+/* Highlight a reference reached from an in-text citation such as [@moody2001] */
+li[id^="ref-"]:target {
+  background-color: #fff3cd;
+  transition: background-color 0.3s;
+}
+
+/* A reference's key in the reference list, set apart from its citation */
+.reference-key {
+  display: inline-block;
+  font-size: 0.8em;
+  color: #495057;
+  background-color: #f1f3f5;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  padding: 0 0.35rem;
+  margin-right: 0.4rem;
+  white-space: nowrap;
 }

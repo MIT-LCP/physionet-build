@@ -14,10 +14,17 @@ from project.enums import AccessPolicy
 from project.fields import SafeHTMLField
 from project.modelcomponents.anonymousaccess import AnonymousAccess
 from project.modelcomponents.authors import Affiliation
+from project.reference_citations import order_references
 from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
 from project.validators import (
+    CITATION_YEAR_REGEX,
+    DOI_IN_TEXT_REGEX,
     ROR_URL_REGEX,
+    URL_IN_TEXT_REGEX,
+    find_dois,
+    validate_doi,
     validate_funder_identifier,
+    validate_reference_key,
     validate_title,
     validate_topic,
     validate_version,
@@ -144,9 +151,9 @@ class Metadata(models.Model):
         Get the project's authors, setting information needed to display
         their attributes.
         """
-        authors = self.authors.all().order_by('display_order').prefetch_related(
-            'affiliations'
-        )
+        authors = self.authors.all().order_by('display_order').select_related(
+            'user__orcid'
+        ).prefetch_related('affiliations')
         author_emails = ';'.join(a.user.email for a in authors)
 
         if separate_submitting:
@@ -204,6 +211,15 @@ class Metadata(models.Model):
         Returns abstract as plain text.
         """
         return html2text(self.abstract)
+
+    def ordered_references(self):
+        """
+        Return the project's references in the order they are first
+        cited in the description, followed by those that are not cited.
+        References are published in this order.
+        """
+        return order_references([section.body for section in self.content_sections()],
+                                self.references.order_by('order', 'id'))
 
     def update_internal_links(self, old_project):
         """
@@ -377,6 +393,23 @@ class Metadata(models.Model):
         """
         grants = [funding.schema_org_grant() for funding in self.funding.all()]
         return mark_safe(json.dumps(grants).translate(JSON_SCRIPT_ESCAPES))
+
+    def schema_org_citation_json(self):
+        """
+        Return the project's references as a JSON array of schema.org
+        CreativeWorks.
+
+        The result is safe to embed in a <script> element.
+        """
+        works = []
+        for reference in self.references.order_by('order', 'id'):
+            work = {'@type': 'CreativeWork', 'name': reference.description}
+            if reference.doi:
+                work['identifier'] = reference.doi_url
+            if reference.url:
+                work['url'] = reference.url
+            works.append(work)
+        return mark_safe(json.dumps(works).translate(JSON_SCRIPT_ESCAPES))
 
     def is_valid_passphrase(self, raw_passphrase):
         """
@@ -778,20 +811,72 @@ class BaseReference(models.Model):
 
     order = models.PositiveIntegerField(null=True)
     description = models.CharField(max_length=1000)
+    # db_default lets the previous version's code add references while
+    # migrations are applied during an upgrade
+    doi = models.CharField(max_length=255, blank=True, default='', db_default='', validators=[validate_doi])
+    # Used to cite the reference in the description, as [@key]. Unique
+    # within a project, ignoring case.
+    key = models.CharField(max_length=50, blank=True, default='', db_default='',
+                           validators=[validate_reference_key])
 
     def __str__(self):
         return self.description
 
     @property
+    def doi_url(self):
+        if self.doi:
+            return 'https://doi.org/' + self.doi
+
+    @property
     def html_description(self):
+        """
+        The citation as HTML, with its URL as a link. If the URL is not
+        written in the citation (for example a DOI entered separately),
+        it is added at the end.
+        """
         description = escape(self.description)
         url = self.url
         if url:
             escaped_url = escape(url)
             link = format_html('<a href="{0}">{0}</a>', url)
-            description = description.replace(escaped_url, link)
+            url_pattern = re.escape(escaped_url)
+            if self.doi:
+                # Also match the DOI written with another prefix, e.g.
+                # doi:10.1/abc or http://dx.doi.org/10.1/abc
+                url_pattern += r'|(?:https?://(?:dx\.|www\.)?doi\.org/|doi:\s*)' + re.escape(escape(self.doi))
+            url_pattern = re.compile(url_pattern, re.IGNORECASE)
+            if url_pattern.search(description):
+                description = url_pattern.sub(lambda m: link, description)
+            else:
+                description = format_html('{} {}', mark_safe(description), link)
             description = mark_safe(description)
         return description
+
+    def quality_warnings(self):
+        """
+        Return possible problems with this reference, as phrases such as
+        'has no publication year'.
+
+        These are hints for authors and editors, and do not prevent
+        submission. They never include the citation text.
+        """
+        warnings = []
+        text_dois = [doi.lower() for doi in find_dois(self.description)]
+
+        # Ignore digits in links and DOIs when looking for the year
+        text = DOI_IN_TEXT_REGEX.sub(' ', URL_IN_TEXT_REGEX.sub(' ', self.description))
+        if not CITATION_YEAR_REGEX.search(text):
+            warnings.append('has no publication year')
+
+        if self.doi:
+            if text_dois and self.doi.lower() not in text_dois:
+                warnings.append('has a DOI in the citation that does not match the DOI box')
+        elif text_dois:
+            warnings.append('has a DOI in the citation, which should also be entered in the DOI box')
+        elif not URL_IN_TEXT_REGEX.search(self.description):
+            warnings.append('has no DOI or URL')
+
+        return warnings
 
 
 class Reference(BaseReference):
@@ -802,7 +887,7 @@ class Reference(BaseReference):
     object_id = models.PositiveIntegerField()
     project = GenericForeignKey('content_type', 'object_id')
 
-    URL_PATTERN = re.compile(r'\bhttps?://[^\s<>"\']+', re.IGNORECASE)
+    URL_PATTERN = URL_IN_TEXT_REGEX
 
     class Meta:
         default_permissions = ()
@@ -810,6 +895,12 @@ class Reference(BaseReference):
 
     @property
     def url(self):
+        """
+        The reference's link: its DOI if it has one, otherwise the first
+        URL in the citation.
+        """
+        if self.doi:
+            return self.doi_url
         m = self.URL_PATTERN.search(self.description)
         if m:
             return m.group()
@@ -829,7 +920,9 @@ class PublishedReference(BaseReference):
     """
     project = models.ForeignKey('project.PublishedProject',
         related_name='references', on_delete=models.CASCADE)
-    url = models.URLField(blank=True, null=True)
+    # The reference's DOI link, or the first URL in its citation, so it
+    # may be as long as the DOI link (271 characters) or the citation
+    url = models.URLField(max_length=1000, blank=True, null=True)
 
     class Meta:
         default_permissions = ()

@@ -347,6 +347,7 @@ else:
     AWS_SHARED_CREDENTIALS_FILE = None
 
 AWS_PROFILE = config('AWS_PROFILE', default=None)
+AWS_HTTP_PROXY = config('AWS_HTTP_PROXY', default='')
 
 AWS_ACCOUNT_ID = config('AWS_ACCOUNT_ID', default=None)
 

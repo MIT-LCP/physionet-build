@@ -12,7 +12,7 @@ from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
 from django.forms.widgets import HiddenInput
 from django.template.defaultfilters import slugify
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.html import format_html
@@ -20,6 +20,7 @@ from django.utils.html import format_html
 from physionet.exceptions import HtmlValidationError
 from physionet.settings.base import StorageTypes
 from project import utility, validators
+from project.reference_citations import suggest_key
 from project.models import (
     AccessPolicy,
     ActiveProject,
@@ -39,6 +40,7 @@ from project.models import (
     Publication,
     PublishedProject,
     Reference,
+    ReviewerAccessRequest,
     StorageRequest,
     Topic,
     exists_project_slug,
@@ -480,6 +482,17 @@ class NewProjectVersionForm(forms.ModelForm):
         # active project
         project.update_internal_links(old_project=self.latest_project)
 
+        # Give each reference a key, so that authors can cite it by key
+        # (references published before keys existed have none). Numbered
+        # citations in the description are left as they are, since only
+        # the authors can tell which bracketed numbers are citations.
+        p_references = list(self.latest_project.references.order_by('order', 'id'))
+        taken = [r.key for r in p_references if r.key]
+        for p_reference in p_references:
+            if not p_reference.key:
+                p_reference.key = suggest_key(p_reference.description, taken)
+                taken.append(p_reference.key)
+
         project.save()
 
         # Copy over the author/affiliation objects
@@ -510,10 +523,12 @@ class NewProjectVersionForm(forms.ModelForm):
                 )
 
         # Other related objects
-        for p_reference in self.latest_project.references.order_by('order'):
+        for number, p_reference in enumerate(p_references, start=1):
             reference = Reference.objects.create(
                 description=p_reference.description,
-                order=p_reference.order,
+                doi=p_reference.doi,
+                key=p_reference.key,
+                order=number,
                 project=project,
             )
 
@@ -790,6 +805,72 @@ class AffiliationFormSet(forms.BaseInlineFormSet):
                 names.append(name)
 
 
+class DoiLookupInput(forms.TextInput):
+    """
+    A DOI text box with a button that fills in the citation from doi.org.
+
+    The lookup URL is passed in the 'data-lookup-url' attribute.
+    """
+    template_name = 'project/doi_lookup_input.html'
+
+
+class ReferenceForm(forms.ModelForm):
+    """
+    A single reference for an ActiveProject
+    """
+    # A plain text field so authors can paste a DOI URL or "doi:" form;
+    # the value is normalized and then checked by the model validators.
+    doi = forms.CharField(
+        max_length=255, required=False, label='DOI (optional)',
+        widget=DoiLookupInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 10.13026/C2XW26'}))
+    key = forms.CharField(
+        max_length=50, required=False, label='Key',
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. moody2001'}))
+
+    class Meta:
+        model = Reference
+        fields = ('doi', 'description', 'key')
+        labels = {'description': 'Citation'}
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'class': 'form-control', 'rows': 2,
+                'placeholder': 'e.g. Moody, G. B., & Mark, R. G. (2001). The impact of the '
+                               'MIT-BIH Arrhythmia Database. IEEE Engineering in Medicine and '
+                               'Biology Magazine, 20(3), 45-50.'}),
+        }
+
+    def warnings(self):
+        """
+        Possible problems with the saved reference, shown below the form.
+        """
+        if self.instance.pk is None or self.is_bound:
+            return []
+        return [f'This reference {warning}.' for warning in self.instance.quality_warnings()]
+
+    def clean_doi(self):
+        return validators.normalize_doi(self.cleaned_data['doi'])
+
+    def clean_description(self):
+        return ' '.join(self.cleaned_data['description'].split())
+
+    def clean_key(self):
+        # Allow a key to be pasted as it is cited, e.g. "[@moody2001]"
+        key = self.cleaned_data['key'].strip().strip('[]').strip().lstrip('@')
+        if key:
+            validators.validate_reference_key(key)
+        return key
+
+
+def reference_formset_factory(extra=0):
+    """
+    Return the formset class used to edit an ActiveProject's references.
+    """
+    return generic_inlineformset_factory(
+        Reference, form=ReferenceForm, fields=ReferenceForm._meta.fields,
+        extra=extra, max_num=ReferenceFormSet.max_forms, can_delete=False,
+        formset=ReferenceFormSet, validate_max=True)
+
+
 class ReferenceFormSet(BaseGenericInlineFormSet):
     """
     Formset for adding a ActiveProject's references
@@ -801,7 +882,17 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
     def __init__(self, data=None, *args, **kwargs):
         super().__init__(data, *args, **kwargs)
         self.max_forms = ReferenceFormSet.max_forms
-        self.help_text = 'Numbered references specified in the metadata. Article citations must be in <a href=http://www.bibme.org/citation-guide/apa/ target=_blank>APA</a> format. Maximum of {}.'.format(self.max_forms)
+        self.help_text = (
+            'References cited in the description. Cite each reference by its key, '
+            'for example [@moody2001], or [@moody2001; @mark1997] for several. '
+            'Each citation links to its reference on the project page. The references '
+            'are listed in the order they are first cited, which is shown in the preview '
+            'and applied automatically when the project is published. If a reference '
+            'has a DOI, enter it and click the Look up button to fill in the citation. '
+            'Otherwise, citations must be in '
+            '<a href=https://apastyle.apa.org/style-grammar-guidelines/references/examples target=_blank>APA</a> '
+            'format, with the DOI written as a URL (https://doi.org/...) if the work has one. '
+            'Maximum of {}.').format(self.max_forms)
 
         # If user checked the "confirm reference order" box then they
         # are confirming the order of references (as displayed in the
@@ -811,6 +902,13 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
             self.confirm_reference_order = True
         else:
             self.confirm_reference_order = False
+
+    def _construct_form(self, i, **kwargs):
+        form = super()._construct_form(i, **kwargs)
+        if 'doi' in form.fields and self.instance.pk:
+            form.fields['doi'].widget.attrs['data-lookup-url'] = reverse(
+                'reference_doi_lookup', args=[self.instance.slug])
+        return form
 
     def clean(self):
         """
@@ -826,6 +924,7 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
             raise forms.ValidationError('Maximum number of allowed items exceeded.')
 
         descriptions = []
+        dois = []
         for form in self.forms:
             # This is to allow empty unsaved form
             if 'description' in form.cleaned_data:
@@ -833,6 +932,20 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                 if description in descriptions:
                     raise forms.ValidationError('References must be unique.')
                 descriptions.append(description)
+            doi = form.cleaned_data.get('doi', '').lower()
+            if doi:
+                if doi in dois:
+                    raise forms.ValidationError('Each DOI may only be used for one reference.')
+                dois.append(doi)
+
+        keys = []
+        for form in self.forms:
+            key = form.cleaned_data.get('key', '').lower()
+            if key:
+                if key in keys:
+                    raise forms.ValidationError(
+                        'Each key may only be used for one reference: {}'.format(key))
+                keys.append(key)
 
     def save(self, *args, **kwargs):
         if self.confirm_reference_order:
@@ -855,7 +968,21 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                     form.instance.order = max_order + 1
                     max_order += 1
 
+        # Give each reference without a key one made from its citation
+        taken = [form.instance.key for form in self.forms if form.instance.key]
+        generated = []
+        for form in self.forms:
+            if form.instance.description and not form.instance.key:
+                form.instance.key = suggest_key(form.instance.description, taken)
+                taken.append(form.instance.key)
+                generated.append(form)
+
         super().save(*args, **kwargs)
+
+        # Forms that are otherwise unchanged are not saved by the formset
+        for form in generated:
+            if not form.has_changed():
+                form.instance.save()
 
 
 class PublicationFormSet(BaseGenericInlineFormSet):
@@ -1289,6 +1416,52 @@ class AnonymousAccessLoginForm(forms.ModelForm):
             'passphrase':forms.PasswordInput(attrs={'class': 'form-control',
                 'placeholder': 'Passphrase', 'label': 'Passphrase'}),
         }
+
+
+REVIEWER_LINK_TYPE_CHOICES = (
+    (False, 'Standard link: reviewers can see the author names and affiliations'),
+    (True, 'Author-masked link: author information is hidden (for double-blind review)'),
+)
+
+
+class ReviewerAccessRequestForm(forms.ModelForm):
+    """
+    An author's request for a private link that journal reviewers can
+    use to see a project while it is under submission.
+    """
+    hide_authors = forms.TypedChoiceField(
+        choices=REVIEWER_LINK_TYPE_CHOICES,
+        coerce=lambda value: value in (True, 'True'),
+        initial=False,
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+        label='Link type',
+    )
+
+    class Meta:
+        model = ReviewerAccessRequest
+        fields = ('journal', 'hide_authors', 'message')
+        labels = {
+            'journal': 'Journal or conference',
+            'message': 'Message to the editor (optional)',
+        }
+        help_texts = {
+            'journal': 'Where is the related manuscript under review?',
+        }
+        widgets = {
+            'journal': forms.TextInput(attrs={'class': 'form-control',
+                                              'placeholder': 'e.g. IEEE Transactions on Affective Computing'}),
+            'message': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.project.revieweraccessrequests.filter(is_active=True).exists():
+            raise forms.ValidationError('This project already has an outstanding reviewer access request.')
+        return cleaned_data
 
 
 class DUASignatureForm(forms.Form):

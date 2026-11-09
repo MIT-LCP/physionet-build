@@ -13,15 +13,22 @@ function cloneFormElement(selector, form_name){
   var total_forms = $('#id_' + form_name + '-TOTAL_FORMS').val();
 
   // Set the names and ids of each input element of the new form
-  newElement.find('input, select').each(function() {
+  newElement.find('input, select, textarea').each(function() {
       var name = $(this).attr('name').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-');
       var id = 'id_' + name;
       // What about the actual object id hidden input?
       
       $(this).attr({'name': name, 'id': id}).val('').removeAttr('checked');
   });
+  // Point the labels at the new inputs
+  newElement.find('label[for]').each(function() {
+      $(this).attr('for', $(this).attr('for').replace('-' + (total_forms-1) + '-', '-' + total_forms + '-'));
+  });
 
   newElement.find('span').remove();
+  newElement.find('.doi-lookup-status').empty();
+  // Remove hints and details that only apply to the saved item
+  newElement.find('.item-warning, .item-saved-only').remove();
   // Update the formset total forms indicator
   $('#id_' + form_name + '-TOTAL_FORMS').val(++total_forms);
   // Insert the new content after the original selected content
@@ -30,6 +37,14 @@ function cloneFormElement(selector, form_name){
 
 
 // Add another form to a formset
+// Set the number shown on an item, if it shows one
+function setItemNumber(item_div, item, number){
+  var label = item_div.getElementsByClassName(item + "-number")[0];
+  if (label){
+    label.innerHTML = number + ".";
+  }
+};
+
 function addItem(trigger_button, item, form_name, max_forms, add_item_url){
   var total_forms = parseInt($('#id_' + form_name + '-TOTAL_FORMS').val())
 
@@ -41,7 +56,7 @@ function addItem(trigger_button, item, form_name, max_forms, add_item_url){
       new_item_div = document.getElementsByClassName(item + "-body")[total_forms];
       total_forms++;
       new_item_div.id = item + "-" + (total_forms);
-      new_item_div.getElementsByClassName(item + "-number")[0].innerHTML = total_forms + ".";
+      setItemNumber(new_item_div, item, total_forms);
       if (total_forms == max_forms){
         trigger_button.disabled = true;
       }
@@ -92,7 +107,7 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
     // All item forms with greater numbers must be decremented
     for (i=item_number+1; i<total_forms+1; i++){
       var higher_item_div = document.getElementById(item + "-" + i);
-      higher_item_div.getElementsByClassName(item + "-number")[0].innerHTML = (i-1) + ".";
+      setItemNumber(higher_item_div, item, i-1);
       higher_item_div.id = item + "-" + (i-1);
     }
     // update the form count
@@ -122,7 +137,7 @@ function removeItem(trigger_button, item, form_name, remove_item_url){
 // Block submission of a formset if there are duplicate items
 function validateItems(list_div_id, input_id_suffix, item_name) {
   item_div = document.getElementById(list_div_id);
-  item_inputs = item_div.getElementsByTagName("input");
+  item_inputs = item_div.querySelectorAll("input, textarea");
   var counts = {};
 
   for (var i=0; i < item_inputs.length; i++) {

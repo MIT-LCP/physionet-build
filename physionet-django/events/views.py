@@ -24,24 +24,26 @@ from django.http import Http404
 def update_event(request, event_slug, **kwargs):
 
     user = request.user
-    can_change_event = user.has_perm('events.add_event')
-    event = Event.objects.get(slug=event_slug)
+    event = get_object_or_404(Event, slug=event_slug)
+
+    # The host needs permission to manage events. Cohosts were chosen by the
+    # host, so they can edit the event without that permission.
+    can_edit_event = event.is_cohost(user) or (
+        event.host == user and user.has_perm('events.add_event'))
+    if not can_edit_event:
+        messages.error(request, "You don't have permission to edit this event")
+        return redirect(reverse('event_detail', args=[event_slug]))
 
     # if the event has dataset added to it, it cannot be edited
     if event.datasets.filter(is_active=True).exists():
-        if not can_change_event:
-            messages.error(request, "You don't have permission to edit this event")
         messages.error(request, "Event with datasets cannot be edited")
         return redirect(reverse('event_detail', args=[event_slug]))
 
     if request.method == 'POST':
         event_form = AddEventForm(user=user, data=request.POST, instance=event)
         if event_form.is_valid():
-            if can_change_event and event.host == user:
-                event_form.save()
-                messages.success(request, "Updated Event Successfully")
-            else:
-                messages.error(request, "You don't have permission to edit this event")
+            event_form.save()
+            messages.success(request, "Updated Event Successfully")
             return redirect(event_home)
         else:
             messages.error(request, event_form.errors)
@@ -110,9 +112,19 @@ def event_home(request):
         applications__status=EventApplication.EventApplicationStatus.WAITLISTED,
     )
 
-    events_active = set(events_all.filter(end_date__gte=datetime.now()))
-    events_past = set(events_all.filter(end_date__lt=datetime.now()))
-    event_form = AddEventForm(user=user)
+    # Upcoming and current events, soonest first; past events, most recent first
+    events_active = sorted(
+        set(events_all.filter(end_date__gte=datetime.now())),
+        key=lambda e: (e.start_date, e.title),
+    )
+    events_past = sorted(
+        set(events_all.filter(end_date__lt=datetime.now())),
+        key=lambda e: (e.end_date, e.title),
+        reverse=True,
+    )
+    today = datetime.now().date()
+    for event in events_active:
+        event.has_started = event.start_date <= today
 
     url_prefix = notification.get_url_prefix(request)
 
@@ -136,12 +148,7 @@ def event_home(request):
             event_application = form.save(commit=False)
             event = event_application.event
             # if user is not a host or a participant with cohost status, they don't have permission to accept/reject
-            if not (
-                event.host == user
-                or EventParticipant.objects.filter(
-                    event=event, user=user, is_cohost=True
-                ).exists()
-            ):
+            if not event.is_host_or_cohost(user):
                 messages.error(
                     request,
                     "You don't have permission to accept/reject this application",
@@ -193,7 +200,10 @@ def event_home(request):
         if process_invitation_response(request, invitation_response_formset):
             return redirect('event_home')
 
-    events = Event.objects.all().prefetch_related(
+    # Only the events listed on this page need participant details
+    events = Event.objects.filter(
+        id__in=[event.id for event in events_active + events_past]
+    ).prefetch_related(
         "participants",
         "applications",
     )
@@ -220,25 +230,25 @@ def event_home(request):
         event_details[event.id] = [
             {
                 "id": "participants",
-                "title": "Total participants:",
+                "title": "Participants",
                 "count": len(event.participants.all()),
                 "objects": event.participants.all(),
             },
             {
                 "id": "pending_applications",
-                "title": "Pending applications:",
+                "title": "Pending",
                 "count": len(pending_applications),
                 "objects": pending_applications,
             },
             {
                 "id": "rejected_applications",
-                "title": "Rejected applications:",
+                "title": "Rejected",
                 "count": len(rejected_applications),
                 "objects": rejected_applications,
             },
             {
                 "id": "withdrawn_applications",
-                "title": "Withdrawn applications:",
+                "title": "Withdrawn",
                 "count": len(withdrawn_applications),
                 "objects": withdrawn_applications,
             },
@@ -264,12 +274,12 @@ def event_home(request):
         {
             "events_active": events_active,
             "events_past": events_past,
-            "event_form": event_form,
             "url_prefix": url_prefix,
             "can_change_event": can_change_event,
             "form_error": form_error,
             "participation_response_formset": participation_response_formset,
             "invitation_response_formset": invitation_response_formset,
+            "task_count": len(participation_response_formset) + len(invitation_response_formset),
             "event_details": event_details,
         },
     )
@@ -280,16 +290,35 @@ def cancel_invitation(request, invitation_id, event):
     Cancel an invitation to become a cohost
     """
     user = request.user
-    invitation = CohostInvitation.objects.get(id=invitation_id)
+    invitation = CohostInvitation.objects.filter(id=invitation_id, event=event).first()
 
-    if invitation.event == event:
-        if user == event.host:
-            invitation.delete()
-            messages.success(request, "Invitation has been successfully cancelled")
-        else:
-            messages.error(request, "You don't have permission to cancel this invitation")
-    else:
+    if invitation is None:
         messages.error(request, "Invalid invitation")
+    elif event.is_host_or_cohost(user):
+        invitation.delete()
+        messages.success(request, "Invitation has been successfully cancelled")
+    else:
+        messages.error(request, "You don't have permission to cancel this invitation")
+
+
+def remove_cohost(request, participant_id, event):
+    """
+    Remove cohost status from a participant. The host can remove any cohost,
+    and a cohost can step down themselves. The participant stays registered.
+    """
+    user = request.user
+    participant = event.participants.filter(id=participant_id, is_cohost=True).first()
+
+    if participant is None:
+        messages.error(request, "Invalid cohost")
+    elif user == event.host:
+        participant.remove_cohost()
+        messages.success(request, f"{participant.user.get_full_name()} is no longer a cohost")
+    elif user == participant.user:
+        participant.remove_cohost()
+        messages.success(request, "You are no longer a cohost of this event")
+    else:
+        messages.error(request, "You don't have permission to remove this cohost")
 
 
 def process_invitation_response(request, invitation_response_formset):
@@ -366,7 +395,6 @@ def event_detail(request, event_slug):
     elif event.host == user:
         registration_allowed = False
         registration_error_message = 'You are the host of this event'
-        invite_cohost_form = InviteCohostForm(event=event)
     elif event.participants.filter(user=user).exists():
         registration_allowed = False
         registration_error_message = 'You are registered for this event'
@@ -392,6 +420,11 @@ def event_detail(request, event_slug):
                                               f"an email address from the following domains: {domains}. "
                                               "You can add email addresses to your account in the settings menu.")
 
+    is_host_or_cohost = event.is_host_or_cohost(user)
+    can_invite_cohosts = is_host_or_cohost and event.end_date >= datetime.now().date()
+    if can_invite_cohosts:
+        invite_cohost_form = InviteCohostForm(event=event)
+
     if request.method == 'POST':
         if 'confirm_registration' in request.POST.keys():
             event.join_waitlist(user=user, comment_to_applicant='')
@@ -400,6 +433,9 @@ def event_detail(request, event_slug):
             messages.success(request, "You have successfully requested to join this event")
             return redirect(event_home)
         elif 'invite_cohost' in request.POST:
+            if not can_invite_cohosts:
+                messages.error(request, "You don't have permission to invite cohosts")
+                return redirect('event_detail', event_slug=event.slug)
             invite_cohost_form = InviteCohostForm(event=event, data=request.POST)
             if invite_cohost_form.is_valid():
                 invite_cohost_form.save()
@@ -414,6 +450,10 @@ def event_detail(request, event_slug):
         elif 'cancel_invitation' in request.POST:
             invitation_id = int(request.POST['cancel_invitation'])
             cancel_invitation(request, invitation_id, event)
+        elif 'remove_cohost' in request.POST:
+            participant_id = int(request.POST['remove_cohost'])
+            remove_cohost(request, participant_id, event)
+            return redirect('event_detail', event_slug=event.slug)
         elif 'invitation_response' in request.POST.keys():
             host_qs = CohostInvitation.get_user_invitations(user)
             invitation_response_formset = InvitationResponseFormSet(
@@ -451,4 +491,5 @@ def event_detail(request, event_slug):
          'invitations': invitations,
          'cohosts': cohosts,
          'invitation_response_formset': invitation_response_formset,
+         'is_host_or_cohost': is_host_or_cohost,
          })

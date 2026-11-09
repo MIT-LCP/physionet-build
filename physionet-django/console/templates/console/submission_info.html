@@ -31,11 +31,12 @@
 </script>
 {% endif %}
 <script>
-  // Activate archive tab if URL contains ?tab=archive
+  // Activate a tab if the URL asks for it, e.g. ?tab=archive
   $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('tab') === 'archive') {
-      $('#archive-tab').tab('show');
+    const tab = urlParams.get('tab');
+    if (tab === 'archive' || tab === 'anonymous') {
+      $('#' + tab + '-tab').tab('show');
     }
   });
 </script>

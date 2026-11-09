@@ -52,7 +52,7 @@ from project import openalex
 from project.authorization.access import can_access_project
 from project.validators import validate_abstract_word_count
 from user.enums import TrainingStatus
-from user.models import Training, TrainingType, User
+from user.models import Orcid, Training, TrainingType, User
 from user.test_views import TestMixin, prevent_request_warnings
 from project.views import ARCHIVE_VIEW_DAYS, _format_chart_data
 
@@ -76,17 +76,33 @@ def _parse_html_form_fields(content):
     """
     Parse HTML and return all form fields as a dictionary.
 
-    Note that this currently only handles input elements, not other
-    form elements such as select or textarea.  It also makes no
+    Note that this currently only handles input and textarea elements,
+    not other form elements such as select.  It also makes no
     distinction between multiple forms.
     """
     fields = {}
 
     class Parser(html.parser.HTMLParser):
+        textarea = None
+
         def handle_starttag(self, tag, attrs):
             attrs = dict(attrs)
             if tag == 'input' and 'name' in attrs:
                 fields[attrs['name']] = attrs.get('value', '')
+            elif tag == 'textarea' and 'name' in attrs:
+                self.textarea = attrs['name']
+                fields[self.textarea] = ''
+
+        def handle_data(self, data):
+            if self.textarea:
+                fields[self.textarea] += data
+
+        def handle_endtag(self, tag):
+            if tag == 'textarea' and self.textarea:
+                # As in browsers, a newline at the start is ignored
+                if fields[self.textarea].startswith('\n'):
+                    fields[self.textarea] = fields[self.textarea][1:]
+                self.textarea = None
 
     Parser().feed(content)
     return fields
@@ -495,6 +511,10 @@ class TestProjectCreation(TestMixin):
 
         oldproject = PublishedProject.objects.get(
             title='Demo eICU Collaborative Research Database')
+        oldproject.references.create(description='A dataset.', doi='10.13026/C2XW26', order=99)
+        PublishedProject.objects.filter(pk=oldproject.pk).update(
+            background=oldproject.background + '<p>Tables [1, 2] and a dataset [3]. Not [9].</p>')
+        old_references = list(oldproject.references.order_by('order', 'id'))
         response = self.client.post(
             reverse('new_project_version', args=(oldproject.slug,)),
             data={
@@ -517,6 +537,18 @@ class TestProjectCreation(TestMixin):
             [(f.funder_name, f.funder_identifier, f.award_number)
              for f in oldproject.funding.all()])
         self.assertTrue(newproject.funding.exists())
+        self.assertEqual(newproject.references.get(description='A dataset.').doi, '10.13026/C2XW26')
+        # The references are given keys, made from the citations since
+        # the published references have none. Numbered citations are left
+        # for the authors to change, since they can't be told apart from
+        # other numbers in brackets.
+        new_references = list(newproject.references.order_by('order'))
+        self.assertEqual([r.description for r in new_references],
+                         [r.description for r in old_references])
+        keys = [r.key for r in new_references]
+        self.assertEqual(len(set(keys)), 3)
+        self.assertTrue(all(keys))
+        self.assertIn('<p>Tables [1, 2] and a dataset [3]. Not [9].</p>', newproject.background)
 
         # Load overview page
         response = self.client.get(
@@ -1135,6 +1167,24 @@ class TestAccessPublished(TestMixin):
     Published projects.
 
     """
+    def test_author_orcid_icon(self):
+        """
+        Authors with a linked ORCID iD get an icon linking to their record.
+        """
+        project = PublishedProject.objects.filter(access_policy=AccessPolicy.OPEN).first()
+        authors = list(project.authors.order_by('display_order'))
+        url = reverse('published_project', args=(project.slug, project.version))
+
+        Orcid.objects.filter(user__in=[a.user for a in authors]).delete()
+        response = self.client.get(url)
+        self.assertNotContains(response, 'class="author-orcid"')
+
+        orcid_id = '0000-0002-1825-0097'
+        Orcid.objects.create(user=authors[0].user, orcid_id=orcid_id)
+        response = self.client.get(url)
+        self.assertContains(response, 'class="author-orcid"', count=1)
+        self.assertContains(response, f'href="{settings.ORCID_DOMAIN}/{orcid_id}"')
+
     def test_pending_training_requirements(self):
         project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
         user = User.objects.get(email='rgmark@mit.edu')
@@ -1995,14 +2045,14 @@ class TestInviteDataAccessReviewer(TestMixin):
                           password=self.PASSWORD)
 
         response = self.client.get(reverse('project_home'))
-        return "Requests".encode('UTF-8') in response.content
+        return "Access requests".encode('UTF-8') in response.content
 
     def test_appointing(self):
         self.assertFalse(self._see_manage_requests_button(self.ADDITIONAL_REVIEWER))
 
         self.client.login(username=self.SUBMITTER, password=self.PASSWORD)
-        # corresponding author/submitter should see Manage Reviewers button in project home
-        self.assertContains(self.client.get(reverse('project_home')), "Manage Reviewers", html=True)
+        # corresponding author/submitter should see Manage reviewers button in project home
+        self.assertContains(self.client.get(reverse('project_home')), "Manage reviewers", html=True)
 
         project = PublishedProject.objects.get(title=self.PROJECT_NAME)
         self.client.post(reverse('manage_data_access_reviewers',
@@ -2019,8 +2069,7 @@ class TestInviteDataAccessReviewer(TestMixin):
             self._see_manage_requests_button(self.ADDITIONAL_REVIEWER))
 
         # reviewer shouldn't be able to manage other reviewers
-        self.assertNotContains(self.client.get(reverse('project_home')),
-                            "Manage Reviewers", html=True)
+        self.assertNotContains(self.client.get(reverse('project_home')), "Manage reviewers", html=True)
 
         # check reviewer can access request view
         self.assertContains(self.client.get(reverse('data_access_requests_overview',
@@ -3190,6 +3239,59 @@ class TestScholarDataIntegration(TestMixin):
                 ScholarData.objects.get(doi=self.project.doi).data,
                 self.SCHOLAR_DATA_RESPONSE,
             )
+
+    def get_landing_page(self):
+        """Request the project landing page, failing if it calls the external API."""
+        url = reverse('published_project', args=(self.project.slug, self.project.version))
+        with mock.patch('project.tasks.requests.get') as mock_get:
+            response = self.client.get(url)
+        mock_get.assert_not_called()
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_landing_page_badge(self):
+        """The landing page header shows the stored Dataset Index, linked to the metrics page."""
+        ScholarData.objects.create(
+            doi=self.project.doi,
+            data=self.SCHOLAR_DATA_RESPONSE,
+            refresh_datetime=timezone.now(),
+        )
+        response = self.get_landing_page()
+        self.assertContains(response, 'class="badge badge-dataset-index"', count=1)
+        self.assertContains(response, '<span class="badge-dataset-index-value">7</span>')
+        self.assertContains(response, f'href="{self.metrics_url}" class="badge badge-dataset-index"')
+        self.assertEqual(Task.objects.count(), 0)
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_landing_page_first_view_queues_fetch(self):
+        """With no stored data, the landing page has no badge and queues one fetch."""
+        response = self.get_landing_page()
+        self.assertNotContains(response, 'badge-dataset-index')
+        self.assertEqual(Task.objects.count(), 1)
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=True)
+    def test_landing_page_no_score(self):
+        """No badge is shown if the stored data has no D-Index score."""
+        for data in ({}, {'latestDIndex': None}, {'latestDIndex': {'score': None, 'year': 2025}}):
+            ScholarData.objects.update_or_create(
+                doi=self.project.doi,
+                defaults={'data': data, 'refresh_datetime': timezone.now()},
+            )
+            response = self.get_landing_page()
+            self.assertNotContains(response, 'badge-dataset-index')
+
+    @override_settings(ENABLE_SCHOLAR_DATA_API=False)
+    def test_landing_page_disabled(self):
+        """No badge is shown, and nothing is stored, when the feature is off."""
+        ScholarData.objects.create(
+            doi=self.project.doi,
+            data=self.SCHOLAR_DATA_RESPONSE,
+            refresh_datetime=timezone.now(),
+        )
+        response = self.get_landing_page()
+        self.assertNotContains(response, 'badge-dataset-index')
+        self.assertEqual(Task.objects.count(), 0)
 
 
 def openalex_work(work_id, title, doi=None, date='2025-01-02', authors=('Ann Lee',), venue='Journal A'):

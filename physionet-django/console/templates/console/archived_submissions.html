@@ -18,13 +18,30 @@
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <input
-        type="search"
-        data-search-url="{% url 'project_search' bucket='archived' %}"
-        oninput="search(this.dataset.searchUrl, this.value);"
-        placeholder="Search..."
-      >
-      {% include "console/archived_submissions_list.html" %}
+      <form method="get" onsubmit="return false;">
+        <input
+          id="archived-project-search"
+          type="search"
+          data-search-url="{% url 'project_search' bucket='archived' %}"
+          oninput="searchArchived(this.dataset.searchUrl);"
+          placeholder="Search..."
+        >
+        <div class="form-check mt-2 mb-3">
+          <input
+            class="form-check-input"
+            id="has-assigned-editor"
+            name="has_assigned_editor"
+            type="checkbox"
+            value="true"
+            {% if has_assigned_editor %}checked{% endif %}
+            onchange="if (document.getElementById('archived-project-search').value) { searchArchived(document.getElementById('archived-project-search').dataset.searchUrl); } else { this.form.submit(); }"
+          >
+          <label class="form-check-label" for="has-assigned-editor">
+            Has an assigned editor
+          </label>
+        </div>
+        {% include "console/archived_submissions_list.html" %}
+      </form>
     </div>
   </div>
 </div>

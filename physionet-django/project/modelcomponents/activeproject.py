@@ -36,8 +36,9 @@ from project.modelcomponents.metadata import (
 from project.modelcomponents.publishedproject import PublishedProject
 from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
-from project.utility import COPYEDIT_CONTENT_FIELDS, copyedit_content_warnings
+from project.reference_citations import citation_problems
 import project.tasks as tasks
+from project.utility import COPYEDIT_CONTENT_FIELDS, copyedit_content_warnings
 from project.validators import validate_subdir
 
 LOGGER = logging.getLogger(__name__)
@@ -329,6 +330,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     def submission_status_label(self):
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
+    def can_request_reviewer_access(self):
+        """
+        Whether authors may ask for a private link for journal reviewers.
+        This is only possible while the project is with the editors.
+        """
+        return self.under_submission() and self.submission_status != SubmissionStatus.ARCHIVED
 
     def author_editable(self):
         """
@@ -353,6 +360,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.archive_reason_text = archive_reason_text
         self.archive_datetime = timezone.now()
         self.save()
+
+        # Reviewers should no longer be able to see the project
+        self.anonymous.all().delete()
+        self.revieweraccessrequests.filter(is_active=True).update(is_active=False)
 
         if clear_files:
             self.clear_files()
@@ -457,6 +468,15 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         for warning, fields in copyedit_warnings.items():
             self.integrity_warnings.append(
                 'The following fields {}: {}.'.format(warning, ', '.join(fields)))
+        references = list(self.references.order_by('order', 'id'))
+        for number, reference in enumerate(references, start=1):
+            for warning in reference.quality_warnings():
+                self.integrity_warnings.append(f'Reference {number} {warning}.')
+
+        errors, warnings = citation_problems(
+            [section.body for section in self.content_sections()], references)
+        self.integrity_errors.extend(errors)
+        self.integrity_warnings.extend(warnings)
 
         published_projects = self.core_project.publishedprojects.all()
         if published_projects:
@@ -657,6 +677,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 {
                     'order': reference.order,
                     'description': reference.description,
+                    'doi': reference.doi,
                 }
                 for reference in self.references.order_by('order', 'id')
             ],
@@ -845,11 +866,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 published_project.set_version_order()
 
                 # Same content, different objects.
-                for reference in self.references.all().order_by('order'):
+                # References are published in the order they are cited
+                for number, reference in enumerate(self.ordered_references(), start=1):
                     published_reference = PublishedReference.objects.create(
                         description=reference.description,
+                        doi=reference.doi,
+                        key=reference.key,
                         url=reference.url,
-                        order=reference.order,
+                        order=number,
                         project=published_project)
 
                 for publication in self.publications.all():

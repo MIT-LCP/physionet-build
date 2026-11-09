@@ -1007,6 +1007,12 @@ class OrcidRegistrationForm(RegistrationForm):
         self.orcid_token = kwargs.pop('orcid_token', None)
         super().__init__(*args, **kwargs)
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if Orcid.objects.filter(orcid_id=self.orcid_token.get('orcid')).exists():
+            raise forms.ValidationError('This ORCID iD is already linked to an account.')
+        return cleaned_data
+
     def save(self):
         with transaction.atomic():
             user = super().save()

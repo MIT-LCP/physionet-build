@@ -74,6 +74,82 @@ def validate_doi(value):
         raise ValidationError('Invalid DOI: %(doi)s', params={'doi': value})
 
 
+DOI_PREFIXES = (
+    'https://doi.org/', 'http://doi.org/', 'https://dx.doi.org/',
+    'http://dx.doi.org/', 'https://www.doi.org/', 'http://www.doi.org/',
+    'doi.org/', 'dx.doi.org/', 'www.doi.org/', 'doi:',
+)
+
+
+# A URL written in running text, such as a citation
+URL_IN_TEXT_REGEX = re.compile(r'\bhttps?://[^\s<>"\']+', re.IGNORECASE)
+
+# A publication year (or "n.d." for no date), as written in APA citations
+CITATION_YEAR_REGEX = re.compile(r'\b(1[5-9]|20)\d{2}[a-z]?\b|\bn\.\s?d\.', re.IGNORECASE)
+
+
+# A DOI written in running text, such as a citation
+DOI_IN_TEXT_REGEX = re.compile(r'\b10\.\d{4,9}/[^\s"<>?#]+', re.IGNORECASE)
+
+
+def _trim_doi(doi):
+    """
+    Remove punctuation that follows a DOI in running text, such as a
+    full stop, or the closing bracket of '(https://doi.org/10.1/abc)'.
+    Brackets that are part of the DOI, as in '10.1/abc(1)', are kept.
+    """
+    while doi:
+        if doi[-1] in '.,;:':
+            doi = doi[:-1]
+        elif doi[-1] == ')' and doi.count(')') > doi.count('('):
+            doi = doi[:-1]
+        elif doi[-1] == ']' and doi.count(']') > doi.count('['):
+            doi = doi[:-1]
+        else:
+            break
+    return doi
+
+
+def find_dois(text):
+    """
+    Return the DOIs written in a piece of text, as written. DOIs are not
+    case sensitive, so compare them in lower case.
+    """
+    return [_trim_doi(doi) for doi in DOI_IN_TEXT_REGEX.findall(text or '')]
+
+
+def normalize_doi(value):
+    """
+    Return a DOI without its resolver prefix, e.g. '10.13026/abc' for
+    'https://doi.org/10.13026/abc' or 'doi: 10.13026/abc'.
+
+    Surrounding whitespace and trailing punctuation copied along with a
+    citation are removed. Other values are returned stripped but
+    otherwise unchanged, so that validate_doi can reject them.
+    """
+    value = (value or '').strip()
+    for prefix in DOI_PREFIXES:
+        if value.lower().startswith(prefix):
+            value = value[len(prefix):].strip()
+            break
+    return value.rstrip('.,;')
+
+
+# A reference's key, used to cite it as [@key]: letters, digits and
+# "_:.-", starting with a letter or digit, and not ending with punctuation
+REFERENCE_KEY_PATTERN = r'[A-Za-z0-9](?:[A-Za-z0-9_:.\-]*[A-Za-z0-9_])?'
+
+
+def validate_reference_key(value):
+    """
+    Validate a reference's key.
+    """
+    if not re.fullmatch(REFERENCE_KEY_PATTERN, value):
+        raise ValidationError(
+            'A key may contain letters, digits and the characters _ : . - '
+            'and must start with a letter or digit, for example moody2001.')
+
+
 def validate_subdir(value):
     """
     Validate a subdirectory used to explore a project's files.

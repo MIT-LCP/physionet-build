@@ -620,6 +620,19 @@ body .tox .tox-dialog-wrap__backdrop {
     transform: rotate(180deg);
 }
 
+/* ORCID iD icon shown after an author's name */
+.author-orcid {
+    margin-left: 0.25em;
+}
+a.author-orcid[target='_blank']::after {
+    content: none;
+}
+.author-orcid img {
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+}
+
 /* Popover body */
 .popover {
     max-width: 320px;

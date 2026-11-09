@@ -8,6 +8,13 @@
 <link rel="stylesheet" type="text/css" href="{% static 'project/css/submission-timeline.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/form-control-input.css' %}">
 <link rel="stylesheet" type="text/css" href="{% static 'custom/css/settings.css' %}">
+<style>
+  /* settings.css makes every input full width, which pushes radio buttons away from their labels */
+  .reviewer-link-type .form-check-input {
+    width: auto;
+    padding: 0;
+  }
+</style>
 {% endblock %}
 
 {% load project_templatetags %}
@@ -103,6 +110,9 @@
     <div class="card-header">Submission Timeline (New to Old)</div>
     {% include "project/active_submission_timeline.html" %}
   </div>
+  {% if project.can_request_reviewer_access or anonymous_access %}
+    {% include "project/reviewer_access_card.html" %}
+  {% endif %}
 {% endif %}
 
 {% endblock %}

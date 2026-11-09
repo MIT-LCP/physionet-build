@@ -1,0 +1,24 @@
+{% load participation_status %}
+{% with can_manage=user|is_host_or_cohost:event %}
+  {% if can_manage %}
+    {% for info in event_details|get_applicant_info:event.id %}
+      {% if not is_past or info.id == 'participants' %}
+        <div class="modal fade" id="{{ info.id }}-modal-{{ event.id }}" tabindex="-1" role="dialog" aria-labelledby="{{ info.id }}-title-{{ event.id }}" aria-hidden="true">
+          <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="{{ info.id }}-title-{{ event.id }}">{{ info.title }} &middot; {{ event.title }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                {% include 'events/event_applications.html' %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endwith %}

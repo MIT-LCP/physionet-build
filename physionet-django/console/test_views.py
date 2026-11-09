@@ -18,8 +18,10 @@ from django.core import mail
 from django.test import TestCase, override_settings
 from django.test.utils import get_runner
 from django.urls import reverse
+from django.utils import timezone
 from console.forms import CredentialReviewForm
 from console.views import snapshot_files, submission_file_changes
+from project.modelcomponents.activeproject import ArchiveReason
 from events.models import EventAgreement
 from project.fields import SafeHTMLField
 from project.models import (
@@ -33,6 +35,7 @@ from project.models import (
     Funding,
     License,
     PublishedProject,
+    Reference,
     ReviewerInvitation,
     StorageRequest,
     SubmissionStatus,
@@ -407,6 +410,7 @@ class TestState(TestMixin):
         project.references.create(
             order=reference_order + 2,
             description='Revised reference',
+            doi='10.13026/C2XW26',
         )
         project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
         project.save()
@@ -443,6 +447,9 @@ class TestState(TestMixin):
         self.assertContains(response, 'Submitted Metadata')
         self.assertContains(response, 'Initial abstract')
         self.assertContains(response, 'Revised abstract')
+        # A DOI entered separately from the citation is shown to editors
+        self.assertContains(
+            response, 'DOI: <a href="https://doi.org/10.13026/C2XW26">10.13026/C2XW26</a>', html=False)
 
     def test_assign_editor(self):
         """
@@ -865,6 +872,18 @@ class TestState(TestMixin):
                 object_id=project.pk, funder_name='Wellcome Trust',
                 funder_identifier='https://ror.org/029chgv08', award_number='123')])
 
+        # Add a reference with a DOI, again without changing the
+        # approved content. New versions carry it over.
+        if not project.references.filter(doi='10.13026/C2XW26').exists():
+            Reference.objects.bulk_create([Reference(
+                content_type=ContentType.objects.get_for_model(ActiveProject),
+                object_id=project.pk, description='A dataset with a DOI.',
+                doi='10.13026/C2XW26', key='mimic2016', order=1000)])
+        # Cite it by key. New versions carry the citation over.
+        if '[@mimic2016]' not in project.background:
+            ActiveProject.objects.filter(pk=project.pk).update(
+                background=project.background + '<p>See also [@mimic2016].</p>')
+
         # The submitting author has accepted the upload agreement
         submitting_author = project.submitting_author()
         UploadAgreement.objects.update_or_create(
@@ -894,6 +913,10 @@ class TestState(TestMixin):
             self.assertTrue(bool(ActiveProject.objects.filter(
                 slug=project_slug)))
 
+        # Give the project a reviewer link, which should stop working
+        # once the project is published
+        anonymous_url, _ = project.generate_anonymous_access()
+
         # Publish with a valid custom slug
         response = self.client.post(reverse(
             'publish_submission', args=(project.slug,)),
@@ -901,6 +924,10 @@ class TestState(TestMixin):
 
         # Run background tasks
         self.assertBackgroundTasks(2)
+
+        self.assertFalse(AnonymousAccess.objects.filter(url=anonymous_url).exists())
+        response = self.client.get(reverse('anonymous_login', args=(anonymous_url,)))
+        self.assertEqual(response.status_code, 404)
 
         self.assertTrue(bool(PublishedProject.objects.filter(slug=custom_slug)))
         self.assertFalse(bool(PublishedProject.objects.filter(slug=project_slug)))
@@ -929,10 +956,21 @@ class TestState(TestMixin):
             [(f.funder_name, f.funder_identifier, f.award_number)
              for f in project.funding.all()],
             [('Wellcome Trust', 'https://ror.org/029chgv08', '123')])
+        published_reference = project.references.get(description='A dataset with a DOI.')
+        self.assertEqual(published_reference.doi, '10.13026/C2XW26')
+        self.assertEqual(published_reference.url, 'https://doi.org/10.13026/C2XW26')
+        # The key citation is published as it is written, and the
+        # references in the order they are first cited
+        self.assertEqual(published_reference.key, 'mimic2016')
+        self.assertEqual(published_reference.order, 1)
+        self.assertIn('<p>See also [@mimic2016].</p>', project.background)
         # Access the published project's page and its (open) files
         response = self.client.get(reverse('published_project',
             args=(project.slug, project.version)))
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<a href="https://doi.org/10.13026/C2XW26">')
+        self.assertContains(response, 'class="citation-link" title="A dataset with a DOI.">@mimic2016</a>]')
+        self.assertContains(response, '<code class="reference-key">@mimic2016</code>')
         response = self.client.get(reverse('serve_published_project_file', args=(
             project.slug, project.version, 'subject-100/100.atr')))
         self.assertEqual(response.status_code, 200)
@@ -1875,6 +1913,37 @@ class TestAnonymousAccess(TestMixin):
         # Check that anonymous access was deleted
         self.assertEqual(self.project.anonymous.count(), 0)
 
+    def test_only_editors_can_create_or_revoke_links(self):
+        """
+        Console staff who are not the project's editor or a managing
+        editor cannot create or revoke a reviewer link.
+        """
+        staff = User.objects.get(username='amitupreti')
+        self.assertTrue(staff.has_perm('project.change_activeproject'))
+        self.assertNotEqual(self.project.editor, staff)
+        self.client.login(username='amitupreti', password='Tester11!')
+        url = reverse('submission_info', args=[self.project.slug])
+
+        response = self.client.get(url)
+        self.assertContains(response, 'id="reviewer-link-editor-only"')
+        self.assertNotContains(response, 'name="generate_passphrase"')
+
+        self.client.post(url, data={'generate_passphrase': ''})
+        self.client.post(url, data={'generate_passphrase_masked': ''})
+        self.assertEqual(self.project.anonymous.count(), 0)
+
+        self.project.generate_anonymous_access()
+        self.client.post(url, data={'remove_passphrase': ''})
+        self.assertEqual(self.project.anonymous.count(), 1)
+
+        # The assigned editor can
+        self.project.editor = staff
+        self.project.save()
+        response = self.client.get(url)
+        self.assertContains(response, 'name="remove_passphrase"')
+        self.client.post(url, data={'remove_passphrase': ''})
+        self.assertEqual(self.project.anonymous.count(), 0)
+
     def test_author_masked_preview_hides_author_info(self):
         """
         Test that author information is hidden in preview when using author-masked link
@@ -2650,6 +2719,143 @@ class TestArchivePermission(TestMixin):
                 slug=project.slug,
                 submission_status=SubmissionStatus.ARCHIVED
             )
+        )
+
+
+class TestArchivedSubmissions(TestMixin):
+    """Tests for the console archived-project list and its filters."""
+
+    PROJECT_TITLES = (
+        'MIT-BIH Arrhythmia Database',
+        'MIMIC-III Clinical Database',
+        'Demo Limited Clinical Dataset',
+    )
+
+    fixtures = [
+        'demo-training-type.json', 'demo-user.json',
+        'site-data.json', 'demo-project.json',
+    ]
+
+    def setUp(self):
+        super().setUp()
+        self.client.login(username='admin', password='Tester11!')
+        self.editor = User.objects.get(username='admin')
+        self.projects = [
+            ActiveProject.objects.get(title=title)
+            for title in self.PROJECT_TITLES
+        ]
+        now = timezone.now()
+
+        ActiveProject.objects.filter(pk=self.projects[0].pk).update(
+            title='Archived console test one',
+            submission_status=SubmissionStatus.ARCHIVED,
+            archive_reason=ArchiveReason.REJECTED,
+            archive_datetime=now,
+            creation_datetime=now - datetime.timedelta(days=3),
+            editor=self.editor,
+        )
+        ActiveProject.objects.filter(pk=self.projects[1].pk).update(
+            title='Archived console test two',
+            submission_status=SubmissionStatus.ARCHIVED,
+            archive_reason=ArchiveReason.DELETED_BY_AUTHOR,
+            archive_datetime=now - datetime.timedelta(days=1),
+            creation_datetime=now - datetime.timedelta(days=1),
+            editor=None,
+        )
+        ActiveProject.objects.filter(pk=self.projects[2].pk).update(
+            title='Archived console test three',
+            submission_status=SubmissionStatus.ARCHIVED,
+            archive_reason=ArchiveReason.REJECTED,
+            archive_datetime=now - datetime.timedelta(days=1),
+            creation_datetime=now - datetime.timedelta(days=2),
+            editor=self.editor,
+        )
+
+    def test_archived_projects_order_by_archive_then_creation_datetime(self):
+        response = self.client.get(reverse('archived_submissions'))
+
+        self.assertEqual(response.status_code, 200)
+        projects = list(response.context['projects'])
+        test_project_ids = {project.pk for project in self.projects}
+        self.assertEqual(
+            [project.pk for project in projects if project.pk in test_project_ids],
+            [self.projects[0].pk, self.projects[1].pk, self.projects[2].pk],
+        )
+
+    def test_archived_projects_order_is_stable_when_dates_tie(self):
+        now = timezone.now()
+        ActiveProject.objects.filter(pk__in=[project.pk for project in self.projects]).update(
+            archive_datetime=now,
+            creation_datetime=now,
+        )
+
+        response = self.client.get(reverse('archived_submissions'))
+
+        test_project_ids = {project.pk for project in self.projects}
+        projects = [project for project in response.context['projects']
+                    if project.pk in test_project_ids]
+        self.assertEqual(
+            [project.pk for project in projects],
+            sorted(test_project_ids, reverse=True),
+        )
+
+    def test_assigned_editor_filter_excludes_projects_without_an_editor(self):
+        response = self.client.get(
+            reverse('archived_submissions'),
+            {'has_assigned_editor': 'true'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        projects = list(response.context['projects'])
+        project_ids = {project.pk for project in projects}
+        self.assertIn(self.projects[0].pk, project_ids)
+        self.assertIn(self.projects[2].pk, project_ids)
+        self.assertNotIn(self.projects[1].pk, project_ids)
+
+    def test_assigned_editor_filter_is_retained_in_pagination_links(self):
+        response = self.client.get(
+            reverse('archived_submissions'),
+            {'has_assigned_editor': 'true', 'page': 2},
+        )
+
+        self.assertEqual(response.context['querystring'], 'has_assigned_editor=true')
+
+    def test_assigned_editor_filter_is_retained_during_search(self):
+        response = self.client.post(
+            reverse('project_search', kwargs={'bucket': 'archived'}),
+            {'search': 'Archived console test', 'has_assigned_editor': 'true'},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        projects = list(response.context['projects'])
+        self.assertEqual(
+            [project.pk for project in projects],
+            [self.projects[0].pk, self.projects[2].pk],
+        )
+
+    def test_assigned_editor_filter_is_retained_when_search_is_cleared(self):
+        response = self.client.post(
+            reverse('project_search', kwargs={'bucket': 'archived'}),
+            {'search': '', 'has_assigned_editor': 'true'},
+        )
+
+        self.assertEqual(response.context['querystring'], 'has_assigned_editor=true')
+
+    def test_archived_search_retains_all_non_search_pagination_filters(self):
+        response = self.client.post(
+            reverse('project_search', kwargs={'bucket': 'archived'}),
+            {
+                'search': '',
+                'has_assigned_editor': 'true',
+                'page': '2',
+                'csrfmiddlewaretoken': 'token',
+                'additional_filter': 'value',
+            },
+        )
+
+        self.assertEqual(
+            response.context['querystring'],
+            'has_assigned_editor=true&additional_filter=value',
         )
 
 

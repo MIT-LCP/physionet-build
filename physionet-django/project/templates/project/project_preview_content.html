@@ -1,3 +1,4 @@
+{% load project_templatetags %}
 {% for section in project.content_sections %}
   {% if section.body and section.html_id == 'acknowledgements' and hide_authors %}
     <h2 id="{{ section.html_id }}">{{ section.title }}</h2>
@@ -7,7 +8,7 @@
     <hr>
   {% elif section.body %}
     <h2 id="{{ section.html_id }}">{{ section.title }}</h2>
-    {{ section.body|safe }}
+    {{ section.body|link_citations:references }}
     <hr>
   {% elif section.required %}
     <h2 id="{{ section.html_id }}">{{ section.title }}</h2>

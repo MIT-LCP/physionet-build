@@ -1,6 +1,8 @@
 import os
 
 from django import template
+from django.conf import settings
+from django.templatetags.static import static
 from django.shortcuts import reverse
 from django.utils import timezone
 from django.utils.html import format_html, escape
@@ -10,11 +12,21 @@ import html2text
 
 from project.authorization.access import can_view_project_files as can_view_project_files_func
 from project.models import AccessPolicy
+from project.reference_citations import link_citations as link_citations_func
 from notification.utility import mailto_url
 from datetime import timedelta
 
 
 register = template.Library()
+
+
+@register.filter(name='link_citations')
+def link_citations(html, references):
+    """
+    Link citations by key, such as [@moody2001], in a project's (cleaned)
+    HTML description to its reference list.
+    """
+    return mark_safe(link_citations_func(html, references or []))
 
 
 @register.filter(name='html_to_text')
@@ -82,6 +94,29 @@ def access_badge(access_policy):
         return badges[access_policy]
     except KeyError:
         return format_html('<!-- unknown access_policy: {} -->', access_policy)
+
+
+@register.simple_tag
+def dataset_index_badge(project, scholar_data):
+    """
+    Badge showing a project's Dataset Index (D-Index) from stored
+    Scholar Data, linking to the project's metrics page.
+
+    Returns an empty string if no score is available.
+    """
+    d_index = (scholar_data or {}).get('latestDIndex') or {}
+    score = d_index.get('score')
+    if not isinstance(score, (int, float)):
+        return ''
+    url = reverse('published_project_metrics', args=(project.slug, project.version))
+    year = d_index.get('year')
+    title = f'Dataset Index ({year}) from Scholar Data' if year else 'Dataset Index from Scholar Data'
+    return format_html(
+        '<a href="{}" class="badge badge-dataset-index" title="{}">'
+        '<span class="badge-dataset-index-label"><i class="fas fa-chart-line"></i> Dataset Index</span>'
+        '<span class="badge-dataset-index-value">{}</span></a>',
+        url, title, round(score),
+    )
 
 
 @register.filter(name='access_description')
@@ -160,12 +195,29 @@ def author_popover(author, show_submitting=False, show_email=False,
 
     popover_body = ''.join(parts)
 
-    return format_html(
+    trigger = format_html(
         '<button type="button" class="author-popover-trigger" data-toggle="popover" '
         'data-placement="bottom" data-html="true" data-content="{}" '
         'aria-label="{}: show author information" aria-expanded="false">'
         '{}<i class="fas fa-caret-down" aria-hidden="true"></i></button>',
         popover_body, author.name, author.name,
+    )
+    return format_html('{}{}', trigger, orcid_icon_link(author))
+
+
+def orcid_icon_link(author):
+    """
+    Return a small ORCID iD icon linking to the author's ORCID record,
+    or an empty string if the author has no linked ORCID iD.
+    """
+    orcid_id = getattr(author, 'orcid_id', None)
+    if not orcid_id:
+        return ''
+    url = f'{settings.ORCID_DOMAIN}/{orcid_id}'
+    return format_html(
+        '<a class="author-orcid" href="{}" target="_blank" rel="noopener" title="ORCID iD: {}">'
+        '<img src="{}" alt="ORCID iD for {}" width="16" height="16"></a>',
+        url, url, static('images/orcid-id-icon.svg'), author.name,
     )
 
 

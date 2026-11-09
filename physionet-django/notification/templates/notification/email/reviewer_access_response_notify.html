@@ -1,0 +1,31 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+{% if granted %}
+Your request for a reviewer link for the project entitled "{{ project.title }}" has been granted. Journal reviewers can see the project at:
+
+{{ access_url }}
+
+Passphrase: {{ passphrase }}
+
+Please share the link and passphrase only with the journal. Reviewers see the project as it currently appears to the editors, so any changes made during the {{ SITE_NAME }} review will also be visible to them. {% if access_request.hide_authors %}Author information is hidden from people using this link. {% endif %}The link is valid until {{ expiry_datetime|date }}.
+
+Please note that this link is not a decision on your submission. The project is still under editorial review and there is no guarantee that it will be accepted. If the project is rejected, archived or deleted, the link will stop working immediately and reviewers will lose access. The link also stops working once the project is published, after which reviewers should use the published project page. A DOI is only assigned if the project is accepted and published.
+
+For security, the passphrase cannot be retrieved later. If it is lost, you can request a new link from the submission page of your project: {{ url_prefix }}{% url 'project_submission' project.slug %}
+{% else %}
+Your request for a reviewer link for the project entitled "{{ project.title }}" has been declined.
+{% if access_request.response_message %}
+The editor included the following message:
+
+{{ access_request.response_message }}
+{% endif %}{% endif %}{% if granted and access_request.response_message %}
+The editor included the following message:
+
+{{ access_request.response_message }}
+{% endif %}
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}
