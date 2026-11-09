@@ -1,3 +1,4 @@
+import logging
 import re
 
 from console.utility import generate_doi_payload, register_doi
@@ -33,6 +34,10 @@ from search.models import FederatedSite
 import project.tasks as project_tasks
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
+
+
+LOGGER = logging.getLogger(__name__)
+
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),

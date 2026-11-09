@@ -184,7 +184,10 @@ class TestCopyeditHTMLNormalization(TestCase):
 
     def test_removes_single_paragraph_in_table_cell(self):
         self.assertEqual(
-            normalize_copyedit_html('<table><tbody><tr><td><p>Second</p></td></tr></tbody></table>', include_medium=True),
+            normalize_copyedit_html(
+                '<table><tbody><tr><td><p>Second</p></td></tr></tbody></table>',
+                include_medium=True
+            ),
             '<table><tbody><tr><td>Second</td></tr></tbody></table>',
         )
 
