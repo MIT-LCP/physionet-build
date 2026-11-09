@@ -1715,7 +1715,16 @@ ARCHIVED_PROJECT_ORDERING = (
     # on the same displayed date by their creation time.
     TruncDate('archive_datetime').desc(nulls_last=True),
     '-creation_datetime',
+    '-pk',
 )
+
+
+def _filter_archived(queryset, data):
+    """Apply archived-project filters and return their active state."""
+    has_assigned_editor = data.get('has_assigned_editor') == 'true'
+    if has_assigned_editor:
+        queryset = queryset.filter(editor__isnull=False)
+    return queryset, has_assigned_editor
 
 
 @console_permission_required('project.change_activeproject')
@@ -1726,9 +1735,7 @@ def archived_submissions(request):
     projects = ActiveProject.objects.filter(
         submission_status=SubmissionStatus.ARCHIVED
     ).order_by(*ARCHIVED_PROJECT_ORDERING)
-    has_assigned_editor = request.GET.get('has_assigned_editor') == 'true'
-    if has_assigned_editor:
-        projects = projects.filter(editor__isnull=False)
+    projects, has_assigned_editor = _filter_archived(projects, request.GET)
     projects = paginate(request, projects, 50)
     params = request.GET.copy()
     params.pop('page', None)
@@ -1741,11 +1748,11 @@ def archived_submissions(request):
 
 
 PROJECT_SEARCH_BUCKETS = {
-    'unsubmitted': (ActiveProject, SubmissionStatus.UNSUBMITTED, 'creation_datetime',
+    'unsubmitted': (ActiveProject, SubmissionStatus.UNSUBMITTED, ('creation_datetime',),
                     'console/project_search_list.html'),
-    'submitted': (ActiveProject, None, 'submission_datetime',
+    'submitted': (ActiveProject, None, ('submission_datetime',),
                   'console/project_search_list.html'),
-    'published': (PublishedProject, None, '-publish_datetime',
+    'published': (PublishedProject, None, ('-publish_datetime',),
                   'console/published_projects_list.html'),
     'archived': (ActiveProject, SubmissionStatus.ARCHIVED, ARCHIVED_PROJECT_ORDERING,
                  'console/archived_submissions_list.html'),
@@ -1804,12 +1811,9 @@ def project_search(request, bucket):
 
     matched = _project_search_filter(base, search_field)
 
-    has_assigned_editor = (
-        bucket == 'archived'
-        and request.POST.get('has_assigned_editor') == 'true'
-    )
-    if has_assigned_editor:
-        matched = matched.filter(editor__isnull=False)
+    has_assigned_editor = False
+    if bucket == 'archived':
+        matched, has_assigned_editor = _filter_archived(matched, request.POST)
 
     if bucket == 'submitted':
         # The submitted-projects page keeps its existing tab tables and
@@ -1820,15 +1824,17 @@ def project_search(request, bucket):
         counts['on_hold'] = matched.filter(is_on_hold=True).count()
         return JsonResponse({'ids': list(matched.values_list('id', flat=True)), 'counts': counts})
 
-    projects = matched.order_by(*order) if isinstance(order, tuple) else matched.order_by(order)
+    projects = matched.order_by(*order)
     if len(search_field) == 0:
         projects = paginate(request, projects, 50)
 
-    querystring = 'has_assigned_editor=true' if has_assigned_editor else ''
+    params = request.POST.copy()
+    for key in ('search', 'page', 'csrfmiddlewaretoken'):
+        params.pop(key, None)
     return render(request, template, {
         'projects': projects,
         'bucket': bucket,
-        'querystring': querystring,
+        'querystring': params.urlencode(),
     })
 
 

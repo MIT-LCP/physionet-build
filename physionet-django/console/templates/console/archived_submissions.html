@@ -18,7 +18,7 @@
   </div>
   <div class="card-body">
     <div class="table-responsive">
-      <form method="get">
+      <form method="get" onsubmit="return false;">
         <input
           id="archived-project-search"
           type="search"
@@ -34,7 +34,7 @@
             type="checkbox"
             value="true"
             {% if has_assigned_editor %}checked{% endif %}
-            onchange="this.form.submit();"
+            onchange="if (document.getElementById('archived-project-search').value) { searchArchived(document.getElementById('archived-project-search').dataset.searchUrl); } else { this.form.submit(); }"
           >
           <label class="form-check-label" for="has-assigned-editor">
             Has an assigned editor

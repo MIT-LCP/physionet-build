@@ -2511,6 +2511,23 @@ class TestArchivedSubmissions(TestMixin):
             [self.projects[0].pk, self.projects[1].pk, self.projects[2].pk],
         )
 
+    def test_archived_projects_order_is_stable_when_dates_tie(self):
+        now = timezone.now()
+        ActiveProject.objects.filter(pk__in=[project.pk for project in self.projects]).update(
+            archive_datetime=now,
+            creation_datetime=now,
+        )
+
+        response = self.client.get(reverse('archived_submissions'))
+
+        test_project_ids = {project.pk for project in self.projects}
+        projects = [project for project in response.context['projects']
+                    if project.pk in test_project_ids]
+        self.assertEqual(
+            [project.pk for project in projects],
+            sorted(test_project_ids, reverse=True),
+        )
+
     def test_assigned_editor_filter_excludes_projects_without_an_editor(self):
         response = self.client.get(
             reverse('archived_submissions'),
@@ -2552,6 +2569,23 @@ class TestArchivedSubmissions(TestMixin):
         )
 
         self.assertEqual(response.context['querystring'], 'has_assigned_editor=true')
+
+    def test_archived_search_retains_all_non_search_pagination_filters(self):
+        response = self.client.post(
+            reverse('project_search', kwargs={'bucket': 'archived'}),
+            {
+                'search': '',
+                'has_assigned_editor': 'true',
+                'page': '2',
+                'csrfmiddlewaretoken': 'token',
+                'additional_filter': 'value',
+            },
+        )
+
+        self.assertEqual(
+            response.context['querystring'],
+            'has_assigned_editor=true&additional_filter=value',
+        )
 
 
 class TestUsersSearch(TestCase):
