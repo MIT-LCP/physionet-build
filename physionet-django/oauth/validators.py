@@ -28,6 +28,26 @@ class CustomOAuth2Validator(OAuth2Validator):
     endpoint, keyed off the granted OAuth2 scopes.
     """
 
+    # django-oauth-toolkit checks that the account is active only for the
+    # password grant. These two checks make tokens stop working, and stop
+    # being refreshed, as soon as an account is deactivated.
+
+    def validate_bearer_token(self, token, scopes, request):
+        """Reject access tokens whose owner's account is inactive."""
+        if not super().validate_bearer_token(token, scopes, request):
+            return False
+        if not request.user.is_active:
+            request.user = None
+            request.access_token = None
+            return False
+        return True
+
+    def validate_refresh_token(self, refresh_token, client, request, *args, **kwargs):
+        """Reject refresh tokens whose owner's account is inactive."""
+        if not super().validate_refresh_token(refresh_token, client, request, *args, **kwargs):
+            return False
+        return request.user.is_active
+
     def _get_sub(self, user):
         return str(user.public_user_uuid)
 
