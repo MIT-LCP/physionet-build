@@ -1406,6 +1406,9 @@ class TestDeleteAccount(TestCase):
             ('project', 'log', 'user'),
             ('project', 'internalnote', 'created_by'),
             ('project', 'reviewerinvitation', 'invited_by'),
+            # Only the submitting author can request reviewer access, and
+            # authors are already blocked from deleting their account.
+            ('project', 'revieweraccessrequest', 'requester'),
             ('events', 'eventapplication', 'user'),
             ('events', 'eventagreement', 'creator'),
             ('events', 'eventagreementsignature', 'user'),

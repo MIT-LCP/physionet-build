@@ -40,6 +40,7 @@ from project.models import (
     Publication,
     PublishedProject,
     Reference,
+    ReviewerAccessRequest,
     StorageRequest,
     Topic,
     exists_project_slug,
@@ -1415,6 +1416,52 @@ class AnonymousAccessLoginForm(forms.ModelForm):
             'passphrase':forms.PasswordInput(attrs={'class': 'form-control',
                 'placeholder': 'Passphrase', 'label': 'Passphrase'}),
         }
+
+
+REVIEWER_LINK_TYPE_CHOICES = (
+    (False, 'Standard link: reviewers can see the author names and affiliations'),
+    (True, 'Author-masked link: author information is hidden (for double-blind review)'),
+)
+
+
+class ReviewerAccessRequestForm(forms.ModelForm):
+    """
+    An author's request for a private link that journal reviewers can
+    use to see a project while it is under submission.
+    """
+    hide_authors = forms.TypedChoiceField(
+        choices=REVIEWER_LINK_TYPE_CHOICES,
+        coerce=lambda value: value in (True, 'True'),
+        initial=False,
+        widget=forms.RadioSelect(attrs={'class': 'form-check-input'}),
+        label='Link type',
+    )
+
+    class Meta:
+        model = ReviewerAccessRequest
+        fields = ('journal', 'hide_authors', 'message')
+        labels = {
+            'journal': 'Journal or conference',
+            'message': 'Message to the editor (optional)',
+        }
+        help_texts = {
+            'journal': 'Where is the related manuscript under review?',
+        }
+        widgets = {
+            'journal': forms.TextInput(attrs={'class': 'form-control',
+                                              'placeholder': 'e.g. IEEE Transactions on Affective Computing'}),
+            'message': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+    def __init__(self, project, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.project = project
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.project.revieweraccessrequests.filter(is_active=True).exists():
+            raise forms.ValidationError('This project already has an outstanding reviewer access request.')
+        return cleaned_data
 
 
 class DUASignatureForm(forms.Form):

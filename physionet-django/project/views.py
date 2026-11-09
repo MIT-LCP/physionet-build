@@ -115,9 +115,13 @@ def project_auth(auth_mode=0, post_auth_mode=0):
             except ObjectDoesNotExist:
                 raise PermissionDenied()
 
-            # Authenticate passphrase for anonymous access
+            # Authenticate passphrase for anonymous access. Links stop
+            # working once a project is archived (including rejected).
             an_url = request.get_signed_cookie('anonymousaccess', None, max_age=60*60)
-            has_passphrase = project.get_anonymous_url() == an_url
+            has_passphrase = (
+                project.submission_status != SubmissionStatus.ARCHIVED
+                and project.get_anonymous_url() == an_url
+            )
 
             # Check if anonymous access link should hide authors
             anonymous = project.anonymous.first()
@@ -1578,6 +1582,7 @@ def project_submission(request, project_slug, **kwargs):
         ('user', 'project', 'authors', 'is_submitting'))
 
     author_comments_form = forms.AuthorCommentsForm() if is_submitting and project.author_editable() else None
+    reviewer_access_form = None
 
     if request.method == 'POST':
         # Handle project submission or resubmission
@@ -1610,6 +1615,27 @@ def project_submission(request, project_slug, **kwargs):
                         messages.error(request, project.integrity_errors)
                     else:
                         raise Exception(f"Submission error for project {project.slug}")
+        # Author asks the editors for a private link for journal reviewers
+        elif 'request_reviewer_access' in request.POST and is_submitting:
+            reviewer_access_form = forms.ReviewerAccessRequestForm(project=project, data=request.POST)
+            if not project.can_request_reviewer_access():
+                messages.error(request, 'Reviewer access can only be requested while the project is under review.')
+            elif reviewer_access_form.is_valid():
+                access_request = reviewer_access_form.save(commit=False)
+                access_request.project = project
+                access_request.requester = user
+                access_request.save()
+                notification.reviewer_access_request_notify(request, access_request)
+                messages.success(request, 'Your request for a reviewer access link has been sent to the editors. '
+                                          'You will receive the link and passphrase by email.')
+                return redirect('project_submission', project_slug=project.slug)
+            else:
+                messages.error(request, utility.get_form_errors(reviewer_access_form))
+        # Author withdraws their request for a reviewer link
+        elif 'cancel_reviewer_access_request' in request.POST and is_submitting:
+            project.revieweraccessrequests.filter(is_active=True).delete()
+            messages.success(request, 'Your request for a reviewer access link has been withdrawn.')
+            return redirect('project_submission', project_slug=project.slug)
         # Author approves publication
         elif 'approve_publication' in request.POST:
             author = authors.get(user=user)
@@ -1665,6 +1691,22 @@ def project_submission(request, project_slug, **kwargs):
                 else:
                     messages.error(request, 'Invalid')
 
+    # Private links for journal reviewers
+    reviewer_access_request = project.revieweraccessrequests.order_by('-request_datetime').first()
+    pending_reviewer_access_request = (
+        reviewer_access_request if reviewer_access_request and reviewer_access_request.is_active else None
+    )
+    if is_submitting and project.can_request_reviewer_access() and not pending_reviewer_access_request:
+        reviewer_access_form = reviewer_access_form or forms.ReviewerAccessRequestForm(project=project)
+    else:
+        reviewer_access_form = None
+
+    anonymous_access = project.anonymous.first()
+    anonymous_access_url = (
+        request.build_absolute_uri(reverse('anonymous_login', args=(anonymous_access.url,)))
+        if anonymous_access else None
+    )
+
     # The deposit terms shown in the approval dialogs
     deposit_terms = None
     if deposit_terms_enabled():
@@ -1704,6 +1746,11 @@ def project_submission(request, project_slug, **kwargs):
             "contact_email": project.editor_contact_email,
             "deposit_terms_url": settings.DEPOSIT_TERMS_URL if deposit_terms_enabled() else None,
             "deposit_terms": deposit_terms,
+            "reviewer_access_request": reviewer_access_request,
+            "pending_reviewer_access_request": pending_reviewer_access_request,
+            "reviewer_access_form": reviewer_access_form,
+            "anonymous_access": anonymous_access,
+            "anonymous_access_url": anonymous_access_url,
         },
     )
 
@@ -3000,6 +3047,9 @@ def anonymous_login(request, anonymous_url):
     # Validate project url
     try:
         project = AnonymousAccess.objects.get(url=anonymous_url).project
+
+        if isinstance(project, ActiveProject) and project.submission_status == SubmissionStatus.ARCHIVED:
+            raise Http404()
 
         if project.__class__ == PublishedProject:
             response = redirect('published_project', project_slug=project.slug, version=project.version)

@@ -24,6 +24,7 @@ class NotificationType(models.IntegerChoices):
     CHALLENGE_TEAM_INVITATION = 15, 'Challenge team invitation'
     CHALLENGE_TEAM_RESPONSE = 16, 'Challenge team response'
     CHALLENGE_PHASE_CHANGE = 17, 'Challenge phase change'
+    REVIEWER_ACCESS = 18, 'Reviewer access'
 
 
 class Notification(models.Model):

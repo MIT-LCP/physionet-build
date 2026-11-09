@@ -329,6 +329,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     def submission_status_label(self):
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
 
+    def can_request_reviewer_access(self):
+        """
+        Whether authors may ask for a private link for journal reviewers.
+        This is only possible while the project is with the editors.
+        """
+        return self.under_submission() and self.submission_status != SubmissionStatus.ARCHIVED
 
     def author_editable(self):
         """
@@ -353,6 +359,10 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         self.archive_reason_text = archive_reason_text
         self.archive_datetime = timezone.now()
         self.save()
+
+        # Reviewers should no longer be able to see the project
+        self.anonymous.all().delete()
+        self.revieweraccessrequests.filter(is_active=True).update(is_active=False)
 
         if clear_files:
             self.clear_files()

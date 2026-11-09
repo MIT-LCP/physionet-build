@@ -7,6 +7,11 @@ from django.db import models
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 
+from project.modelcomponents.generic import BaseInvitation
+
+# Number of days that an anonymous access link remains valid
+ANONYMOUS_ACCESS_DAYS = 180
+
 
 class AnonymousAccess(models.Model):
     """
@@ -42,6 +47,8 @@ class AnonymousAccess(models.Model):
         unique_together = (("content_type", "object_id"),)
 
     def generate_access(self):
+        # Restart the validity period when a new link is generated
+        self.creation_datetime = timezone.now()
         url = self.generate_url()
         passphrase = self.set_passphrase()
 
@@ -75,7 +82,46 @@ class AnonymousAccess(models.Model):
         Return a boolean of whether the raw_password was correct. Handles
         hashing formats behind the scenes.
         """
-        expire_datetime = self.creation_datetime + timedelta(days=180)
-        isnot_expired = timezone.now() < expire_datetime
+        isnot_expired = timezone.now() < self.expiry_datetime
 
         return isnot_expired and check_password(raw_passphrase, self.passphrase)
+
+    @property
+    def expiry_datetime(self):
+        """
+        The time after which the passphrase is no longer accepted.
+        """
+        return self.creation_datetime + timedelta(days=ANONYMOUS_ACCESS_DAYS)
+
+    @property
+    def is_expired(self):
+        return timezone.now() >= self.expiry_datetime
+
+
+class ReviewerAccessRequest(BaseInvitation):
+    """
+    A request from an author for a private link that lets journal
+    reviewers see a project while it is under submission.
+
+    The request is granted or declined by an editor. Granting it
+    creates (or replaces) the project's AnonymousAccess link and
+    sends the link and passphrase to the requester.
+    """
+    requester = models.ForeignKey('user.User', related_name='reviewer_access_requests',
+                                  on_delete=models.CASCADE)
+    journal = models.CharField(max_length=300,
+                               help_text='The journal or venue reviewing the related manuscript')
+    hide_authors = models.BooleanField(
+        default=False,
+        help_text='Whether the author asked for a link that hides author information'
+    )
+    message = models.TextField(max_length=2000, blank=True, default='')
+    responder = models.ForeignKey('user.User', null=True, blank=True, related_name='+',
+                                  on_delete=models.SET_NULL)
+    response_message = models.TextField(max_length=2000, blank=True, default='')
+
+    class Meta:
+        default_permissions = ()
+
+    def __str__(self):
+        return 'Reviewer access request for project: {0}'.format(self.project)
