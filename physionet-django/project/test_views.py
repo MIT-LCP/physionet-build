@@ -46,7 +46,9 @@ from project.models import (
     StorageRequest,
     SubmissionStatus,
     UploadAgreement,
-    AWS
+    AWS,
+    AWSAccessPoint,
+    AWSAccessPointUser,
 )
 from project import openalex
 from project.authorization.access import can_access_project
@@ -2081,6 +2083,36 @@ class TestSelfManagedProjectWorkflows(TestMixin):
 
         self._revoke(project, second)
         remove_from_aws.assert_called_once_with(project, second.requester)
+
+    @mock.patch('project.views.remove_user_from_access_point_policy', side_effect=Exception('AWS error'))
+    @mock.patch('project.views.has_s3_credentials', return_value=True)
+    def test_aws_failure_is_reported_and_can_be_retried(self, _creds, remove_from_aws):
+        project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        access_request = self._make_request(project)
+        aws = AWS.objects.create(project=project, bucket_name='bucket', is_private=True)
+        access_point = AWSAccessPoint.objects.create(aws=aws, name='ap-01')
+        AWSAccessPointUser.objects.create(access_point=access_point, user=access_request.requester, aws=aws)
+
+        response = self._revoke(project, access_request)
+        response = self.client.get(response.url)
+        page_messages = [str(m) for m in response.context['messages']]
+        self.assertEqual(len(page_messages), 1)
+        self.assertIn('removing them from AWS failed', page_messages[0])
+        self.assertNotIn('has been revoked', page_messages[0])
+
+        # The request is still revoked on the site, and the reviewer can retry
+        access_request.refresh_from_db()
+        self.assertTrue(access_request.is_revoked())
+        self.assertContains(response, 'Retry AWS removal')
+
+        remove_from_aws.side_effect = None
+        remove_from_aws.return_value = True
+        response = self._revoke(project, access_request)
+        self.assertEqual(remove_from_aws.call_count, 2)
+        AWSAccessPointUser.objects.all().delete()
+        response = self.client.get(response.url)
+        self.assertIn('has been removed from AWS', [str(m) for m in response.context['messages']][0])
+        self.assertNotContains(response, 'Retry AWS removal')
 
     def test_decided_request_cannot_be_decided_again(self):
         project = PublishedProject.objects.get(title=self.PROJECT_NAME)

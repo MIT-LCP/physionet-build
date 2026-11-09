@@ -58,6 +58,13 @@
                                             </div>
                                         </div>
                                     </form>
+                                {% elif req.aws_removal_pending %}
+                                    <form method="post" action="{% url 'data_access_requests_overview' project.slug project.version %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="revoke_request_id" value="{{ req.id }}">
+                                        <button type="submit" class="btn btn-sm btn-warning">Retry AWS removal</button>
+                                        <small class="d-block text-muted">This user may still be able to download the files from AWS.</small>
+                                    </form>
                                 {% endif %}
                             </td>
                         </tr>

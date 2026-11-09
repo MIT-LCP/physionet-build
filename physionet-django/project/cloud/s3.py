@@ -20,6 +20,7 @@ from botocore.exceptions import (
     ReadTimeoutError,
 )
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Q
 from project.authorization.access import can_view_project_files
 from project.models import PublishedProject, AWS, AccessPolicy, AWSAccessPoint, AWSAccessPointUser
@@ -42,6 +43,13 @@ PROXY_FALLBACK_ERRORS = (
     ReadTimeoutError,
     ConnectionClosedError,
 )
+
+
+class AccessPointPolicyError(Exception):
+    """
+    An access point policy could not be updated on AWS.
+    """
+
 
 # Manage AWS buckets and objects
 
@@ -797,11 +805,13 @@ def get_aws_accounts_for_access_point(access_point_name):
 
     for user in users_with_cloud_info:
         aws_id = user.cloud_information.aws_id
-        aws_userid = (
-            user.cloud_information.aws_userid
-            if user.cloud_information.aws_userid
-            else None
-        )
+        aws_userid = user.cloud_information.aws_userid
+        if not aws_userid:
+            # A policy with a null principal is rejected by AWS, and the
+            # error does not name a user that could be dropped from it.
+            LOGGER.warning('Leaving user %s out of access point %s: no AWS user ID',
+                           user, access_point_name)
+            continue
         if aws_id and re.search(aws_id_pattern, aws_id):
             aws_accounts.append({'aws_id': aws_id, 'aws_userid': aws_userid})
 
@@ -1280,18 +1290,22 @@ def add_user_to_access_point_policy(project, user):
     access_point_data = get_access_point_with_capacity(project)
     if access_point_data:
         # If an access point with capacity exists, add the user
-        access_point = access_point_data['access_point']
         data_access_point_name = access_point_data['name']
-        # Get the existing AWS IDs and include the new user
-        existing_users = get_aws_accounts_for_access_point(data_access_point_name)
-        all_users = existing_users + [aws_account]
-        # Use insert_access_point_policy to update policy and associate the user
-        insert_access_point_policy(
-            access_point,
-            data_access_point_name,
-            project,
-            all_users,
-        )
+        with transaction.atomic():
+            # Lock the access point so a concurrent add or removal cannot
+            # write a policy based on an out-of-date list of users.
+            access_point = AWSAccessPoint.objects.select_for_update().get(
+                pk=access_point_data['access_point'].pk)
+            # Get the existing AWS IDs and include the new user
+            existing_users = get_aws_accounts_for_access_point(data_access_point_name)
+            all_users = existing_users + [aws_account]
+            # Use insert_access_point_policy to update policy and associate the user
+            insert_access_point_policy(
+                access_point,
+                data_access_point_name,
+                project,
+                all_users,
+            )
 
         return {
             "access_point": access_point,
@@ -1374,7 +1388,11 @@ def insert_access_point_policy(access_point, data_access_point_name, project, su
     working_aws_ids = subset_aws_ids.copy()
     for attempt in range(MAX_RETRIES):
         if not working_aws_ids:
-            # No valid users left
+            if attempt:
+                # Every user was rejected as invalid. The old policy may
+                # still name users who should no longer have access, so
+                # remove it rather than leave it in place.
+                delete_access_point_policy(data_access_point_name)
             return True
 
         access_point_policy = create_data_access_point_policy(
@@ -1422,30 +1440,56 @@ def remove_user_from_access_point_policy(project, user):
         project (PublishedProject): The project the user should lose access to.
         user (User): The user to remove.
 
+    The user's link to the access point is only removed once AWS has
+    accepted the new policy. If updating AWS fails, the link is kept so
+    the removal can be retried, and the error is raised.
+
     Returns:
         bool: True if the user was removed, False if they were not linked
         to any of the project's access points.
+
+    Raises:
+        AccessPointPolicyError: If AWS did not accept the new policy.
+        ClientError: If an AWS call failed.
     """
     link = AWSAccessPointUser.objects.filter(
         aws__project=project, user=user
-    ).select_related('access_point').first()
+    ).first()
     if not link:
         return False
 
-    access_point = link.access_point
-    link.delete()
+    with transaction.atomic():
+        # Lock the access point so a concurrent add or removal cannot
+        # write a policy based on an out-of-date list of users.
+        access_point = AWSAccessPoint.objects.select_for_update().get(pk=link.access_point_id)
+        # Delete the link within the transaction so the remaining users are
+        # read without it. It is restored if the AWS update fails.
+        AWSAccessPointUser.objects.filter(pk=link.pk).delete()
 
-    remaining_users = get_aws_accounts_for_access_point(access_point.name)
-    if remaining_users:
-        insert_access_point_policy(access_point, access_point.name, project, remaining_users)
-    else:
-        # A policy must name at least one principal, so drop the policy
-        # entirely. Without a policy, the access point grants no access.
+        remaining_users = get_aws_accounts_for_access_point(access_point.name)
+        if remaining_users:
+            if not insert_access_point_policy(access_point, access_point.name, project, remaining_users):
+                raise AccessPointPolicyError(
+                    'AWS did not accept the policy for access point {0}'.format(access_point.name))
+        else:
+            # A policy must name at least one principal, so drop the policy
+            # entirely. Without a policy, the access point grants no access.
+            delete_access_point_policy(access_point.name)
+    return True
+
+
+def delete_access_point_policy(access_point_name):
+    """
+    Delete an access point's policy, if it has one.
+    """
+    try:
         create_s3_control_client().delete_access_point_policy(
             AccountId=settings.AWS_ACCOUNT_ID,
-            Name=access_point.name,
+            Name=access_point_name,
         )
-    return True
+    except ClientError as e:
+        if e.response['Error']['Code'] != 'NoSuchAccessPointPolicy':
+            raise
 
 
 def initialize_access_points(project):

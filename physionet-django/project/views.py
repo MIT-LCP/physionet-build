@@ -57,6 +57,7 @@ from project.models import (
     Topic,
     UploadedDocument,
     AWS,
+    AWSAccessPointUser,
 )
 from project.modelcomponents.activeproject import ArchiveReason
 from project.modelcomponents.depositterms import (
@@ -2782,28 +2783,53 @@ def data_access_request_status_detail(request, project_slug, version, pk):
     })
 
 
+def _remove_revoked_aws_access(project, requester):
+    """
+    Remove a user's AWS access to a project unless an active request
+    still grants it.
+
+    Returns False if removing the access failed, and True otherwise.
+    """
+    still_has_access = DataAccessRequest.objects.get_active(project=project, requester=requester).exists()
+    if still_has_access or not has_s3_credentials():
+        return True
+    try:
+        remove_user_from_access_point_policy(project, requester)
+    except Exception:
+        LOGGER.exception('Failed to remove user %s from AWS access points for %s', requester, project)
+        return False
+    return True
+
+
+def _aws_removal_pending(project):
+    """
+    Return the ids of users whose access requests for the project have all
+    ended but who are still linked to one of its AWS access points.
+    """
+    if not has_s3_credentials():
+        return set()
+    linked = set(AWSAccessPointUser.objects.filter(aws__project=project).values_list('user_id', flat=True))
+    if not linked:
+        return set()
+    active = set(DataAccessRequest.objects.get_active(project=project).values_list('requester_id', flat=True))
+    revoked = set(DataAccessRequest.objects.filter(
+        project=project, status=DataAccessRequest.REVOKED_VALUE
+    ).values_list('requester_id', flat=True))
+    return (linked & revoked) - active
+
+
 def _revoke_data_access_request(request, access_request):
     """
     Revoke an accepted data access request, remove the requester's AWS
     access if no other active request still grants it, and notify them.
+
+    Returns False if the request was revoked but removing the requester's
+    AWS access failed, and True otherwise.
     """
     access_request.revoke(request.user)
-
-    project = access_request.project
-    requester = access_request.requester
-    still_has_access = DataAccessRequest.objects.get_active(project=project, requester=requester).exists()
-    if not still_has_access and has_s3_credentials():
-        try:
-            remove_user_from_access_point_policy(project, requester)
-        except Exception:
-            LOGGER.exception('Failed to remove user %s from AWS access points for %s', requester, project)
-            messages.error(
-                request,
-                'Access was revoked, but removing the user from AWS failed. '
-                'Please contact the site administrators.'
-            )
-
+    aws_removed = _remove_revoked_aws_access(access_request.project, access_request.requester)
     notification.notify_user_data_access_revoked(access_request, request.scheme, request.get_host())
+    return aws_removed
 
 
 @login_required
@@ -2840,20 +2866,36 @@ def data_access_requests_overview(request, project_slug, version):
             access_request = get_object_or_404(
                 DataAccessRequest, pk=request.POST['revoke_request_id'], project=proj
             )
+            name = access_request.requester.get_full_name()
+            aws_failed_message = (
+                f'Access for {name} was revoked, but removing them from AWS failed, so they may still be '
+                'able to download the files from AWS. Please try again using "Retry AWS removal", and '
+                'contact the site administrators if it keeps failing.'
+            )
             if access_request.is_accepted():
-                _revoke_data_access_request(request, access_request)
-                messages.success(
-                    request, f'Access for {access_request.requester.get_full_name()} has been revoked.'
-                )
+                if _revoke_data_access_request(request, access_request):
+                    messages.success(request, f'Access for {name} has been revoked.')
+                else:
+                    messages.error(request, aws_failed_message)
+            elif (access_request.is_revoked()
+                  and access_request.requester_id in _aws_removal_pending(proj)):
+                if _remove_revoked_aws_access(proj, access_request.requester):
+                    messages.success(request, f'{name} has been removed from AWS.')
+                else:
+                    messages.error(request, aws_failed_message)
             else:
                 messages.error(request, 'Only active, accepted requests can be revoked.')
             return redirect('data_access_requests_overview', project_slug=proj.slug, version=proj.version)
 
     all_requests = DataAccessRequest.objects.filter(project_id=proj).order_by(
         '-request_datetime')
-
     accepted_requests = all_requests.filter(
         status=DataAccessRequest.ACCEPT_REQUEST_VALUE).count()
+
+    aws_removal_pending = _aws_removal_pending(proj)
+    all_requests = list(all_requests)
+    for req in all_requests:
+        req.aws_removal_pending = req.is_revoked() and req.requester_id in aws_removal_pending
 
     return render(request, 'project/data_access_requests_overview.html',
                   {'project': proj,
