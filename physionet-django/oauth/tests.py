@@ -6,7 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 from django.utils import timezone
 from user.models import User
-from oauth2_provider.models import get_access_token_model, get_application_model
+from oauth2_provider.models import get_access_token_model, get_application_model, get_refresh_token_model
 from django.urls import reverse
 from urllib.parse import parse_qs, urlparse
 from oauth2_provider.settings import oauth2_settings
@@ -19,6 +19,7 @@ from unittest.mock import patch
 
 Application = get_application_model()
 AccessToken = get_access_token_model()
+RefreshToken = get_refresh_token_model()
 
 CLEARTEXT_SECRET = "1234567890abcdefghijklmnopqrstuvwxyz"
 
@@ -32,10 +33,11 @@ class BaseTest(TestCase):
             username="oauth_test_user",
             email="oauth_test@example.com",
             password="123456",
+            is_active=True,
         )
 
         self.dev_user = User.objects.create_user(
-            username="oauth_dev_user", email="oauth_dev@example.com", password="123456"
+            username="oauth_dev_user", email="oauth_dev@example.com", password="123456", is_active=True
         )
 
         self.test_user.profile.first_names = "OAuth"
@@ -492,3 +494,52 @@ class TestOIDCValidator(BaseTest):
         request = SimpleNamespace(client=self.application)
         with self.assertRaisesRegex(ImproperlyConfigured, "RS256"):
             validator.finalize_id_token({}, None, None, request)
+
+
+class TestInactiveAccounts(BaseTest):
+    """
+    Tokens stop working, and cannot be refreshed, once their owner's
+    account is inactive (for example, deactivated by an administrator).
+    """
+
+    def deactivate(self):
+        self.test_user.is_active = False
+        self.test_user.save()
+
+    def test_access_token_of_inactive_account_is_rejected(self):
+        auth = self._create_authorization_header(self.access_token.token)
+        self.assertEqual(self.client.get("/oauth/userinfo", HTTP_AUTHORIZATION=auth).status_code, 200)
+
+        self.deactivate()
+
+        # The userinfo endpoint answers 403 for a token it does not accept.
+        self.assertEqual(self.client.get("/oauth/userinfo", HTTP_AUTHORIZATION=auth).status_code, 403)
+
+    def refresh(self, refresh_token):
+        return self.client.post(
+            reverse("oauth2_provider:token"),
+            data={"grant_type": "refresh_token", "refresh_token": refresh_token},
+            **self.get_basic_auth_header(self.application.client_id, CLEARTEXT_SECRET),
+        )
+
+    def test_refresh_token_of_inactive_account_is_rejected(self):
+        for token in ["refresh-token-active", "refresh-token-inactive"]:
+            RefreshToken.objects.create(
+                user=self.test_user,
+                application=self.application,
+                token=token,
+                access_token=AccessToken.objects.create(
+                    user=self.test_user,
+                    application=self.application,
+                    token=f"access-for-{token}",
+                    scope="profile:read",
+                    expires=timezone.now() + timedelta(seconds=300),
+                ),
+            )
+        self.assertEqual(self.refresh("refresh-token-active").status_code, 200)
+
+        self.deactivate()
+
+        response = self.refresh("refresh-token-inactive")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "invalid_grant")

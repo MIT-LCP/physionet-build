@@ -31,6 +31,7 @@ class BaseTest(TestCase):
             username="oauth_test_user",
             email="oauth_test@example.com",
             password="123456",
+            is_active=True,
         )
         self.resource_type = ProjectType.objects.create(id="32707", name="TestType")
         self.application = Application.objects.create(
