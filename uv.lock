@@ -520,17 +520,18 @@ wheels = [
 
 [[package]]
 name = "django-oauth-toolkit"
-version = "2.2.0"
+version = "3.4.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "jwcrypto" },
     { name = "oauthlib" },
     { name = "requests" },
+    { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/99/59/b7935dfbed5c492c92d824ea909f121cb05fe010dcf66810d440a82e450e/django-oauth-toolkit-2.2.0.tar.gz", hash = "sha256:46890decb24a34e2a5382debeaf7752e50d90b7a11716cf2a9fd067097ec0963", size = 47356, upload-time = "2022-10-18T16:47:03.611Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/66/42/b3c6a5d7e204011a702cc02ababb756d10538645dfd188ea441e4c65a082/django_oauth_toolkit-3.4.1.tar.gz", hash = "sha256:c4de73c0765eed55a99ea0fa8433b20664dcc1f43930149cff569abed166c5c2", size = 256139, upload-time = "2026-08-21T03:45:36.538Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/65/13/90d13119f24c79585bc87ed9ac3d73d36894b432d8798233c999b7a8a0ea/django_oauth_toolkit-2.2.0-py3-none-any.whl", hash = "sha256:abd85c74af525a62365ec2049113e73a2ff8b46ef906e7104a7ba968ef02a11d", size = 63663, upload-time = "2022-10-18T16:48:37.717Z" },
+    { url = "https://files.pythonhosted.org/packages/c4/16/11cf2eacd7ac1c32908288b6d56fadef5676071a4ac0af7e626fd1abd3ef/django_oauth_toolkit-3.4.1-py3-none-any.whl", hash = "sha256:c47f2a70e83bade0a47a5e9b20e86030d8ed9c0a8f10ec4ed30446cad7291f2d", size = 163957, upload-time = "2026-08-21T03:45:34.904Z" },
 ]
 
 [[package]]
@@ -1393,7 +1394,7 @@ requires-dist = [
     { name = "django-autocomplete-light", specifier = ">=4.0,<5" },
     { name = "django-background-tasks-updated", specifier = ">=1.2.7,<2" },
     { name = "django-cors-headers", specifier = ">=3.14.0,<4" },
-    { name = "django-oauth-toolkit", specifier = ">=2.2.0,<3" },
+    { name = "django-oauth-toolkit", specifier = ">=3.4.1,<4" },
     { name = "django-q2", specifier = "==1.6.2" },
     { name = "django-sass", specifier = "==1.1.0" },
     { name = "django-static-mathjax", specifier = ">=3.2.2.1,<4" },

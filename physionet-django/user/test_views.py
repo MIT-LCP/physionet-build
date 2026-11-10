@@ -1421,6 +1421,7 @@ class TestDeleteAccount(TestCase):
             ('challenge', 'teaminvitation', 'invited_by'),
             ('oauth2_provider', 'accesstoken', 'user'),
             ('oauth2_provider', 'application', 'user'),
+            ('oauth2_provider', 'devicegrant', 'user'),
             ('oauth2_provider', 'grant', 'user'),
             ('oauth2_provider', 'idtoken', 'user'),
             ('oauth2_provider', 'refreshtoken', 'user'),

@@ -1,4 +1,5 @@
 from django.http import HttpResponse, JsonResponse
+from oauth2_provider.views import TokenView as BaseTokenView
 from oauth2_provider.views.generic import ProtectedResourceView, ScopedProtectedResourceView
 from oauth2_provider.oauth2_backends import get_oauthlib_core
 from project.models import PublishedProject
@@ -26,6 +27,28 @@ SCOPES_MAPPING = {
         "public_user_uuid": str(user.public_user_uuid),
     },
 }
+
+
+DEVICE_CODE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:device_code"
+
+
+class TokenView(BaseTokenView):
+    """
+    Token endpoint that rejects the device authorization grant.
+
+    PhysioNet doesn't offer the device flow (its endpoints aren't routed),
+    but DOT's TokenView handles device_code requests before validating the
+    client or grant type. An unknown code gets a non-standard 404, and a
+    request without a device_code raises a 500. Reject the grant type as
+    unsupported instead (RFC 6749 section 5.2).
+    """
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get("grant_type") == DEVICE_CODE_GRANT_TYPE:
+            response = JsonResponse({"error": "unsupported_grant_type"}, status=400)
+            response["Cache-Control"] = "no-store"
+            return response
+        return super().post(request, *args, **kwargs)
 
 
 class UserInfoView(ScopedProtectedResourceView):
