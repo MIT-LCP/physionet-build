@@ -814,6 +814,19 @@ class DoiLookupInput(forms.TextInput):
     template_name = 'project/doi_lookup_input.html'
 
 
+class DoiLookupFormSetMixin:
+    """
+    Give the DOI box of each form in a project's formset the URL used to
+    look up citations.
+    """
+    def _construct_form(self, i, **kwargs):
+        form = super()._construct_form(i, **kwargs)
+        if 'doi' in form.fields and self.instance.pk:
+            form.fields['doi'].widget.attrs['data-lookup-url'] = reverse(
+                'doi_lookup', args=[self.instance.slug])
+        return form
+
+
 class ReferenceForm(forms.ModelForm):
     """
     A single reference for an ActiveProject
@@ -871,7 +884,7 @@ def reference_formset_factory(extra=0):
         formset=ReferenceFormSet, validate_max=True)
 
 
-class ReferenceFormSet(BaseGenericInlineFormSet):
+class ReferenceFormSet(DoiLookupFormSetMixin, BaseGenericInlineFormSet):
     """
     Formset for adding a ActiveProject's references
     """
@@ -902,13 +915,6 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
             self.confirm_reference_order = True
         else:
             self.confirm_reference_order = False
-
-    def _construct_form(self, i, **kwargs):
-        form = super()._construct_form(i, **kwargs)
-        if 'doi' in form.fields and self.instance.pk:
-            form.fields['doi'].widget.attrs['data-lookup-url'] = reverse(
-                'reference_doi_lookup', args=[self.instance.slug])
-        return form
 
     def clean(self):
         """
@@ -985,7 +991,26 @@ class ReferenceFormSet(BaseGenericInlineFormSet):
                 form.instance.save()
 
 
-class PublicationFormSet(BaseGenericInlineFormSet):
+class PublicationForm(forms.ModelForm):
+    """
+    The publication to cite alongside an ActiveProject.
+
+    The DOI is only used to look up the citation and URL. It is not
+    saved.
+    """
+    doi = forms.CharField(
+        max_length=255, required=False, label='DOI (optional)',
+        widget=DoiLookupInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 10.1038/sdata.2016.35'}))
+
+    field_order = ('doi', 'citation', 'url')
+
+    class Meta:
+        model = Publication
+        fields = ('citation', 'url')
+        labels = {'url': 'URL'}
+
+
+class PublicationFormSet(DoiLookupFormSetMixin, BaseGenericInlineFormSet):
     """
     Formset for adding a ActiveProject's publication
     """
@@ -999,7 +1024,9 @@ class PublicationFormSet(BaseGenericInlineFormSet):
         self.max_forms = PublicationFormSet.max_forms
         self.help_text = ('The article publication to be cited, alongside this '
                           'resource, in <a href=http://www.bibme.org/citation-guide/apa/ '
-                          'target=_blank>APA</a> format. If the article is in '
+                          'target=_blank>APA</a> format. If the article has a DOI, '
+                          'enter it and click the Look up button to fill in the '
+                          'citation and URL. If the article is in '
                           'press, leave the URL blank and contact us to update '
                           'it once it is available. Maximum of {}.').format(self.max_forms)
 

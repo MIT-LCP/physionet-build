@@ -27,7 +27,7 @@ from physionet.storage import generate_signed_url_helper
 from physionet.utility import paginate, serve_file
 from challenge.utility import published_challenge_context
 from project import forms, utility, validators
-from project.citation import CitationLookupError, fetch_citation
+from project.citation import DOI_RESOLVER_URL, CitationLookupError, fetch_citation
 from project.fileviews import display_project_file
 from project.models import (
     AccessPolicy,
@@ -736,11 +736,13 @@ def get_content_editable_project(user, project_slug):
 
 
 @login_required
-def reference_doi_lookup(request, project_slug):
+def doi_lookup(request, project_slug):
     """
-    Return the APA citation for a DOI, as JSON, to fill in a reference.
+    Return the APA citation for a DOI, and the DOI's URL, as JSON, to
+    fill in a reference or the project's publication.
 
-    Accessed via ajax by the people who can edit the project's references.
+    Accessed via ajax by the people who can edit the project's references
+    and publication.
     """
     get_content_editable_project(request.user, project_slug)
 
@@ -755,10 +757,12 @@ def reference_doi_lookup(request, project_slug):
     except CitationLookupError as e:
         return JsonResponse({'error': str(e)})
 
-    max_length = Reference._meta.get_field('description').max_length
+    # The citation must fit both a reference and a publication
+    max_length = min(Reference._meta.get_field('description').max_length,
+                     Publication._meta.get_field('citation').max_length)
     if len(citation) > max_length:
         return JsonResponse({'error': 'The citation for this DOI is too long. Please enter a shorter one by hand.'})
-    return JsonResponse({'doi': doi, 'citation': citation})
+    return JsonResponse({'doi': doi, 'citation': citation, 'url': DOI_RESOLVER_URL + doi})
 
 
 def edit_content_item(request, project_slug):
@@ -787,7 +791,8 @@ def edit_content_item(request, project_slug):
                        'funding': forms.FundingFormSet}
 
     # Custom forms for formsets that need them
-    custom_forms = {'reference': forms.ReferenceForm, 'funding': forms.FundingForm}
+    custom_forms = {'reference': forms.ReferenceForm, 'publication': forms.PublicationForm,
+                    'funding': forms.FundingForm}
 
     # The fields of each formset
     content_item_fields = {'reference': forms.ReferenceForm._meta.fields,
@@ -942,8 +947,8 @@ def project_discovery(request, project_slug, **kwargs):
     TopicFormSet = generic_inlineformset_factory(Topic,
         fields=('description',), extra=0, max_num=forms.TopicFormSet.max_forms,
         can_delete=False, formset=forms.TopicFormSet, validate_max=True)
-    PublicationFormSet = generic_inlineformset_factory(Publication,
-        fields=('citation', 'url'), extra=0,
+    PublicationFormSet = generic_inlineformset_factory(
+        Publication, form=forms.PublicationForm, fields=('citation', 'url'), extra=0,
         max_num=forms.PublicationFormSet.max_forms, can_delete=False,
         formset=forms.PublicationFormSet, validate_max=True)
     FundingFormSet = forms.funding_formset_factory()

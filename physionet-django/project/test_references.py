@@ -10,7 +10,7 @@ from django.urls import reverse
 
 from console.utility import generate_doi_payload
 from project.citation import CitationLookupError, fetch_citation
-from project.models import ActiveProject, PublishedProject, PublishedReference, Reference
+from project.models import ActiveProject, Publication, PublishedProject, PublishedReference, Reference
 from project.test_funding import FIXTURES, bound_form_data, bound_formset_data
 from project.validators import find_dois, normalize_doi
 
@@ -151,7 +151,7 @@ class TestReferenceSubmission(TestCase):
     def setUp(self):
         self.project = ActiveProject.objects.get(title=self.PROJECT_TITLE)
         self.url = reverse('project_content', args=(self.project.slug,))
-        self.lookup_url = reverse('reference_doi_lookup', args=(self.project.slug,))
+        self.lookup_url = reverse('doi_lookup', args=(self.project.slug,))
         self.client.login(username=self.AUTHOR, password=self.PASSWORD)
 
     def content_data(self, reference_rows=()):
@@ -227,7 +227,8 @@ class TestReferenceSubmission(TestCase):
     def test_lookup(self, mock_get):
         mock_get.return_value = fake_response()
         response = self.client.get(self.lookup_url, {'doi': 'https://doi.org/10.1109/51.932724'})
-        self.assertEqual(response.json(), {'doi': '10.1109/51.932724', 'citation': CLEAN_CITATION})
+        self.assertEqual(response.json(), {'doi': '10.1109/51.932724', 'citation': CLEAN_CITATION,
+                                           'url': 'https://doi.org/10.1109/51.932724'})
 
     @mock.patch('project.citation.requests.get')
     def test_lookup_errors(self, mock_get):
@@ -256,6 +257,52 @@ class TestReferenceSubmission(TestCase):
         response = self.client.get(self.lookup_url, {'doi': '10.1109/51.932724'})
         self.assertEqual(response.status_code, 302)
         mock_get.assert_not_called()
+
+
+class TestPublicationDoiLookup(TestCase):
+    fixtures = FIXTURES
+
+    def setUp(self):
+        self.project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        self.url = reverse('project_discovery', args=(self.project.slug,))
+        self.lookup_url = reverse('doi_lookup', args=(self.project.slug,))
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+
+    def test_discovery_page_has_lookup(self):
+        Publication.objects.create(project=self.project, citation='A paper.')
+        response = self.client.get(self.url)
+        self.assertContains(response, 'doi-lookup-button')
+        self.assertContains(response, f'data-lookup-url="{self.lookup_url}"')
+        self.assertContains(response, 'project/js/doi-lookup.js')
+
+    def test_add_first_publication_form(self):
+        self.project.publications.all().delete()
+        response = self.client.get(
+            reverse('edit_content_item', args=(self.project.slug,)),
+            {'item': 'publication', 'add_first': 'true'})
+        self.assertContains(response, 'doi-lookup-button')
+        self.assertContains(response, f'data-lookup-url="{self.lookup_url}"')
+
+    def test_save_publication(self):
+        # The DOI is only used for the lookup, and is not saved
+        self.project.publications.all().delete()
+        response = self.client.get(self.url)
+        context = response.context
+        data = bound_form_data(context['discovery_form'])
+        data.update(bound_formset_data(context['topic_formset']))
+        data.update(bound_formset_data(context['funding_formset']))
+        prefix = context['publication_formset'].prefix
+        data.update({
+            f'{prefix}-TOTAL_FORMS': 1, f'{prefix}-INITIAL_FORMS': 0,
+            f'{prefix}-0-doi': '10.1109/51.932724',
+            f'{prefix}-0-citation': 'Moody, G. B., & Mark, R. G. (2001). A paper.',
+            f'{prefix}-0-url': 'https://doi.org/10.1109/51.932724',
+        })
+        response = self.client.post(self.url, data)
+        self.assertContains(response, 'Your discovery information has been updated.')
+        publication = self.project.publications.get()
+        self.assertEqual(publication.citation, 'Moody, G. B., & Mark, R. G. (2001). A paper.')
+        self.assertEqual(publication.url, 'https://doi.org/10.1109/51.932724')
 
 
 class TestFindDois(TestCase):

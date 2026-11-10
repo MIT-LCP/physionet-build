@@ -753,6 +753,7 @@ def copyedit_submission(request, project_slug, *args, **kwargs):
                                                  can_delete=False,
                                                  formset=project_forms.TopicFormSet, validate_max=True)
     PublicationFormSet = generic_inlineformset_factory(Publication,
+                                                       form=project_forms.PublicationForm,
                                                        fields=('citation', 'url'), extra=0,
                                                        max_num=project_forms.PublicationFormSet.max_forms,
                                                        can_delete=False,
