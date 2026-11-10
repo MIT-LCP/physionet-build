@@ -1392,6 +1392,8 @@ class TestDeleteAccount(TestCase):
         # Relations that are safe to cascade-delete with the account.
         SAFE_TO_CASCADE = {
             ('admin', 'logentry', 'user'),
+            # Personal API tokens are revoked with the account.
+            ('user', 'personalaccesstoken', 'user'),
             ('user', 'userlogin', 'user'),
             ('user', 'associatedemail', 'user'),
             ('user', 'profile', 'user'),

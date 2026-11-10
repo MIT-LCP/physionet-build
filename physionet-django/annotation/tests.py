@@ -124,7 +124,7 @@ class AnnotationAPITests(BaseTest):
     def test_create_annotation_collection_correct_scope(self):
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:collections:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -141,7 +141,7 @@ class AnnotationAPITests(BaseTest):
     def test_create_annotation_collection_wrong_scope(self):
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:view",
+            scope="annotations:collections:read",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -167,7 +167,7 @@ class AnnotationAPITests(BaseTest):
     def test_create_annotation_type_correct_scope(self):
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:types:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -229,7 +229,7 @@ class AnnotationAPITests(BaseTest):
 
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:annotations:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -286,7 +286,7 @@ class AnnotationAPITests(BaseTest):
         }
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:annotations:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,
@@ -344,7 +344,7 @@ class AnnotationAPITests(BaseTest):
         }
         self.access_token = AccessToken.objects.create(
             user=self.user,
-            scope="annotations:edit",
+            scope="annotations:annotations:write",
             expires=timezone.now() + timedelta(seconds=300),
             token="secret-access-token-key",
             application=self.application,

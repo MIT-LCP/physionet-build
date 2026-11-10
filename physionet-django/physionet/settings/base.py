@@ -159,11 +159,15 @@ MIDDLEWARE = [
     'django.contrib.redirects.middleware.RedirectFallbackMiddleware',
 ]
 
+# API tokens (personal access tokens and OAuth tokens) are not accepted by
+# default. A view opts in by listing PersonalAccessTokenAuthentication and/or
+# OAuth2Authentication in authentication_classes, together with a permission
+# that checks the token's scopes (see user/token_auth.py). This keeps a token
+# from acting as a full login on views that do not check scopes.
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
     ]
 }
 
@@ -892,8 +896,10 @@ ALLOWED_ACCESS_POLICIES = config(
     default='OPEN,RESTRICTED,CREDENTIALED,CONTRIBUTOR_REVIEW'
 ).split(',')
 
-# OAUTH_CLIENT_APP_NAME is the name of the default OAuth application used
-# when programmatically generating access tokens (e.g., via the /settings/tokens).
+# OAUTH_CLIENT_APP_NAME is the name of the OAuth application that the token
+# settings page (/settings/tokens) used to issue tokens before personal access
+# tokens replaced them. It is used only to remove those older tokens (see
+# user migration 0078).
 OAUTH_CLIENT_APP_NAME = config('OAUTH_CLIENT_APP_NAME', default='')
 
 
