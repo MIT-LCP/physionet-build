@@ -3018,6 +3018,12 @@ def submission_stats(request):
             cur_month = 12
             cur_year -= 1
 
+    # Initialize yearly counts for the last 6 years:
+    # [created, submitted, resubmitted, published, rejected]
+    yearly_stats = OrderedDict()
+    for y in range(todays_date.year, todays_date.year - 6, -1):
+        yearly_stats[y] = [0, 0, 0, 0, 0]
+
     # Get all active and published projects and store their milestone datetimes
     for project_set in all_projects:
 
@@ -3027,17 +3033,19 @@ def submission_stats(request):
             create_mo = project.creation_datetime.strftime("%B")
             if create_yr in stats and create_mo in stats[create_yr]:
                 stats[create_yr][create_mo][0] += 1
+            if create_yr in yearly_stats:
+                yearly_stats[create_yr][0] += 1
 
             # Get times when projects were submitted and count unique submissions vs. resubmissions
             edit_logs = project.edit_log_history()
             for log in edit_logs:
                 sub_date_yr = log.submission_datetime.year
                 sub_date_mo = log.submission_datetime.strftime("%B")
+                idx = 2 if log.is_resubmission else 1
                 if sub_date_yr in stats and sub_date_mo in stats[sub_date_yr]:
-                    if log.is_resubmission:
-                        stats[sub_date_yr][sub_date_mo][2] += 1
-                    else:
-                        stats[sub_date_yr][sub_date_mo][1] += 1
+                    stats[sub_date_yr][sub_date_mo][idx] += 1
+                if sub_date_yr in yearly_stats:
+                    yearly_stats[sub_date_yr][idx] += 1
 
                 # Get times when projects were rejected, if applicable
                 if log.decision == 0 and log.decision_datetime:
@@ -3045,6 +3053,8 @@ def submission_stats(request):
                     reject_mo = log.decision_datetime.strftime("%B")
                     if reject_yr in stats and reject_mo in stats[reject_yr]:
                         stats[reject_yr][reject_mo][4] += 1
+                    if reject_yr in yearly_stats:
+                        yearly_stats[reject_yr][4] += 1
 
             # Get times when projects were published, if applicable
             try:
@@ -3052,11 +3062,13 @@ def submission_stats(request):
                 pub_mo = project.publish_datetime.strftime("%B")
                 if pub_yr in stats and pub_mo in stats[pub_yr]:
                     stats[pub_yr][pub_mo][3] += 1
+                if pub_yr in yearly_stats:
+                    yearly_stats[pub_yr][3] += 1
             except AttributeError:
                 pass
 
     return render(request, 'console/submission_stats.html',
-                  {'submenu': 'submission', 'stats': stats})
+                  {'submenu': 'submission', 'stats': stats, 'yearly_stats': yearly_stats})
 
 
 @console_permission_required('project.can_view_stats')
