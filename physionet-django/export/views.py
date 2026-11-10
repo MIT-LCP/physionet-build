@@ -100,6 +100,9 @@ class ProjectVersionList(mixins.ListModelMixin, generics.GenericAPIView):
         - Rate limited: 20 requests/hour for anonymous users
     """
     serializer_class = ProjectVersionsSerializer
+    # Public data, so an OAuth token only selects the authenticated rate
+    # limit here; it gives no access beyond what anyone can see.
+    authentication_classes = [BasicAuthentication, SessionAuthentication, OAuth2Authentication]
     throttle_classes = [StandardRateThrottle, StandardAnonRateThrottle]
 
     def get_queryset(self):
@@ -254,6 +257,9 @@ class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
         - Rate limited: 20 requests/hour for anonymous users
     """
     serializer_class = PublishedProjectSerializer
+    # Public data, so an OAuth token only selects the authenticated rate
+    # limit here; it gives no access beyond what anyone can see.
+    authentication_classes = [BasicAuthentication, SessionAuthentication, OAuth2Authentication]
     throttle_classes = [StandardRateThrottle, StandardAnonRateThrottle]
 
     def check_resource_type(self, resource_type):

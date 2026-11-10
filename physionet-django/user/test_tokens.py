@@ -1,4 +1,5 @@
 from datetime import timedelta
+from types import SimpleNamespace
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -9,6 +10,7 @@ from django.utils import timezone
 from oauth2_provider.models import get_access_token_model, get_application_model
 from rest_framework.test import APIClient
 
+from annotation.permissions import AnnotationsScope
 from user.management.commands.purge_expired_access_tokens import EXPIRED_TOKEN_DAY_LIMIT
 from user.models import PersonalAccessToken
 
@@ -202,6 +204,33 @@ class TokenAPITests(TestCase):
             response = Client().get(reverse("edit_profile"), HTTP_AUTHORIZATION=f"Bearer {token}")
             self.assertEqual(response.status_code, 302)
             self.assertTrue(response["Location"].startswith(settings.LOGIN_URL))
+
+    def test_annotation_scope_denies_views_without_a_resource(self):
+        record, _ = PersonalAccessToken.create_for_user(self.user, [COLLECTION_WRITE])
+        request = SimpleNamespace(method="POST", auth=record)
+        self.assertTrue(AnnotationsScope().has_permission(request, SimpleNamespace(scope_resource="collections")))
+        self.assertFalse(AnnotationsScope().has_permission(request, SimpleNamespace()))
+
+    def test_public_list_views_still_accept_oauth_tokens(self):
+        """OAuth clients keep the authenticated rate limit on the public project lists."""
+        application = Application.objects.create(
+            name="Token API test client",
+            user=self.user,
+            client_type=Application.CLIENT_CONFIDENTIAL,
+            authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
+            redirect_uris="http://localhost",
+        )
+        oauth_token = AccessToken.objects.create(
+            user=self.user, application=application, token="oauth-token-for-public-lists",
+            scope="openid", expires=timezone.now() + timedelta(minutes=5),
+        )
+        for url in [
+            reverse("published_project_versions", args=["demobsn"]),
+            reverse("published_project_search") + "?search_term=demo",
+        ]:
+            response = self.client.get(url, HTTP_AUTHORIZATION=f"Bearer {oauth_token.token}")
+            self.assertEqual(response.status_code, 200, url)
+            self.assertEqual(response.renderer_context["request"].user, self.user, url)
 
 
 class ExpiredTokenCleanupTests(TestCase):
