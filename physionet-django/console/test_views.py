@@ -5,6 +5,8 @@ import json
 import logging
 import os
 import pdb
+from types import SimpleNamespace
+from unittest import mock
 
 
 import requests_mock
@@ -19,7 +21,9 @@ from django.urls import reverse
 from django.utils import timezone
 from console.forms import CredentialReviewForm
 from console.views import snapshot_files, submission_file_changes
+from project.modelcomponents.activeproject import ArchiveReason
 from events.models import EventAgreement
+from project.fields import SafeHTMLField
 from project.models import (
     AccessPolicy,
     ActiveProject,
@@ -39,12 +43,214 @@ from project.models import (
     DepositTermsAcceptance,
     DepositTermsVersion,
 )
-from project.modelcomponents.activeproject import ArchiveReason
+from project.utility import (
+    COPYEDIT_CONTENT_FIELDS,
+    copyedit_content_warnings,
+    normalize_copyedit_html,
+    normalize_copyedit_html_with_rules,
+    normalize_project_content,
+)
 from user.models import AssociatedEmail, User
 from physionet.models import FrontPageButton, Section, StaticPage
 from user.test_views import TestMixin, prevent_request_warnings
 
 LOGGER = logging.getLogger(__name__)
+
+
+class TestCopyeditHTMLNormalization(TestCase):
+    def test_opt_in_field_normalizes_low_risk_rules_on_save(self):
+        field = SafeHTMLField(normalize_copyedit=True)
+        self.assertEqual(
+            field.clean('<p><span>Saved&nbsp;text </span></p>', None),
+            '<p>Saved text</p>',
+        )
+
+    def test_non_opt_in_field_does_not_apply_copyedit_rules(self):
+        field = SafeHTMLField()
+        self.assertEqual(
+            field.clean('<p><span>Saved&nbsp;text </span></p>', None),
+            '<p><span>Saved text </span></p>',
+        )
+
+    def test_applies_low_risk_normalization(self):
+        self.assertEqual(
+            normalize_copyedit_html('<p><span><em> First&nbsp;second </em></span> </p>'),
+            '<p><em> First second </em></p>',
+        )
+
+    def test_reports_the_rules_that_normalized_content(self):
+        normalized, rules = normalize_copyedit_html_with_rules(
+            '<p><span>Text&nbsp; </span></p>')
+        self.assertEqual(normalized, '<p>Text</p>')
+        self.assertEqual(rules, (
+            'replaced non-breaking spaces',
+            'removed span wrappers',
+            'trimmed trailing paragraph whitespace',
+        ))
+
+    def test_project_normalization_does_not_partially_update_content(self):
+        project = SimpleNamespace(**{
+            field: 'trigger failure' if field == 'background' else field
+            for field in COPYEDIT_CONTENT_FIELDS
+        })
+        original_values = project.__dict__.copy()
+
+        def normalize(value, include_medium):
+            if value == 'trigger failure':
+                raise RuntimeError('normalization failed')
+            return 'normalized {}'.format(value), ('removed span wrappers',)
+
+        with mock.patch(
+                'project.utility.normalize_copyedit_html_with_rules',
+                side_effect=normalize):
+            with self.assertRaises(RuntimeError):
+                normalize_project_content(project)
+
+        self.assertEqual(project.__dict__, original_values)
+
+    def test_removes_empty_inline_formatting_tags(self):
+        self.assertEqual(
+            normalize_copyedit_html(
+                '<p><code></code><b> </b><i></i><em></em><u></u><strong></strong>Text</p>'
+            ),
+            '<p> Text</p>',
+        )
+
+    def test_preserves_word_separation_from_whitespace_only_formatting(self):
+        for html, expected in (
+                ('word<strong> </strong>word', 'word word'),
+                ('<p>one<em> </em>two</p>', '<p>one two</p>')):
+            with self.subTest(html=html):
+                self.assertEqual(normalize_copyedit_html(html), expected)
+
+    def test_preserves_inline_formatting_with_visible_content(self):
+        html = '<p><code><br></code><strong><img src="image.png"></strong></p>'
+        self.assertEqual(normalize_copyedit_html(html), html)
+
+    def test_only_unwraps_spans_and_nbsp_inside_preformatted_content(self):
+        html = '<pre><code></code><span><strong>&nbsp;text</strong></span></pre>'
+        self.assertEqual(
+            normalize_copyedit_html(html),
+            '<pre><code></code><strong> text</strong></pre>',
+        )
+
+    def test_only_unwraps_spans_and_nbsp_inside_mathml(self):
+        html = '<math><mtext><code></code><span><strong>&nbsp;text</strong></span></mtext></math>'
+        self.assertEqual(
+            normalize_copyedit_html(html),
+            '<math><mtext><code></code><strong> text</strong></mtext></math>',
+        )
+
+    def test_does_not_consider_mathml_empty(self):
+        html = '<p><strong><math><mspace width="1em"/></math></strong></p>'
+        self.assertEqual(normalize_copyedit_html(html), html)
+
+    def test_heading_cleanup_does_not_modify_protected_content(self):
+        for html in (
+                '<h3><math><mtext><strong>x</strong></mtext></math></h3>',
+                '<h3><pre><strong>x</strong></pre></h3>'):
+            with self.subTest(html=html):
+                self.assertEqual(normalize_copyedit_html(html, include_medium=True), html)
+
+    def test_excessively_nested_html_is_left_unchanged(self):
+        html = '<span>' * 1200 + 'text' + '</span>' * 1200
+        self.assertEqual(normalize_copyedit_html(html), html)
+        self.assertEqual(copyedit_content_warnings(html), set())
+
+    def test_does_not_move_spaces_outside_inline_formatting(self):
+        html = '<p><em>one </em>two and<strong> three</strong></p>'
+        self.assertEqual(normalize_copyedit_html(html), html)
+
+    def test_only_removes_redundant_spans_from_preformatted_content(self):
+        html = '<pre>    x = 1\n<span>keep&nbsp;this</span>\n</pre>'
+        self.assertEqual(
+            normalize_copyedit_html(html),
+            '<pre>    x = 1\nkeep this\n</pre>',
+        )
+
+    def test_removes_spans_with_attributes(self):
+        html = '<p><span lang="fr" title="Greeting">Bonjour</span></p>'
+        self.assertEqual(normalize_copyedit_html(html), '<p>Bonjour</p>')
+
+    def test_applies_medium_risk_rules_only_at_acceptance(self):
+        html = '<h3><em><strong>Heading</strong></em></h3><ul><li><p>Item</p></li></ul>'
+        self.assertEqual(normalize_copyedit_html(html), html)
+        self.assertEqual(
+            normalize_copyedit_html(html, include_medium=True),
+            '<h3><em>Heading</em></h3><ul><li>Item</li></ul>',
+        )
+
+    def test_does_not_unwrap_multiple_paragraphs_in_table_cells(self):
+        self.assertEqual(
+            normalize_copyedit_html(
+                '<table><tbody><tr><td><p>First</p><p>Second</p></td></tr></tbody></table>',
+                include_medium=True,
+            ),
+            '<table><tbody><tr><td><p>First</p><p>Second</p></td></tr></tbody></table>',
+        )
+
+    def test_removes_single_paragraph_in_table_cell(self):
+        self.assertEqual(
+            normalize_copyedit_html(
+                '<table><tbody><tr><td><p>Second</p></td></tr></tbody></table>',
+                include_medium=True
+            ),
+            '<table><tbody><tr><td>Second</td></tr></tbody></table>',
+        )
+
+    def test_preserves_content_adjacent_to_paragraph_in_table_cell(self):
+        html = '<table><tbody><tr><td>Label<p>Value</p></td></tr></tbody></table>'
+        self.assertEqual(normalize_copyedit_html(html, include_medium=True), html)
+
+    def test_preserves_empty_mathml_elements(self):
+        html = (
+            '<math><msubsup><mi>x</mi><none/><mi>2</mi></msubsup>'
+            '<mprescripts/><mspace/><mtext><span>keep</span>&nbsp;text</mtext></math>'
+        )
+        self.assertEqual(
+            normalize_copyedit_html(html),
+            '<math><msubsup><mi>x</mi><none></none><mi>2</mi></msubsup>'
+            '<mprescripts></mprescripts><mspace></mspace>'
+            '<mtext>keep text</mtext></math>',
+        )
+
+    def test_preserves_mathml_with_semantic_empty_elements_in_paragraphs(self):
+        self.assertEqual(
+            normalize_copyedit_html('<p><math><mspace width="1em"/></math></p>'),
+            '<p><math><mspace width="1em"/></math></p>',
+        )
+
+    def test_removes_empty_paragraphs_without_converting_divs(self):
+        self.assertEqual(
+            normalize_copyedit_html('<p></p><div>Paragraph<br></div><div><p>Second</p></div>'),
+            '<div>Paragraph<br></div><div><p>Second</p></div>',
+        )
+
+    def test_does_not_rewrite_divs(self):
+        self.assertEqual(
+            normalize_copyedit_html('<div><blockquote>Quote</blockquote></div>'),
+            '<div><blockquote>Quote</blockquote></div>',
+        )
+
+    def test_preserves_nonmatching_content_verbatim(self):
+        html = '<!-- note --><p>Line<br/></p>'
+        self.assertEqual(normalize_copyedit_html(html), html)
+
+    def test_escapes_entities_once_after_normalization(self):
+        self.assertEqual(
+            normalize_copyedit_html('<p>x &lt;<span> y</span></p>'),
+            '<p>x &lt; y</p>',
+        )
+
+    def test_reports_higher_risk_patterns_as_warnings(self):
+        html = (
+            '<div>Text</div><table><tbody><tr><td>\n<p><strong>One</strong></p>\n</td></tr>'
+            '<tr><td>Two</td></tr></tbody></table>'
+        )
+        self.assertEqual(copyedit_content_warnings(html), {
+            'contain div elements',
+            'have a table whose first row appears to be a header',
+        })
 
 
 class TestCredentialReviewForm(TestCase):
@@ -543,9 +749,14 @@ class TestState(TestMixin):
         def get_project():
             return ActiveProject.objects.get(id=project.id)
 
-        # The following steps should not alter the project timestamp,
-        # since project "Metadata" fields are not being changed (only
-        # "SubmissionInfo").
+        # These submission-state steps do not alter metadata. Acceptance
+        # backfills the medium-risk rules for content saved before the
+        # save-time low-risk normalizer was introduced.
+        ActiveProject.objects.filter(id=project.id).update(
+            abstract='<p><span>Legacy&nbsp;abstract </span></p>',
+            methods='<h3><em><strong>Legacy heading</strong></em></h3>',
+        )
+        project = get_project()
         timestamp = project.modified_datetime
 
         project.submit(author_comments='')
@@ -575,12 +786,43 @@ class TestState(TestMixin):
                 'ethics_included': 1,
             },
         )
-        self.assertEqual(get_project().modified_datetime, timestamp)
+        accepted_project = get_project()
+        self.assertEqual(accepted_project.abstract, '<p>Legacy abstract</p>')
+        self.assertEqual(
+            accepted_project.methods,
+            '<h3><em>Legacy heading</em></h3>',
+        )
+        self.assertEqual(
+            accepted_project.copyedit_logs.get().changelog_summary,
+            'Automatically normalized:\n'
+            '- Abstract: replaced non-breaking spaces; removed span wrappers; '
+            'trimmed trailing paragraph whitespace.\n'
+            '- Methods: removed bold formatting from a heading.',
+        )
+        timestamp = accepted_project.modified_datetime
 
         # Complete copyedit
-        response = self.client.post(reverse(
-            'copyedit_submission', args=(project.slug,)),
-            data={'complete_copyedit':'', 'made_changes':0})
+        response = self.client.post(
+            reverse('copyedit_submission', args=(project.slug,)),
+            data={
+                'complete_copyedit': '',
+                'made_changes': 0,
+                'changelog_summary': (
+                    'Automatically normalized:\r\n'
+                    '- Abstract: replaced non-breaking spaces; removed span wrappers; '
+                    'trimmed trailing paragraph whitespace.\r\n'
+                    '- Methods: removed bold formatting from a heading.'
+                ),
+            }
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            get_project().copyedit_logs.get().changelog_summary,
+            'Automatically normalized:\n'
+            '- Abstract: replaced non-breaking spaces; removed span wrappers; '
+            'trimmed trailing paragraph whitespace.\n'
+            '- Methods: removed bold formatting from a heading.',
+        )
         self.assertEqual(get_project().modified_datetime, timestamp)
 
         # Approve publication

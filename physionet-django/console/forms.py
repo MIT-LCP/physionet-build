@@ -1,3 +1,4 @@
+import logging
 import re
 
 from console.utility import generate_doi_payload, register_doi
@@ -28,10 +29,15 @@ from project.models import (
     exists_project_slug,
     InternalNote,
 )
+from project.utility import normalize_project_content
 from search.models import FederatedSite
 import project.tasks as project_tasks
 from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
+
+
+LOGGER = logging.getLogger(__name__)
+
 
 RESPONSE_CHOICES = (
     (1, 'Accept'),
@@ -265,8 +271,29 @@ class EditSubmissionForm(forms.ModelForm):
                 project.submission_status = SubmissionStatus.NEEDS_COPYEDIT
                 project.editor_accept_datetime = now
                 project.latest_reminder = now
+                try:
+                    normalization_changes = normalize_project_content(project)
+                except Exception:
+                    LOGGER.exception(
+                        'Could not normalize copyedit content for project %s',
+                        project.slug,
+                    )
+                    normalization_changes = {}
 
-                CopyeditLog.objects.create(project=project)
+                summary = ''
+                if normalization_changes:
+                    summary = 'Automatically normalized:\n{}'.format('\n'.join(
+                        '- {}: {}.'.format(
+                            field.replace('_', ' ').capitalize(),
+                            '; '.join(rules),
+                        )
+                        for field, rules in normalization_changes.items()
+                    ))
+                CopyeditLog.objects.create(
+                    project=project,
+                    made_changes=bool(normalization_changes),
+                    changelog_summary=summary,
+                )
                 project.save()
 
                 if self.cleaned_data['auto_doi']:
@@ -304,6 +331,19 @@ class CopyeditForm(forms.ModelForm):
         project = self.instance.project
         if not project.check_integrity():
             raise forms.ValidationError(project.integrity_errors)
+        automatic_summary = self.instance.changelog_summary
+        is_automatic_summary = automatic_summary.startswith(
+            'Automatically normalized:\n')
+        # Browsers submit textarea line breaks as CRLF, while generated
+        # summaries are stored with LF line breaks.
+        editor_summary = self.cleaned_data['changelog_summary'].replace(
+            '\r\n', '\n').replace('\r', '\n')
+        if is_automatic_summary:
+            if editor_summary.startswith(automatic_summary):
+                editor_summary = editor_summary[len(automatic_summary):].lstrip('\n')
+            self.cleaned_data['changelog_summary'] = '\n'.join(
+                part for part in (automatic_summary, editor_summary) if part)
+            self.cleaned_data['made_changes'] = True
         if self.cleaned_data['made_changes'] and not self.cleaned_data['changelog_summary']:
             raise forms.ValidationError('Describe the changes you made.')
         if not self.cleaned_data['made_changes'] and self.cleaned_data['changelog_summary']:

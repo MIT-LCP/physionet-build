@@ -877,6 +877,7 @@ def project_content(request, project_slug, **kwargs):
             description_form.save()
             reference_formset.save()
             messages.success(request, 'Your project content has been updated.')
+            description_form = forms.ContentForm(instance=project, editable=editable)
             reference_formset = ReferenceFormSet(instance=project)
         else:
             messages.error(request,
@@ -1899,6 +1900,7 @@ def project_ethics(request, project_slug, **kwargs):
             project = ethics_form.save()
             documents_formset.save()
             messages.success(request, 'Your project ethics has been updated.')
+            ethics_form = forms.EthicsForm(instance=project, editable=editable)
             documents_formset = UploadedDocumentFormSet(instance=project)
         else:
             messages.error(request, 'Invalid submission. See errors below.')

@@ -69,17 +69,17 @@ class Metadata(models.Model):
 
     # Main body descriptive metadata
     title = models.CharField(max_length=200, validators=[validate_title])
-    abstract = SafeHTMLField(max_length=10000, blank=True)
-    background = SafeHTMLField(blank=True)
-    methods = SafeHTMLField(blank=True)
-    content_description = SafeHTMLField(blank=True)
-    usage_notes = SafeHTMLField(blank=True)
-    installation = SafeHTMLField(blank=True)
-    acknowledgements = SafeHTMLField(blank=True)
-    conflicts_of_interest = SafeHTMLField(blank=True)
+    abstract = SafeHTMLField(max_length=10000, blank=True, normalize_copyedit=True)
+    background = SafeHTMLField(blank=True, normalize_copyedit=True)
+    methods = SafeHTMLField(blank=True, normalize_copyedit=True)
+    content_description = SafeHTMLField(blank=True, normalize_copyedit=True)
+    usage_notes = SafeHTMLField(blank=True, normalize_copyedit=True)
+    installation = SafeHTMLField(blank=True, normalize_copyedit=True)
+    acknowledgements = SafeHTMLField(blank=True, normalize_copyedit=True)
+    conflicts_of_interest = SafeHTMLField(blank=True, normalize_copyedit=True)
     version = models.CharField(max_length=15, default='', blank=True,
                                validators=[validate_version])
-    release_notes = SafeHTMLField(blank=True)
+    release_notes = SafeHTMLField(blank=True, normalize_copyedit=True)
 
     # Short description used for search results, social media, etc
     short_description = models.CharField(max_length=250, blank=True)
@@ -104,7 +104,7 @@ class Metadata(models.Model):
     embargo_files_days = models.SmallIntegerField(default=None, null=True, blank=True)
     georestricted = models.BooleanField(default=False, null=True)
 
-    ethics_statement = SafeHTMLField(blank=True)
+    ethics_statement = SafeHTMLField(blank=True, normalize_copyedit=True)
     required_trainings = models.ManyToManyField('user.TrainingType', related_name='%(class)s')
 
     # Total size of the project files in bytes

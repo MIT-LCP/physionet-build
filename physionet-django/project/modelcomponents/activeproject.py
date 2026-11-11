@@ -38,6 +38,7 @@ from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionI
 from project.modelcomponents.unpublishedproject import UnpublishedProject
 from project.reference_citations import citation_problems
 import project.tasks as tasks
+from project.utility import COPYEDIT_CONTENT_FIELDS, copyedit_content_warnings
 from project.validators import validate_subdir
 
 LOGGER = logging.getLogger(__name__)
@@ -459,6 +460,14 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.integrity_warnings.append(
                 'No references have been added to this project.')
 
+        copyedit_warnings = {}
+        for field in COPYEDIT_CONTENT_FIELDS:
+            for warning in copyedit_content_warnings(getattr(self, field)):
+                copyedit_warnings.setdefault(warning, []).append(
+                    field.replace('_', ' ').capitalize())
+        for warning, fields in copyedit_warnings.items():
+            self.integrity_warnings.append(
+                'The following fields {}: {}.'.format(warning, ', '.join(fields)))
         references = list(self.references.order_by('order', 'id'))
         for number, reference in enumerate(references, start=1):
             for warning in reference.quality_warnings():
