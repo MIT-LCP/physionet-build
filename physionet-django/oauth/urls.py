@@ -3,6 +3,7 @@ import oauth2_provider.views as oauth2_views
 from django.conf import settings
 from oauth2_provider.views import JwksInfoView
 from oauth2_provider.views import UserInfoView as OIDCUserInfoView
+from oauth import device
 from oauth.views import hello, TokenView, UserInfoView, DatasetAccessView
 
 # OAuth2 provider endpoints. The OIDC userinfo and JWKS endpoints live here so
@@ -14,6 +15,19 @@ oauth2_endpoint_views = [
     path("revoke-token/", oauth2_views.RevokeTokenView.as_view(), name="revoke-token"),
     path("jwks/", JwksInfoView.as_view(), name="jwks-info"),
     path("oidc/userinfo", OIDCUserInfoView.as_view(), name="user-info"),
+    # Device flow (RFC 8628), used by the Python package to sign in.
+    path("device-authorization/", device.DeviceAuthorizationView.as_view(), name="device-authorization"),
+    path("device/", device.DeviceUserCodeView.as_view(), name="device"),
+    path(
+        "device/confirm/<slug:client_id>/<slug:user_code>/",
+        device.DeviceConfirmView.as_view(),
+        name="device-confirm",
+    ),
+    path(
+        "device/status/<slug:client_id>/<slug:user_code>/",
+        device.DeviceGrantStatusView.as_view(),
+        name="device-grant-status",
+    ),
 ]
 
 if settings.DEBUG:

@@ -38,6 +38,7 @@ from notification.utility import (
     process_credential_complete,
     training_application_request,
 )
+from oauth2_provider.models import get_access_token_model, get_application_model, get_refresh_token_model
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 from physionet import utility
@@ -560,6 +561,33 @@ def _create_personal_access_token(request):
     return token
 
 
+def _signed_in_applications(user):
+    """
+    Return the OAuth applications, such as the Python package, that can
+    still act for the user: those with an unexpired access token or an
+    unrevoked refresh token.
+    """
+    now = timezone.now()
+    application_ids = set(
+        get_access_token_model().objects.filter(user=user, expires__gt=now)
+        .values_list("application_id", flat=True)
+    )
+    application_ids.update(
+        get_refresh_token_model().objects.filter(user=user, revoked__isnull=True)
+        .values_list("application_id", flat=True)
+    )
+    return get_application_model().objects.filter(id__in=application_ids).order_by("name")
+
+
+def _sign_out_application(user, application_id):
+    """Revoke all of the user's OAuth tokens for one application."""
+    for refresh_token in get_refresh_token_model().objects.filter(
+        user=user, application_id=application_id, revoked__isnull=True
+    ):
+        refresh_token.revoke()
+    get_access_token_model().objects.filter(user=user, application_id=application_id).delete()
+
+
 @login_required
 def edit_tokens(request):
     """
@@ -578,6 +606,12 @@ def edit_tokens(request):
             if token_id.isdigit():
                 PersonalAccessToken.objects.filter(user=request.user, id=token_id).delete()
             return redirect("edit_tokens")
+        if action == "sign_out_application":
+            application_id = request.POST.get("application_id", "")
+            if application_id.isdigit():
+                _sign_out_application(request.user, int(application_id))
+                messages.success(request, "Signed out.")
+            return redirect("edit_tokens")
         if action != "create":
             return redirect("edit_tokens")
         new_token = _create_personal_access_token(request)
@@ -593,6 +627,7 @@ def edit_tokens(request):
         "user/edit_tokens.html",
         {
             "tokens": tokens,
+            "signed_in_applications": _signed_in_applications(request.user),
             "new_token": new_token,
             "available_endpoints": _available_token_endpoints(),
             "max_tokens": PersonalAccessToken.MAX_ACTIVE_PER_USER,

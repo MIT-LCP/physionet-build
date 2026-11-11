@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Device sign-in{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 36rem;">
+  {% if object.status == "authorized" %}
+    <h1 class="mt-4">Device approved</h1>
+    <p>You can close this page and return to your program.</p>
+  {% elif object.status == "denied" %}
+    <h1 class="mt-4">Sign-in denied</h1>
+    <p>The program was not signed in. You can close this page.</p>
+  {% else %}
+    <h1 class="mt-4">Code no longer valid</h1>
+    <p>This code has expired or has already been used. If your program is not signed in, start the sign-in again.</p>
+  {% endif %}
+</div>
+{% endblock %}

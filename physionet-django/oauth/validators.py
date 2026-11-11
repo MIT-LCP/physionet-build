@@ -1,7 +1,12 @@
-from django.core.exceptions import ImproperlyConfigured
-from oauth2_provider.models import AbstractApplication
-from oauth2_provider.oauth2_validators import OAuth2Validator
+from datetime import timedelta
 
+from django.core.exceptions import ImproperlyConfigured
+from django.utils import timezone
+from oauth2_provider.models import AbstractApplication, get_device_grant_model
+from oauth2_provider.oauth2_validators import OAuth2Validator
+from oauthlib.oauth2.rfc8628.grant_types import DeviceCodeGrant
+
+from oauth.clients import DEVICE_FLOW_DEFAULT_SCOPES, DEVICE_FLOW_SCOPES, is_device_client
 from user.models import AssociatedEmail
 
 # Claims PhysioNet issues in ID tokens and at /oauth/oidc/userinfo. Kept in sync
@@ -47,6 +52,62 @@ class CustomOAuth2Validator(OAuth2Validator):
         if not super().validate_refresh_token(refresh_token, client, request, *args, **kwargs):
             return False
         return request.user.is_active
+
+    # Device flow (RFC 8628). Device flow clients may only ask for a few
+    # scopes, so a sign-in approved from a code cannot grant wide access.
+
+    def validate_scopes(self, client_id, scopes, client, request, *args, **kwargs):
+        if is_device_client(client) and not set(scopes) <= DEVICE_FLOW_SCOPES:
+            return False
+        return super().validate_scopes(client_id, scopes, client, request, *args, **kwargs)
+
+    def get_default_scopes(self, client_id, request, *args, **kwargs):
+        if is_device_client(request.client):
+            return list(DEVICE_FLOW_DEFAULT_SCOPES)
+        return super().get_default_scopes(client_id, request, *args, **kwargs)
+
+    def validate_device_code(self, client_id, code, request, *args, **kwargs):
+        """
+        Report the status of a device code when the client polls for a token.
+
+        A code can be exchanged for a token once, after the user approves
+        it and before it expires, and only by the client it was issued to.
+        Clients that poll faster than the agreed interval are told to slow
+        down.
+        """
+        DeviceGrant = get_device_grant_model()
+        grant = (
+            DeviceGrant.objects.select_related("user")
+            .filter(client_id=client_id, device_code=code)
+            .first()
+        )
+        if grant is None:
+            return None
+        if grant.is_expired():
+            return DeviceCodeGrant.DEVICE_CODE_EXPIRED
+        if grant.status == DeviceGrant.DENIED:
+            return DeviceCodeGrant.DEVICE_CODE_DENIED
+        if grant.status == DeviceGrant.AUTHORIZATION_PENDING:
+            now = timezone.now()
+            # Allow a second of slack for network delays.
+            too_soon = grant.last_checked > now - timedelta(seconds=grant.interval - 1)
+            DeviceGrant.objects.filter(pk=grant.pk).update(last_checked=now)
+            if too_soon:
+                return DeviceCodeGrant.DEVICE_CODE_SLOW_DOWN
+            return DeviceCodeGrant.DEVICE_CODE_PENDING
+        if grant.status != DeviceGrant.AUTHORIZED or grant.user is None or not grant.user.is_active:
+            return None
+
+        # Use the code up, so it cannot be exchanged again. The status
+        # check makes this safe if two requests arrive at once.
+        used = DeviceGrant.objects.filter(pk=grant.pk, status=DeviceGrant.AUTHORIZED).update(
+            status=DeviceGrant.EXPIRED
+        )
+        if not used:
+            return None
+        request.user = grant.user
+        request.scopes = grant.scope.split()
+        return DeviceCodeGrant.DEVICE_CODE_AUTHORIZED
 
     def _get_sub(self, user):
         return str(user.public_user_uuid)

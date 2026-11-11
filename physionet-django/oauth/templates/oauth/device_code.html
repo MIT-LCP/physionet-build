@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Sign in a device{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 36rem;">
+  <h1 class="mt-4">Sign in a device</h1>
+  <p>
+    Enter the code shown by the program you are signing in, such as the {{ SITE_NAME }} Python package.
+  </p>
+  {% if limited %}
+    <div class="alert alert-danger" role="alert">
+      Too many incorrect codes. Please wait a few minutes and try again.
+    </div>
+  {% endif %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+      <label for="id_user_code">Code</label>
+      <input type="text" name="user_code" id="id_user_code" class="form-control form-control-lg text-uppercase{% if form.user_code.errors %} is-invalid{% endif %}"
+             value="{{ form.user_code.value|default_if_none:'' }}" placeholder="XXXX-XXXX"
+             autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20" required autofocus>
+      {% for error in form.user_code.errors %}
+        <div class="invalid-feedback">{{ error }}</div>
+      {% endfor %}
+    </div>
+    <button type="submit" class="btn btn-primary">Continue</button>
+  </form>
+  <p class="mt-4 text-muted small">
+    Only enter a code from a program you started yourself. {{ SITE_NAME }} staff will never ask you for one.
+  </p>
+</div>
+{% endblock %}
