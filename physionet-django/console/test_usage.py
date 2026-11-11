@@ -1,0 +1,217 @@
+import copy
+import csv
+from datetime import date, datetime
+from io import StringIO
+from uuid import uuid4
+
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
+from django.db import connection
+from django.test import TestCase
+from django.test.utils import CaptureQueriesContext
+from django.urls import reverse
+from django.utils import timezone
+
+from console.usage import usage_metrics
+from project.models import AccessLog, ActiveProject, Author, PublishedAuthor, PublishedProject
+from user.models import CredentialApplication, User
+
+
+class TestUsageMetrics(TestCase):
+    fixtures = ['demo-training-type.json', 'demo-user.json', 'site-data.json', 'demo-project.json']
+
+    @classmethod
+    def setUpTestData(cls):
+        AccessLog.objects.all().delete()
+        ActiveProject.objects.update(submission_datetime=None)
+        PublishedProject.objects.update(submission_datetime=None)
+        cls.when = timezone.make_aware(datetime(2020, 6, 15, 12))
+        cls.dataset = PublishedProject.objects.filter(resource_type_id=0).first()
+        PublishedProject.objects.filter(pk=cls.dataset.pk).update(submission_datetime=cls.when)
+        cls.dataset.refresh_from_db()
+        cls.version = copy.copy(cls.dataset)
+        cls.version.pk = None
+        cls.version.version = 'usage-test'
+        cls.version.submission_slug = 'usage-test'
+        cls.version.public_project_uuid = uuid4()
+        cls.version.is_latest_version = False
+        cls.version.featured = None
+        cls.version.save()
+        cls.active = ActiveProject.objects.first()
+        ActiveProject.objects.filter(pk=cls.active.pk).update(submission_datetime=cls.when)
+        cls.active.refresh_from_db()
+
+        cls.viewer = User.objects.create_user('usage-one@example.com', 'password', 'usage-one', is_active=True)
+        cls.other = User.objects.create_user('usage-two@example.com', 'password', 'usage-two', is_active=True)
+        cls.coauthor = User.objects.create_user('usage-three@example.com', 'password', 'usage-three', is_active=True)
+        cls.admin = User.objects.get(email='admin@mit.edu')
+        cls.admin.user_permissions.add(Permission.objects.get(codename='can_view_stats'))
+
+        for index, (country, category, status) in enumerate([
+            ('BR', 2, CredentialApplication.Status.ACCEPTED),
+            ('US', 4, CredentialApplication.Status.ACCEPTED),
+            ('GB', 0, CredentialApplication.Status.REJECTED),
+        ]):
+            application = CredentialApplication.objects.create(
+                user=cls.viewer, slug=f'usage-credential-{index}', country=country,
+                researcher_category=category, status=status,
+                course_category=1 if index == 1 else None,
+            )
+            CredentialApplication.objects.filter(pk=application.pk).update(
+                application_datetime=cls.when + timezone.timedelta(days=index),
+            )
+
+        for project in (cls.dataset, cls.version):
+            project.authors.all().delete()
+            PublishedAuthor.objects.create(project=project, user=cls.viewer, display_order=1, is_submitting=True)
+        PublishedAuthor.objects.create(project=cls.dataset, user=cls.coauthor, display_order=2)
+        cls.active.authors.all().delete()
+        Author.objects.create(project=cls.active, user=cls.other, display_order=1, is_submitting=True)
+
+        for project, user in (
+            (cls.dataset, cls.viewer), (cls.dataset, cls.viewer),
+            (cls.version, cls.viewer), (cls.version, cls.other),
+        ):
+            cls.create_log(project, user, cls.when)
+
+    @classmethod
+    def create_log(cls, project, user, when, last_access=None):
+        log = AccessLog.objects.create(project=project, user=user, count=10)
+        AccessLog.objects.filter(pk=log.pk).update(creation_datetime=when, last_access_datetime=last_access or when)
+        return log
+
+    def metrics(self, start=date(2020, 1, 1), end=date(2020, 12, 31)):
+        return {section['title']: section['rows'] for section in usage_metrics(start, end)}
+
+    def overview(self, metrics):
+        return {row['label']: row['count'] for row in metrics['Overview']}
+
+    def test_unique_viewers_and_dataset_versions_are_deduplicated(self):
+        metrics = self.metrics()
+        overview = self.overview(metrics)
+        self.assertEqual(overview['Unique registered dataset viewers'], 2)
+        self.assertEqual(overview['Datasets accessed (versions combined)'], 1)
+        self.assertEqual(metrics['Most accessed datasets'], [
+            {'label': self.dataset.slug, 'count': 2, 'percentage': 100.0},
+        ])
+
+    def test_latest_approved_credential_and_missing_demographics(self):
+        metrics = self.metrics()
+        countries = {row['label']: row for row in metrics['Dataset viewers by country']}
+        self.assertEqual(countries['United States of America']['count'], 1)
+        self.assertEqual(countries['Not available']['percentage'], 50)
+        categories = {row['label']: row['count'] for row in metrics['Dataset viewers by researcher category']}
+        self.assertEqual(categories, {'Industry Researcher': 1, 'Not available': 1})
+        self.assertEqual(self.overview(metrics)['Viewers with an approved credential application'], 1)
+
+    def test_course_use_is_declared_in_latest_approved_credential(self):
+        rows = {row['label']: row['count'] for row in self.metrics()['Declared course use']}
+        self.assertEqual(rows, {'I am taking a course using the data': 1, 'Not available': 1})
+
+    def test_counts_submitting_authors_not_all_coauthors(self):
+        metrics = self.metrics()
+        overview = self.overview(metrics)
+        self.assertEqual(overview['Submitted project versions'], 3)
+        self.assertEqual(overview['Unique submitting authors'], 2)
+        self.assertEqual(sum(row['count'] for row in metrics['Submissions by resource type']), 3)
+
+    def test_missing_submitting_author_is_reported(self):
+        self.active.authors.all().delete()
+        overview = self.overview(self.metrics())
+        self.assertEqual(overview['Submitted versions without a recorded submitting author'], 1)
+
+    def test_active_copy_of_published_version_is_not_counted_twice(self):
+        ActiveProject.objects.filter(pk=self.active.pk).update(
+            core_project_id=self.dataset.core_project_id, version=self.dataset.version,
+        )
+        overview = self.overview(self.metrics())
+        self.assertEqual(overview['Submitted project versions'], 2)
+        self.assertEqual(overview['Unique submitting authors'], 1)
+
+    def test_excludes_other_content_types_and_orphaned_logs(self):
+        self.create_log(self.active, self.coauthor, self.when)
+        AccessLog.objects.create(
+            user=self.coauthor, content_type=ContentType.objects.get_for_model(PublishedProject), object_id=99999999,
+        )
+        self.assertEqual(self.overview(self.metrics())['Unique registered dataset viewers'], 2)
+
+    def test_excludes_software_access(self):
+        software = PublishedProject.objects.filter(resource_type_id=1).first()
+        self.assertIsNotNone(software)
+        self.create_log(software, self.coauthor, self.when)
+        self.assertEqual(self.overview(self.metrics())['Unique registered dataset viewers'], 2)
+
+    def test_empty_date_range_is_safe(self):
+        metrics = self.metrics(date(2010, 1, 1), date(2010, 12, 31))
+        self.assertTrue(all(count == 0 for count in self.overview(metrics).values()))
+        for title, rows in metrics.items():
+            if title != 'Overview':
+                self.assertEqual(rows, [])
+
+    def test_date_boundaries_and_overlapping_log_sessions(self):
+        AccessLog.objects.all().delete()
+        start = timezone.make_aware(datetime(2020, 1, 1))
+        end = timezone.make_aware(datetime(2021, 1, 1))
+        self.create_log(self.dataset, self.viewer, start - timezone.timedelta(minutes=1), start)
+        self.create_log(self.dataset, self.other, end - timezone.timedelta(microseconds=1))
+        self.create_log(self.dataset, self.coauthor, end)
+        self.assertEqual(self.overview(self.metrics())['Unique registered dataset viewers'], 2)
+
+    def test_query_count_does_not_grow_with_number_of_viewers(self):
+        # Warm the ContentType cache before comparing query counts.
+        self.metrics()
+        with CaptureQueriesContext(connection) as before:
+            self.metrics()
+        self.create_log(self.dataset, self.coauthor, self.when)
+        with CaptureQueriesContext(connection) as after:
+            self.metrics()
+        self.assertEqual(len(before), len(after))
+        self.assertLess(len(after), 35)
+
+    def test_page_export_and_navigation_order(self):
+        self.client.force_login(self.admin)
+        params = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
+        url = reverse('usage_stats')
+        page = self.client.get(url, params)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Export data')
+        self.assertContains(page, 'does not measure confirmed downloads')
+        html = page.content.decode()
+        self.assertLess(html.index('id="nav_submission_stats"'), html.index('id="nav_usage_stats"'))
+        self.assertLess(html.index('id="nav_usage_stats"'), html.index('id="nav_downloads"'))
+        self.assertContains(page, 'value="2020-01-01"')
+
+        response = self.client.get(url, {**params, 'export': 'csv'})
+        self.assertEqual(response['Content-Type'], 'text/csv')
+        self.assertEqual(response['Content-Disposition'], 'attachment; filename="usage-stats.csv"')
+        rows = list(csv.DictReader(StringIO(response.content.decode())))
+        expected = [
+            (section['title'], row['label'], str(row['count']),
+             '' if row['percentage'] is None else str(row['percentage']))
+            for section in page.context['sections'] for row in section['rows']
+        ]
+        self.assertEqual([(row['Section'], row['Metric'], row['Count'], row['Percentage']) for row in rows], expected)
+        self.assertTrue(all(row['Start date'] == params['start_date'] for row in rows))
+        self.assertNotIn(self.viewer.email, response.content.decode())
+
+    def test_invalid_dates_rejected_for_page_and_export(self):
+        self.client.force_login(self.admin)
+        for params in (
+            {'start_date': 'not-a-date'},
+            {'start_date': '2020-12-31', 'end_date': '2020-01-01'},
+            {'end_date': '9999-12-31'},
+        ):
+            for export in ('', 'csv'):
+                with self.subTest(params=params, export=export):
+                    response = self.client.get(reverse('usage_stats'), {**params, 'export': export})
+                    self.assertEqual(response.status_code, 400)
+                    self.assertNotIn('Content-Disposition', response)
+
+    def test_access_and_export_require_stats_permission(self):
+        for user in (None, self.other):
+            self.client.logout()
+            if user:
+                self.client.force_login(user)
+            for params in ({}, {'export': 'csv'}):
+                with self.subTest(user=user, params=params):
+                    self.assertEqual(self.client.get(reverse('usage_stats'), params).status_code, 403)

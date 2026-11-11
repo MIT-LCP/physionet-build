@@ -1,0 +1,67 @@
+{% extends "console/base_console.html" %}
+
+{% block title %}Usage metrics{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">Usage</div>
+  <div class="card-body">
+    <p>Explore registered dataset access and project submissions during the selected dates.</p>
+    <form method="get" class="mb-4">
+      {{ form.non_field_errors }}
+      <div class="form-row align-items-end">
+        <div class="form-group col-sm-4">
+          <label for="{{ form.start_date.id_for_label }}">Start date</label>
+          {{ form.start_date }}{{ form.start_date.errors }}
+        </div>
+        <div class="form-group col-sm-4">
+          <label for="{{ form.end_date.id_for_label }}">End date</label>
+          {{ form.end_date }}{{ form.end_date.errors }}
+        </div>
+        <div class="form-group col-sm-4">
+          <button type="submit" class="btn btn-primary">Apply filters</button>
+          {% if sections %}
+          <a href="{% url 'usage_stats' %}?{{ export_query }}" class="btn btn-primary">Export data</a>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+    <p class="text-muted mb-2">
+      Dataset access counts registered users viewing file-access pages. Access-log sessions overlapping the
+      selected dates are included. All published versions of each dataset are combined.
+    </p>
+    <p class="text-muted mb-2">
+      It does not measure confirmed downloads or research use, and excludes anonymous access and direct cloud downloads.
+    </p>
+    <p class="text-muted mb-0">
+      Demographics use each person's latest approved credential application currently on record, not a historical
+      snapshot. Countries are institutional countries, not inferred locations or nationalities. Missing information
+      is listed as “Not available”. Dataset viewers and submitting authors are different populations.
+    </p>
+  </div>
+</div>
+
+{% for section in sections %}
+<div class="card mb-3">
+  <div class="card-header">{{ section.title }}</div>
+  <div class="card-body">
+    {% if section.description %}<p>{{ section.description }}</p>{% endif %}
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead><tr><th scope="col">Metric</th><th scope="col">Count</th><th scope="col">Percentage (%)</th></tr></thead>
+        <tbody>
+          {% for row in section.rows %}
+          <tr>
+            <td>{{ row.label }}</td><td>{{ row.count }}</td>
+            <td>{% if row.percentage is not None %}{{ row.percentage|floatformat:2 }}{% else %}—{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3">No data available for the selected dates.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
