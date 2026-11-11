@@ -1496,6 +1496,9 @@ class TestAccessPublished(TestMixin):
         self.assertEqual(response.status_code, 403)
         response = self.client.get(sha256sums_url, secure=True, HTTP_AUTHORIZATION=download)
         self.assertEqual(response.status_code, 200)
+        # and, like file downloads, HTTPS
+        response = self.client.get(sha256sums_url, secure=False, HTTP_AUTHORIZATION=download)
+        self.assertEqual(response.status_code, 403)
 
     def test_personal_token_downloads(self):
         """
@@ -1528,12 +1531,11 @@ class TestAccessPublished(TestMixin):
         # Tokens without the download scope, expired, unknown or over plain HTTP are refused
         for token, secure in ((annotations, True), (expired, True), ('pnpat_unknown', True),
                               (download, False)):
-            response = self.client.get(file_url, secure=secure, HTTP_USER_AGENT='curl/8.0',
-                                       HTTP_AUTHORIZATION='Bearer ' + token)
-            self.assertEqual(response.status_code, 403)
-        response = self.client.get(sha256sums_url, secure=True,
-                                   HTTP_AUTHORIZATION='Bearer ' + annotations)
-        self.assertEqual(response.status_code, 403)
+            for url in (file_url, zip_url, sha256sums_url):
+                response = self.client.get(url, secure=secure, HTTP_USER_AGENT='curl/8.0',
+                                           HTTP_AUTHORIZATION='Bearer ' + token)
+                # The SHA256SUMS API answers 401 for unknown or expired tokens
+                self.assertIn(response.status_code, (401, 403))
 
         # A token is no use once its owner's account is deactivated
         User.objects.filter(id=user.id).update(is_active=False)

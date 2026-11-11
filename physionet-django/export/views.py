@@ -1,6 +1,7 @@
 import logging
 import os
 
+from django.conf import settings
 from django.contrib.auth import SESSION_KEY
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
@@ -319,10 +320,14 @@ class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
 
 class TokenHasDownloadScope(permissions.BasePermission):
     """
-    Tokens (OAuth or personal) must have the download scope. Session and Basic authentication are unaffected.
+    Tokens (OAuth or personal) must have the download scope and, as for file
+    downloads, are only accepted over HTTPS unless settings.DEBUG is set.
+    Session and Basic authentication are unaffected.
     """
     def has_permission(self, request, view):
         token = request.auth
+        if isinstance(token, (PersonalAccessToken, AccessToken)) and not request.is_secure() and not settings.DEBUG:
+            return False
         if isinstance(token, PersonalAccessToken):
             return token.has_scopes([DOWNLOAD_TOKEN_SCOPE])
         if isinstance(token, AccessToken):
