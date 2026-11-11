@@ -2967,7 +2967,7 @@ def credentialing_stats(request):
         durations = time_to_ref.filter(application_datetime__year=y)
         try:
             days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_ref'] = median(days)
+            stats[y]['time_to_ref'] = round(median(days), 2)
         except (AttributeError, StatisticsError):
             stats[y]['time_to_ref'] = None
 
@@ -2979,7 +2979,7 @@ def credentialing_stats(request):
         durations = time_to_reply.filter(application_datetime__year=y)
         try:
             hours = [round(d.total_seconds() / 3600, 2) for d in durations if d and d.total_seconds() >= 0]
-            stats[y]['time_to_reply'] = median(hours)
+            stats[y]['time_to_reply'] = round(median(hours), 2)
         except (AttributeError, StatisticsError):
             stats[y]['time_to_reply'] = None
 
@@ -2991,7 +2991,7 @@ def credentialing_stats(request):
         durations = time_to_decision.filter(application_datetime__year=y)
         try:
             days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_decision'] = median(days)
+            stats[y]['time_to_decision'] = round(median(days), 2)
         except (AttributeError, StatisticsError):
             stats[y]['time_to_decision'] = None
 
