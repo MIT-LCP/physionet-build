@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout physionet-build repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
@@ -69,7 +69,7 @@ jobs:
 
       # Note: run checkout after updating git
       - name: Checkout physionet-build repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Mark git repository as trusted
         run: |
