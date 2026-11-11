@@ -8,7 +8,7 @@
 <hr>
 
 <p>
-  Access tokens let you use the {{ SITE_NAME }} API from scripts (for example, with our Python package) without logging in.
+  Access tokens let your scripts (for example, our Python package) download data and use the {{ SITE_NAME }} API without logging in.
   Each token can only do what its scopes allow, and it expires after <strong>{{ lifetime_days }} days</strong>.
   You can have up to {{ max_tokens }} active tokens. Keep tokens secret: anyone with a token can act for you within its scopes.
   Revoke a token straight away if it may have been exposed.
@@ -83,6 +83,25 @@
         <form id="scope-form">
           <div class="card mb-3">
             <div class="card-header">
+              <h6 class="mb-0">Data</h6>
+            </div>
+            <div class="card-body">
+              {% for scope, label in data_scopes.items %}
+              <div class="form-check ml-4">
+                <input class="form-check-input" type="checkbox" name="data_scopes"
+                       value="{{ scope }}" id="data-scope-{{ forloop.counter }}">
+                <label class="form-check-label" for="data-scope-{{ forloop.counter }}">
+                  {{ label }} (<code>{{ scope }}</code>)
+                </label>
+              </div>
+              {% endfor %}
+              <small class="form-text text-muted ml-4">
+                A token can download only what your account can: you still need to meet each project's access requirements.
+              </small>
+            </div>
+          </div>
+          <div class="card mb-3">
+            <div class="card-header">
               <h6 class="mb-0">Annotation API Endpoints</h6>
             </div>
             {% for endpoint, scopes_info in available_endpoints.items %}
@@ -142,25 +161,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     confirmScopesBtn.addEventListener('click', function() {
-        const selectedAnnotationEndpoints = Array.from(document.querySelectorAll('input[name="annotation_endpoints"]:checked'));
-        
-        if (selectedAnnotationEndpoints.length === 0) {
+        const selected = Array.from(scopeForm.querySelectorAll('input[type="checkbox"]:checked'));
+
+        if (selected.length === 0) {
             alert('Please select at least one scope for the token.');
             return;
         }
-        // Add selected annotation endpoints
-        selectedAnnotationEndpoints.forEach(function(endpoint) {
+        // Copy the selected scopes into the form that creates the token
+        selected.forEach(function(checkbox) {
             const hiddenInput = document.createElement('input');
             hiddenInput.type = 'hidden';
-            hiddenInput.name = 'annotation_endpoints';
-            hiddenInput.value = endpoint.value;
+            hiddenInput.name = checkbox.name;
+            hiddenInput.value = checkbox.value;
             tokenForm.appendChild(hiddenInput);
         });
         tokenForm.submit();
     });
 
     $(scopeModal).on('hidden.bs.modal', function() {
-        const existingHiddenInputs = tokenForm.querySelectorAll('input[name="name"], input[name="annotation_endpoints"]');
+        const existingHiddenInputs = tokenForm.querySelectorAll('input[type="hidden"][name="annotation_endpoints"], input[type="hidden"][name="data_scopes"]');
         existingHiddenInputs.forEach(function(input) {
             input.remove();
         });

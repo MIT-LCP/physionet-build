@@ -54,7 +54,7 @@ from project import openalex
 from project.authorization.access import can_access_project
 from project.validators import validate_abstract_word_count
 from user.enums import TrainingStatus
-from user.models import Orcid, Training, TrainingType, User
+from user.models import Orcid, PersonalAccessToken, Training, TrainingType, User
 from user.test_views import TestMixin, prevent_request_warnings
 from project.views import ARCHIVE_VIEW_DAYS, _format_chart_data
 
@@ -1527,6 +1527,66 @@ class TestAccessPublished(TestMixin):
         self.assertEqual(response.status_code, 403)
         response = self.client.get(sha256sums_url, secure=True, HTTP_AUTHORIZATION=download)
         self.assertEqual(response.status_code, 200)
+        # and, like file downloads, HTTPS
+        response = self.client.get(sha256sums_url, secure=False, HTTP_AUTHORIZATION=download)
+        self.assertEqual(response.status_code, 403)
+
+    def test_personal_token_downloads(self):
+        """
+        Personal access tokens with the download scope can download files.
+        """
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        self.client.post(reverse('sign_dua', args=(project.slug, project.version)),
+                         data={'agree': '', 'initials': 'RGM'})
+        self.client.logout()
+
+        user = User.objects.get(email='rgmark@mit.edu')
+        _, download = PersonalAccessToken.create_for_user(user, ['data:download'])
+        _, annotations = PersonalAccessToken.create_for_user(user, ['annotations:collections:read'])
+        expired_record, expired = PersonalAccessToken.create_for_user(user, ['data:download'])
+        expired_record.expires = timezone.now() - timedelta(hours=1)
+        expired_record.save()
+
+        file_url = reverse('serve_published_project_file',
+                           args=(project.slug, project.version, 'admissions.csv'))
+        zip_url = reverse('serve_published_project_zip', args=(project.slug, project.version))
+        sha256sums_url = reverse('published_project_sha256sums',
+                                 kwargs={'project_slug': project.slug, 'version': project.version})
+
+        for url in (file_url, zip_url, sha256sums_url):
+            response = self.client.get(url, secure=True, HTTP_USER_AGENT='curl/8.0',
+                                       HTTP_AUTHORIZATION='Bearer ' + download)
+            self.assertEqual(response.status_code, 200)
+
+        # Tokens without the download scope, expired, unknown or over plain HTTP are refused
+        for token, secure in ((annotations, True), (expired, True), ('pnpat_unknown', True),
+                              (download, False)):
+            for url in (file_url, zip_url, sha256sums_url):
+                response = self.client.get(url, secure=secure, HTTP_USER_AGENT='curl/8.0',
+                                           HTTP_AUTHORIZATION='Bearer ' + token)
+                # The SHA256SUMS API answers 401 for unknown or expired tokens
+                self.assertIn(response.status_code, (401, 403))
+
+        # A token is no use once its owner's account is deactivated
+        User.objects.filter(id=user.id).update(is_active=False)
+        response = self.client.get(file_url, secure=True, HTTP_USER_AGENT='curl/8.0',
+                                   HTTP_AUTHORIZATION='Bearer ' + download)
+        self.assertEqual(response.status_code, 403)
+
+    def test_personal_token_needs_project_access(self):
+        """
+        A download token grants no more than its owner's own access.
+        """
+        project = PublishedProject.objects.get(title='Demo eICU Collaborative Research Database')
+        user = User.objects.get(email='rgmark@mit.edu')
+        _, download = PersonalAccessToken.create_for_user(user, ['data:download'])
+        # The user has not signed the DUA
+        response = self.client.get(
+            reverse('serve_published_project_file',
+                    args=(project.slug, project.version, 'admissions.csv')),
+            secure=True, HTTP_USER_AGENT='curl/8.0', HTTP_AUTHORIZATION='Bearer ' + download)
+        self.assertEqual(response.status_code, 403)
 
     def test_package_download_recommendation_is_off_by_default(self):
         project = PublishedProject.objects.get(title='Demo ECG Signal Toolbox')
