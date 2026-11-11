@@ -113,8 +113,15 @@ class TestCopyeditHTMLNormalization(TestCase):
             normalize_copyedit_html(
                 '<p><code></code><b> </b><i></i><em></em><u></u><strong></strong>Text</p>'
             ),
-            '<p>Text</p>',
+            '<p> Text</p>',
         )
+
+    def test_preserves_word_separation_from_whitespace_only_formatting(self):
+        for html, expected in (
+                ('word<strong> </strong>word', 'word word'),
+                ('<p>one<em> </em>two</p>', '<p>one two</p>')):
+            with self.subTest(html=html):
+                self.assertEqual(normalize_copyedit_html(html), expected)
 
     def test_preserves_inline_formatting_with_visible_content(self):
         html = '<p><code><br></code><strong><img src="image.png"></strong></p>'
@@ -795,9 +802,20 @@ class TestState(TestMixin):
         timestamp = accepted_project.modified_datetime
 
         # Complete copyedit
-        response = self.client.post(reverse(
-            'copyedit_submission', args=(project.slug,)),
-            data={'complete_copyedit':'', 'made_changes':0})
+        response = self.client.post(
+            reverse('copyedit_submission', args=(project.slug,)),
+            data={
+                'complete_copyedit': '',
+                'made_changes': 0,
+                'changelog_summary': (
+                    'Automatically normalized:\r\n'
+                    '- Abstract: replaced non-breaking spaces; removed span wrappers; '
+                    'trimmed trailing paragraph whitespace.\r\n'
+                    '- Methods: removed bold formatting from a heading.'
+                ),
+            }
+        )
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(
             get_project().copyedit_logs.get().changelog_summary,
             'Automatically normalized:\n'

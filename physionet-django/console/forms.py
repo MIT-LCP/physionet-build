@@ -332,8 +332,12 @@ class CopyeditForm(forms.ModelForm):
         if not project.check_integrity():
             raise forms.ValidationError(project.integrity_errors)
         automatic_summary = self.instance.changelog_summary
-        is_automatic_summary = automatic_summary.startswith('Automatically normalized: ')
-        editor_summary = self.cleaned_data['changelog_summary']
+        is_automatic_summary = automatic_summary.startswith(
+            'Automatically normalized:\n')
+        # Browsers submit textarea line breaks as CRLF, while generated
+        # summaries are stored with LF line breaks.
+        editor_summary = self.cleaned_data['changelog_summary'].replace(
+            '\r\n', '\n').replace('\r', '\n')
         if is_automatic_summary:
             if editor_summary.startswith(automatic_summary):
                 editor_summary = editor_summary[len(automatic_summary):].lstrip('\n')

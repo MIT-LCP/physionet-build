@@ -122,6 +122,11 @@ def _normalize_copyedit_node(node, parent=None, include_medium=False,
     if node.tag in _EMPTY_INLINE_TAGS and not _copyedit_has_content(node):
         node.changed = True
         node.rules.add('removed empty formatting tags')
+        # Formatting-only whitespace can separate adjacent words, especially
+        # in content pasted from Word.  Preserve that separation while
+        # removing the otherwise empty tag.
+        if any(child.is_text and child.data for child in node.children):
+            return [_CopyeditHTMLNode(data=' ')]
         return []
     if include_medium and (
             node.tag == 'p' and parent and parent.tag in {'li', 'td', 'th'}
