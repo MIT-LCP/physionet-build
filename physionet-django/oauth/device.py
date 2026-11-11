@@ -75,7 +75,9 @@ class DeviceAuthorizationView(oauth2_views.DeviceAuthorizationView):
 
         # oauthlib returns the scopes it validated, including defaults.
         scope = body.pop("scope", "")
-        get_device_grant_model().objects.create(
+        DeviceGrant = get_device_grant_model()
+        delete_expired_device_grants()
+        DeviceGrant.objects.create(
             client_id=client_id,
             device_code=body["device_code"],
             user_code=body["user_code"],
@@ -85,6 +87,23 @@ class DeviceAuthorizationView(oauth2_views.DeviceAuthorizationView):
         )
         body["verification_uri"] = request.build_absolute_uri(reverse("oauth2_provider:device"))
         return _no_store(JsonResponse(body))
+
+
+# Expired codes are kept this long, so a client still polling gets
+# "expired_token" rather than "invalid_grant".
+EXPIRED_DEVICE_GRANT_GRACE = timedelta(minutes=10)
+
+
+def delete_expired_device_grants():
+    """
+    Delete codes that expired more than EXPIRED_DEVICE_GRANT_GRACE ago.
+
+    Runs whenever a sign-in starts, so the table only ever holds codes from
+    about the last 40 minutes (their 30 minute lifetime plus the grace
+    period), however many sign-ins are started.
+    """
+    cutoff = timezone.now() - EXPIRED_DEVICE_GRANT_GRACE
+    return get_device_grant_model().objects.filter(expires__lt=cutoff).delete()[0]
 
 
 def _no_store(response):

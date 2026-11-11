@@ -2,8 +2,8 @@ import logging
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from oauth2_provider.models import get_device_grant_model
 
+from oauth.device import delete_expired_device_grants
 from user.models import PersonalAccessToken
 
 LOGGER = logging.getLogger(__name__)
@@ -13,14 +13,11 @@ LOGGER = logging.getLogger(__name__)
 # deleted.
 EXPIRED_TOKEN_DAY_LIMIT = 30
 
-# Device flow codes are only needed until they expire, after a few minutes.
-EXPIRED_DEVICE_GRANT_DAY_LIMIT = 1
-
 
 class Command(BaseCommand):
     help = (
         f"Delete personal access tokens that expired more than {EXPIRED_TOKEN_DAY_LIMIT} days ago, "
-        f"and device flow codes that expired more than {EXPIRED_DEVICE_GRANT_DAY_LIMIT} day ago."
+        "and expired device flow codes."
     )
 
     def handle(self, *args, **options):
@@ -28,6 +25,6 @@ class Command(BaseCommand):
         deleted_count, _ = PersonalAccessToken.objects.filter(expires__lt=cutoff).delete()
         LOGGER.info("Deleted %d expired personal access tokens", deleted_count)
 
-        cutoff = timezone.now() - timezone.timedelta(days=EXPIRED_DEVICE_GRANT_DAY_LIMIT)
-        deleted_count, _ = get_device_grant_model().objects.filter(expires__lt=cutoff).delete()
+        # Sign-ins also delete expired codes; this catches any left on a quiet site.
+        deleted_count = delete_expired_device_grants()
         LOGGER.info("Deleted %d expired device flow codes", deleted_count)

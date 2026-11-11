@@ -250,8 +250,9 @@ LOGIN_FAILURE_WINDOW = config('LOGIN_FAILURE_WINDOW', default=15 * 60, cast=int)
 DEVICE_CODE_FAILURE_LIMIT = config('DEVICE_CODE_FAILURE_LIMIT', default=10, cast=int)
 DEVICE_CODE_FAILURE_CLIENT_LIMIT = config('DEVICE_CODE_FAILURE_CLIENT_LIMIT', default=30, cast=int)
 # Device sign-ins that may be started per client address within LOGIN_FAILURE_WINDOW
-# seconds. Each one stores a code until it is purged.
-DEVICE_AUTHORIZATION_CLIENT_LIMIT = config('DEVICE_AUTHORIZATION_CLIENT_LIMIT', default=30, cast=int)
+# seconds. This stops a single misbehaving client; it is set high because many
+# users can share one address (a university network or a datathon room).
+DEVICE_AUTHORIZATION_CLIENT_LIMIT = config('DEVICE_AUTHORIZATION_CLIENT_LIMIT', default=200, cast=int)
 
 CACHES = {
     'default': {

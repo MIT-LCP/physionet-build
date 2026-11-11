@@ -368,6 +368,20 @@ class SignedInApplicationsTests(DeviceFlowTestBase):
 
 
 class DeviceGrantCleanupTests(DeviceFlowTestBase):
+    def test_starting_a_sign_in_deletes_expired_codes(self):
+        old = self.start().json()
+        recent = self.start().json()
+        DeviceGrant.objects.filter(device_code=old["device_code"]).update(
+            expires=timezone.now() - timedelta(minutes=11)
+        )
+        DeviceGrant.objects.filter(device_code=recent["device_code"]).update(
+            expires=timezone.now() - timedelta(minutes=1)
+        )
+        self.start()
+        self.assertFalse(DeviceGrant.objects.filter(device_code=old["device_code"]).exists())
+        # Recently expired codes are kept, so a polling client is told they expired
+        self.assertEqual(self.poll(recent["device_code"]).json()["error"], "expired_token")
+
     def test_old_device_codes_are_deleted(self):
         old = self.start().json()
         new = self.start().json()
