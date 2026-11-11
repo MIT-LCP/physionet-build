@@ -24,7 +24,8 @@ from datetime import timedelta
 from django import forms
 from django.conf import settings
 from django.core.cache import caches
-from django.http import JsonResponse
+from django.db.models import Q
+from django.http import HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 from oauth2_provider import views as oauth2_views
@@ -45,6 +46,18 @@ class DeviceAuthorizationView(oauth2_views.DeviceAuthorizationView):
     """
 
     def post(self, request, *args, **kwargs):
+        # Each successful request stores a code, so limit requests per address.
+        key = "device-authorizations:client:{}".format(_client_hash(request))
+        if (_cache().get(key) or 0) >= settings.DEVICE_AUTHORIZATION_CLIENT_LIMIT:
+            return _no_store(JsonResponse(
+                {
+                    "error": "too_many_requests",
+                    "error_description": "Too many sign-in requests. Please try again later.",
+                },
+                status=429,
+            ))
+        _count(key)
+
         client_id = request.POST.get("client_id", "")
         application = get_application_model().objects.filter(client_id=client_id).first()
         if application is not None and not is_device_client(application):
@@ -79,28 +92,40 @@ def _no_store(response):
     return response
 
 
+def _cache():
+    # The login failure cache is kept in the database, so counts are shared
+    # by every server process.
+    return caches["login_failures"]
+
+
+def _client_hash(request):
+    return hashlib.sha256((get_client_ip(request) or "").encode()).hexdigest()
+
+
+def _count(key):
+    """Add one to a counter that resets LOGIN_FAILURE_WINDOW seconds after it starts."""
+    cache = _cache()
+    if not cache.add(key, 1, settings.LOGIN_FAILURE_WINDOW):
+        try:
+            cache.incr(key)
+        except ValueError:
+            cache.set(key, 1, settings.LOGIN_FAILURE_WINDOW)
+
+
 def _failure_keys(request):
-    client = hashlib.sha256((get_client_ip(request) or "").encode()).hexdigest()
     return (
         ("device-code-failures:user:{}".format(request.user.pk), settings.DEVICE_CODE_FAILURE_LIMIT),
-        ("device-code-failures:client:{}".format(client), settings.DEVICE_CODE_FAILURE_CLIENT_LIMIT),
+        ("device-code-failures:client:{}".format(_client_hash(request)), settings.DEVICE_CODE_FAILURE_CLIENT_LIMIT),
     )
 
 
 def _is_limited(request):
-    cache = caches["login_failures"]
-    return any((cache.get(key) or 0) >= limit for key, limit in _failure_keys(request))
+    return any((_cache().get(key) or 0) >= limit for key, limit in _failure_keys(request))
 
 
 def _record_failure(request):
-    cache = caches["login_failures"]
     for key, _ in _failure_keys(request):
-        # The window starts at the first failure and is not extended by later ones.
-        if not cache.add(key, 1, settings.LOGIN_FAILURE_WINDOW):
-            try:
-                cache.incr(key)
-            except ValueError:
-                cache.set(key, 1, settings.LOGIN_FAILURE_WINDOW)
+        _count(key)
 
 
 class UserCodeForm(DeviceGrantForm):
@@ -123,6 +148,25 @@ class DeviceUserCodeView(oauth2_views.DeviceUserCodeView):
             return self.render_to_response(context, status=429)
         return super().post(request, *args, **kwargs)
 
+    def form_valid(self, form):
+        """
+        Link the code to this user, unless another user has already
+        entered it. The update is conditional so that two users entering
+        the same code at once cannot both claim it.
+        """
+        grant = form.cleaned_data["device_grant"]
+        DeviceGrant = get_device_grant_model()
+        claimed = (
+            DeviceGrant.objects.filter(pk=grant.pk, status=DeviceGrant.AUTHORIZATION_PENDING)
+            .filter(Q(user__isnull=True) | Q(user=self.request.user))
+            .update(user=self.request.user)
+        )
+        if not claimed:
+            form.add_error("user_code", "User code has already been used")
+            return self.form_invalid(form)
+        self.device_grant = grant
+        return HttpResponseRedirect(self.get_success_url())
+
     def form_invalid(self, form):
         _record_failure(self.request)
         return super().form_invalid(form)
@@ -132,6 +176,24 @@ class DeviceConfirmView(oauth2_views.DeviceConfirmView):
     """Page where the user approves or denies a device sign-in."""
 
     template_name = "oauth/device_confirm.html"
+
+    def form_valid(self, form):
+        """
+        Approve or deny the code. The update only applies while the code is
+        still pending, so a repeated or overlapping submission (such as a
+        double click) cannot undo a later state, for example making a code
+        that has already been exchanged usable again.
+        """
+        DeviceGrant = get_device_grant_model()
+        statuses = {"accept": DeviceGrant.AUTHORIZED, "deny": DeviceGrant.DENIED}
+        status = statuses.get(form.cleaned_data["action"])
+        if status is None:
+            return HttpResponseBadRequest()
+        DeviceGrant.objects.filter(
+            pk=self.get_object().pk, user=self.request.user, status=DeviceGrant.AUTHORIZATION_PENDING
+        ).update(status=status)
+        # The status page shows the code's current state.
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

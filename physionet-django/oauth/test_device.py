@@ -131,10 +131,11 @@ class DeviceFlowTests(DeviceFlowTestBase):
             authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
             redirect_uris="https://example.com/callback",
         )
+        before = DeviceGrant.objects.count()
         response = self.start(client_id=web_app.client_id, scope="data:download")
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["error"], "unauthorized_client")
-        self.assertFalse(DeviceGrant.objects.exists())
+        self.assertEqual(DeviceGrant.objects.count(), before)
 
         response = self.start(client_id="no-such-client")
         self.assertEqual(response.status_code, 400)
@@ -247,6 +248,74 @@ class DeviceFlowTests(DeviceFlowTestBase):
         self.assertEqual(DeviceGrant.objects.get(device_code=data["device_code"]).user, None)
 
 
+class DeviceFlowRaceTests(DeviceFlowTestBase):
+    def enter(self, user_code, user=None):
+        self.client.force_login(user or self.user)
+        return self.client.post(reverse("oauth2_provider:device"), data={"user_code": user_code})
+
+    def test_repeated_approval_cannot_reuse_a_code(self):
+        data = self.start().json()
+        confirm_url = self.enter(data["user_code"])["Location"]
+        self.client.post(confirm_url, data={"action": "accept"})
+        self.assertEqual(self.poll(data["device_code"]).status_code, 200)
+
+        # A second "Approve" (such as a double click) arrives after the exchange
+        response = self.client.post(confirm_url, data={"action": "accept"})
+        self.assertEqual(response.status_code, 404)
+        grant = DeviceGrant.objects.get(device_code=data["device_code"])
+        grant_url = reverse("oauth2_provider:device-confirm", args=[grant.client_id, grant.user_code])
+        self.assertEqual(grant.status, DeviceGrant.EXPIRED)
+
+        # Even if the request gets past the lookup, the update is conditional
+        from oauth.device import DeviceConfirmView
+        view = DeviceConfirmView()
+        view.setup(self.client.post(grant_url).wsgi_request, client_id=grant.client_id, user_code=grant.user_code)
+        view._device_grant = grant
+        form = view.get_form_class()(data={"action": "accept"})
+        self.assertTrue(form.is_valid())
+        view.form_valid(form)
+        self.assertEqual(DeviceGrant.objects.get(pk=grant.pk).status, DeviceGrant.EXPIRED)
+        self.assertEqual(self.poll(data["device_code"]).json()["error"], "expired_token")
+        self.assertEqual(AccessToken.objects.filter(user=self.user).count(), 1)
+
+    def test_deny_after_approval_does_not_change_the_decision(self):
+        data = self.start().json()
+        confirm_url = self.enter(data["user_code"])["Location"]
+        self.client.post(confirm_url, data={"action": "accept"})
+        grant = DeviceGrant.objects.get(device_code=data["device_code"])
+        DeviceGrant.objects.filter(pk=grant.pk).update(status=DeviceGrant.AUTHORIZED)
+
+        from oauth.device import DeviceConfirmView
+        view = DeviceConfirmView()
+        view.setup(self.client.post(confirm_url).wsgi_request, client_id=grant.client_id, user_code=grant.user_code)
+        view._device_grant = grant
+        form = view.get_form_class()(data={"action": "deny"})
+        self.assertTrue(form.is_valid())
+        view.form_valid(form)
+        self.assertEqual(DeviceGrant.objects.get(pk=grant.pk).status, DeviceGrant.AUTHORIZED)
+
+    def test_code_entered_by_one_user_cannot_be_claimed_by_another(self):
+        data = self.start().json()
+        self.enter(data["user_code"])
+        other = User.objects.create_user(
+            username="other_device_user", email="other_device_user@example.com", password="x", is_active=True
+        )
+        response = self.enter(data["user_code"], user=other)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "User code has already been used")
+        self.assertEqual(DeviceGrant.objects.get(device_code=data["device_code"]).user, self.user)
+
+    @override_settings(DEVICE_AUTHORIZATION_CLIENT_LIMIT=2)
+    def test_starting_sign_ins_is_rate_limited(self):
+        before = DeviceGrant.objects.count()
+        self.assertEqual(self.start().status_code, 200)
+        self.assertEqual(self.start().status_code, 200)
+        response = self.start()
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(response.json()["error"], "too_many_requests")
+        self.assertEqual(DeviceGrant.objects.count(), before + 2)
+
+
 class SignedInApplicationsTests(DeviceFlowTestBase):
     def sign_in(self):
         data = self.start().json()
@@ -271,6 +340,21 @@ class SignedInApplicationsTests(DeviceFlowTestBase):
         response = self.form_post(reverse("oauth2_provider:token"), {
             "grant_type": "refresh_token", "refresh_token": token["refresh_token"], "client_id": PYTHON_CLIENT_ID})
         self.assertEqual(response.status_code, 400)
+
+    def test_sign_out_expires_approved_codes_not_yet_exchanged(self):
+        self.sign_in()
+        pending = self.start().json()
+        self.approve(pending["user_code"])
+
+        self.client.force_login(self.user)
+        self.client.post(reverse("edit_tokens"), data={
+            "action": "sign_out_application", "application_id": str(self.application.id)})
+        self.client.logout()
+
+        response = self.poll(pending["device_code"])
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "expired_token")
+        self.assertFalse(AccessToken.objects.filter(user=self.user).exists())
 
     def test_cannot_sign_out_another_users_application(self):
         self.sign_in()

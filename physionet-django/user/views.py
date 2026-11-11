@@ -38,7 +38,12 @@ from notification.utility import (
     process_credential_complete,
     training_application_request,
 )
-from oauth2_provider.models import get_access_token_model, get_application_model, get_refresh_token_model
+from oauth2_provider.models import (
+    get_access_token_model,
+    get_application_model,
+    get_device_grant_model,
+    get_refresh_token_model,
+)
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 from physionet import utility
@@ -580,7 +585,19 @@ def _signed_in_applications(user):
 
 
 def _sign_out_application(user, application_id):
-    """Revoke all of the user's OAuth tokens for one application."""
+    """
+    Revoke all of the user's OAuth tokens for one application, and expire
+    any device codes the user has entered or approved for it but that have
+    not yet been exchanged for a token.
+    """
+    application = get_application_model().objects.filter(id=application_id).first()
+    if application is not None:
+        DeviceGrant = get_device_grant_model()
+        DeviceGrant.objects.filter(
+            user=user,
+            client_id=application.client_id,
+            status__in=[DeviceGrant.AUTHORIZATION_PENDING, DeviceGrant.AUTHORIZED],
+        ).update(status=DeviceGrant.EXPIRED)
     for refresh_token in get_refresh_token_model().objects.filter(
         user=user, application_id=application_id, revoked__isnull=True
     ):
