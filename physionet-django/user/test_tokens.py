@@ -57,6 +57,22 @@ class TokenSettingsPageTests(TestCase):
         self.assertNotContains(later, token)
         self.assertContains(later, record.display_prefix)
 
+    def test_token_can_have_the_download_scope(self):
+        response = self.client.post(
+            reverse("edit_tokens"), data={"action": "create", "data_scopes": ["data:download"]}
+        )
+        self.assertEqual(response.status_code, 200)
+        record = PersonalAccessToken.objects.get(user=self.user)
+        self.assertEqual(record.scopes, {"data:download"})
+        self.assertContains(self.client.get(reverse("edit_tokens")), "Data: <code> Download</code>")
+
+    def test_data_scopes_are_limited_to_the_allowed_list(self):
+        response = self.client.post(
+            reverse("edit_tokens"), data={"action": "create", "data_scopes": ["profile:read"]}
+        )
+        self.assertRedirects(response, reverse("edit_tokens"))
+        self.assertFalse(PersonalAccessToken.objects.filter(user=self.user).exists())
+
     def test_token_expires_after_its_lifetime(self):
         self.create()
         record = PersonalAccessToken.objects.get(user=self.user)
@@ -171,17 +187,18 @@ class TokenAPITests(TestCase):
         """
         OAuth tokens are not a default way to authenticate API views, and
         personal tokens are accepted only by views that list them, so
-        the SHA256SUMS endpoint (OAuth tokens with the download scope only)
-        does not accept a personal token.
+        the access status endpoint (which reveals credentialing status)
+        treats a token holder as anonymous.
         """
         self.assertNotIn(
             "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
             settings.REST_FRAMEWORK["DEFAULT_AUTHENTICATION_CLASSES"],
         )
-        _, personal_token = PersonalAccessToken.create_for_user(self.user, [COLLECTION_WRITE])
-        url = reverse("published_project_sha256sums", args=["demobsn", "1.0"])
+        _, personal_token = PersonalAccessToken.create_for_user(self.user, ["data:download"])
+        url = reverse("published_project_access_status", args=["demobsn", "1.0"])
         response = self.client.get(url, HTTP_AUTHORIZATION=f"Bearer {personal_token}")
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()["authenticated"])
 
     def test_oauth_tokens_do_not_log_in_to_site_pages(self):
         """

@@ -122,6 +122,12 @@ ENDPOINT_TO_SCOPE = {
     for scope, data in ANNOTATION_SCOPES.items()
 }
 
+# Scopes outside the annotation API that a personal access token can have,
+# with the label shown on the token settings page.
+DATA_SCOPES = {
+    "data:download": "Download files from projects you have access to",
+}
+
 
 def group_scopes_by_model(scopes):
     """
@@ -136,6 +142,9 @@ def group_scopes_by_model(scopes):
     """
     grouped = defaultdict(list)
     for scope in scopes:
+        if scope == "data:download":
+            grouped["Data"].append("Download")
+            continue
         parts = scope.split(":")
         if len(parts) >= 3:
             model_type = parts[1]  # collections, types, annotations
@@ -552,6 +561,9 @@ def _create_personal_access_token(request):
         scope = ENDPOINT_TO_SCOPE.get(endpoint)
         if scope in available_scopes and scope not in scopes:
             scopes.append(scope)
+    for scope in request.POST.getlist("data_scopes"):
+        if scope in DATA_SCOPES and scope in available_scopes and scope not in scopes:
+            scopes.append(scope)
     if not scopes:
         messages.error(request, "Please select at least one scope for the token.")
         return None
@@ -595,6 +607,7 @@ def edit_tokens(request):
             "tokens": tokens,
             "new_token": new_token,
             "available_endpoints": _available_token_endpoints(),
+            "data_scopes": DATA_SCOPES,
             "max_tokens": PersonalAccessToken.MAX_ACTIVE_PER_USER,
             "lifetime_days": PersonalAccessToken.LIFETIME.days,
         },

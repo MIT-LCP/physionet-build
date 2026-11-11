@@ -28,6 +28,8 @@ from export.serializers import (
     ProjectVersionsSerializer
 )
 from search.views import get_content
+from user.models import PersonalAccessToken
+from user.token_auth import PersonalAccessTokenAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -317,20 +319,26 @@ class PublishedProjectSearch(mixins.ListModelMixin, generics.GenericAPIView):
 
 class TokenHasDownloadScope(permissions.BasePermission):
     """
-    OAuth access tokens must have the download scope. Session and Basic authentication are unaffected.
+    Tokens (OAuth or personal) must have the download scope. Session and Basic authentication are unaffected.
     """
     def has_permission(self, request, view):
         token = request.auth
-        return not isinstance(token, AccessToken) or token.allow_scopes([DOWNLOAD_TOKEN_SCOPE])
+        if isinstance(token, PersonalAccessToken):
+            return token.has_scopes([DOWNLOAD_TOKEN_SCOPE])
+        if isinstance(token, AccessToken):
+            return token.allow_scopes([DOWNLOAD_TOKEN_SCOPE])
+        return True
 
 
 class ProjectSHA256Sums(APIView):
     """
     Download SHA256SUMS.txt file for a project.
     """
-    # OAuth tokens are accepted here (with the download scope), so this view
-    # lists OAuth2Authentication explicitly rather than relying on defaults.
-    authentication_classes = [BasicAuthentication, SessionAuthentication, OAuth2Authentication]
+    # Tokens are accepted here (with the download scope), so this view lists
+    # the token authentication classes explicitly rather than relying on defaults.
+    authentication_classes = [
+        BasicAuthentication, SessionAuthentication, PersonalAccessTokenAuthentication, OAuth2Authentication,
+    ]
     permission_classes = [permissions.IsAuthenticated, TokenHasDownloadScope]
 
     def get(self, request, project_slug, version):

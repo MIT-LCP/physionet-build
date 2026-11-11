@@ -445,17 +445,27 @@ DOWNLOAD_TOKEN_SCOPE = 'data:download'
 
 def check_bearer_token(request):
     """
-    Set request.user from an OAuth access token with the download scope.
+    Set request.user from a token with the download scope.
 
+    Both personal access tokens and OAuth access tokens are accepted.
     Browsers do not send bearer tokens on their own, so any user agent
     may use one.  For safety, tokens are only accepted for GET and HEAD
     requests and (unless settings.DEBUG is set) only via HTTPS.
     """
+    from user.models import PersonalAccessToken
+
     if request.method not in ('GET', 'HEAD'):
         return
     if not request.is_secure() and not settings.DEBUG:
         return
     if request.user.is_authenticated:
+        return
+
+    token = request.META.get('HTTP_AUTHORIZATION', '').split(' ', 1)[-1].strip()
+    if token.startswith(PersonalAccessToken.PREFIX):
+        record = PersonalAccessToken.authenticate(token)
+        if record and record.has_scopes([DOWNLOAD_TOKEN_SCOPE]):
+            request.user = record.user
         return
 
     valid, oauth_request = get_oauthlib_core().verify_request(
@@ -475,7 +485,8 @@ def check_http_auth(request):
 
     For safety, HTTP authentication is only used for certain requests
     from non-interactive user agents; see http_auth_allowed().  OAuth
-    access tokens are also accepted; see check_bearer_token().
+    access tokens and personal access tokens are also accepted; see
+    check_bearer_token().
 
     This should be invoked at the start of the view before checking
     user credentials, and should be paired with require_http_auth().
