@@ -996,6 +996,15 @@ OAUTH2_PROVIDER = {
     # CustomOAuth2Validator.validate_device_code sets the user and scopes, so
     # DOT's pre-token hook (which fails on unknown device codes) isn't needed.
     "OAUTH_PRE_TOKEN_VALIDATION": [],
+    # Refresh tokens are replaced each time they are used (DOT's
+    # ROTATE_REFRESH_TOKEN default). A sign-in that goes unused for this long
+    # after its access token expires stops working, and cleartokens then
+    # deletes it. Regular use keeps it alive.
+    "REFRESH_TOKEN_EXPIRE_SECONDS": 90 * 24 * 60 * 60,
+    # A replaced refresh token still works for a short while, so a client that
+    # retries a refresh (for example after a dropped connection), or two jobs
+    # that refresh together, aren't signed out.
+    "REFRESH_TOKEN_GRACE_PERIOD_SECONDS": 120,
 }
 
 # ScholarData API for external dataset metrics
