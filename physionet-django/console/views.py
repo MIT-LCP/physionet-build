@@ -2866,6 +2866,15 @@ def guidelines_course(request):
                   {'guidelines_course_nav': True})
 
 
+def _stats_csv_response(filename, headers, rows):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    writer = csv.writer(response)
+    writer.writerow(headers)
+    writer.writerows(rows)
+    return response
+
+
 @console_permission_required('project.can_view_stats')
 def editorial_stats(request):
     """
@@ -2928,6 +2937,14 @@ def editorial_stats(request):
     for y in stats:
         days = sub_dec_by_year.get(y, [])
         stats[y].append(median(days) if days else None)
+
+    if request.GET.get('export') == 'csv':
+        return _stats_csv_response(
+            'editorial-stats.csv',
+            ['Year', 'Total publications', 'Submission to assignment of editor (median days)',
+             'Submission to final publication (median days)', 'Submission to first decision (median days)'],
+            ([year, *values] for year, values in stats.items()),
+        )
 
     return render(request, 'console/editorial_stats.html', {
                   'submenu': 'editorial', 'stats': stats})
@@ -2994,6 +3011,16 @@ def credentialing_stats(request):
             stats[y]['time_to_decision'] = median(days)
         except (AttributeError, StatisticsError):
             stats[y]['time_to_decision'] = None
+
+    if request.GET.get('export') == 'csv':
+        fields = ('count', 'processed', 'approved', 'time_to_decision', 'time_to_ref', 'time_to_reply')
+        return _stats_csv_response(
+            'credentialing-stats.csv',
+            ['Year', 'Total applications', 'Total handled (accepted + rejected)', 'Approved (%)',
+             'Decision time (days, median)', 'Time to contact reference (days, median)',
+             'Reference response time (hours, median)'],
+            ([year, *(values.get(field) for field in fields)] for year, values in stats.items()),
+        )
 
     return render(request, 'console/credentialing_stats.html',
                   {'submenu': 'credential',
@@ -3067,6 +3094,18 @@ def submission_stats(request):
                     yearly_stats[pub_yr][3] += 1
             except AttributeError:
                 pass
+
+    if request.GET.get('export') == 'csv':
+        headers = ['Year', 'Created', 'Submitted', 'Resubmitted', 'Published', 'Rejected']
+        if request.GET.get('table') == 'yearly':
+            return _stats_csv_response(
+                'submission-yearly-stats.csv', headers,
+                ([year, *values] for year, values in yearly_stats.items()),
+            )
+        return _stats_csv_response(
+            'submission-monthly-stats.csv', [headers[0], 'Month', *headers[1:]],
+            ([year, month, *values] for year, months in stats.items() for month, values in months.items()),
+        )
 
     return render(request, 'console/submission_stats.html',
                   {'submenu': 'submission', 'stats': stats, 'yearly_stats': yearly_stats})
