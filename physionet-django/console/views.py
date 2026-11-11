@@ -2978,7 +2978,7 @@ def credentialing_stats(request):
     for y in stats:
         durations = time_to_reply.filter(application_datetime__year=y)
         try:
-            hours = [round(d.total_seconds() / 3600, 2) for d in durations if d and d.total_seconds() >= 0]
+            hours = [d.total_seconds() / 3600 for d in durations if d and d.total_seconds() >= 0]
             stats[y]['time_to_reply'] = round(median(hours), 2)
         except (AttributeError, StatisticsError):
             stats[y]['time_to_reply'] = None
