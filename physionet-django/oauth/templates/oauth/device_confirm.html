@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Approve sign-in{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 36rem;">
+  <h1 class="mt-4">Approve sign-in?</h1>
+  <p>
+    <strong>{{ application.name }}</strong> is asking to sign in to your account
+    (<strong>{{ request.user.username }}</strong>) with the code <code>{{ user_code }}</code>.
+    It will be able to:
+  </p>
+  <ul>
+    {% for description in scopes_descriptions %}
+      <li>{{ description }}</li>
+    {% endfor %}
+  </ul>
+  <div class="alert alert-warning" role="alert">
+    Approve only if you started this sign-in yourself, in the last few minutes.
+    If someone sent you this code or link, deny it.
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" name="action" value="accept" class="btn btn-primary">Approve</button>
+    <button type="submit" name="action" value="deny" class="btn btn-outline-secondary ml-2">Deny</button>
+  </form>
+  <p class="mt-4 text-muted small">
+    You can sign a device out at any time from <a href="{% url 'edit_tokens' %}">your token settings</a>.
+  </p>
+</div>
+{% endblock %}

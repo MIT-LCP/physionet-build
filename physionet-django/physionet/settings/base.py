@@ -19,6 +19,8 @@ from datetime import datetime, timezone
 from decouple import config, UndefinedValueError
 from django.core.exceptions import ImproperlyConfigured
 
+from oauth.user_codes import generate_user_code
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -242,6 +244,15 @@ LOGIN_URL = '/login/'
 LOGIN_FAILURE_LIMIT = config('LOGIN_FAILURE_LIMIT', default=10, cast=int)
 LOGIN_FAILURE_CLIENT_LIMIT = config('LOGIN_FAILURE_CLIENT_LIMIT', default=100, cast=int)
 LOGIN_FAILURE_WINDOW = config('LOGIN_FAILURE_WINDOW', default=15 * 60, cast=int)
+
+# Incorrect device sign-in codes (see oauth/device.py) allowed within
+# LOGIN_FAILURE_WINDOW seconds, per account and per client address.
+DEVICE_CODE_FAILURE_LIMIT = config('DEVICE_CODE_FAILURE_LIMIT', default=10, cast=int)
+DEVICE_CODE_FAILURE_CLIENT_LIMIT = config('DEVICE_CODE_FAILURE_CLIENT_LIMIT', default=30, cast=int)
+# Device sign-ins that may be started per client address within LOGIN_FAILURE_WINDOW
+# seconds. This stops a single misbehaving client; it is set high because many
+# users can share one address (a university network or a datathon room).
+DEVICE_AUTHORIZATION_CLIENT_LIMIT = config('DEVICE_AUTHORIZATION_CLIENT_LIMIT', default=200, cast=int)
 
 CACHES = {
     'default': {
@@ -978,6 +989,13 @@ OAUTH2_PROVIDER = {
     "OIDC_RESPONSE_TYPES_SUPPORTED": ["code"],
     "OAUTH2_VALIDATOR_CLASS": "oauth.validators.CustomOAuth2Validator",
     "PKCE_REQUIRED": config('OAUTH2_PKCE_REQUIRED', default=True, cast=bool),
+    # Device flow (RFC 8628). The view replaces the verification URI with an
+    # absolute one for the current site.
+    "OAUTH_DEVICE_VERIFICATION_URI": "/oauth/device/",
+    "OAUTH_DEVICE_USER_CODE_GENERATOR": generate_user_code,
+    # CustomOAuth2Validator.validate_device_code sets the user and scopes, so
+    # DOT's pre-token hook (which fails on unknown device codes) isn't needed.
+    "OAUTH_PRE_TOKEN_VALIDATION": [],
 }
 
 # ScholarData API for external dataset metrics

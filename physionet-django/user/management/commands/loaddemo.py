@@ -20,6 +20,8 @@ from physionet.utility import get_project_apps
 from user.models import Training, TrainingType, TrainingQuestion, CredentialApplication
 from user.enums import TrainingStatus
 from user.management.commands import create_default_oauth_app
+from oauth.clients import create_python_client
+from oauth2_provider.models import get_application_model
 
 
 class Command(BaseCommand):
@@ -74,6 +76,9 @@ class Command(BaseCommand):
 
         # Add OAuth application for managing user-generated OAuth tokens
         create_default_oauth_app.create_default_oauth_application()
+
+        # Flushing removed the Python package's application, which a migration added
+        create_python_client(get_application_model())
 
 
 def find_demo_fixtures(project_apps):

@@ -68,6 +68,29 @@
   <p class="mt-4">You don't have any tokens yet.</p>
 {% endif %}
 
+<h3 class="mt-5">Signed-in apps and devices</h3>
+<p>
+  Programs you have signed in to your account, for example with <code>physionet login</code>.
+  Sign one out if you no longer use it, or if a device was lost.
+</p>
+{% if signed_in_applications %}
+  <ul class="list-group mt-2">
+    {% for application in signed_in_applications %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span>{{ application.name }}</span>
+        <form action="" method="post" onsubmit="return confirm('Sign out {{ application.name|escapejs }}? It will need to sign in again.');">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="sign_out_application">
+          <input type="hidden" name="application_id" value="{{ application.id }}">
+          <button class="btn btn-sm btn-outline-danger" type="submit">Sign out</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No apps or devices are signed in.</p>
+{% endif %}
+
 <!-- Scope Selection Modal -->
 <div class="modal fade" id="scopeModal" tabindex="-1" role="dialog" aria-labelledby="scopeModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg" role="document">
