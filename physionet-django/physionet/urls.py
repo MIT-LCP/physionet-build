@@ -11,6 +11,7 @@ from oauth2_provider.views import ConnectDiscoveryInfoView
 from physionet import views
 from physionet.settings.base import StorageTypes
 
+handler400 = 'physionet.views.error_400'
 handler403 = 'physionet.views.error_403'
 handler404 = 'physionet.views.error_404'
 handler500 = 'physionet.views.error_500'

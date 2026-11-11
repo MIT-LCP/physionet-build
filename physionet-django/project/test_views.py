@@ -454,6 +454,56 @@ class TestAccessPresubmission(TestMixin):
         self.assertFalse(os.path.exists(os.path.join(project.file_root(), 't3')))
         self.assertFalse(os.path.exists(os.path.join(project.file_root(), 't4')))
 
+    @prevent_request_warnings
+    @override_settings(DATA_UPLOAD_MAX_NUMBER_FIELDS=20)
+    def test_project_files_many_items(self):
+        """
+        Selections larger than DATA_UPLOAD_MAX_NUMBER_FIELDS can be moved and
+        deleted when sent as a single JSON-encoded `items_json` field.
+        """
+        project = ActiveProject.objects.get(title='MIMIC-III Clinical Database')
+        self.client.login(username='rgmark@mit.edu', password='Tester11!')
+        url = reverse('project_files', args=(project.slug,))
+
+        bulk_dir = os.path.join(project.file_root(), 'bulk')
+        os.mkdir(bulk_dir)
+        os.mkdir(os.path.join(bulk_dir, 'dest'))
+        names = ['f{:03d}'.format(i) for i in range(30)]
+        for name in names:
+            open(os.path.join(bulk_dir, name), 'w').close()
+
+        # One field per item exceeds the limit and gets an explanatory 400
+        response = self.client.post(url, data={'delete_items': '', 'subdir': 'bulk', 'items': names})
+        self.assertEqual(response.status_code, 400)
+        self.assertContains(response, 'too many items', status_code=400)
+        self.assertTrue(os.path.isfile(os.path.join(bulk_dir, 'f000')))
+
+        # Invalid JSON is rejected
+        response = self.client.post(url, data={'delete_items': '', 'subdir': 'bulk', 'items_json': '[not json'})
+        self.assertMessage(response, 40)
+        response = self.client.post(url, data={'delete_items': '', 'subdir': 'bulk', 'items_json': '{"a": 1}'})
+        self.assertMessage(response, 40)
+
+        # Invalid item names inside the JSON list are still validated
+        response = self.client.post(url, data={
+            'delete_items': '', 'subdir': 'bulk', 'items_json': json.dumps(['../f000'])})
+        self.assertMessage(response, 40)
+        self.assertTrue(os.path.isfile(os.path.join(bulk_dir, 'f000')))
+
+        # Move many items in a single field
+        response = self.client.post(url, data={
+            'move_items': '', 'subdir': 'bulk', 'destination_folder': 'dest',
+            'items_json': json.dumps(names[:15])})
+        self.assertMessage(response, 25)
+        for name in names[:15]:
+            self.assertTrue(os.path.isfile(os.path.join(bulk_dir, 'dest', name)))
+
+        # Delete many items in a single field
+        response = self.client.post(url, data={
+            'delete_items': '', 'subdir': 'bulk', 'items_json': json.dumps(names[15:] + ['dest'])})
+        self.assertMessage(response, 25)
+        self.assertEqual(os.listdir(bulk_dir), [])
+
 
 class TestProjectCreation(TestMixin):
     """

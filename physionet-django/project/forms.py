@@ -1,3 +1,4 @@
+import json
 import os
 import uuid
 from collections import OrderedDict
@@ -250,11 +251,26 @@ class CreateFolderForm(ActiveProjectFilesForm):
 class EditItemsForm(ActiveProjectFilesForm):
     """
     Abstract form for manipulating existing files/directories.
+
+    The selected items are normally submitted as a single JSON-encoded
+    list in `items_json`, so that selecting many files does not exceed
+    DATA_UPLOAD_MAX_NUMBER_FIELDS. If `items_json` is absent (e.g. the
+    browser did not run the packing script), fall back to the repeated
+    `items` fields.
     """
     items = forms.Field(required=False)
 
     def clean_items(self):
-        items = self.data.getlist('items')
+        items_json = self.data.get('items_json')
+        if items_json is not None:
+            try:
+                items = json.loads(items_json)
+            except ValueError:
+                raise forms.ValidationError('Invalid item selection')
+            if not isinstance(items, list) or not all(isinstance(item, str) for item in items):
+                raise forms.ValidationError('Invalid item selection')
+        else:
+            items = self.data.getlist('items')
         for item in items:
             validators.validate_oldfilename(item)
         return items
