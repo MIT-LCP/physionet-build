@@ -382,3 +382,35 @@ def get_doi_status(project_doi):
     if state and isinstance(state, str):
         return state
     raise Exception('Unkown state of the DOI')
+
+
+def publish_active_project(project, slug=None, make_zip=True, actor=None, request=None):
+    """
+    Publish an active project, notify the authors, and update the DOI
+    metadata.
+
+    This is used both when an editor publishes a project immediately and
+    when a scheduled publication runs in the background (in which case
+    request is None.)
+
+    Returns the new PublishedProject.
+    """
+    # Imported here to avoid circular imports
+    import notification.utility as notification
+
+    published_project = project.publish(slug=slug, make_zip=make_zip)
+
+    notification.publish_notify(request, published_project, actor=actor)
+
+    # update the core and project DOIs with latest metadata
+    if published_project.core_project.doi:
+        core = published_project.core_project
+        latest = core.publishedprojects.get(is_latest_version=True)
+        payload_core = generate_doi_payload(latest, core_project=True, event="publish")
+        update_doi(core.doi, payload_core)
+
+    if published_project.doi:
+        payload = generate_doi_payload(published_project, core_project=False, event="publish")
+        update_doi(published_project.doi, payload)
+
+    return published_project

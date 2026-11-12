@@ -39,7 +39,7 @@ from project.modelcomponents.unpublishedproject import UnpublishedProject
 from project.reference_citations import citation_problems
 import project.tasks as tasks
 from project.utility import COPYEDIT_CONTENT_FIELDS, copyedit_content_warnings
-from project.validators import validate_subdir
+from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_subdir
 
 LOGGER = logging.getLogger(__name__)
 
@@ -196,6 +196,16 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     is_on_hold = models.BooleanField(default=False)
     archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
     archive_reason_text = models.TextField(null=True, blank=True)
+
+    # Scheduled publication. When scheduled_publish_datetime is set, the
+    # project will be published automatically at that time, using the
+    # slug and zip settings chosen by the editor. db_default lets the
+    # previous version's code create projects while migrations are
+    # applied during an upgrade.
+    scheduled_publish_datetime = models.DateTimeField(null=True, blank=True)
+    scheduled_publish_slug = models.CharField(
+        max_length=MAX_PROJECT_SLUG_LENGTH, blank=True, default='', db_default='')
+    scheduled_publish_make_zip = models.BooleanField(default=True, db_default=True)
 
     # Max number of active submitting projects a user is allowed to have
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
@@ -720,6 +730,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
                 self.submission_status = SubmissionStatus.NEEDS_COPYEDIT
                 self.copyedit_completion_datetime = None
                 self.author_approval_datetime = None
+                # Any scheduled publication no longer applies
+                self.scheduled_publish_datetime = None
                 self.save()
                 CopyeditLog.objects.create(project=self, is_reedit=True)
                 self.authors.all().update(approval_datetime=None)
@@ -802,6 +814,49 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         ):
             return True
         return False
+
+    def schedule_publication(self, publish_datetime, slug, make_zip):
+        """
+        Schedule the project to be published automatically at the given
+        time.
+
+        Any previously scheduled publication is replaced. The publication
+        task checks the stored schedule when it runs, so tasks created by
+        earlier schedules do nothing.
+        """
+        if not self.is_publishable():
+            raise Exception('The project is not publishable')
+
+        self.scheduled_publish_datetime = publish_datetime
+        self.scheduled_publish_slug = slug or ''
+        self.scheduled_publish_make_zip = bool(make_zip)
+        self.save(update_fields=[
+            'scheduled_publish_datetime',
+            'scheduled_publish_slug',
+            'scheduled_publish_make_zip',
+        ])
+        tasks.publish_scheduled_project(
+            self.id,
+            schedule=publish_datetime,
+            verbose_name='Scheduled publication: {}'.format(self),
+        )
+
+    def reserved_slugs(self):
+        """
+        Return the slugs held by this project: its own slug, and the
+        slug chosen for a scheduled publication, if any.
+        """
+        slugs = {self.slug}
+        if self.scheduled_publish_datetime and self.scheduled_publish_slug:
+            slugs.add(self.scheduled_publish_slug)
+        return slugs
+
+    def cancel_scheduled_publication(self):
+        """
+        Cancel a scheduled publication of the project.
+        """
+        self.scheduled_publish_datetime = None
+        self.save(update_fields=['scheduled_publish_datetime'])
 
     def clear_files(self):
         """

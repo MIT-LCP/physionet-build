@@ -562,10 +562,16 @@ def approved_on_behalf_notify(request, project, author, approver):
               [author.user.email], fail_silently=False)
 
 
-def publish_notify(request, published_project):
+def publish_notify(request, published_project, actor=None):
     """
     Notify authors and administrators when a project is published
+
+    request may be None (e.g. for a scheduled publication), in which
+    case the actor shown on in-app notifications should be given.
     """
+    if actor is None and request is not None:
+        actor = request.user
+
     subject = 'Your project has been published: {0}'.format(
         published_project.title)
 
@@ -596,7 +602,7 @@ def publish_notify(request, published_project):
             notification_type=NotificationType.PROJECT_PUBLISHED,
             message='Your project has been published: {}'.format(published_project.title),
             url=project_url,
-            actor=request.user,
+            actor=actor,
         )
 
     subject = 'A new project has been published: {0}'.format(
@@ -607,6 +613,59 @@ def publish_notify(request, published_project):
 
     send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
           [settings.CONTACT_EMAIL], fail_silently=False)
+
+
+def scheduled_publish_notify(request, project, scheduled_datetime, slug):
+    """
+    Notify authors that their project has been scheduled for publication.
+
+    slug is the slug the project will be published under.
+    """
+    subject = 'Your project has been scheduled for publication: {0}'.format(
+        project.title)
+
+    content = {
+        'project': project,
+        'scheduled_datetime': timezone.localtime(scheduled_datetime),
+        'time_zone': timezone.get_current_timezone_name(),
+        'slug': slug,
+        'url_prefix': get_url_prefix(request),
+        'signature': settings.EMAIL_SIGNATURE,
+        'project_info': email_project_info(project),
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+    }
+
+    for email, name in project.author_contact_info():
+        content['name'] = name
+        body = loader.render_to_string(
+            'notification/email/scheduled_publish_notify.html', content)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
+
+def scheduled_publish_failed_notify(project, scheduled_datetime, reason):
+    """
+    Notify the handling editor and administrators that a scheduled
+    publication did not take place.
+    """
+    subject = 'Scheduled publication failed: {0}'.format(project.title)
+    body = loader.render_to_string(
+        'notification/email/scheduled_publish_failed_notify.html', {
+            'project': project,
+            'scheduled_datetime': scheduled_datetime,
+            'reason': reason,
+            'url_prefix': get_url_prefix(None),
+            'signature': settings.EMAIL_SIGNATURE,
+            'project_info': email_project_info(project),
+            'footer': email_footer(),
+            'SITE_NAME': settings.SITE_NAME,
+        })
+    recipients = [settings.CONTACT_EMAIL]
+    if project.editor:
+        recipients.insert(0, project.editor.email)
+    send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+              recipients, fail_silently=False)
 
 
 def archive_notify(request, project, archive_reason):

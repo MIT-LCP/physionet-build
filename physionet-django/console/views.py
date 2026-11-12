@@ -27,6 +27,7 @@ from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirec
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
@@ -1097,7 +1098,7 @@ def publish_slug_available(request, project_slug, *args, **kwargs):
     """
     desired_slug = request.GET['desired_slug']
     # Slug belongs to this project
-    if project_slug == desired_slug:
+    if desired_slug in kwargs['project'].reserved_slugs():
         result = True
     # Check if any project has claimed it
     else:
@@ -1124,6 +1125,13 @@ def publish_submission(request, project_slug, *args, **kwargs):
 
     copyedit_logs = project.copyedit_log_history()
 
+    if request.method == 'POST' and 'cancel_scheduled_publication' in request.POST:
+        if project.scheduled_publish_datetime:
+            project.cancel_scheduled_publication()
+            messages.success(request, 'The scheduled publication has been cancelled.')
+        return redirect('publish_submission', project_slug=project.slug)
+
+    publish_form = None
     if request.method == 'POST':
         publish_form = forms.PublishForm(project=project, data=request.POST)
         if project.is_publishable() and publish_form.is_valid():
@@ -1135,25 +1143,22 @@ def publish_submission(request, project_slug, *args, **kwargs):
                 slug = project.get_previous_slug()
             else:
                 slug = publish_form.cleaned_data['slug']
-            published_project = project.publish(slug=slug,
-                                                make_zip=int(publish_form.cleaned_data['make_zip']))
+            make_zip = int(publish_form.cleaned_data['make_zip'])
+            publish_datetime = publish_form.cleaned_data['publish_datetime']
 
-            notification.publish_notify(request, published_project)
+            if publish_datetime:
+                project.schedule_publication(publish_datetime, slug=slug, make_zip=make_zip)
+                notification.scheduled_publish_notify(
+                    request, project, publish_datetime, slug=slug or project.slug)
+                messages.success(
+                    request,
+                    'The project will be published at {} ({}).'.format(
+                        date_format(timezone.localtime(publish_datetime), 'DATETIME_FORMAT'),
+                        timezone.get_current_timezone_name()))
+                return redirect('publish_submission', project_slug=project.slug)
 
-            # update the core and project DOIs with latest metadata
-            if published_project.core_project.doi:
-                core = published_project.core_project
-                latest = core.publishedprojects.get(is_latest_version=True)
-                payload_core = utility.generate_doi_payload(latest,
-                                                            core_project=True,
-                                                            event="publish")
-                utility.update_doi(core.doi, payload_core)
-
-            if published_project.doi:
-                payload = utility.generate_doi_payload(published_project,
-                                                       core_project=False,
-                                                       event="publish")
-                utility.update_doi(published_project.doi, payload)
+            published_project = utility.publish_active_project(
+                project, slug=slug, make_zip=make_zip, request=request)
 
             return render(
                 request,
@@ -1162,7 +1167,8 @@ def publish_submission(request, project_slug, *args, **kwargs):
             )
 
     publishable = project.is_publishable()
-    publish_form = forms.PublishForm(project=project)
+    if publish_form is None:
+        publish_form = forms.PublishForm(project=project)
     tasks = [task for task, read_only in get_associated_tasks(project)]
 
     return render(request,

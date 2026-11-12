@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {% if project.editor %}{{ project.editor.get_full_name }}{% else %}Colleague{% endif %},
+
+The project entitled "{{ project.title }}" was scheduled to be published on {{ SITE_NAME }} at {{ scheduled_datetime }}, but it could not be published.
+
+Reason: {{ reason }}
+
+The scheduled publication has been cancelled. You can review the project and publish it, or schedule it again, at {{ url_prefix }}{% url 'publish_submission' project.slug %}.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}
