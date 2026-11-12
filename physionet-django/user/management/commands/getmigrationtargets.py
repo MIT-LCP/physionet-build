@@ -140,6 +140,20 @@ class Command(BaseCommand):
         # Check if there are any migrations applied that we don't know
         # about.
         ghosts = applied.keys() - set(desired)
+
+        # Migrations recorded for an app that has been removed from
+        # INSTALLED_APPS are harmless: Django ignores them, and the
+        # app's tables are no longer used.  Warn rather than fail, so
+        # that an app can be removed.
+        removed = {(app, name) for (app, name) in ghosts
+                   if app not in executor.loader.migrated_apps}
+        if removed:
+            sys.stderr.write(
+                'Ignoring migrations for apps that are no longer '
+                'installed: {}\n'.format(
+                    ', '.join(sorted({app for app, _ in removed}))))
+            ghosts -= removed
+
         if ghosts:
             mlist = ', '.join('{}.{}'.format(app, name)
                               for app, name in sorted(ghosts))
