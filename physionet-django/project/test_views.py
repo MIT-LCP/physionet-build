@@ -468,7 +468,7 @@ class TestAccessPresubmission(TestMixin):
         bulk_dir = os.path.join(project.file_root(), 'bulk')
         os.mkdir(bulk_dir)
         os.mkdir(os.path.join(bulk_dir, 'dest'))
-        names = ['f{:03d}'.format(i) for i in range(30)]
+        names = ['f{:03d}'.format(i) for i in range(50)]
         for name in names:
             open(os.path.join(bulk_dir, name), 'w').close()
 
@@ -478,11 +478,16 @@ class TestAccessPresubmission(TestMixin):
         self.assertContains(response, 'too many items', status_code=400)
         self.assertTrue(os.path.isfile(os.path.join(bulk_dir, 'f000')))
 
-        # Invalid JSON is rejected
-        response = self.client.post(url, data={'delete_items': '', 'subdir': 'bulk', 'items_json': '[not json'})
-        self.assertMessage(response, 40)
-        response = self.client.post(url, data={'delete_items': '', 'subdir': 'bulk', 'items_json': '{"a": 1}'})
-        self.assertMessage(response, 40)
+        # Invalid selections are rejected, for both delete and move
+        invalid_selections = ['[not json', '{"a": 1}', '[1, null]', '[' * 100000 + ']' * 100000]
+        for items_json in invalid_selections:
+            response = self.client.post(url, data={
+                'delete_items': '', 'subdir': 'bulk', 'items_json': items_json})
+            self.assertMessage(response, 40)
+            response = self.client.post(url, data={
+                'move_items': '', 'subdir': 'bulk', 'destination_folder': 'dest', 'items_json': items_json})
+            self.assertMessage(response, 40)
+        self.assertTrue(os.path.isfile(os.path.join(bulk_dir, 'f000')))
 
         # Invalid item names inside the JSON list are still validated
         response = self.client.post(url, data={
@@ -490,17 +495,18 @@ class TestAccessPresubmission(TestMixin):
         self.assertMessage(response, 40)
         self.assertTrue(os.path.isfile(os.path.join(bulk_dir, 'f000')))
 
-        # Move many items in a single field
+        # Move more items than the field limit in a single field
+        moved, deleted = names[:25], names[25:]
         response = self.client.post(url, data={
             'move_items': '', 'subdir': 'bulk', 'destination_folder': 'dest',
-            'items_json': json.dumps(names[:15])})
+            'items_json': json.dumps(moved)})
         self.assertMessage(response, 25)
-        for name in names[:15]:
+        for name in moved:
             self.assertTrue(os.path.isfile(os.path.join(bulk_dir, 'dest', name)))
 
-        # Delete many items in a single field
+        # Delete more items than the field limit in a single field
         response = self.client.post(url, data={
-            'delete_items': '', 'subdir': 'bulk', 'items_json': json.dumps(names[15:] + ['dest'])})
+            'delete_items': '', 'subdir': 'bulk', 'items_json': json.dumps(deleted + ['dest'])})
         self.assertMessage(response, 25)
         self.assertEqual(os.listdir(bulk_dir), [])
 

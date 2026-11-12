@@ -265,7 +265,7 @@ class EditItemsForm(ActiveProjectFilesForm):
         if items_json is not None:
             try:
                 items = json.loads(items_json)
-            except ValueError:
+            except (ValueError, RecursionError):
                 raise forms.ValidationError('Invalid item selection')
             if not isinstance(items, list) or not all(isinstance(item, str) for item in items):
                 raise forms.ValidationError('Invalid item selection')
@@ -365,6 +365,11 @@ class MoveItemsForm(EditItemsForm):
         - Must not be one of the items selected to be moved
         """
         cleaned_data = super(MoveItemsForm, self).clean()
+
+        # If any of the fields failed validation, their errors have already
+        # been recorded and there is nothing further to check.
+        if any(f not in cleaned_data for f in ('destination_folder', 'items', 'subdir')):
+            return cleaned_data
 
         destination_folder = cleaned_data['destination_folder']
         selected_items = cleaned_data['items']
