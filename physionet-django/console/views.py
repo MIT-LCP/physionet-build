@@ -3105,12 +3105,12 @@ def submission_stats(request):
         headers = ['Year', 'Created', 'Submitted', 'Resubmitted', 'Published', 'Rejected']
         if export_table == 'yearly':
             return _stats_csv_response(
-                'submission-yearly-stats.csv', headers,
+                f'submission-yearly-stats-{todays_date:%Y-%m-%d}.csv', headers,
                 ([year, *values] for year, values in sorted(yearly_stats.items())),
             )
         return _stats_csv_response(
             f'submission-monthly-stats-{todays_date:%Y-%m-%d}.csv',
-            ['Month (YYYY-MM)', headers[0], 'Month', *headers[1:]],
+            ['Period (YYYY-MM)', headers[0], 'Month', *headers[1:]],
             ([monthly_periods[(year, month)], year, month, *values]
              for year, months in reversed(stats.items()) for month, values in reversed(months.items())),
         )

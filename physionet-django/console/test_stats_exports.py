@@ -70,7 +70,7 @@ class TestStatsExports(TestCase):
             row[:] = ['' if cell == 'None' else cell for cell in row]
 
         if params.get('table') == 'monthly':
-            expected[0].insert(0, 'Month (YYYY-MM)')
+            expected[0].insert(0, 'Period (YYYY-MM)')
             for row in expected[1:]:
                 period = datetime.strptime(f'{row[0]}-{row[1]}', '%Y-%B').strftime('%Y-%m')
                 row.insert(0, period)
@@ -106,9 +106,11 @@ class TestStatsExports(TestCase):
         self.assertEqual([row[0] for row in rows[1:]], sorted(row[0] for row in rows[1:]))
 
     def test_submission_yearly_export_matches_all_six_years(self):
-        rows = self.assert_export_matches_table(
-            'submission_stats', 'submission-yearly-stats.csv', table_index=1, table='yearly',
-        )
+        with mock.patch('console.views.datetime', wraps=datetime) as clock:
+            clock.today.return_value = datetime(2026, 1, 15)
+            rows = self.assert_export_matches_table(
+                'submission_stats', 'submission-yearly-stats-2026-01-15.csv', table_index=1, table='yearly',
+            )
         self.assertEqual(len(rows), 7)
 
     def test_monthly_is_the_explicit_default_export(self):
