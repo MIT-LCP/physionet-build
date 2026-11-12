@@ -17,8 +17,8 @@
 # Delete personal access tokens that expired more than 30 days ago
 40 23 * * *  www-data  env DJANGO_SETTINGS_MODULE=physionet.settings.production /physionet/python-env/physionet/bin/python3 /physionet/physionet-build/physionet-django/manage.py purge_expired_access_tokens
 
-# Delete expired OAuth access tokens and authorization codes (django-oauth-toolkit;
-# refresh tokens are kept while REFRESH_TOKEN_EXPIRE_SECONDS is unset)
+# Delete expired OAuth access tokens, authorization codes, and refresh tokens
+# unused for REFRESH_TOKEN_EXPIRE_SECONDS (django-oauth-toolkit)
 45 23 * * *  www-data  env DJANGO_SETTINGS_MODULE=physionet.settings.production /physionet/python-env/physionet/bin/python3 /physionet/physionet-build/physionet-django/manage.py cleartokens
 
 # auto reject pending credentialing applications in case the references don't respond

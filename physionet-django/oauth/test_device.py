@@ -391,3 +391,58 @@ class DeviceGrantCleanupTests(DeviceFlowTestBase):
         call_command("purge_expired_access_tokens")
         self.assertFalse(DeviceGrant.objects.filter(device_code=old["device_code"]).exists())
         self.assertTrue(DeviceGrant.objects.filter(device_code=new["device_code"]).exists())
+
+
+class RefreshTokenLifetimeTests(DeviceFlowTestBase):
+    def sign_in(self):
+        data = self.start().json()
+        self.approve(data["user_code"])
+        return self.poll(data["device_code"]).json()
+
+    def refresh(self, refresh_token):
+        return self.form_post(
+            reverse("oauth2_provider:token"),
+            {"grant_type": "refresh_token", "refresh_token": refresh_token, "client_id": PYTHON_CLIENT_ID},
+        )
+
+    def test_replaced_refresh_token_works_for_a_short_while(self):
+        token = self.sign_in()
+        self.assertEqual(self.refresh(token["refresh_token"]).status_code, 200)
+        # A second job (or a retry) using the same refresh token straight away
+        self.assertEqual(self.refresh(token["refresh_token"]).status_code, 200)
+
+        # but not once the grace period has passed
+        RefreshToken.objects.filter(token=token["refresh_token"]).update(
+            revoked=timezone.now() - timedelta(minutes=3)
+        )
+        response = self.refresh(token["refresh_token"])
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "invalid_grant")
+
+    def test_unused_sign_in_expires(self):
+        token = self.sign_in()
+        AccessToken.objects.filter(token=token["access_token"]).update(
+            expires=timezone.now() - timedelta(days=91)
+        )
+        response = self.refresh(token["refresh_token"])
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "invalid_grant")
+
+    def test_sign_in_used_within_the_limit_keeps_working(self):
+        token = self.sign_in()
+        AccessToken.objects.filter(token=token["access_token"]).update(
+            expires=timezone.now() - timedelta(days=89)
+        )
+        response = self.refresh(token["refresh_token"])
+        self.assertEqual(response.status_code, 200)
+        # The new pair starts a new 90 days
+        self.assertEqual(self.refresh(response.json()["refresh_token"]).status_code, 200)
+
+    def test_cleartokens_deletes_unused_sign_ins(self):
+        unused, active = self.sign_in(), self.sign_in()
+        AccessToken.objects.filter(token=unused["access_token"]).update(
+            expires=timezone.now() - timedelta(days=91)
+        )
+        call_command("cleartokens")
+        self.assertFalse(RefreshToken.objects.filter(token=unused["refresh_token"]).exists())
+        self.assertTrue(RefreshToken.objects.filter(token=active["refresh_token"]).exists())
