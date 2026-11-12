@@ -172,3 +172,66 @@ def refresh_citing_works(core_project_id):
         )
         models.CitingWorksRefresh.objects.filter(core_project=core_project).update(
             fetch_datetime=timezone.now())
+
+
+@background()
+def publish_scheduled_project(project_id):
+    """
+    Publish an active project whose publication has been scheduled.
+
+    This does nothing if the project no longer exists, if its
+    publication has been cancelled, or if it has been rescheduled for a
+    later time (a separate task is created for the new time.)
+
+    If the project can no longer be published (for example, because it
+    has been changed since publication was scheduled), the schedule is
+    cleared and the handling editor is notified.
+    """
+    # Imported here to avoid circular imports
+    from console.utility import publish_active_project
+    import notification.utility as notification
+
+    project = models.ActiveProject.objects.filter(id=project_id).first()
+    if project is None:
+        return
+
+    scheduled_datetime = project.scheduled_publish_datetime
+    if scheduled_datetime is None or scheduled_datetime > timezone.now():
+        return
+
+    if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
+        # Raise so that the task is retried after maintenance
+        raise Exception('Scheduled publication deferred: system maintenance')
+
+    # Claim the schedule, so that duplicate tasks do not publish twice
+    claimed = models.ActiveProject.objects.filter(
+        id=project_id, scheduled_publish_datetime=scheduled_datetime,
+    ).update(scheduled_publish_datetime=None)
+    if not claimed:
+        return
+    project.refresh_from_db()
+
+    if project.is_on_hold:
+        reason = 'The project has been placed on hold.'
+    elif not project.is_publishable():
+        reason = 'The project is no longer publishable.'
+    else:
+        reason = None
+    if reason:
+        LOGGER.warning('Scheduled publication of %s failed: %s', project, reason)
+        notification.scheduled_publish_failed_notify(project, scheduled_datetime, reason)
+        return
+
+    try:
+        publish_active_project(
+            project,
+            slug=project.scheduled_publish_slug or None,
+            make_zip=project.scheduled_publish_make_zip,
+            actor=project.editor,
+        )
+    except Exception as e:
+        LOGGER.exception('Scheduled publication of %s failed', project)
+        # Only notify the editor if the project was not published (the
+        # error may have occurred in a follow-up step such as a DOI update)
+        if models.ActiveProject.objects.filter(id=project_id).exists():
+            notification.scheduled_publish_failed_notify(project, scheduled_datetime, repr(e))

@@ -11,6 +11,8 @@ from unittest import mock
 
 import requests_mock
 from django.conf import settings
+from background_task.models import Task
+from background_task.tasks import tasks as bg_tasks
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
@@ -19,11 +21,13 @@ from django.test import TestCase, override_settings
 from django.test.utils import get_runner
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.formats import date_format
 from console.forms import CredentialReviewForm
 from console.views import snapshot_files, submission_file_changes
 from project.modelcomponents.activeproject import ArchiveReason
 from events.models import EventAgreement
 from project.fields import SafeHTMLField
+from project.modelcomponents.coreproject import exists_project_slug
 from project.models import (
     AccessPolicy,
     ActiveProject,
@@ -1195,6 +1199,156 @@ class TestState(TestMixin):
             self.assertEqual(project.core_project.doi, '10.0000/bbb')
 
         self.assertEqual(mocker.call_count, 4)
+
+    def schedule_publication(self, publish_datetime, slug='mitbih'):
+        """
+        Get the project ready to publish, and submit the publish form
+        with a scheduled publication time.
+        """
+        self.test_approve_publish()
+        self.client.login(username='admin', password='Tester11!')
+        project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
+        response = self.client.post(
+            reverse('publish_submission', args=(project.slug,)),
+            data={
+                'slug': slug, 'make_zip': 1, 'georestricted': False,
+                'publish_datetime': timezone.localtime(publish_datetime).strftime('%Y-%m-%dT%H:%M'),
+            })
+        project.refresh_from_db()
+        return project, response
+
+    def run_scheduled_tasks(self, project, expected_number_of_tasks):
+        """
+        Simulate the passing of time until the scheduled publication is
+        due, then run the pending background tasks.
+        """
+        past = timezone.now() - datetime.timedelta(minutes=1)
+        ActiveProject.objects.filter(
+            id=project.id, scheduled_publish_datetime__isnull=False,
+        ).update(scheduled_publish_datetime=past)
+        Task.objects.update(run_at=past)
+        self.assertBackgroundTasks(expected_number_of_tasks)
+
+    def test_schedule_publication(self):
+        """
+        A project scheduled for publication is published when the
+        scheduled time arrives.
+        """
+        publish_datetime = timezone.now() + datetime.timedelta(days=2)
+        project, response = self.schedule_publication(publish_datetime)
+        project_slug = project.slug
+        self.assertRedirects(response, reverse('publish_submission', args=(project_slug,)))
+
+        # The project is not yet published
+        self.assertFalse(PublishedProject.objects.filter(slug='mitbih').exists())
+        self.assertEqual(project.scheduled_publish_slug, 'mitbih')
+        self.assertTrue(project.scheduled_publish_make_zip)
+        self.assertEqual(project.scheduled_publish_datetime.replace(second=0, microsecond=0),
+                         publish_datetime.replace(second=0, microsecond=0))
+        task = Task.objects.get()
+        self.assertEqual(task.run_at, project.scheduled_publish_datetime)
+
+        # Each author is told when the project will be published, and where
+        scheduled_mails = [m for m in mail.outbox if 'scheduled for publication' in m.subject]
+        self.assertEqual(
+            sorted(to for m in scheduled_mails for to in m.to),
+            sorted(email for email, _ in project.author_contact_info()))
+        local_time = timezone.localtime(publish_datetime)
+        self.assertIn(date_format(local_time, 'DATETIME_FORMAT'), scheduled_mails[0].body)
+        self.assertIn(reverse('published_project', args=('mitbih', project.version)),
+                      scheduled_mails[0].body)
+
+        response = self.client.get(reverse('publish_submission', args=(project_slug,)))
+        self.assertContains(response, 'Scheduled publication:')
+        self.assertContains(response, 'Cancel scheduled publication')
+
+        # The scheduled slug is reserved for this project
+        self.assertTrue(exists_project_slug('mitbih'))
+        response = self.client.get(
+            reverse('publish_slug_available', args=(project_slug,)),
+            data={'desired_slug': 'mitbih'})
+        self.assertTrue(response.json()['available'])
+
+        # Running the task early does nothing
+        with override_settings(BACKGROUND_TASK_RUN_ASYNC=False):
+            Task.objects.update(run_at=timezone.now())
+            bg_tasks.run_next_task()
+        self.assertTrue(ActiveProject.objects.filter(slug=project_slug).exists())
+
+        # When the time arrives, the task publishes the project (and
+        # queues the finalize and zip tasks)
+        self.assertEqual(Task.objects.count(), 0)
+        mail.outbox = []
+        project.schedule_publication(publish_datetime, slug='mitbih', make_zip=True)
+        self.run_scheduled_tasks(project, 1)
+        self.assertFalse(ActiveProject.objects.filter(slug=project_slug).exists())
+        published = PublishedProject.objects.get(slug='mitbih')
+        self.assertEqual(published.submission_slug, project_slug)
+        self.assertTrue(any('has been published' in m.subject for m in mail.outbox))
+
+    def test_schedule_publication_in_past(self):
+        """
+        Publication cannot be scheduled for a time in the past.
+        """
+        project, response = self.schedule_publication(
+            timezone.now() - datetime.timedelta(hours=1))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'must be in the future')
+        self.assertIsNone(project.scheduled_publish_datetime)
+        self.assertEqual(Task.objects.count(), 0)
+        self.assertFalse(any('scheduled for publication' in m.subject for m in mail.outbox))
+
+    def test_cancel_scheduled_publication(self):
+        """
+        A cancelled scheduled publication does not take place.
+        """
+        project, _ = self.schedule_publication(timezone.now() + datetime.timedelta(days=1))
+        self.assertIsNotNone(project.scheduled_publish_datetime)
+
+        response = self.client.post(
+            reverse('publish_submission', args=(project.slug,)),
+            data={'cancel_scheduled_publication': ''})
+        self.assertRedirects(response, reverse('publish_submission', args=(project.slug,)))
+        project.refresh_from_db()
+        self.assertIsNone(project.scheduled_publish_datetime)
+        self.assertFalse(exists_project_slug('mitbih'))
+
+        self.run_scheduled_tasks(project, 1)
+        self.assertTrue(ActiveProject.objects.filter(slug=project.slug).exists())
+        self.assertFalse(PublishedProject.objects.filter(slug='mitbih').exists())
+
+    def test_reopen_copyedit_cancels_scheduled_publication(self):
+        """
+        Reopening the copyedit cancels a scheduled publication.
+        """
+        project, _ = self.schedule_publication(timezone.now() + datetime.timedelta(days=1))
+        self.client.post(reverse('reopen_copyedit', args=(project.slug,)),
+                         data={'reopen_copyedit': ''})
+        project.refresh_from_db()
+        self.assertEqual(project.submission_status, SubmissionStatus.NEEDS_COPYEDIT)
+        self.assertIsNone(project.scheduled_publish_datetime)
+
+        Task.objects.exclude(task_name='project.tasks.publish_scheduled_project').delete()
+        self.run_scheduled_tasks(project, 1)
+        self.assertTrue(ActiveProject.objects.filter(slug=project.slug).exists())
+
+    def test_scheduled_publication_on_hold(self):
+        """
+        A project placed on hold is not published at its scheduled time,
+        and the editor is notified.
+        """
+        project, _ = self.schedule_publication(timezone.now() + datetime.timedelta(days=1))
+        project.place_on_hold()
+
+        mail.outbox = []
+        self.run_scheduled_tasks(project, 1)
+        project.refresh_from_db()
+        self.assertIsNone(project.scheduled_publish_datetime)
+        self.assertFalse(PublishedProject.objects.filter(slug='mitbih').exists())
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Scheduled publication failed', mail.outbox[0].subject)
+        self.assertIn(project.editor.email, mail.outbox[0].to)
+        self.assertIn('placed on hold', mail.outbox[0].body)
 
     def test_embargo_archived_project(self):
         self.client.login(username='tompollard', password='Tester11!')

@@ -1,6 +1,7 @@
 {% extends "console/base_console.html" %}
 
 {% load static %}
+{% load tz %}
 
 {% block title %}Publish Submission{% endblock %}
 
@@ -75,6 +76,19 @@
         Something has gone wrong. The project should be publishable at this point but it is not. Please check it.
       {% endif %}
     </p>
+    {% if project.scheduled_publish_datetime %}
+      <div class="alert alert-info">
+        <p>
+          <strong>Scheduled publication:</strong> this project will be published automatically at
+          {% get_current_timezone as TIME_ZONE %}{{ project.scheduled_publish_datetime }} ({{ TIME_ZONE }}){% if project.scheduled_publish_slug and not project.is_new_version %} with the slug <code>{{ project.scheduled_publish_slug }}</code>{% endif %}.
+          To change the schedule, submit the form below with a new time, or leave the time blank to publish now.
+        </p>
+        <form action="" method="post" class="mb-0">
+          {% csrf_token %}
+          <button class="btn btn-outline-danger btn-sm" name="cancel_scheduled_publication" type="submit">Cancel scheduled publication</button>
+        </form>
+      </div>
+    {% endif %}
     {% if publishable %}
       <form action="" method="post" class="form-signin">
         {% csrf_token %}
@@ -91,6 +105,20 @@
 {% block local_js_bottom %}
 <script src="{% static 'custom/js/enable-popover.js' %}?v=3"></script>
 <script>
-  document.getElementById('id_slug').onkeyup = checkSlug;
+  var slugInput = document.getElementById('id_slug');
+  if (slugInput) {
+    slugInput.onkeyup = checkSlug;
+  }
+  var publishDatetimeInput = document.getElementById('id_publish_datetime');
+  function updatePublishButton() {
+    var button = document.getElementById('publish_submission_button');
+    if (button && publishDatetimeInput) {
+      button.textContent = publishDatetimeInput.value ? 'Schedule Publication' : 'Publish Submission';
+    }
+  }
+  if (publishDatetimeInput) {
+    publishDatetimeInput.addEventListener('input', updatePublishButton);
+    updatePublishButton();
+  }
 </script>
 {% endblock %}

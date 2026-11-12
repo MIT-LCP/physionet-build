@@ -306,6 +306,7 @@
               <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'publish_submission' project.slug %}" role="button">Publish Project</a>
                 {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
+                {% if project.scheduled_publish_datetime %}<div><small class="text-muted">Scheduled: {{ project.scheduled_publish_datetime }}</small></div>{% endif %}
               </td>
             </tr>
           {% endfor %}

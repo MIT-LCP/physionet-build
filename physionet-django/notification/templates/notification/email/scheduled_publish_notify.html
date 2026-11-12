@@ -1,0 +1,15 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+We are pleased to inform you that your project entitled "{{ project.title }}" (version {{ project.version }}) has been scheduled for publication on {{ SITE_NAME }} on {{ scheduled_datetime|date:"DATETIME_FORMAT" }} ({{ time_zone }}).
+
+Once published, the project will be available at: {% if project.doi %}https://doi.org/{{ project.doi }}{% else %}{{ url_prefix }}{% url 'published_project' slug project.version %}{% endif %}
+
+You will receive another email when the project has been published. If you have any questions about the publication date, please contact your handling editor{% if project.editor %}, {{ project.editor.get_full_name }}{% endif %}.
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

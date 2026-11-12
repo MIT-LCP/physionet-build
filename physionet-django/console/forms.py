@@ -1,4 +1,5 @@
 import logging
+from datetime import timedelta
 import re
 
 from console.utility import generate_doi_payload, register_doi
@@ -415,10 +416,27 @@ class PublishForm(forms.Form):
     slug = forms.CharField(max_length=MAX_PROJECT_SLUG_LENGTH,
                            validators=[validate_slug])
     make_zip = forms.ChoiceField(choices=YES_NO, label='Make zip of all files')
+    publish_datetime = forms.DateTimeField(
+        required=False,
+        label='Scheduled publication time',
+        widget=forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
+        help_text=(
+            'Optional. Leave blank to publish immediately, or choose a future '
+            'time (' + settings.TIME_ZONE + ') to publish the project automatically.'
+        ),
+    )
+
+    # Furthest ahead that a publication may be scheduled
+    MAX_SCHEDULE_DAYS = 365
 
     def __init__(self, project, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.project = project
+
+        if project.scheduled_publish_datetime:
+            self.fields['publish_datetime'].initial = timezone.localtime(
+                project.scheduled_publish_datetime)
+            self.fields['make_zip'].initial = int(project.scheduled_publish_make_zip)
 
         # Set initial value for georestricted field
         self.fields['georestricted'].initial = self.project.georestricted
@@ -426,6 +444,8 @@ class PublishForm(forms.Form):
         # No option to set slug if publishing new version
         if self.project.is_new_version:
             del(self.fields['slug'])
+        elif project.scheduled_publish_datetime and project.scheduled_publish_slug:
+            self.fields['slug'].initial = project.scheduled_publish_slug
         else:
             self.fields['slug'].initial = project.slug
 
@@ -439,9 +459,24 @@ class PublishForm(forms.Form):
         Ensure that the slug is valid and not taken.
         """
         data = self.cleaned_data['slug']
-        if data != self.project.slug:
+        if data not in self.project.reserved_slugs():
             if exists_project_slug(data):
                 raise forms.ValidationError('The slug is already taken by another project.')
+        return data
+
+    def clean_publish_datetime(self):
+        """
+        Ensure that a scheduled publication time is in the future.
+        """
+        data = self.cleaned_data['publish_datetime']
+        if data is None:
+            return data
+        now = timezone.now()
+        if data <= now:
+            raise forms.ValidationError('The scheduled publication time must be in the future.')
+        if data > now + timedelta(days=self.MAX_SCHEDULE_DAYS):
+            raise forms.ValidationError(
+                'Publication may not be scheduled more than {} days ahead.'.format(self.MAX_SCHEDULE_DAYS))
         return data
 
 

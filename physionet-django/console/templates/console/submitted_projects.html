@@ -415,6 +415,7 @@
                   <td>
                     {% if project.editor == user %}
                       <a class="btn btn-primary btn-sm" href="{% url 'publish_submission' project.slug %}" role="button">Publish Project</a>
+                {% if project.scheduled_publish_datetime %}<br><small class="text-muted">Scheduled: {{ project.scheduled_publish_datetime }}</small>{% endif %}
                     {% else %}
                       <p class="mb-0">Assigned</p>
                     {% endif %}

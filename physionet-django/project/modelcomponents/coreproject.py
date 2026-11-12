@@ -107,4 +107,8 @@ def exists_project_slug(slug):
     Whether the slug has been taken by an existing project of any
     kind.
     """
-    return bool(ActiveProject.objects.filter(slug=slug) or PublishedProject.objects.filter(slug=slug))
+    return bool(
+        ActiveProject.objects.filter(slug=slug)
+        or ActiveProject.objects.filter(scheduled_publish_datetime__isnull=False, scheduled_publish_slug=slug)
+        or PublishedProject.objects.filter(slug=slug)
+    )
