@@ -2874,6 +2874,15 @@ def guidelines_course(request):
                   {'guidelines_course_nav': True})
 
 
+def _stats_csv_response(filename, headers, rows):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    writer = csv.writer(response)
+    writer.writerow(headers)
+    writer.writerows(rows)
+    return response
+
+
 @console_permission_required('project.can_view_stats')
 def editorial_stats(request):
     """
@@ -2936,6 +2945,14 @@ def editorial_stats(request):
     for y in stats:
         days = sub_dec_by_year.get(y, [])
         stats[y].append(median(days) if days else None)
+
+    if request.GET.get('export') == 'csv':
+        return _stats_csv_response(
+            'editorial-stats.csv',
+            ['Year', 'Total publications', 'Submission to assignment of editor (median days)',
+             'Submission to final publication (median days)', 'Submission to first decision (median days)'],
+            ([year, *values] for year, values in sorted(stats.items())),
+        )
 
     return render(request, 'console/editorial_stats.html', {
                   'submenu': 'editorial', 'stats': stats})
@@ -3003,6 +3020,16 @@ def credentialing_stats(request):
         except (AttributeError, StatisticsError):
             stats[y]['time_to_decision'] = None
 
+    if request.GET.get('export') == 'csv':
+        fields = ('count', 'processed', 'approved', 'time_to_decision', 'time_to_ref', 'time_to_reply')
+        return _stats_csv_response(
+            'credentialing-stats.csv',
+            ['Year', 'Total applications', 'Total handled (accepted + rejected)', 'Approved (%)',
+             'Decision time (days, median)', 'Time to contact reference (days, median)',
+             'Reference response time (hours, median)'],
+            ([year, *(values.get(field) for field in fields)] for year, values in sorted(stats.items())),
+        )
+
     return render(request, 'console/credentialing_stats.html',
                   {'submenu': 'credential',
                    'stats': stats})
@@ -3010,7 +3037,12 @@ def credentialing_stats(request):
 
 @console_permission_required('project.can_view_stats')
 def submission_stats(request):
+    export_table = request.GET.get('table', 'monthly')
+    if request.GET.get('export') == 'csv' and export_table not in ('monthly', 'yearly'):
+        raise Http404('Unknown statistics table')
+
     stats = OrderedDict()
+    monthly_periods = {}
     todays_date = datetime.today()
     all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all()]
     cur_year = todays_date.year
@@ -3022,6 +3054,7 @@ def submission_stats(request):
             stats[cur_year] = OrderedDict()
         month = datetime(cur_year, cur_month, 1).strftime("%B")
         stats[cur_year][month] = [0, 0, 0, 0, 0]
+        monthly_periods[(cur_year, month)] = f'{cur_year:04d}-{cur_month:02d}'
         cur_month -= 1
         if cur_month == 0:
             cur_month = 12
@@ -3075,6 +3108,20 @@ def submission_stats(request):
                     yearly_stats[pub_yr][3] += 1
             except AttributeError:
                 pass
+
+    if request.GET.get('export') == 'csv':
+        headers = ['Year', 'Created', 'Submitted', 'Resubmitted', 'Published', 'Rejected']
+        if export_table == 'yearly':
+            return _stats_csv_response(
+                f'submission-yearly-stats-{todays_date:%Y-%m-%d}.csv', headers,
+                ([year, *values] for year, values in sorted(yearly_stats.items())),
+            )
+        return _stats_csv_response(
+            f'submission-monthly-stats-{todays_date:%Y-%m-%d}.csv',
+            ['Period (YYYY-MM)', headers[0], 'Month', *headers[1:]],
+            ([monthly_periods[(year, month)], year, month, *values]
+             for year, months in reversed(stats.items()) for month, values in reversed(months.items())),
+        )
 
     return render(request, 'console/submission_stats.html',
                   {'submenu': 'submission', 'stats': stats, 'yearly_stats': yearly_stats})
