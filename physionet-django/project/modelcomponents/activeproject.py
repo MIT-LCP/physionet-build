@@ -199,10 +199,13 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     # Scheduled publication. When scheduled_publish_datetime is set, the
     # project will be published automatically at that time, using the
-    # slug and zip settings chosen by the editor.
+    # slug and zip settings chosen by the editor. db_default lets the
+    # previous version's code create projects while migrations are
+    # applied during an upgrade.
     scheduled_publish_datetime = models.DateTimeField(null=True, blank=True)
-    scheduled_publish_slug = models.CharField(max_length=MAX_PROJECT_SLUG_LENGTH, blank=True, default='')
-    scheduled_publish_make_zip = models.BooleanField(default=True)
+    scheduled_publish_slug = models.CharField(
+        max_length=MAX_PROJECT_SLUG_LENGTH, blank=True, default='', db_default='')
+    scheduled_publish_make_zip = models.BooleanField(default=True, db_default=True)
 
     # Max number of active submitting projects a user is allowed to have
     INDIVIDUAL_FILE_SIZE_LIMIT = 10 * 1024**3
