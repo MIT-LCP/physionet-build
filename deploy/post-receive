@@ -132,25 +132,6 @@ fi
     fi
 )
 
-# Restart the Django Q2 server
-(
-    cd $working_dir/physionet-django
-    if cmp -s OLD-TARGETS LATE-TARGETS; then
-        # assume that if there are no migrations, no need to restart
-        # background tasks (and don't even bother showing a message)
-        :
-    elif [ -n "$no_bgtasks" ]; then
-        echo "- SKIPPING restarting django-q2-tasks due to"
-        echo "  --push-option=no-bgtasks"
-    elif [ -n "$no_install" ]; then
-        echo "- SKIPPING restarting django-q2-tasks due to"
-        echo "  --push-option=no-install"
-    else
-        echo "* Restarting django-q2-tasks..."
-        sudo systemctl try-restart django-q2-tasks.service
-    fi
-)
-
 # Run late migrations (as well as early migrations, if they were
 # skipped before)
 (
