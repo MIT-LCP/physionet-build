@@ -1332,6 +1332,33 @@ class TestState(TestMixin):
         self.run_scheduled_tasks(project, 1)
         self.assertTrue(ActiveProject.objects.filter(slug=project.slug).exists())
 
+    def test_scheduled_publication_during_maintenance(self):
+        """
+        A scheduled publication that falls during system maintenance is
+        deferred, however long the maintenance lasts, and published once
+        it ends.
+        """
+        project, _ = self.schedule_publication(timezone.now() + datetime.timedelta(days=1))
+
+        # Run the task more times than a failing task would be retried
+        with override_settings(SYSTEM_MAINTENANCE_NO_UPLOAD=True):
+            for _ in range(settings.MAX_ATTEMPTS + 1):
+                self.run_scheduled_tasks(project, 1)
+                project.refresh_from_db()
+                self.assertIsNotNone(project.scheduled_publish_datetime)
+                self.assertFalse(PublishedProject.objects.filter(slug='mitbih').exists())
+                # A new task is queued to try again later
+                task = Task.objects.get()
+                self.assertGreater(task.run_at, timezone.now())
+                self.assertEqual(task.attempts, 0)
+
+        self.assertTrue(exists_project_slug('mitbih'))
+
+        # Once maintenance has ended, the project is published
+        self.run_scheduled_tasks(project, 1)
+        self.assertFalse(ActiveProject.objects.filter(id=project.id).exists())
+        self.assertTrue(PublishedProject.objects.filter(slug='mitbih').exists())
+
     def test_scheduled_publication_on_hold(self):
         """
         A project placed on hold is not published at its scheduled time,

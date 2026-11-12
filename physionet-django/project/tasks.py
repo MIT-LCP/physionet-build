@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import requests
@@ -174,6 +175,11 @@ def refresh_citing_works(core_project_id):
             fetch_datetime=timezone.now())
 
 
+# How long to wait before trying a scheduled publication again, if it
+# falls during system maintenance
+SCHEDULED_PUBLISH_MAINTENANCE_DELAY = datetime.timedelta(minutes=15)
+
+
 @background()
 def publish_scheduled_project(project_id):
     """
@@ -182,6 +188,9 @@ def publish_scheduled_project(project_id):
     This does nothing if the project no longer exists, if its
     publication has been cancelled, or if it has been rescheduled for a
     later time (a separate task is created for the new time.)
+
+    During system maintenance, the publication is deferred and tried
+    again after SCHEDULED_PUBLISH_MAINTENANCE_DELAY.
 
     If the project can no longer be published (for example, because it
     has been changed since publication was scheduled), the schedule is
@@ -200,8 +209,16 @@ def publish_scheduled_project(project_id):
         return
 
     if settings.SYSTEM_MAINTENANCE_NO_UPLOAD:
-        # Raise so that the task is retried after maintenance
-        raise Exception('Scheduled publication deferred: system maintenance')
+        # Check again later. A new task is queued (rather than raising
+        # to retry this one) so that a long maintenance period cannot
+        # use up the task's attempts and leave the schedule orphaned.
+        LOGGER.info('Scheduled publication of %s deferred: system maintenance', project)
+        publish_scheduled_project(
+            project_id,
+            schedule=timezone.now() + SCHEDULED_PUBLISH_MAINTENANCE_DELAY,
+            verbose_name='Scheduled publication: {}'.format(project),
+        )
+        return
 
     # Claim the schedule, so that duplicate tasks do not publish twice
     claimed = models.ActiveProject.objects.filter(
