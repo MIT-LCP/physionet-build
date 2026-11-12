@@ -60,9 +60,9 @@ Docker compose uses volumes to persist the database contents and data directorie
 
 ## Background tasks
 
-Background tasks are managed by [Django Q2](https://django-q2.readthedocs.io/en/master/), "a native Django task queue, scheduler and worker application using Python multiprocessing".
+Background tasks are managed by [django-background-tasks](https://github.com/iamjonmiller/django-background-tasks).
 
-If you would like to run background tasks on your development server, you will need to start the task manager with `python manage.py qcluster`
+If you would like to run background tasks on your development server, you will need to start the task runner with `python manage.py process_tasks`
 
 ## Using a debugger with Docker
 

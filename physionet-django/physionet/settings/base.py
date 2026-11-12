@@ -115,7 +115,6 @@ INSTALLED_APPS = [
 
     'tinymce',
     # 'django_cron',
-    'django_q',
     'background_task',
     'rest_framework',
     'oauth2_provider',
@@ -281,23 +280,6 @@ TIME_ZONE = 'America/New_York'
 USE_I18N = True
 
 USE_TZ = True
-
-# Configuration for Django Q2 (django_q2)
-# Django Q2 is a task queue, scheduler, worker application
-# Django ORM is the simplest backend for the message broker,
-# but it "is not best for a high-traffic setup".
-# https://django-q2.readthedocs.io/en/master/configure.html
-Q_CLUSTER = {
-    'name': 'Django_ORM',
-    'workers': 4,
-    'timeout': 120,
-    'retry': 600,
-    'max_attempts': 5,
-    'queue_limit': 100,
-    'bulk': 10,
-    'orm': 'default',
-    'label': 'Django Q2',
-}
 
 # Background tasks
 
