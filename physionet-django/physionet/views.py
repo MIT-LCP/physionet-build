@@ -8,6 +8,7 @@ import notification.utility as notification
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.core.exceptions import RequestDataTooBig, TooManyFieldsSent, TooManyFilesSent
 from django.db.models import Q
 from django.db.models.functions import Lower
 from django.http import Http404, HttpResponse
@@ -83,6 +84,16 @@ def citi_course(request):
     Instructions for completing the CITI training course
     """
     return render(request, 'about/citi_course.html')
+
+
+def error_400(request, exception=None):
+    """
+    Bad request page. Requests that exceed Django's upload limits (e.g. too
+    many fields because a very large number of files were selected) get a
+    message explaining what went wrong rather than a generic error.
+    """
+    too_large = isinstance(exception, (RequestDataTooBig, TooManyFieldsSent, TooManyFilesSent))
+    return render(request, '400.html', {'ERROR_EMAIL': settings.ERROR_EMAIL, 'too_large': too_large}, status=400)
 
 
 def error_404(request, exception=None):

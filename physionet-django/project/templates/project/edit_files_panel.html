@@ -10,9 +10,9 @@
 
 <div id="forms-and-panel">
   {% if storage_type  != "GCP" %}
-  <form method="post" enctype="multipart/form-data" onsubmit="check_upload_size_limit('submit')">
+  <form id="files-form" method="post" enctype="multipart/form-data" onsubmit="check_upload_size_limit('submit')">
   {% else %}
-    <form method="post" enctype="multipart/form-data">
+    <form id="files-form" method="post" enctype="multipart/form-data">
   {% endif %}
     {% csrf_token %}
     {% include "project/project_files_form.html" %}
@@ -148,10 +148,16 @@
     return false;
   }
 
+  // Returns the names of the currently selected items
+  function selectedItems(){
+    const boxes = document.querySelectorAll('#files-panel input[name="items"]');
+    return Array.from(boxes).filter(box => box.checked).map(box => box.value);
+  }
+
   // Enables and disables buttons based on selected checkboxes
   function countSelected(){
     const boxes = document.querySelectorAll('#files-panel input[name="items"]');
-    let n_selected = Array.from(boxes).filter(box => box.checked).length;
+    let n_selected = selectedItems().length;
     const selectAll = document.getElementById('select-all');
     if (selectAll) {
       selectAll.checked = boxes.length > 0 && n_selected === boxes.length;
@@ -168,6 +174,14 @@
   }
   // Initialize selection state after loading or navigating to a folder.
   countSelected();
+
+  // Send the selected items as a single JSON-encoded field rather than one
+  // field per checkbox, so that selecting many items does not exceed the
+  // server's limit on the number of fields in a request.
+  document.getElementById('files-form').addEventListener('formdata', function(event){
+    event.formData.delete('items');
+    event.formData.set('items_json', JSON.stringify(selectedItems()));
+  });
 
   // Direct each input's 'enter' submit function to the right button.
   // Needed due to form sharing of all item manipulation inputs.
@@ -204,7 +218,7 @@
     // remove it from all others.
     let input_ids = ["id_folder_name", "id_new_name", "id_destination_folder"]
     {% if storage_type != "GCP" %}
-      input_ids.append("id_file_field")
+      input_ids.push("id_file_field")
     {% endif %}
 
     input_ids.map(element => (
@@ -225,18 +239,18 @@
 
   function prepareRename(){
     setInputRequirements("id_new_name")
-    var itemName = document.querySelector('input[type="checkbox"]:checked').value
+    var itemName = selectedItems()[0]
     document.getElementById("rename-item-message").innerHTML = "Selected item: <strong>"+ itemName + "</strong>"
   }
 
   function prepareMove(){
     setInputRequirements("id_destination_folder")
-    document.getElementById("move-items-message").innerHTML = "Move "+ n_selected + " selected item(s)."
+    document.getElementById("move-items-message").innerHTML = "Move "+ selectedItems().length + " selected item(s)."
   }
 
   function prepareDelete(){
     setInputRequirements("")
-    document.getElementById("delete-items-message").innerHTML = "Are you sure you wish to delete the "+ n_selected + " selected item(s)?"
+    document.getElementById("delete-items-message").innerHTML = "Are you sure you wish to delete the "+ selectedItems().length + " selected item(s)?"
   }
 
   function check_upload_size_limit(stage){

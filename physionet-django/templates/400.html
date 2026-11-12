@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}
+400: Bad Request
+{% endblock %}
+
+{% block content %}
+<div class="container" align='center'>
+  {% if too_large %}
+    <h1>Too Many Items<br />(400)</h1>
+    <br /><br />
+    <p>Your request contained too many items to be processed at once.</p>
+    <p>If you were selecting files to move or delete, please select fewer items and try again.</p>
+    <p><a href="{{ request.path }}">Return to the previous page</a></p>
+  {% else %}
+    <h1>Bad Request<br />(400)</h1>
+    <br /><br />
+    <p>The request could not be processed.</p>
+    <p>If you think this is an error, please email us at: <a href="mailto:{{ ERROR_EMAIL }}">{{ ERROR_EMAIL }}</a></p>
+  {% endif %}
+</div>
+{% endblock %}
