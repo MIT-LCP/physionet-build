@@ -30,19 +30,20 @@ def median_days(values):
     return round(median(values), 2) if values else None
 
 
-def trend_report(identifier, title, description, headers, rows, series, start_date=None, end_date=None):
+def trend_report(identifier, title, description, headers, rows, series, start_date=None, end_date=None, integer=False):
     partial = []
     for row in rows:
         year, month = map(int, row[0].split('-'))
         first = datetime(year, month, 1).date()
         last = first.replace(day=monthrange(year, month)[1])
-        partial.append(bool(start_date and end_date and (start_date > first or end_date < last)))
+        partial.append(bool(start_date and end_date and (
+            start_date > first or end_date < last or first <= timezone.localdate() <= last)))
     if start_date and end_date:
         headers = [*headers, 'Period coverage']
         rows = [[*row, 'Partial month' if limited else 'Full month'] for row, limited in zip(rows, partial)]
     return {'id': identifier, 'title': title, 'description': description,
             'headers': headers, 'rows': rows,
-            'chart': {'labels': [row[0] for row in rows], 'partial': partial, 'series': [
+            'chart': {'labels': [row[0] for row in rows], 'partial': partial, 'integer': integer, 'series': [
                 {'name': name, 'values': [row[index] for row in rows]}
                 for name, index in series
             ]}}
@@ -78,7 +79,7 @@ def access_trend(start_date, end_date):
         'Approvals include later revocations and expiry. These are different cohorts, not an approval rate. '
         'Boundary months cover only selected dates; zero means no recorded events.',
         ['Period (YYYY-MM)', 'Requests submitted', 'Approvals', 'Rejections'], rows,
-        [('Requests submitted', 1), ('Approvals', 2), ('Rejections', 3)], start_date, end_date,
+        [('Requests submitted', 1), ('Approvals', 2), ('Rejections', 3)], start_date, end_date, integer=True,
     )
 
 
@@ -135,7 +136,7 @@ def credential_trend(start_date, end_date):
         'description': 'Counts of the valid decisions included in the time analysis above, grouped by decision month. '
                        'Accepted includes later-revoked credentials. Boundary months may be partial. '
                        'The monthly table and CSV below contain the values for both charts.',
-        'chart': {'type': 'stacked-bar', 'labels': [row[0] for row in rows],
+        'chart': {'type': 'stacked-bar', 'integer': True, 'labels': [row[0] for row in rows],
                   'partial': report['chart']['partial'], 'series': [
             {'name': 'Accepted decisions', 'values': [row[2] for row in rows]},
             {'name': 'Rejected decisions', 'values': [row[4] for row in rows]},
@@ -415,5 +416,69 @@ def credential_flow_report(start_date, end_date):
         'an approval rate. Withdrawals are not decisions. Recorded decisions count even if their duration '
         'is invalid or unavailable; the decision-time chart excludes invalid durations.',
         ['Period (YYYY-MM)', 'Applications received', 'Accepted decisions', 'Rejected decisions', 'Decisions recorded'],
-        rows, [('Applications received', 1), ('Decisions recorded', 4)], start_date, end_date,
+        rows, [('Applications received', 1), ('Decisions recorded', 4)], start_date, end_date, integer=True,
     )
+
+
+def credential_reapplication_reports(start_date, end_date):
+    from collections import Counter
+    from itertools import groupby
+    from user.models import CredentialApplication
+    start, end = date_bounds(start_date, end_date)
+    cohort = CredentialApplication.objects.filter(
+        application_datetime__gte=start, application_datetime__lt=end,
+    ).order_by().values('user_id')
+    history = CredentialApplication.objects.filter(user_id__in=cohort).order_by(
+        'user_id', 'application_datetime', 'pk').values_list('user_id', 'application_datetime', 'status',
+                                                           'decision_datetime')
+    applications = Counter()
+    attempts = Counter()
+    latest = Counter()
+    total = repeats = 0
+    for _, entries in groupby(history.iterator(chunk_size=2000), key=lambda row: row[0]):
+        entries = list(entries)
+        total += 1
+        repeats += len(entries) >= 2
+        applications[min(4, len(entries))] += 1
+        latest[entries[-1][2]] += 1
+        approved = [row for row in entries if row[2] in (2, 4)]
+        valid = [row[3] for row in approved if row[3] is not None and row[3] >= row[1]]
+        if valid:
+            first_approval = min(valid)
+            attempts[min(4, sum(row[1] <= first_approval for row in entries))] += 1
+        elif approved:
+            attempts['missing'] += 1
+        else:
+            attempts['none'] += 1
+    def rows(counts, labels):
+        return [[label, counts[key], round(100 * counts[key] / total, 2) if total else None]
+                for key, label in labels]
+    labels = [(1, '1 application'), (2, '2 applications'), (3, '3 applications'), (4, '4+ applications')]
+    common = ('People with at least one application submitted during the selected dates; calculations use their '
+              'complete recorded history, including applications outside the selected dates. Percentages use all '
+              f'{total} people in this cohort. Current statuses are used, not historical status snapshots. ')
+    headers = ['Metric', 'Users', 'Percentage of cohort (%)']
+    share = round(100 * repeats / total, 2) if total else 0
+    return [
+        {'id': 'credentialing-reapplication-distribution', 'title': 'Applications per person',
+         'description': common + f'{repeats} people ({share}%) have two or more recorded applications.',
+         'headers': headers, 'rows': rows(applications, labels)},
+        {'id': 'credentialing-first-approval', 'title': 'Applications submitted by first recorded approval',
+         'description': common + 'Counts applications submitted on or before the earliest valid approval date. '
+                         'Later-revoked credentials count as approvals. Missing or negative approval dates are '
+                         'reported separately; this does not measure current eligibility.',
+         'headers': headers, 'rows': rows(attempts, [*labels,
+             ('none', 'No accepted or revoked application in recorded history'),
+             ('missing', 'Approved record without a valid decision date')])},
+        {'id': 'credentialing-latest-application', 'title': "Latest application's current status",
+         'description': common + 'One latest application per person, ordered by submission time and record ID. '
+                         'This describes that application, not the account credentialing status.',
+         'headers': headers, 'rows': rows(latest, [(status.value, status.label)
+                                                  for status in CredentialApplication.Status])},
+    ]
+
+
+def credential_reapplication_csv(reports):
+    return report_csv({'id': 'credentialing-reapplication-summary',
+                       'headers': ['Section', 'Metric', 'Users', 'Percentage of cohort (%)'],
+                       'rows': [[report['title'], *row] for report in reports for row in report['rows']]})

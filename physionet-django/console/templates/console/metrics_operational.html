@@ -1,34 +1,10 @@
 {% load static %}
-<div class="card mb-3"><div class="card-body">
-  <h2 class="h5">Operational trends</h2>
-  <form method="get">
-    {{ report_form.non_field_errors }}
-    <div class="form-row align-items-end">
-      {% for field in report_form %}<div class="form-group col-sm-4">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
-      <div class="form-group col-sm-4"><button class="btn btn-primary" type="submit">Apply dates</button></div>
-    </div>
-  </form>
-  <p>Dates filter the monthly report{% if repeated %} and repeated applications{% endif %}. Current queues use today's state.</p>
-</div></div>
+{% include 'console/metrics_filters.html' %}
 {% if report %}{% include 'console/metrics_trend.html' %}{% endif %}
 {% if flow_report %}{% include 'console/metrics_trend.html' with report=flow_report trend_export_query=flow_query %}{% endif %}
 {% if stage_report %}{% include 'console/metrics_table.html' with table=stage_report table_query=stage_query %}{% endif %}
 {% if queue_summary %}{% include 'console/metrics_table.html' with table=queue_summary table_query=queue_summary_query %}{% endif %}
 {% if queue_title %}{% include 'console/metrics_queue.html' %}{% endif %}
-{% if repeated %}
-<div class="card mb-3" id="repeated-applications"><div class="card-header">Repeated credential applications</div><div class="card-body">
-  <p>Users with two or more applications submitted during the selected dates, showing their current statuses.
-    Repetition does not establish a system problem. {{ repeated_total }} users, 5 per page;
-    the CSV includes all matching users.</p>
-  <a href="?{{ repeated_query }}" class="btn btn-md btn-success mb-3">Download repeated applications CSV</a>
-  <div class="table-responsive"><table class="table table-bordered">
-    <thead><tr>{% for header in repeated.headers %}<th>{{ header }}</th>{% endfor %}</tr></thead>
-    <tbody>{% for row in repeated.rows %}<tr>{% for cell in row %}<td>{% if forloop.first and perms.user.view_user %}<a href="{% url 'user_management' cell %}">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>
-    {% empty %}<tr><td colspan="6">No repeated applications in this period.</td></tr>{% endfor %}</tbody>
-  </table></div>
-  {% if repeated_page.has_previous %}<a href="?{{ repeated_page_query }}&amp;repeated_page={{ repeated_page.previous_page_number }}#repeated-applications">Previous</a>{% endif %}
-  <span>Page {{ repeated_page.number }} of {{ repeated_page.paginator.num_pages }}</span>
-  {% if repeated_page.has_next %}<a href="?{{ repeated_page_query }}&amp;repeated_page={{ repeated_page.next_page_number }}#repeated-applications">Next</a>{% endif %}
-</div></div>
-{% endif %}
+{% include 'console/metrics_reapplications.html' %}
+
 <script src="{% static 'console/js/metrics-trend.js' %}" defer></script>

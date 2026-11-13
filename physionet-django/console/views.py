@@ -102,6 +102,7 @@ from console.reporting import (
     credential_trend, pending_credentials, credential_queue_rows, credential_annual_stats, credential_annual_report,
     credential_queue_summary, filter_credential_queue, CREDENTIAL_STAGES, CREDENTIAL_AGES, credential_stage_report, credential_flow_report,
     repeated_credentials, repeated_credential_report, editorial_trend, pending_projects, project_queue_rows,
+    credential_reapplication_reports, credential_reapplication_csv,
 )
 from console.forms import ProjectFilterForm, UserFilterForm
 from console.usage import UsageDateForm, usage_csv, usage_metrics, usage_sections
@@ -2986,6 +2987,8 @@ def _operational_metrics(request, kind):
     row_builder = project_queue_rows if is_editorial else credential_queue_rows
     queue_filters = {}
     if not is_editorial:
+        if request.GET.get('export') == 'reapplication-summary':
+            return credential_reapplication_csv(credential_reapplication_reports(start, end)), context
         if request.GET.get('export') == 'flow':
             return report_csv(credential_flow_report(start, end)), context
         if request.GET.get('export') == 'stages':
@@ -2999,7 +3002,7 @@ def _operational_metrics(request, kind):
                         'queue_summary_query': 'export=queue-summary',
                         'queue_stages': CREDENTIAL_STAGES, 'queue_ages': CREDENTIAL_AGES,
                         'queue_stage': stage, 'queue_age': age, 'queue_filters': True,
-                        'queue_item_label': 'Application'})
+                        'queue_item_label': 'Application', 'queue_anchor': 'credential-queue'})
     if request.GET.get('export') == 'monthly':
         return report_csv(report), context
     if request.GET.get('export') == 'pending':
@@ -3029,7 +3032,9 @@ def _operational_metrics(request, kind):
     })
     if is_editorial:
         return None, context
-    context.update({'flow_report': credential_flow_report(start, end),
+    context.update({'reapplication_reports': credential_reapplication_reports(start, end),
+                    'reapplication_summary_query': urlencode({**params, 'export': 'reapplication-summary'}),
+                    'flow_report': credential_flow_report(start, end),
                     'flow_query': urlencode({**params, 'export': 'flow'}),
                     'stage_report': credential_stage_report(start, end),
                     'stage_query': urlencode({**params, 'export': 'stages'})})
@@ -3051,12 +3056,12 @@ def credentialing_stats(request):
     """
     Credentialing metrics.
     """
+    if request.GET.get('export') == 'annual':
+        return report_csv(credential_annual_report(credential_annual_stats()))
     response, operational = _operational_metrics(request, 'credentialing')
     if response is not None:
         return response
     stats = credential_annual_stats()
-    if request.GET.get('export') == 'annual':
-        return report_csv(credential_annual_report(stats))
 
     if request.GET.get('export') == 'csv':
         response = report_csv(credential_annual_report(stats))

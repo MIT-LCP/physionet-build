@@ -361,7 +361,7 @@ class TestUsageMetrics(TestCase):
         report = credential_trend(date(2020, 6, 1), date(2020, 7, 31))
         self.assertEqual(report['rows'], [['2020-06', 2.25, 2, 4.0, 1, 'Full month'], ['2020-07', None, 0, None, 0, 'Full month']])
         self.assertEqual(report['volume']['chart'], {
-            'type': 'stacked-bar', 'labels': ['2020-06', '2020-07'], 'partial': [False, False],
+            'type': 'stacked-bar', 'integer': True, 'labels': ['2020-06', '2020-07'], 'partial': [False, False],
             'series': [{'name': 'Accepted decisions', 'values': [2, 0]},
                        {'name': 'Rejected decisions', 'values': [1, 0]}],
         })
@@ -396,7 +396,8 @@ class TestUsageMetrics(TestCase):
 
     def test_operational_exports_require_permission_and_valid_historical_dates(self):
         for view in ('credentialing_stats', 'editorial_stats'):
-            for export in ('monthly', 'pending', 'repeated'):
+            for export in ('monthly', 'pending', 'repeated', 'annual', 'stages', 'flow',
+                           'queue-summary', 'reapplication-summary'):
                 self.assertEqual(self.client.get(reverse(view), {'export': export}).status_code, 403)
             self.client.force_login(self.admin)
             response = self.client.get(reverse(view), {'start_date': 'bad', 'export': 'monthly'})
@@ -596,3 +597,32 @@ class TestUsageMetrics(TestCase):
         response = self.client.get(reverse('credentialing_stats'), {
             'start_date': '2020-06-01', 'end_date': '2020-07-31', 'export': 'flow'})
         self.assertEqual(list(csv.reader(StringIO(response.content.decode())))[0], report['headers'])
+
+    def test_reapplication_summary_uses_complete_history_and_first_approval(self):
+        from console.reporting import credential_reapplication_reports
+        CredentialApplication.objects.all().delete()
+        before = timezone.make_aware(datetime(2019, 12, 1))
+        self.credential(1, submitted=before, decided=before + timezone.timedelta(days=1))
+        self.credential(2, submitted=self.when, decided=self.when + timezone.timedelta(days=1))
+        self.credential(1, submitted=self.when + timezone.timedelta(days=2),
+                        decided=self.when + timezone.timedelta(days=3))
+        other = CredentialApplication.objects.create(user=self.other, slug='summary-other', researcher_category=0,
+                                                     status=0)
+        CredentialApplication.objects.filter(pk=other.pk).update(application_datetime=self.when)
+        reports = credential_reapplication_reports(date(2020, 1, 1), date(2020, 12, 31))
+        self.assertEqual(reports[0]['rows'], [
+            ['1 application', 1, 50.0], ['2 applications', 0, 0.0],
+            ['3 applications', 1, 50.0], ['4+ applications', 0, 0.0],
+        ])
+        self.assertEqual(reports[1]['rows'][1], ['2 applications', 1, 50.0])
+        self.assertEqual(reports[1]['rows'][4][1], 1)
+        latest = {row[0]: row[1] for row in reports[2]['rows']}
+        self.assertEqual(latest['Rejected'], 1)
+        self.assertEqual(latest['Pending'], 1)
+        self.client.force_login(self.admin)
+        params = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
+        page = self.client.get(reverse('credentialing_stats'), params)
+        self.assertContains(page, 'id="credential-queue"')
+        self.assertContains(page, 'id="repeated-applications"', count=1)
+        export = self.client.get(reverse('credentialing_stats'), {**params, 'export': 'reapplication-summary'})
+        self.assertEqual(len(list(csv.DictReader(StringIO(export.content.decode())))), 15)

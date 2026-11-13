@@ -1,0 +1,11 @@
+<div class="card mb-3"><div class="card-body">
+  <h2 class="h5">Operational trends</h2>
+  <form method="get" id="operational-date-form">
+    {{ report_form.non_field_errors }}
+    <div class="form-row align-items-end">
+      {% for field in report_form %}<div class="form-group col-sm-4">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
+      <div class="form-group col-sm-4"><button class="btn btn-primary" type="submit">Apply dates</button></div>
+    </div>
+  </form>
+  <p>Dates filter the monthly report{% if repeated %} and repeated applications{% endif %}. Current queues use today's state.</p>
+</div></div>

@@ -25,7 +25,7 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
   const magnitude = Math.pow(10, Math.floor(Math.log10(targetStep)));
   const fraction = targetStep / magnitude;
   const factor = fraction < 1.5 ? 1 : fraction < 3.5 ? 2 : fraction < 7.5 ? 5 : 10;
-  const step = stacked ? Math.max(1, factor * magnitude) : factor * magnitude;
+  const step = (stacked || data.integer) ? Math.max(1, factor * magnitude) : factor * magnitude;
   const maximum = Math.ceil(rawMaximum / step) * step;
   const partial = data.partial || [];
   function coverage(i) { return partial[i] ? ' (partial month)' : ''; }

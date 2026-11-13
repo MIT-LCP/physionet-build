@@ -3,7 +3,7 @@
   <div class="card-body">
     <p>{{ queue_description }} Snapshot: {{ queue_now|date:"Y-m-d H:i T" }}. Total: {{ queue_total }}.</p>
     {% if queue_filters %}
-    <form method="get" class="form-inline mb-3">
+    <form method="get" action="{% if queue_anchor %}#{{ queue_anchor }}{% endif %}" class="form-inline mb-3">
       {% for name, value in queue_history_params.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
       <label for="queue-stage" class="mr-2">Stage</label>
       <select name="queue_stage" id="queue-stage" class="form-control mr-3">
@@ -26,7 +26,7 @@
         <td>{{ row.status }}</td><td>{{ row.since }}</td><td>{{ row.days }}</td>
       </tr>{% empty %}<tr><td colspan="4">No pending records.</td></tr>{% endfor %}</tbody>
     </table></div>
-    {% if queue_page.has_previous %}<a href="?{{ queue_query }}&amp;page={{ queue_page.previous_page_number }}">Previous</a>{% endif %}
-    {% if queue_page.has_next %}<a href="?{{ queue_query }}&amp;page={{ queue_page.next_page_number }}">Next</a>{% endif %}
+    {% if queue_page.has_previous %}<a href="?{{ queue_query }}&amp;page={{ queue_page.previous_page_number }}{% if queue_anchor %}#{{ queue_anchor }}{% endif %}">Previous</a>{% endif %}
+    {% if queue_page.has_next %}<a href="?{{ queue_query }}&amp;page={{ queue_page.next_page_number }}{% if queue_anchor %}#{{ queue_anchor }}{% endif %}">Next</a>{% endif %}
   </div>
 </div>
