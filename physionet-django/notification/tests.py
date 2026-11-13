@@ -1,16 +1,27 @@
 import doctest
+import io
 import json
+import os
+import shutil
 
+from django.contrib.auth.models import Permission
+from django.core.management import call_command
 from django.template import loader
-from django.test import TestCase, Client
+from django.test import TestCase, Client, override_settings
 from django.conf import settings
 from django.urls import reverse
+from django.utils import timezone
+from PIL import Image
+
+from datetime import timedelta
 
 from notification import utility
-from notification.models import Notification, NotificationType
+from notification.models import News, NewsImage, Notification, NotificationType
 from notification.utility import create_notification
 from project.models import DataAccessRequest, PublishedProject
 from user.models import User
+
+TEST_MEDIA_ROOT = os.path.join(settings.BASE_DIR, 'test_media_news_upload')
 
 # Automatically run documentation tests in these modules.
 DOCTEST_MODULES = [
@@ -226,3 +237,263 @@ class TestNotificationViews(TestCase):
             reverse('mark_notification_read', args=[notif.id])
         )
         self.assertEqual(response.status_code, 405)
+
+
+def _make_test_image(fmt='PNG', size=(10, 10)):
+    """Create an in-memory image file for testing."""
+    buf = io.BytesIO()
+    img = Image.new('RGB', size, color='red')
+    img.save(buf, format=fmt)
+    buf.seek(0)
+    buf.name = f'test.{fmt.lower()}'
+    return buf
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+class TestNewsImageUpload(TestCase):
+    fixtures = ['demo-user.json']
+
+    def setUp(self):
+        self.admin_user = User.objects.get(username='admin')
+        perm = Permission.objects.get(codename='change_news')
+        self.admin_user.user_permissions.add(perm)
+        self.regular_user = User.objects.get(username='rgmark')
+        self.client = Client()
+        self.upload_url = reverse('news_image_upload')
+
+    def tearDown(self):
+        if os.path.isdir(TEST_MEDIA_ROOT):
+            shutil.rmtree(TEST_MEDIA_ROOT)
+
+    def test_anonymous_user_forbidden(self):
+        img = _make_test_image()
+        response = self.client.post(self.upload_url, {'file': img})
+        self.assertEqual(response.status_code, 403)
+
+    def test_regular_user_forbidden(self):
+        self.client.force_login(self.regular_user)
+        img = _make_test_image()
+        response = self.client.post(self.upload_url, {'file': img})
+        self.assertEqual(response.status_code, 403)
+
+    def test_get_not_allowed(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.get(self.upload_url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_no_file_returns_400(self):
+        self.client.force_login(self.admin_user)
+        response = self.client.post(self.upload_url)
+        self.assertEqual(response.status_code, 400)
+
+    def test_invalid_file_returns_400(self):
+        self.client.force_login(self.admin_user)
+        fake = io.BytesIO(b'not an image')
+        fake.name = 'test.png'
+        response = self.client.post(self.upload_url, {'file': fake})
+        self.assertEqual(response.status_code, 400)
+
+    def test_fake_content_type_rejected(self):
+        self.client.force_login(self.admin_user)
+        fake = io.BytesIO(b'GIF89a' + b'\x00' * 100)
+        fake.name = 'test.gif'
+        response = self.client.post(self.upload_url, {'file': fake})
+        self.assertEqual(response.status_code, 400)
+
+    def test_oversized_file_returns_400(self):
+        self.client.force_login(self.admin_user)
+        # Use an allowed format (PNG) so the size check is what rejects it,
+        # not the format check.
+        buf = io.BytesIO()
+        img = Image.new('RGB', (4000, 4000), color='red')
+        img.save(buf, format='PNG', compress_level=0)
+        buf.seek(0)
+        buf.name = 'big.png'
+        self.assertGreater(buf.getbuffer().nbytes, 5 * 1024 * 1024)
+        response = self.client.post(self.upload_url, {'file': buf})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('too large', response.json()['error'])
+
+    def test_unsupported_format_returns_400(self):
+        self.client.force_login(self.admin_user)
+        buf = io.BytesIO()
+        img = Image.new('RGB', (10, 10), color='red')
+        img.save(buf, format='TIFF')
+        buf.seek(0)
+        buf.name = 'test.tiff'
+        response = self.client.post(self.upload_url, {'file': buf})
+        self.assertEqual(response.status_code, 400)
+
+    def test_upload_png(self):
+        self.client.force_login(self.admin_user)
+        img = _make_test_image('PNG')
+        response = self.client.post(self.upload_url, {'file': img})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('location', data)
+        self.assertTrue(data['location'].startswith('/news/images/'))
+        self.assertTrue(data['location'].endswith('.png'))
+
+    def test_upload_jpeg(self):
+        self.client.force_login(self.admin_user)
+        img = _make_test_image('JPEG')
+        response = self.client.post(self.upload_url, {'file': img})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['location'].endswith('.jpg'))
+
+    def test_upload_gif(self):
+        self.client.force_login(self.admin_user)
+        img = _make_test_image('GIF')
+        response = self.client.post(self.upload_url, {'file': img})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['location'].endswith('.gif'))
+
+    def test_upload_webp(self):
+        self.client.force_login(self.admin_user)
+        img = _make_test_image('WEBP')
+        response = self.client.post(self.upload_url, {'file': img})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['location'].endswith('.webp'))
+
+    def _open_saved_image(self, response):
+        filename = response.json()['location'].split('/')[-1]
+        return Image.open(os.path.join(TEST_MEDIA_ROOT, 'news', 'images', filename))
+
+    def test_upload_applies_exif_orientation(self):
+        """Portrait phone photos stay upright once EXIF is stripped."""
+        self.client.force_login(self.admin_user)
+        exif = Image.Exif()
+        exif[0x0112] = 6  # Orientation: rotate 90 degrees clockwise
+        buf = io.BytesIO()
+        Image.new('RGB', (40, 20), color='red').save(buf, format='JPEG', exif=exif)
+        buf.seek(0)
+        buf.name = 'photo.jpg'
+        response = self.client.post(self.upload_url, {'file': buf})
+        self.assertEqual(response.status_code, 200)
+        with self._open_saved_image(response) as saved:
+            self.assertEqual(saved.size, (20, 40))
+            self.assertNotIn(0x0112, saved.getexif())
+
+    def test_upload_multi_picture_jpeg(self):
+        """Multi-picture JPEGs from phone cameras are saved as plain JPEG."""
+        self.client.force_login(self.admin_user)
+        buf = io.BytesIO()
+        Image.new('RGB', (40, 20), color='red').save(
+            buf, format='MPO', save_all=True,
+            append_images=[Image.new('RGB', (10, 5), color='blue')],
+        )
+        buf.seek(0)
+        buf.name = 'photo.jpg'
+        response = self.client.post(self.upload_url, {'file': buf})
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['location'].endswith('.jpg'))
+        with self._open_saved_image(response) as saved:
+            self.assertEqual(saved.format, 'JPEG')
+            self.assertEqual(saved.size, (40, 20))
+
+    def test_upload_animated_webp(self):
+        self.client.force_login(self.admin_user)
+        frames = [Image.new('RGB', (10, 10), color=c) for c in ('red', 'green', 'blue')]
+        buf = io.BytesIO()
+        frames[0].save(buf, format='WEBP', save_all=True, append_images=frames[1:])
+        buf.seek(0)
+        buf.name = 'anim.webp'
+        response = self.client.post(self.upload_url, {'file': buf})
+        self.assertEqual(response.status_code, 200)
+        with self._open_saved_image(response) as saved:
+            self.assertEqual(saved.n_frames, 3)
+
+    def test_file_written_to_disk(self):
+        self.client.force_login(self.admin_user)
+        img = _make_test_image('PNG')
+        response = self.client.post(self.upload_url, {'file': img})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        filename = data['location'].split('/')[-1]
+        filepath = os.path.join(TEST_MEDIA_ROOT, 'news', 'images', filename)
+        self.assertTrue(os.path.isfile(filepath))
+
+    def test_newsimage_row_created(self):
+        self.client.force_login(self.admin_user)
+        img = _make_test_image('PNG')
+        response = self.client.post(self.upload_url, {'file': img})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        filename = data['location'].split('/')[-1]
+        self.assertTrue(NewsImage.objects.filter(filename=filename).exists())
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+class TestNewsImageServing(TestCase):
+    fixtures = ['demo-user.json']
+
+    def setUp(self):
+        self.filename = 'testimage.png'
+        image_dir = os.path.join(TEST_MEDIA_ROOT, 'news', 'images')
+        os.makedirs(image_dir, exist_ok=True)
+        img = Image.new('RGB', (10, 10), color='blue')
+        img.save(os.path.join(image_dir, self.filename))
+
+    def tearDown(self):
+        if os.path.isdir(TEST_MEDIA_ROOT):
+            shutil.rmtree(TEST_MEDIA_ROOT)
+
+    def test_serve_existing_image(self):
+        url = reverse('news_image', kwargs={'filename': self.filename})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_404_for_missing_image(self):
+        url = reverse('news_image', kwargs={'filename': 'nonexistent.png'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+
+@override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+class TestCleanupNewsImages(TestCase):
+
+    def setUp(self):
+        self.image_dir = os.path.join(TEST_MEDIA_ROOT, 'news', 'images')
+        os.makedirs(self.image_dir, exist_ok=True)
+
+    def tearDown(self):
+        if os.path.isdir(TEST_MEDIA_ROOT):
+            shutil.rmtree(TEST_MEDIA_ROOT)
+
+    def _create_image_file(self, filename):
+        img = Image.new('RGB', (10, 10), color='red')
+        img.save(os.path.join(self.image_dir, filename))
+
+    def test_unreferenced_old_image_deleted(self):
+        self._create_image_file('orphan.png')
+        ni = NewsImage.objects.create(filename='orphan.png')
+        NewsImage.objects.filter(pk=ni.pk).update(
+            uploaded_at=timezone.now() - timedelta(hours=25)
+        )
+        call_command('cleanup_news_images', '--max-age-hours=24')
+        self.assertFalse(NewsImage.objects.filter(filename='orphan.png').exists())
+        self.assertFalse(os.path.isfile(os.path.join(self.image_dir, 'orphan.png')))
+
+    def test_referenced_old_image_preserved(self):
+        self._create_image_file('used.png')
+        ni = NewsImage.objects.create(filename='used.png')
+        NewsImage.objects.filter(pk=ni.pk).update(
+            uploaded_at=timezone.now() - timedelta(hours=25)
+        )
+        News.objects.create(
+            title='Test', slug='test-ref',
+            content='<p><img src="/news/images/used.png"></p>',
+        )
+        call_command('cleanup_news_images', '--max-age-hours=24')
+        self.assertTrue(NewsImage.objects.filter(filename='used.png').exists())
+        self.assertTrue(os.path.isfile(os.path.join(self.image_dir, 'used.png')))
+
+    def test_recent_image_preserved(self):
+        self._create_image_file('recent.png')
+        NewsImage.objects.create(filename='recent.png')
+        call_command('cleanup_news_images', '--max-age-hours=24')
+        self.assertTrue(NewsImage.objects.filter(filename='recent.png').exists())
+        self.assertTrue(os.path.isfile(os.path.join(self.image_dir, 'recent.png')))

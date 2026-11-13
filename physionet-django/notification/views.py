@@ -1,5 +1,7 @@
+import os
 from datetime import date
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import Http404, JsonResponse
@@ -9,6 +11,7 @@ from django.db.models import Min, Max
 from django.views.decorators.http import require_POST
 
 from notification.models import News, Notification
+from physionet.utility import serve_file
 
 
 def news(request, max_items=20):
@@ -112,3 +115,17 @@ def unread_count(request):
         recipient=request.user, is_read=False
     ).count()
     return JsonResponse({'unread_count': count})
+
+
+def news_image(request, filename):
+    """Serve a news image using the existing serve_file utility."""
+    # Prevent path traversal
+    if '/' in filename or '\\' in filename or '..' in filename:
+        raise Http404
+
+    filepath = os.path.join(
+        settings.MEDIA_ROOT, 'news', 'images', filename
+    )
+    if not os.path.isfile(filepath):
+        raise Http404
+    return serve_file(filepath, attach=False, sandbox=True)
