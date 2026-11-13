@@ -535,31 +535,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-picklefield"
-version = "3.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/92/3a/d759b3546857b1713025fd87dd5bbb582912e71454797db3002305f2559c/django-picklefield-3.1.tar.gz", hash = "sha256:c786cbeda78d6def2b43bff4840d19787809c8909f7ad683961703060398d356", size = 9398, upload-time = "2022-06-18T20:21:09.353Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9d/02/58990bc1fc987761238382928f00a571b47494384d6bc6b89302422d7a99/django_picklefield-3.1-py3-none-any.whl", hash = "sha256:d77c504df7311e8ec14e8b779f10ca6fec74de6c7f8e2c136e1ef60cf955125d", size = 9478, upload-time = "2022-06-18T20:21:07.454Z" },
-]
-
-[[package]]
-name = "django-q2"
-version = "1.6.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "django-picklefield" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d0/84/a48b316c00604fc2e758b805ef8317773a3d000cf64912bd0ff623159d6e/django_q2-1.6.2.tar.gz", hash = "sha256:cd83c16b5791cd99f83a8d106d2447305d73c6c8ed8ec22c7cb954fe0e814284", size = 76891, upload-time = "2024-03-05T16:05:38.639Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/97/aa/930ec1d8b1569ca6f0410a27f3254920f025ce09c3dbddbec2616b7b4e79/django_q2-1.6.2-py3-none-any.whl", hash = "sha256:c2d75552c80b83ca0d8c0b0db7db4f17e9f43ee131a46d0ddd514c5f5fc603cb", size = 101192, upload-time = "2024-03-05T16:05:36.683Z" },
-]
-
-[[package]]
 name = "django-sass"
 version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1338,7 +1313,6 @@ dependencies = [
     { name = "django-background-tasks-updated" },
     { name = "django-cors-headers" },
     { name = "django-oauth-toolkit" },
-    { name = "django-q2" },
     { name = "django-sass" },
     { name = "django-static-mathjax" },
     { name = "django-storages", extra = ["google"] },
@@ -1395,7 +1369,6 @@ requires-dist = [
     { name = "django-background-tasks-updated", specifier = ">=1.2.7,<2" },
     { name = "django-cors-headers", specifier = ">=3.14.0,<4" },
     { name = "django-oauth-toolkit", specifier = ">=3.4.1,<4" },
-    { name = "django-q2", specifier = "==1.6.2" },
     { name = "django-sass", specifier = "==1.1.0" },
     { name = "django-static-mathjax", specifier = ">=3.2.2.1,<4" },
     { name = "django-storages", extras = ["google"], specifier = ">=1.11.1,<2" },
