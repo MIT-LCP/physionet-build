@@ -33,7 +33,7 @@ dependencies = [
     "requests-oauthlib>=1.3.0,<2",
     "sentry-sdk>=2.8.0,<3",
     "python-json-logger>=2.0.2,<3",
-    "django-storages[google]>=1.11.1,<2",
+    "django-storages[google]>=1.14.6,<2",
     "pdfminer.six>=20251107,<20251108",
     "requests==2.33.0",
     "pytz>=2022.1,<2023",
