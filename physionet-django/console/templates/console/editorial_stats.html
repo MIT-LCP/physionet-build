@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+{% include 'console/metrics_operational.html' %}
 <div class="card mb-3">
   <div class="card-header">
     Time to review
@@ -10,9 +11,11 @@
     <div class="mb-4">
       <a href="{% url 'editorial_stats' %}?export=csv" class="btn btn-md btn-success">Download CSV</a>
     </div>
+    <p>Annual publication and assignment measures use publication-year cohorts. First-decision medians use
+      decision-year cohorts; these are different populations. The monthly chart gives fractional calendar days.</p>
     <div class="table-responsive">
 
-      <table class="table table-bordered">
+      <table class="table table-bordered" id="editorial-annual">
         <tr>
           <th>Year</th>
           <th>Total publications</th>

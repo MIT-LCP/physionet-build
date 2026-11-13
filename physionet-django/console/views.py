@@ -5,6 +5,7 @@ from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
+from urllib.parse import urlencode
 
 import notification.utility as notification
 from notification.utility import archive_notify
@@ -30,6 +31,7 @@ from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
 from html2text import html2text
@@ -95,7 +97,16 @@ from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
 from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
 from console import forms, utility, services
+from console.reporting import (
+    access_trend, report_csv, pending_access_requests, access_queue_rows, queue_csv,
+    credential_trend, pending_credentials, credential_queue_rows, credential_annual_stats, credential_annual_report,
+    credential_queue_summary, filter_credential_queue, CREDENTIAL_STAGES, CREDENTIAL_AGES,
+    credential_stage_report, credential_flow_report,
+    repeated_credentials, repeated_credential_report, editorial_trend, pending_projects, project_queue_rows,
+    credential_reapplication_reports, credential_reapplication_csv,
+)
 from console.forms import ProjectFilterForm, UserFilterForm
+from console.usage import UsageDateForm, usage_csv, usage_metrics, usage_sections
 from project.cloud.s3 import (
     create_s3_bucket,
     upload_project_to_S3,
@@ -2888,6 +2899,9 @@ def editorial_stats(request):
     """
     Editorial stats for reviewers.
     """
+    response, operational = _operational_metrics(request, 'editorial')
+    if response is not None:
+        return response
     # We only want the non-legacy projects since they contain the required
     # dates (editor assignment, submission date, etc.)
     projects = PublishedProject.objects.filter(is_legacy=False)
@@ -2955,7 +2969,87 @@ def editorial_stats(request):
         )
 
     return render(request, 'console/editorial_stats.html', {
-                  'submenu': 'editorial', 'stats': stats})
+                  'submenu': 'editorial', 'stats': stats, **operational},
+                  status=200 if operational['report_form'].is_valid() else 400)
+
+
+def _operational_metrics(request, kind):
+    today = timezone.localdate()
+    data = {'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()}
+    form = UsageDateForm(data)
+    context = {'report_form': form}
+    if not form.is_valid():
+        return None, context
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    now = timezone.now()
+    is_editorial = kind == 'editorial'
+    report = editorial_trend(start, end) if is_editorial else credential_trend(start, end)
+    queue = pending_projects(now) if is_editorial else pending_credentials(now)
+    row_builder = project_queue_rows if is_editorial else credential_queue_rows
+    queue_filters = {}
+    if not is_editorial:
+        if request.GET.get('export') == 'reapplication-summary':
+            return credential_reapplication_csv(credential_reapplication_reports(start, end)), context
+        if request.GET.get('export') == 'flow':
+            return report_csv(credential_flow_report(start, end)), context
+        if request.GET.get('export') == 'stages':
+            return report_csv(credential_stage_report(start, end)), context
+        stage, age = request.GET.get('queue_stage', ''), request.GET.get('queue_age', '')
+        queue = filter_credential_queue(queue, stage, age, now)
+        queue_filters = {'queue_stage': stage, 'queue_age': age}
+        if request.GET.get('export') == 'queue-summary':
+            return report_csv(credential_queue_summary(now)), context
+        context.update({'queue_summary': credential_queue_summary(now),
+                        'queue_summary_query': 'export=queue-summary',
+                        'queue_stages': CREDENTIAL_STAGES, 'queue_ages': CREDENTIAL_AGES,
+                        'queue_stage': stage, 'queue_age': age, 'queue_filters': True,
+                        'queue_item_label': 'Application', 'queue_anchor': 'credential-queue'})
+    if request.GET.get('export') == 'monthly':
+        return report_csv(report), context
+    if request.GET.get('export') == 'pending':
+        return queue_csv(f'pending-{kind}', row_builder(queue.iterator(), now),
+                         'Project' if is_editorial else 'Application'), context
+    params = {'start_date': start.isoformat(), 'end_date': end.isoformat()}
+    page = paginate(request, queue, 50 if is_editorial else 5)
+    description = (
+        'Oldest submissions first, including projects awaiting authors and projects on hold. '
+        'Elapsed days since initial submission, NOT time in the current stage or a deadline. '
+        'This is the current queue, independent of the selected historical dates.'
+        if is_editorial else
+        'Oldest applications first. Elapsed days since application, not time in the displayed stage. '
+        'Current status is inferred from reference contact and response timestamps. '
+        'This queue is independent of the selected historical dates.'
+    )
+    context.update({
+        'report': report, 'trend_export_query': urlencode({**params, 'export': 'monthly'}),
+        'queue_title': 'Current submitted projects' if is_editorial else 'Current pending credential applications',
+        'queue_description': description,
+        'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
+        'queue_rows': row_builder(page, now), 'queue_query': urlencode({**params, **queue_filters}),
+        'queue_history_params': params,
+        'queue_export_query': urlencode({**params, **queue_filters, 'export': 'pending'}),
+        'queue_links': request.user.has_perm(
+            'project.change_activeproject' if is_editorial else 'user.change_credentialapplication'),
+    })
+    if is_editorial:
+        return None, context
+    context.update({'reapplication_reports': credential_reapplication_reports(start, end),
+                    'reapplication_summary_query': urlencode({**params, 'export': 'reapplication-summary'}),
+                    'flow_report': credential_flow_report(start, end),
+                    'flow_query': urlencode({**params, 'export': 'flow'}),
+                    'stage_report': credential_stage_report(start, end),
+                    'stage_query': urlencode({**params, 'export': 'stages'})})
+    users = repeated_credentials(start, end)
+    if request.GET.get('export') == 'repeated':
+        return report_csv(repeated_credential_report(users.iterator())), context
+    repeated_page = Paginator(users, 5).get_page(request.GET.get('repeated_page'))
+    context.update({
+        'repeated': repeated_credential_report(repeated_page),
+        'repeated_total': repeated_page.paginator.count, 'repeated_page': repeated_page,
+        'repeated_query': urlencode({**params, 'export': 'repeated'}),
+        'repeated_page_query': urlencode({**params, **queue_filters, 'page': request.GET.get('page', 1)}),
+    })
+    return None, context
 
 
 @console_permission_required('project.can_view_stats')
@@ -2963,80 +3057,33 @@ def credentialing_stats(request):
     """
     Credentialing metrics.
     """
-    apps = CredentialApplication.objects.all()
-    years = [a.application_datetime.year for a in apps]
-    stats = OrderedDict()
-
-    # Application count by year
-    for y in sorted(set(years)):
-        stats[y] = {}
-        stats[y]['count'] = years.count(y)
-
-    # Number processed (accepted or rejected) and proportion approved
-    for y in stats:
-        # accepted = 2. rejected = 1.
-        acc_and_rej = apps.filter(application_datetime__year=y)
-        a = acc_and_rej.filter(status=CredentialApplication.Status.ACCEPTED).count()
-        r = acc_and_rej.filter(status=CredentialApplication.Status.REJECTED).count()
-        stats[y]['processed'] = a + r
-        try:
-            stats[y]['approved'] = round((100 * a) / (a + r))
-        except ZeroDivisionError:
-            stats[y]['approved'] = None
-
-    # Time taken to contact the reference
-    time_to_ref = apps.annotate(tm=Cast(F('reference_contact_datetime')
-                                - F('application_datetime'),
-                                DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_ref.filter(application_datetime__year=y)
-        try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_ref'] = round(median(days), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_ref'] = None
-
-    # Time taken for the reference to respond (in hours)
-    time_to_reply = apps.annotate(tm=Cast(F('reference_response_datetime')
-                                  - F('reference_contact_datetime'),
-                                  DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_reply.filter(application_datetime__year=y)
-        try:
-            hours = [d.total_seconds() / 3600 for d in durations if d and d.total_seconds() >= 0]
-            stats[y]['time_to_reply'] = round(median(hours), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_reply'] = None
-
-    # Time taken to process the application
-    time_to_decision = apps.annotate(tm=Cast(F('decision_datetime')
-                                     - F('application_datetime'),
-                                     DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_decision.filter(application_datetime__year=y)
-        try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_decision'] = round(median(days), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_decision'] = None
-
-    if request.GET.get('export') == 'csv':
-        fields = ('count', 'processed', 'approved', 'time_to_decision', 'time_to_ref', 'time_to_reply')
-        return _stats_csv_response(
-            'credentialing-stats.csv',
-            ['Year', 'Total applications', 'Total handled (accepted + rejected)', 'Approved (%)',
-             'Decision time (days, median)', 'Time to contact reference (days, median)',
-             'Reference response time (hours, median)'],
-            ([year, *(values.get(field) for field in fields)] for year, values in sorted(stats.items())),
-        )
+    if request.GET.get('export') in ('annual', 'csv'):
+        response = report_csv(credential_annual_report(credential_annual_stats()))
+        if request.GET['export'] == 'csv':
+            response['Content-Disposition'] = 'attachment; filename="credentialing-stats.csv"'
+        return response
+    response, operational = _operational_metrics(request, 'credentialing')
+    if response is not None:
+        return response
+    stats = credential_annual_stats()
 
     return render(request, 'console/credentialing_stats.html',
-                  {'submenu': 'credential',
-                   'stats': stats})
+                  {'submenu': 'credential', 'stats': stats, **operational,
+                   'annual_definition': (
+                       'Each application is counted once under its current status. '
+                       'Handled = accepted + revoked + rejected; '
+                       'approved / handled includes later-revoked credentials. '
+                       'Decision medians include handled applications with valid decision dates and exclude pending '
+                       'and withdrawn cases. Durations use fractional calendar days or hours, including zero; '
+                       'missing and negative intervals are excluded. Each median shows its valid observation count '
+                       '(n). Monthly charts instead group by decision month.')},
+                  status=200 if operational['report_form'].is_valid() else 400)
 
 
 @console_permission_required('project.can_view_stats')
 def submission_stats(request):
+    if request.GET.get('table') == 'contributors':
+        return _usage_stats(request, 'submissions')
     export_table = request.GET.get('table', 'monthly')
     if request.GET.get('export') == 'csv' and export_table not in ('monthly', 'yearly'):
         raise Http404('Unknown statistics table')
@@ -3125,6 +3172,75 @@ def submission_stats(request):
 
     return render(request, 'console/submission_stats.html',
                   {'submenu': 'submission', 'stats': stats, 'yearly_stats': yearly_stats})
+
+
+@console_permission_required('project.can_view_stats')
+def usage_stats(request):
+    return _usage_stats(request, 'usage')
+
+
+@console_permission_required('project.can_view_stats')
+def access_request_stats(request):
+    return _usage_stats(request, 'access')
+
+
+def _usage_stats(request, group):
+    today = timezone.localdate()
+    data = {'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()}
+    form = UsageDateForm(data)
+    sections = None
+    export_query = ''
+    date_query = ''
+    report = None
+    trend_export_query = ''
+    queue_context = {}
+    if group == 'access':
+        now = timezone.now()
+        queue = pending_access_requests(now)
+        if request.GET.get('export') == 'pending':
+            return queue_csv('pending-access', access_queue_rows(queue.iterator(), now))
+        page = paginate(request, queue, 50)
+        query = request.GET.copy()
+        query.pop('page', None)
+        query.pop('export', None)
+        queue_context = {
+            'queue_title': 'Current pending dataset access requests',
+            'queue_description': 'Oldest requests first. Elapsed days since the request, not a service deadline. '
+                                 'This queue is current and is not filtered by the historical dates above.',
+            'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
+            'queue_rows': access_queue_rows(page, now), 'queue_query': query.urlencode(),
+            'queue_links': request.user.has_perm('project.can_view_access_logs'),
+        }
+    if form.is_valid():
+        start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+        date_query = urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()})
+        sections = usage_sections(usage_metrics(start, end), group)
+        if group == 'access':
+            report = access_trend(start, end)
+            if request.GET.get('export') == 'monthly':
+                return report_csv(report)
+        if request.GET.get('export') == 'csv':
+            response = usage_csv(sections, start, end)
+            filenames = {'access': 'access-request-stats.csv', 'submissions': 'submission-contributors-stats.csv',
+                         'usage': 'usage-stats.csv'}
+            response['Content-Disposition'] = f'attachment; filename="{filenames[group]}"'
+            return response
+        params = request.GET.copy()
+        params['start_date'] = start.isoformat()
+        params['end_date'] = end.isoformat()
+        params['export'] = 'csv'
+        export_query = params.urlencode()
+        params['export'] = 'monthly'
+        trend_export_query = params.urlencode()
+    return render(request, 'console/usage_stats.html', {
+        'form': form, 'sections': sections, 'export_query': export_query,
+        'report': report, 'trend_export_query': trend_export_query,
+        'report_title': {
+            'access': 'Access requests', 'submissions': 'Submission contributors', 'usage': 'Usage',
+        }[group],
+        'report_group': group, 'date_query': date_query,
+        **queue_context,
+    }, status=200 if sections is not None else 400)
 
 
 @console_permission_required('project.can_view_stats')

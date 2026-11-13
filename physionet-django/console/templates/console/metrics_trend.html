@@ -1,0 +1,32 @@
+<div class="card mb-3">
+  <div class="card-header">{{ report.title }}{% include 'console/metrics_help.html' with title=report.title description=report.description %}</div>
+  <div class="card-body">
+    {% include 'console/metrics_definition.html' with summary=report.summary description=report.description %}
+    {% if report.warning %}<p class="text-warning">{{ report.warning }}</p>{% endif %}
+    <div data-metrics-chart="{{ report.id }}" data-label="{{ report.title }}. Exact values are in the following table."></div>
+    {{ report.chart|json_script:report.id }}
+    <p class="small text-muted">* Partial month. See period coverage in the table and CSV.</p>
+    <a class="btn btn-md btn-success mb-3" href="?{{ trend_export_query }}">Download monthly CSV</a>
+    <details>
+      <summary>Monthly values and observation counts</summary>
+      <div class="table-responsive"><table class="table table-bordered">
+        <thead><tr>{% for header in report.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in report.rows %}<tr>{% for cell in row %}<td>{% if cell is None %}Not available{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>
+        {% empty %}<tr><td>No observations available.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </details>
+  </div>
+</div>
+
+{% if report.volume %}
+<div class="card mb-3">
+  <div class="card-header">{{ report.volume.title }}{% include 'console/metrics_help.html' with title=report.volume.title description=report.volume.description %}</div>
+  <div class="card-body">
+    {% include 'console/metrics_definition.html' with summary=report.volume.summary description=report.volume.description %}
+    <div data-metrics-chart="{{ report.volume.id }}" data-label="{{ report.volume.title }}. Exact values are in the decision-time table above."></div>
+    {{ report.volume.chart|json_script:report.volume.id }}
+    <p class="small text-muted">* Partial month. See period coverage in the table and CSV.</p>
+    <a class="btn btn-md btn-success" href="?{{ trend_export_query }}">Download monthly CSV</a>
+  </div>
+</div>
+{% endif %}

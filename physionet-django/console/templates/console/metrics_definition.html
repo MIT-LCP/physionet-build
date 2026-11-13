@@ -1,0 +1,6 @@
+{% if summary %}
+<p>{{ summary }}</p>
+<noscript><p>{{ description }}</p></noscript>
+{% else %}
+<p>{{ description }}</p>
+{% endif %}

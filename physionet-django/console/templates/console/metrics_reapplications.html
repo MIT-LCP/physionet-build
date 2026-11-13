@@ -1,0 +1,21 @@
+{% if reapplication_reports %}
+<p><a class="btn btn-md btn-success" href="?{{ reapplication_summary_query }}">Download reapplication summary CSV</a></p>
+{% for table in reapplication_reports %}{% include 'console/metrics_table.html' %}{% endfor %}
+{% endif %}
+
+{% if repeated %}
+<div class="card mb-3"><div class="card-header">Repeated credential applications</div><div class="card-body">
+  <p>Users with two or more applications submitted during the selected dates, showing their current statuses.
+    Repetition does not establish a system problem. {{ repeated_total }} users, 5 per page;
+    the CSV includes all matching users.</p>
+  <a href="?{{ repeated_query }}" class="btn btn-md btn-success mb-3">Download repeated applications CSV</a>
+  <div class="table-responsive"><table class="table table-bordered">
+    <thead><tr>{% for header in repeated.headers %}<th>{{ header }}</th>{% endfor %}</tr></thead>
+    <tbody>{% for row in repeated.rows %}<tr>{% for cell in row %}<td>{% if forloop.first and perms.user.view_user %}<a href="{% url 'user_management' cell %}">{{ cell }}</a>{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>
+    {% empty %}<tr><td colspan="6">No repeated applications in this period.</td></tr>{% endfor %}</tbody>
+  </table></div>
+  {% if repeated_page.has_previous %}<a href="?{{ repeated_page_query }}&amp;repeated_page={{ repeated_page.previous_page_number }}#repeated-applications">Previous</a>{% endif %}
+  <span>Page {{ repeated_page.number }} of {{ repeated_page.paginator.num_pages }}</span>
+  {% if repeated_page.has_next %}<a href="?{{ repeated_page_query }}&amp;repeated_page={{ repeated_page.next_page_number }}#repeated-applications">Next</a>{% endif %}
+</div></div>
+{% endif %}

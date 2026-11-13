@@ -1,0 +1,90 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+
+{% block title %}{{ report_title }} metrics{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">{{ report_title }}</div>
+  <div class="card-body">
+    {% if report_group == 'submissions' %}
+    <p><a href="{% url 'submission_stats' %}">Submission volumes</a> · Contributor profiles</p>
+    <p>Unique submitting authors of project versions first submitted during the selected dates.
+      Published snapshots take precedence over active copies; revisions are not counted again.</p>
+    {% endif %}
+    <form method="get" class="mb-4">
+      {% if report_group == 'submissions' %}<input type="hidden" name="table" value="contributors">{% endif %}
+      {{ form.non_field_errors }}
+      <div class="form-row align-items-end">
+        <div class="form-group col-sm-4">
+          <label for="{{ form.start_date.id_for_label }}">Start date</label>
+          {{ form.start_date }}{{ form.start_date.errors }}
+        </div>
+        <div class="form-group col-sm-4">
+          <label for="{{ form.end_date.id_for_label }}">End date</label>
+          {{ form.end_date }}{{ form.end_date.errors }}
+        </div>
+        <div class="form-group col-sm-4">
+          <button type="submit" class="btn btn-primary">Apply filters</button>
+          {% if sections %}
+          <a href="{{ request.path }}?{{ export_query }}" class="btn btn-md btn-success">Download CSV</a>
+          {% endif %}
+        </div>
+      </div>
+    </form>
+    {% if report_group == 'access' %}
+    <p class="text-muted">Contributor-reviewed dataset requests only. Requests are grouped by submission date;
+      approvals by decision date, including later revocations and expiry. These are different cohorts and must not
+      be interpreted as an approval rate or a count of users with current access. DUA signatures are not included.</p>
+    {% elif report_group == 'usage' %}
+    <p class="text-muted mb-2">
+      Dataset access counts registered users viewing file-access pages. Access-log sessions overlapping the
+      selected dates are included. Published versions are combined except in the per-version table.
+    </p>
+    <p class="text-muted mb-2">
+      It does not measure confirmed downloads or research use, and excludes anonymous access and direct cloud downloads.
+    </p>
+    {% endif %}
+    <p class="text-muted mb-0">
+      Demographics use each person's latest approved credential application currently on record, not a historical
+      snapshot. Countries are institutional countries, not inferred locations or nationalities. Missing information
+      is listed as “Not available”. Viewers, approved users and submitting authors are different populations.
+    </p>
+    <p class="text-muted mb-0">
+      Institution counts use self-reported names, ignoring case and extra spaces; abbreviations and spelling
+      variations may still count as separate institutions. Access approvals cover contributor-reviewed requests,
+      not DUA signatures or every access requirement. Research purposes are free text and are not classified here.
+      Downloads by file, public landing-page visitors, regions and organization types are not measured here.
+    </p>
+  </div>
+</div>
+
+{% if queue_title %}{% include 'console/metrics_queue.html' %}{% endif %}
+{% if report %}{% include 'console/metrics_trend.html' %}{% endif %}
+
+{% for section in sections %}
+<div class="card mb-3">
+  <div class="card-header">{{ section.title }}</div>
+  <div class="card-body">
+    {% if section.description %}<p>{{ section.description }}</p>{% endif %}
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead><tr><th scope="col">Metric</th><th scope="col">Count</th><th scope="col">Percentage (%)</th></tr></thead>
+        <tbody>
+          {% for row in section.rows %}
+          <tr>
+            <td>{{ row.label }}</td><td>{{ row.count }}</td>
+            <td>{% if row.percentage is not None %}{{ row.percentage|floatformat:2 }}{% else %}—{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3">No data available for the selected dates.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block local_js_bottom %}<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script><script src="{% static 'console/js/metrics-trend.js' %}" defer></script>{% endblock %}
