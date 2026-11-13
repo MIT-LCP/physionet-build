@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Data Access Requests{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h1>Data Access Requests</h1>
+  <p class="text-muted">Requests for all versions of the projects you review.</p>
+
+  {% if not managed_projects %}
+    <p>You are not reviewing access requests for any projects.</p>
+  {% else %}
+
+    <div class="d-flex flex-wrap mb-3" role="group" aria-label="Filter by status">
+      {% for tab in tabs %}
+        <a class="btn btn-sm mr-2 mb-2 {% if tab.key == status %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+           {% if tab.key == status %}aria-current="page"{% endif %}
+           href="?status={{ tab.key }}{% if project_id %}&project={{ project_id }}{% endif %}{% if search %}&q={{ search|urlencode }}{% endif %}">
+          {{ tab.label }}
+          <span class="badge {% if tab.key == status %}badge-light{% else %}badge-secondary{% endif %}">{{ tab.count }}</span>
+        </a>
+      {% endfor %}
+    </div>
+
+    <form method="get" class="form-row align-items-end mb-3">
+      <input type="hidden" name="status" value="{{ status }}">
+      <div class="col-md-5 mb-2">
+        <label for="inbox-project" class="small mb-1">Project</label>
+        <select id="inbox-project" name="project" class="form-control form-control-sm">
+          <option value="">All projects</option>
+          {% for project in managed_projects %}
+            <option value="{{ project.id }}" {% if project.id|stringformat:"s" == project_id %}selected{% endif %}>{{ project.title }} (v{{ project.version }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-5 mb-2">
+        <label for="inbox-search" class="small mb-1">Search</label>
+        <input id="inbox-search" type="search" name="q" value="{{ search }}" class="form-control form-control-sm"
+               placeholder="Requester name, username, email or research title">
+      </div>
+      <div class="col-md-2 mb-2">
+        <button type="submit" class="btn btn-sm btn-primary">Filter</button>
+        {% if project_id or search %}
+          <a href="?status={{ status }}" class="btn btn-sm btn-link">Clear</a>
+        {% endif %}
+      </div>
+    </form>
+
+    {% if page.paginator.count == 0 %}
+      <p class="text-muted">No {% if status != 'all' %}{{ status }} {% endif %}requests{% if project_id or search %} match these filters{% endif %}.</p>
+    {% else %}
+      <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+          <thead>
+            <tr>
+              <th scope="col">Requester</th>
+              <th scope="col">Project</th>
+              <th scope="col">Research title</th>
+              <th scope="col">Submitted</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for req in page %}
+              <tr>
+                <td>
+                  {{ req.requester.get_full_name }}<br>
+                  <small class="text-muted">{{ req.requester.username }}</small><br>
+                  {% if req.requester.is_credentialed %}
+                    <span class="badge badge-success">Credentialed</span>
+                  {% else %}
+                    <span class="badge badge-danger">Not credentialed</span>
+                  {% endif %}
+                  {% if req.requires_training %}
+                    {% if req.has_required_trainings %}
+                      <span class="badge badge-success">Training complete</span>
+                    {% else %}
+                      <span class="badge badge-danger">Training missing</span>
+                    {% endif %}
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{% url 'data_access_requests_overview' req.project.slug req.project.version %}">{{ req.project.title }}</a>
+                  <small class="text-muted">v{{ req.project.version }}</small>
+                </td>
+                <td>{{ req.data_use_title }}</td>
+                <td>
+                  {{ req.request_datetime|date }}
+                  {% if req.is_pending %}
+                    <br><small class="text-muted">Waiting {{ req.days_waiting }} day{{ req.days_waiting|pluralize }}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if req.is_expired %}
+                    Expired
+                    <br><small class="text-muted">On {{ req.valid_until|date }}</small>
+                  {% elif req.is_pending %}
+                    Pending
+                    {% if req.days_until_auto_accept <= 0 %}
+                      <br><span class="badge badge-warning">Due for automatic approval</span>
+                    {% elif req.days_until_auto_accept <= auto_accept_warning_days %}
+                      <br><span class="badge badge-warning">Approved automatically in {{ req.days_until_auto_accept }} day{{ req.days_until_auto_accept|pluralize }}</span>
+                    {% endif %}
+                  {% elif req.is_accepted %}
+                    Accepted
+                    <br><small class="text-muted">{% if req.valid_until %}Until {{ req.valid_until|date }}{% else %}No expiry{% endif %}</small>
+                  {% else %}
+                    {{ req.status_text|capfirst }}
+                    {% if req.decision_datetime %}
+                      <br><small class="text-muted">{{ req.decision_datetime|date }}{% if req.responder %} by {{ req.responder.username }}{% endif %}</small>
+                    {% endif %}
+                  {% endif %}
+                </td>
+                <td class="text-nowrap">
+                  <a class="btn btn-sm {% if req.is_pending %}btn-primary{% else %}btn-outline-secondary{% endif %}"
+                     href="{% url 'data_access_request_view' req.project.slug req.project.version req.id %}">
+                    {% if req.is_pending %}Review{% else %}Details{% endif %}
+                  </a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "console/pagination.html" with pagination=page %}
+    {% endif %}
+  {% endif %}
+
+  <p><a href="{% url 'project_home' %}">Return to Project Home</a></p>
+</div>
+{% endblock %}

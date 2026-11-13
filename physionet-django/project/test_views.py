@@ -2384,6 +2384,108 @@ class TestInviteDataAccessReviewer(TestMixin):
         self.assertContains(response, "is already allowed to review requests!")
 
 
+class TestDataAccessRequestsInbox(TestMixin):
+    MANAGER = 'george'
+    REQUESTER = 'rgmark'
+    PASSWORD = 'Tester11!'
+    PROJECT_NAME = "Self Managed Access Database Demo"
+
+    def setUp(self):
+        super().setUp()
+        self.project = PublishedProject.objects.get(title=self.PROJECT_NAME)
+        self.url = reverse('data_access_requests_inbox')
+
+    def _make_request(self, title, status=DataAccessRequest.PENDING_VALUE, decided_days_ago=0, duration_days=None):
+        decided = status != DataAccessRequest.PENDING_VALUE
+        return DataAccessRequest.objects.create(
+            requester=User.objects.get(username=self.REQUESTER),
+            project=self.project,
+            data_use_title=title,
+            data_use_purpose='purpose',
+            status=status,
+            decision_datetime=timezone.now() - timedelta(days=decided_days_ago) if decided else None,
+            duration=timedelta(days=duration_days) if duration_days else None,
+        )
+
+    def _get(self, username=MANAGER, **params):
+        self.client.login(username=username, password=self.PASSWORD)
+        return self.client.get(self.url, params)
+
+    def test_pending_requests_shown_by_default(self):
+        self._make_request('Pending study')
+        self._make_request('Accepted study', status=DataAccessRequest.ACCEPT_REQUEST_VALUE)
+
+        response = self._get()
+        self.assertContains(response, 'Pending study')
+        self.assertNotContains(response, 'Accepted study')
+
+    def test_status_tabs(self):
+        self._make_request('Pending study')
+        self._make_request('Active study', status=DataAccessRequest.ACCEPT_REQUEST_VALUE)
+        self._make_request('Expiring study', status=DataAccessRequest.ACCEPT_REQUEST_VALUE,
+                           decided_days_ago=20, duration_days=30)
+        self._make_request('Expired study', status=DataAccessRequest.ACCEPT_REQUEST_VALUE,
+                           decided_days_ago=10, duration_days=5)
+        self._make_request('Rejected study', status=DataAccessRequest.REJECT_REQUEST_VALUE)
+
+        expected = {
+            'active': ({'Active study', 'Expiring study'}, {'Expired study', 'Pending study'}),
+            'expiring': ({'Expiring study'}, {'Active study', 'Expired study'}),
+            'expired': ({'Expired study'}, {'Active study', 'Expiring study'}),
+            'rejected': ({'Rejected study'}, {'Pending study'}),
+        }
+        for status, (shown, hidden) in expected.items():
+            with self.subTest(status=status):
+                response = self._get(status=status)
+                for title in shown:
+                    self.assertContains(response, title)
+                for title in hidden:
+                    self.assertNotContains(response, title)
+
+    def test_search_and_project_filters(self):
+        self._make_request('Arrhythmia study')
+        self._make_request('Sepsis study')
+
+        response = self._get(q='sepsis')
+        self.assertContains(response, 'Sepsis study')
+        self.assertNotContains(response, 'Arrhythmia study')
+
+        other_project = PublishedProject.objects.exclude(pk=self.project.pk).first()
+        response = self._get(project=other_project.pk)
+        self.assertNotContains(response, 'Sepsis study')
+
+    def test_only_managers_see_requests(self):
+        self._make_request('Secret study')
+
+        response = self._get(username='aewj')
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'Secret study')
+        self.assertContains(response, 'not reviewing access requests')
+
+    def test_invited_reviewer_sees_requests_until_revoked(self):
+        self._make_request('Shared study')
+        reviewer = User.objects.get(username='aewj')
+        entry = DataAccessRequestReviewer.objects.create(project=self.project, reviewer=reviewer)
+
+        self.assertContains(self._get(username='aewj'), 'Shared study')
+
+        entry.revoke()
+        self.assertNotContains(self._get(username='aewj'), 'Shared study')
+
+    def test_requests_on_older_versions_are_included(self):
+        self._make_request('Old version study')
+        PublishedProject.objects.filter(pk=self.project.pk).update(is_latest_version=False)
+
+        self.assertContains(self._get(), 'Old version study')
+
+    def test_project_home_links_to_inbox(self):
+        self.client.login(username=self.MANAGER, password=self.PASSWORD)
+        self.assertContains(self.client.get(reverse('project_home')), self.url)
+
+        self.client.login(username='aewj', password=self.PASSWORD)
+        self.assertNotContains(self.client.get(reverse('project_home')), self.url)
+
+
 class TestGenerateSignedUrl(TestMixin):
     @classmethod
     def setUpTestData(cls):
