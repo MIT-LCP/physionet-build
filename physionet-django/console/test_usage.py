@@ -524,3 +524,25 @@ class TestUsageMetrics(TestCase):
         self.assertEqual(report['volume']['chart']['labels'], ['2010-01', '2010-02'])
         for series in report['volume']['chart']['series']:
             self.assertEqual(series['values'], [0, 0])
+
+    def test_annual_cohorts_close_and_keep_fractional_and_zero_durations(self):
+        from console.reporting import credential_annual_stats
+        CredentialApplication.objects.all().delete()
+        for status in range(5):
+            self.credential(status, decided=self.when + timezone.timedelta(hours=12),
+                            reference_contact_datetime=self.when,
+                            reference_response_datetime=self.when + timezone.timedelta(minutes=90))
+        stats = credential_annual_stats()[2020]
+        self.assertEqual(stats['count'], 5)
+        self.assertEqual(sum(stats[key] for key in ('accepted', 'revoked', 'rejected', 'withdrawn', 'pending')), 5)
+        self.assertEqual(stats['processed'], 3)
+        self.assertEqual(stats['approved'], 66.67)
+        self.assertEqual(stats['time_to_decision'], 0.5)
+        self.assertEqual(stats['decision_observations'], 3)
+        self.assertEqual(stats['time_to_ref'], 0)
+        self.assertEqual(stats['time_to_reply'], 1.5)
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('credentialing_stats'), {'export': 'annual'})
+        rows = list(csv.DictReader(StringIO(response.content.decode())))
+        self.assertEqual(rows[0]['Decision median days'], '0.5')
+        self.assertEqual(rows[0]['Valid contact durations'], '5')

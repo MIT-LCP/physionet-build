@@ -99,7 +99,7 @@ from user.citi_training_module import parse_completions_xml, parse_member_profil
 from console import forms, utility, services
 from console.reporting import (
     access_trend, report_csv, pending_access_requests, access_queue_rows, queue_csv,
-    credential_trend, pending_credentials, credential_queue_rows,
+    credential_trend, pending_credentials, credential_queue_rows, credential_annual_stats, credential_annual_report,
     repeated_credentials, repeated_credential_report, editorial_trend, pending_projects, project_queue_rows,
 )
 from console.forms import ProjectFilterForm, UserFilterForm
@@ -3030,72 +3030,14 @@ def credentialing_stats(request):
     response, operational = _operational_metrics(request, 'credentialing')
     if response is not None:
         return response
-    apps = CredentialApplication.objects.all()
-    years = [a.application_datetime.year for a in apps]
-    stats = OrderedDict()
-
-    # Application count by year
-    for y in sorted(set(years)):
-        stats[y] = {}
-        stats[y]['count'] = years.count(y)
-
-    # Number processed (accepted or rejected) and proportion approved
-    for y in stats:
-        # accepted = 2. rejected = 1.
-        acc_and_rej = apps.filter(application_datetime__year=y)
-        a = acc_and_rej.filter(status=CredentialApplication.Status.ACCEPTED).count()
-        r = acc_and_rej.filter(status=CredentialApplication.Status.REJECTED).count()
-        stats[y]['processed'] = a + r
-        try:
-            stats[y]['approved'] = round((100 * a) / (a + r))
-        except ZeroDivisionError:
-            stats[y]['approved'] = None
-
-    # Time taken to contact the reference
-    time_to_ref = apps.annotate(tm=Cast(F('reference_contact_datetime')
-                                - F('application_datetime'),
-                                DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_ref.filter(application_datetime__year=y)
-        try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_ref'] = round(median(days), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_ref'] = None
-
-    # Time taken for the reference to respond (in hours)
-    time_to_reply = apps.annotate(tm=Cast(F('reference_response_datetime')
-                                  - F('reference_contact_datetime'),
-                                  DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_reply.filter(application_datetime__year=y)
-        try:
-            hours = [d.total_seconds() / 3600 for d in durations if d and d.total_seconds() >= 0]
-            stats[y]['time_to_reply'] = round(median(hours), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_reply'] = None
-
-    # Time taken to process the application
-    time_to_decision = apps.annotate(tm=Cast(F('decision_datetime')
-                                     - F('application_datetime'),
-                                     DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_decision.filter(application_datetime__year=y)
-        try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_decision'] = round(median(days), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_decision'] = None
+    stats = credential_annual_stats()
+    if request.GET.get('export') == 'annual':
+        return report_csv(credential_annual_report(stats))
 
     if request.GET.get('export') == 'csv':
-        fields = ('count', 'processed', 'approved', 'time_to_decision', 'time_to_ref', 'time_to_reply')
-        return _stats_csv_response(
-            'credentialing-stats.csv',
-            ['Year', 'Total applications', 'Total handled (accepted + rejected)', 'Approved (%)',
-             'Decision time (days, median)', 'Time to contact reference (days, median)',
-             'Reference response time (hours, median)'],
-            ([year, *(values.get(field) for field in fields)] for year, values in sorted(stats.items())),
-        )
+        response = report_csv(credential_annual_report(stats))
+        response['Content-Disposition'] = 'attachment; filename="credentialing-stats.csv"'
+        return response
 
     return render(request, 'console/credentialing_stats.html',
                   {'submenu': 'credential', 'stats': stats, **operational},

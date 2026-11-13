@@ -237,3 +237,61 @@ def project_queue_rows(projects, now):
              'status': project.submission_status_label() + (' (on hold)' if project.is_on_hold else ''),
              'since': project.submission_datetime, 'days': (now - project.submission_datetime).days,
              'url': reverse('submission_info', args=[project.slug])} for project in projects]
+
+
+def elapsed_days(start, end):
+    if start is None or end is None or end < start:
+        return None
+    return (end - start).total_seconds() / 86400
+
+
+def credential_annual_stats():
+    """All submission-year cohorts, using current statuses and valid timestamp pairs."""
+    from collections import Counter
+    from user.models import CredentialApplication
+    groups = {}
+    fields = ('application_datetime', 'status', 'reference_contact_datetime',
+              'reference_response_datetime', 'decision_datetime')
+    for submitted, status, contacted, responded, decided in CredentialApplication.objects.values_list(
+            *fields).iterator(chunk_size=2000):
+        year = timezone.localtime(submitted).year
+        group = groups.setdefault(year, {'statuses': Counter(), 'decision': [], 'contact': [], 'response': []})
+        group['statuses'][status] += 1
+        if status in (CredentialApplication.Status.ACCEPTED, CredentialApplication.Status.REVOKED,
+                      CredentialApplication.Status.REJECTED):
+            days = elapsed_days(submitted, decided)
+            if days is not None:
+                group['decision'].append(days)
+        for label, first, last, multiplier in (
+                ('contact', submitted, contacted, 1), ('response', contacted, responded, 24)):
+            days = elapsed_days(first, last)
+            if days is not None:
+                group[label].append(days * multiplier)
+    result = {}
+    for year, group in sorted(groups.items()):
+        counts = group['statuses']
+        accepted, revoked, rejected, withdrawn, pending = (counts[s] for s in (2, 4, 1, 3, 0))
+        processed = accepted + revoked + rejected
+        result[year] = {
+            'count': sum(counts.values()), 'accepted': accepted, 'revoked': revoked, 'rejected': rejected,
+            'withdrawn': withdrawn, 'pending': pending, 'processed': processed,
+            'approved': round(100 * (accepted + revoked) / processed, 2) if processed else None,
+            'time_to_decision': median_days(group['decision']), 'decision_observations': len(group['decision']),
+            'time_to_ref': median_days(group['contact']), 'contact_observations': len(group['contact']),
+            'time_to_reply': median_days(group['response']), 'response_observations': len(group['response']),
+        }
+    return result
+
+
+def credential_annual_report(stats):
+    fields = ('count', 'accepted', 'revoked', 'rejected', 'withdrawn', 'pending', 'processed', 'approved',
+              'time_to_decision', 'decision_observations', 'time_to_ref', 'contact_observations',
+              'time_to_reply', 'response_observations')
+    return {
+        'id': 'credentialing-annual',
+        'headers': ['Application year', 'Total applications', 'Accepted', 'Revoked', 'Rejected', 'Withdrawn',
+                    'Pending', 'Handled (accepted + revoked + rejected)', 'Ever approved among handled (%)',
+                    'Decision median days', 'Valid decision durations', 'Contact median days',
+                    'Valid contact durations', 'Response median hours', 'Valid response durations'],
+        'rows': [[year, *(values[field] for field in fields)] for year, values in stats.items()],
+    }
