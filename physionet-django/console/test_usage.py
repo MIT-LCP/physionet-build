@@ -386,7 +386,7 @@ class TestUsageMetrics(TestCase):
         self.assertEqual(len(list(csv.DictReader(StringIO(response.content.decode())))), 3)
 
     def test_operational_exports_require_permission_and_valid_historical_dates(self):
-        for view in ('credentialing_stats',):
+        for view in ('credentialing_stats', 'editorial_stats'):
             for export in ('monthly', 'pending', 'repeated'):
                 self.assertEqual(self.client.get(reverse(view), {'export': export}).status_code, 403)
             self.client.force_login(self.admin)
@@ -394,3 +394,55 @@ class TestUsageMetrics(TestCase):
             self.assertEqual(response.status_code, 400)
             self.assertNotIn('Content-Disposition', response)
             self.client.logout()
+
+    def test_editorial_first_decision_is_unique_and_uses_decision_month(self):
+        from console.reporting import editorial_trend
+        from project.models import EditLog
+        EditLog.objects.all().delete()
+        ActiveProject.objects.exclude(pk=self.active.pk).update(submission_datetime=None)
+        PublishedProject.objects.exclude(pk=self.dataset.pk).update(submission_datetime=None)
+        # The active copy must not duplicate its published snapshot.
+        ActiveProject.objects.filter(pk=self.active.pk).update(
+            core_project_id=self.dataset.core_project_id, version=self.dataset.version,
+        )
+        first = EditLog.objects.create(project=self.dataset, decision=1,
+                                       decision_datetime=self.when + timezone.timedelta(hours=36))
+        EditLog.objects.create(project=self.dataset, decision=2,
+                               decision_datetime=self.when + timezone.timedelta(days=10))
+        EditLog.objects.create(project=self.active, decision=0,
+                               decision_datetime=self.when + timezone.timedelta(days=5))
+        report = editorial_trend(date(2020, 6, 1), date(2020, 7, 31))
+        self.assertEqual(report['rows'], [['2020-06', 1.5, 1], ['2020-07', None, 0]])
+        EditLog.objects.filter(pk=first.pk).update(decision_datetime=self.when - timezone.timedelta(days=1))
+        report = editorial_trend(date(2020, 6, 1), date(2020, 7, 31))
+        self.assertEqual(report['rows'][0], ['2020-06', None, 0])
+        self.assertIn('Excluded negative durations: 1', report['description'])
+
+    def test_editorial_queue_reports_total_age_not_time_in_stage(self):
+        from project.models import SubmissionStatus
+        ActiveProject.objects.exclude(pk=self.active.pk).update(submission_datetime=None)
+        ActiveProject.objects.filter(pk=self.active.pk).update(
+            submission_status=SubmissionStatus.NEEDS_RESUBMISSION, is_on_hold=True,
+        )
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('editorial_stats'), {'start_date': '2010-01-01', 'end_date': '2010-12-31'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['queue_total'], 1)
+        row = response.context['queue_rows'][0]
+        self.assertIn('on hold', row['status'])
+        self.assertEqual(row['since'], self.when)
+        self.assertContains(response, 'NOT time in the current stage')
+        export = self.client.get(reverse('editorial_stats'), {'export': 'pending'})
+        self.assertEqual(len(list(csv.DictReader(StringIO(export.content.decode())))), 1)
+
+    def test_editorial_monthly_export_matches_the_chart_table(self):
+        self.client.force_login(self.admin)
+        params = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
+        page = self.client.get(reverse('editorial_stats'), params)
+        report = page.context['report']
+        response = self.client.get(reverse('editorial_stats'), {**params, 'export': 'monthly'})
+        rows = list(csv.reader(StringIO(response.content.decode())))
+        expected = [report['headers'], *[
+            ['' if value is None else str(value) for value in row] for row in report['rows']
+        ]]
+        self.assertEqual(rows, expected)

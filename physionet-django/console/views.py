@@ -5,6 +5,7 @@ from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
+from urllib.parse import urlencode
 
 import notification.utility as notification
 from notification.utility import archive_notify
@@ -98,7 +99,7 @@ from console import forms, utility, services
 from console.reporting import (
     access_trend, report_csv, pending_access_requests, access_queue_rows, queue_csv,
     credential_trend, pending_credentials, credential_queue_rows,
-    repeated_credentials, repeated_credential_report,
+    repeated_credentials, repeated_credential_report, editorial_trend, pending_projects, project_queue_rows,
 )
 from console.forms import ProjectFilterForm, UserFilterForm
 from console.usage import UsageDateForm, usage_csv, usage_metrics, usage_sections
@@ -2894,6 +2895,9 @@ def editorial_stats(request):
     """
     Editorial stats for reviewers.
     """
+    response, operational = _operational_metrics(request, 'editorial')
+    if response is not None:
+        return response
     # We only want the non-legacy projects since they contain the required
     # dates (editor assignment, submission date, etc.)
     projects = PublishedProject.objects.filter(is_legacy=False)
@@ -2961,7 +2965,8 @@ def editorial_stats(request):
         )
 
     return render(request, 'console/editorial_stats.html', {
-                  'submenu': 'editorial', 'stats': stats})
+                  'submenu': 'editorial', 'stats': stats, **operational},
+                  status=200 if operational['report_form'].is_valid() else 400)
 
 
 def _operational_metrics(request, kind):
@@ -2973,25 +2978,36 @@ def _operational_metrics(request, kind):
         return None, context
     start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
     now = timezone.now()
-    report = credential_trend(start, end)
-    queue = pending_credentials(now)
-    row_builder = credential_queue_rows
+    is_editorial = kind == 'editorial'
+    report = editorial_trend(start, end) if is_editorial else credential_trend(start, end)
+    queue = pending_projects(now) if is_editorial else pending_credentials(now)
+    row_builder = project_queue_rows if is_editorial else credential_queue_rows
     if request.GET.get('export') == 'monthly':
         return report_csv(report), context
     if request.GET.get('export') == 'pending':
-        return queue_csv('pending-credentialing', row_builder(queue.iterator(), now)), context
+        return queue_csv(f'pending-{kind}', row_builder(queue.iterator(), now)), context
     params = {'start_date': start.isoformat(), 'end_date': end.isoformat()}
-    from urllib.parse import urlencode
     page = paginate(request, queue, 50)
+    description = (
+        'Oldest submissions first, including projects awaiting authors and projects on hold. '
+        'Elapsed days since initial submission, NOT time in the current stage or a deadline. '
+        'This is the current queue, independent of the selected historical dates.'
+        if is_editorial else
+        'Oldest applications first. Elapsed days since application, not time in the displayed stage. '
+        'Current status is inferred from reference contact and response timestamps. '
+        'This queue is independent of the selected historical dates.'
+    )
     context.update({
         'report': report, 'trend_export_query': urlencode({**params, 'export': 'monthly'}),
-        'queue_title': 'Current pending credential applications',
-        'queue_description': 'Oldest applications first. Elapsed days since application, not time in the displayed '
-                             'stage. Current status is inferred from reference contact and response timestamps.',
+        'queue_title': 'Current submitted projects' if is_editorial else 'Current pending credential applications',
+        'queue_description': description,
         'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
         'queue_rows': row_builder(page, now), 'queue_query': urlencode(params),
-        'queue_links': request.user.has_perm('user.change_credentialapplication'),
+        'queue_links': request.user.has_perm('project.change_activeproject' if is_editorial
+                                                  else 'user.change_credentialapplication'),
     })
+    if is_editorial:
+        return None, context
     users = repeated_credentials(start, end)
     if request.GET.get('export') == 'repeated':
         return report_csv(repeated_credential_report(users.iterator())), context

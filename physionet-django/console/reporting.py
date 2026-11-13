@@ -165,3 +165,52 @@ def repeated_credential_report(users):
                                                      'Rejected', 'Withdrawn', 'Pending'],
             'rows': [[u['user__username'], u['total'], u['accepted'], u['rejected'], u['withdrawn'], u['pending']]
                      for u in users]}
+
+
+def editorial_trend(start_date, end_date):
+    from django.db.models import Exists, Min, OuterRef, Q
+    from project.models import ActiveProject, PublishedProject
+    start, end = date_bounds(start_date, end_date)
+    published_version = PublishedProject.objects.filter(
+        core_project_id=OuterRef('core_project_id'), version=OuterRef('version'),
+    )
+    active = ActiveProject.objects.annotate(published=Exists(published_version)).filter(published=False)
+    values = {month: [] for month in month_labels(start_date, end_date)}
+    invalid = 0
+    for projects in (PublishedProject.objects.filter(is_legacy=False), active):
+        observations = projects.filter(submission_datetime__isnull=False).annotate(
+            first_decision=Min('edit_logs__decision_datetime', filter=Q(edit_logs__decision__in=(0, 1, 2))),
+        ).filter(first_decision__gte=start, first_decision__lt=end)
+        for submitted, decided in observations.values_list('submission_datetime', 'first_decision'):
+            days = (decided - submitted).total_seconds() / 86400
+            if days < 0:
+                invalid += 1
+                continue
+            values[period(decided)].append(days)
+    rows = [[month, median_days(days), len(days)] for month, days in values.items()]
+    return trend_report(
+        'editorial-monthly', 'Time to first editorial decision by month',
+        'One observation per submitted project version, grouped by first decision month. '
+        'Calendar days from initial submission to the earliest recorded accept, revise or reject decision. '
+        'Includes active and archived projects and non-legacy publications; published snapshots take precedence '
+        'over active copies. Missing submission or decision dates are omitted. Pending projects do not contribute '
+        'to medians. Boundary months may be partial; missing medians mean no valid observations. '
+        f'Excluded negative durations: {invalid}.',
+        ['Period (YYYY-MM)', 'Median days to first decision', 'Project versions with a decision'], rows,
+        [('Median days to first decision', 1)],
+    )
+
+
+def pending_projects(now):
+    from project.models import ActiveProject, SubmissionStatus
+    return ActiveProject.objects.filter(
+        submission_status__gt=SubmissionStatus.ARCHIVED, submission_datetime__lte=now,
+    ).order_by('submission_datetime', 'pk')
+
+
+def project_queue_rows(projects, now):
+    from django.urls import reverse
+    return [{'label': project.slug,
+             'status': project.submission_status_label() + (' (on hold)' if project.is_on_hold else ''),
+             'since': project.submission_datetime, 'days': (now - project.submission_datetime).days,
+             'url': reverse('submission_info', args=[project.slug])} for project in projects]
