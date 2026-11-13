@@ -558,14 +558,14 @@ wheels = [
 
 [[package]]
 name = "django-storages"
-version = "1.12.3"
+version = "1.14.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/17/1d/fc2055860a7bbade74659874305e831fa24fe9b8f5a582aa8a0e650352d2/django-storages-1.12.3.tar.gz", hash = "sha256:a475edb2f0f04c4f7e548919a751ecd50117270833956ed5bd585c0575d2a5e7", size = 102633, upload-time = "2021-10-30T02:35:01.919Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ff/d6/2e50e378fff0408d558f36c4acffc090f9a641fd6e084af9e54d45307efa/django_storages-1.14.6.tar.gz", hash = "sha256:7a25ce8f4214f69ac9c7ce87e2603887f7ae99326c316bc8d2d75375e09341c9", size = 87587, upload-time = "2025-04-02T02:34:55.103Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/13/f9/61740c0224454142354914e539d06dd49c6eb8bd863a583a1624acdf6c02/django_storages-1.12.3-py3-none-any.whl", hash = "sha256:204a99f218b747c46edbfeeb1310d357f83f90fa6a6024d8d0a3f422570cee84", size = 44970, upload-time = "2021-10-30T02:34:59.251Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/21/3cedee63417bc5553eed0c204be478071c9ab208e5e259e97287590194f1/django_storages-1.14.6-py3-none-any.whl", hash = "sha256:11b7b6200e1cb5ffcd9962bd3673a39c7d6a6109e8096f0e03d46fab3d3aabd9", size = 33095, upload-time = "2025-04-02T02:34:53.291Z" },
 ]
 
 [package.optional-dependencies]
@@ -1371,7 +1371,7 @@ requires-dist = [
     { name = "django-oauth-toolkit", specifier = ">=3.4.1,<4" },
     { name = "django-sass", specifier = "==1.1.0" },
     { name = "django-static-mathjax", specifier = ">=3.2.2.1,<4" },
-    { name = "django-storages", extras = ["google"], specifier = ">=1.11.1,<2" },
+    { name = "django-storages", extras = ["google"], specifier = ">=1.14.6,<2" },
     { name = "django-tinymce", specifier = ">=5.0.0,<6" },
     { name = "djangorestframework", specifier = "==3.18.2" },
     { name = "geoip2", specifier = ">=5.1.0,<6" },
