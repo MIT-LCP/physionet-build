@@ -458,14 +458,14 @@ wheels = [
 
 [[package]]
 name = "django-autocomplete-light"
-version = "4.0.3"
+version = "5.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b3/5d/0f1f1884cfa5665a20a89497c80fc10726f47d982905c8e36e9ef31cc7e6/django_autocomplete_light-4.0.3.tar.gz", hash = "sha256:1b0dc31aee64cc084358129df60954c05ab7132657873eebc0612e3160307057", size = 99685, upload-time = "2026-06-18T11:55:02.581Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5d/ca/1288c2c7597484340c6ba5e3911c84b552511310633954d7aa496610e45a/django_autocomplete_light-5.0.0.tar.gz", hash = "sha256:115ee3541ee4a7ddd1b92396ea75d0f38d0b91899b0dc17259310975c728b32e", size = 117640, upload-time = "2026-06-18T01:43:28.909Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/22/fa/299a37e7a4baf7bec9c002e4bd1f46cc6e5db8565d8f9883407d471cf2df/django_autocomplete_light-4.0.3-py3-none-any.whl", hash = "sha256:e36a7c570f914cfd793568eea3eb2646da4b64f6d1cd3bea8878cc8b20a18f3f", size = 113477, upload-time = "2026-06-18T11:55:00.869Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/bd/9e9cc8746bf51031a477dd21ee3a08449ab9d94739a242622dc381ebe763/django_autocomplete_light-5.0.0-py3-none-any.whl", hash = "sha256:6fa30efa43e87ff17266e638de04accb11543186e332b09ae43cbccb10e804bb", size = 134025, upload-time = "2026-06-18T01:43:27.178Z" },
 ]
 
 [[package]]
@@ -1365,7 +1365,7 @@ requires-dist = [
     { name = "chardet", specifier = ">=3.0.4,<4" },
     { name = "cryptography", specifier = ">=44.0.1,<51.0.0" },
     { name = "django", specifier = ">=5.2.17,<6" },
-    { name = "django-autocomplete-light", specifier = ">=4.0,<5" },
+    { name = "django-autocomplete-light", specifier = ">=5.0,<6" },
     { name = "django-background-tasks-updated", specifier = ">=1.2.7,<2" },
     { name = "django-cors-headers", specifier = ">=3.14.0,<4" },
     { name = "django-oauth-toolkit", specifier = ">=3.4.1,<4" },
