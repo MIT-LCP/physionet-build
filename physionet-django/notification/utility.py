@@ -693,6 +693,100 @@ def archive_notify(request, project, archive_reason):
                   [email], fail_silently=False)
 
 
+def revision_deadline_reminder_notify(project):
+    """
+    Remind the authors that the revision deadline of a project is
+    approaching.
+    """
+    days_remaining = max(project.revision_days_remaining(), 0)
+    subject = 'Reminder - revisions due by {0}: {1}'.format(
+        defaultfilters.date(project.revision_deadline, 'j F Y'), project.title)
+    content = {
+        'project': project,
+        'days_remaining': days_remaining,
+        'url_prefix': get_url_prefix(None),
+        'signature': settings.EMAIL_SIGNATURE,
+        'project_info': email_project_info(project),
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    for email, name in project.author_contact_info():
+        content['name'] = name
+        body = loader.render_to_string(
+            'notification/email/revision_deadline_reminder_notify.html', content)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
+    for author in project.authors.all():
+        create_notification(
+            recipient=author.user,
+            notification_type=NotificationType.EDITOR_DECISION,
+            message=subject,
+            url=reverse('project_submission', args=(project.slug,)),
+        )
+
+
+def revision_deadline_passed_notify(project, deadline):
+    """
+    Notify the authors and the editor that a project has been archived
+    because it was not resubmitted by its revision deadline.
+    """
+    archive_reason = 'The project was not resubmitted by the revision deadline of {0}.'.format(
+        defaultfilters.date(deadline, 'j F Y'))
+    archive_notify(None, project, archive_reason)
+
+    if project.editor:
+        subject = 'Revision deadline passed, project archived: {0}'.format(project.title)
+        body = loader.render_to_string(
+            'notification/email/revision_deadline_passed_editor_notify.html', {
+                'name': project.editor.get_full_name(),
+                'project': project,
+                'deadline': deadline,
+                'url_prefix': get_url_prefix(None),
+                'signature': settings.EMAIL_SIGNATURE,
+                'project_info': email_project_info(project),
+                'footer': email_footer(),
+                'SITE_NAME': settings.SITE_NAME,
+            })
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [project.editor.email], fail_silently=False)
+
+
+def revision_deadline_changed_notify(request, project, reopened=False):
+    """
+    Notify the authors that the editor has set a new revision deadline,
+    either by extending it or by reopening an archived project.
+    """
+    if reopened:
+        subject = 'Project reopened for revisions: {0}'.format(project.title)
+    else:
+        subject = 'Revision deadline changed: {0}'.format(project.title)
+    content = {
+        'project': project,
+        'reopened': reopened,
+        'url_prefix': get_url_prefix(request),
+        'signature': settings.EMAIL_SIGNATURE,
+        'project_info': email_project_info(project),
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    for email, name in project.author_contact_info():
+        content['name'] = name
+        body = loader.render_to_string(
+            'notification/email/revision_deadline_changed_notify.html', content)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
+    for author in project.authors.all():
+        create_notification(
+            recipient=author.user,
+            notification_type=NotificationType.EDITOR_DECISION,
+            message=subject,
+            url=reverse('project_submission', args=(project.slug,)),
+            actor=project.editor,
+        )
+
+
 def storage_request_notify(request, project):
     """
     Notify administrators when a storage request is received

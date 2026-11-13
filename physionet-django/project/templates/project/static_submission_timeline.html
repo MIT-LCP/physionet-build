@@ -73,7 +73,7 @@
           {% if e.decision == 0 %}
             <p>The editor rejected the submission.</p>
           {% elif e.decision == 1 %}
-            <p>The editor requested a resubmission with revisions.</p>
+            <p>The editor requested a resubmission with {{ e.get_revision_type_display|lower|default:"revisions" }}.</p>
           {% elif e.decision == 2 %}
             <p>The editor accepted the submission.</p>
           {% endif %}

@@ -325,6 +325,15 @@ MAX_REFERENCE_VERIFICATION_DAYS_BEFORE_AUTO_REMINDER = config('MAX_REFERENCE_VER
                                                               cast=int, default=15)
 ENABLE_CREDENTIALING_AUTO_REJECTION = config('ENABLE_CREDENTIALING_AUTO_REJECTION', default=False, cast=bool)
 
+# Time allowed for authors to resubmit a project after an editor requests
+# revisions. Projects that are not resubmitted by the deadline are archived.
+REVISION_DEADLINE_DAYS_MINOR = config('REVISION_DEADLINE_DAYS_MINOR', cast=int, default=90)
+REVISION_DEADLINE_DAYS_MAJOR = config('REVISION_DEADLINE_DAYS_MAJOR', cast=int, default=180)
+# Authors are reminded this many days before the revision deadline
+REVISION_REMINDER_DAYS = (30, 7)
+# Longest deadline an editor can set when extending or reopening a project
+REVISION_DEADLINE_MAX_DAYS = 365
+
 DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT = config('DEFAULT_NUMBER_OF_APPLICATIONS_TO_REJECT', default=5, cast=int)
 DEFAULT_NUMBER_OF_APPLICATIONS_TO_REMIND = config('DEFAULT_NUMBER_OF_APPLICATIONS_TO_REMIND', default=5, cast=int)
 

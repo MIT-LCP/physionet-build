@@ -32,6 +32,17 @@
 
 {% block local_js_bottom %}
 <script src="{% static 'custom/js/enable-popover.js' %}?v=3"></script>
+<script>
+  // The revision type only applies when requesting revisions
+  $(function() {
+    const revisionType = $('#id_revision_type').closest('.form-group');
+    function toggleRevisionType() {
+      revisionType.toggle($('#id_decision').val() === '1');
+    }
+    $('#id_decision').on('change', toggleRevisionType);
+    toggleRevisionType();
+  });
+</script>
 {% if project.editor == user %}
 <script>
   function set_editor_text(){

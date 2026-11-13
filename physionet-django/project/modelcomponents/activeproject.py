@@ -34,7 +34,7 @@ from project.modelcomponents.metadata import (
     UploadedDocument,
 )
 from project.modelcomponents.publishedproject import PublishedProject
-from project.modelcomponents.submission import CopyeditLog, EditLog, SubmissionInfo
+from project.modelcomponents.submission import CopyeditLog, EditLog, RevisionType, SubmissionInfo
 from project.modelcomponents.unpublishedproject import UnpublishedProject
 from project.reference_citations import citation_problems
 import project.tasks as tasks
@@ -95,6 +95,17 @@ class ArchiveReason(models.IntegerChoices):
     REJECTED = 0, 'Rejected by editor'
     DELETED_BY_AUTHOR = 1, 'Deleted by author'
     ARCHIVED_BY_EDITOR = 2, 'Archived by editor'
+    REVISION_DEADLINE_PASSED = 3, 'Revision deadline passed'
+
+    @classmethod
+    def reopenable(cls):
+        """
+        Reasons for which an editor may reopen an archived project.
+
+        Projects archived for these reasons were awaiting author
+        revisions when they were archived, and their files were kept.
+        """
+        return (cls.ARCHIVED_BY_EDITOR, cls.REVISION_DEADLINE_PASSED)
 
 
 class SubmissionStatus(IntEnum):
@@ -150,6 +161,14 @@ class SubmissionStatus(IntEnum):
     they are ready, the submitting author may resubmit the project,
     which moves it back to NEEDS_DECISION.
 
+    The authors must resubmit before revision_deadline, which is set
+    from the type of revisions requested (minor or major) and may be
+    extended by an editor.  The manage_revision_deadlines command
+    reminds authors as the deadline approaches, and archives projects
+    that have not been resubmitted once it has passed.  An editor may
+    reopen such a project, which returns it to NEEDS_RESUBMISSION with
+    a new deadline.
+
     40: NEEDS_COPYEDIT ("Awaiting Copyedit")
     ----------------------------------------
     The editor has accepted the project.  In this stage, the editor
@@ -196,6 +215,12 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     is_on_hold = models.BooleanField(default=False)
     archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
     archive_reason_text = models.TextField(null=True, blank=True)
+
+    # Deadline for the authors to resubmit, while awaiting revisions.
+    revision_deadline = models.DateTimeField(null=True, blank=True)
+    # Number of deadline reminders (settings.REVISION_REMINDER_DAYS) that
+    # have been sent, or skipped, for the current revision deadline.
+    revision_reminders_sent = models.PositiveSmallIntegerField(default=0, db_default=0)
 
     # Scheduled publication. When scheduled_publish_datetime is set, the
     # project will be published automatically at that time, using the
@@ -336,6 +361,88 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def submission_days_remaining(self):
         return (self.submission_deadline() - timezone.now()).days
+
+    def revision_days_remaining(self):
+        """
+        Whole days left until the revision deadline, or None if there is no
+        deadline. Negative once the deadline has passed.
+        """
+        if not self.revision_deadline:
+            return None
+        return (self.revision_deadline - timezone.now()).days
+
+    @staticmethod
+    def revision_reminders_due(deadline, now=None):
+        """
+        Return the number of deadline reminders that are due by now, for a
+        project with the given revision deadline.
+        """
+        now = now or timezone.now()
+        return sum(1 for days in settings.REVISION_REMINDER_DAYS
+                   if deadline - timedelta(days=days) <= now)
+
+    def default_revision_deadline(self, revision_type, now=None):
+        """
+        Return the revision deadline for the given type of revisions.
+        """
+        now = now or timezone.now()
+        if revision_type == RevisionType.MAJOR:
+            days = settings.REVISION_DEADLINE_DAYS_MAJOR
+        else:
+            days = settings.REVISION_DEADLINE_DAYS_MINOR
+        return now + timedelta(days=days)
+
+    def set_revision_deadline(self, deadline):
+        """
+        Set a new revision deadline.
+
+        Reminders that would already be due under the new deadline are
+        marked as sent, because the authors are told about the new deadline
+        when it is set.
+        """
+        self.revision_deadline = deadline
+        self.revision_reminders_sent = self.revision_reminders_due(deadline)
+
+    def request_revisions(self, revision_type, now=None):
+        """
+        Move the project to NEEDS_RESUBMISSION, with a deadline for the
+        authors to resubmit. Does not save the project.
+        """
+        now = now or timezone.now()
+        self.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+        self.revision_request_datetime = now
+        self.set_revision_deadline(self.default_revision_deadline(revision_type, now))
+
+    def extend_revision_deadline(self, deadline):
+        """
+        Change the revision deadline of a project awaiting revisions.
+        """
+        if self.submission_status != SubmissionStatus.NEEDS_RESUBMISSION:
+            raise Exception('ActiveProject is not awaiting revisions')
+        self.set_revision_deadline(deadline)
+        self.save(update_fields=['revision_deadline', 'revision_reminders_sent'])
+
+    def is_reopenable(self):
+        """
+        Whether an editor may return the archived project to the authors
+        for revisions.
+        """
+        return (self.submission_status == SubmissionStatus.ARCHIVED
+                and self.archive_reason in ArchiveReason.reopenable())
+
+    def reopen_for_revisions(self, deadline):
+        """
+        Return an archived project to the authors for revisions, with a new
+        revision deadline.
+        """
+        if not self.is_reopenable():
+            raise Exception('ActiveProject cannot be reopened')
+        self.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+        self.archive_reason = None
+        self.archive_reason_text = None
+        self.archive_datetime = None
+        self.set_revision_deadline(deadline)
+        self.save()
 
     def submission_status_label(self):
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
@@ -662,6 +769,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         with transaction.atomic():
             self.submission_status = SubmissionStatus.NEEDS_DECISION
             self.resubmission_datetime = timezone.now()
+            self.revision_deadline = None
+            self.revision_reminders_sent = 0
             self.save()
             # Create a new edit log
             EditLog.objects.create(

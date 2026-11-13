@@ -47,6 +47,13 @@
           {{ notes|task_count_badge|safe }}
         </a>
       </li>
+      {% if can_manage_revision_deadline %}
+      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION or project.is_reopenable %}
+      <li class="nav-item">
+        <a class="nav-link" id="revision-deadline-tab" data-toggle="tab" href="#revision-deadline" role="tab" aria-controls="revision-deadline" aria-selected="false">{% if project.is_reopenable %}Reopen Project{% else %}Revision Deadline{% endif %}</a>
+      </li>
+      {% endif %}
+      {% endif %}
       {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION %}
       {% if project.editor == user or perms.project.can_archive_project %}
       <li class="nav-item">
@@ -77,6 +84,11 @@
           <br>Status: {{ project.submission_status_label }}
           {% if project.is_on_hold %}
             <span class="badge badge-warning">On Hold</span>
+          {% endif %}
+          {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION %}
+            <br>Revision deadline: {% include "console/revision_deadline_badge.html" %}
+          {% elif project.submission_status == SubmissionStatus.ARCHIVED and project.archive_reason is not None %}
+            <br>Archived: {{ project.archive_datetime|date }} ({{ project.get_archive_reason_display }})
           {% endif %}
           {% if project.latest_reminder %}
             <br>Latest reminder email sent on: {{ project.latest_reminder }}
@@ -442,6 +454,33 @@
           </button>
         </form>
       </div>
+
+      {# Revision deadline / reopen project #}
+      {% if can_manage_revision_deadline %}
+      {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION or project.is_reopenable %}
+      <div class="tab-pane fade" id="revision-deadline" role="tabpanel" aria-labelledby="revision-deadline-tab">
+        {% if project.is_reopenable %}
+          <p>This project was archived on {{ project.archive_datetime|date }} ({{ project.get_archive_reason_display|lower }}).
+            You can reopen it so that the authors can make revisions and resubmit. Choose a new deadline for resubmission.</p>
+        {% else %}
+          <p>Current deadline: {% include "console/revision_deadline_badge.html" %}</p>
+          <p>If the project is not resubmitted by the deadline, it will be archived automatically.
+            Authors are reminded {% for days in revision_reminder_days %}{{ days }}{% if not forloop.last %} and {% endif %}{% endfor %} days before the deadline.
+            You can extend the deadline below, for example if the authors have asked for more time.</p>
+        {% endif %}
+        <form action="{% url 'submission_info' project.slug %}" method="POST" id="revision_deadline_form">
+          {% csrf_token %}
+          {% include "form_snippet.html" with form=revision_deadline_form %}
+          <p class="text-muted">The authors will be emailed the new deadline, and a note will be added to the internal notes.</p>
+          {% if project.is_reopenable %}
+            <button type="submit" class="btn btn-primary" name="reopen_for_revisions" onclick="return confirm('Reopen this project for author revisions?');">Reopen for Revisions</button>
+          {% else %}
+            <button type="submit" class="btn btn-primary" name="extend_revision_deadline">Change Deadline</button>
+          {% endif %}
+        </form>
+      </div>
+      {% endif %}
+      {% endif %}
 
       {# Archive Project #}
       {% if project.submission_status == SubmissionStatus.NEEDS_RESUBMISSION %}

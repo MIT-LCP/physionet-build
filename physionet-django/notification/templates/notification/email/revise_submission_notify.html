@@ -9,6 +9,10 @@ We ask that you address the following comments before we proceed:
 {{ edit_log.editor_comments }}
 
 Once these comments have been addressed, please resubmit your project.
+{% if project.revision_deadline %}
+{% if edit_log.revision_type %}The editor has requested {{ edit_log.get_revision_type_display|lower }}. {% endif %}Please resubmit your project by {{ project.revision_deadline|date:"j F Y" }}. If the project has not been resubmitted by then, it will be archived. If you need more time, please contact the editor before the deadline.
+{% endif %}
+You can resubmit your project at: {{ url_prefix }}{% url 'project_submission' project.slug %}
 
 {{ signature }}
 

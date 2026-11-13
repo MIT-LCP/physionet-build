@@ -153,6 +153,7 @@
               <th>Submitting Author</th>
               <th>Submitted</th>
               <th>Revision requested</th>
+              <th>Deadline</th>
               <th>Latest reminder</th>
               <th>Action</th>
             </tr>
@@ -164,6 +165,7 @@
               <td><a href="{% url 'user_management' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
               <td>{{ project.submission_datetime|date }}</td>
               <td>{{ project.revision_request_datetime|date }}</td>
+              <td>{% include "console/revision_deadline_badge.html" %}</td>
               <td>{{ project.latest_reminder|date }}</td>
               <td>
                 <div class="d-flex align-items-center">

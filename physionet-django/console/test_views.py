@@ -41,6 +41,7 @@ from project.models import (
     PublishedProject,
     Reference,
     ReviewerInvitation,
+    RevisionType,
     StorageRequest,
     SubmissionStatus,
     UploadAgreement,
@@ -603,12 +604,14 @@ class TestState(TestMixin):
         # Revise with changes
         response = self.client.post(reverse(
             'edit_submission', args=(project.slug,)), data={
+            'revision_type': RevisionType.MINOR,
             'soundly_produced':1, 'well_described':1, 'open_format':1,
             'data_machine_readable':0, 'reusable':1, 'no_phi':0,
             'pn_suitable':1, 'editor_comments':'Remove the phi.', 'decision':1
             })
         project = ActiveProject.objects.get(id=project.id)
         self.assertTrue(project.author_editable())
+        self.assertIsNotNone(project.revision_deadline)
         # Resubmit
         self.client.login(username='rgmark', password='Tester11!')
         response = self.client.post(reverse(

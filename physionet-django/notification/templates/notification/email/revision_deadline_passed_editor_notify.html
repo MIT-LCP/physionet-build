@@ -1,0 +1,13 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+The project "{{ project.title }}" was not resubmitted by its revision deadline of {{ deadline|date:"j F Y" }}, so it has been archived automatically. The authors have been told.
+
+If appropriate, you can reopen the project for revisions with a new deadline at: {{ url_prefix }}{% url 'submission_info' project.slug %}?tab=revision-deadline
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

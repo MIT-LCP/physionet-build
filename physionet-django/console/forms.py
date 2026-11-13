@@ -1,3 +1,4 @@
+import datetime
 import logging
 from datetime import timedelta
 import re
@@ -26,6 +27,7 @@ from project.models import (
     PublishedAuthor,
     PublishedProject,
     PublishedPublication,
+    RevisionType,
     SubmissionStatus,
     exists_project_slug,
     InternalNote,
@@ -182,9 +184,10 @@ class EditSubmissionForm(forms.ModelForm):
             'editor_comments',
             'auto_doi',
             'decision',
+            'revision_type',
         )
 
-        labels = EditLog.COMMON_LABELS
+        labels = {**EditLog.COMMON_LABELS, 'revision_type': 'Revision type'}
 
         auto_doi = forms.BooleanField(required=False, initial=True)
 
@@ -198,6 +201,7 @@ class EditSubmissionForm(forms.ModelForm):
             'pn_suitable': forms.Select(choices=YES_NO_UNDETERMINED),
             'editor_comments': forms.Textarea(),
             'decision': forms.Select(choices=SUBMISSION_RESPONSE_CHOICES),
+            'revision_type': forms.Select(),
             'ethics_included': forms.Select(choices=YES_NO_UNDETERMINED),
             'auto_doi': forms.HiddenInput(),
         }
@@ -233,12 +237,29 @@ class EditSubmissionForm(forms.ModelForm):
         for f in self.quality_assurance_fields:
             self.fields[f].required = True
 
+        # Show how long the authors will have to resubmit
+        self.fields['revision_type'].choices = [
+            ('', '-----------'),
+            (RevisionType.MINOR, '{} ({} days to resubmit)'.format(
+                RevisionType.MINOR.label, settings.REVISION_DEADLINE_DAYS_MINOR)),
+            (RevisionType.MAJOR, '{} ({} days to resubmit)'.format(
+                RevisionType.MAJOR.label, settings.REVISION_DEADLINE_DAYS_MAJOR)),
+        ]
+
     def clean(self):
         """
-        May not accept if the quality assurance fields are not all True
+        May not accept if the quality assurance fields are not all True.
+        The revision type is required when requesting revisions.
         """
         if self.errors:
             return
+
+        if self.cleaned_data['decision'] == 1:
+            if not self.cleaned_data.get('revision_type'):
+                self.add_error('revision_type', 'Please choose whether minor or major revisions are needed.')
+                return
+        else:
+            self.cleaned_data['revision_type'] = None
 
         if self.cleaned_data['decision'] == 2:
             for field in self.quality_assurance_fields:
@@ -263,8 +284,7 @@ class EditSubmissionForm(forms.ModelForm):
                 project.reject()
             # Resubmit with revisions
             elif edit_log.decision == 1:
-                project.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
-                project.revision_request_datetime = now
+                project.request_revisions(edit_log.revision_type, now)
                 project.latest_reminder = now
                 project.save()
             # Accept
@@ -308,6 +328,42 @@ class EditSubmissionForm(forms.ModelForm):
                         register_doi(payload, project.core_project)
 
             return edit_log
+
+
+class RevisionDeadlineForm(forms.Form):
+    """
+    For an editor to set a new revision deadline, either to extend the
+    deadline of a project awaiting revisions or to reopen an archived
+    project for revisions.
+    """
+    revision_deadline = forms.DateField(
+        label='New revision deadline',
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text='The project will be archived if it has not been resubmitted by the end of this day.')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        today = timezone.localdate()
+        widget_attrs = self.fields['revision_deadline'].widget.attrs
+        widget_attrs['min'] = (today + timedelta(days=1)).isoformat()
+        widget_attrs['max'] = (today + timedelta(days=settings.REVISION_DEADLINE_MAX_DAYS)).isoformat()
+
+    def clean_revision_deadline(self):
+        date = self.cleaned_data['revision_deadline']
+        today = timezone.localdate()
+        if date <= today:
+            raise forms.ValidationError('The deadline must be in the future.')
+        if date > today + timedelta(days=settings.REVISION_DEADLINE_MAX_DAYS):
+            raise forms.ValidationError(
+                'The deadline must be no more than {} days from today.'.format(settings.REVISION_DEADLINE_MAX_DAYS))
+        return date
+
+    def deadline_datetime(self):
+        """
+        Return the deadline as the end of the chosen day, in the site time zone.
+        """
+        date = self.cleaned_data['revision_deadline']
+        return timezone.make_aware(datetime.datetime.combine(date, datetime.time.max.replace(microsecond=0)))
 
 
 class CopyeditForm(forms.ModelForm):

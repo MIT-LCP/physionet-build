@@ -11,7 +11,7 @@
     {% if decision == 0 %}
       <p>You have rejected the submission of: {{ project.title }}.</p>
     {% elif decision == 1 %}
-      <p>You have requested revisions for: {{ project.title }}. The submitting author is to make revisions and resubmit. You will be notified when they have done so.</p>
+      <p>You have requested {{ edit_log.get_revision_type_display|lower|default:"revisions" }} for: {{ project.title }}. The submitting author is to make revisions and resubmit by {{ project.revision_deadline|date }}. You will be notified when they have done so. If the project is not resubmitted by the deadline, it will be archived automatically.</p>
     {% else %}
       <p>You have accepted the submission of: {{ project.title }}. The next step is for you to <a href="{% url 'copyedit_submission' project.slug %}">copyedit</a> the content.</p>
     {% endif %}
