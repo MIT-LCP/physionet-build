@@ -12,7 +12,6 @@ dependencies = [
     "django>=5.2.17,<6",
     "django-autocomplete-light>=4.0,<5",
     "django-background-tasks-updated>=1.2.7,<2",
-    "django-q2==1.6.2",
     "django-static-mathjax>=3.2.2.1,<4",
     "django-tinymce>=5.0.0,<6",
     "djangorestframework==3.18.2",
