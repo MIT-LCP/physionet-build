@@ -392,3 +392,28 @@ def credential_stage_report(start_date, end_date):
         'rows': [[name, len(values[i]), median_days(values[i]), percentile(values[i], 0.9), missing[i], negative[i]]
                  for i, (name, _, _) in enumerate(stages)],
     }
+
+
+def credential_flow_report(start_date, end_date):
+    from user.models import CredentialApplication
+    start, end = date_bounds(start_date, end_date)
+    counts = {month: [0, 0, 0] for month in month_labels(start_date, end_date)}
+    apps = CredentialApplication.objects.all()
+    for submitted in apps.filter(application_datetime__gte=start, application_datetime__lt=end).values_list(
+            'application_datetime', flat=True).iterator(chunk_size=2000):
+        counts[period(submitted)][0] += 1
+    for decided, status in apps.filter(
+            decision_datetime__gte=start, decision_datetime__lt=end, status__in=(1, 2, 4)).values_list(
+                'decision_datetime', 'status').iterator(chunk_size=2000):
+        counts[period(decided)][2 if status == 1 else 1] += 1
+    rows = [[month, received, accepted, rejected, accepted + rejected]
+            for month, (received, accepted, rejected) in counts.items()]
+    return trend_report(
+        'credentialing-flow', 'Applications received versus decisions by month',
+        'Applications are counted by submission date; decisions by decision date. Accepted includes later '
+        'revocations. These are different cohorts, so their difference is not a reconstructed backlog or '
+        'an approval rate. Withdrawals are not decisions. Recorded decisions count even if their duration '
+        'is invalid or unavailable; the decision-time chart excludes invalid durations.',
+        ['Period (YYYY-MM)', 'Applications received', 'Accepted decisions', 'Rejected decisions', 'Decisions recorded'],
+        rows, [('Applications received', 1), ('Decisions recorded', 4)], start_date, end_date,
+    )

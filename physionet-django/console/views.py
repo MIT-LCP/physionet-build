@@ -100,7 +100,7 @@ from console import forms, utility, services
 from console.reporting import (
     access_trend, report_csv, pending_access_requests, access_queue_rows, queue_csv,
     credential_trend, pending_credentials, credential_queue_rows, credential_annual_stats, credential_annual_report,
-    credential_queue_summary, filter_credential_queue, CREDENTIAL_STAGES, CREDENTIAL_AGES, credential_stage_report,
+    credential_queue_summary, filter_credential_queue, CREDENTIAL_STAGES, CREDENTIAL_AGES, credential_stage_report, credential_flow_report,
     repeated_credentials, repeated_credential_report, editorial_trend, pending_projects, project_queue_rows,
 )
 from console.forms import ProjectFilterForm, UserFilterForm
@@ -2986,6 +2986,8 @@ def _operational_metrics(request, kind):
     row_builder = project_queue_rows if is_editorial else credential_queue_rows
     queue_filters = {}
     if not is_editorial:
+        if request.GET.get('export') == 'flow':
+            return report_csv(credential_flow_report(start, end)), context
         if request.GET.get('export') == 'stages':
             return report_csv(credential_stage_report(start, end)), context
         stage, age = request.GET.get('queue_stage', ''), request.GET.get('queue_age', '')
@@ -3027,7 +3029,9 @@ def _operational_metrics(request, kind):
     })
     if is_editorial:
         return None, context
-    context.update({'stage_report': credential_stage_report(start, end),
+    context.update({'flow_report': credential_flow_report(start, end),
+                    'flow_query': urlencode({**params, 'export': 'flow'}),
+                    'stage_report': credential_stage_report(start, end),
                     'stage_query': urlencode({**params, 'export': 'stages'})})
     users = repeated_credentials(start, end)
     if request.GET.get('export') == 'repeated':

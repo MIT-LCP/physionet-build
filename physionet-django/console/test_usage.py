@@ -581,3 +581,18 @@ class TestUsageMetrics(TestCase):
         response = self.client.get(reverse('credentialing_stats'), {
             'start_date': '2020-01-01', 'end_date': '2020-12-31', 'export': 'stages'})
         self.assertEqual(len(list(csv.DictReader(StringIO(response.content.decode())))), 4)
+
+    def test_inflow_and_decisions_use_different_event_dates(self):
+        from console.reporting import credential_flow_report
+        CredentialApplication.objects.all().delete()
+        self.credential(2, submitted=timezone.make_aware(datetime(2019, 12, 1)), decided=self.when)
+        self.credential(3, submitted=self.when, decided=self.when)
+        self.credential(4, submitted=self.when, decided=self.when + timezone.timedelta(days=1))
+        report = credential_flow_report(date(2020, 6, 1), date(2020, 7, 31))
+        self.assertEqual(report['rows'], [
+            ['2020-06', 2, 2, 0, 2, 'Full month'], ['2020-07', 0, 0, 0, 0, 'Full month'],
+        ])
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('credentialing_stats'), {
+            'start_date': '2020-06-01', 'end_date': '2020-07-31', 'export': 'flow'})
+        self.assertEqual(list(csv.reader(StringIO(response.content.decode())))[0], report['headers'])
