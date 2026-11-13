@@ -1,5 +1,5 @@
 <div class="card mb-3">
-  <div class="card-header">{{ report.title }}</div>
+  <div class="card-header">{{ report.title }}{% include 'console/metrics_help.html' with title=report.title description=report.description %}</div>
   <div class="card-body">
     {% include 'console/metrics_definition.html' with summary=report.summary description=report.description %}
     {% if report.warning %}<p class="text-warning">{{ report.warning }}</p>{% endif %}
@@ -20,7 +20,7 @@
 
 {% if report.volume %}
 <div class="card mb-3">
-  <div class="card-header">{{ report.volume.title }}</div>
+  <div class="card-header">{{ report.volume.title }}{% include 'console/metrics_help.html' with title=report.volume.title description=report.volume.description %}</div>
   <div class="card-body">
     {% include 'console/metrics_definition.html' with summary=report.volume.summary description=report.volume.description %}
     <div data-metrics-chart="{{ report.volume.id }}" data-label="{{ report.volume.title }}. Exact values are in the decision-time table above."></div>

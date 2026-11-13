@@ -1,7 +1,8 @@
 <div class="card mb-3">
-  <div class="card-header">{{ queue_title }}</div>
+  <div class="card-header">{{ queue_title }}{% include 'console/metrics_help.html' with title=queue_title description=queue_description %}</div>
   <div class="card-body">
-    <p>{{ queue_description }} Snapshot: {{ queue_now|date:"Y-m-d H:i T" }}. Total: {{ queue_total }}.</p>
+    <noscript><p>{{ queue_description }}</p></noscript>
+    <p>Snapshot: {{ queue_now|date:"Y-m-d H:i T" }}. Total: {{ queue_total }}.</p>
     {% if queue_filters %}
     <form method="get" action="{% if queue_anchor %}#{{ queue_anchor }}{% endif %}" class="form-inline mb-3">
       {% for name, value in queue_history_params.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}

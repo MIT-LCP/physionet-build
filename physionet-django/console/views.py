@@ -3069,7 +3069,13 @@ def credentialing_stats(request):
         return response
 
     return render(request, 'console/credentialing_stats.html',
-                  {'submenu': 'credential', 'stats': stats, **operational},
+                  {'submenu': 'credential', 'stats': stats, **operational,
+                   'annual_definition': 'Each application is counted once under its current status. '
+                       'Handled = accepted + revoked + rejected; approved / handled includes later-revoked credentials. '
+                       'Decision medians include handled applications with valid decision dates and exclude pending '
+                       'and withdrawn cases. Durations use fractional calendar days or hours, including zero; '
+                       'missing and negative intervals are excluded. Each median shows its valid observation count '
+                       '(n). Monthly charts instead group by decision month.'},
                   status=200 if operational['report_form'].is_valid() else 400)
 
 

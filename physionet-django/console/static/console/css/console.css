@@ -519,3 +519,24 @@ html {
 .qa-checklist .qa-label {
   display: inline;
 }
+
+/* Calculation help beside metric titles. */
+.modern-ui .metrics-help {
+  color: #5a6268;
+  font-size: 1.1rem;
+  line-height: 1;
+  vertical-align: middle;
+  text-decoration: none;
+}
+.modern-ui .metrics-help:hover,
+.modern-ui .metrics-help:focus {
+  color: var(--primary-color, #DA1259);
+}
+.modern-ui .metrics-help:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  border-radius: 50%;
+}
+.metrics-popover {
+  max-width: min(26rem, calc(100vw - 2rem));
+}
