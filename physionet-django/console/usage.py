@@ -247,16 +247,35 @@ ACCESS_OVERVIEW = {
 }
 
 
+SUBMISSION_OVERVIEW = {
+    'Distinct declared institution names among submitting authors', 'Submitted project versions',
+    'Unique submitting authors', 'Submitters with an approved credential application',
+    'Submitted versions without a recorded submitting author',
+}
+
+
 def usage_sections(sections, group):
-    """Keep request decisions separate from observed file-access viewers."""
+    """Each report presents one population; the CSV follows the same partition."""
+    def overview_group(label):
+        if label in ACCESS_OVERVIEW:
+            return 'access'
+        if label in SUBMISSION_OVERVIEW:
+            return 'submissions'
+        return 'usage'
+
     result = []
     for section in sections:
+        # The access page's monthly chart already provides this table and CSV.
+        if group == 'access' and section['title'] == 'Dataset access requests by month':
+            continue
         if section['title'] == 'Overview':
-            rows = [row for row in section['rows']
-                    if (row['label'] in ACCESS_OVERVIEW) == (group == 'access')]
-            result.append({**section, 'rows': rows})
+            result.append({**section, 'rows': [row for row in section['rows']
+                                              if overview_group(row['label']) == group]})
         else:
-            is_access = section['title'].startswith(('Dataset access requests', 'Approved dataset users'))
-            if is_access == (group == 'access'):
+            title = section['title']
+            section_group = ('access' if title.startswith(('Dataset access requests', 'Approved dataset users'))
+                             else 'submissions' if title.startswith(('Submitting authors', 'Submissions by'))
+                             else 'usage')
+            if section_group == group:
                 result.append(section)
     return result

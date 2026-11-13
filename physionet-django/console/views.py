@@ -31,6 +31,7 @@ from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.decorators import method_decorator
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
 from html2text import html2text
@@ -2987,7 +2988,7 @@ def _operational_metrics(request, kind):
     if request.GET.get('export') == 'pending':
         return queue_csv(f'pending-{kind}', row_builder(queue.iterator(), now)), context
     params = {'start_date': start.isoformat(), 'end_date': end.isoformat()}
-    page = paginate(request, queue, 50)
+    page = paginate(request, queue, 50 if is_editorial else 5)
     description = (
         'Oldest submissions first, including projects awaiting authors and projects on hold. '
         'Elapsed days since initial submission, NOT time in the current stage or a deadline. '
@@ -3011,8 +3012,13 @@ def _operational_metrics(request, kind):
     users = repeated_credentials(start, end)
     if request.GET.get('export') == 'repeated':
         return report_csv(repeated_credential_report(users.iterator())), context
-    context.update({'repeated': repeated_credential_report(users[:50]), 'repeated_total': users.count(),
-                    'repeated_query': urlencode({**params, 'export': 'repeated'})})
+    repeated_page = Paginator(users, 5).get_page(request.GET.get('repeated_page'))
+    context.update({
+        'repeated': repeated_credential_report(repeated_page),
+        'repeated_total': repeated_page.paginator.count, 'repeated_page': repeated_page,
+        'repeated_query': urlencode({**params, 'export': 'repeated'}),
+        'repeated_page_query': urlencode({**params, 'page': request.GET.get('page', 1)}),
+    })
     return None, context
 
 
@@ -3098,6 +3104,8 @@ def credentialing_stats(request):
 
 @console_permission_required('project.can_view_stats')
 def submission_stats(request):
+    if request.GET.get('table') == 'contributors':
+        return _usage_stats(request, 'submissions')
     export_table = request.GET.get('table', 'monthly')
     if request.GET.get('export') == 'csv' and export_table not in ('monthly', 'yearly'):
         raise Http404('Unknown statistics table')
@@ -3204,6 +3212,7 @@ def _usage_stats(request, group):
     form = UsageDateForm(data)
     sections = None
     export_query = ''
+    date_query = ''
     report = None
     trend_export_query = ''
     queue_context = {}
@@ -3226,6 +3235,7 @@ def _usage_stats(request, group):
         }
     if form.is_valid():
         start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+        date_query = urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()})
         sections = usage_sections(usage_metrics(start, end), group)
         if group == 'access':
             report = access_trend(start, end)
@@ -3233,8 +3243,9 @@ def _usage_stats(request, group):
                 return report_csv(report)
         if request.GET.get('export') == 'csv':
             response = usage_csv(sections, start, end)
-            if group == 'access':
-                response['Content-Disposition'] = 'attachment; filename="access-request-stats.csv"'
+            filenames = {'access': 'access-request-stats.csv', 'submissions': 'submission-contributors-stats.csv',
+                         'usage': 'usage-stats.csv'}
+            response['Content-Disposition'] = f'attachment; filename="{filenames[group]}"'
             return response
         params = request.GET.copy()
         params['start_date'] = start.isoformat()
@@ -3246,7 +3257,8 @@ def _usage_stats(request, group):
     return render(request, 'console/usage_stats.html', {
         'form': form, 'sections': sections, 'export_query': export_query,
         'report': report, 'trend_export_query': trend_export_query,
-        'report_title': 'Access requests' if group == 'access' else 'Usage', 'report_group': group,
+        'report_title': {'access': 'Access requests', 'submissions': 'Submission contributors', 'usage': 'Usage'}[group],
+        'report_group': group, 'date_query': date_query,
         **queue_context,
     }, status=200 if sections is not None else 400)
 

@@ -7,12 +7,13 @@
 <div class="card mb-3">
   <div class="card-header">{{ report_title }}</div>
   <div class="card-body">
-    <nav class="mb-3" aria-label="Usage reports">
-      <a href="{% url 'usage_stats' %}?start_date={{ form.start_date.value }}&amp;end_date={{ form.end_date.value }}">Usage</a>
-      <span aria-hidden="true"> · </span>
-      <a href="{% url 'access_request_stats' %}?start_date={{ form.start_date.value }}&amp;end_date={{ form.end_date.value }}">Access requests</a>
-    </nav>
+    {% if report_group == 'submissions' %}
+    <p><a href="{% url 'submission_stats' %}">Submission volumes</a> · Contributor profiles</p>
+    <p>Unique submitting authors of project versions first submitted during the selected dates.
+      Published snapshots take precedence over active copies; revisions are not counted again.</p>
+    {% endif %}
     <form method="get" class="mb-4">
+      {% if report_group == 'submissions' %}<input type="hidden" name="table" value="contributors">{% endif %}
       {{ form.non_field_errors }}
       <div class="form-row align-items-end">
         <div class="form-group col-sm-4">
@@ -35,7 +36,7 @@
     <p class="text-muted">Contributor-reviewed dataset requests only. Requests are grouped by submission date;
       approvals by decision date, including later revocations and expiry. These are different cohorts and must not
       be interpreted as an approval rate or a count of users with current access. DUA signatures are not included.</p>
-    {% else %}
+    {% elif report_group == 'usage' %}
     <p class="text-muted mb-2">
       Dataset access counts registered users viewing file-access pages. Access-log sessions overlapping the
       selected dates are included. Published versions are combined except in the per-version table.

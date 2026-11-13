@@ -355,6 +355,8 @@ class TestUsageMetrics(TestCase):
         self.credential(accepted, decided=self.when + timezone.timedelta(hours=36))
         self.credential(accepted, decided=self.when + timezone.timedelta(days=3))
         self.credential(CredentialApplication.Status.REJECTED, decided=self.when + timezone.timedelta(days=4))
+        valid_report = credential_trend(date(2020, 6, 1), date(2020, 7, 31))
+        self.assertNotIn('Excluded negative durations', valid_report['description'])
         self.credential(accepted, decided=self.when - timezone.timedelta(days=1))
         report = credential_trend(date(2020, 6, 1), date(2020, 7, 31))
         self.assertEqual(report['rows'], [['2020-06', 2.25, 2, 4.0, 1], ['2020-07', None, 0, None, 0]])
@@ -413,6 +415,7 @@ class TestUsageMetrics(TestCase):
                                decision_datetime=self.when + timezone.timedelta(days=5))
         report = editorial_trend(date(2020, 6, 1), date(2020, 7, 31))
         self.assertEqual(report['rows'], [['2020-06', 1.5, 1], ['2020-07', None, 0]])
+        self.assertNotIn('Excluded negative durations', report['description'])
         EditLog.objects.filter(pk=first.pk).update(decision_datetime=self.when - timezone.timedelta(days=1))
         report = editorial_trend(date(2020, 6, 1), date(2020, 7, 31))
         self.assertEqual(report['rows'][0], ['2020-06', None, 0])
@@ -446,3 +449,64 @@ class TestUsageMetrics(TestCase):
             ['' if value is None else str(value) for value in row] for row in report['rows']
         ]]
         self.assertEqual(rows, expected)
+
+    def test_submission_contributors_are_separate_from_dataset_usage(self):
+        self.client.force_login(self.admin)
+        dates = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
+        usage = self.client.get(reverse('usage_stats'), dates)
+        self.assertNotContains(usage, 'Submitting authors by country')
+        self.assertNotContains(usage, 'Submitted project versions')
+        url = reverse('submission_stats')
+        params = {**dates, 'table': 'contributors'}
+        page = self.client.get(url, params)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Submitting authors by country')
+        self.assertNotContains(page, 'Most accessed datasets')
+        self.assertContains(page, 'name="table" value="contributors"')
+        export = self.client.get(url, {**params, 'export': 'csv'})
+        self.assertEqual(export['Content-Disposition'], 'attachment; filename="submission-contributors-stats.csv"')
+        text = export.content.decode()
+        self.assertIn('Submitting authors by country', text)
+        self.assertNotIn('Dataset viewers', text)
+        self.client.logout()
+        self.assertEqual(self.client.get(url, {**params, 'export': 'csv'}).status_code, 403)
+
+    def test_access_queue_paginates_but_exports_all_pending_requests(self):
+        DataAccessRequest.objects.bulk_create([
+            DataAccessRequest(requester=self.viewer, project=self.dataset, status=DataAccessRequest.PENDING_VALUE)
+            for _ in range(51)
+        ])
+        self.client.force_login(self.admin)
+        url = reverse('access_request_stats')
+        first = self.client.get(url)
+        self.assertEqual(len(first.context['queue_rows']), 50)
+        self.assertEqual(first.context['queue_total'], 51)
+        second = self.client.get(url, {'page': 2})
+        self.assertEqual(len(second.context['queue_rows']), 1)
+        export = self.client.get(url, {'export': 'pending'})
+        self.assertEqual(len(list(csv.DictReader(StringIO(export.content.decode())))), 51)
+
+    def test_repeated_credentials_paginate_five_users_and_export_everyone(self):
+        CredentialApplication.objects.all().delete()
+        for index in range(6):
+            user = User.objects.create_user(email=f'repeated-{index}@example.invalid', password=None,
+                                            username=f'repeated-{index}')
+            for attempt in range(2):
+                app = CredentialApplication.objects.create(
+                    user=user, slug=f'repeated-{index}-{attempt}', researcher_category=0,
+                    status=CredentialApplication.Status.PENDING,
+                )
+                CredentialApplication.objects.filter(pk=app.pk).update(application_datetime=self.when)
+        self.client.force_login(self.admin)
+        url = reverse('credentialing_stats')
+        params = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
+        first = self.client.get(url, params)
+        self.assertEqual(first.context['repeated_total'], 6)
+        self.assertEqual(len(first.context['repeated']['rows']), 5)
+        self.assertContains(first, 'repeated_page=2#repeated-applications')
+        second = self.client.get(url, {**params, 'repeated_page': 2})
+        self.assertEqual(len(second.context['repeated']['rows']), 1)
+        self.assertTrue(set(row[0] for row in first.context['repeated']['rows']).isdisjoint(
+            row[0] for row in second.context['repeated']['rows']))
+        export = self.client.get(url, {**params, 'export': 'repeated', 'repeated_page': 2})
+        self.assertEqual(len(list(csv.DictReader(StringIO(export.content.decode())))), 6)

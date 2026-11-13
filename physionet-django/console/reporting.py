@@ -115,7 +115,7 @@ def credential_trend(start_date, end_date):
         'Grouped by decision date, measuring calendar days from application to decision. '
         'Accepted includes later-revoked credentials. Withdrawals and pending applications are excluded. '
         'Missing medians mean no valid observations; boundary months may be partial. '
-        f'Excluded negative durations: {invalid}.',
+        + (f'Excluded negative durations: {invalid}.' if invalid else ''),
         ['Period (YYYY-MM)', 'Accepted median days', 'Accepted decisions', 'Rejected median days', 'Rejected decisions'],
         rows, [('Accepted median days', 1), ('Rejected median days', 3)],
     )
@@ -195,7 +195,7 @@ def editorial_trend(start_date, end_date):
         'Includes active and archived projects and non-legacy publications; published snapshots take precedence '
         'over active copies. Missing submission or decision dates are omitted. Pending projects do not contribute '
         'to medians. Boundary months may be partial; missing medians mean no valid observations. '
-        f'Excluded negative durations: {invalid}.',
+        + (f'Excluded negative durations: {invalid}.' if invalid else ''),
         ['Period (YYYY-MM)', 'Median days to first decision', 'Project versions with a decision'], rows,
         [('Median days to first decision', 1)],
     )

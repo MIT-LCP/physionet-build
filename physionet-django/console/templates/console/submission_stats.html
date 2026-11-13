@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block content %}
+<nav class="mb-3" aria-label="Submission reports">
+  Submission volumes · <a href="{% url 'submission_stats' %}?table=contributors">Contributor profiles</a>
+</nav>
 <div class="card mb-3">
   <div class="card-header">
     New projects (past 18 months)
