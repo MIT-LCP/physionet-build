@@ -13,20 +13,34 @@ def set_existing_revision_deadlines(apps, schema_editor):
     """
     Give projects that are already awaiting revisions a deadline.
 
-    The deadline is 90 days from now, so that authors have time to
-    respond after being told about the new policy, or 180 days after
-    revisions were requested if that is later.
+    The deadline is the end of the day (in the site time zone) 90 days
+    from now, so that authors have time to respond, or 180 days after
+    revisions were requested if that is later. This is the same rule as
+    ActiveProject.fallback_revision_deadline, which manage_revision_deadlines
+    uses for projects that enter revisions without a deadline.
     """
     ActiveProject = apps.get_model('project', 'ActiveProject')
-    grace_deadline = timezone.now() + datetime.timedelta(days=90)
+    now = timezone.now()
     projects = ActiveProject.objects.filter(submission_status=NEEDS_RESUBMISSION, revision_deadline__isnull=True)
     for project in projects:
-        deadline = grace_deadline
+        deadline = now + datetime.timedelta(days=90)
         if project.revision_request_datetime:
             deadline = max(deadline, project.revision_request_datetime + datetime.timedelta(days=180))
-        project.revision_deadline = deadline
+        project.revision_deadline = timezone.make_aware(
+            datetime.datetime.combine(timezone.localdate(deadline), datetime.time(23, 59, 59)))
         project.revision_reminders_sent = 0
-        project.save(update_fields=['revision_deadline', 'revision_reminders_sent'])
+        project.revision_reminder_retry_emails = []
+        project.save(update_fields=['revision_deadline', 'revision_reminders_sent', 'revision_reminder_retry_emails'])
+
+
+def set_existing_on_hold_datetimes(apps, schema_editor):
+    """
+    Treat projects that are already on hold as placed on hold now, so that
+    their revision deadline is paused from now until they are taken off hold.
+    """
+    ActiveProject = apps.get_model('project', 'ActiveProject')
+    ActiveProject.objects.filter(is_on_hold=True, on_hold_datetime__isnull=True).update(
+        on_hold_datetime=timezone.now())
 
 
 class Migration(migrations.Migration):
@@ -45,6 +59,16 @@ class Migration(migrations.Migration):
             model_name='activeproject',
             name='revision_reminders_sent',
             field=models.PositiveSmallIntegerField(db_default=0, default=0),
+        ),
+        migrations.AddField(
+            model_name='activeproject',
+            name='revision_reminder_retry_emails',
+            field=models.JSONField(blank=True, default=list, null=True),
+        ),
+        migrations.AddField(
+            model_name='activeproject',
+            name='on_hold_datetime',
+            field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AddField(
             model_name='editlog',
@@ -67,4 +91,5 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(set_existing_revision_deadlines, migrations.RunPython.noop),
+        migrations.RunPython(set_existing_on_hold_datetimes, migrations.RunPython.noop),
     ]

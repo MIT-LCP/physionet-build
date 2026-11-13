@@ -3,6 +3,7 @@ import logging
 import os
 import uuid
 import shutil
+import datetime
 from datetime import timedelta
 from html import unescape
 
@@ -83,6 +84,16 @@ def move_files_as_readonly(pid, dir_from, dir_to, make_zip):
 
     if make_zip:
         published_project.make_zip()
+
+
+def end_of_day(date):
+    """
+    Return the last second of the given date, in the site time zone.
+
+    Revision deadlines are shown to authors as dates, so they are stored as
+    the end of the day, and a project is not archived until that day is over.
+    """
+    return timezone.make_aware(datetime.datetime.combine(date, datetime.time(23, 59, 59)))
 
 
 class ArchiveReason(models.IntegerChoices):
@@ -213,6 +224,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     submission_status = models.PositiveSmallIntegerField(default=0)
     required_reviews = models.PositiveSmallIntegerField(default=0, null=True)
     is_on_hold = models.BooleanField(default=False)
+    # When the project was last placed on hold. While a project awaiting
+    # revisions is on hold, its revision deadline is paused.
+    on_hold_datetime = models.DateTimeField(null=True, blank=True)
     archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
     archive_reason_text = models.TextField(null=True, blank=True)
 
@@ -221,6 +235,9 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     # Number of deadline reminders (settings.REVISION_REMINDER_DAYS) that
     # have been sent, or skipped, for the current revision deadline.
     revision_reminders_sent = models.PositiveSmallIntegerField(default=0, db_default=0)
+    # Authors who have not yet received the latest deadline reminder,
+    # because sending it to them failed. The reminder is retried for them.
+    revision_reminder_retry_emails = models.JSONField(default=list, null=True, blank=True)
 
     # Scheduled publication. When scheduled_publish_datetime is set, the
     # project will be published automatically at that time, using the
@@ -383,16 +400,34 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def default_revision_deadline(self, revision_type, now=None):
         """
-        Return the revision deadline for the given type of revisions.
+        Return the revision deadline for the given type of revisions: the
+        end of the day, in the site time zone, after the revision period.
         """
         now = now or timezone.now()
         if revision_type == RevisionType.MAJOR:
             days = settings.REVISION_DEADLINE_DAYS_MAJOR
         else:
             days = settings.REVISION_DEADLINE_DAYS_MINOR
-        return now + timedelta(days=days)
+        return end_of_day(timezone.localdate(now + timedelta(days=days)))
 
-    def set_revision_deadline(self, deadline):
+    def fallback_revision_deadline(self, now=None):
+        """
+        Return a deadline for a project that is awaiting revisions but has
+        none, such as one that entered revisions before deadlines existed.
+
+        This is the end of the day after the minor revision period from now,
+        so that authors have time to respond, or after the major revision
+        period from the revision request, if that is later. Migration 0117
+        applies the same rule to existing projects.
+        """
+        now = now or timezone.now()
+        deadline = now + timedelta(days=settings.REVISION_DEADLINE_DAYS_MINOR)
+        if self.revision_request_datetime:
+            deadline = max(deadline, self.revision_request_datetime
+                           + timedelta(days=settings.REVISION_DEADLINE_DAYS_MAJOR))
+        return end_of_day(timezone.localdate(deadline))
+
+    def set_revision_deadline(self, deadline, now=None):
         """
         Set a new revision deadline.
 
@@ -401,7 +436,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         when it is set.
         """
         self.revision_deadline = deadline
-        self.revision_reminders_sent = self.revision_reminders_due(deadline)
+        self.revision_reminders_sent = self.revision_reminders_due(deadline, now)
+        self.revision_reminder_retry_emails = []
 
     def request_revisions(self, revision_type, now=None):
         """
@@ -411,7 +447,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         now = now or timezone.now()
         self.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
         self.revision_request_datetime = now
-        self.set_revision_deadline(self.default_revision_deadline(revision_type, now))
+        self.set_revision_deadline(self.default_revision_deadline(revision_type, now), now)
 
     def extend_revision_deadline(self, deadline):
         """
@@ -420,7 +456,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         if self.submission_status != SubmissionStatus.NEEDS_RESUBMISSION:
             raise Exception('ActiveProject is not awaiting revisions')
         self.set_revision_deadline(deadline)
-        self.save(update_fields=['revision_deadline', 'revision_reminders_sent'])
+        self.save(update_fields=['revision_deadline', 'revision_reminders_sent', 'revision_reminder_retry_emails'])
 
     def is_reopenable(self):
         """
@@ -489,13 +525,39 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """Place the submission on hold without changing its status."""
         if not self.is_on_hold:
             self.is_on_hold = True
-            self.save(update_fields=['is_on_hold'])
+            self.on_hold_datetime = timezone.now()
+            self.save(update_fields=['is_on_hold', 'on_hold_datetime'])
 
     def remove_from_hold(self):
-        """Remove a submission from on-hold status, returning it to the active queues."""
-        if self.is_on_hold:
-            self.is_on_hold = False
-            self.save(update_fields=['is_on_hold'])
+        """
+        Remove a submission from on-hold status, returning it to the active
+        queues.
+
+        The revision deadline of a project awaiting revisions is paused while
+        it is on hold, so it is moved later by the time spent on hold.
+        Returns True if the revision deadline was changed.
+        """
+        if not self.is_on_hold:
+            return False
+        now = timezone.now()
+        deadline_changed = False
+        fields = ['is_on_hold', 'on_hold_datetime']
+        if (self.submission_status == SubmissionStatus.NEEDS_RESUBMISSION
+                and self.revision_deadline and self.on_hold_datetime):
+            # Only count the time on hold since revisions were requested
+            paused_since = self.on_hold_datetime
+            if self.revision_request_datetime:
+                paused_since = max(paused_since, self.revision_request_datetime)
+            if now > paused_since:
+                deadline = end_of_day(timezone.localdate(self.revision_deadline + (now - paused_since)))
+                if deadline != self.revision_deadline:
+                    self.set_revision_deadline(deadline, now)
+                    fields += ['revision_deadline', 'revision_reminders_sent', 'revision_reminder_retry_emails']
+                    deadline_changed = True
+        self.is_on_hold = False
+        self.on_hold_datetime = None
+        self.save(update_fields=fields)
+        return deadline_changed
 
     def upload_agreement_accepted(self):
         """Check whether the upload agreement requirement is satisfied.
@@ -771,6 +833,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
             self.resubmission_datetime = timezone.now()
             self.revision_deadline = None
             self.revision_reminders_sent = 0
+            self.revision_reminder_retry_emails = []
             self.save()
             # Create a new edit log
             EditLog.objects.create(

@@ -1,4 +1,3 @@
-import datetime
 import logging
 from datetime import timedelta
 import re
@@ -32,6 +31,7 @@ from project.models import (
     exists_project_slug,
     InternalNote,
 )
+from project.modelcomponents.activeproject import end_of_day
 from project.utility import normalize_project_content
 from search.models import FederatedSite
 import project.tasks as project_tasks
@@ -362,8 +362,7 @@ class RevisionDeadlineForm(forms.Form):
         """
         Return the deadline as the end of the chosen day, in the site time zone.
         """
-        date = self.cleaned_data['revision_deadline']
-        return timezone.make_aware(datetime.datetime.combine(date, datetime.time.max.replace(microsecond=0)))
+        return end_of_day(self.cleaned_data['revision_deadline'])
 
 
 class CopyeditForm(forms.ModelForm):

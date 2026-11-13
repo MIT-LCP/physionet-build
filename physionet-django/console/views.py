@@ -347,8 +347,19 @@ def project_on_hold(request, project_slug):
         project.place_on_hold()
         messages.success(request, f'Project "{project.title}" has been placed on hold.')
     elif 'remove_from_hold' in request.POST:
-        project.remove_from_hold()
-        messages.success(request, f'Project "{project.title}" has been removed from hold.')
+        old_deadline = project.revision_deadline
+        if project.remove_from_hold():
+            # The revision deadline was paused while the project was on hold
+            new_deadline = date_format(timezone.localtime(project.revision_deadline))
+            InternalNote.objects.create(
+                project=project, created_by=user,
+                content='Removed from hold. Revision deadline moved from {0} to {1}.'.format(
+                    date_format(timezone.localtime(old_deadline)), new_deadline))
+            notification.revision_deadline_changed_notify(request, project)
+            messages.success(request, f'Project "{project.title}" has been removed from hold. Its revision '
+                                      f'deadline has been moved to {new_deadline} and the authors have been notified.')
+        else:
+            messages.success(request, f'Project "{project.title}" has been removed from hold.')
 
     redirect_url = request.POST.get('redirect', '')
     if redirect_url:
