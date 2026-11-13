@@ -323,3 +323,19 @@ class TestUsageMetrics(TestCase):
         rows = list(csv.reader(StringIO(response.content.decode())))
         self.assertEqual(rows, [report['headers'], *[[str(cell) for cell in row] for row in report['rows']]])
         self.assertContains(page, 'Boundary months cover only selected dates')
+
+    def test_current_access_queue_ignores_historical_dates_and_excludes_closed_requests(self):
+        self.create_request(self.viewer, status=DataAccessRequest.PENDING_VALUE)
+        self.create_request(self.other, status=DataAccessRequest.REJECT_REQUEST_VALUE)
+        self.client.force_login(self.admin)
+        url = reverse('access_request_stats')
+        response = self.client.get(url, {'start_date': '2010-01-01', 'end_date': '2010-12-31'})
+        self.assertEqual(response.context['queue_total'], 1)
+        row = response.context['queue_rows'][0]
+        self.assertEqual(row['since'], self.when)
+        self.assertEqual(row['days'], (timezone.now() - self.when).days)
+        self.assertContains(response, 'not filtered by the historical dates')
+        export = self.client.get(url, {'export': 'pending'})
+        rows = list(csv.DictReader(StringIO(export.content.decode())))
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]['Elapsed days'], str(row['days']))

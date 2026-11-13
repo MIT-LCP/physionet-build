@@ -58,6 +58,7 @@
   </div>
 </div>
 
+{% if queue_title %}{% include 'console/metrics_queue.html' %}{% endif %}
 {% if report %}{% include 'console/metrics_trend.html' %}{% endif %}
 
 {% for section in sections %}

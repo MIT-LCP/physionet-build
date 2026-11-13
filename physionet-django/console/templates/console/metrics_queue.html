@@ -1,0 +1,16 @@
+<div class="card mb-3">
+  <div class="card-header">{{ queue_title }}</div>
+  <div class="card-body">
+    <p>{{ queue_description }} Snapshot: {{ queue_now }}. Total: {{ queue_total }}.</p>
+    <a class="btn btn-md btn-success mb-3" href="?export=pending">Download current queue CSV</a>
+    <div class="table-responsive"><table class="table table-bordered">
+      <thead><tr><th>Project or application</th><th>Status</th><th>Since</th><th>Elapsed days</th></tr></thead>
+      <tbody>{% for row in queue_rows %}<tr>
+        <td>{% if queue_links %}<a href="{{ row.url }}">{{ row.label }}</a>{% else %}{{ row.label }}{% endif %}</td>
+        <td>{{ row.status }}</td><td>{{ row.since }}</td><td>{{ row.days }}</td>
+      </tr>{% empty %}<tr><td colspan="4">No pending records.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% if queue_page.has_previous %}<a href="?{{ queue_query }}&amp;page={{ queue_page.previous_page_number }}">Previous</a>{% endif %}
+    {% if queue_page.has_next %}<a href="?{{ queue_query }}&amp;page={{ queue_page.next_page_number }}">Next</a>{% endif %}
+  </div>
+</div>

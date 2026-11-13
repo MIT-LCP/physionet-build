@@ -70,3 +70,23 @@ def access_trend(start_date, end_date):
         ['Period (YYYY-MM)', 'Requests submitted', 'Approvals', 'Rejections'], rows,
         [('Requests submitted', 1), ('Approvals', 2), ('Rejections', 3)],
     )
+
+
+def pending_access_requests(now):
+    """Current queue, independent of the reporting period; oldest requests first."""
+    return DataAccessRequest.objects.filter(
+        project__resource_type_id=0, status=DataAccessRequest.PENDING_VALUE,
+        request_datetime__lte=now,
+    ).select_related('project').order_by('request_datetime', 'pk')
+
+
+def access_queue_rows(requests, now):
+    from django.urls import reverse
+    return [{'label': f'{item.project.slug} / {item.project.version}', 'status': 'Pending access review',
+             'since': item.request_datetime, 'days': (now - item.request_datetime).days,
+             'url': reverse('access_request', args=[item.pk])} for item in requests]
+
+
+def queue_csv(identifier, rows):
+    return report_csv({'id': identifier, 'headers': ['Project or application', 'Status', 'Since', 'Elapsed days'],
+                       'rows': [[row['label'], row['status'], row['since'].isoformat(), row['days']] for row in rows]})

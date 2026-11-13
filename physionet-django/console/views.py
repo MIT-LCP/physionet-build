@@ -95,7 +95,7 @@ from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
 from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
 from console import forms, utility, services
-from console.reporting import access_trend, report_csv
+from console.reporting import access_trend, report_csv, pending_access_requests, access_queue_rows, queue_csv
 from console.forms import ProjectFilterForm, UserFilterForm
 from console.usage import UsageDateForm, usage_csv, usage_metrics, usage_sections
 from project.cloud.s3 import (
@@ -3147,6 +3147,24 @@ def _usage_stats(request, group):
     export_query = ''
     report = None
     trend_export_query = ''
+    queue_context = {}
+    if group == 'access':
+        now = timezone.now()
+        queue = pending_access_requests(now)
+        if request.GET.get('export') == 'pending':
+            return queue_csv('pending-access', access_queue_rows(queue.iterator(), now))
+        page = paginate(request, queue, 50)
+        query = request.GET.copy()
+        query.pop('page', None)
+        query.pop('export', None)
+        queue_context = {
+            'queue_title': 'Current pending dataset access requests',
+            'queue_description': 'Oldest requests first. Elapsed days since the request, not a service deadline. '
+                                 'This queue is current and is not filtered by the historical dates above.',
+            'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
+            'queue_rows': access_queue_rows(page, now), 'queue_query': query.urlencode(),
+            'queue_links': request.user.has_perm('project.can_view_access_logs'),
+        }
     if form.is_valid():
         start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
         sections = usage_sections(usage_metrics(start, end), group)
@@ -3170,6 +3188,7 @@ def _usage_stats(request, group):
         'form': form, 'sections': sections, 'export_query': export_query,
         'report': report, 'trend_export_query': trend_export_query,
         'report_title': 'Access requests' if group == 'access' else 'Usage', 'report_group': group,
+        **queue_context,
     }, status=200 if sections is not None else 400)
 
 
