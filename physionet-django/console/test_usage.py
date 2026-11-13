@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from console.usage import usage_metrics
-from project.models import AccessLog, ActiveProject, Author, PublishedAuthor, PublishedProject
+from project.models import AccessLog, ActiveProject, Author, DataAccessRequest, PublishedAuthor, PublishedProject
 from user.models import CredentialApplication, User
 
 
@@ -23,6 +23,7 @@ class TestUsageMetrics(TestCase):
     @classmethod
     def setUpTestData(cls):
         AccessLog.objects.all().delete()
+        DataAccessRequest.objects.all().delete()
         ActiveProject.objects.update(submission_datetime=None)
         PublishedProject.objects.update(submission_datetime=None)
         cls.when = timezone.make_aware(datetime(2020, 6, 15, 12))
@@ -166,7 +167,79 @@ class TestUsageMetrics(TestCase):
         with CaptureQueriesContext(connection) as after:
             self.metrics()
         self.assertEqual(len(before), len(after))
-        self.assertLess(len(after), 35)
+        self.assertLess(len(after), 65)
+
+    def create_request(self, user, project=None, status=DataAccessRequest.ACCEPT_REQUEST_VALUE,
+                       requested=None, decided=None):
+        request = DataAccessRequest.objects.create(
+            requester=user, project=project or self.dataset, status=status,
+            decision_datetime=decided or self.when,
+        )
+        DataAccessRequest.objects.filter(pk=request.pk).update(request_datetime=requested or self.when)
+        return request
+
+    def test_requests_and_approvals_use_distinct_users_and_different_dates(self):
+        self.create_request(self.viewer)
+        self.create_request(self.viewer, project=self.version, status=DataAccessRequest.REVOKED_VALUE)
+        self.create_request(self.other, status=DataAccessRequest.REJECT_REQUEST_VALUE)
+        self.create_request(self.coauthor, requested=timezone.make_aware(datetime(2019, 12, 31)))
+        self.create_request(self.other, project=PublishedProject.objects.filter(resource_type_id=1).first())
+        metrics = self.metrics()
+        overview = self.overview(metrics)
+        self.assertEqual(overview['Dataset access requests submitted'], 3)
+        self.assertEqual(overview['Unique dataset access requesters'], 2)
+        self.assertEqual(overview['Unique users approved for dataset access during selected dates'], 2)
+        months = {row['label']: row['count'] for row in metrics['Dataset access requests by month']}
+        self.assertEqual(len(months), 12)
+        self.assertEqual(months['2020-06'], 3)
+        self.assertEqual(months['2020-01'], 0)
+        countries = {row['label']: row['count'] for row in metrics['Approved dataset users by country']}
+        self.assertEqual(countries, {'United States of America': 1, 'Not available': 1})
+
+    def test_request_and_approval_date_boundaries(self):
+        start = timezone.make_aware(datetime(2020, 1, 1))
+        end = timezone.make_aware(datetime(2021, 1, 1))
+        self.create_request(self.viewer, requested=start, decided=start)
+        self.create_request(self.other, requested=end, decided=end)
+        overview = self.overview(self.metrics())
+        self.assertEqual(overview['Dataset access requests submitted'], 1)
+        self.assertEqual(overview['Unique users approved for dataset access during selected dates'], 1)
+
+    def test_version_viewers_are_deduplicated_within_each_version(self):
+        rows = {row['label']: row['count'] for row in self.metrics()['Registered viewers by dataset version']}
+        self.assertEqual(rows, {
+            f'{self.dataset.slug} / {self.dataset.version}': 1,
+            f'{self.version.slug} / {self.version.version}': 2,
+        })
+
+    def test_institution_names_are_normalized_without_guessing_aliases(self):
+        CredentialApplication.objects.filter(user=self.viewer).update(organization_name='  Example   University ')
+        CredentialApplication.objects.create(
+            user=self.other, slug='usage-other-credential', country='BR', researcher_category=0,
+            status=CredentialApplication.Status.ACCEPTED, organization_name='example university',
+        )
+        overview = self.overview(self.metrics())
+        self.assertEqual(overview['Distinct declared institution names among viewers'], 1)
+        CredentialApplication.objects.filter(user=self.other).update(organization_name='EU')
+        overview = self.overview(self.metrics())
+        self.assertEqual(overview['Distinct declared institution names among viewers'], 2)
+
+    def test_new_and_existing_accounts_are_relative_to_selected_dates(self):
+        User.objects.filter(pk=self.viewer.pk).update(join_date=date(2020, 1, 1))
+        User.objects.filter(pk=self.other.pk).update(join_date=date(2019, 12, 31))
+        self.create_request(self.viewer)
+        self.create_request(self.other)
+        for title in ('Dataset viewers by account age', 'Submitting authors by account age',
+                      'Approved dataset users by account age'):
+            rows = self.metrics()[title]
+            self.assertEqual([row['count'] for row in rows], [1, 1])
+            self.assertEqual([row['percentage'] for row in rows], [50, 50])
+
+    def test_accounts_created_after_historical_period_are_not_labeled_new(self):
+        User.objects.filter(pk__in=[self.viewer.pk, self.other.pk]).update(join_date=date(2021, 1, 1))
+        rows = self.metrics()['Dataset viewers by account age']
+        self.assertEqual([row['count'] for row in rows], [0, 0, 2])
+        self.assertEqual(rows[-1]['label'], 'Not available (account created after selected dates)')
 
     def test_page_export_and_navigation_order(self):
         self.client.force_login(self.admin)
@@ -174,7 +247,7 @@ class TestUsageMetrics(TestCase):
         url = reverse('usage_stats')
         page = self.client.get(url, params)
         self.assertEqual(page.status_code, 200)
-        self.assertContains(page, 'Export data')
+        self.assertContains(page, 'Download CSV')
         self.assertContains(page, 'does not measure confirmed downloads')
         html = page.content.decode()
         self.assertLess(html.index('id="nav_submission_stats"'), html.index('id="nav_usage_stats"'))

@@ -21,14 +21,14 @@
         <div class="form-group col-sm-4">
           <button type="submit" class="btn btn-primary">Apply filters</button>
           {% if sections %}
-          <a href="{% url 'usage_stats' %}?{{ export_query }}" class="btn btn-primary">Export data</a>
+          <a href="{% url 'usage_stats' %}?{{ export_query }}" class="btn btn-md btn-success">Download CSV</a>
           {% endif %}
         </div>
       </div>
     </form>
     <p class="text-muted mb-2">
       Dataset access counts registered users viewing file-access pages. Access-log sessions overlapping the
-      selected dates are included. All published versions of each dataset are combined.
+      selected dates are included. Published versions are combined except in the per-version table.
     </p>
     <p class="text-muted mb-2">
       It does not measure confirmed downloads or research use, and excludes anonymous access and direct cloud downloads.
@@ -36,7 +36,13 @@
     <p class="text-muted mb-0">
       Demographics use each person's latest approved credential application currently on record, not a historical
       snapshot. Countries are institutional countries, not inferred locations or nationalities. Missing information
-      is listed as “Not available”. Dataset viewers and submitting authors are different populations.
+      is listed as “Not available”. Viewers, approved users and submitting authors are different populations.
+    </p>
+    <p class="text-muted mb-0">
+      Institution counts use self-reported names, ignoring case and extra spaces; abbreviations and spelling
+      variations may still count as separate institutions. Access approvals cover contributor-reviewed requests,
+      not DUA signatures or every access requirement. Research purposes are free text and are not classified here.
+      Downloads by file, public landing-page visitors, regions and organization types are not measured here.
     </p>
   </div>
 </div>

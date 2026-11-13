@@ -7,10 +7,11 @@ from datetime import datetime, time, timedelta
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Exists, OuterRef, Q, Subquery
+from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.utils import timezone
 
-from project.models import AccessLog, ActiveProject, Author, PublishedAuthor, PublishedProject
+from project.models import AccessLog, ActiveProject, Author, DataAccessRequest, PublishedAuthor, PublishedProject
 from user.models import COUNTRIES, CredentialApplication, User
 
 
@@ -50,7 +51,50 @@ def _demographics(users):
         credential_country=Subquery(latest.values('country')[:1]),
         credential_category=Subquery(latest.values('researcher_category')[:1]),
         credential_course=Subquery(latest.values('course_category')[:1]),
+        credential_organization=Subquery(latest.values('organization_name')[:1]),
     )
+
+
+def _institution_count(users):
+    # Names are self-reported: normalize spelling format, not institutional identity.
+    return len({
+        ' '.join(name.split()).casefold()
+        for name in users.values_list('credential_organization', flat=True)
+        if name and name.strip()
+    })
+
+
+def _account_age(users, start_date, end_date):
+    counts = [
+        ('New accounts (created during selected dates)',
+         users.filter(join_date__gte=start_date, join_date__lte=end_date).count()),
+        ('Existing accounts (created before selected dates)', users.filter(join_date__lt=start_date).count()),
+    ]
+    # Imported or inconsistent historical records must not be labeled as new accounts.
+    unavailable = users.filter(join_date__gt=end_date).count()
+    if unavailable:
+        counts.append(('Not available (account created after selected dates)', unavailable))
+    total = sum(count for _, count in counts)
+    return [{'label': label, 'count': count, 'percentage': round(count * 100 / total, 2)}
+            for label, count in counts] if total else []
+
+
+def _request_months(requests, start_date, end_date):
+    counts = {
+        row['month'].strftime('%Y-%m'): row['count']
+        for row in requests.order_by().annotate(month=TruncMonth('request_datetime'))
+        .values('month').annotate(count=Count('pk'))
+    }
+    # Include zero months, but leave wholly empty selections consistent with other sections.
+    if not counts:
+        return []
+    year, month = start_date.year, start_date.month
+    rows = []
+    while (year, month) <= (end_date.year, end_date.month):
+        period = f'{year:04d}-{month:02d}'
+        rows.append({'label': period, 'count': counts.get(period, 0), 'percentage': None})
+        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
+    return rows
 
 
 def usage_metrics(start_date, end_date):
@@ -97,8 +141,28 @@ def usage_metrics(start_date, end_date):
         + published.exclude(pk__in=published_authors.values('project_id')).count()
     )
 
+    requests = DataAccessRequest.objects.filter(
+        project__in=datasets, request_datetime__gte=start, request_datetime__lt=end,
+    )
+    # Revoked requests retain their original approval decision timestamp.
+    approvals = DataAccessRequest.objects.filter(
+        project__in=datasets, decision_datetime__gte=start, decision_datetime__lt=end,
+        status__in=(DataAccessRequest.ACCEPT_REQUEST_VALUE, DataAccessRequest.REVOKED_VALUE),
+    )
+    approved_users = _demographics(User.objects.filter(pk__in=approvals.values('requester_id')))
+    version_views = (
+        datasets.filter(logs__pk__in=logs.values('pk')).order_by().values('slug', 'version')
+        .annotate(count=Count('logs__user', distinct=True)).order_by('slug', 'version')
+    )
+
     overview = [
         ('Unique registered dataset viewers', viewer_count),
+        ('Dataset access requests submitted', requests.count()),
+        ('Unique dataset access requesters', requests.values('requester_id').distinct().count()),
+        ('Unique users approved for dataset access during selected dates', approved_users.count()),
+        ('Distinct declared institution names among viewers', _institution_count(viewers)),
+        ('Distinct declared institution names among approved users', _institution_count(approved_users)),
+        ('Distinct declared institution names among submitting authors', _institution_count(submitters)),
         ('Datasets accessed (versions combined)', accessed_datasets),
         ('Submitted project versions', submission_count),
         ('Unique submitting authors', submitters.count()),
@@ -125,6 +189,32 @@ def usage_metrics(start_date, end_date):
          'description': ('Self-reported during credentialing. This does not establish how any particular '
                          'dataset was used. Percentage of all unique registered dataset viewers.'),
          'rows': _breakdown(viewers, 'credential_course', dict(CredentialApplication.COURSE_CATEGORIES))},
+        {'title': 'Registered viewers by dataset version',
+         'description': 'Unique registered file-access viewers per version. A person may appear in multiple versions.',
+         'rows': [{'label': f"{row['slug']} / {row['version']}", 'count': row['count'], 'percentage': None}
+                  for row in version_views]},
+        {'title': 'Dataset access requests by month',
+         'description': ('Requests submitted during the selected dates, including requests now rejected, withdrawn '
+                         'or revoked. Only datasets using contributor-reviewed access have these requests. '
+                         'Boundary months may be partial.'),
+         'rows': _request_months(requests, start_date, end_date)},
+        {'title': 'Approved dataset users by country',
+         'description': ('Unique users approved during the selected dates, including approvals later revoked or '
+                         'expired. This is not a count of users who currently have access.'),
+         'rows': _breakdown(approved_users, 'credential_country', countries)},
+        {'title': 'Approved dataset users by researcher category',
+         'description': 'Unique users approved during the selected dates, including later revocations and expiry.',
+         'rows': _breakdown(approved_users, 'credential_category', categories)},
+        {'title': 'Dataset viewers by account age',
+         'description': 'New means the account was created during the selected dates, not first use of a dataset.',
+         'rows': _account_age(viewers, start_date, end_date)},
+        {'title': 'Approved dataset users by account age',
+         'description': ('Users approved during the selected dates. New means the account was created during '
+                         'those dates, not necessarily when access was requested.'),
+         'rows': _account_age(approved_users, start_date, end_date)},
+        {'title': 'Submitting authors by account age',
+         'description': 'New means the account was created during the selected dates.',
+         'rows': _account_age(submitters, start_date, end_date)},
         {'title': 'Submissions by resource type',
          'description': ('Submitted versions, including active, archived, and published projects. '
                          'Revisions are not counted again.'),
