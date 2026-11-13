@@ -1,0 +1,17 @@
+<div class="card mb-3">
+  <div class="card-header">{{ report.title }}</div>
+  <div class="card-body">
+    <p>{{ report.description }}</p>
+    <div data-metrics-chart="{{ report.id }}" data-label="{{ report.title }}. Exact values are in the following table."></div>
+    {{ report.chart|json_script:report.id }}
+    <a class="btn btn-md btn-success mb-3" href="?{{ trend_export_query }}">Download monthly CSV</a>
+    <details>
+      <summary>Monthly values and observation counts</summary>
+      <div class="table-responsive"><table class="table table-bordered">
+        <thead><tr>{% for header in report.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in report.rows %}<tr>{% for cell in row %}<td>{% if cell is None %}Not available{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>
+        {% empty %}<tr><td>No observations available.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </details>
+  </div>
+</div>

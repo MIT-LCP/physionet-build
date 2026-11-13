@@ -95,6 +95,7 @@ from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
 from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
 from console import forms, utility, services
+from console.reporting import access_trend, report_csv
 from console.forms import ProjectFilterForm, UserFilterForm
 from console.usage import UsageDateForm, usage_csv, usage_metrics, usage_sections
 from project.cloud.s3 import (
@@ -3144,9 +3145,15 @@ def _usage_stats(request, group):
     form = UsageDateForm(data)
     sections = None
     export_query = ''
+    report = None
+    trend_export_query = ''
     if form.is_valid():
         start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
         sections = usage_sections(usage_metrics(start, end), group)
+        if group == 'access':
+            report = access_trend(start, end)
+            if request.GET.get('export') == 'monthly':
+                return report_csv(report)
         if request.GET.get('export') == 'csv':
             response = usage_csv(sections, start, end)
             if group == 'access':
@@ -3157,8 +3164,11 @@ def _usage_stats(request, group):
         params['end_date'] = end.isoformat()
         params['export'] = 'csv'
         export_query = params.urlencode()
+        params['export'] = 'monthly'
+        trend_export_query = params.urlencode()
     return render(request, 'console/usage_stats.html', {
         'form': form, 'sections': sections, 'export_query': export_query,
+        'report': report, 'trend_export_query': trend_export_query,
         'report_title': 'Access requests' if group == 'access' else 'Usage', 'report_group': group,
     }, status=200 if sections is not None else 400)
 

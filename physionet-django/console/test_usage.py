@@ -306,3 +306,20 @@ class TestUsageMetrics(TestCase):
         export = self.client.get(url, {**dates, 'export': 'csv'})
         self.assertNotIn('Most accessed datasets', export.content.decode())
         self.assertIn('Approved dataset users', export.content.decode())
+
+    def test_access_monthly_counts_use_event_dates_and_match_csv(self):
+        from console.reporting import access_trend
+        self.create_request(self.viewer, requested=self.when,
+                            decided=timezone.make_aware(datetime(2020, 7, 1)))
+        self.create_request(self.other, status=DataAccessRequest.REVOKED_VALUE)
+        self.create_request(self.coauthor, status=DataAccessRequest.REJECT_REQUEST_VALUE)
+        report = access_trend(date(2020, 6, 15), date(2020, 8, 1))
+        self.assertEqual(report['rows'], [['2020-06', 3, 1, 1], ['2020-07', 0, 1, 0], ['2020-08', 0, 0, 0]])
+        self.client.force_login(self.admin)
+        params = {'start_date': '2020-06-15', 'end_date': '2020-08-01'}
+        page = self.client.get(reverse('access_request_stats'), params)
+        self.assertEqual(page.context['report'], report)
+        response = self.client.get(reverse('access_request_stats'), {**params, 'export': 'monthly'})
+        rows = list(csv.reader(StringIO(response.content.decode())))
+        self.assertEqual(rows, [report['headers'], *[[str(cell) for cell in row] for row in report['rows']]])
+        self.assertContains(page, 'Boundary months cover only selected dates')
