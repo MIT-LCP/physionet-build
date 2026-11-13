@@ -100,7 +100,8 @@ from console import forms, utility, services
 from console.reporting import (
     access_trend, report_csv, pending_access_requests, access_queue_rows, queue_csv,
     credential_trend, pending_credentials, credential_queue_rows, credential_annual_stats, credential_annual_report,
-    credential_queue_summary, filter_credential_queue, CREDENTIAL_STAGES, CREDENTIAL_AGES, credential_stage_report, credential_flow_report,
+    credential_queue_summary, filter_credential_queue, CREDENTIAL_STAGES, CREDENTIAL_AGES,
+    credential_stage_report, credential_flow_report,
     repeated_credentials, repeated_credential_report, editorial_trend, pending_projects, project_queue_rows,
     credential_reapplication_reports, credential_reapplication_csv,
 )
@@ -3027,8 +3028,8 @@ def _operational_metrics(request, kind):
         'queue_rows': row_builder(page, now), 'queue_query': urlencode({**params, **queue_filters}),
         'queue_history_params': params,
         'queue_export_query': urlencode({**params, **queue_filters, 'export': 'pending'}),
-        'queue_links': request.user.has_perm('project.change_activeproject' if is_editorial
-                                                  else 'user.change_credentialapplication'),
+        'queue_links': request.user.has_perm(
+            'project.change_activeproject' if is_editorial else 'user.change_credentialapplication'),
     })
     if is_editorial:
         return None, context
@@ -3056,26 +3057,26 @@ def credentialing_stats(request):
     """
     Credentialing metrics.
     """
-    if request.GET.get('export') == 'annual':
-        return report_csv(credential_annual_report(credential_annual_stats()))
+    if request.GET.get('export') in ('annual', 'csv'):
+        response = report_csv(credential_annual_report(credential_annual_stats()))
+        if request.GET['export'] == 'csv':
+            response['Content-Disposition'] = 'attachment; filename="credentialing-stats.csv"'
+        return response
     response, operational = _operational_metrics(request, 'credentialing')
     if response is not None:
         return response
     stats = credential_annual_stats()
 
-    if request.GET.get('export') == 'csv':
-        response = report_csv(credential_annual_report(stats))
-        response['Content-Disposition'] = 'attachment; filename="credentialing-stats.csv"'
-        return response
-
     return render(request, 'console/credentialing_stats.html',
                   {'submenu': 'credential', 'stats': stats, **operational,
-                   'annual_definition': 'Each application is counted once under its current status. '
-                       'Handled = accepted + revoked + rejected; approved / handled includes later-revoked credentials. '
+                   'annual_definition': (
+                       'Each application is counted once under its current status. '
+                       'Handled = accepted + revoked + rejected; '
+                       'approved / handled includes later-revoked credentials. '
                        'Decision medians include handled applications with valid decision dates and exclude pending '
                        'and withdrawn cases. Durations use fractional calendar days or hours, including zero; '
                        'missing and negative intervals are excluded. Each median shows its valid observation count '
-                       '(n). Monthly charts instead group by decision month.'},
+                       '(n). Monthly charts instead group by decision month.')},
                   status=200 if operational['report_form'].is_valid() else 400)
 
 
@@ -3234,7 +3235,9 @@ def _usage_stats(request, group):
     return render(request, 'console/usage_stats.html', {
         'form': form, 'sections': sections, 'export_query': export_query,
         'report': report, 'trend_export_query': trend_export_query,
-        'report_title': {'access': 'Access requests', 'submissions': 'Submission contributors', 'usage': 'Usage'}[group],
+        'report_title': {
+            'access': 'Access requests', 'submissions': 'Submission contributors', 'usage': 'Usage',
+        }[group],
         'report_group': group, 'date_query': date_query,
         **queue_context,
     }, status=200 if sections is not None else 400)

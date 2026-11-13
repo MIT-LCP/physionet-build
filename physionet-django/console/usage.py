@@ -269,8 +269,9 @@ def usage_sections(sections, group):
         if group == 'access' and section['title'] == 'Dataset access requests by month':
             continue
         if section['title'] == 'Overview':
-            result.append({**section, 'rows': [row for row in section['rows']
-                                              if overview_group(row['label']) == group]})
+            result.append({**section, 'rows': [
+                row for row in section['rows'] if overview_group(row['label']) == group
+            ]})
         else:
             title = section['title']
             section_group = ('access' if title.startswith(('Dataset access requests', 'Approved dataset users'))

@@ -215,7 +215,7 @@ class TestUsageMetrics(TestCase):
     def test_institution_names_are_normalized_without_guessing_aliases(self):
         CredentialApplication.objects.filter(user=self.viewer).update(organization_name='  Example   University ')
         CredentialApplication.objects.create(
-            user=self.other, slug='usage-other-credential', country='BR', researcher_category=0,
+            user=self.other, slug='usage-other-cred', country='BR', researcher_category=0,
             status=CredentialApplication.Status.ACCEPTED, organization_name='example university',
         )
         overview = self.overview(self.metrics())
@@ -314,7 +314,10 @@ class TestUsageMetrics(TestCase):
         self.create_request(self.other, status=DataAccessRequest.REVOKED_VALUE)
         self.create_request(self.coauthor, status=DataAccessRequest.REJECT_REQUEST_VALUE)
         report = access_trend(date(2020, 6, 15), date(2020, 8, 1))
-        self.assertEqual(report['rows'], [['2020-06', 3, 1, 1, 'Partial month'], ['2020-07', 0, 1, 0, 'Full month'], ['2020-08', 0, 0, 0, 'Partial month']])
+        self.assertEqual(report['rows'], [
+            ['2020-06', 3, 1, 1, 'Partial month'], ['2020-07', 0, 1, 0, 'Full month'],
+            ['2020-08', 0, 0, 0, 'Partial month'],
+        ])
         self.client.force_login(self.admin)
         params = {'start_date': '2020-06-15', 'end_date': '2020-08-01'}
         page = self.client.get(reverse('access_request_stats'), params)
@@ -359,7 +362,9 @@ class TestUsageMetrics(TestCase):
         self.assertNotIn('Excluded negative durations', valid_report['description'])
         self.credential(accepted, decided=self.when - timezone.timedelta(days=1))
         report = credential_trend(date(2020, 6, 1), date(2020, 7, 31))
-        self.assertEqual(report['rows'], [['2020-06', 2.25, 2, 4.0, 1, 'Full month'], ['2020-07', None, 0, None, 0, 'Full month']])
+        self.assertEqual(report['rows'], [
+            ['2020-06', 2.25, 2, 4.0, 1, 'Full month'], ['2020-07', None, 0, None, 0, 'Full month'],
+        ])
         self.assertEqual(report['volume']['chart'], {
             'type': 'stacked-bar', 'integer': True, 'labels': ['2020-06', '2020-07'], 'partial': [False, False],
             'series': [{'name': 'Accepted decisions', 'values': [2, 0]},
@@ -374,7 +379,8 @@ class TestUsageMetrics(TestCase):
         self.assertContains(page, 'Credentialing decision volume by month')
         self.assertContains(page, 'data-metrics-chart="credentialing-volume"')
         export = self.client.get(reverse('credentialing_stats'), {**params, 'export': 'monthly'})
-        self.assertEqual(list(csv.reader(StringIO(export.content.decode())))[-1], ['2020-07', '', '0', '', '0', 'Full month'])
+        self.assertEqual(list(csv.reader(StringIO(export.content.decode())))[-1],
+                         ['2020-07', '', '0', '', '0', 'Full month'])
 
     def test_credential_queue_and_repeated_applications_are_descriptive(self):
         from console.reporting import pending_credentials, credential_queue_rows, repeated_credentials
@@ -385,8 +391,10 @@ class TestUsageMetrics(TestCase):
         self.credential(pending, reference_contact_datetime=self.when, reference_response_datetime=self.when)
         self.credential(CredentialApplication.Status.WITHDRAWN)
         rows = credential_queue_rows(pending_credentials(timezone.now()), timezone.now())
-        self.assertEqual([r['status'] for r in rows], ['Awaiting reference contact', 'Awaiting reference response',
-                                                     'Awaiting processing after reference response'])
+        self.assertEqual([r['status'] for r in rows], [
+            'Awaiting reference contact', 'Awaiting reference response',
+            'Awaiting processing after reference response',
+        ])
         users = list(repeated_credentials(date(2020, 1, 1), date(2020, 12, 31)))
         self.assertEqual(len(users), 1)
         self.assertEqual((users[0]['total'], users[0]['pending'], users[0]['withdrawn']), (4, 3, 1))
