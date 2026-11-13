@@ -96,7 +96,7 @@ from physionet.enums import LogCategory
 from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
-from console.usage import UsageDateForm, usage_csv, usage_metrics
+from console.usage import UsageDateForm, usage_csv, usage_metrics, usage_sections
 from project.cloud.s3 import (
     create_s3_bucket,
     upload_project_to_S3,
@@ -3130,6 +3130,15 @@ def submission_stats(request):
 
 @console_permission_required('project.can_view_stats')
 def usage_stats(request):
+    return _usage_stats(request, 'usage')
+
+
+@console_permission_required('project.can_view_stats')
+def access_request_stats(request):
+    return _usage_stats(request, 'access')
+
+
+def _usage_stats(request, group):
     today = timezone.localdate()
     data = {'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()}
     form = UsageDateForm(data)
@@ -3137,9 +3146,12 @@ def usage_stats(request):
     export_query = ''
     if form.is_valid():
         start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
-        sections = usage_metrics(start, end)
+        sections = usage_sections(usage_metrics(start, end), group)
         if request.GET.get('export') == 'csv':
-            return usage_csv(sections, start, end)
+            response = usage_csv(sections, start, end)
+            if group == 'access':
+                response['Content-Disposition'] = 'attachment; filename="access-request-stats.csv"'
+            return response
         params = request.GET.copy()
         params['start_date'] = start.isoformat()
         params['end_date'] = end.isoformat()
@@ -3147,6 +3159,7 @@ def usage_stats(request):
         export_query = params.urlencode()
     return render(request, 'console/usage_stats.html', {
         'form': form, 'sections': sections, 'export_query': export_query,
+        'report_title': 'Access requests' if group == 'access' else 'Usage', 'report_group': group,
     }, status=200 if sections is not None else 400)
 
 

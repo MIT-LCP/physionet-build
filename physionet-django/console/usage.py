@@ -238,3 +238,25 @@ def usage_csv(sections, start_date, end_date):
         for row in section['rows']:
             writer.writerow([start_date, end_date, section['title'], row['label'], row['count'], row['percentage']])
     return response
+
+
+ACCESS_OVERVIEW = {
+    'Dataset access requests submitted', 'Unique dataset access requesters',
+    'Unique users approved for dataset access during selected dates',
+    'Distinct declared institution names among approved users',
+}
+
+
+def usage_sections(sections, group):
+    """Keep request decisions separate from observed file-access viewers."""
+    result = []
+    for section in sections:
+        if section['title'] == 'Overview':
+            rows = [row for row in section['rows']
+                    if (row['label'] in ACCESS_OVERVIEW) == (group == 'access')]
+            result.append({**section, 'rows': rows})
+        else:
+            is_access = section['title'].startswith(('Dataset access requests', 'Approved dataset users'))
+            if is_access == (group == 'access'):
+                result.append(section)
+    return result

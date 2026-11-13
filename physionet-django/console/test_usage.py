@@ -288,3 +288,21 @@ class TestUsageMetrics(TestCase):
             for params in ({}, {'export': 'csv'}):
                 with self.subTest(user=user, params=params):
                     self.assertEqual(self.client.get(reverse('usage_stats'), params).status_code, 403)
+
+    def test_request_page_is_separate_and_protected(self):
+        self.create_request(self.viewer)
+        url = reverse('access_request_stats')
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.client.force_login(self.other)
+        self.assertEqual(self.client.get(url, {'export': 'csv'}).status_code, 403)
+        self.client.force_login(self.admin)
+        dates = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
+        access = self.client.get(url, dates)
+        self.assertEqual(access.status_code, 200)
+        self.assertContains(access, 'Approved dataset users by country')
+        self.assertNotContains(access, 'Most accessed datasets')
+        usage = self.client.get(reverse('usage_stats'), dates)
+        self.assertNotContains(usage, 'Approved dataset users by country')
+        export = self.client.get(url, {**dates, 'export': 'csv'})
+        self.assertNotIn('Most accessed datasets', export.content.decode())
+        self.assertIn('Approved dataset users', export.content.decode())

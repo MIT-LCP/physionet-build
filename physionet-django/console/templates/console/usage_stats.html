@@ -1,12 +1,16 @@
 {% extends "console/base_console.html" %}
 
-{% block title %}Usage metrics{% endblock %}
+{% block title %}{{ report_title }} metrics{% endblock %}
 
 {% block content %}
 <div class="card mb-3">
-  <div class="card-header">Usage</div>
+  <div class="card-header">{{ report_title }}</div>
   <div class="card-body">
-    <p>Explore registered dataset access and project submissions during the selected dates.</p>
+    <nav class="mb-3" aria-label="Usage reports">
+      <a href="{% url 'usage_stats' %}?start_date={{ form.start_date.value }}&amp;end_date={{ form.end_date.value }}">Usage</a>
+      <span aria-hidden="true"> · </span>
+      <a href="{% url 'access_request_stats' %}?start_date={{ form.start_date.value }}&amp;end_date={{ form.end_date.value }}">Access requests</a>
+    </nav>
     <form method="get" class="mb-4">
       {{ form.non_field_errors }}
       <div class="form-row align-items-end">
@@ -21,11 +25,16 @@
         <div class="form-group col-sm-4">
           <button type="submit" class="btn btn-primary">Apply filters</button>
           {% if sections %}
-          <a href="{% url 'usage_stats' %}?{{ export_query }}" class="btn btn-md btn-success">Download CSV</a>
+          <a href="{{ request.path }}?{{ export_query }}" class="btn btn-md btn-success">Download CSV</a>
           {% endif %}
         </div>
       </div>
     </form>
+    {% if report_group == 'access' %}
+    <p class="text-muted">Contributor-reviewed dataset requests only. Requests are grouped by submission date;
+      approvals by decision date, including later revocations and expiry. These are different cohorts and must not
+      be interpreted as an approval rate or a count of users with current access. DUA signatures are not included.</p>
+    {% else %}
     <p class="text-muted mb-2">
       Dataset access counts registered users viewing file-access pages. Access-log sessions overlapping the
       selected dates are included. Published versions are combined except in the per-version table.
@@ -33,6 +42,7 @@
     <p class="text-muted mb-2">
       It does not measure confirmed downloads or research use, and excludes anonymous access and direct cloud downloads.
     </p>
+    {% endif %}
     <p class="text-muted mb-0">
       Demographics use each person's latest approved credential application currently on record, not a historical
       snapshot. Countries are institutional countries, not inferred locations or nationalities. Missing information
