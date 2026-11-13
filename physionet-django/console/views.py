@@ -95,7 +95,11 @@ from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
 from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
 from console import forms, utility, services
-from console.reporting import access_trend, report_csv, pending_access_requests, access_queue_rows, queue_csv
+from console.reporting import (
+    access_trend, report_csv, pending_access_requests, access_queue_rows, queue_csv,
+    credential_trend, pending_credentials, credential_queue_rows,
+    repeated_credentials, repeated_credential_report,
+)
 from console.forms import ProjectFilterForm, UserFilterForm
 from console.usage import UsageDateForm, usage_csv, usage_metrics, usage_sections
 from project.cloud.s3 import (
@@ -2960,11 +2964,50 @@ def editorial_stats(request):
                   'submenu': 'editorial', 'stats': stats})
 
 
+def _operational_metrics(request, kind):
+    today = timezone.localdate()
+    data = {'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()}
+    form = UsageDateForm(data)
+    context = {'report_form': form}
+    if not form.is_valid():
+        return None, context
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    now = timezone.now()
+    report = credential_trend(start, end)
+    queue = pending_credentials(now)
+    row_builder = credential_queue_rows
+    if request.GET.get('export') == 'monthly':
+        return report_csv(report), context
+    if request.GET.get('export') == 'pending':
+        return queue_csv('pending-credentialing', row_builder(queue.iterator(), now)), context
+    params = {'start_date': start.isoformat(), 'end_date': end.isoformat()}
+    from urllib.parse import urlencode
+    page = paginate(request, queue, 50)
+    context.update({
+        'report': report, 'trend_export_query': urlencode({**params, 'export': 'monthly'}),
+        'queue_title': 'Current pending credential applications',
+        'queue_description': 'Oldest applications first. Elapsed days since application, not time in the displayed '
+                             'stage. Current status is inferred from reference contact and response timestamps.',
+        'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
+        'queue_rows': row_builder(page, now), 'queue_query': urlencode(params),
+        'queue_links': request.user.has_perm('user.change_credentialapplication'),
+    })
+    users = repeated_credentials(start, end)
+    if request.GET.get('export') == 'repeated':
+        return report_csv(repeated_credential_report(users.iterator())), context
+    context.update({'repeated': repeated_credential_report(users[:50]), 'repeated_total': users.count(),
+                    'repeated_query': urlencode({**params, 'export': 'repeated'})})
+    return None, context
+
+
 @console_permission_required('project.can_view_stats')
 def credentialing_stats(request):
     """
     Credentialing metrics.
     """
+    response, operational = _operational_metrics(request, 'credentialing')
+    if response is not None:
+        return response
     apps = CredentialApplication.objects.all()
     years = [a.application_datetime.year for a in apps]
     stats = OrderedDict()
@@ -3033,8 +3076,8 @@ def credentialing_stats(request):
         )
 
     return render(request, 'console/credentialing_stats.html',
-                  {'submenu': 'credential',
-                   'stats': stats})
+                  {'submenu': 'credential', 'stats': stats, **operational},
+                  status=200 if operational['report_form'].is_valid() else 400)
 
 
 @console_permission_required('project.can_view_stats')

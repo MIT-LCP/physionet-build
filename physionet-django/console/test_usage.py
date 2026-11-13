@@ -339,3 +339,58 @@ class TestUsageMetrics(TestCase):
         rows = list(csv.DictReader(StringIO(export.content.decode())))
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0]['Elapsed days'], str(row['days']))
+
+    def credential(self, status, submitted=None, decided=None, **fields):
+        app = CredentialApplication.objects.create(
+            user=self.viewer, slug=f'operational-{uuid4().hex[:8]}', researcher_category=0,
+            status=status, decision_datetime=decided, **fields,
+        )
+        CredentialApplication.objects.filter(pk=app.pk).update(application_datetime=submitted or self.when)
+        return app
+
+    def test_credential_trend_separates_outcomes_and_excludes_negative_durations(self):
+        from console.reporting import credential_trend
+        CredentialApplication.objects.all().delete()
+        accepted = CredentialApplication.Status.ACCEPTED
+        self.credential(accepted, decided=self.when + timezone.timedelta(hours=36))
+        self.credential(accepted, decided=self.when + timezone.timedelta(days=3))
+        self.credential(CredentialApplication.Status.REJECTED, decided=self.when + timezone.timedelta(days=4))
+        self.credential(accepted, decided=self.when - timezone.timedelta(days=1))
+        report = credential_trend(date(2020, 6, 1), date(2020, 7, 31))
+        self.assertEqual(report['rows'], [['2020-06', 2.25, 2, 4.0, 1], ['2020-07', None, 0, None, 0]])
+        self.assertIn('Excluded negative durations: 1', report['description'])
+        self.client.force_login(self.admin)
+        params = {'start_date': '2020-06-01', 'end_date': '2020-07-31'}
+        page = self.client.get(reverse('credentialing_stats'), params)
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(page.context['report'], report)
+        export = self.client.get(reverse('credentialing_stats'), {**params, 'export': 'monthly'})
+        self.assertEqual(list(csv.reader(StringIO(export.content.decode())))[-1], ['2020-07', '', '0', '', '0'])
+
+    def test_credential_queue_and_repeated_applications_are_descriptive(self):
+        from console.reporting import pending_credentials, credential_queue_rows, repeated_credentials
+        CredentialApplication.objects.all().delete()
+        pending = CredentialApplication.Status.PENDING
+        self.credential(pending)
+        self.credential(pending, reference_contact_datetime=self.when)
+        self.credential(pending, reference_contact_datetime=self.when, reference_response_datetime=self.when)
+        self.credential(CredentialApplication.Status.WITHDRAWN)
+        rows = credential_queue_rows(pending_credentials(timezone.now()), timezone.now())
+        self.assertEqual([r['status'] for r in rows], ['Awaiting reference contact', 'Awaiting reference response',
+                                                     'Awaiting processing after reference response'])
+        users = list(repeated_credentials(date(2020, 1, 1), date(2020, 12, 31)))
+        self.assertEqual(len(users), 1)
+        self.assertEqual((users[0]['total'], users[0]['pending'], users[0]['withdrawn']), (4, 3, 1))
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('credentialing_stats'), {'export': 'pending'})
+        self.assertEqual(len(list(csv.DictReader(StringIO(response.content.decode())))), 3)
+
+    def test_operational_exports_require_permission_and_valid_historical_dates(self):
+        for view in ('credentialing_stats',):
+            for export in ('monthly', 'pending', 'repeated'):
+                self.assertEqual(self.client.get(reverse(view), {'export': export}).status_code, 403)
+            self.client.force_login(self.admin)
+            response = self.client.get(reverse(view), {'start_date': 'bad', 'export': 'monthly'})
+            self.assertEqual(response.status_code, 400)
+            self.assertNotIn('Content-Disposition', response)
+            self.client.logout()

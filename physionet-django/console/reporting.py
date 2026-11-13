@@ -90,3 +90,78 @@ def access_queue_rows(requests, now):
 def queue_csv(identifier, rows):
     return report_csv({'id': identifier, 'headers': ['Project or application', 'Status', 'Since', 'Elapsed days'],
                        'rows': [[row['label'], row['status'], row['since'].isoformat(), row['days']] for row in rows]})
+
+
+def credential_trend(start_date, end_date):
+    from user.models import CredentialApplication
+    start, end = date_bounds(start_date, end_date)
+    values = {month: [[], []] for month in month_labels(start_date, end_date)}
+    invalid = 0
+    decisions = CredentialApplication.objects.filter(
+        decision_datetime__gte=start, decision_datetime__lt=end,
+        status__in=(CredentialApplication.Status.ACCEPTED, CredentialApplication.Status.REVOKED,
+                    CredentialApplication.Status.REJECTED),
+    )
+    for submitted, decided, status in decisions.values_list('application_datetime', 'decision_datetime', 'status'):
+        days = (decided - submitted).total_seconds() / 86400
+        if days < 0:
+            invalid += 1
+            continue
+        values[period(decided)][1 if status == CredentialApplication.Status.REJECTED else 0].append(days)
+    rows = [[month, median_days(accepted), len(accepted), median_days(rejected), len(rejected)]
+            for month, (accepted, rejected) in values.items()]
+    return trend_report(
+        'credentialing-monthly', 'Credentialing decision time by month',
+        'Grouped by decision date, measuring calendar days from application to decision. '
+        'Accepted includes later-revoked credentials. Withdrawals and pending applications are excluded. '
+        'Missing medians mean no valid observations; boundary months may be partial. '
+        f'Excluded negative durations: {invalid}.',
+        ['Period (YYYY-MM)', 'Accepted median days', 'Accepted decisions', 'Rejected median days', 'Rejected decisions'],
+        rows, [('Accepted median days', 1), ('Rejected median days', 3)],
+    )
+
+
+def pending_credentials(now):
+    from user.models import CredentialApplication
+    return CredentialApplication.objects.filter(
+        status=CredentialApplication.Status.PENDING, application_datetime__lte=now,
+    ).order_by('application_datetime', 'pk')
+
+
+def credential_queue_rows(applications, now):
+    from django.urls import reverse
+    rows = []
+    for app in applications:
+        if app.reference_contact_datetime is None:
+            status = 'Awaiting reference contact'
+        elif app.reference_response_datetime is None:
+            status = 'Awaiting reference response'
+        else:
+            status = 'Awaiting processing after reference response'
+        rows.append({'label': app.slug, 'status': status, 'since': app.application_datetime,
+                     'days': (now - app.application_datetime).days,
+                     'url': reverse('process_credential_application', args=[app.slug])})
+    return rows
+
+
+def repeated_credentials(start_date, end_date):
+    from django.db.models import Count, Q
+    from user.models import CredentialApplication
+    start, end = date_bounds(start_date, end_date)
+    apps = CredentialApplication.objects.filter(application_datetime__gte=start, application_datetime__lt=end)
+    statuses = CredentialApplication.Status
+    users = apps.order_by().values('user_id', 'user__username').annotate(
+        total=Count('pk'),
+        accepted=Count('pk', filter=Q(status__in=(statuses.ACCEPTED, statuses.REVOKED))),
+        rejected=Count('pk', filter=Q(status=statuses.REJECTED)),
+        withdrawn=Count('pk', filter=Q(status=statuses.WITHDRAWN)),
+        pending=Count('pk', filter=Q(status=statuses.PENDING)),
+    ).filter(total__gte=2).order_by('-total', 'user_id')
+    return users
+
+
+def repeated_credential_report(users):
+    return {'id': 'repeated-credentialing', 'headers': ['Username', 'Applications', 'Accepted (including revoked)',
+                                                     'Rejected', 'Withdrawn', 'Pending'],
+            'rows': [[u['user__username'], u['total'], u['accepted'], u['rejected'], u['withdrawn'], u['pending']]
+                     for u in users]}
