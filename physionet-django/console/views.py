@@ -100,6 +100,7 @@ from console import forms, utility, services
 from console.reporting import (
     access_trend, report_csv, pending_access_requests, access_queue_rows, queue_csv,
     credential_trend, pending_credentials, credential_queue_rows, credential_annual_stats, credential_annual_report,
+    credential_queue_summary, filter_credential_queue, CREDENTIAL_STAGES, CREDENTIAL_AGES,
     repeated_credentials, repeated_credential_report, editorial_trend, pending_projects, project_queue_rows,
 )
 from console.forms import ProjectFilterForm, UserFilterForm
@@ -2983,10 +2984,23 @@ def _operational_metrics(request, kind):
     report = editorial_trend(start, end) if is_editorial else credential_trend(start, end)
     queue = pending_projects(now) if is_editorial else pending_credentials(now)
     row_builder = project_queue_rows if is_editorial else credential_queue_rows
+    queue_filters = {}
+    if not is_editorial:
+        stage, age = request.GET.get('queue_stage', ''), request.GET.get('queue_age', '')
+        queue = filter_credential_queue(queue, stage, age, now)
+        queue_filters = {'queue_stage': stage, 'queue_age': age}
+        if request.GET.get('export') == 'queue-summary':
+            return report_csv(credential_queue_summary(now)), context
+        context.update({'queue_summary': credential_queue_summary(now),
+                        'queue_summary_query': 'export=queue-summary',
+                        'queue_stages': CREDENTIAL_STAGES, 'queue_ages': CREDENTIAL_AGES,
+                        'queue_stage': stage, 'queue_age': age, 'queue_filters': True,
+                        'queue_item_label': 'Application'})
     if request.GET.get('export') == 'monthly':
         return report_csv(report), context
     if request.GET.get('export') == 'pending':
-        return queue_csv(f'pending-{kind}', row_builder(queue.iterator(), now)), context
+        return queue_csv(f'pending-{kind}', row_builder(queue.iterator(), now),
+                         'Project' if is_editorial else 'Application'), context
     params = {'start_date': start.isoformat(), 'end_date': end.isoformat()}
     page = paginate(request, queue, 50 if is_editorial else 5)
     description = (
@@ -3003,7 +3017,9 @@ def _operational_metrics(request, kind):
         'queue_title': 'Current submitted projects' if is_editorial else 'Current pending credential applications',
         'queue_description': description,
         'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
-        'queue_rows': row_builder(page, now), 'queue_query': urlencode(params),
+        'queue_rows': row_builder(page, now), 'queue_query': urlencode({**params, **queue_filters}),
+        'queue_history_params': params,
+        'queue_export_query': urlencode({**params, **queue_filters, 'export': 'pending'}),
         'queue_links': request.user.has_perm('project.change_activeproject' if is_editorial
                                                   else 'user.change_credentialapplication'),
     })
@@ -3017,7 +3033,7 @@ def _operational_metrics(request, kind):
         'repeated': repeated_credential_report(repeated_page),
         'repeated_total': repeated_page.paginator.count, 'repeated_page': repeated_page,
         'repeated_query': urlencode({**params, 'export': 'repeated'}),
-        'repeated_page_query': urlencode({**params, 'page': request.GET.get('page', 1)}),
+        'repeated_page_query': urlencode({**params, **queue_filters, 'page': request.GET.get('page', 1)}),
     })
     return None, context
 

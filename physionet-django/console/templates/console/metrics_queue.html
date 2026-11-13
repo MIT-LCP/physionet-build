@@ -2,9 +2,25 @@
   <div class="card-header">{{ queue_title }}</div>
   <div class="card-body">
     <p>{{ queue_description }} Snapshot: {{ queue_now|date:"Y-m-d H:i T" }}. Total: {{ queue_total }}.</p>
-    <a class="btn btn-md btn-success mb-3" href="?export=pending">Download current queue CSV</a>
+    {% if queue_filters %}
+    <form method="get" class="form-inline mb-3">
+      {% for name, value in queue_history_params.items %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
+      <label for="queue-stage" class="mr-2">Stage</label>
+      <select name="queue_stage" id="queue-stage" class="form-control mr-3">
+        <option value="">All stages</option>
+        {% for value, label in queue_stages %}<option value="{{ value }}" {% if value == queue_stage %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      <label for="queue-age" class="mr-2">Application age</label>
+      <select name="queue_age" id="queue-age" class="form-control mr-3">
+        <option value="">All ages</option>
+        {% for value, label in queue_ages %}<option value="{{ value }}" {% if value == queue_age %}selected{% endif %}>{{ label }}</option>{% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary">Filter queue</button>
+    </form>
+    {% endif %}
+    <a class="btn btn-md btn-success mb-3" href="?{{ queue_export_query|default:'export=pending' }}">Download current queue CSV</a>
     <div class="table-responsive"><table class="table table-bordered">
-      <thead><tr><th>Project or application</th><th>Status</th><th>Since</th><th>Elapsed days</th></tr></thead>
+      <thead><tr><th>{{ queue_item_label|default:"Project or application" }}</th><th>Status</th><th>Since</th><th>Elapsed days</th></tr></thead>
       <tbody>{% for row in queue_rows %}<tr>
         <td>{% if queue_links %}<a href="{{ row.url }}">{{ row.label }}</a>{% else %}{{ row.label }}{% endif %}</td>
         <td>{{ row.status }}</td><td>{{ row.since }}</td><td>{{ row.days }}</td>

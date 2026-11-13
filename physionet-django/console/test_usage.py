@@ -546,3 +546,19 @@ class TestUsageMetrics(TestCase):
         rows = list(csv.DictReader(StringIO(response.content.decode())))
         self.assertEqual(rows[0]['Decision median days'], '0.5')
         self.assertEqual(rows[0]['Valid contact durations'], '5')
+
+    def test_queue_age_summary_and_filters_use_application_age_boundaries(self):
+        from console.reporting import credential_queue_summary, pending_credentials, filter_credential_queue
+        CredentialApplication.objects.all().delete()
+        now = self.when + timezone.timedelta(days=100)
+        for days in (0, 6, 7, 29, 30, 89, 90):
+            self.credential(0, submitted=now - timezone.timedelta(days=days))
+        summary = credential_queue_summary(now)
+        self.assertEqual(summary['rows'][0][1:], [2, 2, 2, 1, 7])
+        self.assertEqual(summary['rows'][-1][1:], [2, 2, 2, 1, 7])
+        queue = pending_credentials(now)
+        for age, count in (('under7', 2), ('7to29', 2), ('30to89', 2), ('90plus', 1)):
+            self.assertEqual(filter_credential_queue(queue, 'contact', age, now).count(), count)
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('credentialing_stats'), {'queue_stage': 'invalid'})
+        self.assertEqual(response.status_code, 404)

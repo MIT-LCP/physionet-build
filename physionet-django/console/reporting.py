@@ -97,8 +97,8 @@ def access_queue_rows(requests, now):
              'url': reverse('access_request', args=[item.pk])} for item in requests]
 
 
-def queue_csv(identifier, rows):
-    return report_csv({'id': identifier, 'headers': ['Project or application', 'Status', 'Since', 'Elapsed days'],
+def queue_csv(identifier, rows, item_label='Project or application'):
+    return report_csv({'id': identifier, 'headers': [item_label, 'Status', 'Since', 'Elapsed days'],
                        'rows': [[row['label'], row['status'], row['since'].isoformat(), row['days']] for row in rows]})
 
 
@@ -154,13 +154,9 @@ def pending_credentials(now):
 def credential_queue_rows(applications, now):
     from django.urls import reverse
     rows = []
+    labels = dict(CREDENTIAL_STAGES)
     for app in applications:
-        if app.reference_contact_datetime is None:
-            status = 'Awaiting reference contact'
-        elif app.reference_response_datetime is None:
-            status = 'Awaiting reference response'
-        else:
-            status = 'Awaiting processing after reference response'
+        status = labels[credential_stage(app.reference_contact_datetime, app.reference_response_datetime)]
         rows.append({'label': app.slug, 'status': status, 'since': app.application_datetime,
                      'days': (now - app.application_datetime).days,
                      'url': reverse('process_credential_application', args=[app.slug])})
@@ -295,3 +291,56 @@ def credential_annual_report(stats):
                     'Valid contact durations', 'Response median hours', 'Valid response durations'],
         'rows': [[year, *(values[field] for field in fields)] for year, values in stats.items()],
     }
+
+
+CREDENTIAL_STAGES = (
+    ('contact', 'Awaiting reference contact'),
+    ('response', 'Awaiting reference response'),
+    ('processing', 'Awaiting processing after reference response'),
+)
+CREDENTIAL_AGES = (
+    ('under7', 'Under 7 days'), ('7to29', '7–29 days'),
+    ('30to89', '30–89 days'), ('90plus', '90+ days'),
+)
+
+
+def credential_stage(contacted, responded):
+    return 'contact' if contacted is None else 'response' if responded is None else 'processing'
+
+
+def credential_queue_summary(now):
+    counts = {stage: [0, 0, 0, 0] for stage, _ in CREDENTIAL_STAGES}
+    for submitted, contacted, responded in pending_credentials(now).values_list(
+            'application_datetime', 'reference_contact_datetime', 'reference_response_datetime').iterator():
+        days = (now - submitted).days
+        index = 0 if days < 7 else 1 if days < 30 else 2 if days < 90 else 3
+        counts[credential_stage(contacted, responded)][index] += 1
+    rows = [[label, *counts[stage], sum(counts[stage])] for stage, label in CREDENTIAL_STAGES]
+    rows.append(['Total', *[sum(row[index] for row in rows) for index in range(1, 6)]])
+    return {'id': 'credentialing-current-queue-summary', 'title': 'Current pending applications by stage and age',
+            'description': 'Current pending applications, independent of historical dates and queue filters. '
+                           'Age is measured from application submission, not from entry into the current stage.',
+            'headers': ['Stage', *[label for _, label in CREDENTIAL_AGES], 'Total'], 'rows': rows}
+
+
+def filter_credential_queue(queue, stage, age, now):
+    from django.http import Http404
+    if stage not in ('', *dict(CREDENTIAL_STAGES)) or age not in ('', *dict(CREDENTIAL_AGES)):
+        raise Http404('Unknown credentialing queue filter')
+    if stage == 'contact':
+        queue = queue.filter(reference_contact_datetime__isnull=True)
+    elif stage == 'response':
+        queue = queue.filter(reference_contact_datetime__isnull=False, reference_response_datetime__isnull=True)
+    elif stage == 'processing':
+        queue = queue.filter(reference_contact_datetime__isnull=False, reference_response_datetime__isnull=False)
+    if age == 'under7':
+        queue = queue.filter(application_datetime__gt=now - timedelta(days=7))
+    elif age == '7to29':
+        queue = queue.filter(application_datetime__lte=now - timedelta(days=7),
+                             application_datetime__gt=now - timedelta(days=30))
+    elif age == '30to89':
+        queue = queue.filter(application_datetime__lte=now - timedelta(days=30),
+                             application_datetime__gt=now - timedelta(days=90))
+    elif age == '90plus':
+        queue = queue.filter(application_datetime__lte=now - timedelta(days=90))
+    return queue

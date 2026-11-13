@@ -1,0 +1,12 @@
+<div class="card mb-3">
+  <div class="card-header">{{ table.title }}</div>
+  <div class="card-body">
+    <p>{{ table.description }}</p>
+    {% if table_query %}<a class="btn btn-md btn-success mb-3" href="?{{ table_query }}">Download CSV</a>{% endif %}
+    <div class="table-responsive"><table class="table table-bordered">
+      <thead><tr>{% for header in table.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for row in table.rows %}<tr>{% for cell in row %}<td>{% if cell is None %}Not available{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>
+      {% empty %}<tr><td>No observations available.</td></tr>{% endfor %}</tbody>
+    </table></div>
+  </div>
+</div>
