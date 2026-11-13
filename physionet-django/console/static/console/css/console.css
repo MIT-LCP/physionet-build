@@ -356,6 +356,7 @@ html {
 }
 
 .modern-ui .btn-success {
+  color: #fff;
   background-color: #198754;
   border-color: #198754;
   border-radius: 50rem;

@@ -1,5 +1,6 @@
 """Definitions shared by monthly operational reports and their CSV exports."""
 import csv
+from calendar import monthrange
 from datetime import datetime, time, timedelta
 from statistics import median
 
@@ -29,10 +30,19 @@ def median_days(values):
     return round(median(values), 2) if values else None
 
 
-def trend_report(identifier, title, description, headers, rows, series):
+def trend_report(identifier, title, description, headers, rows, series, start_date=None, end_date=None):
+    partial = []
+    for row in rows:
+        year, month = map(int, row[0].split('-'))
+        first = datetime(year, month, 1).date()
+        last = first.replace(day=monthrange(year, month)[1])
+        partial.append(bool(start_date and end_date and (start_date > first or end_date < last)))
+    if start_date and end_date:
+        headers = [*headers, 'Period coverage']
+        rows = [[*row, 'Partial month' if limited else 'Full month'] for row, limited in zip(rows, partial)]
     return {'id': identifier, 'title': title, 'description': description,
             'headers': headers, 'rows': rows,
-            'chart': {'labels': [row[0] for row in rows], 'series': [
+            'chart': {'labels': [row[0] for row in rows], 'partial': partial, 'series': [
                 {'name': name, 'values': [row[index] for row in rows]}
                 for name, index in series
             ]}}
@@ -68,7 +78,7 @@ def access_trend(start_date, end_date):
         'Approvals include later revocations and expiry. These are different cohorts, not an approval rate. '
         'Boundary months cover only selected dates; zero means no recorded events.',
         ['Period (YYYY-MM)', 'Requests submitted', 'Approvals', 'Rejections'], rows,
-        [('Requests submitted', 1), ('Approvals', 2), ('Rejections', 3)],
+        [('Requests submitted', 1), ('Approvals', 2), ('Rejections', 3)], start_date, end_date,
     )
 
 
@@ -110,15 +120,28 @@ def credential_trend(start_date, end_date):
         values[period(decided)][1 if status == CredentialApplication.Status.REJECTED else 0].append(days)
     rows = [[month, median_days(accepted), len(accepted), median_days(rejected), len(rejected)]
             for month, (accepted, rejected) in values.items()]
-    return trend_report(
+    report = trend_report(
         'credentialing-monthly', 'Credentialing decision time by month',
         'Grouped by decision date, measuring calendar days from application to decision. '
         'Accepted includes later-revoked credentials. Withdrawals and pending applications are excluded. '
         'Missing medians mean no valid observations; boundary months may be partial. '
         + (f'Excluded negative durations: {invalid}.' if invalid else ''),
         ['Period (YYYY-MM)', 'Accepted median days', 'Accepted decisions', 'Rejected median days', 'Rejected decisions'],
-        rows, [('Accepted median days', 1), ('Rejected median days', 3)],
+        rows, [('Accepted median days', 1), ('Rejected median days', 3)], start_date, end_date,
     )
+
+    report['volume'] = {
+        'id': 'credentialing-volume', 'title': 'Credentialing decision volume by month',
+        'description': 'Counts of the valid decisions included in the time analysis above, grouped by decision month. '
+                       'Accepted includes later-revoked credentials. Boundary months may be partial. '
+                       'The monthly table and CSV below contain the values for both charts.',
+        'chart': {'type': 'stacked-bar', 'labels': [row[0] for row in rows],
+                  'partial': report['chart']['partial'], 'series': [
+            {'name': 'Accepted decisions', 'values': [row[2] for row in rows]},
+            {'name': 'Rejected decisions', 'values': [row[4] for row in rows]},
+        ]},
+    }
+    return report
 
 
 def pending_credentials(now):
@@ -197,7 +220,7 @@ def editorial_trend(start_date, end_date):
         'to medians. Boundary months may be partial; missing medians mean no valid observations. '
         + (f'Excluded negative durations: {invalid}.' if invalid else ''),
         ['Period (YYYY-MM)', 'Median days to first decision', 'Project versions with a decision'], rows,
-        [('Median days to first decision', 1)],
+        [('Median days to first decision', 1)], start_date, end_date,
     )
 
 

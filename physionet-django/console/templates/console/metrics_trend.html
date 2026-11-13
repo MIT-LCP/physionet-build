@@ -4,6 +4,13 @@
     <p>{{ report.description }}</p>
     <div data-metrics-chart="{{ report.id }}" data-label="{{ report.title }}. Exact values are in the following table."></div>
     {{ report.chart|json_script:report.id }}
+    <p class="small text-muted">* Partially covered months use lighter marks and dashed lines. See period coverage in the table and CSV.</p>
+    {% if report.volume %}
+    <h3 class="h5 mt-4">{{ report.volume.title }}</h3>
+    <p>{{ report.volume.description }}</p>
+    <div data-metrics-chart="{{ report.volume.id }}" data-label="{{ report.volume.title }}. Exact values are in the following table."></div>
+    {{ report.volume.chart|json_script:report.volume.id }}
+    {% endif %}
     <a class="btn btn-md btn-success mb-3" href="?{{ trend_export_query }}">Download monthly CSV</a>
     <details>
       <summary>Monthly values and observation counts</summary>

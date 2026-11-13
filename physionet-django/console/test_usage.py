@@ -314,7 +314,7 @@ class TestUsageMetrics(TestCase):
         self.create_request(self.other, status=DataAccessRequest.REVOKED_VALUE)
         self.create_request(self.coauthor, status=DataAccessRequest.REJECT_REQUEST_VALUE)
         report = access_trend(date(2020, 6, 15), date(2020, 8, 1))
-        self.assertEqual(report['rows'], [['2020-06', 3, 1, 1], ['2020-07', 0, 1, 0], ['2020-08', 0, 0, 0]])
+        self.assertEqual(report['rows'], [['2020-06', 3, 1, 1, 'Partial month'], ['2020-07', 0, 1, 0, 'Full month'], ['2020-08', 0, 0, 0, 'Partial month']])
         self.client.force_login(self.admin)
         params = {'start_date': '2020-06-15', 'end_date': '2020-08-01'}
         page = self.client.get(reverse('access_request_stats'), params)
@@ -359,15 +359,22 @@ class TestUsageMetrics(TestCase):
         self.assertNotIn('Excluded negative durations', valid_report['description'])
         self.credential(accepted, decided=self.when - timezone.timedelta(days=1))
         report = credential_trend(date(2020, 6, 1), date(2020, 7, 31))
-        self.assertEqual(report['rows'], [['2020-06', 2.25, 2, 4.0, 1], ['2020-07', None, 0, None, 0]])
+        self.assertEqual(report['rows'], [['2020-06', 2.25, 2, 4.0, 1, 'Full month'], ['2020-07', None, 0, None, 0, 'Full month']])
+        self.assertEqual(report['volume']['chart'], {
+            'type': 'stacked-bar', 'labels': ['2020-06', '2020-07'], 'partial': [False, False],
+            'series': [{'name': 'Accepted decisions', 'values': [2, 0]},
+                       {'name': 'Rejected decisions', 'values': [1, 0]}],
+        })
         self.assertIn('Excluded negative durations: 1', report['description'])
         self.client.force_login(self.admin)
         params = {'start_date': '2020-06-01', 'end_date': '2020-07-31'}
         page = self.client.get(reverse('credentialing_stats'), params)
         self.assertEqual(page.status_code, 200)
         self.assertEqual(page.context['report'], report)
+        self.assertContains(page, 'Credentialing decision volume by month')
+        self.assertContains(page, 'data-metrics-chart="credentialing-volume"')
         export = self.client.get(reverse('credentialing_stats'), {**params, 'export': 'monthly'})
-        self.assertEqual(list(csv.reader(StringIO(export.content.decode())))[-1], ['2020-07', '', '0', '', '0'])
+        self.assertEqual(list(csv.reader(StringIO(export.content.decode())))[-1], ['2020-07', '', '0', '', '0', 'Full month'])
 
     def test_credential_queue_and_repeated_applications_are_descriptive(self):
         from console.reporting import pending_credentials, credential_queue_rows, repeated_credentials
@@ -414,11 +421,11 @@ class TestUsageMetrics(TestCase):
         EditLog.objects.create(project=self.active, decision=0,
                                decision_datetime=self.when + timezone.timedelta(days=5))
         report = editorial_trend(date(2020, 6, 1), date(2020, 7, 31))
-        self.assertEqual(report['rows'], [['2020-06', 1.5, 1], ['2020-07', None, 0]])
+        self.assertEqual(report['rows'], [['2020-06', 1.5, 1, 'Full month'], ['2020-07', None, 0, 'Full month']])
         self.assertNotIn('Excluded negative durations', report['description'])
         EditLog.objects.filter(pk=first.pk).update(decision_datetime=self.when - timezone.timedelta(days=1))
         report = editorial_trend(date(2020, 6, 1), date(2020, 7, 31))
-        self.assertEqual(report['rows'][0], ['2020-06', None, 0])
+        self.assertEqual(report['rows'][0], ['2020-06', None, 0, 'Full month'])
         self.assertIn('Excluded negative durations: 1', report['description'])
 
     def test_editorial_queue_reports_total_age_not_time_in_stage(self):
@@ -510,3 +517,10 @@ class TestUsageMetrics(TestCase):
             row[0] for row in second.context['repeated']['rows']))
         export = self.client.get(url, {**params, 'export': 'repeated', 'repeated_page': 2})
         self.assertEqual(len(list(csv.DictReader(StringIO(export.content.decode())))), 6)
+
+    def test_credential_volume_empty_months_are_zero(self):
+        from console.reporting import credential_trend
+        report = credential_trend(date(2010, 1, 1), date(2010, 2, 28))
+        self.assertEqual(report['volume']['chart']['labels'], ['2010-01', '2010-02'])
+        for series in report['volume']['chart']['series']:
+            self.assertEqual(series['values'], [0, 0])

@@ -15,7 +15,7 @@
 {% if repeated %}
 <div class="card mb-3" id="repeated-applications"><div class="card-header">Repeated credential applications</div><div class="card-body">
   <p>Users with two or more applications submitted during the selected dates, showing their current statuses.
-    Repetition does not establish a system problem. Showing up to 5 users per page of {{ repeated_total }};
+    Repetition does not establish a system problem. {{ repeated_total }} users, 5 per page;
     the CSV includes all matching users.</p>
   <a href="?{{ repeated_query }}" class="btn btn-md btn-success mb-3">Download repeated applications CSV</a>
   <div class="table-responsive"><table class="table table-bordered">

@@ -1,7 +1,7 @@
 <div class="card mb-3">
   <div class="card-header">{{ queue_title }}</div>
   <div class="card-body">
-    <p>{{ queue_description }} Snapshot: {{ queue_now }}. Total: {{ queue_total }}.</p>
+    <p>{{ queue_description }} Snapshot: {{ queue_now|date:"Y-m-d H:i T" }}. Total: {{ queue_total }}.</p>
     <a class="btn btn-md btn-success mb-3" href="?export=pending">Download current queue CSV</a>
     <div class="table-responsive"><table class="table table-bordered">
       <thead><tr><th>Project or application</th><th>Status</th><th>Since</th><th>Elapsed days</th></tr></thead>
