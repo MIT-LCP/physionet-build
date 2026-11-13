@@ -30,7 +30,7 @@ def median_days(values):
     return round(median(values), 2) if values else None
 
 
-def trend_report(identifier, title, description, headers, rows, series, start_date=None, end_date=None, integer=False):
+def trend_report(identifier, title, description, headers, rows, series, start_date=None, end_date=None, integer=False, warning=''):
     partial = []
     for row in rows:
         year, month = map(int, row[0].split('-'))
@@ -42,6 +42,7 @@ def trend_report(identifier, title, description, headers, rows, series, start_da
         headers = [*headers, 'Period coverage']
         rows = [[*row, 'Partial month' if limited else 'Full month'] for row, limited in zip(rows, partial)]
     return {'id': identifier, 'title': title, 'description': description,
+            'summary': description.partition('. ')[0].rstrip('.') + '.', 'warning': warning,
             'headers': headers, 'rows': rows,
             'chart': {'labels': [row[0] for row in rows], 'partial': partial, 'integer': integer, 'series': [
                 {'name': name, 'values': [row[index] for row in rows]}
@@ -131,11 +132,13 @@ def credential_trend(start_date, end_date):
         rows, [('Accepted median days', 1), ('Rejected median days', 3)], start_date, end_date,
     )
 
+    report['warning'] = f'Excluded negative durations: {invalid}.' if invalid else ''
     report['volume'] = {
         'id': 'credentialing-volume', 'title': 'Credentialing decision volume by month',
+        'summary': 'Accepted and rejected decisions included in the decision-time analysis.',
         'description': 'Counts of the valid decisions included in the time analysis above, grouped by decision month. '
                        'Accepted includes later-revoked credentials. Boundary months may be partial. '
-                       'The monthly table and CSV below contain the values for both charts.',
+                       'The monthly table above and its CSV contain the values for both charts.',
         'chart': {'type': 'stacked-bar', 'integer': True, 'labels': [row[0] for row in rows],
                   'partial': report['chart']['partial'], 'series': [
             {'name': 'Accepted decisions', 'values': [row[2] for row in rows]},
@@ -218,6 +221,7 @@ def editorial_trend(start_date, end_date):
         + (f'Excluded negative durations: {invalid}.' if invalid else ''),
         ['Period (YYYY-MM)', 'Median days to first decision', 'Project versions with a decision'], rows,
         [('Median days to first decision', 1)], start_date, end_date,
+        warning=f'Excluded negative durations: {invalid}.' if invalid else '',
     )
 
 
@@ -319,6 +323,7 @@ def credential_queue_summary(now):
     rows = [[label, *counts[stage], sum(counts[stage])] for stage, label in CREDENTIAL_STAGES]
     rows.append(['Total', *[sum(row[index] for row in rows) for index in range(1, 6)]])
     return {'id': 'credentialing-current-queue-summary', 'title': 'Current pending applications by stage and age',
+            'summary': 'Current pending applications by stage and age, across all dates.',
             'description': 'Current pending applications, independent of historical dates and queue filters. '
                            'Age is measured from application submission, not from entry into the current stage.',
             'headers': ['Stage', *[label for _, label in CREDENTIAL_AGES], 'Total'], 'rows': rows}
@@ -385,6 +390,7 @@ def credential_stage_report(start_date, end_date):
                 values[index].append(elapsed_days(left, right))
     return {
         'id': 'credentialing-stage-durations', 'title': 'Time between credentialing steps',
+        'summary': 'Compare median and p90 time between steps for handled applications decided in the selected period.',
         'description': 'Handled applications with a decision during the selected dates, including later revocations. '
                        'Each timestamp pair is checked independently; missing and negative intervals are excluded '
                        'and counted separately. Durations use fractional calendar days, including zero. '
@@ -461,9 +467,11 @@ def credential_reapplication_reports(start_date, end_date):
     share = round(100 * repeats / total, 2) if total else 0
     return [
         {'id': 'credentialing-reapplication-distribution', 'title': 'Applications per person',
+         'summary': f'{repeats} of {total} people ({share}%) have two or more recorded applications.',
          'description': common + f'{repeats} people ({share}%) have two or more recorded applications.',
          'headers': headers, 'rows': rows(applications, labels)},
         {'id': 'credentialing-first-approval', 'title': 'Applications submitted by first recorded approval',
+         'summary': 'Applications submitted up to the first valid approval date, using complete recorded histories.',
          'description': common + 'Counts applications submitted on or before the earliest valid approval date. '
                          'Later-revoked credentials count as approvals. Missing or negative approval dates are '
                          'reported separately; this does not measure current eligibility.',
@@ -471,6 +479,7 @@ def credential_reapplication_reports(start_date, end_date):
              ('none', 'No accepted or revoked application in recorded history'),
              ('missing', 'Approved record without a valid decision date')])},
         {'id': 'credentialing-latest-application', 'title': "Latest application's current status",
+         'summary': 'Current status of the latest application for each person in the selected cohort.',
          'description': common + 'One latest application per person, ordered by submission time and record ID. '
                          'This describes that application, not the account credentialing status.',
          'headers': headers, 'rows': rows(latest, [(status.value, status.label)

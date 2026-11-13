@@ -51,7 +51,7 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
     let previous = null;
     series.values.forEach(function (value, i) {
       if (value === null) { previous = null; return; }
-      if (!stacked && previous !== null) add('line', {x1: x(previous), y1: y(series.values[previous]), x2: x(i), y2: y(value), stroke: color, 'stroke-width': 3, 'stroke-dasharray': partial[i] || partial[previous] ? '5 4' : 'none'});
+      if (!stacked && previous !== null) add('line', {x1: x(previous), y1: y(series.values[previous]), x2: x(i), y2: y(value), stroke: color, 'stroke-width': 3});
       let point;
       if (stacked) {
         const top = bases[i] + value;
@@ -62,7 +62,6 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
       } else {
         point = add('circle', {cx: x(i), cy: y(value), r: 4, fill: color, tabindex: 0});
       }
-      point.setAttribute('opacity', partial[i] ? 0.5 : 1);
       const title = document.createElementNS(ns, 'title');
       title.textContent = data.labels[i] + ' — ' + series.name + ': ' + value + coverage(i);
       point.appendChild(title);

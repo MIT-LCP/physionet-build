@@ -1,7 +1,7 @@
 <div class="card mb-3">
   <div class="card-header">{{ table.title }}</div>
   <div class="card-body">
-    <p>{{ table.description }}</p>
+    {% include 'console/metrics_definition.html' with summary=table.summary description=table.description %}
     {% if table_query %}<a class="btn btn-md btn-success mb-3" href="?{{ table_query }}">Download CSV</a>{% endif %}
     <div class="table-responsive"><table class="table table-bordered">
       <thead><tr>{% for header in table.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>

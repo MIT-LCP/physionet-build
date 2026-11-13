@@ -1,16 +1,11 @@
 <div class="card mb-3">
   <div class="card-header">{{ report.title }}</div>
   <div class="card-body">
-    <p>{{ report.description }}</p>
+    {% include 'console/metrics_definition.html' with summary=report.summary description=report.description %}
+    {% if report.warning %}<p class="text-warning">{{ report.warning }}</p>{% endif %}
     <div data-metrics-chart="{{ report.id }}" data-label="{{ report.title }}. Exact values are in the following table."></div>
     {{ report.chart|json_script:report.id }}
-    <p class="small text-muted">* Partially covered months use lighter marks and dashed lines. See period coverage in the table and CSV.</p>
-    {% if report.volume %}
-    <h3 class="h5 mt-4">{{ report.volume.title }}</h3>
-    <p>{{ report.volume.description }}</p>
-    <div data-metrics-chart="{{ report.volume.id }}" data-label="{{ report.volume.title }}. Exact values are in the following table."></div>
-    {{ report.volume.chart|json_script:report.volume.id }}
-    {% endif %}
+    <p class="small text-muted">* Partial month. See period coverage in the table and CSV.</p>
     <a class="btn btn-md btn-success mb-3" href="?{{ trend_export_query }}">Download monthly CSV</a>
     <details>
       <summary>Monthly values and observation counts</summary>
@@ -22,3 +17,16 @@
     </details>
   </div>
 </div>
+
+{% if report.volume %}
+<div class="card mb-3">
+  <div class="card-header">{{ report.volume.title }}</div>
+  <div class="card-body">
+    {% include 'console/metrics_definition.html' with summary=report.volume.summary description=report.volume.description %}
+    <div data-metrics-chart="{{ report.volume.id }}" data-label="{{ report.volume.title }}. Exact values are in the decision-time table above."></div>
+    {{ report.volume.chart|json_script:report.volume.id }}
+    <p class="small text-muted">* Partial month. See period coverage in the table and CSV.</p>
+    <a class="btn btn-md btn-success" href="?{{ trend_export_query }}">Download monthly CSV</a>
+  </div>
+</div>
+{% endif %}

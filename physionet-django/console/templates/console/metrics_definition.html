@@ -1,0 +1,9 @@
+{% if summary %}
+<p>{{ summary }}</p>
+<details class="mb-3">
+  <summary>How these metrics are calculated</summary>
+  <p class="mt-2">{{ description }}</p>
+</details>
+{% else %}
+<p>{{ description }}</p>
+{% endif %}

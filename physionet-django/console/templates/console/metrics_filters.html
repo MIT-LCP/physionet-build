@@ -1,5 +1,5 @@
 <div class="card mb-3"><div class="card-body">
-  <h2 class="h5">Operational trends</h2>
+  <h2 class="h5">Reporting period</h2>
   <form method="get" id="operational-date-form">
     {{ report_form.non_field_errors }}
     <div class="form-row align-items-end">
@@ -7,5 +7,5 @@
       <div class="form-group col-sm-4"><button class="btn btn-primary" type="submit">Apply dates</button></div>
     </div>
   </form>
-  <p>Dates filter the monthly report{% if repeated %} and repeated applications{% endif %}. Current queues use today's state.</p>
+  <p>Dates filter monthly reports{% if repeated %} and the application cohort for reapplications{% endif %}. Current queues and annual cohorts are not filtered.</p>
 </div></div>
