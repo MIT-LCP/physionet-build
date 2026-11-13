@@ -10,6 +10,15 @@ from project.projectfiles.gcs import GCSProjectFiles
 from project.projectfiles.local import LocalProjectFiles
 
 
+class RevisionType(models.IntegerChoices):
+    """
+    The extent of the revisions requested by an editor. This sets how
+    long the authors have to resubmit the project.
+    """
+    MINOR = 1, 'Minor revisions'
+    MAJOR = 2, 'Major revisions'
+
+
 class EditLog(models.Model):
     """
     Log for an editor decision. Also saves submission info.
@@ -61,7 +70,7 @@ class EditLog(models.Model):
         'no_phi',
     ]
     # The editor's free input fields
-    EDITOR_FIELDS = ('editor_comments', 'decision', 'auto_doi')
+    EDITOR_FIELDS = ('editor_comments', 'decision', 'revision_type', 'auto_doi')
 
     COMMON_LABELS = {
         'reusable': 'Does the project include everything needed for reuse by the community?',
@@ -133,6 +142,8 @@ class EditLog(models.Model):
     # Editor decision. 0 1 2 for reject/revise/accept
     decision = models.SmallIntegerField(null=True)
     decision_datetime = models.DateTimeField(null=True)
+    # When revisions are requested, whether they are minor or major
+    revision_type = models.PositiveSmallIntegerField(choices=RevisionType.choices, null=True, blank=True)
     # Comments for the decision
     editor_comments = models.CharField(max_length=20000)
     auto_doi = models.BooleanField(default=True)

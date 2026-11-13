@@ -75,7 +75,7 @@
             <div class="task__body">
               <span class="task__label">Revisions requested</span>
               <a class="task__title" href="{% url 'project_overview' project.slug %}">{{ project.title }}</a>
-              <span class="task__detail">Requested {{ project.revision_request_datetime|date }}</span>
+              <span class="task__detail">Requested {{ project.revision_request_datetime|date }}{% if project.revision_deadline %} &middot; Due {{ project.revision_deadline|date }}{% endif %}</span>
             </div>
             <div class="task__action">
               <a href="{% url 'project_submission' project.slug %}" class="primary-button primary-button--small">Resubmit</a>

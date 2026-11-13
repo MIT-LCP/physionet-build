@@ -61,6 +61,7 @@ from project.models import (
     PublishedProject,
     ReviewerAccessRequest,
     ReviewerInvitation,
+    RevisionType,
     StorageRequest,
     SubmissionStatus,
     Topic,
@@ -346,8 +347,19 @@ def project_on_hold(request, project_slug):
         project.place_on_hold()
         messages.success(request, f'Project "{project.title}" has been placed on hold.')
     elif 'remove_from_hold' in request.POST:
-        project.remove_from_hold()
-        messages.success(request, f'Project "{project.title}" has been removed from hold.')
+        old_deadline = project.revision_deadline
+        if project.remove_from_hold():
+            # The revision deadline was paused while the project was on hold
+            new_deadline = date_format(timezone.localtime(project.revision_deadline))
+            InternalNote.objects.create(
+                project=project, created_by=user,
+                content='Removed from hold. Revision deadline moved from {0} to {1}.'.format(
+                    date_format(timezone.localtime(old_deadline)), new_deadline))
+            notification.revision_deadline_changed_notify(request, project)
+            messages.success(request, f'Project "{project.title}" has been removed from hold. Its revision '
+                                      f'deadline has been moved to {new_deadline} and the authors have been notified.')
+        else:
+            messages.success(request, f'Project "{project.title}" has been removed from hold.')
 
     redirect_url = request.POST.get('redirect', '')
     if redirect_url:
@@ -406,13 +418,33 @@ def can_manage_reviewer_access(user, project):
     return user == project.editor or user.has_perm('project.can_assign_editor')
 
 
+def can_manage_revision_deadline(user, project):
+    """
+    Whether the user may extend a project's revision deadline, or reopen
+    an archived project for revisions.
+    """
+    return user == project.editor or user.has_perm('project.can_archive_project')
+
+
+def default_revision_deadline_date(project):
+    """
+    The date initially shown in the revision deadline form: the current
+    deadline if it is in the future, otherwise the standard minor
+    revision period from today.
+    """
+    if project.revision_deadline and project.revision_deadline > timezone.now():
+        return timezone.localdate(project.revision_deadline)
+    return timezone.localdate(project.default_revision_deadline(RevisionType.MINOR))
+
+
 def submission_info_card_params(request,
                                 project,
                                 reassign_editor_form,
                                 embargo_form,
                                 internal_note_form,
                                 bulk_download,
-                                force_calculate):
+                                force_calculate,
+                                revision_deadline_form=None):
     """
     Parameters used across submission_info_card.html pages, including:
 
@@ -487,6 +519,10 @@ def submission_info_card_params(request,
         'hide_authors': anonymous.hide_authors if anonymous else False,
         'pending_reviewer_access_request': pending_reviewer_access_request,
         'can_manage_reviewer_access': can_manage_reviewer_access(request.user, project),
+        'can_manage_revision_deadline': can_manage_revision_deadline(request.user, project),
+        'revision_deadline_form': revision_deadline_form or forms.RevisionDeadlineForm(
+            initial={'revision_deadline': default_revision_deadline_date(project)}),
+        'revision_reminder_days': settings.REVISION_REMINDER_DAYS,
     }
 
 
@@ -609,6 +645,40 @@ def submission_info(request, project_slug):
         else:
             messages.error(request, "You are not authorized to delete this note.")
         return redirect(f'{request.path}?tab=notes')
+    revision_deadline_form = None
+    if 'extend_revision_deadline' in request.POST or 'reopen_for_revisions' in request.POST:
+        reopening = 'reopen_for_revisions' in request.POST
+        if not can_manage_revision_deadline(user, project):
+            messages.error(request, 'Only the project editor or a managing editor can change the revision deadline.')
+        elif reopening and not project.is_reopenable():
+            messages.error(request, 'This project cannot be reopened for revisions.')
+        elif not reopening and project.submission_status != SubmissionStatus.NEEDS_RESUBMISSION:
+            messages.error(request, 'Only projects awaiting author revisions have a revision deadline.')
+        else:
+            revision_deadline_form = forms.RevisionDeadlineForm(data=request.POST)
+            if revision_deadline_form.is_valid():
+                deadline = revision_deadline_form.deadline_datetime()
+                if reopening:
+                    note = 'Reopened for revisions (archived: {0}). Revision deadline set to {1}.'.format(
+                        project.get_archive_reason_display(), date_format(timezone.localtime(deadline)))
+                    project.reopen_for_revisions(deadline)
+                else:
+                    old_deadline = project.revision_deadline
+                    note = 'Revision deadline changed from {0} to {1}.'.format(
+                        date_format(timezone.localtime(old_deadline)) if old_deadline else 'none',
+                        date_format(timezone.localtime(deadline)))
+                    project.extend_revision_deadline(deadline)
+                InternalNote.objects.create(project=project, created_by=user, content=note)
+                notification.revision_deadline_changed_notify(request, project, reopened=reopening)
+                if reopening:
+                    messages.success(request, 'The project has been reopened for revisions and the authors '
+                                              'have been notified.')
+                else:
+                    messages.success(request, 'The revision deadline has been changed and the authors '
+                                              'have been notified.')
+                return redirect(f'{request.path}?tab=revision-deadline')
+            messages.error(request, 'Invalid deadline. See the Revision Deadline tab.')
+
     if 'archive_project' in request.POST:
         if user != project.editor and not user.has_perm('project.can_archive_project'):
             messages.error(request, 'Only the project editor or a managing editor can archive a project.')
@@ -637,7 +707,8 @@ def submission_info(request, project_slug):
                    embargo_form,
                    internal_note_form,
                    bulk_download=True,
-                   force_calculate=False
+                   force_calculate=False,
+                   revision_deadline_form=revision_deadline_form,
                    ),
                    'copyedit_logs': copyedit_logs,
                    'passphrase': passphrase,
@@ -681,6 +752,9 @@ def edit_submission(request, project_slug, *args, **kwargs):
             if edit_log.decision == 0:
                 project = ActiveProject.objects.get(slug=project_slug,
                                                     submission_status=SubmissionStatus.ARCHIVED)
+            else:
+                # Pick up the changes made by the form, such as the revision deadline
+                project.refresh_from_db()
             # Notify the authors
             notification.edit_decision_notify(request, project, edit_log)
             return render(request, 'console/edit_complete.html',

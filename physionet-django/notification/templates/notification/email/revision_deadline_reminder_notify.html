@@ -1,0 +1,17 @@
+{% load i18n %}{% autoescape off %}{% filter wordwrap:70 %}
+{{ project_info }}
+
+Dear {{ name }},
+
+This is a reminder that revisions were requested for your project "{{ project.title }}"{% if project.revision_request_datetime %} on {{ project.revision_request_datetime|date:"j F Y" }}{% endif %}, and the project has not yet been resubmitted.
+
+The deadline for resubmitting the project is {{ project.revision_deadline|date:"j F Y" }} ({{ days_remaining }} day{{ days_remaining|pluralize }} from now). If the project has not been resubmitted by then, it will be archived and will no longer be editable.
+
+If you need more time, please contact the editor before the deadline.
+
+You can resubmit your project at: {{ url_prefix }}{% url 'project_submission' project.slug %}
+
+{{ signature }}
+
+{{ footer }}
+{% endfilter %}{% endautoescape %}

@@ -35,7 +35,7 @@
   $(document).ready(function() {
     const urlParams = new URLSearchParams(window.location.search);
     const tab = urlParams.get('tab');
-    if (tab === 'archive' || tab === 'anonymous') {
+    if (tab === 'archive' || tab === 'anonymous' || tab === 'revision-deadline') {
       $('#' + tab + '-tab').tab('show');
     }
   });

@@ -17,6 +17,8 @@ from notification.models import Notification, NotificationType
 import project.models
 import user.models
 
+LOGGER = logging.getLogger(__name__)
+
 RESPONSE_ACTIONS = {0:'rejected', 1:'accepted'}
 
 logger = logging.getLogger(__name__)
@@ -691,6 +693,133 @@ def archive_notify(request, project, archive_reason):
 
         send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
                   [email], fail_silently=False)
+
+
+def revision_deadline_reminder_notify(project, recipients=None):
+    """
+    Email the authors a reminder that the revision deadline of a project
+    is approaching.
+
+    recipients, if given, limits the reminder to authors with these email
+    addresses. Each author is emailed separately, so that one failure does
+    not stop the others. Returns the set of addresses that could not be
+    emailed.
+    """
+    days_remaining = max(project.revision_days_remaining(), 0)
+    content = {
+        'project': project,
+        'days_remaining': days_remaining,
+        'url_prefix': get_url_prefix(None),
+        'signature': settings.EMAIL_SIGNATURE,
+        'project_info': email_project_info(project),
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    failed = set()
+    for email, name in project.author_contact_info():
+        if recipients is not None and email not in recipients:
+            continue
+        content['name'] = name
+        try:
+            body = loader.render_to_string(
+                'notification/email/revision_deadline_reminder_notify.html', content)
+            send_mail(revision_deadline_reminder_subject(project), body,
+                      settings.DEFAULT_FROM_EMAIL, [email], fail_silently=False)
+        except Exception:
+            LOGGER.exception('Could not send revision deadline reminder for project %s to %s',
+                             project.slug, email)
+            failed.add(email)
+    return failed
+
+
+def format_revision_deadline(deadline):
+    """
+    Format a revision deadline as a date in the site time zone.
+
+    Deadlines are stored in UTC, and the end of a day in the site time zone
+    may fall on the next day in UTC.
+    """
+    return defaultfilters.date(timezone.localtime(deadline), 'j F Y')
+
+
+def revision_deadline_reminder_subject(project):
+    return 'Reminder - revisions due by {0}: {1}'.format(
+        format_revision_deadline(project.revision_deadline), project.title)
+
+
+def revision_deadline_reminder_in_app_notify(project):
+    """
+    Create in-app notifications reminding the authors of the revision
+    deadline.
+    """
+    for author in project.authors.all():
+        create_notification(
+            recipient=author.user,
+            notification_type=NotificationType.EDITOR_DECISION,
+            message=revision_deadline_reminder_subject(project),
+            url=reverse('project_submission', args=(project.slug,)),
+        )
+
+
+def revision_deadline_passed_notify(project, deadline):
+    """
+    Notify the authors and the editor that a project has been archived
+    because it was not resubmitted by its revision deadline.
+    """
+    archive_reason = 'The project was not resubmitted by the revision deadline of {0}.'.format(
+        format_revision_deadline(deadline))
+    archive_notify(None, project, archive_reason)
+
+    if project.editor:
+        subject = 'Revision deadline passed, project archived: {0}'.format(project.title)
+        body = loader.render_to_string(
+            'notification/email/revision_deadline_passed_editor_notify.html', {
+                'name': project.editor.get_full_name(),
+                'project': project,
+                'deadline': deadline,
+                'url_prefix': get_url_prefix(None),
+                'signature': settings.EMAIL_SIGNATURE,
+                'project_info': email_project_info(project),
+                'footer': email_footer(),
+                'SITE_NAME': settings.SITE_NAME,
+            })
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [project.editor.email], fail_silently=False)
+
+
+def revision_deadline_changed_notify(request, project, reopened=False):
+    """
+    Notify the authors that the editor has set a new revision deadline,
+    either by extending it or by reopening an archived project.
+    """
+    if reopened:
+        subject = 'Project reopened for revisions: {0}'.format(project.title)
+    else:
+        subject = 'Revision deadline changed: {0}'.format(project.title)
+    content = {
+        'project': project,
+        'reopened': reopened,
+        'url_prefix': get_url_prefix(request),
+        'signature': settings.EMAIL_SIGNATURE,
+        'project_info': email_project_info(project),
+        'footer': email_footer(),
+        'SITE_NAME': settings.SITE_NAME,
+    }
+    for email, name in project.author_contact_info():
+        content['name'] = name
+        body = loader.render_to_string(
+            'notification/email/revision_deadline_changed_notify.html', content)
+        send_mail(subject, body, settings.DEFAULT_FROM_EMAIL,
+                  [email], fail_silently=False)
+
+    for author in project.authors.all():
+        create_notification(
+            recipient=author.user,
+            notification_type=NotificationType.EDITOR_DECISION,
+            message=subject,
+            url=reverse('project_submission', args=(project.slug,)),
+            actor=project.editor,
+        )
 
 
 def storage_request_notify(request, project):

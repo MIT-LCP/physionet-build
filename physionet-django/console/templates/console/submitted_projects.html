@@ -257,6 +257,7 @@
                   <th>Submitted By</th>
                   <th>Submitted</th>
                   <th>Revision Requested</th>
+                  <th>Deadline</th>
                   <th>Latest reminder</th>
                   <th>Editor</th>
                   <th>Action</th>
@@ -269,6 +270,7 @@
                   <td><a href="{% url 'public_profile' project.submitting_author.user.username %}">{{ project.submitting_author }}</a></td>
                   <td>{{ project.submission_datetime|date }}</td>
                   <td>{{ project.revision_request_datetime|date }}</td>
+                  <td>{% include "console/revision_deadline_badge.html" %}</td>
                   <td>{{ project.latest_reminder|date }}</td>
                   <td>{{ project.editor }}</td>
                   <td>

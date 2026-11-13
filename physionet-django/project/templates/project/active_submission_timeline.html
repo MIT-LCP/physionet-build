@@ -75,6 +75,10 @@
       <div class="col-md-2">Currently</div>
       <div class="col-md-10">
         <i class="far fa-clock"></i> Waiting for the submitting author to make revisions and resubmit.
+        {% if project.revision_deadline %}
+          <br>The project must be resubmitted by <strong>{{ project.revision_deadline|date }}</strong>, or it will be archived.
+          If you need more time, please contact the editor before the deadline.
+        {% endif %}
         {% if is_submitting %}
           <br><br>
           <button id="resubmit-project-modal-button" type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#resubmit-modal" onclick="checkIntegrity(true)">Resubmit Project</button>
