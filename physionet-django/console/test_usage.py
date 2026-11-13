@@ -562,3 +562,22 @@ class TestUsageMetrics(TestCase):
         self.client.force_login(self.admin)
         response = self.client.get(reverse('credentialing_stats'), {'queue_stage': 'invalid'})
         self.assertEqual(response.status_code, 404)
+
+    def test_stage_durations_report_percentiles_missing_and_negative_pairs(self):
+        from console.reporting import credential_stage_report
+        CredentialApplication.objects.all().delete()
+        self.credential(2, decided=self.when + timezone.timedelta(days=10),
+                        reference_contact_datetime=self.when + timezone.timedelta(days=2),
+                        reference_response_datetime=self.when + timezone.timedelta(days=3))
+        self.credential(1, decided=self.when + timezone.timedelta(days=20),
+                        reference_contact_datetime=self.when + timezone.timedelta(days=4))
+        self.credential(2, decided=self.when + timezone.timedelta(days=2),
+                        reference_contact_datetime=self.when - timezone.timedelta(days=1))
+        report = credential_stage_report(date(2020, 1, 1), date(2020, 12, 31))
+        self.assertEqual(report['rows'][0][1:], [2, 3.0, 3.8, 0, 1])
+        self.assertEqual(report['rows'][1][1:], [1, 1.0, 1.0, 2, 0])
+        self.assertEqual(report['rows'][2][1:], [1, 7.0, 7.0, 2, 0])
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('credentialing_stats'), {
+            'start_date': '2020-01-01', 'end_date': '2020-12-31', 'export': 'stages'})
+        self.assertEqual(len(list(csv.DictReader(StringIO(response.content.decode())))), 4)

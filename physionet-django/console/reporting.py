@@ -344,3 +344,51 @@ def filter_credential_queue(queue, stage, age, now):
     elif age == '90plus':
         queue = queue.filter(application_datetime__lte=now - timedelta(days=90))
     return queue
+
+
+def percentile(values, fraction):
+    """Linearly interpolated percentile; round only the final result."""
+    if not values:
+        return None
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * fraction
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
+    return round(ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower), 2)
+
+
+def credential_stage_report(start_date, end_date):
+    from user.models import CredentialApplication
+    start, end = date_bounds(start_date, end_date)
+    stages = [
+        ('Application → reference contact', 0, 1),
+        ('Reference contact → response', 1, 2),
+        ('Reference response → decision', 2, 3),
+        ('Application → decision', 0, 3),
+    ]
+    values = [[] for _ in stages]
+    missing = [0] * len(stages)
+    negative = [0] * len(stages)
+    apps = CredentialApplication.objects.filter(
+        decision_datetime__gte=start, decision_datetime__lt=end, status__in=(1, 2, 4),
+    ).values_list('application_datetime', 'reference_contact_datetime', 'reference_response_datetime',
+                  'decision_datetime')
+    for timestamps in apps.iterator(chunk_size=2000):
+        for index, (_, first, last) in enumerate(stages):
+            left, right = timestamps[first], timestamps[last]
+            if left is None or right is None:
+                missing[index] += 1
+            elif right < left:
+                negative[index] += 1
+            else:
+                values[index].append(elapsed_days(left, right))
+    return {
+        'id': 'credentialing-stage-durations', 'title': 'Time between credentialing steps',
+        'description': 'Handled applications with a decision during the selected dates, including later revocations. '
+                       'Each timestamp pair is checked independently; missing and negative intervals are excluded '
+                       'and counted separately. Durations use fractional calendar days, including zero. '
+                       'Medians for different steps must not be added. P90 uses linear interpolation.',
+        'headers': ['Interval', 'Valid observations', 'Median days', 'P90 days', 'Missing pairs', 'Negative intervals'],
+        'rows': [[name, len(values[i]), median_days(values[i]), percentile(values[i], 0.9), missing[i], negative[i]]
+                 for i, (name, _, _) in enumerate(stages)],
+    }
