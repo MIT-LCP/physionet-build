@@ -303,6 +303,34 @@ class TestManageRevisionDeadlinesCommand(RevisionDeadlineTestMixin):
         body = ' '.join(mail.outbox[0].body.split())
         self.assertIn(f'revisions were requested for your project "{self.project.title}", and', body)
 
+    def test_reminder_dates_use_site_time_zone(self):
+        # The end of 12 December in New York is 13 December in UTC
+        deadline = local_datetime(2026, 12, 12, 23, 59, 59)
+        with mock.patch('django.utils.timezone.now', return_value=local_datetime(2026, 11, 20, 9, 15)):
+            self.await_revisions(deadline, reminders_sent=0)
+            self.project.refresh_from_db()
+            self.assertEqual(self.project.revision_deadline.utcoffset(), datetime.timedelta(0))
+            self.run_command()
+        subject = mail.outbox[0].subject
+        self.assertIn('12 December 2026', subject)
+        self.assertNotIn('13 December', subject)
+        self.assertIn('12 December 2026', ' '.join(mail.outbox[0].body.split()))
+        notification = Notification.objects.filter(message__startswith='Reminder - revisions due').first()
+        self.assertIn('12 December 2026', notification.message)
+
+    def test_archive_notice_uses_site_time_zone(self):
+        deadline = local_datetime(2026, 12, 12, 23, 59, 59)
+        with mock.patch('django.utils.timezone.now', return_value=local_datetime(2026, 11, 20, 9, 15)):
+            self.await_revisions(deadline)
+        with mock.patch('django.utils.timezone.now', return_value=local_datetime(2026, 12, 13, 9, 15)):
+            self.run_command()
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.submission_status, SubmissionStatus.ARCHIVED)
+        author_mail = [e for e in mail.outbox if e.to[0] in self.author_emails()]
+        body = ' '.join(author_mail[0].body.split())
+        self.assertIn('revision deadline of 12 December 2026', body)
+        self.assertNotIn('13 December', body)
+
     def test_dry_run_changes_nothing(self):
         self.await_revisions(days_from_now(-1))
         output = self.run_command('--dry-run')

@@ -732,9 +732,19 @@ def revision_deadline_reminder_notify(project, recipients=None):
     return failed
 
 
+def format_revision_deadline(deadline):
+    """
+    Format a revision deadline as a date in the site time zone.
+
+    Deadlines are stored in UTC, and the end of a day in the site time zone
+    may fall on the next day in UTC.
+    """
+    return defaultfilters.date(timezone.localtime(deadline), 'j F Y')
+
+
 def revision_deadline_reminder_subject(project):
     return 'Reminder - revisions due by {0}: {1}'.format(
-        defaultfilters.date(project.revision_deadline, 'j F Y'), project.title)
+        format_revision_deadline(project.revision_deadline), project.title)
 
 
 def revision_deadline_reminder_in_app_notify(project):
@@ -757,7 +767,7 @@ def revision_deadline_passed_notify(project, deadline):
     because it was not resubmitted by its revision deadline.
     """
     archive_reason = 'The project was not resubmitted by the revision deadline of {0}.'.format(
-        defaultfilters.date(deadline, 'j F Y'))
+        format_revision_deadline(deadline))
     archive_notify(None, project, archive_reason)
 
     if project.editor:
