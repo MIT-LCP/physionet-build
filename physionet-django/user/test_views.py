@@ -360,7 +360,8 @@ class TestAuth(TestMixin):
 
         # Test 5: Verify the newly added email
         # Get the activation info from the sent email
-        uidb64, token = re.findall('http://localhost:8000/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
+        uidb64, token = re.findall(
+            r'http://localhost:8000/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
             mail.outbox[0].body)[0]
 
         request = self.client.get(reverse('verify_email', args=(uidb64, token)))
