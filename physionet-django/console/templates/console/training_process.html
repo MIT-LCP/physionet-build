@@ -67,6 +67,25 @@
                     <li>Completion Report ID: <mark>{{ citi_verification.completion_report_id }}</mark></li>
                 </ul>
 
+                {% if citi_verification.auto_approval_checked_datetime %}
+                <h5>Automatic Approval</h5>
+                {% if citi_auto_approval_failures %}
+                <div class="alert alert-warning">
+                    Not eligible for automatic approval:
+                    <ul class="mb-0">
+                        {% for failure in citi_auto_approval_failures %}
+                        <li>{{ failure }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    All automatic approval checks passed.
+                    {% if not citi_auto_approve_enabled %}Automatic approval is currently disabled, so this submission needs manual review.{% endif %}
+                </div>
+                {% endif %}
+                {% endif %}
+
                 {% if citi_member_profile %}
                 <h5>CITI Member Profile</h5>
                 <ul>
