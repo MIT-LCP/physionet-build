@@ -44,7 +44,7 @@ from oauth2_provider.models import (
     get_device_grant_model,
     get_refresh_token_model,
 )
-from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
+from oauthlib.oauth2.rfc6749.errors import InvalidGrantError, OAuth2Error
 
 from physionet import utility
 from physionet.middleware.maintenance import (
@@ -822,6 +822,15 @@ def _fetch_and_validate_token(request, code, oauth_session):
     """
     Exchange code retrieved from ORCID for token and validate it
     """
+    # Keep ORCID's reply, so an unexpected one can be logged.
+    reply = {}
+
+    def remember_reply(response):
+        reply['response'] = response
+        return response
+
+    oauth_session.register_compliance_hook('access_token_response', remember_reply)
+
     try:
         client_secret = settings.ORCID_CLIENT_SECRET
         token = oauth_session.fetch_token(
@@ -830,23 +839,47 @@ def _fetch_and_validate_token(request, code, oauth_session):
             include_client_id=True,
             client_secret=client_secret,
         )
-
-        try:
-            validators.validate_orcid_token(token['access_token'])
-            if settings.ORCID_LOGIN_ENABLED:
-                validators.validate_orcid_id_token(token['id_token'])
-
-            return True, token
-        except ValidationError as e:
-            logger.error(f'Validation Error: ORCID token validation failed. Error message: {e.message}')
-            messages.error(request, 'Validation Error: ORCID token validation failed.')
     except InvalidGrantError:
         messages.error(
             request,
             'Invalid Grant Error: authorization code may be expired or invalid.',
         )
+        return False, None
+    except (OAuth2Error, requests.RequestException) as e:
+        # For example, an error page instead of a token, or ORCID can't be reached.
+        logger.error('ORCID token request failed: %r. %s', e, _describe_orcid_reply(reply.get('response')))
+        messages.error(
+            request,
+            'ORCID did not respond as expected. Please try again in a few minutes.',
+        )
+        return False, None
+
+    try:
+        validators.validate_orcid_token(token['access_token'])
+        if settings.ORCID_LOGIN_ENABLED:
+            validators.validate_orcid_id_token(token['id_token'])
+
+        return True, token
+    except ValidationError as e:
+        logger.error(f'Validation Error: ORCID token validation failed. Error message: {e.message}')
+        messages.error(request, 'Validation Error: ORCID token validation failed.')
 
     return False, None
+
+
+def _describe_orcid_reply(response):
+    """
+    Describe ORCID's reply to a token request for the log: the status, content
+    type and the start of the body. The body is left out if it might hold a token.
+    """
+    if response is None:
+        return 'No reply from ORCID.'
+    description = 'ORCID replied HTTP {} ({}).'.format(
+        response.status_code, response.headers.get('Content-Type', 'no content type'))
+    body = response.text
+    if 'token' not in body:
+        description += ' Body: {!r}'.format(body[:300])
+    return description
 
 
 @disallow_during_maintenance
