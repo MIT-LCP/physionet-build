@@ -1474,10 +1474,10 @@ class CITIVerification(models.Model):
     member_profile_xml = models.TextField(blank=True, default='')
     completions_xml = models.TextField(blank=True, default='')
     api_error = models.CharField(max_length=512, blank=True, default='')
-    auto_approved = models.BooleanField(default=False)
+    auto_approved = models.BooleanField(default=False, db_default=False)
     auto_approval_checked_datetime = models.DateTimeField(null=True, blank=True)
     # Reasons the submission was not eligible for automatic approval, one per line.
-    auto_approval_notes = models.TextField(blank=True, default='')
+    auto_approval_notes = models.TextField(blank=True, default='', db_default='')
 
     class Meta:
         default_permissions = ()
