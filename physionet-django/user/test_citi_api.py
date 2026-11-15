@@ -87,8 +87,8 @@ fake_xml_memberid = """<?xml version="1.0" encoding="utf-8"?>
                     <NewDataSet xmlns="">
                     <CRS diffgr:id="CRS1" msdata:rowOrder="0">
                         <intMemberID>12102652</intMemberID>
-                        <strLastII>John</strLastII>
-                        <strFirstII>Smith</strFirstII>
+                        <strLastII>Smith</strLastII>
+                        <strFirstII>John</strFirstII>
                         <strUsernameII>fakeusername</strUsernameII>
                         <strmemberEmail />
                         <strInstUsername />
@@ -267,8 +267,8 @@ class TestUtils(unittest.TestCase):
         profile, raw_xml = citi.get_member_profile('tester@mit.edu')
         self.assertIsNotNone(profile)
         self.assertEqual(profile['intMemberID'], '12102652')
-        self.assertEqual(profile['strFirstII'], 'Smith')
-        self.assertEqual(profile['strLastII'], 'John')
+        self.assertEqual(profile['strFirstII'], 'John')
+        self.assertEqual(profile['strLastII'], 'Smith')
         self.assertEqual(profile['strUsernameII'], 'fakeusername')
         self.assertEqual(profile['strInstEmail'], 'tester@mit.edu')
         self.assertEqual(raw_xml, fake_xml_memberid)
@@ -298,8 +298,8 @@ class TestUtils(unittest.TestCase):
                             additional_matcher=match_member_courseinfo)
         result = citi.get_citiprogram_completion('tester@mit.edu')
         self.assertEqual(result.member_id, '12102652')
-        self.assertEqual(result.member_profile['strFirstII'], 'Smith')
-        self.assertEqual(result.member_profile['strLastII'], 'John')
+        self.assertEqual(result.member_profile['strFirstII'], 'John')
+        self.assertEqual(result.member_profile['strLastII'], 'Smith')
         self.assertEqual(result.member_profile['strInstEmail'], 'tester@mit.edu')
         self.assertEqual(result.member_profile_xml, fake_xml_memberid)
         self.assertEqual(result.completions_xml, fake_xml_courseinfo)
@@ -465,8 +465,8 @@ class TestParseMemberProfileXml(TestCase):
         result = parse_member_profile_xml(fake_xml_memberid)
         self.assertIsNotNone(result)
         self.assertEqual(result['intMemberID'], '12102652')
-        self.assertEqual(result['strFirstII'], 'Smith')
-        self.assertEqual(result['strLastII'], 'John')
+        self.assertEqual(result['strFirstII'], 'John')
+        self.assertEqual(result['strLastII'], 'Smith')
         self.assertEqual(result['strInstEmail'], 'tester@mit.edu')
 
     def test_returns_none_for_empty_string(self):
