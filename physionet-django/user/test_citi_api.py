@@ -720,6 +720,7 @@ class TestNormalizeName(unittest.TestCase):
         self.assertEqual(normalize_name(''), '')
 
 
+@override_settings(CITI_USERNAME='testuser', CITI_PASSWORD='testpass', CITI_SOAP_URL='https://test.citiprogram.org')
 class TestCITIAutoApproval(TestCase):
     TEST_GROUP_ID = 99904
 
