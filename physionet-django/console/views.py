@@ -2771,6 +2771,10 @@ def training_process(request, pk):
             'citi_api_data': citi_api_data,
             'citi_member_profile': citi_member_profile,
             'citi_email_still_verified': citi_email_still_verified,
+            'citi_auto_approval_failures': (
+                verification.auto_approval_notes.splitlines() if verification else []
+            ),
+            'citi_auto_approve_enabled': settings.CITI_AUTO_APPROVE,
         },
     )
 
