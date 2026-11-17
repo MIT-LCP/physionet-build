@@ -5150,6 +5150,7 @@ def _usage_stats(request, group):
         if request.GET.get('export') in ('pending-datasets', 'pending-versions'):
             return access_pending_summary_csv(summary, versions=request.GET['export'] == 'pending-versions')
         page = paginate(request, queue, 5)
+        summary_page = Paginator(summary['datasets'], 5).get_page(request.GET.get('dataset_page'))
         query = request.GET.copy()
         query.pop('page', None)
         query.pop('export', None)
@@ -5165,16 +5166,19 @@ def _usage_stats(request, group):
             'queue_rows': access_queue_rows(page, now), 'queue_query': query.urlencode(),
             'queue_trend': queue_trend,
             'access_summary': summary,
-            'access_summary_rows': (summary['datasets'] if request.GET.get('show_all_datasets') == '1'
-                                    else summary['datasets'][:10]),
-            'access_summary_expanded': request.GET.get('show_all_datasets') == '1',
+            'access_summary_rows': summary_page.object_list, 'access_summary_page': summary_page,
             'queue_links': request.user.has_perm('project.can_view_access_logs'),
         }
-        if request.GET.get('show_all_datasets') == '1':
-            query.pop('show_all_datasets', None)
-        else:
-            query['show_all_datasets'] = '1'
-        queue_context['access_summary_toggle'] = query.urlencode()
+        summary_query = request.GET.copy()
+        summary_query.pop('export', None)
+        summary_query.pop('show_all_datasets', None)
+        for direction, available, number in (
+                ('previous', summary_page.has_previous(), summary_page.number - 1),
+                ('next', summary_page.has_next(), summary_page.number + 1)):
+            if available:
+                summary_query['dataset_page'] = number
+                queue_context[f'access_summary_{direction}_url'] = (
+                    f'?{summary_query.urlencode()}#pending-by-dataset')
     if form.is_valid():
         start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
         date_query = urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()})

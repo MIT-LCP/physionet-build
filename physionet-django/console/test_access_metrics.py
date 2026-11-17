@@ -216,7 +216,7 @@ class TestAccessMetrics(MetricsTestCase):
                 self.assertEqual(rows[0]['Row type'], 'total')
                 self.assertEqual(rows[0]['Pending requests'], '0')
 
-    def test_access_queue_summary_shows_ten_datasets_and_current_exports_ignore_dates(self):
+    def test_access_queue_summary_paginates_five_datasets_and_exports_all(self):
         from unittest.mock import patch
         DataAccessRequest.objects.all().delete()
         for index in range(11):
@@ -242,10 +242,26 @@ class TestAccessMetrics(MetricsTestCase):
             self.assertEqual(len(page.context['queue_rows']), 5)
             self.assertEqual(page.context['access_summary']['total']['cells'][0], 11)
             self.assertEqual(page.context['access_summary']['snapshot'], page.context['queue_now'])
-            self.assertEqual(len(page.context['access_summary_rows']), 10)
-            self.assertContains(page, 'View all datasets')
-            full = self.client.get(url, {**params, 'show_all_datasets': 1})
-            self.assertEqual(len(full.context['access_summary_rows']), 11)
+            self.assertEqual(len(page.context['access_summary_rows']), 5)
+            self.assertContains(page, 'Showing 1–5 of 11 datasets')
+            self.assertContains(page, 'Page 1 of 3')
+            second = self.client.get(url, {**params, 'dataset_page': 2, 'page': 2})
+            self.assertEqual(len(second.context['access_summary_rows']), 5)
+            self.assertEqual(second.context['queue_page'].number, 2)
+            self.assertContains(second, 'Showing 6–10 of 11 datasets')
+            self.assertContains(second, 'Page 2 of 3')
+            self.assertEqual(second.context['access_summary']['total']['cells'][0], 11)
+            self.assertIn('start_date=2010-01-01', second.context['access_summary_next_url'])
+            self.assertIn('page=2', second.context['access_summary_next_url'])
+            self.assertIn('dataset_page=3', second.context['access_summary_next_url'])
+            self.assertTrue(second.context['access_summary_next_url'].endswith('#pending-by-dataset'))
+            last_summary = self.client.get(url, {**params, 'dataset_page': 3})
+            self.assertEqual(len(last_summary.context['access_summary_rows']), 1)
+            self.assertContains(last_summary, 'Showing 11–11 of 11 datasets')
+            self.assertNotIn('access_summary_next_url', last_summary.context)
+            first_labels = {row['label'] for row in page.context['access_summary_rows']}
+            second_labels = {row['label'] for row in second.context['access_summary_rows']}
+            self.assertFalse(first_labels & second_labels)
             for export in ('pending-datasets', 'pending-versions'):
                 response = self.client.get(url, {'start_date': 'invalid', 'export': export})
                 self.assertEqual(response.status_code, 200)
