@@ -1,3 +1,4 @@
+from console.access_trends import ACCESS_DESCRIPTION, access_record_dates, approved_user_trends, pending_request_trend
 from console.reporting import (
     access_pending_summary,
     access_pending_summary_csv,
@@ -5126,8 +5127,10 @@ def usage_stats(request):
 
 def _usage_stats(request, group):
     today = timezone.localdate()
-    data = {'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()}
-    form = UsageDateForm(data)
+    record_dates = access_record_dates() if group == 'access' else {'first': None, 'last': None}
+    default_start = max(today.replace(month=1, day=1), record_dates['first'] or today.replace(month=1, day=1))
+    data = {'start_date': default_start, 'end_date': today, **request.GET.dict()}
+    form = UsageDateForm(data, first_record_date=record_dates['first'])
     sections = None
     export_query = ''
     date_query = ''
@@ -5140,6 +5143,9 @@ def _usage_stats(request, group):
             'id', 'request_datetime', 'requester_id', 'status', 'project_id', 'project__slug', 'project__version'))
         if request.GET.get('export') == 'pending':
             return queue_csv('pending-access', access_queue_rows(iter(queue), now), snapshot=now)
+        queue_trend = pending_request_trend(queue, now)
+        if request.GET.get('export') == 'pending-monthly':
+            return report_csv(queue_trend)
         summary = access_pending_summary(queue, now)
         if request.GET.get('export') in ('pending-datasets', 'pending-versions'):
             return access_pending_summary_csv(summary, versions=request.GET['export'] == 'pending-versions')
@@ -5157,6 +5163,7 @@ def _usage_stats(request, group):
                                  'This queue is current and is not filtered by the selected historical dates.',
             'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
             'queue_rows': access_queue_rows(page, now), 'queue_query': query.urlencode(),
+            'queue_trend': queue_trend,
             'access_summary': summary,
             'access_summary_rows': (summary['datasets'] if request.GET.get('show_all_datasets') == '1'
                                     else summary['datasets'][:10]),
@@ -5181,6 +5188,33 @@ def _usage_stats(request, group):
             report = access_trend(start, end)
             if request.GET.get('export') == 'monthly':
                 return report_csv(report)
+            demographics = approved_user_trends(start, end)
+            if request.GET.get('export') in ('country-monthly', 'category-monthly'):
+                return report_csv(demographics[request.GET['export'].split('-')[0]])
+            for section in sections:
+                if section['title'] == 'Overview':
+                    section['display_cards'] = True
+                if section['title'] == 'Approved dataset users by account age':
+                    section['pie_chart'] = {
+                        'type': 'pie', 'empty_label': 'No approved users in the selected period.',
+                        'series': [{'name': row['label'], 'values': [row['count']], 'color': color}
+                                   for row, color in zip(section['rows'], ['#2563eb', '#ea580c', '#64748b'])],
+                    }
+                    section['pie_export_query'] = urlencode({
+                        'start_date': start.isoformat(), 'end_date': end.isoformat(), 'export': 'account-age'})
+                for field, title in (('country', 'Approved dataset users by country'),
+                                     ('category', 'Approved dataset users by researcher category')):
+                    if section['title'] == title:
+                        section['access_trend'] = demographics[field]
+                        section['access_trend_query'] = urlencode({
+                            'start_date': start.isoformat(), 'end_date': end.isoformat(),
+                            'export': field + '-monthly',
+                        })
+        if group == 'access' and request.GET.get('export') == 'account-age':
+            age = [section for section in sections if section.get('pie_chart')]
+            response = usage_csv(age, start, end)
+            response['Content-Disposition'] = 'attachment; filename="access-account-age-stats.csv"'
+            return response
         if request.GET.get('export') == 'csv':
             response = usage_csv(sections, start, end)
             filenames = {'access': 'access-request-stats.csv',
@@ -5201,7 +5235,8 @@ def _usage_stats(request, group):
             } if group == 'usage' else {
                 'Approved dataset users by country': ('country_page', 'approved-users-by-country'),
             }
-            sections = [dict(section) for section in sections if not section.get('csv_only')]
+            sections = [dict(section) for section in sections if not section.get('csv_only')
+                        and not (group == 'access' and section['title'] == 'Dataset access requests by month')]
             sections.sort(key=lambda section: section['title'] == 'Most accessed datasets')
             params.pop('export', None)
             coverage_reference = None
@@ -5270,7 +5305,10 @@ def _usage_stats(request, group):
     }
     return render(request, templates[group], {
         'form': form, 'sections': sections, 'export_query': export_query,
-        'report': report, 'trend_export_query': trend_export_query,
+        'access_profile_sections': [s for s in sections or [] if not s.get('pie_chart')],
+        'access_account_age_sections': [s for s in sections or [] if s.get('pie_chart')],
+        'report': report, 'trend_export_query': trend_export_query, 'record_dates': record_dates,
+        'access_description': ACCESS_DESCRIPTION,
         'report_title': {
             'access': 'Access requests', 'usage': 'Usage',
         }[group],

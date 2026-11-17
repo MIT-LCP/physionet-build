@@ -4,59 +4,39 @@
 {% block title %}{{ report_title }} metrics{% endblock %}
 
 {% block content %}
+<div data-metrics-start="{{ form.start_date.value|date:'Y-m-d'|default:form.start_date.value }}" data-metrics-end="{{ form.end_date.value|date:'Y-m-d'|default:form.end_date.value }}">
 <div class="card mb-3">
-  <div class="card-header">{{ report_title }}</div>
+  <div class="card-header">{{ report_title }}{% include 'console/metrics_help.html' with title=report_title description=access_description %}</div>
   <div class="card-body">
 
 
-    <p>Current snapshot: queue as of now. Selected period: requests and decisions between the chosen dates.</p>
+    <p>Selected period: requests and decisions between the chosen dates. Current snapshot: pending queue as of now.</p>
 
-    <details>
-      <summary>Definitions and limitations</summary>
-
-    <p class="text-muted">Contributor-reviewed dataset requests only. Requests are grouped by submission date;
-      approvals by decision date, including later revocations and expiry. These are different cohorts and must not
-      be interpreted as an approval rate or a count of users with current access. DUA signatures are not included.</p>
-
-
-    <p class="text-muted mb-0">
-      Demographics use each person's latest approved credential application currently on record, not a historical
-      snapshot. Countries are institutional countries, not inferred locations or nationalities.
-      People without an approved credential application are listed separately from approved
-      applications with missing or unrecognized information.
-
-    </p>
-    <p class="text-muted mb-0">
-      Institution counts use self-reported names, ignoring case and extra spaces; abbreviations and spelling
-      variations may still count as separate institutions. Access approvals cover contributor-reviewed requests,
-      not DUA signatures or every access requirement. Research purposes are free text and are not classified here.
-
-    </p>
-    </details>
+    <noscript><p>{{ access_description }}</p></noscript>
   </div>
 </div>
 
 
-<section aria-labelledby="access-snapshot-heading">
-  <div class="card mb-3">
-    <div class="card-header"><h2 class="h5 mb-0" id="access-snapshot-heading">Current snapshot</h2></div>
-    <div class="card-body">Snapshot: {{ queue_now|date:"Y-m-d H:i T" }}. Not filtered by the selected dates.</div>
-  </div>
-
-{% if access_summary %}{% include 'console/access_queue_summary.html' %}{% endif %}
-{% if queue_title %}{% include 'console/metrics_queue.html' %}{% endif %}
-
-</section>
 <section id="access-period" aria-labelledby="access-period-heading">
   <div class="card mb-3">
     <div class="card-header"><h2 class="h5 mb-0" id="access-period-heading">Selected period</h2></div>
-    <div class="card-body">{% include 'console/usage_period_filters.html' %}</div>
+    <div class="card-body">
+      {% if record_dates.first %}
+      <p class="text-muted mb-2">Available records: {{ record_dates.first|date:"M j, Y" }} – {{ record_dates.last|date:"M j, Y" }}.{% include 'console/metrics_help.html' with title="Available records" description="First and latest request or decision for published datasets, before applying filters. These dates do not guarantee complete historical coverage. Updated every five minutes. The end date can be selected through today, including days without activity. The current pending queue is independent of this filter." %}</p>
+      {% else %}<p class="text-muted mb-2">No dataset access request records available.</p>{% endif %}
+      {% include 'console/usage_period_filters.html' %}</div>
   </div>
 
+{% include 'console/metrics_profile_sections.html' with sections=sections|slice:":1" %}
 {% if report %}{% include 'console/metrics_trend.html' %}{% endif %}
 
-{% include 'console/metrics_profile_sections.html' %}
+{% include 'console/metrics_profile_sections.html' with sections=access_profile_sections|slice:"1:" %}
 </section>
+{% if queue_title %}{% include 'console/metrics_queue.html' %}{% endif %}
+
+{% include 'console/metrics_profile_sections.html' with sections=access_account_age_sections %}
+{% if access_summary %}{% include 'console/access_queue_summary.html' %}{% endif %}
+</div>
 {% endblock %}
 
-{% block local_js_bottom %}<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script><script src="{% static 'console/js/metrics-trend.js' %}" defer></script>{% endblock %}
+{% block local_js_bottom %}<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script><script src="{% static 'console/js/metrics-trend.js' %}" defer></script><script src="{% static 'console/js/metrics-chart-export.js' %}" defer></script>{% endblock %}

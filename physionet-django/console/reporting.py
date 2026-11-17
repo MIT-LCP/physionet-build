@@ -75,7 +75,7 @@ def access_trend(start_date, end_date):
     for date, status in decisions.values_list('decision_datetime', 'status'):
         counts[period(date)][2 if status == DataAccessRequest.REJECT_REQUEST_VALUE else 1] += 1
     rows = [[month, *values] for month, values in counts.items()]
-    return trend_report(
+    report = trend_report(
         'access-monthly', 'Access requests and decisions by month',
         'Counts of contributor-reviewed dataset requests by request date and decisions by decision date. '
         'Approvals include later revocations and expiry. These are different cohorts, not an approval rate. '
@@ -83,6 +83,14 @@ def access_trend(start_date, end_date):
         ['Period (YYYY-MM)', 'Requests submitted', 'Approvals', 'Rejections'], rows,
         [('Requests submitted', 1), ('Approvals', 2), ('Rejections', 3)], start_date, end_date, integer=True,
     )
+
+    report['chart'].update({'period_unit': 'month', 'partial_through': end_date.isoformat(),
+                            'interactive_legend': True, 'plot_height': 320,
+                            'legend_title': 'Visible request and decision series'})
+    for series, color, marker in zip(report['chart']['series'],
+                                     ('#2563eb', '#15803d', '#b91c1c'), ('circle', 'triangle', 'diamond')):
+        series.update({'color': color, 'marker': marker})
+    return report
 
 
 def pending_access_requests(now):

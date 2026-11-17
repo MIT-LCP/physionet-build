@@ -540,3 +540,73 @@ html {
 .metrics-popover {
   max-width: min(26rem, calc(100vw - 2rem));
 }
+
+.metrics-partial-mark {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.metrics-overview-tile {
+  background-color: #f8fafc;
+}
+.metrics-overview-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.metrics-series-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 0.5rem 1.5rem;
+  border: 0;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+.metrics-series-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+.metrics-series-symbol {
+  display: inline-block;
+  text-align: center;
+  width: 1rem;
+  font-size: 1.1rem;
+}
+.metrics-series-hidden {
+  color: #6c757d;
+}
+
+.metrics-series-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.metrics-chart-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.modern-ui .metrics-chart-downloads .metrics-download {
+  color: #4b5563;
+  background-color: transparent;
+  border: 1px solid #9ca3af;
+}
+.modern-ui .metrics-chart-downloads .metrics-download:hover,
+.modern-ui .metrics-chart-downloads .metrics-download:focus-visible {
+  color: #1f2937;
+  background-color: #f3f4f6;
+  border-color: #6b7280;
+}
+.metrics-export-error {
+  flex-basis: 100%;
+  margin-bottom: 0;
+}

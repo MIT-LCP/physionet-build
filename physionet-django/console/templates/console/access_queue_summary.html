@@ -4,13 +4,9 @@
     {% if access_summary_rows|length < access_summary.datasets|length %}
     <p class="small text-muted">Top 10 datasets by pending requests. Totals include all {{ access_summary.datasets|length }} datasets.</p>
     {% endif %}
-    <p>
-      <a href="?export=pending-datasets" class="btn btn-md btn-success">Download dataset summary CSV</a>
-      <a href="?export=pending-versions" class="btn btn-md btn-success">Download version summary CSV</a>
-    </p>
     <div class="table-responsive">
       <table class="table table-bordered">
-        <thead><tr><th scope="col">Dataset</th>{% for column in access_summary.columns %}<th scope="col"{% if forloop.counter >= 8 %} class="table-warning"{% endif %}>{{ column }}</th>{% endfor %}</tr></thead>
+        <thead><tr><th scope="col">Dataset</th>{% for column in access_summary.columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
         <tbody>
         {% for dataset in access_summary_rows %}
           <tr data-access-dataset="{{ dataset.label }}"><th scope="row" class="text-nowrap">{% if perms.project.change_publishedproject %}<a href="{% url 'published_projects_by_slug' dataset.label %}">{{ dataset.label }}</a>{% else %}{{ dataset.label }}{% endif %}</th>
@@ -19,7 +15,7 @@
           <tr><td colspan="10">
             <details><summary>Versions of {{ dataset.label }} ({{ dataset.versions|length }})</summary>
               <table class="table table-bordered mt-2">
-                <thead><tr><th scope="col">Version</th>{% for column in access_summary.columns %}<th scope="col"{% if forloop.counter >= 8 %} class="table-warning"{% endif %}>{{ column }}</th>{% endfor %}</tr></thead>
+                <thead><tr><th scope="col">Version</th>{% for column in access_summary.columns %}<th scope="col">{{ column }}</th>{% endfor %}</tr></thead>
                 <tbody>{% for version in dataset.versions %}<tr><th scope="row">{% if perms.project.change_publishedproject %}<a href="{% url 'manage_published_project' dataset.label version.label %}">{{ version.label }}</a>{% else %}{{ version.label }}{% endif %}</th>
                   {% include 'console/access_age_cells.html' with cells=version.cells %}
                 </tr>{% endfor %}</tbody>
@@ -36,6 +32,10 @@
     {% if access_summary.datasets|length > 10 %}
     <a href="?{{ access_summary_toggle }}#pending-by-dataset">{% if access_summary_expanded %}Show top 10 datasets{% else %}View all datasets{% endif %}</a>
     {% endif %}
+    <div class="metrics-chart-downloads">
+      <a href="?export=pending-datasets" class="btn btn-sm metrics-download">Download datasets (CSV)</a>
+      <a href="?export=pending-versions" class="btn btn-sm metrics-download">Download versions (CSV)</a>
+    </div>
     <noscript><p>{{ access_summary.description }}</p></noscript>
   </div>
 </div>

@@ -3,6 +3,7 @@ import csv
 from datetime import date, datetime
 from io import StringIO
 from uuid import uuid4
+from unittest.mock import patch
 
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -22,6 +23,13 @@ from console.usage import access_metrics
 
 
 class TestAccessMetrics(MetricsTestCase):
+    def setUp(self):
+        super().setUp()
+        # Availability validation has its own tests; these tests exercise aggregations and queues.
+        bounds = patch('console.views.access_record_dates', return_value={'first': None, 'last': None})
+        bounds.start()
+        self.addCleanup(bounds.stop)
+
     def metrics(self, start=date(2020, 1, 1), end=date(2020, 12, 31)):
         return {section['title']: section['rows'] for section in access_metrics(start, end)}
 
@@ -268,7 +276,9 @@ class TestAccessMetrics(MetricsTestCase):
         self.assertEqual(countries['rows'][0]['available_percentage'], 100.0)
         self.assertEqual(countries['unavailable_rows'][0]['label'], 'No approved credential application')
         self.assertContains(page, 'All approved users (%)')
-        self.assertContains(page, '<summary>Definitions and limitations</summary>')
+        self.assertNotContains(page, '<summary>Definitions and limitations</summary>')
+        self.assertContains(page, 'aria-label="How Access requests is calculated"')
+        self.assertContains(page, 'DUA signatures are not included.')
         self.assertNotContains(page, 'Viewers, approved users and submitting authors are different populations.')
         exported = self.client.get(url, {**params, 'export': 'csv'})
         rows = list(csv.DictReader(StringIO(exported.content.decode())))
@@ -290,30 +300,30 @@ class TestAccessMetrics(MetricsTestCase):
             page = self.client.get(reverse('access_request_stats'), params)
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, '<td>90.0</td>')
-        self.assertContains(page, 'Snapshot:', count=1)
+        self.assertNotContains(page, 'id="access-snapshot-heading"')
         self.assertContains(page, '<td>March 17, 2020</td>')
         self.assertContains(page, 'scope="row" class="text-nowrap"')
         from django.template.loader import render_to_string
         cells = render_to_string('console/access_age_cells.html', {'cells': [1, 1, 0.1, 0.1, 0, 0, 0, 0, 0]})
         self.assertEqual(cells.count('class="text-muted"'), 5)
         self.assertNotIn('table-warning', cells)
-        self.assertContains(page, 'class="table-warning"')
+        self.assertNotContains(page, 'table-warning')
         self.assertContains(page, '<td class="text-muted">0</td>')
-        self.assertContains(page, '<td class="table-warning">1</td>')
+        self.assertContains(page, '<td>1</td>')
         self.assertTrue(page.context['queue_hide_status'])
         self.assertEqual({row['status'] for row in page.context['queue_rows']}, {'Pending access review'})
         self.assertNotContains(page, '<th>Status</th>')
         self.assertContains(page, 'completed 24-hour days (floor)')
-        self.assertContains(page, 'Download period summary CSV')
+        self.assertContains(page, 'Download CSV')
         self.assertContains(page, 'action="#access-period"')
         html = page.content.decode()
-        self.assertLess(html.index('id="current-access-queue"'), html.index('id="access-period"'))
+        self.assertLess(html.index('id="access-period"'), html.index('id="current-access-queue"'))
         self.assertLess(html.index('id="access-period"'), html.index('name="start_date"'))
         self.assertLess(html.index('id="access-period"'), html.index('>Overview'))
 
         self.assertContains(page, reverse('published_projects_by_slug', args=[self.dataset.slug]))
         self.assertContains(page, reverse('manage_published_project', args=[self.dataset.slug, self.dataset.version]))
-        self.assertContains(page, 'Not filtered by the selected dates.')
+        self.assertContains(page, 'The selected dates do not filter this snapshot.')
         self.assertNotContains(page, 'Showing 1 of 1 datasets')
         sections = {section['title']: section for section in page.context['sections']}
         self.assertEqual(sections['Approved dataset users by researcher category']['coverage_reference'],

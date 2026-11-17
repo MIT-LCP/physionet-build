@@ -12,7 +12,7 @@
         <div class="form-group col-sm-4">
           <button type="submit" class="btn btn-primary">Apply filters</button>
           {% if sections %}
-          <a href="{{ request.path }}?{{ export_query }}" class="btn btn-md btn-success">{% if report_group == 'access' %}Download period summary CSV{% else %}Download CSV{% endif %}</a>
+          <a href="{{ request.path }}?{{ export_query }}" class="btn btn-md btn-success">Download CSV</a>
           {% endif %}
         </div>
       </div>

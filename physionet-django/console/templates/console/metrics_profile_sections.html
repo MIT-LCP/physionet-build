@@ -2,6 +2,16 @@
 <div class="card mb-3"{% if section.anchor %} id="{{ section.anchor }}"{% endif %}>
   <div class="card-header">{{ section.display_title|default:section.title }}{% include 'console/metrics_help.html' with title=section.title description=section.description %}</div>
   <div class="card-body">
+    {% if section.pie_chart %}
+    <div data-metrics-chart="access-account-age" data-title="{{ section.title }}" data-label="Unique approved dataset users by account creation period. Exact values are in the table below."></div>
+    {{ section.pie_chart|json_script:'access-account-age' }}
+    {% include 'console/metrics_chart_downloads.html' with chart_id='access-account-age' csv_query=section.pie_export_query %}
+    <details><summary>Show account age table</summary>
+    {% endif %}
+    {% if section.access_trend %}
+    {% include 'console/access_demographic_trend.html' with trend=section.access_trend csv_query=section.access_trend_query %}
+    <details><summary>Show period table and coverage</summary>
+    {% endif %}
     {% if section.description %}<noscript><p>{{ section.description }}</p></noscript>{% endif %}
     {% if section.has_coverage %}
     <p>Information available for {{ section.coverage_count }} / {{ section.coverage_total }} {{ section.coverage_population }}
@@ -19,6 +29,18 @@
     </aside>
     {% endif %}
     {% if section.table_note %}<p>{{ section.table_note }}</p>{% endif %}
+    {% if section.display_cards %}
+    <div class="row" role="list" aria-label="Access requests overview">
+      {% for row in section.rows %}
+      <div class="col-12 col-sm-6 col-xl-4 mb-3" role="listitem">
+        <div class="metrics-overview-tile border rounded p-3 h-100">
+          <div class="metrics-overview-value">{{ row.count|floatformat:"0g" }}</div>
+          <div class="mt-2">{{ row.label }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
     <div class="table-responsive">
       <table class="table table-bordered">
         <thead><tr>
@@ -41,6 +63,7 @@
         </tbody>
       </table>
     </div>
+    {% endif %}
     {% if section.toggle_url %}<p><a href="{{ section.toggle_url }}">{{ section.toggle_label }}</a></p>{% endif %}
     {% if section.page %}
     <nav aria-label="{{ section.title }} pages">
@@ -50,6 +73,7 @@
       {% if section.next_url %}<a href="{{ section.next_url }}">Next</a>{% endif %}
     </nav>
     {% endif %}
+    {% if section.access_trend or section.pie_chart %}</details>{% endif %}
   </div>
 </div>
 {% endfor %}
