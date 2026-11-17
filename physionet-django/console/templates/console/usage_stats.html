@@ -1,0 +1,49 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+
+{% block title %}{{ report_title }} metrics{% endblock %}
+
+{% block content %}
+<div class="card mb-3">
+  <div class="card-header">{{ report_title }}</div>
+  <div class="card-body">
+
+    {% include 'console/usage_period_filters.html' %}
+
+    <p>Registered file-access page viewers; not confirmed downloads or research use.</p>
+
+    <details>
+      <summary>Definitions and limitations</summary>
+
+    <p class="text-muted mb-2">
+      Dataset access counts registered users viewing file-access pages. Access-log sessions overlapping the
+      selected dates are included. Published versions are combined except in the per-version table.
+    </p>
+    <p class="text-muted mb-2">
+      It does not measure confirmed downloads or research use, and excludes anonymous access and direct cloud downloads.
+    </p>
+
+
+    <p class="text-muted mb-0">
+      Demographics use each person's latest approved credential application currently on record, not a historical
+      snapshot. Countries are institutional countries, not inferred locations or nationalities.
+      People without an approved credential application are listed separately from approved
+      applications with missing or unrecognized information.
+      Viewers, approved users and submitting authors are different populations.
+    </p>
+    <p class="text-muted mb-0">
+      Institution counts use self-reported names, ignoring case and extra spaces; abbreviations and spelling
+      variations may still count as separate institutions. Access approvals cover contributor-reviewed requests,
+      not DUA signatures or every access requirement. Research purposes are free text and are not classified here.
+      Downloads by file, public landing-page visitors, regions and organization types are not measured here.
+    </p>
+    </details>
+  </div>
+</div>
+
+
+{% include 'console/metrics_profile_sections.html' %}
+
+{% endblock %}
+
+{% block local_js_bottom %}<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script>{% endblock %}

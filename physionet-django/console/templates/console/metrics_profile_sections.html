@@ -1,0 +1,55 @@
+{% for section in sections %}
+<div class="card mb-3"{% if section.anchor %} id="{{ section.anchor }}"{% endif %}>
+  <div class="card-header">{{ section.display_title|default:section.title }}{% include 'console/metrics_help.html' with title=section.title description=section.description %}</div>
+  <div class="card-body">
+    {% if section.description %}<noscript><p>{{ section.description }}</p></noscript>{% endif %}
+    {% if section.has_coverage %}
+    <p>Information available for {{ section.coverage_count }} / {{ section.coverage_total }} {{ section.coverage_population }}
+      ({% if section.coverage_percentage is None %}percentage unavailable{% else %}{{ section.coverage_percentage|floatformat:2 }}%{% endif %}).
+      “With information (%)” excludes people without an approved credential application and missing or unrecognized values.</p>
+    {% endif %}
+    {% if section.coverage_reference %}
+    <p class="small text-muted">Unavailable counts match “{{ section.coverage_reference }}” above.</p>
+    {% elif section.unavailable_rows %}
+    <aside class="border rounded p-3 mb-3" aria-label="{{ section.title }} information coverage">
+      <p class="mb-1"><strong>{% if section.unavailable_label %}{{ section.unavailable_label }}{% elif section.coverage_population %}{{ section.coverage_population|capfirst }}{% else %}Viewers{% endif %} without available information</strong></p>
+      <ul class="mb-0">{% for row in section.unavailable_rows %}
+        <li>{{ row.label }}: {{ row.count }} {{ section.coverage_population }} ({{ row.percentage|floatformat:2 }}% of all {{ section.coverage_population }}).</li>
+      {% endfor %}</ul>
+    </aside>
+    {% endif %}
+    {% if section.table_note %}<p>{{ section.table_note }}</p>{% endif %}
+    <div class="table-responsive">
+      <table class="table table-bordered">
+        <thead><tr>
+          <th scope="col">{{ section.label_header|default:'Metric' }}</th>
+          <th scope="col">{{ section.count_header|default:'Count' }}</th>
+          {% if section.show_percentage != False %}<th scope="col">{{ section.percentage_header|default:'Percentage (%)' }}</th>{% endif %}
+          {% if section.has_coverage %}<th scope="col">With information (%)</th>{% endif %}
+        </tr></thead>
+        <tbody>
+          {% for row in section.rows %}
+          <tr>
+            <td>{{ row.label }}</td><td>{{ row.count }}{% if section.title == 'Overview' and row.percentage is not None %}
+              <small class="d-block">{{ row.percentage|floatformat:2 }}% of all viewers</small>{% endif %}</td>
+            {% if section.show_percentage != False %}<td>{% if row.percentage is not None %}{{ row.percentage|floatformat:2 }}{% else %}—{% endif %}</td>{% endif %}
+            {% if section.has_coverage %}<td>{% if row.available_percentage is not None %}{{ row.available_percentage|floatformat:2 }}{% else %}—{% endif %}</td>{% endif %}
+          </tr>
+          {% empty %}
+          <tr><td colspan="{{ section.column_count|default:3 }}">{% if section.has_coverage %}No recognized values available for this field.{% else %}No data available for the selected dates.{% endif %}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if section.toggle_url %}<p><a href="{{ section.toggle_url }}">{{ section.toggle_label }}</a></p>{% endif %}
+    {% if section.page %}
+    <nav aria-label="{{ section.title }} pages">
+      <span>{{ section.page.paginator.count }} rows, 5 per page.</span>
+      {% if section.previous_url %}<a href="{{ section.previous_url }}">Previous</a>{% endif %}
+      <span>Page {{ section.page.number }} of {{ section.page.paginator.num_pages }}</span>
+      {% if section.next_url %}<a href="{{ section.next_url }}">Next</a>{% endif %}
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}

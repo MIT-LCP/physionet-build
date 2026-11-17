@@ -215,6 +215,7 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('Editorial'), 'editorial_stats'),
         NavLink(_('Credentialing'), 'credentialing_stats'),
         NavLink(_('Submissions'), 'submission_stats'),
+        NavLink(_('Usage'), 'usage_stats'),
         NavLink(_('Export data'), 'downloads'),
     ]),
 

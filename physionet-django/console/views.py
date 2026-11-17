@@ -1,3 +1,6 @@
+from console.usage import UsageDateForm, usage_metrics, usage_sections, usage_csv
+from django.core.paginator import Paginator
+from urllib.parse import urlencode
 import csv
 import logging
 import os
@@ -5099,3 +5102,111 @@ def skip_external_review(request, project_slug, *args, **kwargs):
         return redirect('edit_submission', project_slug=project.slug)
 
     return redirect('submission_info', project_slug=project.slug)
+
+
+@console_permission_required('project.can_view_stats')
+def usage_stats(request):
+    return _usage_stats(request, 'usage')
+
+
+def _usage_stats(request, group):
+    today = timezone.localdate()
+    data = {'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()}
+    form = UsageDateForm(data)
+    sections = None
+    export_query = ''
+    date_query = ''
+    report = None
+    trend_export_query = ''
+    queue_context = {}
+    if form.is_valid():
+        start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+        date_query = urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()})
+        calculators = {
+            'usage': usage_metrics,
+        }
+        calculator = calculators[group]
+        sections = usage_sections(calculator(start, end), group)
+        if request.GET.get('export') == 'csv':
+            response = usage_csv(sections, start, end)
+            filenames = {'usage': 'usage-stats.csv'}
+            response['Content-Disposition'] = f'attachment; filename="{filenames[group]}"'
+            return response
+        params = request.GET.copy()
+        params['start_date'] = start.isoformat()
+        params['end_date'] = end.isoformat()
+        params['export'] = 'csv'
+        export_query = params.urlencode()
+        params['export'] = 'monthly'
+        trend_export_query = params.urlencode()
+        if group in ('usage', 'access', 'submissions'):
+            paginated_tables = {
+                'Dataset viewers by country': ('country_page', 'viewers-by-country'),
+                'Registered viewers by dataset version': ('version_page', 'viewers-by-version'),
+            }
+            sections = [dict(section) for section in sections if not section.get('csv_only')]
+            sections.sort(key=lambda section: section['title'] == 'Most accessed datasets')
+            params.pop('export', None)
+            for section in sections:
+                if section.get('has_coverage'):
+                    section['unavailable_rows'] = [row for row in section['rows']
+                                                   if not row.get('information_available', True)]
+                    section['rows'] = [row for row in section['rows'] if row.get('information_available', True)]
+                if section['title'] not in paginated_tables:
+                    continue
+                parameter, anchor = paginated_tables[section['title']]
+                section['anchor'] = anchor
+                country = parameter == 'country_page'
+                toggle = 'show_all_countries' if country else 'show_all_versions'
+                expanded = request.GET.get(toggle) == '1' or parameter in request.GET
+                limit = 10 if country else 20
+                row_count = len(section['rows'])
+                if row_count > limit or expanded:
+                    query = params.copy()
+                    query.pop(parameter, None)
+                    if expanded:
+                        query.pop(toggle, None)
+                    else:
+                        query[toggle] = '1'
+                    section['toggle_url'] = f'?{query.urlencode()}#{anchor}'
+                    section['toggle_label'] = f'Show top {limit}' if expanded else 'View complete list'
+                if not expanded:
+                    rows = section['rows']
+                    section['rows'] = rows[:limit]
+                    section['table_note'] = (
+                        f'Top {limit} countries with available information; the CSV contains every country.'
+                        if country else
+                        f'Showing {min(limit, row_count)} of {row_count} dataset versions, ordered by registered '
+                        'viewers. The CSV contains every version.'
+                    )
+                    if country and row_count > limit:
+                        count = sum(row['count'] for row in rows[limit:])
+                        total = section.get('coverage_total') or sum(row['count'] for row in rows)
+                        known = section.get('coverage_count') or total
+                        section['rows'].append({
+                            'label': f'Other countries ({row_count - limit})', 'count': count,
+                            'percentage': round(100 * count / total, 2),
+                            'available_percentage': round(100 * count / known, 2),
+                        })
+                    continue
+                page = Paginator(section['rows'], 5).get_page(request.GET.get(parameter))
+                section.update({'rows': page.object_list, 'page': page, 'anchor': anchor})
+                for direction, available, number in (
+                        ('previous', page.has_previous(), page.number - 1),
+                        ('next', page.has_next(), page.number + 1)):
+                    if available:
+                        query = params.copy()
+                        query[parameter] = number
+                        section[f'{direction}_url'] = f'?{query.urlencode()}#{anchor}'
+    templates = {
+        'usage': 'console/usage_stats.html',
+    }
+    return render(request, templates[group], {
+        'form': form, 'sections': sections, 'export_query': export_query,
+        'report': report, 'trend_export_query': trend_export_query,
+        'report_title': {
+            'usage': 'Usage',
+        }[group],
+        'report_group': group, 'date_query': date_query,
+        **queue_context,
+    }, status=200 if sections is not None else 400)
