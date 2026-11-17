@@ -1,0 +1,4 @@
+{% if median is None %}Not available{% else %}{{ median|floatformat:2 }}{% endif %}
+<small class="d-block">n={{ n }} / {{ eligible }} eligible;
+  {% if coverage is None %}coverage unavailable{% else %}{{ coverage|floatformat:2 }}% coverage{% endif %}</small>
+{% if n > 0 and n < 10 %}<small class="d-block text-muted">Fewer than 10 observations</small>{% endif %}
