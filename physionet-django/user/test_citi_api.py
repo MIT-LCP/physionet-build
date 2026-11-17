@@ -978,3 +978,30 @@ class TestTrainingConsoleAutoApprovalRendering(TestCase):
         self.client.force_login(self.admin)
         response = self.client.get(reverse('training_detail', kwargs={'pk': training.pk}))
         self.assertContains(response, 'Automatically approved using the CITI API')
+
+    @override_settings(CITI_AUTO_APPROVE=False)
+    def test_detail_page_shows_citi_data_after_processing(self):
+        training = self._create_training(
+            status=TrainingStatus.ACCEPTED,
+            auto_approval_checked_datetime=timezone.now(),
+        )
+        Training.objects.filter(pk=training.pk).update(process_datetime=timezone.now())
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('training_detail', kwargs={'pk': training.pk}))
+        self.assertContains(response, 'CITI API Verification')
+        self.assertContains(response, 'autorend@example.com')
+        self.assertContains(response, 'Data or Specimens Only Research')
+        self.assertContains(response, 'All automatic approval checks passed')
+        # The training has been processed, so it no longer needs manual review.
+        self.assertNotContains(response, 'Automatic approval is currently disabled')
+
+    def test_detail_page_shows_auto_approval_failures(self):
+        training = self._create_training(
+            status=TrainingStatus.REJECTED,
+            auto_approval_checked_datetime=timezone.now(),
+            auto_approval_notes='CITI score (50) is below the passing score (80).',
+        )
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('training_detail', kwargs={'pk': training.pk}))
+        self.assertContains(response, 'Not eligible for automatic approval')
+        self.assertContains(response, 'below the passing score')

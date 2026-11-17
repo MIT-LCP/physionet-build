@@ -95,6 +95,7 @@ from user.models import (
 from search.models import FederatedSite, FederationSyncLog, FederatedProject
 from physionet.enums import LogCategory
 from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
+from user.enums import TrainingStatus
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
 from project.cloud.s3 import (
@@ -2658,6 +2659,49 @@ def search_training_applications(request, display_training):
     return display_training
 
 
+def get_citi_verification_context(training):
+    """
+    Build the template context for the CITI API verification card.
+
+    The data shown is what the CITI API returned when the training was
+    submitted, so it remains available after the training is processed.
+    """
+    show_citi_verification = CITIGroupMapping.objects.filter(
+        training_type=training.training_type
+    ).exists()
+
+    verification = getattr(training, 'citi_verification', None)
+
+    if verification and (verification.member_profile_xml or verification.completions_xml):
+        citi_api_data = parse_completions_xml(verification.completions_xml) or None
+        citi_member_profile = parse_member_profile_xml(verification.member_profile_xml)
+    else:
+        citi_api_data = None
+        citi_member_profile = None
+
+    citi_email_still_verified = (
+        verification
+        and verification.lookup_email
+        and training.user.associated_emails.filter(
+            email=verification.lookup_email, is_verified=True
+        ).exists()
+    )
+
+    return {
+        'show_citi_verification': show_citi_verification,
+        'citi_verification': verification,
+        'citi_api_data': citi_api_data,
+        'citi_member_profile': citi_member_profile,
+        'citi_email_still_verified': citi_email_still_verified,
+        'citi_auto_approval_failures': (
+            verification.auto_approval_notes.splitlines() if verification else []
+        ),
+        'citi_awaiting_manual_review': (
+            not settings.CITI_AUTO_APPROVE and training.status == TrainingStatus.REVIEW
+        ),
+    }
+
+
 @console_permission_required('user.can_review_training')
 def training_process(request, pk):
     training = get_object_or_404(Training.objects.select_related('training_type', 'user__profile').get_review(), pk=pk)
@@ -2736,28 +2780,6 @@ def training_process(request, pk):
     else:
         parsed_training_pdf = None
 
-    # CITI API verification data (populated at submission time)
-    show_citi_verification = CITIGroupMapping.objects.filter(
-        training_type=training.training_type
-    ).exists()
-
-    verification = getattr(training, 'citi_verification', None)
-
-    if verification and (verification.member_profile_xml or verification.completions_xml):
-        citi_api_data = parse_completions_xml(verification.completions_xml) or None
-        citi_member_profile = parse_member_profile_xml(verification.member_profile_xml)
-    else:
-        citi_api_data = None
-        citi_member_profile = None
-
-    citi_email_still_verified = (
-        verification
-        and verification.lookup_email
-        and training.user.associated_emails.filter(
-            email=verification.lookup_email, is_verified=True
-        ).exists()
-    )
-
     return render(
         request,
         'console/training_process.html',
@@ -2766,24 +2788,22 @@ def training_process(request, pk):
             'questions_formset': questions_formset,
             'training_review_form': training_review_form,
             'parsed_training_pdf': parsed_training_pdf,
-            'show_citi_verification': show_citi_verification,
-            'citi_verification': verification,
-            'citi_api_data': citi_api_data,
-            'citi_member_profile': citi_member_profile,
-            'citi_email_still_verified': citi_email_still_verified,
-            'citi_auto_approval_failures': (
-                verification.auto_approval_notes.splitlines() if verification else []
-            ),
-            'citi_auto_approve_enabled': settings.CITI_AUTO_APPROVE,
+            **get_citi_verification_context(training),
         },
     )
 
 
 @console_permission_required('user.can_review_training')
 def training_detail(request, pk):
-    training = get_object_or_404(Training.objects.prefetch_related('training_type'), pk=pk)
+    training = get_object_or_404(
+        Training.objects.select_related('training_type', 'user__profile', 'reviewer'), pk=pk
+    )
 
-    return render(request, 'console/training_detail.html', {'training': training})
+    return render(
+        request,
+        'console/training_detail.html',
+        {'training': training, **get_citi_verification_context(training)},
+    )
 
 
 @console_permission_required('notification.change_news')
