@@ -6,6 +6,7 @@ import requests
 import requests_mock
 
 from django.conf import settings
+from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -15,7 +16,9 @@ from user.citi_training_module import (
     CITICompletionResult,
     CITILookupResult,
     find_matching_completion,
+    get_auto_approval_failures,
     lookup_citi_completions_for_user,
+    normalize_name,
     parse_completions_xml,
     parse_member_profile_xml,
     verify_training_via_citi_api,
@@ -84,8 +87,8 @@ fake_xml_memberid = """<?xml version="1.0" encoding="utf-8"?>
                     <NewDataSet xmlns="">
                     <CRS diffgr:id="CRS1" msdata:rowOrder="0">
                         <intMemberID>12102652</intMemberID>
-                        <strLastII>John</strLastII>
-                        <strFirstII>Smith</strFirstII>
+                        <strLastII>Smith</strLastII>
+                        <strFirstII>John</strFirstII>
                         <strUsernameII>fakeusername</strUsernameII>
                         <strmemberEmail />
                         <strInstUsername />
@@ -264,8 +267,8 @@ class TestUtils(unittest.TestCase):
         profile, raw_xml = citi.get_member_profile('tester@mit.edu')
         self.assertIsNotNone(profile)
         self.assertEqual(profile['intMemberID'], '12102652')
-        self.assertEqual(profile['strFirstII'], 'Smith')
-        self.assertEqual(profile['strLastII'], 'John')
+        self.assertEqual(profile['strFirstII'], 'John')
+        self.assertEqual(profile['strLastII'], 'Smith')
         self.assertEqual(profile['strUsernameII'], 'fakeusername')
         self.assertEqual(profile['strInstEmail'], 'tester@mit.edu')
         self.assertEqual(raw_xml, fake_xml_memberid)
@@ -295,8 +298,8 @@ class TestUtils(unittest.TestCase):
                             additional_matcher=match_member_courseinfo)
         result = citi.get_citiprogram_completion('tester@mit.edu')
         self.assertEqual(result.member_id, '12102652')
-        self.assertEqual(result.member_profile['strFirstII'], 'Smith')
-        self.assertEqual(result.member_profile['strLastII'], 'John')
+        self.assertEqual(result.member_profile['strFirstII'], 'John')
+        self.assertEqual(result.member_profile['strLastII'], 'Smith')
         self.assertEqual(result.member_profile['strInstEmail'], 'tester@mit.edu')
         self.assertEqual(result.member_profile_xml, fake_xml_memberid)
         self.assertEqual(result.completions_xml, fake_xml_courseinfo)
@@ -462,8 +465,8 @@ class TestParseMemberProfileXml(TestCase):
         result = parse_member_profile_xml(fake_xml_memberid)
         self.assertIsNotNone(result)
         self.assertEqual(result['intMemberID'], '12102652')
-        self.assertEqual(result['strFirstII'], 'Smith')
-        self.assertEqual(result['strLastII'], 'John')
+        self.assertEqual(result['strFirstII'], 'John')
+        self.assertEqual(result['strLastII'], 'Smith')
         self.assertEqual(result['strInstEmail'], 'tester@mit.edu')
 
     def test_returns_none_for_empty_string(self):
@@ -705,3 +708,273 @@ class TestTrainingProcessCITIRendering(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Email no longer verified on account')
+
+
+class TestNormalizeName(unittest.TestCase):
+    def test_ignores_case_accents_and_punctuation(self):
+        self.assertEqual(normalize_name("  José  O'Brien-Smith "), 'jose o brien smith')
+        self.assertEqual(normalize_name('JOSE O BRIEN SMITH'), 'jose o brien smith')
+
+    def test_handles_empty_values(self):
+        self.assertEqual(normalize_name(None), '')
+        self.assertEqual(normalize_name(''), '')
+
+
+@override_settings(CITI_USERNAME='testuser', CITI_PASSWORD='testpass', CITI_SOAP_URL='https://test.citiprogram.org')
+class TestCITIAutoApproval(TestCase):
+    TEST_GROUP_ID = 99904
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(username='autouser', email='autouser@example.com', is_active=True)
+        Profile.objects.create(user=cls.user, first_names='Test', last_name='User')
+        cls.training_type = TrainingType.objects.create(
+            name='CITI Auto Test',
+            valid_duration=datetime.timedelta(days=365 * 3),
+            required_field=RequiredField.DOCUMENT,
+        )
+        CITIGroupMapping.objects.create(
+            citi_group_id=cls.TEST_GROUP_ID,
+            training_type=cls.training_type,
+            citi_group_name='Test Auto Group',
+        )
+
+    def _create_training(self):
+        return Training.objects.create(
+            training_type=self.training_type,
+            user=self.user,
+            status=TrainingStatus.REVIEW,
+        )
+
+    def _completion(self, **overrides):
+        completion = make_completion(group_id=str(self.TEST_GROUP_ID))
+        completion.update(overrides)
+        return completion
+
+    def _lookup_result(self, completion, member_profile=None):
+        return CITILookupResult(
+            email_used='autouser@example.com', completions=[completion],
+            member_id='12345', member_profile=member_profile or self._member_profile(),
+            member_profile_xml=fake_xml_memberid, completions_xml=fake_xml_courseinfo,
+        )
+
+    def _member_profile(self, first='Test', last='User'):
+        return {'intMemberID': '12345', 'strFirstII': first, 'strLastII': last}
+
+    def _failures(self, training, completion=None, member_profile=None):
+        if completion is None:
+            completion = self._completion()
+        if member_profile is None:
+            member_profile = self._member_profile()
+        return get_auto_approval_failures(training, completion, member_profile)
+
+    # Eligibility checks
+
+    def test_clear_case_is_eligible(self):
+        training = self._create_training()
+        self.assertEqual(self._failures(training), [])
+
+    def test_name_matching_ignores_case_and_accents(self):
+        training = self._create_training()
+        self.assertEqual(self._failures(training, member_profile=self._member_profile('TÉST', 'user')), [])
+
+    def test_name_mismatch_not_eligible(self):
+        training = self._create_training()
+        failures = self._failures(training, member_profile=self._member_profile(last='Other'))
+        self.assertEqual(len(failures), 1)
+        self.assertIn('does not match profile', failures[0])
+
+    def test_partial_first_name_not_eligible(self):
+        training = self._create_training()
+        failures = self._failures(training, member_profile=self._member_profile(first='Test Middle'))
+        self.assertIn('does not match profile', failures[0])
+
+    def test_missing_member_profile_not_eligible(self):
+        training = self._create_training()
+        failures = get_auto_approval_failures(training, self._completion(), None)
+        self.assertIn('does not match profile', failures[0])
+
+    def test_member_profile_name_mismatch_not_eligible(self):
+        # A matching name on the completion record is not enough on its own.
+        training = self._create_training()
+        failures = self._failures(training, member_profile=self._member_profile('Someone', 'Else'))
+        self.assertEqual(len(failures), 1)
+        self.assertIn('CITI member profile', failures[0])
+
+    def test_completion_record_name_mismatch_not_eligible(self):
+        # A matching name on the member profile is not enough on its own.
+        training = self._create_training()
+        completion = self._completion(FirstName='Other', LastName='Name')
+        failures = self._failures(training, completion=completion)
+        self.assertEqual(len(failures), 1)
+        self.assertIn('CITI completion record', failures[0])
+
+    def test_completion_record_name_matching_ignores_case_and_accents(self):
+        training = self._create_training()
+        completion = self._completion(FirstName='TÉST', LastName='USER')
+        self.assertEqual(self._failures(training, completion=completion), [])
+
+    def test_failing_score_not_eligible(self):
+        training = self._create_training()
+        failures = self._failures(training, self._completion(intScore='79'))
+        self.assertIn('below the passing score', failures[0])
+
+    def test_unreadable_score_not_eligible(self):
+        training = self._create_training()
+        failures = self._failures(training, self._completion(intScore=''))
+        self.assertIn('could not be read', failures[0])
+
+    def test_zero_passing_score_not_eligible(self):
+        training = self._create_training()
+        failures = self._failures(training, self._completion(intPassingScore='0'))
+        self.assertIn('below the passing score', failures[0])
+
+    def test_completed_before_validity_period_not_eligible(self):
+        training = self._create_training()
+        passed = timezone.now() - datetime.timedelta(days=365 * 3 + 1)
+        failures = self._failures(training, self._completion(dtePassed=passed))
+        self.assertIn('validity period', failures[0])
+
+    def test_no_completion_not_eligible(self):
+        training = self._create_training()
+        failures = get_auto_approval_failures(training, None, self._member_profile())
+        self.assertIn('No unexpired CITI completion', failures[0])
+
+    # End-to-end via verify_training_via_citi_api
+
+    @override_settings(CITI_AUTO_APPROVE=True)
+    @patch('user.citi_training_module.lookup_citi_completions_for_user')
+    def test_clear_case_is_approved(self, mock_lookup):
+        mock_lookup.return_value = self._lookup_result(self._completion())
+        training = self._create_training()
+
+        verify_training_via_citi_api(training)
+
+        training.refresh_from_db()
+        verification = training.citi_verification
+        self.assertEqual(training.status, TrainingStatus.ACCEPTED)
+        self.assertIsNone(training.reviewer)
+        self.assertIsNotNone(training.process_datetime)
+        self.assertTrue(verification.auto_approved)
+        self.assertEqual(verification.auto_approval_notes, '')
+        self.assertIsNotNone(verification.auto_approval_checked_datetime)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(self.user.email, mail.outbox[0].to)
+
+    @override_settings(CITI_AUTO_APPROVE=True)
+    @patch('user.citi_training_module.lookup_citi_completions_for_user')
+    def test_unclear_case_left_for_review(self, mock_lookup):
+        mock_lookup.return_value = self._lookup_result(
+            self._completion(), member_profile=self._member_profile(last='Other'),
+        )
+        training = self._create_training()
+
+        verify_training_via_citi_api(training)
+
+        training.refresh_from_db()
+        verification = training.citi_verification
+        self.assertEqual(training.status, TrainingStatus.REVIEW)
+        self.assertFalse(verification.auto_approved)
+        self.assertIn('does not match profile', verification.auto_approval_notes)
+        self.assertEqual(len(mail.outbox), 0)
+
+    @override_settings(CITI_AUTO_APPROVE=False)
+    @patch('user.citi_training_module.lookup_citi_completions_for_user')
+    def test_disabled_records_eligibility_without_approving(self, mock_lookup):
+        mock_lookup.return_value = self._lookup_result(self._completion())
+        training = self._create_training()
+
+        verify_training_via_citi_api(training)
+
+        training.refresh_from_db()
+        verification = training.citi_verification
+        self.assertEqual(training.status, TrainingStatus.REVIEW)
+        self.assertFalse(verification.auto_approved)
+        self.assertEqual(verification.auto_approval_notes, '')
+        self.assertIsNotNone(verification.auto_approval_checked_datetime)
+
+    @override_settings(CITI_AUTO_APPROVE=True)
+    @patch('user.citi_training_module.lookup_citi_completions_for_user')
+    def test_withdrawn_training_not_approved(self, mock_lookup):
+        mock_lookup.return_value = self._lookup_result(self._completion())
+        training = self._create_training()
+        # Simulate the user withdrawing after the background task loaded the training.
+        Training.objects.filter(pk=training.pk).update(status=TrainingStatus.WITHDRAWN)
+
+        verify_training_via_citi_api(training)
+
+        training.refresh_from_db()
+        self.assertEqual(training.status, TrainingStatus.WITHDRAWN)
+        self.assertFalse(training.citi_verification.auto_approved)
+
+    @override_settings(CITI_AUTO_APPROVE=True)
+    @patch('user.citi_training_module.lookup_citi_completions_for_user')
+    def test_api_error_left_for_review(self, mock_lookup):
+        mock_lookup.return_value = CITILookupResult(error='Error communicating with CITI API.')
+        training = self._create_training()
+
+        verify_training_via_citi_api(training)
+
+        training.refresh_from_db()
+        self.assertEqual(training.status, TrainingStatus.REVIEW)
+        self.assertIsNone(training.citi_verification.auto_approval_checked_datetime)
+
+
+class TestTrainingConsoleAutoApprovalRendering(TestCase):
+    TEST_GROUP_ID = 99905
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = User.objects.create_admin(
+            username='autoadmin', email='autoadmin@example.com', password='Tester11!',
+        )
+        cls.user = User.objects.create(username='autorend', email='autorend@example.com', is_active=True)
+        Profile.objects.create(user=cls.user, first_names='Render', last_name='User')
+        cls.training_type = TrainingType.objects.create(
+            name='CITI Auto Render Test',
+            valid_duration=datetime.timedelta(days=365),
+            required_field=RequiredField.DOCUMENT,
+        )
+        CITIGroupMapping.objects.create(
+            citi_group_id=cls.TEST_GROUP_ID, training_type=cls.training_type, citi_group_name='Group',
+        )
+
+    def _create_training(self, status=TrainingStatus.REVIEW, **verification_kwargs):
+        training = Training.objects.create(training_type=self.training_type, user=self.user, status=status)
+        CITIVerification.objects.create(
+            training=training, lookup_email='autorend@example.com', member_id='12345',
+            member_profile_xml=fake_xml_memberid, completions_xml=fake_xml_courseinfo,
+            **verification_kwargs,
+        )
+        return training
+
+    def test_process_page_shows_failures(self):
+        training = self._create_training(
+            auto_approval_checked_datetime=timezone.now(),
+            auto_approval_notes='Name on CITI record (A B) does not match profile (Render User).',
+        )
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('training_process', kwargs={'pk': training.pk}))
+        self.assertContains(response, 'Not eligible for automatic approval')
+        self.assertContains(response, 'does not match profile')
+
+    @override_settings(CITI_AUTO_APPROVE=False)
+    def test_process_page_shows_eligible_but_disabled(self):
+        training = self._create_training(auto_approval_checked_datetime=timezone.now())
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('training_process', kwargs={'pk': training.pk}))
+        self.assertContains(response, 'All automatic approval checks passed')
+        self.assertContains(response, 'Automatic approval is currently disabled')
+
+    def test_process_page_hides_section_when_not_checked(self):
+        training = self._create_training()
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('training_process', kwargs={'pk': training.pk}))
+        self.assertNotContains(response, 'Automatic Approval')
+
+    def test_detail_page_shows_auto_approved(self):
+        training = self._create_training(status=TrainingStatus.ACCEPTED, auto_approved=True)
+        Training.objects.filter(pk=training.pk).update(process_datetime=timezone.now())
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('training_detail', kwargs={'pk': training.pk}))
+        self.assertContains(response, 'Automatically approved using the CITI API')

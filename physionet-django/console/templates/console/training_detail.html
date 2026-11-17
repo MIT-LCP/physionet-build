@@ -25,6 +25,7 @@
     Reviewed: {{ training.process_datetime|date }}<br>
     Reviewer: {% if training.reviewer %}
                 {{ training.reviewer.get_full_name }} ({{ training.reviewer.username|default:"" }})
+              {% elif training.citi_verification.auto_approved %} Automatically approved using the CITI API.
               {% else %} Reviewer not recorded.
               {% endif %}<br>
     Comments: {{ training.reviewer_comments|default:"No comments." }}

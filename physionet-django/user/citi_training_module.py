@@ -1,4 +1,6 @@
 import logging
+import re
+import unicodedata
 import requests
 from dataclasses import dataclass, field
 
@@ -6,10 +8,13 @@ from datetime import datetime
 import xml.etree.ElementTree as ET
 
 from django.conf import settings
+from django.db import transaction
 from django.template import loader
 from django.utils import timezone
 
-from user.models import AssociatedEmail, CITIGroupMapping, CITIVerification
+from notification.utility import process_training_complete
+from user.enums import TrainingStatus
+from user.models import AssociatedEmail, CITIGroupMapping, CITIVerification, Training
 
 logger = logging.getLogger(__name__)
 
@@ -395,3 +400,126 @@ def verify_training_via_citi_api(training):
         'lookup_email', 'member_id', 'completion_report_id',
         'member_profile_xml', 'completions_xml', 'api_error',
     ])
+
+    try_auto_approve_training(training, verification, match, result.member_profile)
+
+
+def normalize_name(name):
+    """
+    Normalize a personal name for comparison.
+
+    Removes accents and case, and treats punctuation and repeated whitespace
+    as a single space, so "José  O'Brien-Smith" and "jose o brien smith"
+    compare equal.
+    """
+    name = unicodedata.normalize('NFKD', name or '')
+    name = ''.join(c for c in name if not unicodedata.combining(c))
+    name = re.sub(r'[\W_]+', ' ', name.casefold())
+    return ' '.join(name.split())
+
+
+def names_match(first, last, expected_first, expected_last):
+    """
+    Return True if a first and last name match the expected names.
+
+    Names are compared after normalize_name(). Empty names never match.
+    """
+    first, last = normalize_name(first), normalize_name(last)
+    return bool(first and last) and (
+        first == normalize_name(expected_first) and last == normalize_name(expected_last)
+    )
+
+
+def get_auto_approval_failures(training, completion, member_profile):
+    """
+    Check whether a CITI completion clearly satisfies a training submission.
+
+    The completion is expected to come from find_matching_completion(), so it
+    is already known to belong to a CITI group mapped to the training type and
+    to be unexpired.
+
+    The user's name must match both the CITI member profile (the account-level
+    record) and the completion record (the name shown on the certificate).
+    Some completion record details are not validated by CITI, so neither
+    source is relied on alone.
+
+    Returns a list of human-readable reasons why the submission is not
+    eligible for automatic approval. An empty list means it is eligible.
+    """
+    if training.status != TrainingStatus.REVIEW:
+        return ['Training is no longer awaiting review.']
+
+    if completion is None:
+        return ['No unexpired CITI completion was found for a course mapped to this training type.']
+
+    failures = []
+    now = timezone.now()
+
+    profile = training.user.profile
+    member_profile = member_profile or {}
+    names_to_check = [
+        ('CITI member profile', member_profile.get('strFirstII'), member_profile.get('strLastII')),
+        ('CITI completion record', completion.get('FirstName'), completion.get('LastName')),
+    ]
+    for source, first, last in names_to_check:
+        if not names_match(first, last, profile.first_names, profile.last_name):
+            failures.append(
+                f"Name on {source} ({first or ''} {last or ''}) "
+                f"does not match profile ({profile.first_names} {profile.last_name})."
+            )
+
+    try:
+        score = int(completion.get('intScore'))
+        passing_score = int(completion.get('intPassingScore'))
+    except (TypeError, ValueError):
+        failures.append('CITI score or passing score could not be read.')
+    else:
+        if passing_score <= 0 or score < passing_score:
+            failures.append(f'CITI score ({score}) is below the passing score ({passing_score}).')
+
+    passed = completion.get('dtePassed')
+    if passed is None or passed > now:
+        failures.append('CITI completion date is missing or in the future.')
+    elif training.training_type.valid_duration and passed + training.training_type.valid_duration < now:
+        failures.append(
+            'CITI course was completed longer ago than the validity period for this training type.'
+        )
+
+    return failures
+
+
+def try_auto_approve_training(training, verification, completion, member_profile):
+    """
+    Approve a training submission if the CITI API data clearly supports it.
+
+    Eligibility is always evaluated and stored on the verification record so
+    that reviewers can see why a submission was not approved automatically.
+    The submission is only approved when settings.CITI_AUTO_APPROVE is
+    enabled. Returns True if the training was approved.
+    """
+    failures = get_auto_approval_failures(training, completion, member_profile)
+    verification.auto_approval_notes = '\n'.join(failures)
+    verification.auto_approval_checked_datetime = timezone.now()
+    verification.save(update_fields=['auto_approval_notes', 'auto_approval_checked_datetime'])
+
+    if failures or not settings.CITI_AUTO_APPROVE:
+        return False
+
+    with transaction.atomic():
+        # Lock the row and re-check the status, in case the submission was
+        # withdrawn or reviewed while the API lookup was in progress.
+        training = Training.objects.select_for_update().get(pk=training.pk)
+        if training.status != TrainingStatus.REVIEW:
+            return False
+        training.accept(reviewer=None)
+        verification.auto_approved = True
+        verification.save(update_fields=['auto_approved'])
+
+    logger.info('Training %s automatically approved via CITI API', training.pk)
+
+    try:
+        process_training_complete(None, training)
+    except Exception:
+        logger.exception('Failed to send approval email for training %s', training.pk)
+
+    return True

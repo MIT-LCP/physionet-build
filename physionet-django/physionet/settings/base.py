@@ -393,6 +393,10 @@ DATACITE_PASS = config('DATACITE_PASS', default='')
 CITI_USERNAME = config('CITI_USERNAME', default='')
 CITI_PASSWORD = config('CITI_PASSWORD', default='')
 CITI_SOAP_URL = config('CITI_SOAP_URL', default='')
+# If True, CITI training submissions are approved automatically when the CITI
+# API returns a matching, passing, unexpired completion in the user's name.
+# Submissions that do not meet every condition are left for manual review.
+CITI_AUTO_APPROVE = config('CITI_AUTO_APPROVE', default=False, cast=bool)
 
 # List of permitted HTML tags and attributes for rich text fields.
 # The 'default' configuration permits all of the tags below.  Other
