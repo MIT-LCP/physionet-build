@@ -2,8 +2,20 @@
 <div class="card mb-3"{% if section.anchor %} id="{{ section.anchor }}"{% endif %}>
   <div class="card-header">{{ section.display_title|default:section.title }}{% include 'console/metrics_help.html' with title=section.title description=section.description %}</div>
   <div class="card-body">
+    {% if section.country_trend %}{% include 'console/usage_country_trend.html' with country_trend=section.country_trend %}{% endif %}
+    {% if section.dataset_trend %}{% include 'console/usage_dataset_trend.html' %}{% endif %}
+    {% if section.pie_chart %}
+    <div data-metrics-chart="usage-account-age" data-label="Registered dataset viewers by account creation period. Exact values are in the table below."></div>
+    {{ section.pie_chart|json_script:'usage-account-age' }}
+    {% endif %}
+    {% if section.category_trend %}{% include 'console/usage_category_trend.html' %}{% endif %}
+    {% if section.country_trend or section.category_trend or section.dataset_trend or section.pie_chart %}<details><summary>{% if section.country_trend %}Show country table and coverage{% elif section.category_trend %}Show researcher category table and coverage{% elif section.pie_chart %}Show account age table{% else %}Show period ranking table{% endif %}</summary>{% endif %}
     {% if section.description %}<noscript><p>{{ section.description }}</p></noscript>{% endif %}
-    {% if section.has_coverage %}
+    {% if section.country_trend %}
+    <p>Country information available for {{ section.coverage_count }} / {{ section.approved_group_total }} viewers with an approved application
+      ({% if section.approved_group_coverage is None %}percentage unavailable{% else %}{{ section.approved_group_coverage|floatformat:2 }}%{% endif %}).
+      The period table below retains percentages of all registered viewers and of viewers with country information.</p>
+    {% elif section.has_coverage %}
     <p>Information available for {{ section.coverage_count }} / {{ section.coverage_total }} {{ section.coverage_population }}
       ({% if section.coverage_percentage is None %}percentage unavailable{% else %}{{ section.coverage_percentage|floatformat:2 }}%{% endif %}).
       “With information (%)” excludes people without an approved credential application and missing or unrecognized values.</p>
@@ -19,6 +31,19 @@
     </aside>
     {% endif %}
     {% if section.table_note %}<p>{{ section.table_note }}</p>{% endif %}
+    {% if section.display_cards %}
+    <div class="row" role="list" aria-label="Usage overview">
+      {% for row in section.rows %}
+      <div class="col-12 col-sm-6 col-xl-3 mb-3" role="listitem">
+        <div class="metrics-overview-tile border rounded p-3 h-100">
+          <div class="metrics-overview-value">{{ row.count|floatformat:"0g" }}</div>
+          <div class="mt-2">{{ row.label }}</div>
+          {% if row.percentage is not None %}<small class="d-block text-muted mt-2">{{ row.percentage|floatformat:2 }}% of all viewers</small>{% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
     <div class="table-responsive">
       <table class="table table-bordered">
         <thead><tr>
@@ -41,6 +66,7 @@
         </tbody>
       </table>
     </div>
+    {% endif %}
     {% if section.toggle_url %}<p><a href="{{ section.toggle_url }}">{{ section.toggle_label }}</a></p>{% endif %}
     {% if section.page %}
     <nav aria-label="{{ section.title }} pages">
@@ -50,6 +76,8 @@
       {% if section.next_url %}<a href="{{ section.next_url }}">Next</a>{% endif %}
     </nav>
     {% endif %}
+    {% if section.country_trend or section.category_trend or section.dataset_trend or section.pie_chart %}</details>{% endif %}
   </div>
 </div>
+{% if section.without_approval %}{% include 'console/usage_without_approval.html' with report=section.without_approval %}{% endif %}
 {% endfor %}

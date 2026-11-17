@@ -1,3 +1,7 @@
+from console.usage_trends import (
+    usage_trends, usage_trends_csv, usage_country_trends, usage_monthly_demographics, usage_category_trend,
+    usage_dataset_trends,
+)
 from console.usage import UsageDateForm, usage_metrics, usage_sections, usage_csv
 from django.core.paginator import Paginator
 from urllib.parse import urlencode
@@ -5114,6 +5118,7 @@ def _usage_stats(request, group):
     data = {'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()}
     form = UsageDateForm(data)
     sections = None
+    usage_trend = None
     export_query = ''
     date_query = ''
     report = None
@@ -5122,11 +5127,28 @@ def _usage_stats(request, group):
     if form.is_valid():
         start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
         date_query = urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()})
+        usage_trend = usage_trends(start, end)
+        if request.GET.get('export') == 'monthly':
+            return usage_trends_csv(usage_trend)
+        if request.GET.get('export') == 'category-monthly':
+            category = usage_category_trend(start, end, usage_trend)
+            return usage_trends_csv(category, 'usage-category-monthly-stats.csv')
+        if request.GET.get('export') in ('country-monthly', 'unapproved-monthly'):
+            country = usage_country_trends(start, end, usage_trend)
+            if request.GET['export'] == 'unapproved-monthly':
+                return usage_trends_csv(country['without_approval'], 'usage-without-approval-monthly-stats.csv')
+            return usage_trends_csv(country['export'], 'usage-country-monthly-stats.csv')
         calculators = {
             'usage': usage_metrics,
         }
         calculator = calculators[group]
         sections = usage_sections(calculator(start, end), group)
+        if request.GET.get('export') in ('datasets-monthly', 'versions-monthly'):
+            rankings = {section['title']: section['rows'] for section in sections}
+            trends = usage_dataset_trends(start, end, usage_trend, rankings.get('Most accessed datasets', []),
+                                          rankings.get('Registered viewers by dataset version', []))
+            key = 'versions' if request.GET['export'] == 'versions-monthly' else 'datasets'
+            return usage_trends_csv(trends[key], f'usage-{key}-monthly-stats.csv')
         if request.GET.get('export') == 'csv':
             response = usage_csv(sections, start, end)
             filenames = {'usage': 'usage-stats.csv'}
@@ -5142,16 +5164,63 @@ def _usage_stats(request, group):
         if group in ('usage', 'access', 'submissions'):
             paginated_tables = {
                 'Dataset viewers by country': ('country_page', 'viewers-by-country'),
-                'Registered viewers by dataset version': ('version_page', 'viewers-by-version'),
             }
             sections = [dict(section) for section in sections if not section.get('csv_only')]
-            sections.sort(key=lambda section: section['title'] == 'Most accessed datasets')
+            sections.sort(key=lambda section: (
+                2 if section['title'] == 'Dataset viewers by account age' else
+                1 if section['title'] == 'Most accessed datasets' else 0))
             params.pop('export', None)
+            rankings = {section['title']: section['rows'] for section in sections}
+            dataset_trends = usage_dataset_trends(
+                start, end, usage_trend, rankings.get('Most accessed datasets', []),
+                rankings.get('Registered viewers by dataset version', []))
+            demographics = usage_monthly_demographics(start, end, usage_trend)
             for section in sections:
+                if section['title'] in ('Most accessed datasets', 'Registered viewers by dataset version'):
+                    key = 'versions' if section['title'] == 'Registered viewers by dataset version' else 'datasets'
+                    section['dataset_trend'] = dataset_trends[key]
+                    section['dataset_trend_query'] = urlencode({
+                        'start_date': start.isoformat(), 'end_date': end.isoformat(), 'export': key + '-monthly'})
+                    section['rows'] = section['rows'][:10]
+                    if key == 'versions':
+                        section['anchor'] = 'viewers-by-version'
+                    section['display_title'] = (
+                        'Top 10 dataset versions by unique registered viewers' if key == 'versions'
+                        else 'Top 10 datasets by unique registered viewers')
+                if section['title'] == 'Dataset viewers by account age':
+                    section['pie_chart'] = {
+                        'type': 'pie', 'series': [
+                            {'name': row['label'], 'values': [row['count']], 'color': color}
+                            for row, color in zip(section['rows'], ['#2563eb', '#ea580c', '#64748b'])]}
+                if section['title'] == 'Dataset viewers by country':
+                    section['country_trend'] = usage_country_trends(start, end, usage_trend, demographics)
+                    section['country_trend_query'] = urlencode({
+                        'start_date': start.isoformat(), 'end_date': end.isoformat(), 'export': 'country-monthly'})
+                if section['title'] == 'Dataset viewers by researcher category':
+                    section['category_trend'] = usage_category_trend(
+                        start, end, usage_trend, demographics)
+                    section['category_export_query'] = urlencode({
+                        'start_date': start.isoformat(), 'end_date': end.isoformat(),
+                        'export': 'category-monthly'})
                 if section.get('has_coverage'):
                     section['unavailable_rows'] = [row for row in section['rows']
                                                    if not row.get('information_available', True)]
                     section['rows'] = [row for row in section['rows'] if row.get('information_available', True)]
+                    if section.get('country_trend'):
+                        no_approval = sum(row['count'] for row in section['unavailable_rows']
+                                          if row['label'] == 'No approved credential application')
+                        section['display_title'] = 'Registered viewers with an approved credential application'
+                        section['approved_group_total'] = section['coverage_total'] - no_approval
+                        section['approved_group_coverage'] = (
+                            round(100 * section['coverage_count'] / section['approved_group_total'], 2)
+                            if section['approved_group_total'] else None)
+                        section['unavailable_rows'] = [row for row in section['unavailable_rows']
+                                                       if row['label'] != 'No approved credential application']
+                        section['without_approval'] = {
+                            **section['country_trend']['without_approval'], 'total': no_approval,
+                            'export_query': urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat(),
+                                                       'export': 'unapproved-monthly'})}
+
                 if section['title'] not in paginated_tables:
                     continue
                 parameter, anchor = paginated_tables[section['title']]
@@ -5203,10 +5272,16 @@ def _usage_stats(request, group):
     }
     return render(request, templates[group], {
         'form': form, 'sections': sections, 'export_query': export_query,
-        'report': report, 'trend_export_query': trend_export_query,
+        'report': report, 'trend_export_query': trend_export_query, 'usage_trend': usage_trend,
         'report_title': {
             'usage': 'Usage',
         }[group],
+        'report_description': (
+            'Counts registered users viewing dataset file-access pages. Monthly charts group sessions by their '
+            'start date in the site time zone; summary cards and tables include sessions overlapping the selected '
+            'dates. Published versions are combined except in the per-version table. '
+            'Anonymous views and direct cloud downloads are excluded. These counts do not establish confirmed '
+            'downloads or research use. Demographic definitions and coverage are explained beside each metric.'),
         'report_group': group, 'date_query': date_query,
         **queue_context,
     }, status=200 if sections is not None else 400)

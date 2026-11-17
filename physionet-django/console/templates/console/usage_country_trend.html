@@ -1,0 +1,18 @@
+<div class="mb-4">
+  <div class="font-weight-bold mb-2">{{ country_trend.title }}{% include 'console/metrics_help.html' with title=country_trend.title description=country_trend.description %}</div>
+  <p class="small text-muted">Top 5 countries, fixed across months. Uses the country currently on record, not historical location.</p>
+  {% if country_trend.has_countries %}
+  <div data-metrics-chart="{{ country_trend.id }}" data-label="Monthly unique registered viewers for the top five institutional countries. Values and coverage are in the table below."></div>
+  {{ country_trend.chart|json_script:country_trend.id }}
+  <p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial month</p>
+  {% else %}<p>No recognized country information available for sessions starting during the selected dates.</p>{% endif %}
+  <a class="btn btn-md btn-success mb-3" href="?{{ section.country_trend_query }}">Download monthly country CSV (all groups)</a>
+  <details>
+    <summary>Show monthly country table and coverage</summary>
+    <div class="table-responsive"><table class="table table-bordered">
+      <thead><tr>{% for header in country_trend.approved_headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for row in country_trend.approved_rows %}<tr>{% for cell in row %}<td>{% if cell is None %}—{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    </table></div>
+  </details>
+  <noscript><p>{{ country_trend.description }}</p></noscript>
+</div>

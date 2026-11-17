@@ -1,0 +1,17 @@
+<div class="mb-4" id="viewers-by-researcher-category">
+  <div class="font-weight-bold mb-2">Viewers by researcher category over time{% include 'console/metrics_help.html' with title=section.category_trend.title description=section.category_trend.description %}</div>
+  <p class="small text-muted">Select categories in the legend to show or hide their lines. Ordered by unique viewers across the selected period.
+    Uses the category currently on record, not historical category.</p>
+  <div data-metrics-chart="{{ section.category_trend.id }}" data-label="Monthly unique registered viewers by researcher category. Exact values and coverage are in the table below."></div>
+  {{ section.category_trend.chart|json_script:section.category_trend.id }}
+  <p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial month</p>
+  <a class="btn btn-md btn-success mb-3" href="?{{ section.category_export_query }}">Download monthly category CSV</a>
+  <details>
+    <summary>Show monthly category table and coverage</summary>
+    <div class="table-responsive"><table class="table table-bordered">
+      <thead><tr>{% for header in section.category_trend.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for row in section.category_trend.rows %}<tr>{% for cell in row %}<td>{% if cell is None %}—{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    </table></div>
+  </details>
+  <noscript><p>{{ section.category_trend.description }}</p></noscript>
+</div>

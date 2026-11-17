@@ -137,7 +137,7 @@ def usage_metrics(start_date, end_date):
     viewer_count = viewers.count()
     top_datasets = list(
         datasets.filter(logs__pk__in=logs.values('pk')).order_by().values('slug')
-        .annotate(count=Count('logs__user', distinct=True)).order_by('-count', 'slug')[:20]
+        .annotate(count=Count('logs__user', distinct=True)).order_by('-count', 'slug')[:10]
     )
     accessed_datasets = datasets.filter(pk__in=logs.values('object_id')).order_by().values('slug').distinct().count()
 
@@ -155,13 +155,20 @@ def usage_metrics(start_date, end_date):
     countries = dict(COUNTRIES)
     categories = dict(CredentialApplication.RESEARCHER_CATEGORIES)
     return [
-        {'title': 'Overview', 'description': '',
+        {'title': 'Overview', 'description': (
+            'All cards summarize the entire selected period, not the sum of monthly values. '
+            'Each viewer is counted once, even if they appear in several months. Datasets combine all versions; '
+            'institutions count distinct self-reported names, ignoring case and extra spaces. Spelling variants '
+            'and abbreviations may still count separately. Approved viewers are a subset of the same unique '
+            'viewers, using their latest currently approved credential application. '
+            'Cards include sessions overlapping the selected dates. Monthly charts instead include sessions '
+            'that started within those dates, so the two populations can differ.'),
          'rows': [{'label': label, 'count': count,
                    'percentage': round(100 * count / viewer_count, 2)
                    if label == 'Viewers with an approved credential application' and viewer_count else None}
                   for label, count in overview]},
         {'title': 'Most accessed datasets',
-         'description': ('Top 20 by unique registered viewers, combining all versions. '
+         'description': ('Top 10 by unique registered viewers, combining all versions. '
                          'A person may view multiple datasets.'),
          'rows': [{'label': row['slug'], 'count': row['count'],
                    'percentage': round(row['count'] * 100 / viewer_count, 2)} for row in top_datasets]},
@@ -217,7 +224,8 @@ def usage_sections(sections, group='usage'):
         result = [dict(section) for section in result]
         for section in result:
             if section['title'] == 'Most accessed datasets':
-                section['display_title'] = 'Top 20 datasets by unique registered viewers'
+                section['display_title'] = 'Top 10 datasets by unique registered viewers'
+            section['display_cards'] = group == 'usage' and section['title'] == 'Overview'
             section['label_header'] = labels.get(section['title'], 'Metric')
             population = {'usage': 'Registered viewers', 'access': 'Approved users',
                           'submissions': 'Submitting authors'}[group]
