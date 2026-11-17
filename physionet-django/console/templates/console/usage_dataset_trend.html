@@ -2,11 +2,11 @@
   <div class="font-weight-bold mb-2">Monthly unique registered viewers{% include 'console/metrics_help.html' with title=section.dataset_trend.title description=section.dataset_trend.description %}</div>
   <p class="small text-muted">Top 10, fixed across months. Select items in the legend to show or hide their lines.</p>
   {% if section.dataset_trend.has_series %}
-  <div data-metrics-chart="{{ section.dataset_trend.id }}" data-label="{{ section.dataset_trend.title }}. Exact monthly values are in the table below."></div>
+  <div data-metrics-chart="{{ section.dataset_trend.id }}" data-title="{{ section.dataset_trend.title }}" data-label="{{ section.dataset_trend.title }}. Exact monthly values are in the table below."></div>
   {{ section.dataset_trend.chart|json_script:section.dataset_trend.id }}
   <p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial month</p>
   {% else %}<p>No dataset viewers available for the selected dates.</p>{% endif %}
-  <a class="btn btn-md btn-success mb-3" href="?{{ section.dataset_trend_query }}">Download top 10 monthly CSV</a>
+  {% include 'console/metrics_chart_downloads.html' with chart_id=section.dataset_trend.id csv_query=section.dataset_trend_query %}
   <details>
     <summary>Show monthly dataset table</summary>
     <div class="table-responsive"><table class="table table-bordered">

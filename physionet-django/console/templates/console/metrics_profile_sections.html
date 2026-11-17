@@ -5,8 +5,9 @@
     {% if section.country_trend %}{% include 'console/usage_country_trend.html' with country_trend=section.country_trend %}{% endif %}
     {% if section.dataset_trend %}{% include 'console/usage_dataset_trend.html' %}{% endif %}
     {% if section.pie_chart %}
-    <div data-metrics-chart="usage-account-age" data-label="Registered dataset viewers by account creation period. Exact values are in the table below."></div>
+    <div data-metrics-chart="usage-account-age" data-title="Dataset viewers by account age" data-label="Registered dataset viewers by account creation period. Exact values are in the table below."></div>
     {{ section.pie_chart|json_script:'usage-account-age' }}
+    {% include 'console/metrics_chart_downloads.html' with chart_id='usage-account-age' csv_query=section.pie_export_query %}
     {% endif %}
     {% if section.category_trend %}{% include 'console/usage_category_trend.html' %}{% endif %}
     {% if section.country_trend or section.category_trend or section.dataset_trend or section.pie_chart %}<details><summary>{% if section.country_trend %}Show country table and coverage{% elif section.category_trend %}Show researcher category table and coverage{% elif section.pie_chart %}Show account age table{% else %}Show period ranking table{% endif %}</summary>{% endif %}

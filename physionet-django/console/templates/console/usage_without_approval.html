@@ -4,10 +4,10 @@
     <p><strong>{{ report.total|floatformat:"0g" }}</strong> unique viewers across the selected period.</p>
     <p class="small text-muted">No country breakdown is available from the approved-application source for this group.
       Classification uses current records, not historical credential status.</p>
-    <div data-metrics-chart="{{ report.id }}" data-label="Monthly registered viewers without an approved credential application. Exact values are in the table below."></div>
+    <div data-metrics-chart="{{ report.id }}" data-title="{{ report.title }}" data-label="Monthly registered viewers without an approved credential application. Exact values are in the table below."></div>
     {{ report.chart|json_script:report.id }}
     <p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial month</p>
-    <a class="btn btn-md btn-success mb-3" href="?{{ report.export_query }}">Download monthly CSV</a>
+    {% include 'console/metrics_chart_downloads.html' with chart_id=report.id csv_query=report.export_query %}
     <details>
       <summary>Show monthly table</summary>
       <div class="table-responsive"><table class="table table-bordered">

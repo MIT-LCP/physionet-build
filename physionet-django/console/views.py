@@ -5149,6 +5149,11 @@ def _usage_stats(request, group):
                                           rankings.get('Registered viewers by dataset version', []))
             key = 'versions' if request.GET['export'] == 'versions-monthly' else 'datasets'
             return usage_trends_csv(trends[key], f'usage-{key}-monthly-stats.csv')
+        if request.GET.get('export') == 'account-age':
+            age = [section for section in sections if section['title'] == 'Dataset viewers by account age']
+            response = usage_csv(age, start, end)
+            response['Content-Disposition'] = 'attachment; filename="usage-account-age-stats.csv"'
+            return response
         if request.GET.get('export') == 'csv':
             response = usage_csv(sections, start, end)
             filenames = {'usage': 'usage-stats.csv'}
@@ -5188,6 +5193,8 @@ def _usage_stats(request, group):
                         'Top 10 dataset versions by unique registered viewers' if key == 'versions'
                         else 'Top 10 datasets by unique registered viewers')
                 if section['title'] == 'Dataset viewers by account age':
+                    section['pie_export_query'] = urlencode({
+                        'start_date': start.isoformat(), 'end_date': end.isoformat(), 'export': 'account-age'})
                     section['pie_chart'] = {
                         'type': 'pie', 'series': [
                             {'name': row['label'], 'values': [row['count']], 'color': color}

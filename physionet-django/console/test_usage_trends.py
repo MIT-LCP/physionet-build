@@ -313,3 +313,17 @@ class TestUsageTrends(MetricsTestCase):
         self.client.logout()
         response = self.client.get(reverse('usage_stats'), {**params, 'export': 'datasets-monthly'})
         self.assertEqual(response.status_code, 403)
+
+    def test_account_age_csv_contains_only_the_pie_data(self):
+        self.client.force_login(self.admin)
+        params = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
+        page = self.client.get(reverse('usage_stats'), params)
+        age = next(s for s in page.context['sections'] if s['title'] == 'Dataset viewers by account age')
+        exported = self.client.get(reverse('usage_stats'), {**params, 'export': 'account-age'})
+        rows = list(csv.DictReader(StringIO(exported.content.decode())))
+        self.assertEqual({row['Section'] for row in rows}, {'Dataset viewers by account age'})
+        self.assertEqual([(r['Metric'], int(r['Count'])) for r in rows],
+                         [(r['label'], r['count']) for r in age['rows']])
+        self.client.logout()
+        response = self.client.get(reverse('usage_stats'), {**params, 'export': 'account-age'})
+        self.assertEqual(response.status_code, 403)

@@ -2,10 +2,10 @@
   <div class="font-weight-bold mb-2">Viewers by researcher category over time{% include 'console/metrics_help.html' with title=section.category_trend.title description=section.category_trend.description %}</div>
   <p class="small text-muted">Select categories in the legend to show or hide their lines. Ordered by unique viewers across the selected period.
     Uses the category currently on record, not historical category.</p>
-  <div data-metrics-chart="{{ section.category_trend.id }}" data-label="Monthly unique registered viewers by researcher category. Exact values and coverage are in the table below."></div>
+  <div data-metrics-chart="{{ section.category_trend.id }}" data-title="{{ section.category_trend.title }}" data-label="Monthly unique registered viewers by researcher category. Exact values and coverage are in the table below."></div>
   {{ section.category_trend.chart|json_script:section.category_trend.id }}
   <p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial month</p>
-  <a class="btn btn-md btn-success mb-3" href="?{{ section.category_export_query }}">Download monthly category CSV</a>
+  {% include 'console/metrics_chart_downloads.html' with chart_id=section.category_trend.id csv_query=section.category_export_query %}
   <details>
     <summary>Show monthly category table and coverage</summary>
     <div class="table-responsive"><table class="table table-bordered">

@@ -587,3 +587,26 @@ html {
   gap: 0.5rem;
   margin: 0.25rem 0 0.75rem;
 }
+
+.metrics-chart-downloads {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.modern-ui .metrics-chart-downloads .metrics-download {
+  color: #4b5563;
+  background-color: transparent;
+  border: 1px solid #9ca3af;
+}
+.modern-ui .metrics-chart-downloads .metrics-download:hover,
+.modern-ui .metrics-chart-downloads .metrics-download:focus-visible {
+  color: #1f2937;
+  background-color: #f3f4f6;
+  border-color: #6b7280;
+}
+.metrics-export-error {
+  flex-basis: 100%;
+  margin-bottom: 0;
+}
