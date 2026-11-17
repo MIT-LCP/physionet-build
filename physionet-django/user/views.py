@@ -838,6 +838,7 @@ def _fetch_and_validate_token(request, code, oauth_session):
             code=code,
             include_client_id=True,
             client_secret=client_secret,
+            timeout=10,
         )
     except InvalidGrantError:
         messages.error(
@@ -870,14 +871,15 @@ def _fetch_and_validate_token(request, code, oauth_session):
 def _describe_orcid_reply(response):
     """
     Describe ORCID's reply to a token request for the log: the status, content
-    type and the start of the body. The body is left out if it might hold a token.
+    type and the start of the body. The body is left out if it might hold a token,
+    in any letter case.
     """
     if response is None:
         return 'No reply from ORCID.'
     description = 'ORCID replied HTTP {} ({}).'.format(
         response.status_code, response.headers.get('Content-Type', 'no content type'))
     body = response.text
-    if 'token' not in body:
+    if 'token' not in body.lower():
         description += ' Body: {!r}'.format(body[:300])
     return description
 

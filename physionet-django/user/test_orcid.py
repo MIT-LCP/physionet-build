@@ -424,6 +424,24 @@ class OrcidLinkTests(TestCase):
 
         self.assertNotIn('secret-refresh-token', logs.output[0])
 
+    def test_reply_that_may_hold_a_token_in_another_case_is_not_logged(self):
+        state = self.start_link()
+        with requests_mock.Mocker() as mocker, self.assertLogs('user.views', 'ERROR') as logs:
+            mocker.post(settings.ORCID_TOKEN_URL, status_code=500, text='Access_TOKEN=secret-value')
+            self.client.get(reverse('auth_orcid'), {'code': 'abc123', 'state': state})
+
+        self.assertNotIn('secret-value', logs.output[0])
+        self.assertIn('HTTP 500', logs.output[0])
+
+    def test_token_request_has_a_timeout(self):
+        state = self.start_link()
+        with patch('user.views.OAuth2Session.fetch_token', side_effect=requests.Timeout()) as mock_fetch_token:
+            with self.assertLogs('user.views', 'ERROR'):
+                response = self.client.get(reverse('auth_orcid'), {'code': 'abc123', 'state': state})
+
+        self.assertEqual(mock_fetch_token.call_args.kwargs['timeout'], 10)
+        self.assert_retry_message(response)
+
     def test_orcid_unreachable_links_nothing(self):
         state = self.start_link()
         with patch('user.views.OAuth2Session.fetch_token', side_effect=requests.ConnectionError()):
