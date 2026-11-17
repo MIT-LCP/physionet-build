@@ -22,6 +22,8 @@ from django.test import RequestFactory, TestCase, override_settings
 from django.urls import NoReverseMatch, resolve, reverse
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+import requests
+import requests_mock
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
 
 from physionet.urls import urlpatterns as root_urlpatterns
@@ -395,6 +397,60 @@ class OrcidLinkTests(TestCase):
         self.assertEqual(messages, ['Invalid Grant Error: authorization code may be expired or invalid.'])
         self.assertFalse(Orcid.objects.filter(user=self.user).exists())
 
+    def assert_retry_message(self, response):
+        self.assertRedirects(response, reverse('edit_orcid'), fetch_redirect_response=False)
+        messages = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertEqual(messages, ['ORCID did not respond as expected. Please try again in a few minutes.'])
+        self.assertFalse(Orcid.objects.filter(user=self.user).exists())
+
+    def test_error_page_from_orcid_links_nothing(self):
+        """ORCID (or a proxy) sends an error page instead of a token: no 500, and the reply is logged."""
+        state = self.start_link()
+        with requests_mock.Mocker() as mocker, self.assertLogs('user.views', 'ERROR') as logs:
+            mocker.post(settings.ORCID_TOKEN_URL, status_code=502, text='<html>Bad Gateway</html>',
+                        headers={'Content-Type': 'text/html'})
+            response = self.client.get(reverse('auth_orcid'), {'code': 'abc123', 'state': state})
+
+        self.assert_retry_message(response)
+        self.assertIn('MissingTokenError', logs.output[0])
+        self.assertIn('HTTP 502 (text/html)', logs.output[0])
+        self.assertIn('Bad Gateway', logs.output[0])
+
+    def test_reply_that_may_hold_a_token_is_not_logged(self):
+        state = self.start_link()
+        with requests_mock.Mocker() as mocker, self.assertLogs('user.views', 'ERROR') as logs:
+            mocker.post(settings.ORCID_TOKEN_URL, json={'refresh_token': 'secret-refresh-token'})
+            self.client.get(reverse('auth_orcid'), {'code': 'abc123', 'state': state})
+
+        self.assertNotIn('secret-refresh-token', logs.output[0])
+
+    def test_reply_that_may_hold_a_token_in_another_case_is_not_logged(self):
+        state = self.start_link()
+        with requests_mock.Mocker() as mocker, self.assertLogs('user.views', 'ERROR') as logs:
+            mocker.post(settings.ORCID_TOKEN_URL, status_code=500, text='Access_TOKEN=secret-value')
+            self.client.get(reverse('auth_orcid'), {'code': 'abc123', 'state': state})
+
+        self.assertNotIn('secret-value', logs.output[0])
+        self.assertIn('HTTP 500', logs.output[0])
+
+    def test_token_request_has_a_timeout(self):
+        state = self.start_link()
+        with patch('user.views.OAuth2Session.fetch_token', side_effect=requests.Timeout()) as mock_fetch_token:
+            with self.assertLogs('user.views', 'ERROR'):
+                response = self.client.get(reverse('auth_orcid'), {'code': 'abc123', 'state': state})
+
+        self.assertEqual(mock_fetch_token.call_args.kwargs['timeout'], 10)
+        self.assert_retry_message(response)
+
+    def test_orcid_unreachable_links_nothing(self):
+        state = self.start_link()
+        with patch('user.views.OAuth2Session.fetch_token', side_effect=requests.ConnectionError()):
+            with self.assertLogs('user.views', 'ERROR') as logs:
+                response = self.client.get(reverse('auth_orcid'), {'code': 'abc123', 'state': state})
+
+        self.assert_retry_message(response)
+        self.assertIn('No reply from ORCID', logs.output[0])
+
     def test_malformed_access_token_links_nothing(self):
         with self.assertLogs('user.views', 'ERROR'):
             response = self.link(dict(ORCID_TOKEN, access_token='not-a-token'))
@@ -552,6 +608,18 @@ class OrcidLoginTests(TestCase):
         self.assertEqual(messages, ['Validation Error: ORCID token validation failed.'])
         self.assertNotIn(SESSION_KEY, self.client.session)
         self.assertNotIn('orcid_token', self.client.session)
+
+    def test_error_page_from_orcid_does_not_log_in(self):
+        self.create_linked_user(is_active=True)
+        state = self.start_login()
+        with requests_mock.Mocker() as mocker, self.assertLogs('user.views', 'ERROR'):
+            mocker.post(settings.ORCID_TOKEN_URL, status_code=503, text='Service Unavailable')
+            response = self.client.get(reverse('auth_orcid_login'), {'code': 'abc123', 'state': state})
+
+        self.assertRedirects(response, reverse('login'), fetch_redirect_response=False)
+        messages = [str(m) for m in get_messages(response.wsgi_request)]
+        self.assertEqual(messages, ['ORCID did not respond as expected. Please try again in a few minutes.'])
+        self.assertNotIn(SESSION_KEY, self.client.session)
 
     def test_register_page_shows_the_form(self):
         self.login(LOGIN_TOKEN)
