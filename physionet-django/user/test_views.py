@@ -1677,16 +1677,16 @@ class TestNewsletter(TestCase):
         self.primary.refresh_from_db()
         self.assertTrue(self.primary.newsletter_subscribed)
 
-    def test_unsubscribe_token_not_valid_for_readded_address(self):
+    def test_unsubscribe_token_not_valid_for_re_added_address(self):
         self.secondary.subscribe_to_newsletter()
         token = self.secondary.get_newsletter_unsubscribe_token()
         address = self.secondary.email
         self.secondary.delete()
-        readded = AssociatedEmail.objects.create(
+        new_record = AssociatedEmail.objects.create(
             user=self.user, email=address, is_verified=True, newsletter_subscribed=True)
         self.assertIsNone(AssociatedEmail.from_newsletter_unsubscribe_token(token))
-        readded.refresh_from_db()
-        self.assertTrue(readded.newsletter_subscribed)
+        new_record.refresh_from_db()
+        self.assertTrue(new_record.newsletter_subscribed)
 
     def test_unsubscribe_token_does_not_expose_address(self):
         token = self.primary.get_newsletter_unsubscribe_token()
