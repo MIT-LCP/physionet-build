@@ -388,6 +388,21 @@ class TestUserManagement(TestMixin):
         self.assertRedirects(response, reverse('user_management', args=(user.username,)))
         self.assertFalse(user.groups.filter(name='host').exists())
 
+    def test_download_users_includes_newsletter_subscription(self):
+        subscriber = User.objects.get(username='rgmark')
+        subscribed_email = subscriber.associated_emails.get(is_primary_email=True)
+        subscribed_email.subscribe_to_newsletter()
+
+        self.client.login(username='admin', password='Tester11!')
+        response = self.client.get(reverse('download_users'))
+        self.assertEqual(response.status_code, 200)
+        content = b''.join(response.streaming_content).decode()
+        rows = {row['username']: row for row in csv.DictReader(io.StringIO(content))}
+
+        self.assertEqual(rows['rgmark']['newsletter_email'], subscribed_email.email)
+        self.assertNotEqual(rows['rgmark']['newsletter_subscribed_at'], '')
+        self.assertEqual(rows['admin']['newsletter_email'], '')
+
 
 class TestState(TestMixin):
     """

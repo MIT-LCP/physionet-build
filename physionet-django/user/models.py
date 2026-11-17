@@ -10,6 +10,7 @@ from django.contrib import messages
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import signals
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission, Group
+from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import EmailValidator, FileExtensionValidator
 from django.db import DatabaseError, models, transaction
@@ -646,15 +647,76 @@ class AssociatedEmail(models.Model):
     is_verified = models.BooleanField(default=False)
     is_public = models.BooleanField(default=False)
 
+    # Newsletter consent is recorded against a specific address, so it is
+    # clear which address receives the newsletter and when consent was given.
+    newsletter_subscribed = models.BooleanField(
+        default=False, db_default=False,
+        help_text='Whether this address receives the newsletter.')
+    newsletter_subscribed_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text='When the newsletter subscription was last turned on.')
+
     # Time limit for verification: maximum number of days after
     # 'added_date' during which 'verification_token' may be used.
     VERIFICATION_TIMEOUT_DAYS = 7
+
+    NEWSLETTER_UNSUBSCRIBE_SALT = 'user.AssociatedEmail.newsletter_unsubscribe'
 
     class Meta:
         default_permissions = ()
 
     def __str__(self):
         return self.email
+
+    def subscribe_to_newsletter(self):
+        """
+        Subscribe this address to the newsletter and record when.
+        """
+        if not self.newsletter_subscribed:
+            self.newsletter_subscribed = True
+            self.newsletter_subscribed_at = timezone.now()
+            self.save(update_fields=['newsletter_subscribed', 'newsletter_subscribed_at'])
+
+    def unsubscribe_from_newsletter(self):
+        """
+        Remove this address from the newsletter. The subscription date is
+        kept as a record of the most recent consent.
+        """
+        if self.newsletter_subscribed:
+            self.newsletter_subscribed = False
+            self.save(update_fields=['newsletter_subscribed'])
+
+    def get_newsletter_unsubscribe_token(self):
+        """
+        Return a signed token that identifies this address, for use in
+        unsubscribe links that work without logging in.
+
+        The token is signed, not encrypted, so it carries a hash of the
+        address rather than the address itself. The hash ties the token to
+        this address, so it stops working if the address is changed.
+        """
+        return signing.dumps([self.pk, self._newsletter_email_digest(self.email)],
+                             salt=self.NEWSLETTER_UNSUBSCRIBE_SALT)
+
+    @staticmethod
+    def _newsletter_email_digest(email):
+        return hashlib.sha256(email.lower().encode()).hexdigest()[:16]
+
+    @classmethod
+    def from_newsletter_unsubscribe_token(cls, token):
+        """
+        Return the address identified by an unsubscribe token, or None if
+        the token is invalid or the address no longer exists.
+        """
+        try:
+            pk, digest = signing.loads(token, salt=cls.NEWSLETTER_UNSUBSCRIBE_SALT)
+        except (signing.BadSignature, TypeError, ValueError):
+            return None
+        associated_email = cls.objects.filter(pk=pk).first()
+        if associated_email is None or not constant_time_compare(
+                digest, cls._newsletter_email_digest(associated_email.email)):
+            return None
+        return associated_email
 
     def check_token(self, token):
         """

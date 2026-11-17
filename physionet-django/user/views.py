@@ -29,6 +29,7 @@ from django.utils.crypto import constant_time_compare, get_random_string
 from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from notification.utility import (
     credential_application_request,
@@ -490,6 +491,52 @@ def edit_emails(request):
     context['messages'] = messages.get_messages(request)
 
     return render(request, 'user/edit_emails.html', context)
+
+
+@login_required
+def edit_communications(request):
+    """
+    Edit communication preferences, such as the newsletter subscription
+    """
+    user = request.user
+    form = forms.CommunicationsForm(user=user)
+
+    if request.method == 'POST':
+        form = forms.CommunicationsForm(user=user, data=request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your communication preferences have been updated.')
+            return redirect('edit_communications')
+
+    has_verified_email = user.associated_emails.filter(is_verified=True).exists()
+    return render(request, 'user/edit_communications.html',
+                  {'form': form, 'has_verified_email': has_verified_email})
+
+
+# The token authenticates the request, and mail clients that support
+# one-click unsubscribe (RFC 8058) send a POST without a CSRF token.
+@csrf_exempt
+def newsletter_unsubscribe(request, token):
+    """
+    Unsubscribe an address from the newsletter without logging in.
+
+    A GET shows a confirmation button rather than unsubscribing, because
+    mail scanners follow links in messages automatically.
+    """
+    associated_email = AssociatedEmail.from_newsletter_unsubscribe_token(token)
+    if associated_email is None:
+        return render(request, 'user/newsletter_unsubscribe.html', {'isvalid': False}, status=404)
+
+    if request.method == 'POST':
+        associated_email.unsubscribe_from_newsletter()
+        logger.info('Unsubscribed email {0} of user {1} from the newsletter'.format(
+            associated_email.id, associated_email.user_id))
+        return render(request, 'user/newsletter_unsubscribe.html',
+                      {'isvalid': True, 'unsubscribed': True, 'email': associated_email.email})
+
+    return render(request, 'user/newsletter_unsubscribe.html',
+                  {'isvalid': True, 'unsubscribed': not associated_email.newsletter_subscribed,
+                   'email': associated_email.email})
 
 
 @login_required
