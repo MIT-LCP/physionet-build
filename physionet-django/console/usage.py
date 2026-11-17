@@ -123,6 +123,24 @@ def _account_age(users, start_date, end_date):
             for label, count in counts] if total else []
 
 
+def _request_months(requests, start_date, end_date):
+    counts = {
+        row['month'].strftime('%Y-%m'): row['count']
+        for row in requests.order_by().annotate(month=TruncMonth('request_datetime'))
+        .values('month').annotate(count=Count('pk'))
+    }
+    # Include zero months, but leave wholly empty selections consistent with other sections.
+    if not counts:
+        return []
+    year, month = start_date.year, start_date.month
+    rows = []
+    while (year, month) <= (end_date.year, end_date.month):
+        period = f'{year:04d}-{month:02d}'
+        rows.append({'label': period, 'count': counts.get(period, 0), 'percentage': None})
+        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
+    return rows
+
+
 def usage_metrics(start_date, end_date):
     start = timezone.make_aware(datetime.combine(start_date, time.min))
     end = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min))
@@ -180,6 +198,54 @@ def usage_metrics(start_date, end_date):
     ]
 
 
+def access_metrics(start_date, end_date):
+    start = timezone.make_aware(datetime.combine(start_date, time.min))
+    end = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min))
+    datasets = PublishedProject.objects.filter(resource_type_id=0)
+    requests = DataAccessRequest.objects.filter(
+        project__in=datasets, request_datetime__gte=start, request_datetime__lt=end,
+    )
+    # Revoked requests retain their original approval decision timestamp.
+    approvals = DataAccessRequest.objects.filter(
+        project__in=datasets, decision_datetime__gte=start, decision_datetime__lt=end,
+        status__in=(DataAccessRequest.ACCEPT_REQUEST_VALUE, DataAccessRequest.REVOKED_VALUE),
+    )
+    approved_users = _demographics(User.objects.filter(pk__in=approvals.values('requester_id')))
+    rejections = DataAccessRequest.objects.filter(
+        project__in=datasets, decision_datetime__gte=start, decision_datetime__lt=end,
+        status=DataAccessRequest.REJECT_REQUEST_VALUE,
+    )
+    overview = [
+        ('Dataset access requests submitted', requests.count()),
+        ('Unique dataset access requesters', requests.values('requester_id').distinct().count()),
+        ('Unique users approved for dataset access during selected dates', approved_users.count()),
+        ('Dataset access approvals recorded', approvals.count()),
+        ('Dataset access rejections recorded', rejections.count()),
+        ('Distinct declared institution names among approved users', _institution_count(approved_users)),
+    ]
+    countries = dict(COUNTRIES)
+    categories = dict(CredentialApplication.RESEARCHER_CATEGORIES)
+    return [
+        {'title': 'Overview', 'description': '',
+         'rows': [{'label': label, 'count': count,
+                   'percentage': None}
+                  for label, count in overview]},
+        {'title': 'Dataset access requests by month',
+         'description': ('Requests submitted during the selected dates, including requests now rejected, withdrawn '
+                         'or revoked. Only datasets using contributor-reviewed access have these requests. '
+                         'Boundary months may be partial.'),
+         'rows': _request_months(requests, start_date, end_date)},
+        _viewer_demographic(approved_users, 'credential_country', countries,
+                            'Approved dataset users by country', population='approved users'),
+        _viewer_demographic(approved_users, 'credential_category', categories,
+                            'Approved dataset users by researcher category', population='approved users'),
+        {'title': 'Approved dataset users by account age',
+         'description': ('Users approved during the selected dates. New means the account was created during '
+                         'those dates, not necessarily when access was requested.'),
+         'rows': _account_age(approved_users, start_date, end_date)},
+    ]
+
+
 def usage_csv(sections, start_date, end_date):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="usage-stats.csv"'
@@ -213,6 +279,9 @@ def usage_sections(sections, group='usage'):
                   'Dataset viewers by researcher category': 'Researcher category',
                   'Registered viewers by dataset version': 'Dataset / version',
                   'Dataset viewers by account age': 'Account creation period',
+                  'Approved dataset users by country': 'Country',
+                  'Approved dataset users by researcher category': 'Researcher category',
+                  'Approved dataset users by account age': 'Account creation period',
                   }
         result = [dict(section) for section in result]
         for section in result:

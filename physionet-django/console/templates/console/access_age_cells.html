@@ -1,0 +1,1 @@
+{% for cell in cells %}<td{% if forloop.counter >= 5 and cell == 0 %} class="text-muted"{% elif forloop.counter >= 8 and cell > 0 %} class="table-warning"{% endif %}>{% if cell is None %}Not available{% elif forloop.counter == 3 or forloop.counter == 4 %}{{ cell|floatformat:1 }}{% else %}{{ cell }}{% endif %}</td>{% endfor %}

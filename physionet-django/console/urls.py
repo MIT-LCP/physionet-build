@@ -132,6 +132,7 @@ urlpatterns = [
 
     # editorial stats
     path('usage/stats/', views.usage_stats, name='usage_stats'),
+    path('usage/access-requests/stats/', views.access_request_stats, name='access_request_stats'),
     path('usage/editorial/stats/', views.editorial_stats, name='editorial_stats'),
     path('usage/credentialing/stats/', views.credentialing_stats, name='credentialing_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),

@@ -1,4 +1,19 @@
-from console.usage import UsageDateForm, usage_metrics, usage_sections, usage_csv
+from console.reporting import (
+    access_pending_summary,
+    access_pending_summary_csv,
+    access_queue_rows,
+    access_trend,
+    date_bounds,
+    elapsed_days,
+    median_days,
+    month_labels,
+    pending_access_requests,
+    period,
+    queue_csv,
+    report_csv,
+    trend_report,
+)
+from console.usage import UsageDateForm, usage_metrics, usage_sections, usage_csv, access_metrics
 from django.core.paginator import Paginator
 from urllib.parse import urlencode
 import csv
@@ -5119,17 +5134,57 @@ def _usage_stats(request, group):
     report = None
     trend_export_query = ''
     queue_context = {}
+    if group == 'access':
+        now = timezone.now()
+        queue = list(pending_access_requests(now).only(
+            'id', 'request_datetime', 'requester_id', 'status', 'project_id', 'project__slug', 'project__version'))
+        if request.GET.get('export') == 'pending':
+            return queue_csv('pending-access', access_queue_rows(iter(queue), now), snapshot=now)
+        summary = access_pending_summary(queue, now)
+        if request.GET.get('export') in ('pending-datasets', 'pending-versions'):
+            return access_pending_summary_csv(summary, versions=request.GET['export'] == 'pending-versions')
+        page = paginate(request, queue, 5)
+        query = request.GET.copy()
+        query.pop('page', None)
+        query.pop('export', None)
+        queue_context = {
+            'queue_title': 'Current pending dataset access requests',
+            'queue_hide_status': True, 'queue_item_label': 'Dataset / version',
+            'queue_hide_snapshot': True, 'queue_date_only': True, 'queue_show_range': True,
+            'queue_id': 'current-access-queue', 'queue_anchor': 'current-access-queue',
+            'queue_description': 'Oldest requests first. Elapsed days since the request, not a service deadline. '
+                                 'Individual ages are completed 24-hour days (floor), not rounded. '
+                                 'This queue is current and is not filtered by the selected historical dates.',
+            'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
+            'queue_rows': access_queue_rows(page, now), 'queue_query': query.urlencode(),
+            'access_summary': summary,
+            'access_summary_rows': (summary['datasets'] if request.GET.get('show_all_datasets') == '1'
+                                    else summary['datasets'][:10]),
+            'access_summary_expanded': request.GET.get('show_all_datasets') == '1',
+            'queue_links': request.user.has_perm('project.can_view_access_logs'),
+        }
+        if request.GET.get('show_all_datasets') == '1':
+            query.pop('show_all_datasets', None)
+        else:
+            query['show_all_datasets'] = '1'
+        queue_context['access_summary_toggle'] = query.urlencode()
     if form.is_valid():
         start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
         date_query = urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()})
         calculators = {
             'usage': usage_metrics,
+            'access': access_metrics,
         }
         calculator = calculators[group]
         sections = usage_sections(calculator(start, end), group)
+        if group == 'access':
+            report = access_trend(start, end)
+            if request.GET.get('export') == 'monthly':
+                return report_csv(report)
         if request.GET.get('export') == 'csv':
             response = usage_csv(sections, start, end)
-            filenames = {'usage': 'usage-stats.csv'}
+            filenames = {'access': 'access-request-stats.csv',
+                         'usage': 'usage-stats.csv'}
             response['Content-Disposition'] = f'attachment; filename="{filenames[group]}"'
             return response
         params = request.GET.copy()
@@ -5143,15 +5198,26 @@ def _usage_stats(request, group):
             paginated_tables = {
                 'Dataset viewers by country': ('country_page', 'viewers-by-country'),
                 'Registered viewers by dataset version': ('version_page', 'viewers-by-version'),
+            } if group == 'usage' else {
+                'Approved dataset users by country': ('country_page', 'approved-users-by-country'),
             }
             sections = [dict(section) for section in sections if not section.get('csv_only')]
             sections.sort(key=lambda section: section['title'] == 'Most accessed datasets')
             params.pop('export', None)
+            coverage_reference = None
             for section in sections:
                 if section.get('has_coverage'):
                     section['unavailable_rows'] = [row for row in section['rows']
                                                    if not row.get('information_available', True)]
                     section['rows'] = [row for row in section['rows'] if row.get('information_available', True)]
+                    unavailable = section['unavailable_rows']
+                    if group in ('access', 'submissions') and len(unavailable) == 1 and unavailable[0]['label'] == (
+                            'No approved credential application'):
+                        signature = (section['coverage_total'], unavailable[0]['count'])
+                        if coverage_reference and coverage_reference[0] == signature:
+                            section['coverage_reference'] = coverage_reference[1]
+                        else:
+                            coverage_reference = (signature, section['title'])
                 if section['title'] not in paginated_tables:
                     continue
                 parameter, anchor = paginated_tables[section['title']]
@@ -5200,13 +5266,19 @@ def _usage_stats(request, group):
                         section[f'{direction}_url'] = f'?{query.urlencode()}#{anchor}'
     templates = {
         'usage': 'console/usage_stats.html',
+        'access': 'console/access_stats.html',
     }
     return render(request, templates[group], {
         'form': form, 'sections': sections, 'export_query': export_query,
         'report': report, 'trend_export_query': trend_export_query,
         'report_title': {
-            'usage': 'Usage',
+            'access': 'Access requests', 'usage': 'Usage',
         }[group],
         'report_group': group, 'date_query': date_query,
         **queue_context,
     }, status=200 if sections is not None else 400)
+
+
+@console_permission_required('project.can_view_stats')
+def access_request_stats(request):
+    return _usage_stats(request, 'access')
