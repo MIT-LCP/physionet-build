@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('user', '0078_remove_settings_page_oauth_tokens'),
+        ('user', '0079_citiverification_auto_approval'),
     ]
 
     operations = [
