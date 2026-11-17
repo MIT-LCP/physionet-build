@@ -160,6 +160,9 @@ TEST_CASES = {
     # dynamically-generated token.  Skip these URLs for now.
     "activate_user": {"uidb64": "x", "token": "x", "_skip_": True},
     "reset_password_confirm": {"uidb64": "x", "token": "x", "_skip_": True},
+    # The unsubscribe token is signed with SECRET_KEY, so it cannot be
+    # fixed here. The view is tested in user.test_views.TestNewsletter.
+    "newsletter_unsubscribe": {"token": "x", "_skip_": True},
     # Testing auth_orcid requires a mock oauth server.  Skip this URL.
     "auth_orcid": {"_skip_": True},
     "auth_orcid_login": {"_skip_": True},
