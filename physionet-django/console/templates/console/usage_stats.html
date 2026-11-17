@@ -9,6 +9,11 @@
   <div class="card-header">{{ report_title }}{% include 'console/metrics_help.html' with title=report_title description=report_description %}</div>
   <div class="card-body">
 
+    {% if usage_record_dates.first %}
+    <p class="text-muted mb-2">Available records: {{ usage_record_dates.first|date:"M j, Y" }} – {{ usage_record_dates.last|date:"M j, Y" }}.{% include 'console/metrics_help.html' with title="Available records" description="First session start and latest recorded access for published datasets, before applying the date filter. These bounds do not guarantee complete historical coverage. Updated every five minutes. You can select an end date through today, including days with no recorded activity." %}</p>
+    {% else %}
+    <p class="text-muted mb-2">No dataset access records available.</p>
+    {% endif %}
     {% include 'console/usage_period_filters.html' %}
 
     <p>Registered file-access page viewers; not confirmed downloads or research use.</p>

@@ -14,6 +14,13 @@ from project.models import AccessLog, PublishedProject
 
 
 class TestUsageTrends(MetricsTestCase):
+    def setUp(self):
+        super().setUp()
+        # Keep aggregation tests independent of the separately tested availability bounds.
+        bounds = patch('console.views.usage_record_dates', return_value={'first': None, 'last': None})
+        bounds.start()
+        self.addCleanup(bounds.stop)
+
     def test_monthly_counts_deduplicate_people_and_fill_gaps(self):
         AccessLog.objects.all().delete()
         jan = timezone.make_aware(datetime(2020, 1, 10))

@@ -6,7 +6,8 @@ from datetime import datetime, time, timedelta
 
 from django import forms
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import BooleanField, Case, Count, Exists, OuterRef, Q, Subquery, Value, When
+from django.core.cache import cache
+from django.db.models import BooleanField, Case, Count, Exists, Max, Min, OuterRef, Q, Subquery, Value, When
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.utils import timezone
@@ -15,13 +16,37 @@ from project.models import AccessLog, ActiveProject, Author, DataAccessRequest, 
 from user.models import COUNTRIES, CredentialApplication, User
 
 
+def usage_record_dates():
+    """Cache dataset access-log bounds for five minutes, independently of filters."""
+    key = 'console:usage:record-dates:v1'
+    bounds = cache.get(key)
+    if bounds is None:
+        bounds = AccessLog.objects.filter(
+            content_type=ContentType.objects.get_for_model(PublishedProject),
+            object_id__in=PublishedProject.objects.filter(resource_type_id=0).values('pk'),
+        ).aggregate(first=Min('creation_datetime'), last=Max('last_access_datetime'))
+        cache.set(key, bounds, 300)
+    return {name: timezone.localdate(value) if value else None for name, value in bounds.items()}
+
+
 class UsageDateForm(forms.Form):
     start_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
     end_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}))
 
+    def __init__(self, *args, first_record_date=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.first_record_date = first_record_date
+        for field in self.fields.values():
+            field.widget.attrs['max'] = timezone.localdate().isoformat()
+            if first_record_date:
+                field.widget.attrs['min'] = first_record_date.isoformat()
+
     def clean(self):
         data = super().clean()
         start, end = data.get('start_date'), data.get('end_date')
+        if start and self.first_record_date and start < self.first_record_date:
+            self.add_error('start_date', 'Start date cannot be before the first available record '
+                           f'({self.first_record_date.isoformat()}).')
         if start and end and start > end:
             raise forms.ValidationError('Start date must be on or before end date.')
         if end and end > timezone.localdate():

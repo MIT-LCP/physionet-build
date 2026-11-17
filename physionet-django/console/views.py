@@ -2,7 +2,7 @@ from console.usage_trends import (
     usage_trends, usage_trends_csv, usage_country_trends, usage_monthly_demographics, usage_category_trend,
     usage_dataset_trends,
 )
-from console.usage import UsageDateForm, usage_metrics, usage_sections, usage_csv
+from console.usage import UsageDateForm, usage_metrics, usage_sections, usage_csv, usage_record_dates
 from django.core.paginator import Paginator
 from urllib.parse import urlencode
 import csv
@@ -5115,8 +5115,10 @@ def usage_stats(request):
 
 def _usage_stats(request, group):
     today = timezone.localdate()
-    data = {'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()}
-    form = UsageDateForm(data)
+    record_dates = usage_record_dates()
+    default_start = max(today.replace(month=1, day=1), record_dates['first'] or today.replace(month=1, day=1))
+    data = {'start_date': default_start, 'end_date': today, **request.GET.dict()}
+    form = UsageDateForm(data, first_record_date=record_dates['first'])
     sections = None
     usage_trend = None
     export_query = ''
@@ -5280,6 +5282,7 @@ def _usage_stats(request, group):
     return render(request, templates[group], {
         'form': form, 'sections': sections, 'export_query': export_query,
         'report': report, 'trend_export_query': trend_export_query, 'usage_trend': usage_trend,
+        'usage_record_dates': record_dates,
         'report_title': {
             'usage': 'Usage',
         }[group],

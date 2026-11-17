@@ -1,5 +1,6 @@
 import copy
 import csv
+from unittest.mock import patch
 from datetime import date, datetime
 from io import StringIO
 from uuid import uuid4
@@ -21,6 +22,13 @@ from console.metrics_test_utils import MetricsTestCase
 
 
 class TestUsageMetrics(MetricsTestCase):
+    def setUp(self):
+        super().setUp()
+        # Keep aggregation tests independent of the separately tested availability bounds.
+        bounds = patch('console.views.usage_record_dates', return_value={'first': None, 'last': None})
+        bounds.start()
+        self.addCleanup(bounds.stop)
+
     def test_unique_viewers_and_dataset_versions_are_deduplicated(self):
         metrics = self.metrics()
         overview = self.overview(metrics)
