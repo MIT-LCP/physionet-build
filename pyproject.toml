@@ -40,7 +40,7 @@ dependencies = [
     "packaging>=25.0,<26",
     "django-sass==1.1.0",
     "zxcvbn>=4.4.28,<5",
-    "setuptools==83.0.0",
+    "setuptools==84.1.0",
     "hdn-research-environment==3.2.26",
     "django-oauth-toolkit>=3.4.1,<4",
     "django-cors-headers>=4.9.0,<5",
