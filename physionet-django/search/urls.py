@@ -22,7 +22,7 @@ urlpatterns = [
     ),
 
     # published project content
-    re_path(r'^(?P<anonymous_url>[\w\d]{64})/$', project_views.anonymous_login,
+    re_path(r'^(?P<anonymous_url>\w{64})/$', project_views.anonymous_login,
         name='anonymous_login'),
     path('content/<project_slug>/', project_views.published_project_latest,
         name='published_project_latest'),
