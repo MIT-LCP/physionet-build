@@ -1,5 +1,6 @@
 import copy
 import csv
+from unittest.mock import patch
 from datetime import date, datetime
 from io import StringIO
 from uuid import uuid4
@@ -21,6 +22,13 @@ from console.metrics_test_utils import MetricsTestCase
 
 
 class TestUsageMetrics(MetricsTestCase):
+    def setUp(self):
+        super().setUp()
+        # Keep aggregation tests independent of the separately tested availability bounds.
+        bounds = patch('console.views.usage_record_dates', return_value={'first': None, 'last': None})
+        bounds.start()
+        self.addCleanup(bounds.stop)
+
     def test_unique_viewers_and_dataset_versions_are_deduplicated(self):
         metrics = self.metrics()
         overview = self.overview(metrics)
@@ -127,7 +135,7 @@ class TestUsageMetrics(MetricsTestCase):
         page = self.client.get(url, params)
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, 'Download CSV')
-        self.assertContains(page, 'does not measure confirmed downloads')
+        self.assertContains(page, 'not confirmed downloads or research use')
         html = page.content.decode()
         self.assertLess(html.index('id="nav_submission_stats"'), html.index('id="nav_usage_stats"'))
         self.assertLess(html.index('id="nav_usage_stats"'), html.index('id="nav_downloads"'))
@@ -189,29 +197,22 @@ class TestUsageMetrics(MetricsTestCase):
         params = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
         with patch('console.views.usage_metrics', return_value=sections):
             first = self.client.get(url, params)
-            self.assertEqual([len(s['rows']) for s in first.context['sections']], [7, 11, 20])
+            self.assertEqual([len(s['rows']) for s in first.context['sections']], [7, 10, 10])
             self.assertEqual(first.context['sections'][-1]['title'], 'Most accessed datasets')
             second = self.client.get(url, {**params, 'country_page': 2, 'version_page': 2, 'dataset_page': 4})
             countries, versions, datasets = second.context['sections']
-            self.assertEqual([r['label'] for r in datasets['rows']], [f'dataset-{i}' for i in range(20)])
+            self.assertEqual([r['label'] for r in datasets['rows']], [f'dataset-{i}' for i in range(10)])
             self.assertNotIn('page', datasets)
             self.assertNotIn('next_url', datasets)
             self.assertEqual([r['label'] for r in countries['rows']], ['country-5', 'country-6'])
-            self.assertEqual([r['label'] for r in versions['rows']], [f'version-{i}' for i in range(5, 10)])
-            link = urlsplit(versions['next_url'])
-            self.assertEqual(link.fragment, 'viewers-by-version')
-            query = parse_qs(link.query)
-            self.assertEqual(query['country_page'], ['2'])
-            self.assertEqual(query['version_page'], ['3'])
-            self.assertEqual(query['dataset_page'], ['4'])
-            self.assertEqual(query['start_date'], ['2020-01-01'])
-            self.assertEqual(query['end_date'], ['2020-12-31'])
-            self.assertNotIn('export', query)
+            self.assertEqual([r['label'] for r in versions['rows']], [f'version-{i}' for i in range(10)])
+            self.assertNotIn('page', versions)
+            self.assertNotIn('next_url', versions)
             self.assertContains(second, 'id="viewers-by-country"')
             self.assertContains(second, 'id="viewers-by-version"')
-            self.assertContains(second, 'Top 20 datasets by unique registered viewers')
+            self.assertContains(second, 'Top 10 datasets by unique registered viewers')
             last = self.client.get(url, {**params, 'version_page': 3, 'country_page': 'invalid'})
-            self.assertEqual([len(s['rows']) for s in last.context['sections']], [5, 1, 20])
+            self.assertEqual([len(s['rows']) for s in last.context['sections']], [5, 10, 10])
             exported = self.client.get(url, {**params, 'country_page': 2, 'version_page': 3, 'export': 'csv'})
             rows = list(csv.DictReader(StringIO(exported.content.decode())))
             self.assertEqual(len(rows), 38)
@@ -269,7 +270,8 @@ class TestUsageMetrics(MetricsTestCase):
         params = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
         page = self.client.get(reverse('usage_stats'), params)
         self.assertNotContains(page, 'Declared course use')
-        self.assertContains(page, '<summary>Definitions and limitations</summary>')
+        self.assertContains(page, 'aria-label="How Usage is calculated"')
+        self.assertNotContains(page, '<summary>Definitions and limitations</summary>')
         sections = {section['title']: section for section in page.context['sections']}
         self.assertFalse(sections['Overview']['show_percentage'])
         self.assertFalse(sections['Registered viewers by dataset version']['show_percentage'])
@@ -306,15 +308,18 @@ class TestUsageMetrics(MetricsTestCase):
             self.assertEqual(countries['rows'][-1], {
                 'label': 'Other countries (2)', 'count': 3, 'percentage': 3.61, 'available_percentage': 3.85})
             self.assertEqual(sum(row['count'] for row in countries['rows']), 78)
-            self.assertEqual(countries['unavailable_rows'], [unavailable])
-            self.assertEqual(len(versions['rows']), 20)
+            self.assertEqual(countries['unavailable_rows'], [])
+            self.assertEqual(countries['without_approval']['total'], 5)
+            self.assertEqual(countries['approved_group_total'], 78)
+            self.assertEqual(len(versions['rows']), 10)
             self.assertNotIn('page', versions)
-            self.assertContains(page, '<aside')
-            self.assertContains(page, 'Viewers without available information')
+            self.assertNotContains(page, 'aria-label="Dataset viewers by country information coverage"')
+            self.assertContains(page, 'id="viewers-without-approved-application"')
             full = self.client.get(url, {**params, 'show_all_countries': 1, 'show_all_versions': 1})
             all_countries, all_versions = full.context['sections']
             self.assertEqual(all_countries['page'].paginator.count, 12)
-            self.assertEqual(all_versions['page'].paginator.count, 25)
+            self.assertEqual(len(all_versions['rows']), 10)
+            self.assertNotIn('page', all_versions)
             collapsed_query = parse_qs(urlsplit(all_countries['toggle_url']).query)
             self.assertNotIn('show_all_countries', collapsed_query)
             self.assertEqual(collapsed_query['show_all_versions'], ['1'])

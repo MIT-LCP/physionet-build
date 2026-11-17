@@ -72,7 +72,7 @@ class TestAccessMetrics(MetricsTestCase):
         self.assertEqual(access.status_code, 200)
         self.assertContains(access, 'Approved dataset users by country')
         self.assertNotContains(access, 'Most accessed datasets')
-        usage = self.client.get(reverse('usage_stats'), dates)
+        usage = self.client.get(reverse('usage_stats'), {**dates, 'start_date': '2020-06-15'})
         self.assertNotContains(usage, 'Approved dataset users by country')
         export = self.client.get(url, {**dates, 'export': 'csv'})
         self.assertNotIn('Most accessed datasets', export.content.decode())
