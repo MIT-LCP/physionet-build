@@ -3,6 +3,8 @@ from collections import Counter
 from itertools import groupby
 
 from django.core.cache import cache
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
 from console.reporting import (
