@@ -2796,7 +2796,7 @@ def training_process(request, pk):
 @console_permission_required('user.can_review_training')
 def training_detail(request, pk):
     training = get_object_or_404(
-        Training.objects.select_related('training_type', 'user__profile', 'reviewer'), pk=pk
+        Training.objects.select_related('training_type', 'user__profile', 'reviewer', 'citi_verification'), pk=pk
     )
 
     return render(
