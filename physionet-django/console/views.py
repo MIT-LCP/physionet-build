@@ -3078,9 +3078,10 @@ def credentialing_stats(request):
     context['stats'] = stats
     start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
     panels = credential_chart_panels(start, end, stats, timezone.now())
-    panels['annual_panels'][0]['export'] = 'annual'
-    panels['annual_panels'][0]['table_template'] = 'console/credential_annual_outcomes_table.html'
-    panels['annual_panels'][2]['table_template'] = 'console/credential_annual_durations_table.html'
+    annual = {panel['id']: panel for panel in panels['annual_panels']}
+    annual['credentialing-annual-outcomes'].update(
+        export='annual', table_template='console/credential_annual_outcomes_table.html')
+    annual['credentialing-annual-days']['table_template'] = 'console/credential_annual_durations_table.html'
     all_panels = [*panels['monthly_panels'], panels['queue_panel'],
                   *panels['reapplication_panels'], *panels['annual_panels']]
     for panel in all_panels:
