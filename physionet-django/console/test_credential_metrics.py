@@ -67,7 +67,7 @@ class TestCredentialingMetrics(MetricsTestCase):
         ])
 
     def test_operational_exports_require_permission_and_valid_historical_dates(self):
-        for view in ('credentialing_stats',):
+        for view in ('credentialing_stats', 'editorial_stats'):
             for export in ('monthly', 'annual', 'csv', 'stages', 'flow',
                            'queue-summary', 'reapplication-summary'):
                 self.assertEqual(self.client.get(reverse(view), {'export': export}).status_code, 403)

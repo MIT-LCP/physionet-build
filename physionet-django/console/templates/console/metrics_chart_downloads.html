@@ -1,3 +1,3 @@
 <div class="metrics-chart-downloads" data-chart-downloads-for="{{ chart_id }}">
-  <a class="btn btn-sm metrics-download" href="?{{ csv_query }}"{% if csv_title %} title="{{ csv_title }}"{% endif %}>Download data (CSV)</a>
+  <a class="btn btn-sm metrics-download" href="{{ csv_path }}?{{ csv_query|force_escape }}"{% if csv_title %} title="{{ csv_title }}"{% endif %}>Download data (CSV)</a>
 </div>

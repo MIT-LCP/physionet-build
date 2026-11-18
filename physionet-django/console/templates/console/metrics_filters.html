@@ -7,5 +7,6 @@
       <div class="form-group col-sm-4"><button class="btn btn-primary" type="submit">Apply filters</button></div>
     </div>
   </form>
-  <p>Dates filter monthly reports{% if reapplication_panels or repeated %} and the application cohort for reapplications{% endif %}. Current queues and annual cohorts are not filtered.</p>
+  {% if filter_annual %}<p>Dates filter all charts. The annual history table and its CSV retain all recorded years.</p>
+  {% else %}<p>Dates filter monthly reports{% if reapplication_panels %} and the application cohort for reapplications{% endif %}. Current queues and annual cohorts are not filtered.</p>{% endif %}
 </div></div>

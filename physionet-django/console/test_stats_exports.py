@@ -139,8 +139,21 @@ class TestStatsExports(TestCase):
                 self.assertEqual(cell, '' if values[key] is None else str(values[key]))
 
     def test_editorial_export_matches_displayed_metrics(self):
-        rows = self.assert_export_matches_table('editorial_stats', 'editorial-stats.csv')
-        self.assertGreater(len(rows), 1)
+        url = reverse('editorial_stats')
+        page = self.client.get(url)
+        self.assertContains(page, f'href="{url}?export=csv"')
+        parser = StatsTableParser()
+        parser.feed(page.content.decode())
+        header, *displayed = parser.tables_by_id['editorial-annual']
+        displayed = [['' if cell == 'None' else cell for cell in row] for row in displayed]
+        response = self.client.get(url, {'export': 'csv'})
+        self.assertEqual(response['Content-Disposition'], 'attachment; filename="editorial-stats.csv"')
+        exported_header, *exported = list(csv.reader(StringIO(response.content.decode())))
+        self.assertEqual(exported_header, header)
+        # The table shows five years per page, newest first; the CSV has every year.
+        self.assertEqual(len(exported), page.context['review_page'].paginator.count)
+        self.assertGreater(len(exported), 1)
+        self.assertEqual(displayed, list(reversed(exported))[:len(displayed)])
 
     def test_submission_monthly_export_matches_all_18_months(self):
         # January exercises the year boundary in the rolling window.
@@ -204,3 +217,48 @@ class TestStatsExports(TestCase):
             with self.subTest(view=view):
                 response = self.client.get(reverse(view), {'export': 'csv'})
                 self.assertEqual(response.status_code, 403)
+
+    @override_settings(TIME_ZONE='America/New_York')
+    def test_editorial_publication_year_uses_site_timezone(self):
+        from django.utils import timezone
+        from project.models import PublishedProject
+        project = PublishedProject.objects.filter(is_legacy=False).first()
+        with timezone.override('America/New_York'):
+            PublishedProject.objects.filter(pk=project.pk).update(
+                publish_datetime=datetime(2026, 1, 1, 1, tzinfo=dt_timezone.utc))
+            early = self.client.get(reverse('editorial_stats'), {'export': 'csv'})
+            PublishedProject.objects.filter(pk=project.pk).update(
+                publish_datetime=datetime(2026, 1, 1, 12, tzinfo=dt_timezone.utc))
+            later = self.client.get(reverse('editorial_stats'), {'export': 'csv'})
+
+        def counts(response):
+            return {row['Year']: int(row['Total publications'])
+                    for row in csv.DictReader(StringIO(response.content.decode()))}
+
+        self.assertEqual(counts(later).get('2026', 0), counts(early).get('2026', 0) + 1)
+        self.assertEqual(counts(later).get('2025', 0), counts(early).get('2025', 0) - 1)
+
+    @override_settings(TIME_ZONE='America/New_York')
+    def test_editorial_first_decision_uses_local_month_and_year(self):
+        from django.utils import timezone
+        from console.reporting import period
+        from project.models import ActiveProject, PublishedProject, EditLog
+        EditLog.objects.all().delete()
+        ActiveProject.objects.update(submission_datetime=None)
+        PublishedProject.objects.update(submission_datetime=None)
+        projects = list(ActiveProject.objects.all()[:2])
+        self.assertEqual(len(projects), 2)
+        with timezone.override('America/New_York'):
+            for project, hour, days in zip(projects, (4, 5), (1, 2)):
+                # 04:30 UTC is Dec 31 23:30 local; 05:30 UTC is Jan 1 00:30 local.
+                decided = datetime(2026, 1, 1, hour, 30, tzinfo=dt_timezone.utc)
+                submitted = decided - timezone.timedelta(days=days)
+                ActiveProject.objects.filter(pk=project.pk).update(submission_datetime=submitted)
+                EditLog.objects.create(project=project, submission_datetime=submitted,
+                                       decision=1, decision_datetime=decided)
+                self.assertEqual(period(decided), '2025-12' if hour == 4 else '2026-01')
+            response = self.client.get(reverse('editorial_stats'), {'export': 'csv'})
+        rows = {row['Year']: row for row in csv.DictReader(StringIO(response.content.decode()))}
+        column = 'Submission to first decision (median days)'
+        self.assertEqual(float(rows['2025'][column]), 1)
+        self.assertEqual(float(rows['2026'][column]), 2)

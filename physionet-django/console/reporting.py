@@ -1,7 +1,7 @@
 """Definitions shared by monthly operational reports and their CSV exports."""
 import csv
 from calendar import monthrange
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from statistics import median
 
 from django.db.models import Count
@@ -33,15 +33,25 @@ def median_days(values):
     return round(median(values), 2) if values else None
 
 
+def partial_periods(labels, start_date, end_date, unit='month'):
+    """Whether each 'YYYY' or 'YYYY-MM' period is cut by the selected dates or is still in progress."""
+    today = timezone.localdate()
+    partial = []
+    for label in labels:
+        if unit == 'year':
+            first, last = date(int(label), 1, 1), date(int(label), 12, 31)
+        else:
+            year, month = map(int, label.split('-'))
+            first = date(year, month, 1)
+            last = first.replace(day=monthrange(year, month)[1])
+        partial.append(start_date > first or end_date < last or first <= today <= last)
+    return partial
+
+
 def trend_report(identifier, title, description, headers, rows, series,
                  start_date=None, end_date=None, integer=False, warning=''):
-    partial = []
-    for row in rows:
-        year, month = map(int, row[0].split('-'))
-        first = datetime(year, month, 1).date()
-        last = first.replace(day=monthrange(year, month)[1])
-        partial.append(bool(start_date and end_date and (
-            start_date > first or end_date < last or first <= timezone.localdate() <= last)))
+    partial = (partial_periods([row[0] for row in rows], start_date, end_date) if start_date and end_date
+               else [False] * len(rows))
     if start_date and end_date:
         headers = [*headers, 'Period coverage']
         rows = [[*row, 'Partial month' if limited else 'Full month'] for row, limited in zip(rows, partial)]
@@ -113,16 +123,13 @@ def access_queue_rows(requests, now):
              'url': reverse('access_request', args=[item.pk])} for item in requests]
 
 
-def queue_csv(identifier, rows, item_label='Project or application', snapshot=None):
-    if snapshot is not None:
-        return report_csv({
-            'id': identifier,
-            'headers': ['Snapshot', 'Dataset', 'Version', 'Status', 'Since', 'Elapsed days (floor)'],
-            'rows': [[snapshot.isoformat(), row['dataset'], row['version'], row['status'],
-                      row['since'].isoformat(), row['days']] for row in rows],
-        })
-    return report_csv({'id': identifier, 'headers': [item_label, 'Status', 'Since', 'Elapsed days'],
-                       'rows': [[row['label'], row['status'], row['since'].isoformat(), row['days']] for row in rows]})
+def queue_csv(identifier, rows, snapshot):
+    return report_csv({
+        'id': identifier,
+        'headers': ['Snapshot', 'Dataset', 'Version', 'Status', 'Since', 'Elapsed days (floor)'],
+        'rows': [[snapshot.isoformat(), row['dataset'], row['version'], row['status'],
+                  row['since'].isoformat(), row['days']] for row in rows],
+    })
 
 
 def elapsed_days(start, end):
