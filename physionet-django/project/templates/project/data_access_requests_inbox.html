@@ -67,6 +67,12 @@
                 <td>
                   {{ req.requester.get_full_name }}<br>
                   <small class="text-muted">{{ req.requester.username }}</small><br>
+                  {% if req.requester.profile.affiliation %}
+                    <small>{{ req.requester.profile.affiliation }}</small><br>
+                  {% endif %}
+                  {% if req.requester.has_orcid %}
+                    <small><a href="https://orcid.org/{{ req.requester.get_orcid_id }}" rel="nofollow noopener" target="_blank">ORCID {{ req.requester.get_orcid_id }}</a></small><br>
+                  {% endif %}
                   {% if req.requester.is_credentialed %}
                     <span class="badge badge-success">Credentialed</span>
                   {% else %}

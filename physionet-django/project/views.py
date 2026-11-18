@@ -2913,16 +2913,28 @@ def data_access_requests_inbox(request):
     else:
         ordering = ('-request_datetime',)
     requests = requests.filter(filters_by_key[status]).select_related(
-        'project', 'requester', 'requester__profile', 'responder'
-    ).order_by(*ordering)
+        'project', 'requester', 'requester__profile', 'requester__orcid', 'responder'
+    ).prefetch_related('project__required_trainings').order_by(*ordering)
 
     page = paginate(request, requests, INBOX_PAGE_SIZE)
+
+    # Valid training types for everyone on this page, in one query
+    completed_training_types = {}
+    for user_id, training_type_id in (
+        Training.objects.get_valid()
+        .filter(user__in={r.requester_id for r in page})
+        .values_list('user_id', 'training_type_id')
+        .distinct()
+    ):
+        completed_training_types.setdefault(user_id, set()).add(training_type_id)
+
     now = timezone.now()
     auto_accept_days = DataAccessRequest.DATA_ACCESS_REQUESTS_DAY_LIMIT
     for access_request in page:
-        access_request.requires_training = access_request.project.required_trainings.exists()
-        access_request.has_required_trainings = has_required_trainings(
-            access_request.project, access_request.requester
+        required = {t.id for t in access_request.project.required_trainings.all()}
+        access_request.requires_training = bool(required)
+        access_request.has_required_trainings = required <= completed_training_types.get(
+            access_request.requester_id, set()
         )
         access_request.is_expired = (
             access_request.status == DataAccessRequest.ACCEPT_REQUEST_VALUE and not access_request.is_accepted()

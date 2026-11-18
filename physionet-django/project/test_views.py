@@ -2454,6 +2454,45 @@ class TestDataAccessRequestsInbox(TestMixin):
         response = self._get(project=other_project.pk)
         self.assertNotContains(response, 'Sepsis study')
 
+    def test_project_filter_cannot_reach_unmanaged_projects(self):
+        other_project = PublishedProject.objects.exclude(
+            pk__in=PublishedProject.objects.data_access_managed_by(User.objects.get(username=self.MANAGER))
+        ).first()
+        DataAccessRequest.objects.create(
+            requester=User.objects.get(username=self.REQUESTER),
+            project=other_project,
+            data_use_title='Unmanaged study',
+            data_use_purpose='purpose',
+        )
+
+        for params in ({}, {'project': other_project.pk}, {'project': other_project.pk, 'status': 'all'}):
+            with self.subTest(params=params):
+                self.assertNotContains(self._get(**params), 'Unmanaged study')
+
+    def test_training_badges(self):
+        self._make_request('Training study')
+        requester = User.objects.get(username=self.REQUESTER)
+        completed = TrainingType.objects.create(name='Completed training')
+        outstanding = TrainingType.objects.create(name='Outstanding training')
+        Training.objects.create(user=requester, slug='completed-training', training_type=completed,
+                                status=TrainingStatus.ACCEPTED, process_datetime=timezone.now())
+
+        self.project.required_trainings.set([])
+        self.assertNotContains(self._get(), 'Training complete')
+        self.assertNotContains(self._get(), 'Training missing')
+
+        self.project.required_trainings.set([completed])
+        self.assertContains(self._get(), 'Training complete')
+
+        self.project.required_trainings.set([completed, outstanding])
+        self.assertContains(self._get(), 'Training missing')
+
+    def test_requester_orcid_shown(self):
+        self._make_request('Orcid study')
+        Orcid.objects.create(user=User.objects.get(username=self.REQUESTER), orcid_id='0000-0002-8983-9907')
+
+        self.assertContains(self._get(), 'https://orcid.org/0000-0002-8983-9907')
+
     def test_only_managers_see_requests(self):
         self._make_request('Secret study')
 
