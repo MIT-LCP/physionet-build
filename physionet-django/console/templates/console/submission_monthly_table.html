@@ -1,0 +1,32 @@
+    <div class="table-responsive">
+
+      <table class="table table-bordered" id="{{ chart_id }}-table">
+        <tr>
+          <th>Year</th>
+          <th>Month</th>
+          <th>Created</th>
+          <th>Submitted</th>
+          <th>Resubmitted</th>
+          <th>Published</th>
+          <th>Rejected</th>
+        </tr>
+        {% for year, month_list in stats.items%}
+          {% for month, val in month_list.items%}
+          <tr>
+            {% if forloop.first %}
+              <td style="font-weight:bold">{{ year }}</td>
+            {% else %}
+              <td> </td>
+            {% endif %}
+            <td>{{ month }}{% if year == snapshot_date.year and month == current_month %}*{% endif %}</td>
+            <td>{{ val.0 }}</td>
+            <td>{{ val.1 }}</td>
+            <td>{{ val.2 }}</td>
+            <td>{{ val.3 }}</td>
+            <td>{{ val.4 }}</td>
+          </tr>
+          {% endfor %}
+        {% endfor %}
+      </table>
+
+    </div>

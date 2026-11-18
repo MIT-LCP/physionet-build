@@ -1,0 +1,29 @@
+<div class="card mb-3" id="{{ section.profile_id }}-card">
+  <div class="card-header">{% if section.title == 'Overview' %}Submission contributors overview{% else %}{{ section.title }}{% endif %}{% include 'console/metrics_help.html' with title=section.title description=section.description %}</div>
+  <div class="card-body">
+    <div data-metrics-chart="{{ section.profile_id }}" data-title="Submission contributors: {{ section.title }}" data-label="{{ section.title }} for the selected dates. Exact values and coverage are in the table below."></div>
+    {{ section.chart|json_script:section.profile_id }}
+    {% include 'console/metrics_chart_downloads.html' with chart_id=section.profile_id csv_query=section.export_query csv_path=request.path %}
+    <details><summary>Show data table{% if section.has_coverage %} and coverage{% endif %}</summary>
+      {% if section.has_coverage %}
+      <p>Information available for {{ section.coverage_count }} / {{ section.coverage_total }} submitting authors ({{ section.coverage_percentage|floatformat:2 }}%). “With information (%)” excludes people without an approved credential application and missing or unrecognized values.</p>
+      {% endif %}
+      {% if section.unavailable_rows %}
+      <aside class="border rounded p-3 mb-3"><strong>Submitting authors without available information</strong><ul>
+        {% for row in section.unavailable_rows %}<li>{{ row.label }}: {{ row.count }} submitting authors ({{ row.percentage|floatformat:2 }}%).</li>{% endfor %}
+      </ul></aside>
+      {% endif %}
+      {% if section.table_note %}<p>{{ section.table_note }}</p>{% endif %}
+      <div class="table-responsive"><table class="table table-bordered">
+        <thead><tr><th scope="col">{{ section.label_header }}</th><th scope="col">{{ section.count_header }}</th>
+          {% if section.show_percentage %}<th scope="col">{{ section.percentage_header }}</th>{% endif %}
+          {% if section.has_coverage %}<th scope="col">With information (%)</th>{% endif %}
+        </tr></thead>
+        <tbody>{% for row in section.rows %}<tr><td>{{ row.label }}</td><td>{{ row.count }}</td>
+          {% if section.show_percentage %}<td>{{ row.percentage|floatformat:2 }}</td>{% endif %}
+          {% if section.has_coverage %}<td>{{ row.available_percentage|floatformat:2 }}</td>{% endif %}
+        </tr>{% empty %}<tr><td colspan="4">No information available for the selected dates.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </details>
+  </div>
+</div>

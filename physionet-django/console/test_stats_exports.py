@@ -83,6 +83,11 @@ class TestStatsExports(TestCase):
             for row in expected[1:]:
                 period = datetime.strptime(f'{row[0]}-{row[1]}', '%Y-%B').strftime('%Y-%m')
                 row.insert(0, period)
+        if view == 'submission_stats':
+            expected[0].append('Period coverage')
+            unit = 'month' if params.get('table') == 'monthly' else 'year'
+            for row, partial in zip(expected[1:], partial_rows):
+                row.append(f'{"Partial" if partial else "Full"} {unit}')
         expected = [expected[0], *sorted(expected[1:], key=lambda row: row[0])]
 
         response = self.client.get(url, {'export': 'csv', **params})
@@ -157,24 +162,28 @@ class TestStatsExports(TestCase):
 
     def test_submission_monthly_export_matches_all_18_months(self):
         # January exercises the year boundary in the rolling window.
-        with mock.patch('console.views.datetime', wraps=datetime) as clock:
-            clock.today.return_value = datetime(2026, 1, 15)
+        with mock.patch('console.views.timezone.localdate', return_value=date(2026, 1, 15)):
             rows = self.assert_export_matches_table(
                 'submission_stats', 'submission-monthly-stats-2026-01-15.csv', table='monthly',
+                table_id='submission-monthly-activity-table',
             )
         self.assertEqual(len(rows), 19)
         self.assertTrue(all(row[0] for row in rows[1:]))
         self.assertEqual(rows[1][0], '2024-08')
         self.assertEqual(rows[-1][0], '2026-01')
+        self.assertEqual(rows[-1][-1], 'Partial month')
+        self.assertTrue(all(row[-1] == 'Full month' for row in rows[1:-1]))
         self.assertEqual([row[0] for row in rows[1:]], sorted(row[0] for row in rows[1:]))
 
     def test_submission_yearly_export_matches_all_six_years(self):
-        with mock.patch('console.views.datetime', wraps=datetime) as clock:
-            clock.today.return_value = datetime(2026, 1, 15)
+        with mock.patch('console.views.timezone.localdate', return_value=date(2026, 1, 15)):
             rows = self.assert_export_matches_table(
-                'submission_stats', 'submission-yearly-stats-2026-01-15.csv', table_index=1, table='yearly',
+                'submission_stats', 'submission-yearly-stats-2026-01-15.csv',
+                table_id='submission-yearly-activity-table', table='yearly',
             )
         self.assertEqual(len(rows), 7)
+        self.assertEqual(rows[-1][-1], 'Partial year')
+        self.assertTrue(all(row[-1] == 'Full year' for row in rows[1:-1]))
 
     def test_monthly_is_the_explicit_default_export(self):
         url = reverse('submission_stats')
@@ -217,6 +226,65 @@ class TestStatsExports(TestCase):
             with self.subTest(view=view):
                 response = self.client.get(reverse(view), {'export': 'csv'})
                 self.assertEqual(response.status_code, 403)
+
+    def test_submission_activity_marks_partial_periods_and_explains_events(self):
+        with mock.patch('console.views.timezone.localdate', return_value=date(2026, 1, 15)):
+            page = self.client.get(reverse('submission_stats'))
+        self.assertContains(page, 'January*')
+        self.assertContains(page, '2026*')
+        self.assertContains(page, 'Project activity by month')
+        self.assertContains(page, 'edit-log events by submission date')
+        self.assertContains(page, 'not conversion rates')
+
+    @override_settings(TIME_ZONE='America/New_York')
+    def test_submission_creation_year_uses_site_timezone(self):
+        from django.utils import timezone
+        from project.models import ActiveProject
+        project = ActiveProject.objects.first()
+        params = {'export': 'csv', 'table': 'yearly'}
+        with timezone.override('America/New_York'), mock.patch(
+                'console.views.timezone.localdate', return_value=date(2026, 1, 15)):
+            ActiveProject.objects.filter(pk=project.pk).update(
+                creation_datetime=datetime(2026, 1, 1, 1, tzinfo=dt_timezone.utc))
+            early = self.client.get(reverse('submission_stats'), params)
+            ActiveProject.objects.filter(pk=project.pk).update(
+                creation_datetime=datetime(2026, 1, 1, 12, tzinfo=dt_timezone.utc))
+            later = self.client.get(reverse('submission_stats'), params)
+
+        def counts(response):
+            return {row['Year']: int(row['Created'])
+                    for row in csv.DictReader(StringIO(response.content.decode()))}
+        self.assertEqual(counts(later)['2026'], counts(early)['2026'] + 1)
+        self.assertEqual(counts(later)['2025'], counts(early)['2025'] - 1)
+
+    def test_submission_charts_match_csv_values_and_tables_start_collapsed(self):
+        import json
+        with mock.patch('console.views.timezone.localdate', return_value=date(2026, 1, 15)):
+            page = self.client.get(reverse('submission_stats'))
+            for period, parameter in (('monthly', 'monthly'), ('yearly', 'yearly')):
+                response = self.client.get(reverse('submission_stats'), {'export': 'csv', 'table': parameter})
+                rows = list(csv.DictReader(StringIO(response.content.decode())))
+                charts = page.context[f'{period}_charts']
+                for panel, names in (('created', ['Created']),
+                                     ('activity', ['Submitted', 'Resubmitted', 'Published', 'Rejected'])):
+                    chart = charts[panel]
+                    self.assertEqual(chart['period_unit'], 'month' if period == 'monthly' else 'year')
+                    self.assertEqual(chart['partial_through'], '2026-01-15')
+                    if panel == 'created':
+                        self.assertFalse(chart['legend'])
+                    self.assertEqual(chart['labels'], [row['Period (YYYY-MM)' if period == 'monthly' else 'Year']
+                                                       for row in rows])
+                    self.assertEqual(chart['partial'], [row['Period coverage'].startswith('Partial') for row in rows])
+                    self.assertEqual([series['name'] for series in chart['series']], names)
+                    for series in chart['series']:
+                        self.assertEqual(series['values'], [int(row[series['name']]) for row in rows])
+                    identifier = f'submission-{period}-{panel}'
+                    self.assertContains(page, f'id="{identifier}" type="application/json"')
+                    # json_script serializes the same chart payload used by the SVG renderer.
+                    self.assertContains(page, json.dumps(chart))
+        self.assertContains(page, '<details><summary>Show monthly table</summary>')
+        self.assertContains(page, '<details><summary>Show annual table</summary>')
+        self.assertNotContains(page, '<details open')
 
     @override_settings(TIME_ZONE='America/New_York')
     def test_editorial_publication_year_uses_site_timezone(self):
