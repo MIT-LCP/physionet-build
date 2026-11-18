@@ -2,17 +2,36 @@
 {% load static %}
 
 {% block content %}
-<div class="card mb-3">
+<div data-metrics-start="{{ report_form.start_date.value|date:'Y-m-d'|default:report_form.start_date.value }}" data-metrics-end="{{ report_form.end_date.value|date:'Y-m-d'|default:report_form.end_date.value }}">
+{% include 'console/metrics_operational.html' with hide_queue=True filter_annual=True %}
+<div class="card mb-3" id="publications-by-year">
   <div class="card-header">
-    Time to review
+    Publications by year
   </div>
   <div class="card-body">
-    <div class="mb-4">
-      <a href="{% url 'editorial_stats' %}?export=csv" class="btn btn-md btn-success">Download CSV</a>
-    </div>
+    <p class="small text-muted">Publications within the selected dates, grouped by publication year.</p>
+    <div data-metrics-chart="editorial-annual-volume" data-title="Publications by year" data-label="Annual publication counts. Selected-period values are available in the chart CSV; the annual table retains the full history."></div>
+    {{ review_charts.volume|json_script:'editorial-annual-volume' }}
+    {% if review_partial %}<p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial year</p>{% endif %}
+    {% include 'console/metrics_chart_downloads.html' with chart_id='editorial-annual-volume' csv_query=review_period_query csv_path=request.path %}
+  </div>
+</div>
+<div class="card mb-3" id="time-to-review">
+  <div class="card-header">Time to review by year (median days)</div>
+  <div class="card-body">
+    <p>Selected dates filter publication dates for assignment and publication times, and first-decision dates for decision times. These are different populations. Annual medians use completed calendar days.</p>
+    <div data-metrics-chart="editorial-annual-duration" data-title="Time to review by year (median days)" data-label="Annual median processing days by interval. Selected-period values are in the chart CSV; the annual table retains the full history."></div>
+    {{ review_charts.duration|json_script:'editorial-annual-duration' }}
+    {% if review_partial %}<p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial year</p>{% endif %}
+    {% include 'console/metrics_chart_downloads.html' with chart_id='editorial-annual-duration' csv_query=review_period_query csv_path=request.path %}
+    <details{% if request.GET.review_page %} open{% endif %}>
+      <summary>Show annual table — all years</summary>
+      <p class="small text-muted">Full annual history, independent of the selected dates. Counts and medians may differ from the filtered charts.</p>
+      <div class="metrics-chart-downloads"><a href="{% url 'editorial_stats' %}?export=csv" class="btn btn-sm metrics-download">Download all years (CSV)</a></div>
+      <p class="small text-muted">Showing {{ review_page.start_index }}–{{ review_page.end_index }} of {{ review_page.paginator.count }} years, newest first.</p>
     <div class="table-responsive">
 
-      <table class="table table-bordered">
+      <table class="table table-bordered" id="editorial-annual">
         <tr>
           <th>Year</th>
           <th>Total publications</th>
@@ -20,7 +39,7 @@
           <th>Submission to final publication (median days)</th>
           <th>Submission to first decision (median days)</th>
         </tr>
-        {% for year, values in stats.items %}
+        {% for year, values in review_page %}
           <tr>
             <td>{{ year }}</td>
             <td>{{ values.0 }}</td>
@@ -32,7 +51,16 @@
       </table>
 
     </div>
+    {% if review_page.has_other_pages %}
+    <nav aria-label="Time to review years">
+      {% if review_links.previous_url %}<a href="{{ review_links.previous_url }}">Previous</a>{% endif %}
+      <span>Page {{ review_page.number }} of {{ review_page.paginator.num_pages }}</span>
+      {% if review_links.next_url %}<a href="{{ review_links.next_url }}">Next</a>{% endif %}
+    </nav>
+    {% endif %}
+    </details>
   </div>
+</div>
 </div>
 
 {% endblock %}

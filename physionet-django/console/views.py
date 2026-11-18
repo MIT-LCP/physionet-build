@@ -16,12 +16,17 @@ from console.credential_charts import credential_chart_panels
 from console.credential_metrics import (
     credential_annual_report, credential_annual_stats, credential_reapplication_csv, credential_summary_report,
 )
+from console.editorial_annual import editorial_annual_stats
 from console.reporting import (
     access_pending_summary,
     access_pending_summary_csv,
     access_queue_rows,
     access_trend,
+    date_bounds,
+    editorial_trend,
     pending_access_requests,
+    pending_projects,
+    project_queue_rows,
     queue_csv,
     report_csv,
 )
@@ -2982,69 +2987,67 @@ def _stats_csv_response(filename, headers, rows):
     return response
 
 
+def _editorial_operational_context(request):
+    """Monthly time to first decision and the current submitted-project queue."""
+    today = timezone.localdate()
+    form = UsageDateForm({'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()})
+    context = {'report_form': form}
+    if not form.is_valid():
+        return None, context
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    now = timezone.now()
+    queue = pending_projects(now)
+    if request.GET.get('export') == 'pending':
+        return queue_csv('pending-editorial', project_queue_rows(queue.iterator(), now), 'Project'), context
+    report = editorial_trend(start, end)
+    if request.GET.get('export') == 'monthly':
+        return report_csv(report), context
+    params = {'start_date': start.isoformat(), 'end_date': end.isoformat()}
+    page = paginate(request, queue, 5)
+    context.update({
+        'report': report, 'trend_export_query': urlencode({**params, 'export': 'monthly'}),
+        'queue_title': 'Current submitted projects',
+        'queue_description': (
+            'Oldest submissions first, including projects awaiting authors and projects on hold. '
+            'Elapsed days since initial submission, NOT time in the current stage or a deadline. '
+            'This is the current queue, independent of the selected historical dates.'),
+        'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
+        'queue_rows': project_queue_rows(page, now), 'queue_query': urlencode(params),
+        'queue_history_params': params,
+        'queue_export_query': urlencode({**params, 'export': 'pending'}),
+        'queue_links': request.user.has_perm('project.change_activeproject'),
+    })
+    return None, context
+
+
 @console_permission_required('project.can_view_stats')
 def editorial_stats(request):
     """
     Editorial stats for reviewers.
     """
-    # We only want the non-legacy projects since they contain the required
-    # dates (editor assignment, submission date, etc.)
-    projects = PublishedProject.objects.filter(is_legacy=False)
-    years = [i.publish_datetime.year for i in projects]
-    stats = OrderedDict()
-
-    # Number published
-    for y in sorted(set(years)):
-        stats[y] = [years.count(y)]
-
-    # Submission to editor assigned
-    sub_ed = projects.annotate(tm=Cast(F('editor_assignment_datetime') - F('submission_datetime'),
-                               DurationField())).values_list('tm', flat=True)
-
-    for y in stats:
-        y_durations = sub_ed.filter(publish_datetime__year=y)
-        days = [d.days for d in y_durations if d is not None and d.days >= 0]
-        try:
-            stats[y].append(median(days))
-        except StatisticsError:
-            stats[y].append(None)
-
-    # Submission to publication
-    sub_pub = projects.annotate(tm=Cast(F('publish_datetime') - F('submission_datetime'),
-                                DurationField())).values_list('tm', flat=True)
-
-    for y in stats:
-        y_durations = sub_pub.filter(publish_datetime__year=y)
-        days = [d.days for d in y_durations if d is not None and d.days >= 0]
-        try:
-            stats[y].append(median(days))
-        except StatisticsError:
-            stats[y].append(None)
-
-    # One duration per project, from initial submission to its first decision.
-    # Aggregate in SQL rather than fetching each project's edit history.
-    sub_dec_by_year = {}
-    for project_set in (projects, ActiveProject.objects.all()):
-        durations = project_set.filter(submission_datetime__isnull=False).annotate(
-            first_decision=Min(
-                'edit_logs__decision_datetime',
-                filter=Q(edit_logs__decision__isnull=False),
-            ),
-        ).annotate(
-            tm=Cast(F('first_decision') - F('submission_datetime'), DurationField()),
-        ).values_list('first_decision', 'tm')
-        for decision_date, duration in durations:
-            if duration is not None and duration.total_seconds() >= 0:
-                sub_dec_by_year.setdefault(decision_date.year, []).append(duration.days)
-
-    # Include decision-only years and explicitly restore chronological order.
-    for y in sub_dec_by_year:
-        stats.setdefault(y, [0, None, None])
-    stats = OrderedDict(sorted(stats.items()))
-    for y in stats:
-        days = sub_dec_by_year.get(y, [])
-        stats[y].append(median(days) if days else None)
-
+    response, operational = _editorial_operational_context(request)
+    if response is not None:
+        return response
+    stats = editorial_annual_stats()
+    form = operational['report_form']
+    valid_dates = form.is_valid()
+    period_stats = OrderedDict()
+    period_query = ''
+    start, end = None, None
+    if valid_dates:
+        start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+        start_bound, end_bound = date_bounds(start, end)
+        period_stats = editorial_annual_stats(start_bound, end_bound)
+        period_query = urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat(),
+                                  'export': 'review-period'})
+        if request.GET.get('export') == 'review-period':
+            return _stats_csv_response(
+                'editorial-selected-period-stats.csv',
+                ['Year', 'Total publications', 'Submission to assignment of editor (median days)',
+                 'Submission to final publication (median days)', 'Submission to first decision (median days)',
+                 'Start date', 'End date'],
+                ([year, *values, start, end] for year, values in period_stats.items()),
+            )
     if request.GET.get('export') == 'csv':
         return _stats_csv_response(
             'editorial-stats.csv',
@@ -3053,8 +3056,41 @@ def editorial_stats(request):
             ([year, *values] for year, values in sorted(stats.items())),
         )
 
+    review_page = Paginator(list(reversed(stats.items())), 5).get_page(request.GET.get('review_page'))
+    review_query = request.GET.copy()
+    review_query.pop('review_page', None)
+    review_query.pop('export', None)
+    review_links = {}
+    for direction, available, number in (
+            ('previous', review_page.has_previous(), review_page.number - 1),
+            ('next', review_page.has_next(), review_page.number + 1)):
+        if available:
+            review_query['review_page'] = number
+            review_links[direction + '_url'] = f'?{review_query.urlencode()}#time-to-review'
+    colors, markers = ['#2563eb', '#ea580c', '#15803d'], ['circle', 'square', 'triangle']
+    chart_base = {'labels': [str(year) for year in period_stats], 'integer': False,
+                  'partial': [start > start.replace(year=year, month=1, day=1)
+                              or end < end.replace(year=year, month=12, day=31)
+                              or year == timezone.localdate().year for year in period_stats],
+                  'period_unit': 'year', 'partial_through': end.isoformat() if end else ''}
+    duration_series = [
+        {'name': name, 'values': [values[index] for values in period_stats.values()], 'color': color, 'marker': marker}
+        for index, name, color, marker in zip(
+            (1, 2, 3), ('Submission to assignment of editor', 'Submission to final publication',
+                        'Submission to first decision'), colors, markers)
+    ]
+    review_charts = {
+        'volume': {**chart_base, 'integer': True, 'legend': False, 'series': [
+            {'name': 'Publications', 'values': [values[0] for values in period_stats.values()], 'color': '#475569'}]},
+        'duration': {**chart_base, 'plot_height': 320, 'interactive_legend': True,
+                     'legend_title': 'Visible processing intervals', 'series': duration_series},
+    }
     return render(request, 'console/editorial_stats.html', {
-                  'submenu': 'editorial', 'stats': stats})
+                  'submenu': 'editorial', 'stats': stats, 'review_page': review_page,
+                  'review_charts': review_charts, 'review_links': review_links,
+                  'review_period_query': period_query, 'review_period_stats': period_stats,
+                  'review_partial': any(chart_base['partial']), **operational},
+                  status=200 if operational['report_form'].is_valid() else 400)
 
 
 @console_permission_required('project.can_view_stats')
