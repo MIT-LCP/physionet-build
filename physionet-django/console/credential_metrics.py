@@ -228,14 +228,15 @@ def credential_stage_report(start_date, end_date):
 def credential_flow_report(start_date, end_date):
     start, end = date_bounds(start_date, end_date)
     counts = {month: [0, 0, 0] for month in month_labels(start_date, end_date)}
-    apps = CredentialApplication.objects.all()
-    for submitted in apps.filter(application_datetime__gte=start, application_datetime__lt=end).values_list(
-            'application_datetime', flat=True).iterator(chunk_size=2000):
-        counts[period(submitted)][0] += 1
-    for decided, status in apps.filter(
-            decision_datetime__gte=start, decision_datetime__lt=end, status__in=HANDLED_STATUSES).values_list(
-                'decision_datetime', 'status').iterator(chunk_size=2000):
-        counts[period(decided)][2 if status == Status.REJECTED else 1] += 1
+    apps = CredentialApplication.objects.order_by()
+    received = (apps.filter(application_datetime__gte=start, application_datetime__lt=end)
+                .annotate(month=TruncMonth('application_datetime')).values('month').annotate(count=Count('pk')))
+    for row in received:
+        counts[row['month'].strftime('%Y-%m')][0] += row['count']
+    decided = (apps.filter(decision_datetime__gte=start, decision_datetime__lt=end, status__in=HANDLED_STATUSES)
+               .annotate(month=TruncMonth('decision_datetime')).values('month', 'status').annotate(count=Count('pk')))
+    for row in decided:
+        counts[row['month'].strftime('%Y-%m')][2 if row['status'] == Status.REJECTED else 1] += row['count']
     rows = [[month, received, accepted, rejected, accepted + rejected]
             for month, (received, accepted, rejected) in counts.items()]
     report = trend_report(
