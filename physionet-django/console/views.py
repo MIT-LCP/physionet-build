@@ -33,9 +33,7 @@ from console.usage_trends import (
     usage_trends, usage_trends_csv, usage_country_trends, usage_monthly_demographics, usage_category_trend,
     usage_dataset_trends,
 )
-from console.usage import (
-    UsageDateForm, access_metrics, submissions_metrics, usage_csv, usage_metrics, usage_record_dates, usage_sections,
-)
+from console.usage import UsageDateForm, access_metrics, usage_csv, usage_metrics, usage_record_dates, usage_sections
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
@@ -3122,13 +3120,6 @@ def credentialing_stats(request):
 
 @console_permission_required('project.can_view_stats')
 def submission_stats(request):
-    if request.GET.get('table') == 'contributors' and request.GET.get('export') == 'csv':
-        today = timezone.localdate()
-        form = UsageDateForm({'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()})
-        if form.is_valid():
-            start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
-            sections = usage_sections(submissions_metrics(start, end), 'submissions')
-            return _sections_csv(sections, start, end, 'submission-contributors-stats.csv')
     export_table = request.GET.get('table', 'monthly')
     if request.GET.get('export') == 'csv' and export_table not in ('monthly', 'yearly'):
         raise Http404('Unknown statistics table')
@@ -3271,7 +3262,7 @@ def submission_stats(request):
                        'Submitted and Resubmitted count edit-log events by submission date, separated by the '
                        'resubmission flag. Rejected counts rejection decisions by decision date; Published counts '
                        'publication records by publication date. Contributor profiles instead count distinct versions '
-                       'by their recorded first-submission date, preferring published snapshots over active copies. '
+                       'by their recorded first-submission date. '
                        'Milestones and edit-log events can differ in historical records; ratios between these '
                        'columns are not conversion rates. Charts run oldest to newest; tables run newest to oldest. '
                        'Legacy published projects are excluded from this report. '

@@ -1,6 +1,5 @@
 <div class="card mb-3" id="submission-date-filters"><div class="card-body">
     <form method="get" action="#submission-contributors" class="mb-3">
-      <input type="hidden" name="table" value="contributors">
       {{ form.non_field_errors }}
       <div class="form-row align-items-end">
         <div class="form-group col-sm-4"><label for="{{ form.start_date.id_for_label }}">Start date</label>{{ form.start_date }}{{ form.start_date.errors }}</div>

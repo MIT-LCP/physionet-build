@@ -1,5 +1,4 @@
     <form method="get" action="{% if report_group == 'access' %}#access-period{% endif %}" class="mb-4">
-      {% if report_group == 'submissions' %}<input type="hidden" name="table" value="contributors">{% endif %}
       {{ form.non_field_errors }}
       <div class="form-row align-items-end">
         <div class="form-group col-sm-4">

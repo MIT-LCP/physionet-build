@@ -7,7 +7,7 @@ from datetime import datetime, time, timedelta
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.db.models import BooleanField, Case, Count, Exists, Max, Min, OuterRef, Q, Subquery, Value, When
+from django.db.models import BooleanField, Case, Count, Max, Min, OuterRef, Q, Subquery, Value, When
 from django.http import HttpResponse
 from django.utils import timezone
 
@@ -252,12 +252,7 @@ def submissions_metrics(start_date, end_date):
     end = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min))
     active_type = ContentType.objects.get_for_model(ActiveProject)
     published = PublishedProject.objects.filter(submission_datetime__gte=start, submission_datetime__lt=end)
-    # Prefer the published snapshot if the same core/version also has an active row.
-    published_version = PublishedProject.objects.filter(core_project_id=OuterRef('core_project_id'),
-                                                        version=OuterRef('version'))
-    active = ActiveProject.objects.filter(submission_datetime__gte=start, submission_datetime__lt=end).annotate(
-        already_published=Exists(published_version),
-    ).filter(already_published=False)
+    active = ActiveProject.objects.filter(submission_datetime__gte=start, submission_datetime__lt=end)
     active_authors = Author.objects.filter(
         content_type=active_type, object_id__in=active.values('pk'), is_submitting=True,
     )
@@ -277,7 +272,7 @@ def submissions_metrics(start_date, end_date):
 
     overview = [
         ('Distinct declared institution names among submitting authors', _institution_count(submitters)),
-        ('Submitted project versions', submission_count),
+        ('Project versions first submitted', submission_count),
         ('Unique submitting authors', submitters.count()),
         ('Submitters with an approved credential application', submitters.filter(credential_id__isnull=False).count()),
         ('Submitted versions without a recorded submitting author', missing_submitters),
