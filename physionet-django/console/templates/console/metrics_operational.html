@@ -1,0 +1,11 @@
+{% load static %}
+{% include 'console/metrics_filters.html' %}
+{% if report %}{% include 'console/metrics_trend.html' %}{% endif %}
+{% if flow_report %}{% include 'console/metrics_trend.html' with report=flow_report trend_export_query=flow_query %}{% endif %}
+{% if stage_report %}{% include 'console/metrics_table.html' with table=stage_report table_query=stage_query %}{% endif %}
+{% if queue_summary %}{% include 'console/metrics_table.html' with table=queue_summary table_query=queue_summary_query %}{% endif %}
+{% if queue_title %}{% include 'console/metrics_queue.html' %}{% endif %}
+{% include 'console/metrics_reapplications.html' %}
+
+<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script>
+<script src="{% static 'console/js/metrics-trend.js' %}" defer></script>

@@ -12,6 +12,9 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
+from django.core.cache import cache
+
+from console.credential_metrics import ANNUAL_STATS_CACHE_KEY
 from console.usage import usage_metrics, usage_sections
 from project.models import AccessLog, ActiveProject, Author, DataAccessRequest, PublishedAuthor, PublishedProject
 from user.models import CredentialApplication, User
@@ -19,6 +22,11 @@ from user.models import CredentialApplication, User
 
 class MetricsTestCase(TestCase):
     fixtures = ['demo-training-type.json', 'demo-user.json', 'site-data.json', 'demo-project.json']
+
+    def setUp(self):
+        super().setUp()
+        # Annual credentialing statistics are cached across requests.
+        cache.delete(ANNUAL_STATS_CACHE_KEY)
 
     @classmethod
     def setUpTestData(cls):

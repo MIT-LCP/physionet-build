@@ -12,6 +12,10 @@ from notification.utility import archive_notify
 from background_task import background
 from console.tasks import associated_task, get_associated_tasks
 from console.access_trends import ACCESS_DESCRIPTION, access_record_dates, approved_user_trends, pending_request_trend
+from console.credential_charts import credential_chart_panels
+from console.credential_metrics import (
+    credential_annual_report, credential_annual_stats, credential_reapplication_csv, credential_summary_report,
+)
 from console.reporting import (
     access_pending_summary,
     access_pending_summary_csv,
@@ -3058,76 +3062,42 @@ def credentialing_stats(request):
     """
     Credentialing metrics.
     """
-    apps = CredentialApplication.objects.all()
-    years = [a.application_datetime.year for a in apps]
-    stats = OrderedDict()
-
-    # Application count by year
-    for y in sorted(set(years)):
-        stats[y] = {}
-        stats[y]['count'] = years.count(y)
-
-    # Number processed (accepted or rejected) and proportion approved
-    for y in stats:
-        # accepted = 2. rejected = 1.
-        acc_and_rej = apps.filter(application_datetime__year=y)
-        a = acc_and_rej.filter(status=CredentialApplication.Status.ACCEPTED).count()
-        r = acc_and_rej.filter(status=CredentialApplication.Status.REJECTED).count()
-        stats[y]['processed'] = a + r
-        try:
-            stats[y]['approved'] = round((100 * a) / (a + r))
-        except ZeroDivisionError:
-            stats[y]['approved'] = None
-
-    # Time taken to contact the reference
-    time_to_ref = apps.annotate(tm=Cast(F('reference_contact_datetime')
-                                - F('application_datetime'),
-                                DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_ref.filter(application_datetime__year=y)
-        try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_ref'] = round(median(days), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_ref'] = None
-
-    # Time taken for the reference to respond (in hours)
-    time_to_reply = apps.annotate(tm=Cast(F('reference_response_datetime')
-                                  - F('reference_contact_datetime'),
-                                  DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_reply.filter(application_datetime__year=y)
-        try:
-            hours = [d.total_seconds() / 3600 for d in durations if d and d.total_seconds() >= 0]
-            stats[y]['time_to_reply'] = round(median(hours), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_reply'] = None
-
-    # Time taken to process the application
-    time_to_decision = apps.annotate(tm=Cast(F('decision_datetime')
-                                     - F('application_datetime'),
-                                     DurationField())).values_list('tm', flat=True)
-    for y in stats:
-        durations = time_to_decision.filter(application_datetime__year=y)
-        try:
-            days = [d.days for d in durations if d and d.days >= 0]
-            stats[y]['time_to_decision'] = round(median(days), 2)
-        except (AttributeError, StatisticsError):
-            stats[y]['time_to_decision'] = None
-
-    if request.GET.get('export') == 'csv':
-        fields = ('count', 'processed', 'approved', 'time_to_decision', 'time_to_ref', 'time_to_reply')
-        return _stats_csv_response(
-            'credentialing-stats.csv',
-            ['Year', 'Total applications', 'Total handled (accepted + rejected)', 'Approved (%)',
-             'Decision time (days, median)', 'Time to contact reference (days, median)',
-             'Reference response time (hours, median)'],
-            ([year, *(values.get(field) for field in fields)] for year, values in sorted(stats.items())),
-        )
-
-    return render(request, 'console/credentialing_stats.html',
-                  {'submenu': 'credential',
-                   'stats': stats})
+    export = request.GET.get('export')
+    if export == 'annual':
+        return report_csv(credential_annual_report(credential_annual_stats()))
+    if export == 'csv':
+        response = report_csv(credential_summary_report(credential_annual_stats()))
+        response['Content-Disposition'] = 'attachment; filename="credentialing-stats.csv"'
+        return response
+    today = timezone.localdate()
+    form = UsageDateForm({'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()})
+    context = {'submenu': 'credential', 'report_form': form}
+    if not form.is_valid():
+        return render(request, 'console/credentialing_stats.html', context, status=400)
+    stats = credential_annual_stats()
+    context['stats'] = stats
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    panels = credential_chart_panels(start, end, stats, timezone.now())
+    annual = {panel['id']: panel for panel in panels['annual_panels']}
+    annual['credentialing-annual-outcomes'].update(
+        export='annual', table_template='console/credential_annual_outcomes_table.html')
+    annual['credentialing-annual-days']['table_template'] = 'console/credential_annual_durations_table.html'
+    all_panels = [*panels['monthly_panels'], panels['queue_panel'],
+                  *panels['reapplication_panels'], *panels['annual_panels']]
+    for panel in all_panels:
+        dated = {'start_date': start.isoformat(), 'end_date': end.isoformat()} if panel['start_date'] else {}
+        if panel.get('snapshot'):
+            dated = {}
+        panel['export_query'] = urlencode({**dated, 'export': panel['export']})
+        if any(panel['chart'].get('partial', [])):
+            panel['partial_note'] = 'Partial ' + panel['chart'].get('period_unit', 'month')
+        if export == panel['export']:
+            return report_csv(panel)
+    if export == 'reapplication-summary':
+        return credential_reapplication_csv(panels['reapplication_panels'])
+    context.update(panels)
+    context['report'] = panels['monthly_panels'][0]
+    return render(request, 'console/credentialing_stats.html', context)
 
 
 @console_permission_required('project.can_view_stats')

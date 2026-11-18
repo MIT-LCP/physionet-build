@@ -25,6 +25,10 @@ def month_labels(start_date, end_date):
         year, month = (year + 1, 1) if month == 12 else (year, month + 1)
 
 
+def period(value):
+    return timezone.localtime(value).strftime('%Y-%m')
+
+
 def median_days(values):
     return round(median(values), 2) if values else None
 
@@ -125,6 +129,22 @@ def elapsed_days(start, end):
     if start is None or end is None or end < start:
         return None
     return (end - start).total_seconds() / 86400
+
+
+def coverage(valid, eligible):
+    """Percentage with an explicit denominator; no eligible records means unavailable."""
+    return round(100 * valid / eligible, 2) if eligible else None
+
+
+def percentile(values, fraction):
+    """Linearly interpolated percentile; round only the final result."""
+    if not values:
+        return None
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * fraction
+    lower = int(position)
+    upper = min(lower + 1, len(ordered) - 1)
+    return round(ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower), 2)
 
 
 ACCESS_AGE_LABELS = ('Under 7 days', '7–29 days', '30–89 days', '90–364 days', '365+ days')
