@@ -4,6 +4,8 @@ from calendar import monthrange
 from datetime import datetime, time, timedelta
 from statistics import median
 
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.utils import timezone
 
@@ -20,10 +22,6 @@ def month_labels(start_date, end_date):
     while (year, month) <= (end_date.year, end_date.month):
         yield f'{year:04d}-{month:02d}'
         year, month = (year + 1, 1) if month == 12 else (year, month + 1)
-
-
-def period(value):
-    return timezone.localtime(value).strftime('%Y-%m')
 
 
 def median_days(values):
@@ -64,16 +62,18 @@ def access_trend(start_date, end_date):
     start, end = date_bounds(start_date, end_date)
     requests = DataAccessRequest.objects.filter(project__resource_type_id=0)
     counts = {month: [0, 0, 0] for month in month_labels(start_date, end_date)}
-    for date in requests.filter(request_datetime__gte=start, request_datetime__lt=end).values_list(
-            'request_datetime', flat=True):
-        counts[period(date)][0] += 1
-    decisions = requests.filter(
+    submitted = (requests.filter(request_datetime__gte=start, request_datetime__lt=end).order_by()
+                 .annotate(month=TruncMonth('request_datetime')).values('month').annotate(count=Count('pk')))
+    for row in submitted:
+        counts[row['month'].strftime('%Y-%m')][0] += row['count']
+    decisions = (requests.filter(
         decision_datetime__gte=start, decision_datetime__lt=end,
         status__in=(DataAccessRequest.ACCEPT_REQUEST_VALUE, DataAccessRequest.REVOKED_VALUE,
                     DataAccessRequest.REJECT_REQUEST_VALUE),
-    )
-    for date, status in decisions.values_list('decision_datetime', 'status'):
-        counts[period(date)][2 if status == DataAccessRequest.REJECT_REQUEST_VALUE else 1] += 1
+    ).order_by().annotate(month=TruncMonth('decision_datetime')).values('month', 'status').annotate(count=Count('pk')))
+    for row in decisions:
+        column = 2 if row['status'] == DataAccessRequest.REJECT_REQUEST_VALUE else 1
+        counts[row['month'].strftime('%Y-%m')][column] += row['count']
     rows = [[month, *values] for month, values in counts.items()]
     report = trend_report(
         'access-monthly', 'Access requests and decisions by month',
@@ -172,7 +172,7 @@ def access_pending_summary(requests, now):
                 'person–version pairs. Unique requesters are deduplicated across versions within each dataset; '
                 'the total deduplicates across the entire queue, so unique requester columns must not be summed. '
                 'Ages are elapsed 24-hour days since request, not time in a stage. '
-                'Summary ages are rounded to one decimal for display; '
+                'Summary ages are rounded to one decimal on screen and two in the CSV; '
                 'individual queue ages use completed days (floor). '
                 'Bands are [0,7), [7,30), [30,90), [90,365) and 365+. Median and oldest ages use the same snapshot. '
                 'Future-dated requests are excluded. No projects are excluded by name.')}

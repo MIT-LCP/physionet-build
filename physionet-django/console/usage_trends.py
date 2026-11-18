@@ -1,25 +1,20 @@
 """Monthly registered dataset viewing, attributed to session start dates."""
 import csv
 from calendar import monthrange
-from datetime import datetime, time, timedelta
+from collections import Counter
 
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.utils import timezone
 
-from project.models import AccessLog, PublishedProject
+from console.usage import _demographics, dataset_logs
+from project.models import PublishedProject
+from user.models import COUNTRIES, CredentialApplication, User
 
 
 def usage_trends(start_date, end_date):
-    start = timezone.make_aware(datetime.combine(start_date, time.min))
-    end = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min))
-    logs = AccessLog.objects.filter(
-        content_type=ContentType.objects.get_for_model(PublishedProject),
-        object_id__in=PublishedProject.objects.filter(resource_type_id=0).values('pk'),
-        creation_datetime__gte=start, creation_datetime__lt=end,
-    )
+    logs = dataset_logs(start_date, end_date)
     counts = {
         row['month'].strftime('%Y-%m'): (row['viewers'], row['sessions'])
         for row in logs.order_by().annotate(month=TruncMonth('creation_datetime'))
@@ -52,8 +47,7 @@ def usage_trends(start_date, end_date):
             'rows': rows, 'charts': charts, 'start_date': start_date, 'end_date': end_date,
             'description': (
                 'Sessions spanning months are attributed only to their start month, not every month in between. '
-                'These are registered file-access page views, not confirmed downloads. Summary tables below '
-                'instead include sessions overlapping the selected dates, so their totals can differ. '
+                'These are registered file-access page views, not confirmed downloads. '
                 'Do not sum monthly unique viewers to obtain unique viewers for the whole period. '
                 'Partial months cover only the selected dates and are not directly comparable with complete months.')}
 
@@ -69,16 +63,7 @@ def usage_trends_csv(report, filename='usage-monthly-stats.csv'):
 
 def usage_monthly_demographics(start_date, end_date, monthly):
     """Count each viewer once per session-start month using current approved-profile fields."""
-    from collections import Counter
-    from console.usage import _demographics
-    from user.models import COUNTRIES, CredentialApplication, User
-    start = timezone.make_aware(datetime.combine(start_date, time.min))
-    end = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min))
-    logs = AccessLog.objects.filter(
-        content_type=ContentType.objects.get_for_model(PublishedProject),
-        object_id__in=PublishedProject.objects.filter(resource_type_id=0).values('pk'),
-        creation_datetime__gte=start, creation_datetime__lt=end,
-    )
+    logs = dataset_logs(start_date, end_date)
     recognized = {'country': dict(COUNTRIES), 'category': dict(CredentialApplication.RESEARCHER_CATEGORIES)}
     counts = {field: {row[0]: Counter() for row in monthly['rows']} for field in recognized}
     totals = {field: Counter() for field in recognized}
@@ -102,7 +87,6 @@ def usage_monthly_demographics(start_date, end_date, monthly):
 
 def usage_country_trends(start_date, end_date, monthly, demographics=None):
     """Current institutional countries, applied to viewers of sessions starting each month."""
-    from user.models import COUNTRIES
     data = demographics if demographics is not None else usage_monthly_demographics(start_date, end_date, monthly)
     countries = dict(COUNTRIES)
     labels = {code: str(name) for code, name in countries.items()}
@@ -148,8 +132,7 @@ def usage_country_trends(start_date, end_date, monthly, demographics=None):
             'Countries come from the latest currently approved credential application, not historical location, '
             'nationality, or country at the time of viewing. Changes can reflect missing information or later '
             'credential updates. The table shows other countries, unavailable information and monthly coverage. '
-            'The CSV includes every country and separates the two unavailable groups. The period summary below '
-            'instead includes overlapping sessions, so its population and ranking can differ.'),
+            'The CSV includes every country and separates the two unavailable groups.'),
         'chart': {'labels': list(months), 'partial': monthly['charts'][0]['chart']['partial'], 'integer': True,
                   'period_unit': 'month', 'partial_through': end_date.isoformat(), 'series': [
                       {'name': short_names.get(code, labels[code]), 'color': colors[index],
@@ -172,8 +155,8 @@ def usage_country_trends(start_date, end_date, monthly, demographics=None):
                 'Unique viewers with no currently approved credential application, not necessarily users who '
                 'have never been credentialed. The classification uses records available now, not credential '
                 'status at the time of each visit. Country cannot be supplied by the approved-application source '
-                'for this group. The period total includes overlapping sessions; the monthly chart counts '
-                'sessions by their start date. Each person counts once per month; '
+                'for this group. The period total and the monthly chart both count sessions by their start date. '
+                'Each person counts once per month; '
                 'monthly counts are not additive.'),
             'chart': {'labels': list(months), 'partial': monthly['charts'][0]['chart']['partial'],
                       'integer': True, 'legend': False, 'period_unit': 'month',
@@ -192,7 +175,6 @@ def usage_country_trends(start_date, end_date, monthly, demographics=None):
 
 
 def usage_category_trend(start_date, end_date, monthly, demographics=None):
-    from user.models import CredentialApplication
     categories = dict(CredentialApplication.RESEARCHER_CATEGORIES)
     data = demographics if demographics is not None else usage_monthly_demographics(start_date, end_date, monthly)
     months = data['counts']['category']
@@ -218,8 +200,7 @@ def usage_category_trend(start_date, end_date, monthly, demographics=None):
             'Categories come from the latest currently approved credential application, not the category at '
             'the time of each visit. People without an approved application and missing or unrecognized '
             'categories are shown separately in the monthly table. Coverage uses all registered viewers '
-            'with sessions starting that month. The period summary below instead includes overlapping sessions, '
-            'so its population can differ.'),
+            'with sessions starting that month.'),
         'chart': {'labels': list(months), 'partial': monthly['charts'][0]['chart']['partial'],
                   'integer': True, 'period_unit': 'month', 'partial_through': end_date.isoformat(),
                   'interactive_legend': True, 'plot_height': 440, 'line_width': 2,
@@ -238,11 +219,7 @@ def usage_category_trend(start_date, end_date, monthly, demographics=None):
 
 def usage_dataset_trends(start_date, end_date, monthly, dataset_rows, version_rows):
     """Plot the same top ten as the period rankings, with monthly session-start attribution."""
-    start = timezone.make_aware(datetime.combine(start_date, time.min))
-    end = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min))
-    logs = AccessLog.objects.filter(
-        content_type=ContentType.objects.get_for_model(PublishedProject),
-        creation_datetime__gte=start, creation_datetime__lt=end)
+    logs = dataset_logs(start_date, end_date)
     datasets = PublishedProject.objects.filter(resource_type_id=0, logs__pk__in=logs.values('pk'))
     colors = ['#2563eb', '#ea580c', '#15803d', '#b91c1c', '#7c3aed', '#0e7490', '#a16207', '#be185d',
               '#475569', '#4338ca']
@@ -265,7 +242,7 @@ def usage_dataset_trends(start_date, end_date, monthly, dataset_rows, version_ro
             'id': 'usage-' + key + '-monthly',
             'title': 'Unique registered viewers by ' + ('dataset version' if version else 'dataset') + ' and month',
             'description': (
-                'The top ten are ranked by distinct registered viewers with sessions overlapping the selected dates. '
+                'The top ten are ranked by distinct registered viewers with sessions starting in the selected dates. '
                 'The same datasets or versions are shown in every month. Monthly points count each viewer once '
                 'per dataset or version, by session start month in the site time zone. Sessions spanning months '
                 'are not counted in every intervening month. Rankings and monthly sums therefore need not match. '

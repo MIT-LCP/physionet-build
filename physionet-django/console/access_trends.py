@@ -15,7 +15,7 @@ from user.models import COUNTRIES, CredentialApplication, User
 ACCESS_DESCRIPTION = (
     'Contributor-reviewed dataset requests only. Requests are grouped by submission date; approvals by decision '
     'date, including later revocations and expiry. These are different cohorts and must not be interpreted as '
-    'an approval rate or a count of users with current access. DUA signatures are not included. '
+    'an approval rate or a count of users with current access. '
     'Demographics use each person’s latest approved credential application currently on record, not a historical '
     'snapshot. Countries are institutional countries, not inferred locations or nationalities. People without '
     'an approved credential application are listed separately from approved applications with missing or '

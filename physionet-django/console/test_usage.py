@@ -73,11 +73,13 @@ class TestUsageMetrics(MetricsTestCase):
             if title != 'Overview':
                 self.assertEqual(rows, [])
 
-    def test_date_boundaries_and_overlapping_log_sessions(self):
+    def test_date_boundaries_count_sessions_started_in_range(self):
         AccessLog.objects.all().delete()
         start = timezone.make_aware(datetime(2020, 1, 1))
         end = timezone.make_aware(datetime(2021, 1, 1))
+        # A session still active in the range but started before it is excluded.
         self.create_log(self.dataset, self.viewer, start - timezone.timedelta(minutes=1), start)
+        self.create_log(self.dataset, self.admin, start)
         self.create_log(self.dataset, self.other, end - timezone.timedelta(microseconds=1))
         self.create_log(self.dataset, self.coauthor, end)
         self.assertEqual(self.overview(self.metrics())['Unique registered dataset viewers'], 2)
@@ -182,14 +184,14 @@ class TestUsageMetrics(MetricsTestCase):
         from unittest.mock import patch
         from urllib.parse import parse_qs, urlsplit
         sections = [
-            {'title': title, 'description': '', 'rows': [
+            {'key': key, 'title': title, 'description': '', 'rows': [
                 {'label': f'{prefix}-{index}', 'count': index + 1, 'percentage': None}
                 for index in range(count)
             ]}
-            for title, prefix, count in (
-                ('Most accessed datasets', 'dataset', 20),
-                ('Dataset viewers by country', 'country', 7),
-                ('Registered viewers by dataset version', 'version', 11),
+            for key, title, prefix, count in (
+                ('top_datasets', 'Most accessed datasets', 'dataset', 20),
+                ('country', 'Dataset viewers by country', 'country', 7),
+                ('versions', 'Registered viewers by dataset version', 'version', 11),
             )
         ]
         self.client.force_login(self.admin)
@@ -293,9 +295,10 @@ class TestUsageMetrics(MetricsTestCase):
         unavailable = {'label': 'No approved credential application', 'count': 5, 'percentage': 6.02,
                        'available_percentage': None, 'information_available': False}
         sections = [
-            {'title': 'Dataset viewers by country', 'description': '', 'rows': [unavailable, *country_rows],
+            {'key': 'country', 'title': 'Dataset viewers by country', 'population': 'viewers', 'description': '',
+             'rows': [unavailable, *country_rows],
              'coverage_count': 78, 'coverage_total': 83, 'coverage_percentage': 93.98},
-            {'title': 'Registered viewers by dataset version', 'description': '', 'rows': [
+            {'key': 'versions', 'title': 'Registered viewers by dataset version', 'description': '', 'rows': [
                 {'label': f'dataset / {i}', 'count': 25 - i, 'percentage': None} for i in range(25)]},
         ]
         self.client.force_login(self.admin)
@@ -315,14 +318,13 @@ class TestUsageMetrics(MetricsTestCase):
             self.assertNotIn('page', versions)
             self.assertNotContains(page, 'aria-label="Dataset viewers by country information coverage"')
             self.assertContains(page, 'id="viewers-without-approved-application"')
-            full = self.client.get(url, {**params, 'show_all_countries': 1, 'show_all_versions': 1})
+            full = self.client.get(url, {**params, 'show_all_countries': 1})
             all_countries, all_versions = full.context['sections']
             self.assertEqual(all_countries['page'].paginator.count, 12)
             self.assertEqual(len(all_versions['rows']), 10)
             self.assertNotIn('page', all_versions)
             collapsed_query = parse_qs(urlsplit(all_countries['toggle_url']).query)
             self.assertNotIn('show_all_countries', collapsed_query)
-            self.assertEqual(collapsed_query['show_all_versions'], ['1'])
             exported = self.client.get(url, {**params, 'export': 'csv'})
             rows = list(csv.DictReader(StringIO(exported.content.decode())))
             self.assertEqual(len(rows), 38)

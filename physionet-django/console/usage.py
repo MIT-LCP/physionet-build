@@ -7,13 +7,27 @@ from datetime import datetime, time, timedelta
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.db.models import BooleanField, Case, Count, Exists, Max, Min, OuterRef, Q, Subquery, Value, When
-from django.db.models.functions import TruncMonth
+from django.db.models import BooleanField, Case, Count, Max, Min, OuterRef, Subquery, Value, When
 from django.http import HttpResponse
 from django.utils import timezone
 
-from project.models import AccessLog, ActiveProject, Author, DataAccessRequest, PublishedAuthor, PublishedProject
+from project.models import AccessLog, DataAccessRequest, PublishedProject
 from user.models import COUNTRIES, CredentialApplication, User
+
+
+def dataset_logs(start_date=None, end_date=None):
+    """Access logs of published datasets, limited to sessions started within the dates when given."""
+    # ProjectType 0 is Database; software and other resource types are not dataset views.
+    logs = AccessLog.objects.filter(
+        content_type=ContentType.objects.get_for_model(PublishedProject),
+        object_id__in=PublishedProject.objects.filter(resource_type_id=0).values('pk'),
+    )
+    if start_date and end_date:
+        logs = logs.filter(
+            creation_datetime__gte=timezone.make_aware(datetime.combine(start_date, time.min)),
+            creation_datetime__lt=timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min)),
+        )
+    return logs
 
 
 def usage_record_dates():
@@ -21,10 +35,7 @@ def usage_record_dates():
     key = 'console:usage:record-dates:v1'
     bounds = cache.get(key)
     if bounds is None:
-        bounds = AccessLog.objects.filter(
-            content_type=ContentType.objects.get_for_model(PublishedProject),
-            object_id__in=PublishedProject.objects.filter(resource_type_id=0).values('pk'),
-        ).aggregate(first=Min('creation_datetime'), last=Max('last_access_datetime'))
+        bounds = dataset_logs().aggregate(first=Min('creation_datetime'), last=Max('creation_datetime'))
         cache.set(key, bounds, 300)
     return {name: timezone.localdate(value) if value else None for name, value in bounds.items()}
 
@@ -54,18 +65,6 @@ class UsageDateForm(forms.Form):
         return data
 
 
-def _breakdown(users, field, labels):
-    total = users.count()
-    groups = users.order_by().values(field).annotate(count=Count('pk')).order_by('-count', field)
-    counts = Counter()
-    for group in groups:
-        counts[str(labels.get(group[field], 'Not available'))] += group['count']
-    return [
-        {'label': label, 'count': count, 'percentage': round(count * 100 / total, 2)}
-        for label, count in sorted(counts.items(), key=lambda pair: (-pair[1], pair[0]))
-    ]
-
-
 def _viewer_demographic(users, field, labels, title, population='viewers'):
     """Distinguish unavailable fields from the absence of an approved application."""
     groups = users.annotate(has_approved=Case(
@@ -91,9 +90,9 @@ def _viewer_demographic(users, field, labels, title, population='viewers'):
                              'any particular dataset was used.',
     }
     return {
-        'title': title, 'coverage_count': known, 'coverage_total': total,
-        'coverage_population': {'viewers': 'registered viewers', 'approved users': 'approved users',
-                                'submitting authors': 'submitting authors'}[population],
+        'key': field.removeprefix('credential_'), 'title': title, 'population': population,
+        'coverage_count': known, 'coverage_total': total,
+        'coverage_population': {'viewers': 'registered viewers', 'approved users': 'approved users'}[population],
         'coverage_percentage': round(100 * known / total, 2) if total else None,
         'description': 'Uses the latest currently approved credential application, not a historical snapshot. '
                        'No approved application is separate from missing or unrecognized information on an approved '
@@ -148,34 +147,9 @@ def _account_age(users, start_date, end_date):
             for label, count in counts] if total else []
 
 
-def _request_months(requests, start_date, end_date):
-    counts = {
-        row['month'].strftime('%Y-%m'): row['count']
-        for row in requests.order_by().annotate(month=TruncMonth('request_datetime'))
-        .values('month').annotate(count=Count('pk'))
-    }
-    # Include zero months, but leave wholly empty selections consistent with other sections.
-    if not counts:
-        return []
-    year, month = start_date.year, start_date.month
-    rows = []
-    while (year, month) <= (end_date.year, end_date.month):
-        period = f'{year:04d}-{month:02d}'
-        rows.append({'label': period, 'count': counts.get(period, 0), 'percentage': None})
-        year, month = (year + 1, 1) if month == 12 else (year, month + 1)
-    return rows
-
-
 def usage_metrics(start_date, end_date):
-    start = timezone.make_aware(datetime.combine(start_date, time.min))
-    end = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min))
-    published_type = ContentType.objects.get_for_model(PublishedProject)
-    # ProjectType 0 is Database; software and other resource types are not dataset views.
     datasets = PublishedProject.objects.filter(resource_type_id=0)
-    logs = AccessLog.objects.filter(
-        content_type=published_type, object_id__in=datasets.values('pk'),
-        creation_datetime__lt=end, last_access_datetime__gte=start,
-    )
+    logs = dataset_logs(start_date, end_date)
     viewers = _demographics(User.objects.filter(pk__in=logs.values('user_id')))
     viewer_count = viewers.count()
     top_datasets = list(
@@ -198,19 +172,18 @@ def usage_metrics(start_date, end_date):
     countries = dict(COUNTRIES)
     categories = dict(CredentialApplication.RESEARCHER_CATEGORIES)
     return [
-        {'title': 'Overview', 'description': (
+        {'key': 'overview', 'title': 'Overview', 'description': (
             'All cards summarize the entire selected period, not the sum of monthly values. '
             'Each viewer is counted once, even if they appear in several months. Datasets combine all versions; '
             'institutions count distinct self-reported names, ignoring case and extra spaces. Spelling variants '
             'and abbreviations may still count separately. Approved viewers are a subset of the same unique '
             'viewers, using their latest currently approved credential application. '
-            'Cards include sessions overlapping the selected dates. Monthly charts instead include sessions '
-            'that started within those dates, so the two populations can differ.'),
+            'Cards, tables and monthly charts all count sessions that started within the selected dates.'),
          'rows': [{'label': label, 'count': count,
                    'percentage': round(100 * count / viewer_count, 2)
                    if label == 'Viewers with an approved credential application' and viewer_count else None}
                   for label, count in overview]},
-        {'title': 'Most accessed datasets',
+        {'key': 'top_datasets', 'title': 'Most accessed datasets',
          'description': ('Top 10 by unique registered viewers, combining all versions. '
                          'A person may view multiple datasets.'),
          'rows': [{'label': row['slug'], 'count': row['count'],
@@ -220,11 +193,11 @@ def usage_metrics(start_date, end_date):
         {**_viewer_demographic(
             viewers, 'credential_course', dict(CredentialApplication.COURSE_CATEGORIES), 'Declared course use'),
          'csv_only': True},
-        {'title': 'Registered viewers by dataset version',
+        {'key': 'versions', 'title': 'Registered viewers by dataset version',
          'description': 'Unique registered file-access viewers per version. A person may appear in multiple versions.',
          'rows': [{'label': f"{row['slug']} / {row['version']}", 'count': row['count'], 'percentage': None}
                   for row in version_views]},
-        {'title': 'Dataset viewers by account age',
+        {'key': 'account_age', 'title': 'Dataset viewers by account age',
          'description': 'New means the account was created during the selected dates, not first use of a dataset.',
          'rows': _account_age(viewers, start_date, end_date)},
     ]
@@ -258,20 +231,15 @@ def access_metrics(start_date, end_date):
     countries = dict(COUNTRIES)
     categories = dict(CredentialApplication.RESEARCHER_CATEGORIES)
     return [
-        {'title': 'Overview', 'description': '',
+        {'key': 'overview', 'title': 'Overview', 'description': '',
          'rows': [{'label': label, 'count': count,
                    'percentage': None}
                   for label, count in overview]},
-        {'title': 'Dataset access requests by month',
-         'description': ('Requests submitted during the selected dates, including requests now rejected, withdrawn '
-                         'or revoked. Only datasets using contributor-reviewed access have these requests. '
-                         'Boundary months may be partial.'),
-         'rows': _request_months(requests, start_date, end_date)},
         _viewer_demographic(approved_users, 'credential_country', countries,
                             'Approved dataset users by country', population='approved users'),
         _viewer_demographic(approved_users, 'credential_category', categories,
                             'Approved dataset users by researcher category', population='approved users'),
-        {'title': 'Approved dataset users by account age',
+        {'key': 'account_age', 'title': 'Approved dataset users by account age',
          'description': ('Users approved during the selected dates. New means the account was created during '
                          'those dates, not necessarily when access was requested.'),
          'rows': _account_age(approved_users, start_date, end_date)},
@@ -285,9 +253,7 @@ def usage_csv(sections, start_date, end_date):
     demographics = any('coverage_total' in section for section in sections)
     headers = ['Start date', 'End date', 'Section', 'Metric', 'Count', 'Percentage', 'Row type']
     if demographics:
-        approved = any(section['title'].startswith('Approved dataset users') for section in sections)
-        population = ('approved users' if approved else 'submitting authors'
-                      if any(s['title'].startswith('Submitting authors') for s in sections) else 'viewers')
+        population = next(section['population'] for section in sections if 'population' in section)
         headers += [f'Percentage among {population} with information',
                     f'{population.capitalize()} with information', f'Total {population}', 'Coverage (%)']
     writer.writerow(headers)
@@ -304,29 +270,21 @@ def usage_csv(sections, start_date, end_date):
 
 
 def usage_sections(sections, group='usage'):
-    result = sections
-    if group in ('usage', 'access', 'submissions'):
-        labels = {'Overview': 'Measure', 'Most accessed datasets': 'Dataset',
-                  'Dataset viewers by country': 'Country',
-                  'Dataset viewers by researcher category': 'Researcher category',
-                  'Registered viewers by dataset version': 'Dataset / version',
-                  'Dataset viewers by account age': 'Account creation period',
-                  'Approved dataset users by country': 'Country',
-                  'Approved dataset users by researcher category': 'Researcher category',
-                  'Approved dataset users by account age': 'Account creation period',
-                  }
-        result = [dict(section) for section in result]
-        for section in result:
-            if section['title'] == 'Most accessed datasets':
-                section['display_title'] = 'Top 10 datasets by unique registered viewers'
-            section['display_cards'] = group == 'usage' and section['title'] == 'Overview'
-            section['label_header'] = labels.get(section['title'], 'Metric')
-            population = {'usage': 'Registered viewers', 'access': 'Approved users',
-                          'submissions': 'Submitting authors'}[group]
-            section['count_header'] = 'Count' if section['title'] == 'Overview' else population
-            section['show_percentage'] = section['title'] not in ('Overview', 'Registered viewers by dataset version')
-            section['percentage_header'] = f'All {population.lower()} (%)'
-            section['unavailable_label'] = 'Viewers' if group == 'usage' else population
-            section['has_coverage'] = 'coverage_total' in section
-            section['column_count'] = 4 if section['has_coverage'] else 3 if section['show_percentage'] else 2
+    labels = {'overview': 'Measure', 'top_datasets': 'Dataset', 'country': 'Country',
+              'category': 'Researcher category', 'versions': 'Dataset / version',
+              'account_age': 'Account creation period'}
+    population = {'usage': 'Registered viewers', 'access': 'Approved users'}[group]
+    result = [dict(section) for section in sections]
+    for section in result:
+        key = section['key']
+        if key == 'top_datasets':
+            section['display_title'] = 'Top 10 datasets by unique registered viewers'
+        section['display_cards'] = key == 'overview'
+        section['label_header'] = labels.get(key, 'Metric')
+        section['count_header'] = 'Count' if key == 'overview' else population
+        section['show_percentage'] = key not in ('overview', 'versions')
+        section['percentage_header'] = f'All {population.lower()} (%)'
+        section['unavailable_label'] = 'Viewers' if group == 'usage' else population
+        section['has_coverage'] = 'coverage_total' in section
+        section['column_count'] = 4 if section['has_coverage'] else 3 if section['show_percentage'] else 2
     return result

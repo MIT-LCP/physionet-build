@@ -39,7 +39,7 @@ class TestUsageTrends(MetricsTestCase):
         self.assertEqual(report['charts'][0]['chart']['series'][0]['values'], [1, 0, 2])
         self.assertEqual(report['charts'][1]['chart']['series'][0]['values'], [2, 0, 2])
 
-    def test_spanning_sessions_are_not_imputed_to_later_months(self):
+    def test_sessions_started_before_range_are_excluded_from_charts_and_summary(self):
         AccessLog.objects.all().delete()
         self.create_log(self.dataset, self.viewer, timezone.make_aware(datetime(2019, 12, 31)),
                         timezone.make_aware(datetime(2020, 3, 1)))
@@ -47,7 +47,7 @@ class TestUsageTrends(MetricsTestCase):
         self.assertTrue(all(row[1:3] == [0, 0] for row in report['rows']))
         summary = usage_metrics(date(2020, 1, 1), date(2020, 3, 31))
         overview = {row['label']: row['count'] for row in summary[0]['rows']}
-        self.assertEqual(overview['Unique registered dataset viewers'], 1)
+        self.assertEqual(overview['Unique registered dataset viewers'], 0)
 
     @override_settings(TIME_ZONE='America/New_York')
     def test_local_month_and_inclusive_date_boundaries(self):

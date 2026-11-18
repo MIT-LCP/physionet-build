@@ -22,10 +22,12 @@ class TestUsageAvailability(MetricsTestCase):
         with timezone.override('America/New_York'):
             self.create_log(self.dataset, self.viewer, datetime(2020, 1, 1, 4, 30, tzinfo=dt_timezone.utc),
                             datetime(2020, 2, 1, 5, 30, tzinfo=dt_timezone.utc))
+            self.create_log(self.dataset, self.other, datetime(2020, 1, 15, 12, tzinfo=dt_timezone.utc))
             self.create_log(self.active, self.viewer, timezone.make_aware(datetime(2018, 1, 1)))
             software = PublishedProject.objects.filter(resource_type_id=1).first()
             self.create_log(software, self.viewer, timezone.make_aware(datetime(2017, 1, 1)))
-            self.assertEqual(usage_record_dates(), {'first': date(2019, 12, 31), 'last': date(2020, 2, 1)})
+            # The last bound is the latest session start, matching how the metrics select sessions.
+            self.assertEqual(usage_record_dates(), {'first': date(2019, 12, 31), 'last': date(2020, 1, 15)})
             with self.assertNumQueries(0):
                 self.assertEqual(usage_record_dates()['first'], date(2019, 12, 31))
 

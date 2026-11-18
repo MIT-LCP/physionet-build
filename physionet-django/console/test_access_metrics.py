@@ -19,6 +19,7 @@ from user.models import CredentialApplication, User
 
 
 from console.metrics_test_utils import MetricsTestCase
+from console.reporting import access_trend
 from console.usage import access_metrics
 
 
@@ -44,12 +45,24 @@ class TestAccessMetrics(MetricsTestCase):
         self.assertEqual(overview['Dataset access requests submitted'], 3)
         self.assertEqual(overview['Unique dataset access requesters'], 2)
         self.assertEqual(overview['Unique users approved for dataset access during selected dates'], 2)
-        months = {row['label']: row['count'] for row in metrics['Dataset access requests by month']}
+        months = {row[0]: row[1] for row in access_trend(date(2020, 1, 1), date(2020, 12, 31))['rows']}
         self.assertEqual(len(months), 12)
         self.assertEqual(months['2020-06'], 3)
         self.assertEqual(months['2020-01'], 0)
         countries = {row['label']: row['count'] for row in metrics['Approved dataset users by country']}
         self.assertEqual(countries, {'United States of America': 1, 'No approved credential application': 1})
+
+    def test_withdrawn_requests_with_a_decision_date_are_not_decisions(self):
+        DataAccessRequest.objects.all().delete()
+        self.create_request(self.viewer, status=DataAccessRequest.WITHDRAWN_VALUE)
+        overview = self.overview(self.metrics())
+        self.assertEqual(overview['Dataset access requests submitted'], 1)
+        self.assertEqual(overview['Dataset access approvals recorded'], 0)
+        self.assertEqual(overview['Dataset access rejections recorded'], 0)
+        self.assertEqual(overview['Unique users approved for dataset access during selected dates'], 0)
+        rows = access_trend(date(2020, 1, 1), date(2020, 12, 31))['rows']
+        self.assertEqual(sum(row[1] for row in rows), 1)
+        self.assertEqual(sum(row[2] + row[3] for row in rows), 0)
 
     def test_request_and_approval_date_boundaries(self):
         start = timezone.make_aware(datetime(2020, 1, 1))
@@ -132,7 +145,7 @@ class TestAccessMetrics(MetricsTestCase):
     def test_access_country_pagination_preserves_queue_page_and_exports_all_countries(self):
         from unittest.mock import patch
         from urllib.parse import parse_qs, urlsplit
-        sections = [{'title': 'Approved dataset users by country', 'description': '', 'rows': [
+        sections = [{'key': 'country', 'title': 'Approved dataset users by country', 'description': '', 'rows': [
             {'label': f'Country {i}', 'count': 1, 'percentage': 100 / 7} for i in range(7)
         ]}]
         self.client.force_login(self.admin)
@@ -294,7 +307,7 @@ class TestAccessMetrics(MetricsTestCase):
         self.assertContains(page, 'All approved users (%)')
         self.assertNotContains(page, '<summary>Definitions and limitations</summary>')
         self.assertContains(page, 'aria-label="How Access requests is calculated"')
-        self.assertContains(page, 'DUA signatures are not included.')
+        self.assertContains(page, 'not DUA signatures or every access requirement.')
         self.assertNotContains(page, 'Viewers, approved users and submitting authors are different populations.')
         exported = self.client.get(url, {**params, 'export': 'csv'})
         rows = list(csv.DictReader(StringIO(exported.content.decode())))

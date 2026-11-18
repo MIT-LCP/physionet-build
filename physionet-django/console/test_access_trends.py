@@ -132,7 +132,7 @@ class TestAccessTrends(MetricsTestCase):
                     self.assertEqual(int(row[series['name']]), series['values'][i])
                 self.assertEqual(row['Period coverage'], report['rows'][i][-1])
         summary = self.client.get(url, {**params, 'export': 'csv'})
-        self.assertIn('Dataset access requests by month', summary.content.decode())
+        self.assertNotIn('Dataset access requests by month', summary.content.decode())
 
     def test_demographic_csvs_require_stats_permission(self):
         url = reverse('access_request_stats')

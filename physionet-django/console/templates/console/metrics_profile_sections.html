@@ -59,7 +59,7 @@
         <tbody>
           {% for row in section.rows %}
           <tr>
-            <td>{{ row.label }}</td><td>{{ row.count }}{% if section.title == 'Overview' and row.percentage is not None %}
+            <td>{{ row.label }}</td><td>{{ row.count }}{% if section.key == 'overview' and row.percentage is not None %}
               <small class="d-block">{{ row.percentage|floatformat:2 }}% of all viewers</small>{% endif %}</td>
             {% if section.show_percentage != False %}<td>{% if row.percentage is not None %}{{ row.percentage|floatformat:2 }}{% else %}—{% endif %}</td>{% endif %}
             {% if section.has_coverage %}<td>{% if row.available_percentage is not None %}{{ row.available_percentage|floatformat:2 }}{% else %}—{% endif %}</td>{% endif %}
