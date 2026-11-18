@@ -57,6 +57,18 @@
   </div>
   <div class="row mb-1">
     <div class="col-md-3">
+      ORCID:
+    </div>
+    <div class="col-md-9">
+      {% if requester.has_orcid %}
+        <a href="https://orcid.org/{{ requester.get_orcid_id }}" rel="nofollow noopener" target="_blank">{{ requester.get_orcid_id }}</a>
+      {% else %}
+        Not linked.
+      {% endif %}
+    </div>
+  </div>
+  <div class="row mb-1">
+    <div class="col-md-3">
       Personal Website:
     </div>
     <div class="col-md-9">

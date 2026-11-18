@@ -85,6 +85,9 @@ urlpatterns = [
     path('access-requests/<project_slug>/<version>/<int:pk>/',
          project_views.data_access_request_view,
          name='data_access_request_view'),
+    path('access-requests/',
+         project_views.data_access_requests_inbox,
+         name='data_access_requests_inbox'),
     path('access-requests/<project_slug>/<version>/',
          project_views.data_access_requests_overview,
          name='data_access_requests_overview'),
@@ -141,6 +144,7 @@ TEST_CASES = {
     'data_access_request_status_detail': {**_demo_access_requester, 'pk': '1'},
     'data_access_request_view': {**_demo_access_manager, 'pk': '1'},
     'data_access_requests_overview': _demo_access_manager,
+    'data_access_requests_inbox': {'_user_': 'george'},
     'manage_data_access_reviewers': _demo_access_manager,
 
     # only available when the OpenAlex integration is enabled

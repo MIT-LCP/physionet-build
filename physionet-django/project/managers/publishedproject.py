@@ -8,6 +8,20 @@ from user.models import Training, TrainingType
 
 
 class PublishedProjectManager(Manager):
+    def data_access_managed_by(self, user):
+        """
+        Return all versions of contributor-review projects whose access
+        requests the user can review: as corresponding author, or as an
+        invited reviewer who has not been revoked.
+        Mirrors PublishedProject#can_approve_requests.
+        """
+        return self.filter(
+            Q(authors__user=user, authors__is_corresponding=True)
+            | Q(data_access_request_reviewers__reviewer=user,
+                data_access_request_reviewers__is_revoked=False),
+            access_policy=AccessPolicy.CONTRIBUTOR_REVIEW,
+        ).distinct()
+
     def accessible_by(self, user, include_event_datasets=True):
         """
         Return all published projects accessible by a specified user
