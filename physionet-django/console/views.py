@@ -415,7 +415,7 @@ def submission_info_card_params(request,
 
     upload_agreement = getattr(project.submitting_author(), 'upload_agreement', None)
 
-    edit_logs = project.edit_log_history(include_metadata_snapshot=True)
+    edit_logs = project.edit_log_history()
     metadata_edit_logs = [
         edit_log for edit_log in edit_logs
         if (edit_log.metadata_snapshot or {}).get('sections')

@@ -273,7 +273,7 @@ class Metadata(models.Model):
         assert url.endswith('/x')
         return url[:-1]
 
-    def edit_log_history(self, include_metadata_snapshot=False):
+    def edit_log_history(self):
         """
         Get a list of EditLog objects in submission order.
 
@@ -282,10 +282,7 @@ class Metadata(models.Model):
         includes the details of the editor's response (if any) to that
         particular submission.
         """
-        edit_logs = self.edit_logs.order_by('submission_datetime').all()
-        if include_metadata_snapshot:
-            edit_logs = edit_logs.with_metadata_snapshot()
-        return edit_logs
+        return self.edit_logs.order_by('submission_datetime').all()
 
     def copyedit_log_history(self):
         """

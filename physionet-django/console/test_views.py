@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import pdb
+from unittest.mock import patch
 
 
 import requests_mock
@@ -97,6 +98,11 @@ class TestSubmissionFileComparison(TestCase):
 
 class TestSubmissionStats(TestCase):
     def setUp(self):
+        self.enterContext(timezone.override('America/New_York'))
+        self.enterContext(patch(
+            'django.utils.timezone.now',
+            return_value=datetime.datetime(2025, 1, 15, 12, tzinfo=datetime.timezone.utc),
+        ))
         self.client.login(username='admin', password='Tester11!')
 
     @staticmethod
@@ -140,7 +146,6 @@ class TestSubmissionStats(TestCase):
             editor_comments='',
             decision=0,
             decision_datetime=timezone.now(),
-            metadata_snapshot={'large': 'x' * 10000},
         )
         EditLog.objects.filter(pk=log.pk).update(submission_datetime=timezone.now())
 
@@ -149,22 +154,93 @@ class TestSubmissionStats(TestCase):
         self.assertEqual(after[1], before[1] + 1)
         self.assertEqual(after[4], before[4] + 1)
 
-    def test_edit_log_history_defers_snapshots_unless_requested(self):
-        project = ActiveProject.objects.first()
-        log = EditLog.objects.create(
-            project=project,
-            author_comments='',
-            editor_comments='',
-            metadata_snapshot={'sections': []},
+    def assert_monthly_increases(self, before, after, december, january):
+        self.assertEqual(list(after), [2025, 2024])
+        self.assertEqual(list(after[2025]), ['January'])
+        self.assertEqual(list(after[2024]), ['December'])
+        for year, month, expected in (
+            (2024, 'December', december),
+            (2025, 'January', january),
+        ):
+            self.assertEqual(
+                [new - old for new, old in zip(after[year][month], before[year][month])],
+                expected,
+            )
+
+    def test_window_boundaries_for_all_columns(self):
+        window_start = timezone.make_aware(datetime.datetime(2024, 12, 1))
+        window_end = timezone.make_aware(datetime.datetime(2025, 2, 1))
+        before_start = window_start - datetime.timedelta(microseconds=1)
+        active = ActiveProject.objects.first()
+        published = PublishedProject.objects.filter(is_legacy=False).first()
+
+        # Columns: created, submitted, resubmitted, published, rejected.
+        counts = [2, 1, 1, 1, 2]
+        zero = [0, 0, 0, 0, 0]
+        for timestamp, december, january in (
+            (before_start, zero, zero),
+            (window_start, counts, zero),
+            (window_end - datetime.timedelta(microseconds=1), zero, counts),
+            (window_end, zero, zero),
+        ):
+            with self.subTest(timestamp=timestamp):
+                ActiveProject.objects.filter(pk=active.pk).update(creation_datetime=before_start)
+                PublishedProject.objects.filter(pk=published.pk).update(
+                    creation_datetime=before_start, publish_datetime=before_start,
+                )
+                before = get_submission_stats(2)
+
+                ActiveProject.objects.filter(pk=active.pk).update(creation_datetime=timestamp)
+                PublishedProject.objects.filter(pk=published.pk).update(
+                    creation_datetime=timestamp, publish_datetime=timestamp,
+                )
+                for project, is_resubmission in ((active, False), (published, True)):
+                    log = EditLog.objects.create(
+                        project=project,
+                        is_resubmission=is_resubmission,
+                        decision=0,
+                        decision_datetime=timestamp,
+                        editor_comments='',
+                    )
+                    # submission_datetime uses auto_now_add.
+                    EditLog.objects.filter(pk=log.pk).update(submission_datetime=timestamp)
+
+                self.assert_monthly_increases(before, get_submission_stats(2), december, january)
+
+    def test_columns_use_each_milestone_date_and_local_month(self):
+        before_window = timezone.make_aware(datetime.datetime(2024, 11, 15))
+        # January in UTC, but still December in the reporting timezone.
+        december = datetime.datetime(2025, 1, 1, 2, tzinfo=datetime.timezone.utc)
+        january = timezone.make_aware(datetime.datetime(2025, 1, 10))
+        active = ActiveProject.objects.first()
+        published = PublishedProject.objects.filter(is_legacy=False).first()
+        ActiveProject.objects.filter(pk=active.pk).update(creation_datetime=before_window)
+        PublishedProject.objects.filter(pk=published.pk).update(
+            creation_datetime=before_window, publish_datetime=before_window,
         )
+        before = get_submission_stats(2)
 
-        default_log = project.edit_log_history().get(pk=log.pk)
-        snapshot_log = project.edit_log_history(
-            include_metadata_snapshot=True,
-        ).get(pk=log.pk)
+        PublishedProject.objects.filter(pk=published.pk).update(publish_datetime=december)
+        for project, submitted, is_resubmission, decision, decided in (
+            (active, before_window, False, 0, january),
+            (published, december, False, 2, january),
+            (active, january, True, 1, january),
+            (published, january, True, None, None),
+        ):
+            log = EditLog.objects.create(
+                project=project,
+                is_resubmission=is_resubmission,
+                decision=decision,
+                decision_datetime=decided,
+                editor_comments='',
+            )
+            EditLog.objects.filter(pk=log.pk).update(submission_datetime=submitted)
 
-        self.assertIn('metadata_snapshot', default_log.get_deferred_fields())
-        self.assertNotIn('metadata_snapshot', snapshot_log.get_deferred_fields())
+        self.assert_monthly_increases(
+            before, get_submission_stats(2),
+            december=[0, 1, 0, 1, 0],
+            january=[0, 0, 2, 0, 1],
+        )
 
 
 @override_settings(BLOCKED_REGIONS={'CN'})
@@ -291,7 +367,7 @@ class TestState(TestMixin):
         project.save()
         project.resubmit(author_comments='Revised submission')
 
-        edit_logs = list(project.edit_log_history(include_metadata_snapshot=True))
+        edit_logs = list(project.edit_log_history())
         self.assertEqual(len(edit_logs), 2)
         self.assertEqual(
             {section['html_id']: section['body']
