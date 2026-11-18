@@ -54,23 +54,15 @@ class TestEditorialMetrics(MetricsTestCase):
         self.assertEqual(monthly[1:3], [1.5, 1])
         self.assertEqual(editorial_annual_stats()[2020][3], 1.5)
 
-    def test_editorial_queue_reports_total_age_not_time_in_stage(self):
-        from project.models import SubmissionStatus
-        ActiveProject.objects.exclude(pk=self.active.pk).update(submission_datetime=None)
-        ActiveProject.objects.filter(pk=self.active.pk).update(
-            submission_status=SubmissionStatus.NEEDS_RESUBMISSION, is_on_hold=True,
-        )
+    def test_editorial_page_has_no_project_queue(self):
         self.client.force_login(self.admin)
         response = self.client.get(reverse('editorial_stats'), {'start_date': '2010-01-01', 'end_date': '2010-12-31'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['queue_total'], 1)
-        row = response.context['queue_rows'][0]
-        self.assertIn('on hold', row['status'])
-        self.assertEqual(row['since'], self.when)
+        self.assertNotIn('queue_rows', response.context)
         self.assertNotContains(response, 'Current submitted projects')
         self.assertNotContains(response, 'Reporting period')
         export = self.client.get(reverse('editorial_stats'), {'export': 'pending'})
-        self.assertEqual(len(list(csv.DictReader(StringIO(export.content.decode())))), 1)
+        self.assertNotIn('Content-Disposition', export)
 
     def test_editorial_monthly_export_matches_the_chart_table(self):
         self.client.force_login(self.admin)
@@ -83,26 +75,6 @@ class TestEditorialMetrics(MetricsTestCase):
             ['' if value is None else str(value) for value in row] for row in report['rows']
         ]]
         self.assertEqual(rows, expected)
-
-    def test_editorial_queue_paginates_five_projects_and_exports_the_full_queue(self):
-        from project.models import SubmissionStatus
-        ActiveProject.objects.update(submission_datetime=self.when, submission_status=SubmissionStatus.NEEDS_DECISION)
-        total = ActiveProject.objects.count()
-        self.assertGreater(total, 5)
-        self.client.force_login(self.admin)
-        url = reverse('editorial_stats')
-        params = {'start_date': '2010-01-01', 'end_date': '2010-12-31'}
-        first = self.client.get(url, params)
-        self.assertEqual(first.context['queue_total'], total)
-        self.assertEqual(len(first.context['queue_rows']), 5)
-        self.assertTrue(first.context['queue_page'].has_next())
-        second = self.client.get(url, {**params, 'page': 2})
-        self.assertEqual(len(second.context['queue_rows']), min(5, total - 5))
-        self.assertTrue({row['url'] for row in first.context['queue_rows']}.isdisjoint(
-            row['url'] for row in second.context['queue_rows']))
-        self.assertIn('start_date=2010-01-01', second.context['queue_query'])
-        exported = self.client.get(url, {**params, 'page': 2, 'export': 'pending'})
-        self.assertEqual(len(list(csv.DictReader(StringIO(exported.content.decode())))), total)
 
     def test_review_years_paginate_newest_first_while_chart_and_csv_keep_all_years(self):
         from project.models import EditLog

@@ -16,7 +16,7 @@ from console.credential_charts import credential_chart_panels
 from console.credential_metrics import (
     credential_annual_report, credential_annual_stats, credential_reapplication_csv, credential_summary_report,
 )
-from console.editorial_metrics import editorial_annual_stats, editorial_trend, pending_projects, project_queue_rows
+from console.editorial_metrics import editorial_annual_stats, editorial_trend
 from console.reporting import (
     access_pending_summary,
     access_pending_summary_csv,
@@ -2985,36 +2985,19 @@ def _stats_csv_response(filename, headers, rows):
     return response
 
 
-def _editorial_operational_context(request):
-    """Monthly time to first decision and the current submitted-project queue."""
+def _editorial_trend_context(request):
+    """Monthly time to first decision for the selected dates."""
     today = timezone.localdate()
     form = UsageDateForm({'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()})
     context = {'report_form': form}
     if not form.is_valid():
         return None, context
     start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
-    now = timezone.now()
-    queue = pending_projects(now)
-    if request.GET.get('export') == 'pending':
-        return queue_csv('pending-editorial', project_queue_rows(queue.iterator(), now), 'Project'), context
     report = editorial_trend(start, end)
     if request.GET.get('export') == 'monthly':
         return report_csv(report), context
-    params = {'start_date': start.isoformat(), 'end_date': end.isoformat()}
-    page = paginate(request, queue, 5)
-    context.update({
-        'report': report, 'trend_export_query': urlencode({**params, 'export': 'monthly'}),
-        'queue_title': 'Current submitted projects',
-        'queue_description': (
-            'Oldest submissions first, including projects awaiting authors and projects on hold. '
-            'Elapsed days since initial submission, NOT time in the current stage or a deadline. '
-            'This is the current queue, independent of the selected historical dates.'),
-        'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
-        'queue_rows': project_queue_rows(page, now), 'queue_query': urlencode(params),
-        'queue_history_params': params,
-        'queue_export_query': urlencode({**params, 'export': 'pending'}),
-        'queue_links': request.user.has_perm('project.change_activeproject'),
-    })
+    context.update({'report': report, 'trend_export_query': urlencode(
+        {'start_date': start.isoformat(), 'end_date': end.isoformat(), 'export': 'monthly'})})
     return None, context
 
 
@@ -3032,7 +3015,7 @@ def editorial_stats(request):
              'Submission to final publication (median days)', 'Submission to first decision (median days)'],
             ([year, *values] for year, values in sorted(stats.items())),
         )
-    response, operational = _editorial_operational_context(request)
+    response, operational = _editorial_trend_context(request)
     if response is not None:
         return response
     form = operational['report_form']

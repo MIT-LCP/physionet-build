@@ -3,7 +3,11 @@
 
 {% block content %}
 <div data-metrics-start="{{ report_form.start_date.value|date:'Y-m-d'|default:report_form.start_date.value }}" data-metrics-end="{{ report_form.end_date.value|date:'Y-m-d'|default:report_form.end_date.value }}">
-{% include 'console/metrics_operational.html' with hide_queue=True filter_annual=True %}
+{% include 'console/metrics_filters.html' with filter_annual=True %}
+{% if report %}{% include 'console/metrics_trend.html' %}{% endif %}
+<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script>
+<script src="{% static 'console/js/metrics-trend.js' %}" defer></script>
+<script src="{% static 'console/js/metrics-chart-export.js' %}" defer></script>
 <div class="card mb-3" id="publications-by-year">
   <div class="card-header">
     Publications by year

@@ -123,16 +123,13 @@ def access_queue_rows(requests, now):
              'url': reverse('access_request', args=[item.pk])} for item in requests]
 
 
-def queue_csv(identifier, rows, item_label='Project or application', snapshot=None):
-    if snapshot is not None:
-        return report_csv({
-            'id': identifier,
-            'headers': ['Snapshot', 'Dataset', 'Version', 'Status', 'Since', 'Elapsed days (floor)'],
-            'rows': [[snapshot.isoformat(), row['dataset'], row['version'], row['status'],
-                      row['since'].isoformat(), row['days']] for row in rows],
-        })
-    return report_csv({'id': identifier, 'headers': [item_label, 'Status', 'Since', 'Elapsed days'],
-                       'rows': [[row['label'], row['status'], row['since'].isoformat(), row['days']] for row in rows]})
+def queue_csv(identifier, rows, snapshot):
+    return report_csv({
+        'id': identifier,
+        'headers': ['Snapshot', 'Dataset', 'Version', 'Status', 'Since', 'Elapsed days (floor)'],
+        'rows': [[snapshot.isoformat(), row['dataset'], row['version'], row['status'],
+                  row['since'].isoformat(), row['days']] for row in rows],
+    })
 
 
 def elapsed_days(start, end):

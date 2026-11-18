@@ -1,14 +1,13 @@
-"""Editorial metrics: annual figures, monthly time to first decision and the submitted-project queue."""
+"""Editorial metrics: annual figures and monthly time to first decision."""
 from collections import OrderedDict
 from statistics import median
 
 from django.db.models import Min, Q
-from django.urls import reverse
 from django.utils import timezone
 
 from console.forms import SUBMISSION_RESPONSE_CHOICES
 from console.reporting import date_bounds, median_days, month_labels, period, trend_report
-from project.models import ActiveProject, PublishedProject, SubmissionStatus
+from project.models import ActiveProject, PublishedProject
 
 # Accept, resubmit with revisions and reject; the empty choice is not a decision.
 DECISIONS = tuple(value for value, _ in SUBMISSION_RESPONSE_CHOICES if value != '')
@@ -82,16 +81,3 @@ def editorial_trend(start_date, end_date):
         [('Median days to first decision', 1)], start_date, end_date,
         warning=f'Excluded negative durations: {invalid}.' if invalid else '',
     )
-
-
-def pending_projects(now):
-    return ActiveProject.objects.filter(
-        submission_status__gt=SubmissionStatus.ARCHIVED, submission_datetime__lte=now,
-    ).order_by('submission_datetime', 'pk')
-
-
-def project_queue_rows(projects, now):
-    return [{'label': project.slug,
-             'status': project.submission_status_label() + (' (on hold)' if project.is_on_hold else ''),
-             'since': project.submission_datetime, 'days': (now - project.submission_datetime).days,
-             'url': reverse('submission_info', args=[project.slug])} for project in projects]
