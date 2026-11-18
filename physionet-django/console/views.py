@@ -12,6 +12,7 @@ from notification.utility import archive_notify
 from background_task import background
 from console.tasks import associated_task, get_associated_tasks
 from console.access_trends import ACCESS_DESCRIPTION, access_record_dates, approved_user_trends, pending_request_trend
+from console.credential_charts import credential_chart_panels
 from console.reporting import (
     access_pending_summary,
     access_pending_summary_csv,
@@ -3086,23 +3087,37 @@ def credentialing_stats(request):
         if request.GET['export'] == 'csv':
             response['Content-Disposition'] = 'attachment; filename="credentialing-stats.csv"'
         return response
-    response, operational = _operational_metrics(request, 'credentialing')
-    if response is not None:
-        return response
+    # Keep the existing downloads available without displaying individual applications or people.
+    if request.GET.get('export') in ('pending', 'repeated'):
+        response, _ = _operational_metrics(request, 'credentialing')
+        if response is not None:
+            return response
+    today = timezone.localdate()
+    form = UsageDateForm({'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()})
     stats = credential_annual_stats()
-
-    return render(request, 'console/credentialing_stats.html',
-                  {'submenu': 'credential', 'stats': stats, **operational,
-                   'annual_definition': (
-                       'Each application is counted once under its current status. '
-                       'Handled = accepted + revoked + rejected; '
-                       'approved / handled includes later-revoked credentials. '
-                       'Decision medians include handled applications with valid decision dates and exclude pending '
-                       'and withdrawn cases. Durations use fractional calendar days or hours, including zero; '
-                       'missing and negative intervals are excluded. Each median shows its valid observation count '
-                       '(n). Years use the site time zone, which can differ from UTC near New Year. '
-                       'Monthly charts instead group by decision month.')},
-                  status=200 if operational['report_form'].is_valid() else 400)
+    context = {'submenu': 'credential', 'stats': stats, 'report_form': form}
+    if form.is_valid():
+        start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+        panels = credential_chart_panels(start, end, stats, timezone.now())
+        panels['annual_panels'][0]['export'] = 'annual'
+        panels['annual_panels'][0]['table_template'] = 'console/credential_annual_outcomes_table.html'
+        panels['annual_panels'][2]['table_template'] = 'console/credential_annual_durations_table.html'
+        all_panels = [*panels['monthly_panels'], panels['queue_panel'],
+                      *panels['reapplication_panels'], *panels['annual_panels']]
+        for panel in all_panels:
+            dated = {'start_date': start.isoformat(), 'end_date': end.isoformat()} if panel['start_date'] else {}
+            if panel.get('snapshot'):
+                dated = {}
+            panel['export_query'] = urlencode({**dated, 'export': panel['export']})
+            if any(panel['chart'].get('partial', [])):
+                panel['partial_note'] = 'Partial ' + panel['chart'].get('period_unit', 'month')
+            if request.GET.get('export') == panel['export']:
+                return report_csv(panel)
+        if request.GET.get('export') == 'reapplication-summary':
+            return credential_reapplication_csv(panels['reapplication_panels'])
+        context.update(panels)
+        context['report'] = panels['monthly_panels'][0]
+    return render(request, 'console/credentialing_stats.html', context, status=200 if form.is_valid() else 400)
 
 
 @console_permission_required('project.can_view_stats')

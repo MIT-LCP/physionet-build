@@ -1,11 +1,11 @@
-<div class="card mb-3" id="metrics-period"{% if report_form.errors %} data-invalid="true"{% endif %}><div class="card-body">
-  <h2 class="h5">Reporting period</h2>
+<div class="card mb-3" id="metrics-period"{% if report_form.errors %} data-invalid="true"{% endif %}>
+<div class="card-body">
   <form method="get" id="operational-date-form">
     {{ report_form.non_field_errors }}
     <div class="form-row align-items-end">
-      {% for field in report_form %}<div class="form-group col-sm-4">{{ field.label_tag }}{{ field }}{{ field.errors }}</div>{% endfor %}
-      <div class="form-group col-sm-4"><button class="btn btn-primary" type="submit">Apply dates</button></div>
+      {% for field in report_form %}<div class="form-group col-sm-4"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{{ field.errors }}</div>{% endfor %}
+      <div class="form-group col-sm-4"><button class="btn btn-primary" type="submit">Apply filters</button></div>
     </div>
   </form>
-  <p>Dates filter monthly reports{% if repeated %} and the application cohort for reapplications{% endif %}. Current queues and annual cohorts are not filtered.</p>
+  <p>Dates filter monthly reports{% if reapplication_panels or repeated %} and the application cohort for reapplications{% endif %}. Current queues and annual cohorts are not filtered.</p>
 </div></div>

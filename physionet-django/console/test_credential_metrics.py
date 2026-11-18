@@ -45,7 +45,7 @@ class TestCredentialingMetrics(MetricsTestCase):
         params = {'start_date': '2020-06-01', 'end_date': '2020-07-31'}
         page = self.client.get(reverse('credentialing_stats'), params)
         self.assertEqual(page.status_code, 200)
-        self.assertEqual(page.context['report'], report)
+        self.assertEqual(page.context['report']['rows'], report['rows'])
         self.assertNotContains(page, 'data-metrics-chart="credentialing-volume"')
         self.assertContains(page, 'data-metrics-chart="credentialing-flow"')
         export = self.client.get(reverse('credentialing_stats'), {**params, 'export': 'monthly'})
@@ -83,7 +83,7 @@ class TestCredentialingMetrics(MetricsTestCase):
             self.assertNotIn('Content-Disposition', response)
             self.client.logout()
 
-    def test_repeated_credentials_paginate_five_users_and_export_everyone(self):
+    def test_repeated_list_is_removed_and_existing_csv_still_exports_everyone(self):
         CredentialApplication.objects.all().delete()
         for index in range(21):
             user = User.objects.create_user(email=f'repeated-{index}@example.invalid', password=None,
@@ -98,21 +98,9 @@ class TestCredentialingMetrics(MetricsTestCase):
         url = reverse('credentialing_stats')
         params = {'start_date': '2020-01-01', 'end_date': '2020-12-31'}
         first = self.client.get(url, params)
-        self.assertEqual(first.context['repeated_total'], 21)
-        self.assertEqual(len(first.context['repeated']['rows']), 5)
-        self.assertEqual(first.context['repeated']['rows'][0][:2], ['repeated-20', 3])
-        self.assertEqual(first.context['repeated']['rows'][1][0], 'repeated-0')
-        self.assertEqual(first.context['repeated']['rows'][-1][0], 'repeated-3')
-        self.assertContains(first, 'repeated_page=2#repeated-applications')
-        second = self.client.get(url, {**params, 'repeated_page': 2, 'page': 3, 'queue_stage': 'contact'})
-        self.assertEqual(len(second.context['repeated']['rows']), 5)
-        self.assertTrue(set(row[0] for row in first.context['repeated']['rows']).isdisjoint(
-            row[0] for row in second.context['repeated']['rows']))
-        self.assertIn('start_date=2020-01-01', second.context['repeated_page_query'])
-        self.assertIn('queue_stage=contact', second.context['repeated_page_query'])
-        self.assertIn('page=3', second.context['repeated_page_query'])
-        last = self.client.get(url, {**params, 'repeated_page': 5})
-        self.assertEqual(len(last.context['repeated']['rows']), 1)
+        self.assertNotContains(first, 'Most applications per person within the selected period')
+        self.assertNotIn('repeated', first.context)
+        self.assertNotContains(first, 'Current pending credential applications')
         export = self.client.get(url, {**params, 'export': 'repeated', 'repeated_page': 2})
         self.assertEqual(len(list(csv.DictReader(StringIO(export.content.decode())))), 21)
 
@@ -159,7 +147,7 @@ class TestCredentialingMetrics(MetricsTestCase):
             self.assertEqual(filter_credential_queue(queue, 'contact', age, now).count(), count)
         self.client.force_login(self.admin)
         response = self.client.get(reverse('credentialing_stats'), {'queue_stage': 'invalid'})
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 200)
 
     def test_stage_durations_report_percentiles_missing_and_negative_pairs(self):
         from console.reporting import credential_stage_report
