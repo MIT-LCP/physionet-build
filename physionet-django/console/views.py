@@ -13,37 +13,17 @@ from background_task import background
 from console.tasks import associated_task, get_associated_tasks
 from console.access_trends import ACCESS_DESCRIPTION, access_record_dates, approved_user_trends, pending_request_trend
 from console.credential_charts import credential_chart_panels
+from console.credential_metrics import (
+    credential_annual_report, credential_annual_stats, credential_reapplication_csv, credential_summary_report,
+)
 from console.reporting import (
     access_pending_summary,
     access_pending_summary_csv,
     access_queue_rows,
     access_trend,
-    coverage,
-    credential_annual_report,
-    credential_annual_stats,
-    credential_flow_report,
-    credential_queue_rows,
-    credential_queue_summary,
-    credential_reapplication_csv,
-    credential_reapplication_reports,
-    credential_stage,
-    credential_stage_report,
-    credential_trend,
-    date_bounds,
-    elapsed_days,
-    filter_credential_queue,
-    median_days,
-    month_labels,
     pending_access_requests,
-    pending_credentials,
-    percentile,
-    period,
     queue_csv,
-    repeated_credential_report,
-    repeated_credentials,
     report_csv,
-    trend_report,
-    CREDENTIAL_STAGES, CREDENTIAL_AGES,
 )
 from console.usage_trends import (
     usage_trends, usage_trends_csv, usage_country_trends, usage_monthly_demographics, usage_category_trend,
@@ -3082,42 +3062,41 @@ def credentialing_stats(request):
     """
     Credentialing metrics.
     """
-    if request.GET.get('export') in ('annual', 'csv'):
-        response = report_csv(credential_annual_report(credential_annual_stats()))
-        if request.GET['export'] == 'csv':
-            response['Content-Disposition'] = 'attachment; filename="credentialing-stats.csv"'
+    export = request.GET.get('export')
+    if export == 'annual':
+        return report_csv(credential_annual_report(credential_annual_stats()))
+    if export == 'csv':
+        response = report_csv(credential_summary_report(credential_annual_stats()))
+        response['Content-Disposition'] = 'attachment; filename="credentialing-stats.csv"'
         return response
-    # Keep the existing downloads available without displaying individual applications or people.
-    if request.GET.get('export') in ('pending', 'repeated'):
-        response, _ = _operational_metrics(request, 'credentialing')
-        if response is not None:
-            return response
     today = timezone.localdate()
     form = UsageDateForm({'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()})
+    context = {'submenu': 'credential', 'report_form': form}
+    if not form.is_valid():
+        return render(request, 'console/credentialing_stats.html', context, status=400)
     stats = credential_annual_stats()
-    context = {'submenu': 'credential', 'stats': stats, 'report_form': form}
-    if form.is_valid():
-        start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
-        panels = credential_chart_panels(start, end, stats, timezone.now())
-        panels['annual_panels'][0]['export'] = 'annual'
-        panels['annual_panels'][0]['table_template'] = 'console/credential_annual_outcomes_table.html'
-        panels['annual_panels'][2]['table_template'] = 'console/credential_annual_durations_table.html'
-        all_panels = [*panels['monthly_panels'], panels['queue_panel'],
-                      *panels['reapplication_panels'], *panels['annual_panels']]
-        for panel in all_panels:
-            dated = {'start_date': start.isoformat(), 'end_date': end.isoformat()} if panel['start_date'] else {}
-            if panel.get('snapshot'):
-                dated = {}
-            panel['export_query'] = urlencode({**dated, 'export': panel['export']})
-            if any(panel['chart'].get('partial', [])):
-                panel['partial_note'] = 'Partial ' + panel['chart'].get('period_unit', 'month')
-            if request.GET.get('export') == panel['export']:
-                return report_csv(panel)
-        if request.GET.get('export') == 'reapplication-summary':
-            return credential_reapplication_csv(panels['reapplication_panels'])
-        context.update(panels)
-        context['report'] = panels['monthly_panels'][0]
-    return render(request, 'console/credentialing_stats.html', context, status=200 if form.is_valid() else 400)
+    context['stats'] = stats
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    panels = credential_chart_panels(start, end, stats, timezone.now())
+    panels['annual_panels'][0]['export'] = 'annual'
+    panels['annual_panels'][0]['table_template'] = 'console/credential_annual_outcomes_table.html'
+    panels['annual_panels'][2]['table_template'] = 'console/credential_annual_durations_table.html'
+    all_panels = [*panels['monthly_panels'], panels['queue_panel'],
+                  *panels['reapplication_panels'], *panels['annual_panels']]
+    for panel in all_panels:
+        dated = {'start_date': start.isoformat(), 'end_date': end.isoformat()} if panel['start_date'] else {}
+        if panel.get('snapshot'):
+            dated = {}
+        panel['export_query'] = urlencode({**dated, 'export': panel['export']})
+        if any(panel['chart'].get('partial', [])):
+            panel['partial_note'] = 'Partial ' + panel['chart'].get('period_unit', 'month')
+        if export == panel['export']:
+            return report_csv(panel)
+    if export == 'reapplication-summary':
+        return credential_reapplication_csv(panels['reapplication_panels'])
+    context.update(panels)
+    context['report'] = panels['monthly_panels'][0]
+    return render(request, 'console/credentialing_stats.html', context)
 
 
 @console_permission_required('project.can_view_stats')
@@ -5389,82 +5368,3 @@ def access_request_stats(request):
         'report': report, 'date_query': urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()}),
         **_access_queue_context(request, queue, now),
     })
-
-
-def _operational_metrics(request, kind):
-    today = timezone.localdate()
-    data = {'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()}
-    form = UsageDateForm(data)
-    context = {'report_form': form}
-    if not form.is_valid():
-        return None, context
-    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
-    now = timezone.now()
-    is_editorial = kind == 'editorial'
-    report = credential_trend(start, end)
-    queue = pending_credentials(now)
-    row_builder = credential_queue_rows
-    queue_filters = {}
-    if not is_editorial:
-        if request.GET.get('export') == 'reapplication-summary':
-            return credential_reapplication_csv(credential_reapplication_reports(start, end)), context
-        if request.GET.get('export') == 'flow':
-            return report_csv(credential_flow_report(start, end)), context
-        if request.GET.get('export') == 'stages':
-            return report_csv(credential_stage_report(start, end)), context
-        stage, age = request.GET.get('queue_stage', ''), request.GET.get('queue_age', '')
-        queue = filter_credential_queue(queue, stage, age, now)
-        queue_filters = {'queue_stage': stage, 'queue_age': age}
-        if request.GET.get('export') == 'queue-summary':
-            return report_csv(credential_queue_summary(now)), context
-        context.update({'queue_summary': credential_queue_summary(now),
-                        'queue_summary_query': 'export=queue-summary',
-                        'queue_stages': CREDENTIAL_STAGES, 'queue_ages': CREDENTIAL_AGES,
-                        'queue_stage': stage, 'queue_age': age, 'queue_filters': True,
-                        'queue_item_label': 'Application', 'queue_anchor': 'credential-queue'})
-    if request.GET.get('export') == 'monthly':
-        return report_csv(report), context
-    if request.GET.get('export') == 'pending':
-        return queue_csv(f'pending-{kind}', row_builder(queue.iterator(), now),
-                         'Project' if is_editorial else 'Application'), context
-    params = {'start_date': start.isoformat(), 'end_date': end.isoformat()}
-    page = paginate(request, queue, 5)
-    description = (
-        'Oldest submissions first, including projects awaiting authors and projects on hold. '
-        'Elapsed days since initial submission, NOT time in the current stage or a deadline. '
-        'This is the current queue, independent of the selected historical dates.'
-        if is_editorial else
-        'Oldest applications first. Elapsed days since application, not time in the displayed stage. '
-        'Current status is inferred from reference contact and response timestamps. '
-        'This queue is independent of the selected historical dates.'
-    )
-    context.update({
-        'report': report, 'trend_export_query': urlencode({**params, 'export': 'monthly'}),
-        'queue_title': 'Current submitted projects' if is_editorial else 'Current pending credential applications',
-        'queue_description': description,
-        'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
-        'queue_rows': row_builder(page, now), 'queue_query': urlencode({**params, **queue_filters}),
-        'queue_history_params': params,
-        'queue_export_query': urlencode({**params, **queue_filters, 'export': 'pending'}),
-        'queue_links': request.user.has_perm(
-            'project.change_activeproject' if is_editorial else 'user.change_credentialapplication'),
-    })
-    if is_editorial:
-        return None, context
-    context.update({'reapplication_reports': credential_reapplication_reports(start, end),
-                    'reapplication_summary_query': urlencode({**params, 'export': 'reapplication-summary'}),
-                    'flow_report': credential_flow_report(start, end),
-                    'flow_query': urlencode({**params, 'export': 'flow'}),
-                    'stage_report': credential_stage_report(start, end),
-                    'stage_query': urlencode({**params, 'export': 'stages'})})
-    users = repeated_credentials(start, end)
-    if request.GET.get('export') == 'repeated':
-        return report_csv(repeated_credential_report(users.iterator())), context
-    repeated_page = Paginator(users, 5).get_page(request.GET.get('repeated_page'))
-    context.update({
-        'repeated': repeated_credential_report(repeated_page),
-        'repeated_total': repeated_page.paginator.count, 'repeated_page': repeated_page,
-        'repeated_query': urlencode({**params, 'export': 'repeated'}),
-        'repeated_page_query': urlencode({**params, **queue_filters, 'page': request.GET.get('page', 1)}),
-    })
-    return None, context

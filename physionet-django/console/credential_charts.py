@@ -3,7 +3,7 @@ from copy import deepcopy
 
 from django.utils import timezone
 
-from console.reporting import (
+from console.credential_metrics import (
     credential_annual_report, credential_flow_report, credential_queue_summary,
     credential_reapplication_reports, credential_stage_report, credential_trend,
 )

@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from console.credential_charts import credential_chart_panels
 from console.metrics_test_utils import MetricsTestCase
-from console.reporting import credential_annual_stats, credential_queue_summary
+from console.credential_metrics import credential_annual_stats, credential_queue_summary
 from user.models import CredentialApplication
 
 

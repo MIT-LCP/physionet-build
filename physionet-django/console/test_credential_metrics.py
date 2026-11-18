@@ -22,7 +22,7 @@ from console.metrics_test_utils import MetricsTestCase
 
 class TestCredentialingMetrics(MetricsTestCase):
     def test_credential_trend_separates_outcomes_and_excludes_negative_durations(self):
-        from console.reporting import credential_trend
+        from console.credential_metrics import credential_trend
         CredentialApplication.objects.all().delete()
         accepted = CredentialApplication.Status.ACCEPTED
         self.credential(accepted, decided=self.when + timezone.timedelta(hours=36))
@@ -52,29 +52,23 @@ class TestCredentialingMetrics(MetricsTestCase):
         self.assertEqual(list(csv.reader(StringIO(export.content.decode())))[-1],
                          ['2020-07', '', '0', '', '0', '', '', '0', '', '', 'Full month'])
 
-    def test_credential_queue_and_repeated_applications_are_descriptive(self):
-        from console.reporting import pending_credentials, credential_queue_rows, repeated_credentials
+    def test_credential_queue_summary_counts_each_stage(self):
+        from console.credential_metrics import credential_queue_summary
         CredentialApplication.objects.all().delete()
         pending = CredentialApplication.Status.PENDING
         self.credential(pending)
         self.credential(pending, reference_contact_datetime=self.when)
         self.credential(pending, reference_contact_datetime=self.when, reference_response_datetime=self.when)
         self.credential(CredentialApplication.Status.WITHDRAWN)
-        rows = credential_queue_rows(pending_credentials(timezone.now()), timezone.now())
-        self.assertEqual([r['status'] for r in rows], [
-            'Awaiting reference contact', 'Awaiting reference response',
-            'Awaiting processing after reference response',
+        rows = credential_queue_summary(timezone.now())['rows']
+        self.assertEqual([(row[0], row[-1]) for row in rows], [
+            ('Awaiting reference contact', 1), ('Awaiting reference response', 1),
+            ('Awaiting processing after reference response', 1), ('Total', 3),
         ])
-        users = list(repeated_credentials(date(2020, 1, 1), date(2020, 12, 31)))
-        self.assertEqual(len(users), 1)
-        self.assertEqual((users[0]['total'], users[0]['pending'], users[0]['withdrawn']), (4, 3, 1))
-        self.client.force_login(self.admin)
-        response = self.client.get(reverse('credentialing_stats'), {'export': 'pending'})
-        self.assertEqual(len(list(csv.DictReader(StringIO(response.content.decode())))), 3)
 
     def test_operational_exports_require_permission_and_valid_historical_dates(self):
         for view in ('credentialing_stats',):
-            for export in ('monthly', 'pending', 'repeated', 'annual', 'stages', 'flow',
+            for export in ('monthly', 'annual', 'csv', 'stages', 'flow',
                            'queue-summary', 'reapplication-summary'):
                 self.assertEqual(self.client.get(reverse(view), {'export': export}).status_code, 403)
             self.client.force_login(self.admin)
@@ -83,7 +77,7 @@ class TestCredentialingMetrics(MetricsTestCase):
             self.assertNotIn('Content-Disposition', response)
             self.client.logout()
 
-    def test_repeated_list_is_removed_and_existing_csv_still_exports_everyone(self):
+    def test_per_person_application_history_is_not_exported(self):
         CredentialApplication.objects.all().delete()
         for index in range(21):
             user = User.objects.create_user(email=f'repeated-{index}@example.invalid', password=None,
@@ -101,18 +95,20 @@ class TestCredentialingMetrics(MetricsTestCase):
         self.assertNotContains(first, 'Most applications per person within the selected period')
         self.assertNotIn('repeated', first.context)
         self.assertNotContains(first, 'Current pending credential applications')
-        export = self.client.get(url, {**params, 'export': 'repeated', 'repeated_page': 2})
-        self.assertEqual(len(list(csv.DictReader(StringIO(export.content.decode())))), 21)
+        for export in ('repeated', 'pending'):
+            response = self.client.get(url, {**params, 'export': export})
+            self.assertNotIn('Content-Disposition', response)
+            self.assertNotContains(response, 'repeated-20')
 
     def test_credential_volume_empty_months_are_zero(self):
-        from console.reporting import credential_flow_report
+        from console.credential_metrics import credential_flow_report
         report = credential_flow_report(date(2010, 1, 1), date(2010, 2, 28))
         self.assertEqual(report['chart']['labels'], ['2010-01', '2010-02'])
         for series in report['chart']['series']:
             self.assertEqual(series['values'], [0, 0])
 
     def test_annual_cohorts_close_and_keep_fractional_and_zero_durations(self):
-        from console.reporting import credential_annual_stats
+        from console.credential_metrics import credential_annual_stats
         CredentialApplication.objects.all().delete()
         for status in range(5):
             self.credential(status, decided=self.when + timezone.timedelta(hours=12),
@@ -133,8 +129,8 @@ class TestCredentialingMetrics(MetricsTestCase):
         self.assertEqual(rows[0]['Decision median days'], '0.5')
         self.assertEqual(rows[0]['Valid contact durations'], '5')
 
-    def test_queue_age_summary_and_filters_use_application_age_boundaries(self):
-        from console.reporting import credential_queue_summary, pending_credentials, filter_credential_queue
+    def test_queue_age_summary_uses_application_age_boundaries(self):
+        from console.credential_metrics import credential_queue_summary
         CredentialApplication.objects.all().delete()
         now = self.when + timezone.timedelta(days=100)
         for days in (0, 6, 7, 29, 30, 89, 90):
@@ -142,15 +138,9 @@ class TestCredentialingMetrics(MetricsTestCase):
         summary = credential_queue_summary(now)
         self.assertEqual(summary['rows'][0][1:], [2, 2, 2, 1, 7])
         self.assertEqual(summary['rows'][-1][1:], [2, 2, 2, 1, 7])
-        queue = pending_credentials(now)
-        for age, count in (('under7', 2), ('7to29', 2), ('30to89', 2), ('90plus', 1)):
-            self.assertEqual(filter_credential_queue(queue, 'contact', age, now).count(), count)
-        self.client.force_login(self.admin)
-        response = self.client.get(reverse('credentialing_stats'), {'queue_stage': 'invalid'})
-        self.assertEqual(response.status_code, 200)
 
     def test_stage_durations_report_percentiles_missing_and_negative_pairs(self):
-        from console.reporting import credential_stage_report
+        from console.credential_metrics import credential_stage_report
         CredentialApplication.objects.all().delete()
         self.credential(2, decided=self.when + timezone.timedelta(days=10),
                         reference_contact_datetime=self.when + timezone.timedelta(days=2),
@@ -169,7 +159,7 @@ class TestCredentialingMetrics(MetricsTestCase):
         self.assertEqual(len(list(csv.DictReader(StringIO(response.content.decode())))), 4)
 
     def test_inflow_and_decisions_use_different_event_dates(self):
-        from console.reporting import credential_flow_report
+        from console.credential_metrics import credential_flow_report
         CredentialApplication.objects.all().delete()
         self.credential(2, submitted=timezone.make_aware(datetime(2019, 12, 1)), decided=self.when)
         self.credential(3, submitted=self.when, decided=self.when)
@@ -184,7 +174,7 @@ class TestCredentialingMetrics(MetricsTestCase):
         self.assertEqual(list(csv.reader(StringIO(response.content.decode())))[0], report['headers'])
 
     def test_reapplication_summary_uses_complete_history_and_first_approval(self):
-        from console.reporting import credential_reapplication_reports
+        from console.credential_metrics import credential_reapplication_reports
         CredentialApplication.objects.all().delete()
         before = timezone.make_aware(datetime(2019, 12, 1))
         self.credential(1, submitted=before, decided=before + timezone.timedelta(days=1))
@@ -214,7 +204,7 @@ class TestCredentialingMetrics(MetricsTestCase):
 
     def test_annual_year_boundary_uses_site_timezone_and_preserves_small_samples(self):
         from datetime import timezone as utc
-        from console.reporting import credential_annual_stats
+        from console.credential_metrics import credential_annual_stats
         CredentialApplication.objects.all().delete()
         submitted = datetime(2021, 1, 1, 2, tzinfo=utc.utc)
         self.credential(2, submitted=submitted, decided=submitted + timezone.timedelta(hours=12))
@@ -232,7 +222,7 @@ class TestCredentialingMetrics(MetricsTestCase):
         self.assertContains(page, 'Years use the site time zone')
 
     def test_zero_eligible_observations_have_no_coverage_or_percentages(self):
-        from console.reporting import credential_stage_report, credential_trend
+        from console.credential_metrics import credential_stage_report, credential_trend
         CredentialApplication.objects.all().delete()
         stages = credential_stage_report(date(2020, 1, 1), date(2020, 1, 31))
         for row in stages['rows']:
@@ -241,7 +231,7 @@ class TestCredentialingMetrics(MetricsTestCase):
         self.assertEqual(monthly['rows'][0][5:10], [None, None, 0, None, None])
 
     def test_combined_volume_counts_invalid_decisions_without_changing_duration_sample(self):
-        from console.reporting import credential_flow_report, credential_trend
+        from console.credential_metrics import credential_flow_report, credential_trend
         CredentialApplication.objects.all().delete()
         self.credential(2, decided=self.when - timezone.timedelta(seconds=1))
         self.credential(1, decided=self.when + timezone.timedelta(days=3))
@@ -254,10 +244,9 @@ class TestCredentialingMetrics(MetricsTestCase):
         self.assertEqual(trend['rows'][0][7:10], [2, 50.0, 50.0])
 
     def test_reapplication_history_and_period_counts_are_distinct(self):
-        from console.reporting import credential_reapplication_reports, repeated_credentials
+        from console.credential_metrics import credential_reapplication_reports
         CredentialApplication.objects.all().delete()
         self.credential(1, submitted=self.when - timezone.timedelta(days=365))
         self.credential(0, submitted=self.when)
         history = credential_reapplication_reports(date(2020, 1, 1), date(2020, 12, 31))
         self.assertEqual(history[0]['rows'][1], ['2 applications', 1, 100.0])
-        self.assertEqual(repeated_credentials(date(2020, 1, 1), date(2020, 12, 31)).count(), 0)

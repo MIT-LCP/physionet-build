@@ -5,9 +5,11 @@ from io import StringIO
 from unittest import mock
 from urllib.parse import urlencode
 
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from console.credential_metrics import ANNUAL_STATS_CACHE_KEY
 from user.models import User
 
 
@@ -55,6 +57,7 @@ class TestStatsExports(TestCase):
     ]
 
     def setUp(self):
+        cache.delete(ANNUAL_STATS_CACHE_KEY)
         self.client.force_login(User.objects.get(email='admin@mit.edu'))
 
     def assert_export_matches_table(self, view, filename, table_index=0, table_id=None, **params):
@@ -95,12 +98,10 @@ class TestStatsExports(TestCase):
         page = self.client.get(url)
         self.assertEqual(page.status_code, 200)
         self.assertContains(page, 'href="?export=annual"')
-        response = self.client.get(url, {'export': 'csv'})
-        annual = self.client.get(url, {'export': 'annual'})
+        response = self.client.get(url, {'export': 'annual'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'text/csv')
-        self.assertEqual(response['Content-Disposition'], 'attachment; filename="credentialing-stats.csv"')
-        self.assertEqual(response.content, annual.content)
+        self.assertTrue(response['Content-Disposition'].startswith('attachment; filename="credentialing-annual-'))
         rows = list(csv.DictReader(StringIO(response.content.decode())))
         parser = StatsTableParser()
         parser.feed(page.content.decode())
@@ -119,6 +120,23 @@ class TestStatsExports(TestCase):
                 ('Valid response durations', 'response_observations'),
             ):
                 self.assertEqual(exported[header], '' if values[key] is None else str(values[key]))
+
+    def test_credentialing_csv_keeps_the_original_seven_columns(self):
+        url = reverse('credentialing_stats')
+        response = self.client.get(url, {'export': 'csv'})
+        self.assertEqual(response['Content-Disposition'], 'attachment; filename="credentialing-stats.csv"')
+        rows = list(csv.reader(StringIO(response.content.decode())))
+        self.assertEqual(rows[0], [
+            'Year', 'Total applications', 'Total handled (accepted + revoked + rejected)', 'Approved (%)',
+            'Decision time (days, median)', 'Time to contact reference (days, median)',
+            'Reference response time (hours, median)'])
+        stats = self.client.get(url).context['stats']
+        self.assertEqual(len(rows) - 1, len(stats))
+        for row in rows[1:]:
+            values = stats[int(row[0])]
+            for cell, key in zip(row[1:], ('count', 'processed', 'approved', 'time_to_decision',
+                                           'time_to_ref', 'time_to_reply')):
+                self.assertEqual(cell, '' if values[key] is None else str(values[key]))
 
     def test_editorial_export_matches_displayed_metrics(self):
         rows = self.assert_export_matches_table('editorial_stats', 'editorial-stats.csv')
