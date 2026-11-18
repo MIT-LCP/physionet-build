@@ -664,6 +664,14 @@ class AssociatedEmail(models.Model):
 
     class Meta:
         default_permissions = ()
+        constraints = [
+            # Each user receives the newsletter at no more than one address
+            models.UniqueConstraint(
+                fields=['user'],
+                condition=Q(newsletter_subscribed=True),
+                name='unique_newsletter_email_per_user',
+            ),
+        ]
 
     def __str__(self):
         return self.email

@@ -21,6 +21,7 @@ from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail, signing
 from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError, transaction
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -1659,6 +1660,22 @@ class TestNewsletter(TestCase):
         self.assertEqual(response.status_code, 200)
         self.primary.refresh_from_db()
         self.assertFalse(self.primary.newsletter_subscribed)
+
+    def test_unsubscribe_page_masks_address(self):
+        self.primary.subscribe_to_newsletter()
+        url = reverse('newsletter_unsubscribe', args=[self.primary.get_newsletter_unsubscribe_token()])
+        for response in (self.client.get(url), self.client.post(url)):
+            self.assertNotContains(response, self.primary.email)
+            self.assertContains(response, 'r***@example.com')
+
+    def test_database_allows_one_subscribed_address_per_user(self):
+        self.primary.subscribe_to_newsletter()
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            AssociatedEmail.objects.filter(pk=self.secondary.pk).update(newsletter_subscribed=True)
+        # Unsubscribed addresses are not limited
+        self.primary.unsubscribe_from_newsletter()
+        self.secondary.unsubscribe_from_newsletter()
+        self.assertEqual(self.user.associated_emails.filter(newsletter_subscribed=False).count(), 3)
 
     def test_unsubscribe_link_accepts_one_click_post_without_csrf(self):
         self.primary.subscribe_to_newsletter()

@@ -513,6 +513,15 @@ def edit_communications(request):
                   {'form': form, 'has_verified_email': has_verified_email})
 
 
+def mask_email(email):
+    """
+    Mask the local part of an email address, e.g. 'r***@example.com',
+    so a public page can identify the address without revealing it.
+    """
+    local, _, domain = email.rpartition('@')
+    return '{0}***@{1}'.format(local[:1], domain)
+
+
 # The token authenticates the request, and mail clients that support
 # one-click unsubscribe (RFC 8058) send a POST without a CSRF token.
 @csrf_exempt
@@ -527,16 +536,19 @@ def newsletter_unsubscribe(request, token):
     if associated_email is None:
         return render(request, 'user/newsletter_unsubscribe.html', {'isvalid': False}, status=404)
 
+    # The page is public, so anyone holding a forwarded link can see it
+    masked_email = mask_email(associated_email.email)
+
     if request.method == 'POST':
         associated_email.unsubscribe_from_newsletter()
         logger.info('Unsubscribed email {0} of user {1} from the newsletter'.format(
             associated_email.id, associated_email.user_id))
         return render(request, 'user/newsletter_unsubscribe.html',
-                      {'isvalid': True, 'unsubscribed': True, 'email': associated_email.email})
+                      {'isvalid': True, 'unsubscribed': True, 'email': masked_email})
 
     return render(request, 'user/newsletter_unsubscribe.html',
                   {'isvalid': True, 'unsubscribed': not associated_email.newsletter_subscribed,
-                   'email': associated_email.email})
+                   'email': masked_email})
 
 
 @login_required
