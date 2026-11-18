@@ -1,0 +1,33 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+
+{% block title %}{{ report_title }} metrics{% endblock %}
+
+{% block content %}
+<div data-metrics-start="{{ usage_trend.start_date|date:'Y-m-d' }}" data-metrics-end="{{ usage_trend.end_date|date:'Y-m-d' }}">
+<div class="card mb-3">
+  <div class="card-header">{{ report_title }}{% include 'console/metrics_help.html' with title=report_title description=report_description %}</div>
+  <div class="card-body">
+
+    {% if usage_record_dates.first %}
+    <p class="text-muted mb-2">Available records: {{ usage_record_dates.first|date:"M j, Y" }} – {{ usage_record_dates.last|date:"M j, Y" }}.{% include 'console/metrics_help.html' with title="Available records" description="First and latest session start for published datasets, before applying the date filter. These bounds do not guarantee complete historical coverage. Updated every five minutes. You can select an end date through today, including days with no recorded activity." %}</p>
+    {% else %}
+    <p class="text-muted mb-2">No dataset access records available.</p>
+    {% endif %}
+    {% include 'console/usage_period_filters.html' %}
+
+    <p>Registered file-access page viewers; not confirmed downloads or research use.</p>
+
+    <noscript><p>{{ report_description }}</p></noscript>
+  </div>
+</div>
+
+
+{% include 'console/metrics_profile_sections.html' with sections=sections|slice:":1" %}
+{% if usage_trend %}{% include 'console/usage_trends.html' %}{% endif %}
+{% include 'console/metrics_profile_sections.html' with sections=sections|slice:"1:" %}
+
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script><script src="{% static 'console/js/metrics-trend.js' %}" defer></script><script src="{% static 'console/js/metrics-chart-export.js' %}" defer></script>{% endblock %}

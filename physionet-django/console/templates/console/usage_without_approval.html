@@ -1,0 +1,20 @@
+<div class="card mb-3" id="viewers-without-approved-application">
+  <div class="card-header">{{ report.title }}{% include 'console/metrics_help.html' with title=report.title description=report.description %}</div>
+  <div class="card-body">
+    <p><strong>{{ report.total|floatformat:"0g" }}</strong> unique viewers across the selected period.</p>
+    <p class="small text-muted">No country breakdown is available from the approved-application source for this group.
+      Classification uses current records, not historical credential status.</p>
+    <div data-metrics-chart="{{ report.id }}" data-title="{{ report.title }}" data-label="Monthly registered viewers without an approved credential application. Exact values are in the table below."></div>
+    {{ report.chart|json_script:report.id }}
+    <p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial month</p>
+    {% include 'console/metrics_chart_downloads.html' with chart_id=report.id csv_query=report.export_query %}
+    <details>
+      <summary>Show monthly table</summary>
+      <div class="table-responsive"><table class="table table-bordered">
+        <thead><tr>{% for header in report.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in report.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+      </table></div>
+    </details>
+    <noscript><p>{{ report.description }}</p></noscript>
+  </div>
+</div>

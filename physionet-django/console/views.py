@@ -5,11 +5,27 @@ from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
 from statistics import StatisticsError, median
+from urllib.parse import urlencode
 
 import notification.utility as notification
 from notification.utility import archive_notify
 from background_task import background
 from console.tasks import associated_task, get_associated_tasks
+from console.access_trends import ACCESS_DESCRIPTION, access_record_dates, approved_user_trends, pending_request_trend
+from console.reporting import (
+    access_pending_summary,
+    access_pending_summary_csv,
+    access_queue_rows,
+    access_trend,
+    pending_access_requests,
+    queue_csv,
+    report_csv,
+)
+from console.usage_trends import (
+    usage_trends, usage_trends_csv, usage_country_trends, usage_monthly_demographics, usage_category_trend,
+    usage_dataset_trends,
+)
+from console.usage import UsageDateForm, usage_metrics, usage_sections, usage_csv, usage_record_dates, access_metrics
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
@@ -29,6 +45,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.decorators import method_decorator
+from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
@@ -5099,3 +5116,286 @@ def skip_external_review(request, project_slug, *args, **kwargs):
         return redirect('edit_submission', project_slug=project.slug)
 
     return redirect('submission_info', project_slug=project.slug)
+
+
+USAGE_DESCRIPTION = (
+    'Counts registered users viewing dataset file-access pages. Cards, tables and monthly charts all count '
+    'sessions that started within the selected dates, in the site time zone. Published versions are combined '
+    'except in the per-version table. Anonymous views and direct cloud downloads are excluded. These counts do '
+    'not establish confirmed downloads or research use. Demographic definitions and coverage are explained '
+    'beside each metric.')
+
+
+def _metrics_form(request, record_dates):
+    today = timezone.localdate()
+    default_start = max(today.replace(month=1, day=1), record_dates['first'] or today.replace(month=1, day=1))
+    data = {'start_date': default_start, 'end_date': today, **request.GET.dict()}
+    return UsageDateForm(data, first_record_date=record_dates['first'])
+
+
+def _export_query(start, end, export):
+    return urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat(), 'export': export})
+
+
+def _sections_csv(sections, start, end, filename):
+    response = usage_csv(sections, start, end)
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+def _page_params(request, start, end):
+    """Query strings for the full CSV, the monthly CSV and in-page links."""
+    params = request.GET.copy()
+    params['start_date'] = start.isoformat()
+    params['end_date'] = end.isoformat()
+    params['export'] = 'csv'
+    export_query = params.urlencode()
+    params['export'] = 'monthly'
+    trend_export_query = params.urlencode()
+    params.pop('export')
+    return params, export_query, trend_export_query
+
+
+def _split_coverage(section):
+    """Separate rows without a recognized value from the table rows."""
+    section['unavailable_rows'] = [row for row in section['rows'] if not row.get('information_available', True)]
+    section['rows'] = [row for row in section['rows'] if row.get('information_available', True)]
+
+
+def _country_table(request, section, params, anchor):
+    """Show the top countries with an 'Other' row, or every country five per page when expanded."""
+    limit = 10
+    section['anchor'] = anchor
+    expanded = request.GET.get('show_all_countries') == '1' or 'country_page' in request.GET
+    rows = section['rows']
+    if len(rows) > limit or expanded:
+        query = params.copy()
+        query.pop('country_page', None)
+        if expanded:
+            query.pop('show_all_countries', None)
+        else:
+            query['show_all_countries'] = '1'
+        section['toggle_url'] = f'?{query.urlencode()}#{anchor}'
+        section['toggle_label'] = f'Show top {limit}' if expanded else 'View complete list'
+    if not expanded:
+        section['rows'] = rows[:limit]
+        section['table_note'] = f'Top {limit} countries with available information; the CSV contains every country.'
+        if len(rows) > limit:
+            count = sum(row['count'] for row in rows[limit:])
+            total = section.get('coverage_total') or sum(row['count'] for row in rows)
+            known = section.get('coverage_count') or total
+            section['rows'].append({
+                'label': f'Other countries ({len(rows) - limit})', 'count': count,
+                'percentage': round(100 * count / total, 2),
+                'available_percentage': round(100 * count / known, 2),
+            })
+        return
+    page = Paginator(rows, 5).get_page(request.GET.get('country_page'))
+    section.update({'rows': page.object_list, 'page': page})
+    for direction, available, number in (
+            ('previous', page.has_previous(), page.number - 1),
+            ('next', page.has_next(), page.number + 1)):
+        if available:
+            query = params.copy()
+            query['country_page'] = number
+            section[f'{direction}_url'] = f'?{query.urlencode()}#{anchor}'
+
+
+def _account_age_pie(section, start, end, empty_label=None):
+    section['pie_export_query'] = _export_query(start, end, 'account-age')
+    section['pie_chart'] = {
+        'type': 'pie', 'series': [{'name': row['label'], 'values': [row['count']], 'color': color}
+                                  for row, color in zip(section['rows'], ['#2563eb', '#ea580c', '#64748b'])]}
+    if empty_label:
+        section['pie_chart']['empty_label'] = empty_label
+
+
+def _approved_country_group(section, start, end):
+    """Report viewers without an approved application beside the country table, not inside it."""
+    no_approval = sum(row['count'] for row in section['unavailable_rows']
+                      if row['label'] == 'No approved credential application')
+    section['display_title'] = 'Registered viewers with an approved credential application'
+    section['approved_group_total'] = section['coverage_total'] - no_approval
+    section['approved_group_coverage'] = (
+        round(100 * section['coverage_count'] / section['approved_group_total'], 2)
+        if section['approved_group_total'] else None)
+    section['unavailable_rows'] = [row for row in section['unavailable_rows']
+                                   if row['label'] != 'No approved credential application']
+    section['without_approval'] = {
+        **section['country_trend']['without_approval'], 'total': no_approval,
+        'export_query': _export_query(start, end, 'unapproved-monthly')}
+
+
+@console_permission_required('project.can_view_stats')
+def usage_stats(request):
+    record_dates = usage_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'sections': None, 'usage_record_dates': record_dates, 'report_title': 'Usage',
+               'report_description': USAGE_DESCRIPTION, 'report_group': 'usage'}
+    if not form.is_valid():
+        return render(request, 'console/usage_stats.html', context, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    export = request.GET.get('export')
+    usage_trend = usage_trends(start, end)
+    if export == 'monthly':
+        return usage_trends_csv(usage_trend)
+    if export == 'category-monthly':
+        return usage_trends_csv(usage_category_trend(start, end, usage_trend), 'usage-category-monthly-stats.csv')
+    if export in ('country-monthly', 'unapproved-monthly'):
+        country = usage_country_trends(start, end, usage_trend)
+        if export == 'unapproved-monthly':
+            return usage_trends_csv(country['without_approval'], 'usage-without-approval-monthly-stats.csv')
+        return usage_trends_csv(country['export'], 'usage-country-monthly-stats.csv')
+
+    sections = usage_sections(usage_metrics(start, end), 'usage')
+    by_key = {section['key']: section for section in sections}
+
+    def rankings(key):
+        return by_key[key]['rows'] if key in by_key else []
+
+    if export in ('datasets-monthly', 'versions-monthly'):
+        trends = usage_dataset_trends(start, end, usage_trend, rankings('top_datasets'), rankings('versions'))
+        key = 'versions' if export == 'versions-monthly' else 'datasets'
+        return usage_trends_csv(trends[key], f'usage-{key}-monthly-stats.csv')
+    if export == 'account-age':
+        return _sections_csv([by_key['account_age']], start, end, 'usage-account-age-stats.csv')
+    if export == 'csv':
+        return _sections_csv(sections, start, end, 'usage-stats.csv')
+
+    params, export_query, trend_export_query = _page_params(request, start, end)
+    order = {'top_datasets': 1, 'account_age': 2}
+    sections = sorted((section for section in sections if not section.get('csv_only')),
+                      key=lambda section: order.get(section['key'], 0))
+    dataset_trends = usage_dataset_trends(start, end, usage_trend, rankings('top_datasets'), rankings('versions'))
+    demographics = usage_monthly_demographics(start, end, usage_trend)
+    for section in sections:
+        key = section['key']
+        if key in ('top_datasets', 'versions'):
+            trend = 'versions' if key == 'versions' else 'datasets'
+            section['dataset_trend'] = dataset_trends[trend]
+            section['dataset_trend_query'] = _export_query(start, end, trend + '-monthly')
+            section['rows'] = section['rows'][:10]
+            if key == 'versions':
+                section['anchor'] = 'viewers-by-version'
+            section['display_title'] = (
+                'Top 10 dataset versions by unique registered viewers' if key == 'versions'
+                else 'Top 10 datasets by unique registered viewers')
+        if key == 'account_age':
+            _account_age_pie(section, start, end)
+        if key == 'category':
+            section['category_trend'] = usage_category_trend(start, end, usage_trend, demographics)
+            section['category_export_query'] = _export_query(start, end, 'category-monthly')
+        if section['has_coverage']:
+            _split_coverage(section)
+        if key == 'country':
+            section['country_trend'] = usage_country_trends(start, end, usage_trend, demographics)
+            section['country_trend_query'] = _export_query(start, end, 'country-monthly')
+            if section['has_coverage']:
+                _approved_country_group(section, start, end)
+            _country_table(request, section, params, 'viewers-by-country')
+    return render(request, 'console/usage_stats.html', {
+        **context, 'sections': sections, 'usage_trend': usage_trend, 'export_query': export_query,
+        'trend_export_query': trend_export_query, 'date_query': urlencode(
+            {'start_date': start.isoformat(), 'end_date': end.isoformat()}),
+    })
+
+
+def _access_queue_context(request, queue, now):
+    queue_trend = pending_request_trend(queue, now)
+    summary = access_pending_summary(queue, now)
+    page = paginate(request, queue, 5)
+    summary_page = Paginator(summary['datasets'], 5).get_page(request.GET.get('dataset_page'))
+    query = request.GET.copy()
+    query.pop('page', None)
+    query.pop('export', None)
+    context = {
+        'queue_title': 'Current pending dataset access requests',
+        'queue_hide_status': True, 'queue_item_label': 'Dataset / version',
+        'queue_hide_snapshot': True, 'queue_date_only': True, 'queue_show_range': True,
+        'queue_id': 'current-access-queue', 'queue_anchor': 'current-access-queue',
+        'queue_description': 'Oldest requests first. Elapsed days since the request, not a service deadline. '
+                             'Individual ages are completed 24-hour days (floor), not rounded. '
+                             'This queue is current and is not filtered by the selected historical dates.',
+        'queue_now': now, 'queue_total': page.paginator.count, 'queue_page': page,
+        'queue_rows': access_queue_rows(page, now), 'queue_query': query.urlencode(),
+        'queue_trend': queue_trend,
+        'access_summary': summary,
+        'access_summary_rows': summary_page.object_list, 'access_summary_page': summary_page,
+        'queue_links': request.user.has_perm('project.can_view_access_logs'),
+    }
+    summary_query = request.GET.copy()
+    summary_query.pop('export', None)
+    for direction, available, number in (
+            ('previous', summary_page.has_previous(), summary_page.number - 1),
+            ('next', summary_page.has_next(), summary_page.number + 1)):
+        if available:
+            summary_query['dataset_page'] = number
+            context[f'access_summary_{direction}_url'] = f'?{summary_query.urlencode()}#pending-by-dataset'
+    return context
+
+
+@console_permission_required('project.can_view_stats')
+def access_request_stats(request):
+    export = request.GET.get('export')
+    # The pending queue is a current snapshot, independent of the selected dates.
+    if export in ('pending', 'pending-monthly', 'pending-datasets', 'pending-versions'):
+        now = timezone.now()
+        queue = list(pending_access_requests(now).only(
+            'id', 'request_datetime', 'requester_id', 'status', 'project_id', 'project__slug', 'project__version'))
+        if export == 'pending':
+            return queue_csv('pending-access', access_queue_rows(iter(queue), now), snapshot=now)
+        if export == 'pending-monthly':
+            return report_csv(pending_request_trend(queue, now))
+        return access_pending_summary_csv(access_pending_summary(queue, now), versions=export == 'pending-versions')
+
+    record_dates = access_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'sections': None, 'record_dates': record_dates, 'report_title': 'Access requests',
+               'access_description': ACCESS_DESCRIPTION, 'report_group': 'access'}
+    if not form.is_valid():
+        return render(request, 'console/access_stats.html', context, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    report = access_trend(start, end)
+    if export == 'monthly':
+        return report_csv(report)
+    if export in ('country-monthly', 'category-monthly'):
+        return report_csv(approved_user_trends(start, end)[export.split('-')[0]])
+
+    sections = usage_sections(access_metrics(start, end), 'access')
+    by_key = {section['key']: section for section in sections}
+    if export == 'account-age':
+        return _sections_csv([by_key['account_age']], start, end, 'access-account-age-stats.csv')
+    if export == 'csv':
+        return _sections_csv(sections, start, end, 'access-request-stats.csv')
+    demographics = approved_user_trends(start, end)
+
+    params, export_query, trend_export_query = _page_params(request, start, end)
+    coverage_references = {}
+    for section in sections:
+        key = section['key']
+        if key == 'account_age':
+            section['pie_id'] = 'access-account-age'
+            _account_age_pie(section, start, end, 'No approved users in the selected period.')
+        if key in ('country', 'category'):
+            section['access_trend'] = demographics[key]
+            section['access_trend_query'] = _export_query(start, end, key + '-monthly')
+        if section['has_coverage']:
+            _split_coverage(section)
+            # Sections over the same population share the same people without an approved application.
+            if [row['label'] for row in section['unavailable_rows']] == ['No approved credential application']:
+                if section['population'] in coverage_references:
+                    section['coverage_reference'] = coverage_references[section['population']]
+                else:
+                    coverage_references[section['population']] = section['title']
+        if key == 'country':
+            _country_table(request, section, params, 'approved-users-by-country')
+    now = timezone.now()
+    queue = list(pending_access_requests(now).only(
+        'id', 'request_datetime', 'requester_id', 'status', 'project_id', 'project__slug', 'project__version'))
+    return render(request, 'console/access_stats.html', {
+        **context, 'sections': sections, 'export_query': export_query, 'trend_export_query': trend_export_query,
+        'access_profile_sections': [s for s in sections if not s.get('pie_chart')],
+        'access_account_age_sections': [s for s in sections if s.get('pie_chart')],
+        'report': report, 'date_query': urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()}),
+        **_access_queue_context(request, queue, now),
+    })
