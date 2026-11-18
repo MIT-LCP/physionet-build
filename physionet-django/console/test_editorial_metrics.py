@@ -22,15 +22,11 @@ from console.metrics_test_utils import MetricsTestCase
 
 class TestEditorialMetrics(MetricsTestCase):
     def test_editorial_first_decision_is_unique_and_uses_decision_month(self):
-        from console.reporting import editorial_trend
+        from console.editorial_metrics import editorial_trend
         from project.models import EditLog
         EditLog.objects.all().delete()
         ActiveProject.objects.exclude(pk=self.active.pk).update(submission_datetime=None)
         PublishedProject.objects.exclude(pk=self.dataset.pk).update(submission_datetime=None)
-        # The active copy must not duplicate its published snapshot.
-        ActiveProject.objects.filter(pk=self.active.pk).update(
-            core_project_id=self.dataset.core_project_id, version=self.dataset.version,
-        )
         first = EditLog.objects.create(project=self.dataset, decision=1,
                                        decision_datetime=self.when + timezone.timedelta(hours=36))
         EditLog.objects.create(project=self.dataset, decision=2,
@@ -38,12 +34,25 @@ class TestEditorialMetrics(MetricsTestCase):
         EditLog.objects.create(project=self.active, decision=0,
                                decision_datetime=self.when + timezone.timedelta(days=5))
         report = editorial_trend(date(2020, 6, 1), date(2020, 7, 31))
-        self.assertEqual(report['rows'], [['2020-06', 1.5, 1, 'Full month'], ['2020-07', None, 0, 'Full month']])
+        # Only the earliest decision per version counts: 1.5 days (published) and 5 days (active).
+        self.assertEqual(report['rows'], [['2020-06', 3.25, 2, 'Full month'], ['2020-07', None, 0, 'Full month']])
         self.assertNotIn('Excluded negative durations', report['description'])
         EditLog.objects.filter(pk=first.pk).update(decision_datetime=self.when - timezone.timedelta(days=1))
         report = editorial_trend(date(2020, 6, 1), date(2020, 7, 31))
-        self.assertEqual(report['rows'][0], ['2020-06', None, 0, 'Full month'])
+        self.assertEqual(report['rows'][0], ['2020-06', 5.0, 1, 'Full month'])
         self.assertIn('Excluded negative durations: 1', report['description'])
+
+    def test_annual_and_monthly_first_decision_use_the_same_fractional_durations(self):
+        from console.editorial_metrics import editorial_annual_stats, editorial_trend
+        from project.models import EditLog
+        EditLog.objects.all().delete()
+        ActiveProject.objects.exclude(pk=self.active.pk).update(submission_datetime=None)
+        PublishedProject.objects.exclude(pk=self.dataset.pk).update(submission_datetime=None)
+        EditLog.objects.create(project=self.dataset, decision=2,
+                               decision_datetime=self.when + timezone.timedelta(hours=36))
+        monthly = editorial_trend(date(2020, 6, 1), date(2020, 6, 30))['rows'][0]
+        self.assertEqual(monthly[1:3], [1.5, 1])
+        self.assertEqual(editorial_annual_stats()[2020][3], 1.5)
 
     def test_editorial_queue_reports_total_age_not_time_in_stage(self):
         from project.models import SubmissionStatus
@@ -174,7 +183,7 @@ class TestEditorialMetrics(MetricsTestCase):
 
     def test_exact_selected_dates_recompute_medians_and_keep_decision_cohorts_separate(self):
         from project.models import EditLog
-        from console.editorial_annual import editorial_annual_stats
+        from console.editorial_metrics import editorial_annual_stats
         from console.reporting import date_bounds
         EditLog.objects.all().delete()
         PublishedProject.objects.update(is_legacy=True)

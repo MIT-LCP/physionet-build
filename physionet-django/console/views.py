@@ -16,17 +16,15 @@ from console.credential_charts import credential_chart_panels
 from console.credential_metrics import (
     credential_annual_report, credential_annual_stats, credential_reapplication_csv, credential_summary_report,
 )
-from console.editorial_annual import editorial_annual_stats
+from console.editorial_metrics import editorial_annual_stats, editorial_trend, pending_projects, project_queue_rows
 from console.reporting import (
     access_pending_summary,
     access_pending_summary_csv,
     access_queue_rows,
     access_trend,
     date_bounds,
-    editorial_trend,
+    partial_periods,
     pending_access_requests,
-    pending_projects,
-    project_queue_rows,
     queue_csv,
     report_csv,
 )
@@ -3025,10 +3023,18 @@ def editorial_stats(request):
     """
     Editorial stats for reviewers.
     """
+    stats = editorial_annual_stats()
+    # The full annual history does not depend on the selected dates.
+    if request.GET.get('export') == 'csv':
+        return _stats_csv_response(
+            'editorial-stats.csv',
+            ['Year', 'Total publications', 'Submission to assignment of editor (median days)',
+             'Submission to final publication (median days)', 'Submission to first decision (median days)'],
+            ([year, *values] for year, values in sorted(stats.items())),
+        )
     response, operational = _editorial_operational_context(request)
     if response is not None:
         return response
-    stats = editorial_annual_stats()
     form = operational['report_form']
     valid_dates = form.is_valid()
     period_stats = OrderedDict()
@@ -3048,13 +3054,6 @@ def editorial_stats(request):
                  'Start date', 'End date'],
                 ([year, *values, start, end] for year, values in period_stats.items()),
             )
-    if request.GET.get('export') == 'csv':
-        return _stats_csv_response(
-            'editorial-stats.csv',
-            ['Year', 'Total publications', 'Submission to assignment of editor (median days)',
-             'Submission to final publication (median days)', 'Submission to first decision (median days)'],
-            ([year, *values] for year, values in sorted(stats.items())),
-        )
 
     review_page = Paginator(list(reversed(stats.items())), 5).get_page(request.GET.get('review_page'))
     review_query = request.GET.copy()
@@ -3069,9 +3068,8 @@ def editorial_stats(request):
             review_links[direction + '_url'] = f'?{review_query.urlencode()}#time-to-review'
     colors, markers = ['#2563eb', '#ea580c', '#15803d'], ['circle', 'square', 'triangle']
     chart_base = {'labels': [str(year) for year in period_stats], 'integer': False,
-                  'partial': [start > start.replace(year=year, month=1, day=1)
-                              or end < end.replace(year=year, month=12, day=31)
-                              or year == timezone.localdate().year for year in period_stats],
+                  'partial': partial_periods([str(year) for year in period_stats], start, end, 'year')
+                  if valid_dates else [],
                   'period_unit': 'year', 'partial_through': end.isoformat() if end else ''}
     duration_series = [
         {'name': name, 'values': [values[index] for values in period_stats.values()], 'color': color, 'marker': marker}

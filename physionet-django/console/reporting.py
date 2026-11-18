@@ -1,7 +1,7 @@
 """Definitions shared by monthly operational reports and their CSV exports."""
 import csv
 from calendar import monthrange
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from statistics import median
 
 from django.db.models import Count
@@ -33,15 +33,25 @@ def median_days(values):
     return round(median(values), 2) if values else None
 
 
+def partial_periods(labels, start_date, end_date, unit='month'):
+    """Whether each 'YYYY' or 'YYYY-MM' period is cut by the selected dates or is still in progress."""
+    today = timezone.localdate()
+    partial = []
+    for label in labels:
+        if unit == 'year':
+            first, last = date(int(label), 1, 1), date(int(label), 12, 31)
+        else:
+            year, month = map(int, label.split('-'))
+            first = date(year, month, 1)
+            last = first.replace(day=monthrange(year, month)[1])
+        partial.append(start_date > first or end_date < last or first <= today <= last)
+    return partial
+
+
 def trend_report(identifier, title, description, headers, rows, series,
                  start_date=None, end_date=None, integer=False, warning=''):
-    partial = []
-    for row in rows:
-        year, month = map(int, row[0].split('-'))
-        first = datetime(year, month, 1).date()
-        last = first.replace(day=monthrange(year, month)[1])
-        partial.append(bool(start_date and end_date and (
-            start_date > first or end_date < last or first <= timezone.localdate() <= last)))
+    partial = (partial_periods([row[0] for row in rows], start_date, end_date) if start_date and end_date
+               else [False] * len(rows))
     if start_date and end_date:
         headers = [*headers, 'Period coverage']
         rows = [[*row, 'Partial month' if limited else 'Full month'] for row, limited in zip(rows, partial)]
@@ -123,56 +133,6 @@ def queue_csv(identifier, rows, item_label='Project or application', snapshot=No
         })
     return report_csv({'id': identifier, 'headers': [item_label, 'Status', 'Since', 'Elapsed days'],
                        'rows': [[row['label'], row['status'], row['since'].isoformat(), row['days']] for row in rows]})
-
-
-def editorial_trend(start_date, end_date):
-    from django.db.models import Exists, Min, OuterRef, Q
-    from project.models import ActiveProject, PublishedProject
-    start, end = date_bounds(start_date, end_date)
-    published_version = PublishedProject.objects.filter(
-        core_project_id=OuterRef('core_project_id'), version=OuterRef('version'),
-    )
-    active = ActiveProject.objects.annotate(published=Exists(published_version)).filter(published=False)
-    values = {month: [] for month in month_labels(start_date, end_date)}
-    invalid = 0
-    for projects in (PublishedProject.objects.filter(is_legacy=False), active):
-        observations = projects.filter(submission_datetime__isnull=False).annotate(
-            first_decision=Min('edit_logs__decision_datetime', filter=Q(edit_logs__decision__in=(0, 1, 2))),
-        ).filter(first_decision__gte=start, first_decision__lt=end)
-        for submitted, decided in observations.values_list('submission_datetime', 'first_decision'):
-            days = (decided - submitted).total_seconds() / 86400
-            if days < 0:
-                invalid += 1
-                continue
-            values[period(decided)].append(days)
-    rows = [[month, median_days(days), len(days)] for month, days in values.items()]
-    return trend_report(
-        'editorial-monthly', 'Time to first editorial decision by month',
-        'One observation per submitted project version, grouped by first decision month. '
-        'Calendar days from initial submission to the earliest recorded accept, revise or reject decision. '
-        'Includes active and archived projects and non-legacy publications; published snapshots take precedence '
-        'over active copies. Missing submission or decision dates are omitted. Pending projects do not contribute '
-        'to medians. Boundary months may be partial; missing medians mean no valid observations. '
-        + (f'Excluded negative durations: {invalid}.' if invalid else ''),
-        ['Period (YYYY-MM)', 'Median days to first decision', 'Project versions with a decision'], rows,
-        [('Median days to first decision', 1)], start_date, end_date,
-        warning=f'Excluded negative durations: {invalid}.' if invalid else '',
-    )
-
-
-def pending_projects(now):
-    from project.models import ActiveProject, SubmissionStatus
-    return ActiveProject.objects.filter(
-        submission_status__gt=SubmissionStatus.ARCHIVED, submission_datetime__lte=now,
-    ).order_by('submission_datetime', 'pk')
-
-
-def project_queue_rows(projects, now):
-    from django.urls import reverse
-    return [{'label': project.slug,
-             'status': project.submission_status_label() + (' (on hold)' if project.is_on_hold else ''),
-             'since': project.submission_datetime, 'days': (now - project.submission_datetime).days,
-             'url': reverse('submission_info', args=[project.slug])} for project in projects]
 
 
 def elapsed_days(start, end):

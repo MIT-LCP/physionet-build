@@ -19,7 +19,7 @@
 <div class="card mb-3" id="time-to-review">
   <div class="card-header">Time to review by year (median days)</div>
   <div class="card-body">
-    <p>Selected dates filter publication dates for assignment and publication times, and first-decision dates for decision times. These are different populations. Annual medians use completed calendar days.</p>
+    <p>Selected dates filter publication dates for assignment and publication times, and first-decision dates for decision times. These are different populations. Assignment and publication medians use completed calendar days; first-decision medians use fractional days, as in the monthly chart.</p>
     <div data-metrics-chart="editorial-annual-duration" data-title="Time to review by year (median days)" data-label="Annual median processing days by interval. Selected-period values are in the chart CSV; the annual table retains the full history."></div>
     {{ review_charts.duration|json_script:'editorial-annual-duration' }}
     {% if review_partial %}<p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial year</p>{% endif %}
