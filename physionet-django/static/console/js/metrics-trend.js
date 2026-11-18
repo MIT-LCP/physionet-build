@@ -28,7 +28,7 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
     if (data.type === 'horizontal-bar' || data.type === 'horizontal-stacked-bar') {
       const stacked = data.type === 'horizontal-stacked-bar';
       const left = 310, width = 535, top = 45;
-      const rowHeight = Math.max(64, stacked ? 64 : data.series.length * 23 + 24);
+      const rowHeight = Math.max(data.row_height || 64, stacked ? 40 : data.series.length * 23 + 12);
       const height = top + data.labels.length * rowHeight;
       svg.setAttribute('viewBox', '0 0 900 ' + (height + 65));
       const values = stacked ? data.labels.map(function (_, i) {
@@ -48,19 +48,20 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
       data.labels.forEach(function (label, i) {
         const words = label.split(' '), lines = []; let line = '';
         words.forEach(function (word) {
-          if ((line + ' ' + word).length > 34 && line) { lines.push(line); line = word; }
+          if ((line + ' ' + word).length > (data.label_wrap || 34) && line) { lines.push(line); line = word; }
           else line += (line ? ' ' : '') + word;
         });
         if (line) lines.push(line);
         lines.forEach(function (text, j) {
-          add('text', {x: left - 16, y: top + i * rowHeight + rowHeight / 2 + j * 16 - (lines.length - 1) * 8,
-            'text-anchor': 'end', 'font-size': 13}, text);
+          add('text', {x: left - 16, y: top + i * rowHeight + rowHeight / 2 + 4 +
+            (j - (lines.length - 1) / 2) * (data.label_line_height || 16),
+            'text-anchor': 'end', 'font-size': data.label_font_size || 13}, text);
         });
         let base = 0;
         data.series.forEach(function (series, index) {
           const value = series.values[i];
           if (value === null) return;
-          const y = top + i * rowHeight + (stacked ? rowHeight / 2 - 11 : 10 + index * 23);
+          const y = top + i * rowHeight + (stacked || data.series.length === 1 ? rowHeight / 2 - 10 : 6 + index * 23);
           const bar = add('rect', {x: left + base / maximum * width, y: y,
             width: value / maximum * width, height: 20, fill: series.color || colors[index % colors.length], tabindex: 0});
           const title = document.createElementNS(ns, 'title');

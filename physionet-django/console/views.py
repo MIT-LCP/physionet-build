@@ -17,6 +17,7 @@ from console.credential_metrics import (
     credential_annual_report, credential_annual_stats, credential_reapplication_csv, credential_summary_report,
 )
 from console.editorial_metrics import editorial_annual_stats, editorial_trend
+from console.submission_profiles import CONTRIBUTOR_DEFINITION, submission_profile_sections
 from console.reporting import (
     access_pending_summary,
     access_pending_summary_csv,
@@ -32,7 +33,9 @@ from console.usage_trends import (
     usage_trends, usage_trends_csv, usage_country_trends, usage_monthly_demographics, usage_category_trend,
     usage_dataset_trends,
 )
-from console.usage import UsageDateForm, usage_metrics, usage_sections, usage_csv, usage_record_dates, access_metrics
+from console.usage import (
+    UsageDateForm, access_metrics, submissions_metrics, usage_csv, usage_metrics, usage_record_dates, usage_sections,
+)
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
@@ -3119,13 +3122,20 @@ def credentialing_stats(request):
 
 @console_permission_required('project.can_view_stats')
 def submission_stats(request):
+    if request.GET.get('table') == 'contributors' and request.GET.get('export') == 'csv':
+        today = timezone.localdate()
+        form = UsageDateForm({'start_date': today.replace(month=1, day=1), 'end_date': today, **request.GET.dict()})
+        if form.is_valid():
+            start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+            sections = usage_sections(submissions_metrics(start, end), 'submissions')
+            return _sections_csv(sections, start, end, 'submission-contributors-stats.csv')
     export_table = request.GET.get('table', 'monthly')
     if request.GET.get('export') == 'csv' and export_table not in ('monthly', 'yearly'):
         raise Http404('Unknown statistics table')
 
     stats = OrderedDict()
     monthly_periods = {}
-    todays_date = datetime.today()
+    todays_date = timezone.localdate()
     all_projects = [PublishedProject.objects.filter(is_legacy=False), ActiveProject.objects.all()]
     cur_year = todays_date.year
     cur_month = todays_date.month
@@ -3153,8 +3163,9 @@ def submission_stats(request):
 
         # Get times when projects were created
         for project in project_set:
-            create_yr = project.creation_datetime.year
-            create_mo = project.creation_datetime.strftime("%B")
+            created = timezone.localtime(project.creation_datetime)
+            create_yr = created.year
+            create_mo = created.strftime("%B")
             if create_yr in stats and create_mo in stats[create_yr]:
                 stats[create_yr][create_mo][0] += 1
             if create_yr in yearly_stats:
@@ -3163,8 +3174,9 @@ def submission_stats(request):
             # Get times when projects were submitted and count unique submissions vs. resubmissions
             edit_logs = project.edit_log_history()
             for log in edit_logs:
-                sub_date_yr = log.submission_datetime.year
-                sub_date_mo = log.submission_datetime.strftime("%B")
+                submitted = timezone.localtime(log.submission_datetime)
+                sub_date_yr = submitted.year
+                sub_date_mo = submitted.strftime("%B")
                 idx = 2 if log.is_resubmission else 1
                 if sub_date_yr in stats and sub_date_mo in stats[sub_date_yr]:
                     stats[sub_date_yr][sub_date_mo][idx] += 1
@@ -3173,8 +3185,9 @@ def submission_stats(request):
 
                 # Get times when projects were rejected, if applicable
                 if log.decision == 0 and log.decision_datetime:
-                    reject_yr = log.decision_datetime.year
-                    reject_mo = log.decision_datetime.strftime("%B")
+                    decided = timezone.localtime(log.decision_datetime)
+                    reject_yr = decided.year
+                    reject_mo = decided.strftime("%B")
                     if reject_yr in stats and reject_mo in stats[reject_yr]:
                         stats[reject_yr][reject_mo][4] += 1
                     if reject_yr in yearly_stats:
@@ -3182,8 +3195,9 @@ def submission_stats(request):
 
             # Get times when projects were published, if applicable
             try:
-                pub_yr = project.publish_datetime.year
-                pub_mo = project.publish_datetime.strftime("%B")
+                published = timezone.localtime(project.publish_datetime)
+                pub_yr = published.year
+                pub_mo = published.strftime("%B")
                 if pub_yr in stats and pub_mo in stats[pub_yr]:
                     stats[pub_yr][pub_mo][3] += 1
                 if pub_yr in yearly_stats:
@@ -3195,18 +3209,75 @@ def submission_stats(request):
         headers = ['Year', 'Created', 'Submitted', 'Resubmitted', 'Published', 'Rejected']
         if export_table == 'yearly':
             return _stats_csv_response(
-                f'submission-yearly-stats-{todays_date:%Y-%m-%d}.csv', headers,
-                ([year, *values] for year, values in sorted(yearly_stats.items())),
+                f'submission-yearly-stats-{todays_date:%Y-%m-%d}.csv', [*headers, 'Period coverage'],
+                ([year, *values, 'Partial year' if year == todays_date.year else 'Full year']
+                 for year, values in sorted(yearly_stats.items())),
             )
         return _stats_csv_response(
             f'submission-monthly-stats-{todays_date:%Y-%m-%d}.csv',
-            ['Period (YYYY-MM)', headers[0], 'Month', *headers[1:]],
-            ([monthly_periods[(year, month)], year, month, *values]
+            ['Period (YYYY-MM)', headers[0], 'Month', *headers[1:], 'Period coverage'],
+            ([monthly_periods[(year, month)], year, month, *values,
+              'Partial month' if monthly_periods[(year, month)] == todays_date.strftime('%Y-%m') else 'Full month']
              for year, months in reversed(stats.items()) for month, values in reversed(months.items())),
         )
 
+    def activity_charts(rows, partial, unit):
+        labels = [row[0] for row in rows]
+        series = [
+            {'name': name, 'values': [row[index + 1] for row in rows], 'color': color, 'marker': marker}
+            for index, (name, color, marker) in enumerate([
+                ('Created', '#475569', 'circle'), ('Submitted', '#2563eb', 'circle'),
+                ('Resubmitted', '#ea580c', 'square'), ('Published', '#15803d', 'triangle'),
+                ('Rejected', '#b91c1c', 'diamond'),
+            ])
+        ]
+        base = {'labels': labels, 'partial': partial, 'integer': True, 'period_unit': unit,
+                'partial_through': todays_date.isoformat()}
+        return {'created': {**base, 'legend': False, 'series': series[:1]},
+                'activity': {**base, 'series': series[1:], 'interactive_legend': True,
+                             'legend_title': 'Visible project activities', 'plot_height': 320},
+                'start_date': labels[0] + ('-01' if unit == 'month' else '-01-01')}
+
+    monthly_rows = [[monthly_periods[(year, month)], *values]
+                    for year, months in reversed(stats.items()) for month, values in reversed(months.items())]
+    yearly_rows = [[str(year), *values] for year, values in sorted(yearly_stats.items())]
+    monthly_charts = activity_charts(monthly_rows, [row[0] == todays_date.strftime('%Y-%m') for row in monthly_rows],
+                                     'month')
+    yearly_charts = activity_charts(yearly_rows, [row[0] == str(todays_date.year) for row in yearly_rows], 'year')
+
+    form = UsageDateForm({'start_date': todays_date.replace(month=1, day=1),
+                          'end_date': todays_date, **request.GET.dict()})
+    sections = []
+    if form.is_valid():
+        start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+        sections = submission_profile_sections(start, end)
+        if request.GET.get('export') == 'contributor-data':
+            section = next((item for item in sections if item['profile_id'] == request.GET.get('section')), None)
+            if section is None:
+                raise Http404('Unknown contributor chart')
+            export_section = {**section, 'rows': section['export_rows']}
+            response = usage_csv([export_section], start, end)
+            response['Content-Disposition'] = f'attachment; filename="{section["profile_id"]}.csv"'
+            return response
+
     return render(request, 'console/submission_stats.html',
-                  {'submenu': 'submission', 'stats': stats, 'yearly_stats': yearly_stats})
+                  {'submenu': 'submission', 'stats': stats, 'yearly_stats': yearly_stats,
+                   'form': form, 'sections': sections, 'contributor_definition': CONTRIBUTOR_DEFINITION,
+                   'snapshot_date': todays_date, 'current_month': todays_date.strftime('%B'),
+                   'monthly_charts': monthly_charts, 'yearly_charts': yearly_charts,
+                   'submission_definition': (
+                       'Each column counts activity by its own date in the site time zone, not a creation cohort. '
+                       'Created counts active and non-legacy published records, including unsubmitted drafts. '
+                       'Submitted and Resubmitted count edit-log events by submission date, separated by the '
+                       'resubmission flag. Rejected counts rejection decisions by decision date; Published counts '
+                       'publication records by publication date. Contributor profiles instead count distinct versions '
+                       'by their recorded first-submission date, preferring published snapshots over active copies. '
+                       'Milestones and edit-log events can differ in historical records; ratios between these '
+                       'columns are not conversion rates. Charts run oldest to newest; tables run newest to oldest. '
+                       'Legacy published projects are excluded from this report. '
+                       'Changes in recorded activity may reflect '
+                       'changes in recording practices; these reports do not establish the cause.')},
+                  status=200 if form.is_valid() else 400)
 
 
 @console_permission_required('project.can_view_stats')

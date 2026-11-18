@@ -7,11 +7,11 @@ from datetime import datetime, time, timedelta
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.db.models import BooleanField, Case, Count, Max, Min, OuterRef, Subquery, Value, When
+from django.db.models import BooleanField, Case, Count, Exists, Max, Min, OuterRef, Q, Subquery, Value, When
 from django.http import HttpResponse
 from django.utils import timezone
 
-from project.models import AccessLog, DataAccessRequest, PublishedProject
+from project.models import AccessLog, ActiveProject, Author, DataAccessRequest, PublishedAuthor, PublishedProject
 from user.models import COUNTRIES, CredentialApplication, User
 
 
@@ -92,7 +92,8 @@ def _viewer_demographic(users, field, labels, title, population='viewers'):
     return {
         'key': field.removeprefix('credential_'), 'title': title, 'population': population,
         'coverage_count': known, 'coverage_total': total,
-        'coverage_population': {'viewers': 'registered viewers', 'approved users': 'approved users'}[population],
+        'coverage_population': {'viewers': 'registered viewers', 'approved users': 'approved users',
+                                'submitting authors': 'submitting authors'}[population],
         'coverage_percentage': round(100 * known / total, 2) if total else None,
         'description': 'Uses the latest currently approved credential application, not a historical snapshot. '
                        'No approved application is separate from missing or unrecognized information on an approved '
@@ -246,6 +247,63 @@ def access_metrics(start_date, end_date):
     ]
 
 
+def submissions_metrics(start_date, end_date):
+    start = timezone.make_aware(datetime.combine(start_date, time.min))
+    end = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min))
+    active_type = ContentType.objects.get_for_model(ActiveProject)
+    published = PublishedProject.objects.filter(submission_datetime__gte=start, submission_datetime__lt=end)
+    # Prefer the published snapshot if the same core/version also has an active row.
+    published_version = PublishedProject.objects.filter(core_project_id=OuterRef('core_project_id'),
+                                                        version=OuterRef('version'))
+    active = ActiveProject.objects.filter(submission_datetime__gte=start, submission_datetime__lt=end).annotate(
+        already_published=Exists(published_version),
+    ).filter(already_published=False)
+    active_authors = Author.objects.filter(
+        content_type=active_type, object_id__in=active.values('pk'), is_submitting=True,
+    )
+    published_authors = PublishedAuthor.objects.filter(project__in=published, is_submitting=True)
+    submitters = _demographics(User.objects.filter(
+        Q(pk__in=active_authors.values('user_id')) | Q(pk__in=published_authors.values('user_id')),
+    ))
+    by_resource = Counter()
+    for projects in (active, published):
+        for row in projects.order_by().values('resource_type__name').annotate(count=Count('pk')):
+            by_resource[row['resource_type__name']] += row['count']
+    submission_count = sum(by_resource.values())
+    missing_submitters = (
+        active.exclude(pk__in=active_authors.values('object_id')).count()
+        + published.exclude(pk__in=published_authors.values('project_id')).count()
+    )
+
+    overview = [
+        ('Distinct declared institution names among submitting authors', _institution_count(submitters)),
+        ('Submitted project versions', submission_count),
+        ('Unique submitting authors', submitters.count()),
+        ('Submitters with an approved credential application', submitters.filter(credential_id__isnull=False).count()),
+        ('Submitted versions without a recorded submitting author', missing_submitters),
+    ]
+    countries = dict(COUNTRIES)
+    categories = dict(CredentialApplication.RESEARCHER_CATEGORIES)
+    return [
+        {'key': 'overview', 'title': 'Overview', 'description': '',
+         'rows': [{'label': label, 'count': count,
+                   'percentage': None}
+                  for label, count in overview]},
+        {'key': 'account_age', 'title': 'Submitting authors by account age',
+         'description': 'New means the account was created during the selected dates.',
+         'rows': _account_age(submitters, start_date, end_date)},
+        {'key': 'resource_type', 'title': 'Submissions by resource type',
+         'description': ('Submitted versions, including active, archived, and published projects. '
+                         'Revisions are not counted again.'),
+         'rows': [{'label': label, 'count': count, 'percentage': round(count * 100 / submission_count, 2)}
+                  for label, count in sorted(by_resource.items(), key=lambda pair: (-pair[1], pair[0]))]},
+        _viewer_demographic(submitters, 'credential_country', countries,
+                            'Submitting authors by country', population='submitting authors'),
+        _viewer_demographic(submitters, 'credential_category', categories,
+                            'Submitting authors by researcher category', population='submitting authors'),
+    ]
+
+
 def usage_csv(sections, start_date, end_date):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="usage-stats.csv"'
@@ -272,8 +330,9 @@ def usage_csv(sections, start_date, end_date):
 def usage_sections(sections, group='usage'):
     labels = {'overview': 'Measure', 'top_datasets': 'Dataset', 'country': 'Country',
               'category': 'Researcher category', 'versions': 'Dataset / version',
-              'account_age': 'Account creation period'}
-    population = {'usage': 'Registered viewers', 'access': 'Approved users'}[group]
+              'account_age': 'Account creation period', 'resource_type': 'Resource type'}
+    population = {'usage': 'Registered viewers', 'access': 'Approved users',
+                  'submissions': 'Submitting authors'}[group]
     result = [dict(section) for section in sections]
     for section in result:
         key = section['key']
@@ -281,9 +340,11 @@ def usage_sections(sections, group='usage'):
             section['display_title'] = 'Top 10 datasets by unique registered viewers'
         section['display_cards'] = key == 'overview'
         section['label_header'] = labels.get(key, 'Metric')
-        section['count_header'] = 'Count' if key == 'overview' else population
+        section['count_header'] = ('Count' if key == 'overview' else 'Submitted versions' if key == 'resource_type'
+                                   else population)
         section['show_percentage'] = key not in ('overview', 'versions')
-        section['percentage_header'] = f'All {population.lower()} (%)'
+        section['percentage_header'] = ('Submitted versions (%)' if key == 'resource_type'
+                                        else f'All {population.lower()} (%)')
         section['unavailable_label'] = 'Viewers' if group == 'usage' else population
         section['has_coverage'] = 'coverage_total' in section
         section['column_count'] = 4 if section['has_coverage'] else 3 if section['show_percentage'] else 2

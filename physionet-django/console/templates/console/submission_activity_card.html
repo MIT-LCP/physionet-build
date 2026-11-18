@@ -1,0 +1,12 @@
+<div class="card mb-3" data-metrics-start="{{ chart_start }}" data-metrics-end="{{ snapshot_date|date:'Y-m-d' }}">
+  <div class="card-header">{{ title }}{% include 'console/metrics_help.html' with title=title description=submission_definition %}</div>
+  <div class="card-body">
+    <div data-metrics-chart="{{ chart_id }}" data-title="{{ title }}" data-label="{{ title }}. Exact values are in the table below."></div>
+    {{ chart|json_script:chart_id }}
+    <p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial {{ unit }}</p>
+    {% include 'console/metrics_chart_downloads.html' with chart_id=chart_id csv_query=csv_query csv_path=request.path %}
+    <details><summary>Show {% if unit == 'month' %}monthly{% else %}annual{% endif %} table</summary>
+      {% if unit == 'month' %}{% include 'console/submission_monthly_table.html' %}{% else %}{% include 'console/submission_yearly_table.html' %}{% endif %}
+    </details>
+  </div>
+</div>
