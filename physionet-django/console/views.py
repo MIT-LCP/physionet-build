@@ -1,3 +1,16 @@
+import csv
+import logging
+import os
+from collections import OrderedDict
+from datetime import datetime
+from itertools import chain
+from statistics import StatisticsError, median
+from urllib.parse import urlencode
+
+import notification.utility as notification
+from notification.utility import archive_notify
+from background_task import background
+from console.tasks import associated_task, get_associated_tasks
 from console.access_trends import ACCESS_DESCRIPTION, access_record_dates, approved_user_trends, pending_request_trend
 from console.reporting import (
     access_pending_summary,
@@ -13,20 +26,6 @@ from console.usage_trends import (
     usage_dataset_trends,
 )
 from console.usage import UsageDateForm, usage_metrics, usage_sections, usage_csv, usage_record_dates, access_metrics
-from django.core.paginator import Paginator
-from urllib.parse import urlencode
-import csv
-import logging
-import os
-from collections import OrderedDict
-from datetime import datetime
-from itertools import chain
-from statistics import StatisticsError, median
-
-import notification.utility as notification
-from notification.utility import archive_notify
-from background_task import background
-from console.tasks import associated_task, get_associated_tasks
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
@@ -46,6 +45,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.decorators import method_decorator
+from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied
 from events.forms import EventAgreementForm, EventDatasetForm
 from events.models import Event, EventAgreement, EventDataset, EventApplication
@@ -5325,7 +5325,6 @@ def _access_queue_context(request, queue, now):
     }
     summary_query = request.GET.copy()
     summary_query.pop('export', None)
-    summary_query.pop('show_all_datasets', None)
     for direction, available, number in (
             ('previous', summary_page.has_previous(), summary_page.number - 1),
             ('next', summary_page.has_next(), summary_page.number + 1)):
@@ -5359,9 +5358,8 @@ def access_request_stats(request):
     report = access_trend(start, end)
     if export == 'monthly':
         return report_csv(report)
-    demographics = approved_user_trends(start, end)
     if export in ('country-monthly', 'category-monthly'):
-        return report_csv(demographics[export.split('-')[0]])
+        return report_csv(approved_user_trends(start, end)[export.split('-')[0]])
 
     sections = usage_sections(access_metrics(start, end), 'access')
     by_key = {section['key']: section for section in sections}
@@ -5369,6 +5367,7 @@ def access_request_stats(request):
         return _sections_csv([by_key['account_age']], start, end, 'access-account-age-stats.csv')
     if export == 'csv':
         return _sections_csv(sections, start, end, 'access-request-stats.csv')
+    demographics = approved_user_trends(start, end)
 
     params, export_query, trend_export_query = _page_params(request, start, end)
     coverage_references = {}

@@ -7,6 +7,7 @@ from statistics import median
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
+from django.urls import reverse
 from django.utils import timezone
 
 from project.models import DataAccessRequest
@@ -102,7 +103,6 @@ def pending_access_requests(now):
 
 
 def access_queue_rows(requests, now):
-    from django.urls import reverse
     return [{'label': f'{item.project.slug} / {item.project.version}', 'status': 'Pending access review',
              'dataset': item.project.slug, 'version': item.project.version,
              'since': item.request_datetime, 'days': (now - item.request_datetime).days,
