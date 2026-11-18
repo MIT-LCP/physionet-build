@@ -25,6 +25,54 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
       svg.appendChild(node);
       return node;
     }
+    if (data.type === 'horizontal-bar' || data.type === 'horizontal-stacked-bar') {
+      const stacked = data.type === 'horizontal-stacked-bar';
+      const left = 310, width = 535, top = 45;
+      const rowHeight = Math.max(64, stacked ? 64 : data.series.length * 23 + 24);
+      const height = top + data.labels.length * rowHeight;
+      svg.setAttribute('viewBox', '0 0 900 ' + (height + 65));
+      const values = stacked ? data.labels.map(function (_, i) {
+        return data.series.reduce(function (total, series) { return total + (series.values[i] || 0); }, 0);
+      }) : data.series.flatMap(function (series) { return series.values.filter(function (v) { return v !== null; }); });
+      const rawMax = Math.max(1, ...values);
+      const step = data.integer ? Math.max(1, Math.ceil(rawMax / 4)) : rawMax / 4;
+      const maximum = Math.ceil(rawMax / step) * step;
+      for (let i = 0; i <= 4; i++) {
+        const value = maximum * i / 4, x = left + width * i / 4;
+        add('line', {x1: x, y1: top - 10, x2: x, y2: height, stroke: '#ddd'});
+        if (!data.integer || Number.isInteger(value)) {
+          add('text', {x: x, y: height + 24, 'text-anchor': 'middle', 'font-size': 12},
+            Number(value.toPrecision(4)).toLocaleString('en-US'));
+        }
+      }
+      data.labels.forEach(function (label, i) {
+        const words = label.split(' '), lines = []; let line = '';
+        words.forEach(function (word) {
+          if ((line + ' ' + word).length > 34 && line) { lines.push(line); line = word; }
+          else line += (line ? ' ' : '') + word;
+        });
+        if (line) lines.push(line);
+        lines.forEach(function (text, j) {
+          add('text', {x: left - 16, y: top + i * rowHeight + rowHeight / 2 + j * 16 - (lines.length - 1) * 8,
+            'text-anchor': 'end', 'font-size': 13}, text);
+        });
+        let base = 0;
+        data.series.forEach(function (series, index) {
+          const value = series.values[i];
+          if (value === null) return;
+          const y = top + i * rowHeight + (stacked ? rowHeight / 2 - 11 : 10 + index * 23);
+          const bar = add('rect', {x: left + base / maximum * width, y: y,
+            width: value / maximum * width, height: 20, fill: series.color || colors[index % colors.length], tabindex: 0});
+          const title = document.createElementNS(ns, 'title');
+          title.textContent = label + ' — ' + series.name + ': ' + value;
+          bar.appendChild(title);
+          if (stacked) base += value;
+        });
+      });
+      if (!data.labels.length) add('text', {x: 450, y: 40, 'text-anchor': 'middle'}, 'No observations available.');
+      container.prepend(svg);
+      return;
+    }
     if (data.type === 'pie') {
       svg.setAttribute('viewBox', '0 0 900 330');
       const total = data.series.reduce(function (sum, series) { return sum + series.values[0]; }, 0);

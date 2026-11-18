@@ -115,7 +115,7 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
         context.fillStyle = '#b45309';
         context.fillText('*', 32, y + 20);
         context.fillStyle = '#4b5563';
-        context.fillText('Partial month', 44, y + 20);
+        context.fillText('Partial ' + (data.period_unit || 'month'), 44, y + 20);
       }
       const png = await new Promise(function (resolve) { canvas.toBlob(resolve, 'image/png'); });
       if (!png) throw new Error('PNG export failed');
