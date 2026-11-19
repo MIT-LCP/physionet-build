@@ -13,8 +13,8 @@ USER_DESCRIPTION = (
     'Accounts are grouped by join date in the site time zone. Activated means the account is active now, so '
     'accounts deactivated later are not counted as activated and recent months can still change as people '
     'confirm their email. Single sign-on accounts were created through an institutional login. Deleted accounts '
-    'are not counted in any month. Registered accounts at month end count every account that joined on or '
-    'before the last day of the month and still exists today.'
+    'are not counted in any month. Registered accounts are a running total of every account that joined on or '
+    'before the last day of the month, or the selected end date for a partial month, and still exists today.'
 )
 
 USER_DATES_CACHE_KEY = 'console:users:record-dates:v1'
@@ -27,7 +27,9 @@ def user_record_dates():
     bounds = cache.get(USER_DATES_CACHE_KEY)
     if bounds is None:
         bounds = User.objects.aggregate(first=Min('join_date'), last=Max('join_date'))
-        cache.set(USER_DATES_CACHE_KEY, bounds, 300)
+        # Don't cache an empty site, so the first account shows up straight away
+        if bounds['first'] is not None:
+            cache.set(USER_DATES_CACHE_KEY, bounds, 300)
     return bounds
 
 
@@ -49,7 +51,7 @@ def user_trend(start_date, end_date):
         'New accounts by join month, with those active now and those created through single sign-on. '
         + USER_DESCRIPTION,
         ['Period (YYYY-MM)', 'New accounts', 'Activated accounts', 'Single sign-on accounts',
-         'Registered accounts at month end'], rows,
+         'Registered accounts (running total)'], rows,
         [('New accounts', 1), ('Activated accounts', 2), ('Single sign-on accounts', 3)],
         start_date, end_date, integer=True,
     )
@@ -61,11 +63,11 @@ def user_trend(start_date, end_date):
         series.update({'color': color, 'marker': marker})
 
     total_report = trend_report(
-        'users-total-monthly', 'Registered accounts at month end',
-        'Every account that joined on or before the last day of each month and still exists today. '
-        + USER_DESCRIPTION,
-        ['Period (YYYY-MM)', 'Registered accounts at month end'], [[row[0], row[4]] for row in rows],
-        [('Registered accounts at month end', 1)], start_date, end_date, integer=True,
+        'users-total-monthly', 'Registered accounts by month',
+        'Running total of accounts that joined on or before the last day of each month, or the selected end date '
+        'for a partial month, and still exist today. ' + USER_DESCRIPTION,
+        ['Period (YYYY-MM)', 'Registered accounts (running total)'], [[row[0], row[4]] for row in rows],
+        [('Registered accounts (running total)', 1)], start_date, end_date, integer=True,
     )
     total_report['chart'].update({'period_unit': 'month', 'partial_through': end_date.isoformat(), 'legend': False})
     total_report['chart']['series'][0]['color'] = '#475569'
@@ -75,16 +77,18 @@ def user_trend(start_date, end_date):
 def last_login_summary(now=None):
     """Current snapshot of active accounts by time since their last login."""
     now = now or timezone.now()
-    users = User.objects.filter(is_active=True)
-    rows = []
-    for label, low, high in LOGIN_BANDS:
-        band = users.filter(last_login__isnull=False)
+    bands = {}
+    for index, (label, low, high) in enumerate(LOGIN_BANDS):
+        band = Q(last_login__isnull=False)
         if low:
-            band = band.filter(last_login__lte=now - timedelta(days=low))
+            band &= Q(last_login__lte=now - timedelta(days=low))
         if high is not None:
-            band = band.filter(last_login__gt=now - timedelta(days=high))
-        rows.append([label, band.count()])
-    rows.append(['Never logged in', users.filter(last_login__isnull=True).count()])
+            band &= Q(last_login__gt=now - timedelta(days=high))
+        bands[f'band_{index}'] = Count('pk', filter=band)
+    counts = User.objects.filter(is_active=True).aggregate(
+        **bands, never=Count('pk', filter=Q(last_login__isnull=True)))
+    rows = [[label, counts[f'band_{index}']] for index, (label, _, _) in enumerate(LOGIN_BANDS)]
+    rows.append(['Never logged in', counts['never']])
     total = sum(count for _, count in rows)
     return {
         'id': 'users-last-login', 'title': 'Active accounts by last login', 'snapshot': now, 'total': total,

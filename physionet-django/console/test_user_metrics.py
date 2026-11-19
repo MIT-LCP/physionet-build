@@ -1,6 +1,7 @@
 import csv
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from io import StringIO
+from unittest.mock import patch
 
 from django.contrib.auth.models import Permission
 from django.core.cache import cache
@@ -8,7 +9,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from console.user_metrics import USER_DATES_CACHE_KEY, last_login_summary, user_trend
+from console.user_metrics import USER_DATES_CACHE_KEY, last_login_summary, user_record_dates, user_trend
 from user.models import User
 
 
@@ -78,6 +79,23 @@ class TestUserMetrics(TestCase):
         response = self.client.get(reverse('user_stats'), {'start_date': '2020-03-01', 'end_date': '2020-01-01'})
         self.assertEqual(response.status_code, 400)
 
+    def test_last_login_summary_runs_one_query(self):
+        with self.assertNumQueries(1):
+            last_login_summary()
+
+    def test_last_login_csv_snapshot_uses_site_time(self):
+        self.client.force_login(self.admin)
+        rows = list(csv.reader(StringIO(
+            self.client.get(reverse('user_stats'), {'export': 'last-login'}).content.decode())))
+        snapshot = datetime.fromisoformat(rows[1][0])
+        self.assertEqual(snapshot.utcoffset(), timezone.localtime(snapshot).utcoffset())
+
+    def test_empty_record_dates_are_not_cached(self):
+        with patch('console.user_metrics.User.objects.aggregate', return_value={'first': None, 'last': None}):
+            self.assertIsNone(user_record_dates()['first'])
+        self.assertIsNone(cache.get(USER_DATES_CACHE_KEY))
+        self.assertIsNotNone(user_record_dates()['first'])
+
     def test_page_requires_stats_permission(self):
         self.client.force_login(User.objects.get(email='joined-0@example.com'))
-        self.assertNotEqual(self.client.get(reverse('user_stats')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('user_stats')).status_code, 403)

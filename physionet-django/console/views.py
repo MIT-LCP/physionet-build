@@ -5521,7 +5521,8 @@ def user_stats(request):
     if request.GET.get('export') == 'last-login':
         summary = last_login_summary()
         return report_csv({'id': 'users-last-login', 'headers': ['Snapshot', *summary['headers']],
-                           'rows': [[summary['snapshot'].isoformat(), *row] for row in summary['rows']]})
+                           'rows': [[timezone.localtime(summary['snapshot']).isoformat(), *row]
+                                    for row in summary['rows']]})
     record_dates = user_record_dates()
     form = _metrics_form(request, record_dates)
     context = {'form': form, 'record_dates': record_dates, 'user_description': USER_DESCRIPTION}
