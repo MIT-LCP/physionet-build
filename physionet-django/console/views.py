@@ -43,7 +43,7 @@ from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db import transaction
-from django.db.models import Count, DurationField, F, Min, Q, Prefetch
+from django.db.models import Count, DurationField, F, Min, OuterRef, Q, Prefetch, Subquery
 from django.db.models.functions import Cast, TruncDate
 from django.forms import Select, Textarea, modelformset_factory, inlineformset_factory
 from django.forms.models import model_to_dict
@@ -3323,6 +3323,13 @@ def download_users(request):
                  ).order_by('decision_datetime'),
                  to_attr='accepted_credentials'))
 
+    # Annotate the newsletter address rather than querying it per user
+    newsletter_emails = AssociatedEmail.objects.filter(
+        user=OuterRef('pk'), is_verified=True, newsletter_subscribed=True)
+    users = users.annotate(
+        newsletter_email=Subquery(newsletter_emails.values('email')[:1]),
+        newsletter_subscribed_at=Subquery(newsletter_emails.values('newsletter_subscribed_at')[:1]))
+
     # Use StreamingHttpResponse to stream data
     response = StreamingHttpResponse(
         (csv.writer(Echo(), quoting=csv.QUOTE_ALL).writerow(row) for row in generate_user_csv_data(users)),
@@ -3364,7 +3371,9 @@ def generate_user_csv_data(users):
                   "credentialing_reference_email",
                   "credentialing_reference_org",
                   "credentialing_reference_response",
-                  "credentialing_research_summary"]
+                  "credentialing_research_summary",
+                  "newsletter_email",
+                  "newsletter_subscribed_at"]
 
     yield csv_header
 
@@ -3400,6 +3409,8 @@ def generate_user_csv_data(users):
                credentials.reference_organization if credentials else None,
                credentials.reference_response_text if credentials else None,
                credentials.research_summary if credentials else None,
+               user.newsletter_email,
+               user.newsletter_subscribed_at,
                ]
 
 

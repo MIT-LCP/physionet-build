@@ -85,6 +85,44 @@ class AssociatedEmailChoiceForm(forms.Form):
             self.fields['associated_email'].initial = author.corresponding_email
 
 
+class CommunicationsForm(forms.Form):
+    """
+    For choosing whether to receive the newsletter, and at which address.
+    Only verified addresses can be subscribed.
+    """
+    newsletter = forms.BooleanField(
+        required=False,
+        label='Send me the newsletter',
+        widget=forms.CheckboxInput(attrs={'class': 'custom-control-input'}))
+    newsletter_email = forms.ModelChoiceField(
+        queryset=None, to_field_name='email', empty_label=None,
+        label='Send the newsletter to',
+        widget=forms.Select(attrs={'class': 'form-control'}))
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        emails = user.associated_emails.filter(is_verified=True).order_by('-is_primary_email', 'email')
+        self.fields['newsletter_email'].queryset = emails
+
+        subscribed = emails.filter(newsletter_subscribed=True).first()
+        self.fields['newsletter'].initial = subscribed is not None
+        self.fields['newsletter_email'].initial = subscribed or emails.filter(is_primary_email=True).first()
+
+    def save(self):
+        """
+        Subscribe the chosen address and unsubscribe every other address
+        belonging to the user, so at most one address receives the newsletter.
+        """
+        chosen = self.cleaned_data['newsletter_email'] if self.cleaned_data['newsletter'] else None
+        with transaction.atomic():
+            for email in self.user.associated_emails.filter(newsletter_subscribed=True):
+                if email != chosen:
+                    email.unsubscribe_from_newsletter()
+            if chosen:
+                chosen.subscribe_to_newsletter()
+
+
 class AddEmailForm(forms.ModelForm):
     """
     For adding new associated emails

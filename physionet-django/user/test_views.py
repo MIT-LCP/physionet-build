@@ -18,9 +18,11 @@ from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
 from django.contrib import messages as msgs
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.messages.storage.fallback import FallbackStorage
-from django.core import mail
+from django.core import mail, signing
 from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import IntegrityError, transaction
+from django.template.defaultfilters import date as date_filter
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -1563,3 +1565,184 @@ class BackgroundTaskError(Exception):
 
     def __str__(self):
         return f"Task failed: {self.task}"
+
+
+class TestNewsletter(TestCase):
+    """Tests for the newsletter subscription settings and unsubscribe links."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='reader', email='reader@example.com', password='Tester11!',
+            is_active=True, first_names='Test', last_name='Reader',
+        )
+        self.primary = self.user.associated_emails.get(is_primary_email=True)
+        self.secondary = AssociatedEmail.objects.create(
+            user=self.user, email='reader@work.example.com', is_verified=True,
+            verification_date=timezone.now())
+        self.unverified = AssociatedEmail.objects.create(
+            user=self.user, email='reader@pending.example.com', is_verified=False)
+        self.url = reverse('edit_communications')
+
+    def post_preferences(self, **data):
+        self.client.login(username='reader', password='Tester11!')
+        return self.client.post(self.url, data=data)
+
+    def test_new_addresses_are_not_subscribed(self):
+        self.assertFalse(AssociatedEmail.objects.filter(newsletter_subscribed=True).exists())
+
+    def test_anonymous_redirected_to_login(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('login'), response.url)
+
+    def test_page_lists_only_verified_addresses(self):
+        self.client.login(username='reader', password='Tester11!')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        choices = list(response.context['form'].fields['newsletter_email'].queryset)
+        self.assertEqual(choices, [self.primary, self.secondary])
+        self.assertEqual(response.context['form'].fields['newsletter_email'].initial, self.primary)
+
+    def test_subscribe_records_address_and_time(self):
+        response = self.post_preferences(newsletter='on', newsletter_email=self.secondary.email)
+        self.assertRedirects(response, self.url)
+        self.secondary.refresh_from_db()
+        self.primary.refresh_from_db()
+        self.assertTrue(self.secondary.newsletter_subscribed)
+        self.assertIsNotNone(self.secondary.newsletter_subscribed_at)
+        self.assertFalse(self.primary.newsletter_subscribed)
+
+    def test_resaving_keeps_original_subscription_time(self):
+        self.post_preferences(newsletter='on', newsletter_email=self.primary.email)
+        self.primary.refresh_from_db()
+        first_subscribed_at = self.primary.newsletter_subscribed_at
+        self.post_preferences(newsletter='on', newsletter_email=self.primary.email)
+        self.primary.refresh_from_db()
+        self.assertEqual(self.primary.newsletter_subscribed_at, first_subscribed_at)
+
+    def test_switching_address_moves_subscription(self):
+        self.post_preferences(newsletter='on', newsletter_email=self.primary.email)
+        self.post_preferences(newsletter='on', newsletter_email=self.secondary.email)
+        self.assertEqual(
+            list(self.user.associated_emails.filter(newsletter_subscribed=True)), [self.secondary])
+
+    def test_unchecking_unsubscribes(self):
+        self.post_preferences(newsletter='on', newsletter_email=self.primary.email)
+        self.post_preferences(newsletter_email=self.primary.email)
+        self.primary.refresh_from_db()
+        self.assertFalse(self.primary.newsletter_subscribed)
+        # The time of the last consent is kept as a record
+        self.assertIsNotNone(self.primary.newsletter_subscribed_at)
+
+    def test_cannot_subscribe_unverified_address(self):
+        response = self.post_preferences(newsletter='on', newsletter_email=self.unverified.email)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['form'].errors)
+        self.unverified.refresh_from_db()
+        self.assertFalse(self.unverified.newsletter_subscribed)
+
+    def test_cannot_subscribe_another_users_address(self):
+        other = User.objects.create_user(
+            username='other', email='other@example.com', password='Tester11!',
+            is_active=True, first_names='Other', last_name='User')
+        response = self.post_preferences(newsletter='on', newsletter_email=other.email)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(AssociatedEmail.objects.filter(newsletter_subscribed=True).exists())
+
+    def test_unsubscribe_link_requires_post(self):
+        self.primary.subscribe_to_newsletter()
+        url = reverse('newsletter_unsubscribe', args=[self.primary.get_newsletter_unsubscribe_token()])
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.primary.refresh_from_db()
+        self.assertTrue(self.primary.newsletter_subscribed)
+
+        response = self.client.post(url)
+        self.assertEqual(response.status_code, 200)
+        self.primary.refresh_from_db()
+        self.assertFalse(self.primary.newsletter_subscribed)
+
+    def test_unsubscribe_page_masks_address(self):
+        self.primary.subscribe_to_newsletter()
+        url = reverse('newsletter_unsubscribe', args=[self.primary.get_newsletter_unsubscribe_token()])
+        for response in (self.client.get(url), self.client.post(url)):
+            self.assertNotContains(response, self.primary.email)
+            self.assertContains(response, 'r***@example.com')
+
+    def test_database_allows_one_subscribed_address_per_user(self):
+        self.primary.subscribe_to_newsletter()
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            AssociatedEmail.objects.filter(pk=self.secondary.pk).update(newsletter_subscribed=True)
+        # Unsubscribed addresses are not limited
+        self.primary.unsubscribe_from_newsletter()
+        self.secondary.unsubscribe_from_newsletter()
+        self.assertEqual(self.user.associated_emails.filter(newsletter_subscribed=False).count(), 3)
+
+    def test_unsubscribe_link_accepts_one_click_post_without_csrf(self):
+        self.primary.subscribe_to_newsletter()
+        url = reverse('newsletter_unsubscribe', args=[self.primary.get_newsletter_unsubscribe_token()])
+        client = self.client_class(enforce_csrf_checks=True)
+        response = client.post(url, data={'List-Unsubscribe': 'One-Click'})
+        self.assertEqual(response.status_code, 200)
+        self.primary.refresh_from_db()
+        self.assertFalse(self.primary.newsletter_subscribed)
+
+    def test_invalid_unsubscribe_token(self):
+        self.primary.subscribe_to_newsletter()
+        token = self.primary.get_newsletter_unsubscribe_token()
+        response = self.client.post(reverse('newsletter_unsubscribe', args=[token + 'x']))
+        self.assertEqual(response.status_code, 404)
+        self.primary.refresh_from_db()
+        self.assertTrue(self.primary.newsletter_subscribed)
+
+    def test_unsubscribe_token_not_valid_for_re_added_address(self):
+        self.secondary.subscribe_to_newsletter()
+        token = self.secondary.get_newsletter_unsubscribe_token()
+        address = self.secondary.email
+        self.secondary.delete()
+        new_record = AssociatedEmail.objects.create(
+            user=self.user, email=address, is_verified=True, newsletter_subscribed=True)
+        self.assertIsNone(AssociatedEmail.from_newsletter_unsubscribe_token(token))
+        new_record.refresh_from_db()
+        self.assertTrue(new_record.newsletter_subscribed)
+
+    def test_unsubscribe_token_does_not_expose_address(self):
+        token = self.primary.get_newsletter_unsubscribe_token()
+        self.assertNotIn(self.primary.email, signing.b64_decode(token.split(':')[0].encode()).decode())
+        self.assertEqual(AssociatedEmail.from_newsletter_unsubscribe_token(token), self.primary)
+
+    def test_unsubscribe_token_invalid_after_address_changes(self):
+        token = self.secondary.get_newsletter_unsubscribe_token()
+        AssociatedEmail.objects.filter(pk=self.secondary.pk).update(email='changed@example.com')
+        self.assertIsNone(AssociatedEmail.from_newsletter_unsubscribe_token(token))
+
+    def test_page_without_verified_address(self):
+        AssociatedEmail.objects.filter(user=self.user).update(is_verified=False)
+        self.client.login(username='reader', password='Tester11!')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['has_verified_email'])
+        self.assertContains(response, 'You need a verified email address to subscribe.')
+        self.assertNotContains(response, 'Save Changes')
+
+    def test_status_when_not_subscribed(self):
+        self.client.login(username='reader', password='Tester11!')
+        response = self.client.get(self.url)
+        self.assertIsNone(response.context['subscribed_email'])
+        self.assertContains(response, 'You are not subscribed to the newsletter.')
+
+    def test_status_when_subscribed(self):
+        self.secondary.subscribe_to_newsletter()
+        self.secondary.refresh_from_db()
+        self.client.login(username='reader', password='Tester11!')
+        response = self.client.get(self.url)
+        self.assertEqual(response.context['subscribed_email'], self.secondary)
+        self.assertContains(response, f'You are subscribed at <strong>{self.secondary.email}</strong>')
+        self.assertContains(response, date_filter(self.secondary.newsletter_subscribed_at, 'j M Y'))
+        self.assertNotContains(response, 'You are not subscribed')
+
+    def test_communications_tab_shown(self):
+        self.client.login(username='reader', password='Tester11!')
+        response = self.client.get(reverse('edit_profile'))
+        self.assertContains(response, f'href={self.url}')
