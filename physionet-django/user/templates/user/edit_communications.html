@@ -7,7 +7,16 @@
   <h1 class="form-signin-heading">Communications</h1>
   <hr>
   <h2 class="h4">Newsletter</h2>
-  <p>Our newsletter covers new datasets, events, challenges, and community news. You can unsubscribe at any time, here or from the link in any newsletter.</p>
+  <p>Our newsletter covers new datasets, events, challenges, and community news. If you subscribe, you can unsubscribe at any time, here or from the link in any newsletter.</p>
+  {% if subscribed_email %}
+    <p class="alert alert-info" id="newsletter-status">
+      You are subscribed at <strong>{{ subscribed_email.email }}</strong>{% if subscribed_email.newsletter_subscribed_at %} since {{ subscribed_email.newsletter_subscribed_at|date:"j M Y" }}{% endif %}.
+    </p>
+  {% else %}
+    <p class="alert alert-secondary" id="newsletter-status">
+      You are not subscribed to the newsletter.
+    </p>
+  {% endif %}
   {% if has_verified_email %}
     {% csrf_token %}
     <div class="form-group">

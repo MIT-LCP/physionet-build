@@ -22,6 +22,7 @@ from django.core import mail, signing
 from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
+from django.template.defaultfilters import date as date_filter
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -1723,6 +1724,22 @@ class TestNewsletter(TestCase):
         self.assertFalse(response.context['has_verified_email'])
         self.assertContains(response, 'You need a verified email address to subscribe.')
         self.assertNotContains(response, 'Save Changes')
+
+    def test_status_when_not_subscribed(self):
+        self.client.login(username='reader', password='Tester11!')
+        response = self.client.get(self.url)
+        self.assertIsNone(response.context['subscribed_email'])
+        self.assertContains(response, 'You are not subscribed to the newsletter.')
+
+    def test_status_when_subscribed(self):
+        self.secondary.subscribe_to_newsletter()
+        self.secondary.refresh_from_db()
+        self.client.login(username='reader', password='Tester11!')
+        response = self.client.get(self.url)
+        self.assertEqual(response.context['subscribed_email'], self.secondary)
+        self.assertContains(response, f'You are subscribed at <strong>{self.secondary.email}</strong>')
+        self.assertContains(response, date_filter(self.secondary.newsletter_subscribed_at, 'j M Y'))
+        self.assertNotContains(response, 'You are not subscribed')
 
     def test_communications_tab_shown(self):
         self.client.login(username='reader', password='Tester11!')

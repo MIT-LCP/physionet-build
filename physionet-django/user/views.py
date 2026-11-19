@@ -509,8 +509,12 @@ def edit_communications(request):
             return redirect('edit_communications')
 
     has_verified_email = user.associated_emails.filter(is_verified=True).exists()
+    # The saved subscription, shown as a status line above the form
+    subscribed_email = user.associated_emails.filter(
+        is_verified=True, newsletter_subscribed=True).first()
     return render(request, 'user/edit_communications.html',
-                  {'form': form, 'has_verified_email': has_verified_email})
+                  {'form': form, 'has_verified_email': has_verified_email,
+                   'subscribed_email': subscribed_email})
 
 
 def mask_email(email):
