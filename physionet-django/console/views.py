@@ -38,6 +38,7 @@ from console.usage_trends import (
     usage_dataset_trends,
 )
 from console.usage import UsageDateForm, access_metrics, usage_csv, usage_metrics, usage_record_dates, usage_sections
+from console.user_metrics import USER_DESCRIPTION, last_login_summary, user_record_dates, user_trend
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
@@ -5512,4 +5513,29 @@ def training_stats(request):
         'trends': [(build(start, end), _export_query(start, end, key)) for key, build in reports.items()
                    if key != 'types'],
         'types': type_summary(start, end), 'types_query': _export_query(start, end, 'types'),
+    })
+
+
+@console_permission_required('project.can_view_stats')
+def user_stats(request):
+    if request.GET.get('export') == 'last-login':
+        summary = last_login_summary()
+        return report_csv({'id': 'users-last-login', 'headers': ['Snapshot', *summary['headers']],
+                           'rows': [[summary['snapshot'].isoformat(), *row] for row in summary['rows']]})
+    record_dates = user_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'record_dates': record_dates, 'user_description': USER_DESCRIPTION}
+    if not form.is_valid():
+        return render(request, 'console/user_stats.html', context, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    report, total_report = user_trend(start, end)
+    export = request.GET.get('export')
+    if export == 'monthly':
+        return report_csv(report)
+    if export == 'total-monthly':
+        return report_csv(total_report)
+    return render(request, 'console/user_stats.html', {
+        **context, 'report': report, 'total_report': total_report, 'login_summary': last_login_summary(),
+        'trend_export_query': _export_query(start, end, 'monthly'),
+        'total_export_query': _export_query(start, end, 'total-monthly'),
     })
