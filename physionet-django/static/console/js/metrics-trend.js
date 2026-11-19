@@ -206,6 +206,10 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
         const title = document.createElementNS(ns, 'title');
         title.textContent = data.labels[i] + ' — ' + series.name + ': ' + value + coverage(i);
         point.appendChild(title);
+        if (data.value_labels) {
+          add('text', {x: x(i), y: y(bar ? bases[i] : value) - 10, 'text-anchor': 'middle', 'font-size': 12,
+            fill: '#333', 'aria-hidden': 'true'}, Number(value).toLocaleString('en-US'));
+        }
         previous = i;
       });
       if (!showLegend) return;
