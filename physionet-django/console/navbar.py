@@ -219,6 +219,7 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('Usage'), 'usage_stats'),
         NavLink(_('Access requests'), 'access_request_stats'),
         NavLink(_('Users'), 'user_stats'),
+        NavLink(_('AWS downloads'), 'download_stats'),
         NavLink(_('Export data'), 'downloads'),
     ]),
 

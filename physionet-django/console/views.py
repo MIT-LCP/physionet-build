@@ -16,6 +16,7 @@ from console.credential_charts import credential_chart_panels
 from console.credential_metrics import (
     credential_annual_report, credential_annual_stats, credential_reapplication_csv, credential_summary_report,
 )
+from console.download_metrics import DOWNLOAD_DESCRIPTION, download_record_dates, download_report, import_coverage
 from console.editorial_metrics import editorial_annual_stats, editorial_trend
 from console.submission_profiles import CONTRIBUTOR_DEFINITION, submission_profile_sections
 from console.training_metrics import (
@@ -5539,4 +5540,29 @@ def user_stats(request):
         **context, 'report': report, 'total_report': total_report, 'login_summary': last_login_summary(),
         'trend_export_query': _export_query(start, end, 'monthly'),
         'total_export_query': _export_query(start, end, 'total-monthly'),
+    })
+
+
+@console_permission_required('project.can_view_stats')
+def download_stats(request):
+    record_dates = download_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'record_dates': record_dates, 'download_description': DOWNLOAD_DESCRIPTION}
+    if not form.is_valid():
+        return render(request, 'console/download_stats.html', context, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    report = download_report(start, end)
+    exports = {'csv': 'ranking', 'monthly': 'trend', 'total-monthly': 'downloads_monthly',
+               'clients-monthly': 'clients_monthly', 'volume-monthly': 'volume_monthly', 'buckets': 'by_bucket'}
+    export = request.GET.get('export')
+    if export in exports:
+        return report_csv(report[exports[export]])
+    params, export_query, trend_export_query = _page_params(request, start, end)
+    return render(request, 'console/download_stats.html', {
+        **context, 'report': report, 'coverage': import_coverage(start, end),
+        'export_query': export_query, 'trend_export_query': trend_export_query,
+        'total_export_query': _export_query(start, end, 'total-monthly'),
+        'clients_export_query': _export_query(start, end, 'clients-monthly'),
+        'volume_export_query': _export_query(start, end, 'volume-monthly'),
+        'bucket_export_query': _export_query(start, end, 'buckets'),
     })
