@@ -458,9 +458,9 @@ def edit_decision_notify(request, project, edit_log, reminder=False):
         )
 
 
-def copyedit_complete_notify(request, project, copyedit_log, reminder=False):
+def copyedit_complete_notify(request, project, copyedit_log, reminder=False, reopened=False):
     """
-    Notify authors when the editor has finished copyediting
+    Notify authors when the project is awaiting their approval.
     """
     subject = 'Your approval needed to publish: {0}'.format(project.title)
     # Prepend reminder to the subject if needed
@@ -474,6 +474,7 @@ def copyedit_complete_notify(request, project, copyedit_log, reminder=False):
                     'name': person.get_full_name(),
                     'project': project,
                     'copyedit_log': copyedit_log,
+                    'reopened': reopened,
                     'domain': get_current_site(request),
                     'url_prefix': get_url_prefix(request),
                     'signature': settings.EMAIL_SIGNATURE,

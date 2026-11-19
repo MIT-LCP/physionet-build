@@ -2855,6 +2855,49 @@ class TestExternalReview(TestMixin):
 
 
 class TestArchivePermission(TestMixin):
+    def test_project_editor_can_archive_copyedit_or_author_approval_project(self):
+        project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
+        self.client.login(username='tompollard', password='Tester11!')
+        url = reverse('submission_info', args=(project.slug,))
+
+        for status in (SubmissionStatus.NEEDS_COPYEDIT, SubmissionStatus.NEEDS_APPROVAL):
+            project.submission_status = status
+            project.save()
+            mail.outbox.clear()
+
+            response = self.client.get(url)
+            self.assertContains(response, 'id="archive-tab"')
+            archive_url = f'{url}?tab=archive'
+            self.assertContains(self.client.get(reverse('editor_home')), archive_url)
+            self.assertContains(self.client.get(reverse('submitted_projects')), archive_url)
+
+            self.client.post(url, {'archive_project': ''})
+            project.refresh_from_db()
+            self.assertEqual(project.submission_status, SubmissionStatus.ARCHIVED)
+            self.assertEqual(project.archive_submission_status, status)
+
+            response = self.client.post(url, {'reopen_project': ''})
+            self.assertRedirects(response, url, fetch_redirect_response=False)
+            project.refresh_from_db()
+            self.assertEqual(project.submission_status, status)
+            self.assertIsNone(project.archive_submission_status)
+            if status == SubmissionStatus.NEEDS_APPROVAL:
+                self.assertEqual(
+                    {email.to[0] for email in mail.outbox},
+                    {author.user.email for author in project.authors.all() if not author.approval_datetime},
+                )
+                self.assertTrue(all('Your approval needed to publish' in email.subject for email in mail.outbox))
+                self.assertTrue(all(
+                    'has been reopened and is awaiting your approval' in ' '.join(email.body.split())
+                    for email in mail.outbox
+                ))
+                self.assertTrue(all(
+                    'copyediting of your project' not in ' '.join(email.body.split())
+                    for email in mail.outbox
+                ))
+            else:
+                self.assertEqual(mail.outbox, [])
+
     def test_non_editor_without_permission_cannot_archive(self):
         project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
         editor = User.objects.get(username='admin')

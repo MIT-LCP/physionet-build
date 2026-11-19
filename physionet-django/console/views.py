@@ -408,6 +408,12 @@ REVIEWER_ACCESS_ACTIONS = (
     'decline_reviewer_access',
 )
 
+ARCHIVABLE_SUBMISSION_STATUSES = (
+    SubmissionStatus.NEEDS_RESUBMISSION,
+    SubmissionStatus.NEEDS_COPYEDIT,
+    SubmissionStatus.NEEDS_APPROVAL,
+)
+
 
 def can_manage_reviewer_access(user, project):
     """
@@ -520,6 +526,14 @@ def submission_info_card_params(request,
         'pending_reviewer_access_request': pending_reviewer_access_request,
         'can_manage_reviewer_access': can_manage_reviewer_access(request.user, project),
         'can_manage_revision_deadline': can_manage_revision_deadline(request.user, project),
+        'reopen_requires_revision_deadline': (
+            not project.archive_submission_status
+            or project.archive_submission_status == SubmissionStatus.NEEDS_RESUBMISSION
+        ),
+        'reopen_status_label': ActiveProject.SUBMISSION_STATUS_LABELS[
+            project.archive_submission_status or SubmissionStatus.NEEDS_RESUBMISSION
+        ],
+        'archivable_submission_statuses': ARCHIVABLE_SUBMISSION_STATUSES,
         'revision_deadline_form': revision_deadline_form or forms.RevisionDeadlineForm(
             initial={'revision_deadline': default_revision_deadline_date(project)}),
         'revision_reminder_days': settings.REVISION_REMINDER_DAYS,
@@ -646,22 +660,44 @@ def submission_info(request, project_slug):
             messages.error(request, "You are not authorized to delete this note.")
         return redirect(f'{request.path}?tab=notes')
     revision_deadline_form = None
-    if 'extend_revision_deadline' in request.POST or 'reopen_for_revisions' in request.POST:
-        reopening = 'reopen_for_revisions' in request.POST
+    if ('extend_revision_deadline' in request.POST or 'reopen_for_revisions' in request.POST
+            or 'reopen_project' in request.POST):
+        reopening = 'reopen_for_revisions' in request.POST or 'reopen_project' in request.POST
         if not can_manage_revision_deadline(user, project):
             messages.error(request, 'Only the project editor or a managing editor can change the revision deadline.')
         elif reopening and not project.is_reopenable():
-            messages.error(request, 'This project cannot be reopened for revisions.')
+            messages.error(request, 'This project cannot be reopened.')
         elif not reopening and project.submission_status != SubmissionStatus.NEEDS_RESUBMISSION:
             messages.error(request, 'Only projects awaiting author revisions have a revision deadline.')
         else:
+            reopening_for_revisions = (
+                not project.archive_submission_status
+                or project.archive_submission_status == SubmissionStatus.NEEDS_RESUBMISSION
+            )
+            if reopening and not reopening_for_revisions:
+                archive_reason = project.get_archive_reason_display()
+                restored_status = project.reopen()
+                restored_status_label = ActiveProject.SUBMISSION_STATUS_LABELS[restored_status]
+                if restored_status == SubmissionStatus.NEEDS_APPROVAL:
+                    notification.copyedit_complete_notify(
+                        request, project, project.copyedit_logs.last(), reopened=True)
+                InternalNote.objects.create(
+                    project=project,
+                    created_by=user,
+                    content='Reopened to {0} (archived: {1}).'.format(
+                        restored_status_label.lower(), archive_reason),
+                )
+                messages.success(request, 'The project has been reopened to {0}.'.format(
+                    restored_status_label.lower()))
+                return redirect(request.path)
+
             revision_deadline_form = forms.RevisionDeadlineForm(data=request.POST)
             if revision_deadline_form.is_valid():
                 deadline = revision_deadline_form.deadline_datetime()
                 if reopening:
                     note = 'Reopened for revisions (archived: {0}). Revision deadline set to {1}.'.format(
                         project.get_archive_reason_display(), date_format(timezone.localtime(deadline)))
-                    project.reopen_for_revisions(deadline)
+                    project.reopen(deadline)
                 else:
                     old_deadline = project.revision_deadline
                     note = 'Revision deadline changed from {0} to {1}.'.format(
@@ -684,8 +720,12 @@ def submission_info(request, project_slug):
             messages.error(request, 'Only the project editor or a managing editor can archive a project.')
             return redirect(f'{request.path}?tab=archive')
 
-        if project.submission_status != SubmissionStatus.NEEDS_RESUBMISSION:
-            messages.error(request, 'Only projects awaiting author revisions can be archived.')
+        if project.submission_status not in ARCHIVABLE_SUBMISSION_STATUSES:
+            messages.error(
+                request,
+                'Only projects awaiting author revisions, copyedit, or author approval '
+                'can be archived.'
+            )
             return redirect(f'{request.path}?tab=archive')
 
         archive_reason_text = request.POST.get('archive_reason', '').strip()
