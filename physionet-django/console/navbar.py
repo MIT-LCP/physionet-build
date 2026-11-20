@@ -218,6 +218,7 @@ CONSOLE_NAV_MENU = NavMenu([
         NavLink(_('Submissions'), 'submission_stats'),
         NavLink(_('Usage'), 'usage_stats'),
         NavLink(_('Access requests'), 'access_request_stats'),
+        NavLink(_('Users'), 'user_stats'),
         NavLink(_('Export data'), 'downloads'),
     ]),
 

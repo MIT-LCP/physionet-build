@@ -1,0 +1,56 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+
+{% block title %}Users metrics{% endblock %}
+
+{% block content %}
+<div data-metrics-start="{{ form.start_date.value|date:'Y-m-d'|default:form.start_date.value }}" data-metrics-end="{{ form.end_date.value|date:'Y-m-d'|default:form.end_date.value }}">
+<div class="card mb-3">
+  <div class="card-header">Users{% include 'console/metrics_help.html' with title="Users" description=user_description %}</div>
+  <div class="card-body">
+    <p>Selected period: accounts by join date between the chosen dates. Current snapshot: active accounts by last login as of now.</p>
+    <noscript><p>{{ user_description }}</p></noscript>
+  </div>
+</div>
+
+<section id="users-period" aria-labelledby="users-period-heading">
+  <div class="card mb-3">
+    <div class="card-header"><h2 class="h5 mb-0" id="users-period-heading">Selected period</h2></div>
+    <div class="card-body">
+      {% if record_dates.first %}
+      <p class="text-muted mb-2">Available records: {{ record_dates.first|date:"M j, Y" }} – {{ record_dates.last|date:"M j, Y" }}.{% include 'console/metrics_help.html' with title="Available records" description="First and latest join date of existing accounts, before applying filters. Updated every five minutes. The last-login snapshot is independent of this filter." %}</p>
+      {% else %}<p class="text-muted mb-2">No user accounts available.</p>{% endif %}
+      {% include 'console/usage_period_filters.html' %}
+    </div>
+  </div>
+
+  {% if report %}
+  {% include 'console/metrics_trend.html' %}
+  {% include 'console/metrics_trend.html' with report=total_report trend_export_query=total_export_query %}
+  {% endif %}
+</section>
+
+{% if login_summary %}
+<section id="users-snapshot" aria-labelledby="users-snapshot-heading">
+  <div class="card mb-3">
+    <div class="card-header"><h2 class="h5 mb-0 d-inline" id="users-snapshot-heading">{{ login_summary.title }}</h2>{% include 'console/metrics_help.html' with title=login_summary.title description=login_summary.description %}</div>
+    <div class="card-body">
+      <p class="text-muted">Snapshot: {{ login_summary.snapshot|date:"M j, Y H:i" }}. {{ login_summary.total }} active accounts.</p>
+      <div data-metrics-chart="{{ login_summary.id }}" data-title="{{ login_summary.title }}" data-label="{{ login_summary.title }}. Exact values are in the table below."></div>
+      {{ login_summary.chart|json_script:login_summary.id }}
+      {% include 'console/metrics_chart_downloads.html' with chart_id=login_summary.id csv_query='export=last-login' %}
+      <details>
+        <summary>Show last-login table</summary>
+        <div class="table-responsive"><table class="table table-bordered table-sm">
+          <thead><tr>{% for header in login_summary.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+          <tbody>{% for row in login_summary.rows %}<tr>{% for cell in row %}<td>{% if cell is None %}Not available{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+        </table></div>
+      </details>
+    </div>
+  </div>
+</section>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script><script src="{% static 'console/js/metrics-trend.js' %}" defer></script><script src="{% static 'console/js/metrics-chart-export.js' %}" defer></script>{% endblock %}
