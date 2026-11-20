@@ -186,6 +186,15 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
       const color = series.color || colors[index % colors.length];
       const bar = isBar(series);
       let previous = null;
+      // Label every Nth point (always the last) so value labels don't overlap on long ranges
+      let labelStep = 1;
+      if (data.value_labels) {
+        const spacing = stacked ? slotWidth : 780 / Math.max(1, data.labels.length - 1);
+        const widest = Math.max(0, ...series.values.map(function (value) {
+          return value === null ? 0 : Number(value).toLocaleString('en-US').length;
+        }));
+        labelStep = Math.max(1, Math.ceil((widest * 7 + 6) / spacing));
+      }
       series.values.forEach(function (value, i) {
         if (value === null) { previous = null; return; }
         if (!bar && previous !== null) {
@@ -206,7 +215,7 @@ document.querySelectorAll('[data-metrics-chart]').forEach(function (container) {
         const title = document.createElementNS(ns, 'title');
         title.textContent = data.labels[i] + ' — ' + series.name + ': ' + value + coverage(i);
         point.appendChild(title);
-        if (data.value_labels) {
+        if (data.value_labels && (series.values.length - 1 - i) % labelStep === 0) {
           add('text', {x: x(i), y: y(bar ? bases[i] : value) - 10, 'text-anchor': 'middle', 'font-size': 12,
             fill: '#333', 'aria-hidden': 'true'}, Number(value).toLocaleString('en-US'));
         }

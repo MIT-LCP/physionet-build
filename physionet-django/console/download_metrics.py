@@ -5,20 +5,22 @@ from datetime import date
 from django.db.models import Count, Max, Min
 
 from console.reporting import month_labels, partial_periods, trend_report
-from project.cloud.access_logs import DOWNLOAD_FRACTION, MIN_KNOWN_SIZE, month_counts, size_known
+from project.cloud.access_logs import (DOWNLOAD_FRACTION, MIN_KNOWN_SIZE, latest_complete_day, month_counts,
+                                       size_known)
 from project.models import PublishedProject, S3AccessLogImport
 
 DOWNLOAD_DESCRIPTION = (
     'Downloads counted from Amazon S3 server access logs of the open, controlled and geo-restricted data buckets. '
     'A download is one client receiving a dataset version in a calendar month (UTC): the whole ZIP file, or at '
     f'least {DOWNLOAD_FRACTION:.0%} of the version\'s recorded size (the larger of its uncompressed and ZIP sizes) '
-    'across any of its files. Versions whose recorded sizes are both under '
+    'across any of its files and buckets. Versions whose recorded sizes are both under '
     f'{MIN_KNOWN_SIZE // 1_000_000} MB have no reliable size, so their downloads are not counted and only clients '
     'with any file are shown. The same client '
     'counts once per version and month, however many files or retries it needed; a client downloading again in '
     'another month counts again. Registered users are PhysioNet accounts matched through their verified AWS user '
-    'ARN; other clients are anonymous, identified by IP address and user agent within the month, so their counts '
-    'are estimates (a shared network counts once, a moving client more than once). Downloads served by '
+    'ARN; other clients are anonymous, identified by IP address and user agent within the month through a hash '
+    'whose random key is deleted when the month is closed, so their counts are estimates (a shared network '
+    'counts once, a moving client more than once). Downloads served by '
     'physionet.org rather than redirected to S3, and Google Cloud downloads, are not included.'
 )
 
@@ -36,9 +38,14 @@ def _months(start_date, end_date):
 
 
 def import_coverage(start_date, end_date):
-    """Imported days per bucket over the whole months containing the selected dates."""
+    """
+    Imported days per bucket over the whole months containing the selected dates,
+    up to the latest day whose logs have all arrived.
+    """
     first = start_date.replace(day=1)
-    last = end_date.replace(day=monthrange(end_date.year, end_date.month)[1])
+    last = min(end_date.replace(day=monthrange(end_date.year, end_date.month)[1]), latest_complete_day())
+    if last < first:
+        return []
     days = (last - first).days + 1
     rows = (S3AccessLogImport.objects.filter(date__gte=first, date__lte=last)
             .values('bucket').annotate(days=Count('date')).order_by('bucket'))
@@ -120,7 +127,10 @@ def download_report(start_date, end_date):
                     values['requests']] for bucket, values in sorted(buckets.items())]
     by_bucket = {
         'id': 'downloads-by-bucket', 'title': 'Downloads and data transferred by bucket',
-        'description': 'Totals over the selected months for each S3 data bucket. ' + DOWNLOAD_DESCRIPTION,
+        'description': ('Totals over the selected months for each S3 data bucket. A client that used more than '
+                        'one bucket for a version counts, with its download, in the bucket that sent it the most '
+                        'data; data transferred and requests stay with the bucket that served them. '
+                        + DOWNLOAD_DESCRIPTION),
         'headers': ['Bucket', 'Downloads', 'Clients with any file', 'Data transferred (GB)', 'Requests'],
         'rows': bucket_rows,
         'charts': [

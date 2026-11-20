@@ -15,14 +15,31 @@ class S3AccessLogImport(models.Model):
         ]
 
 
+class S3DownloadMonthStatus(models.Model):
+    """
+    The state of a month of S3 download counts.
+
+    hash_key is a random key for the month's client hashes. It is
+    cleared when the month is closed, so the stored hashes can no
+    longer be linked to IP addresses or AWS principals.
+    """
+    month = models.DateField(unique=True)
+    hash_key = models.CharField(max_length=64, blank=True, default='')
+    closed_datetime = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        default_permissions = ()
+
+
 class S3DownloadClientDay(models.Model):
     """
     One client's S3 downloads of a project version on one UTC day.
 
     Clients are PhysioNet users, or keyed hashes of an unmatched AWS
     principal or of an anonymous IP address and user agent.  The hash
-    key changes every month, and these rows are deleted when the month
-    is summarized into S3DownloadMonth.
+    key is random for each month (S3DownloadMonthStatus), and these rows
+    and the key are deleted when the month is summarized into
+    S3DownloadMonth.
     """
     date = models.DateField()
     bucket = models.CharField(max_length=63)
