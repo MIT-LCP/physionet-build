@@ -1739,7 +1739,9 @@ class TestNewsletter(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.context['subscribed_email'], self.secondary)
         self.assertContains(response, f'You are subscribed at <strong>{self.secondary.email}</strong>')
-        self.assertContains(response, date_filter(self.secondary.newsletter_subscribed_at, 'j M Y'))
+        # The page shows the date in site time, so format it the same way
+        self.assertContains(response, date_filter(timezone.localtime(self.secondary.newsletter_subscribed_at),
+                                                  'j M Y'))
         self.assertNotContains(response, 'You are not subscribed')
 
     def test_communications_tab_shown(self):

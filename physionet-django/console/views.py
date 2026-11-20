@@ -5493,12 +5493,15 @@ def training_stats(request):
     if export in snapshots:
         summary = snapshots[export]()
         return report_csv({'id': summary['id'], 'headers': ['Snapshot', *summary['headers']],
-                           'rows': [[summary['snapshot'].isoformat(), *row] for row in summary['rows']]})
+                           'rows': [[timezone.localtime(summary['snapshot']).isoformat(), *row]
+                                    for row in summary['rows']]})
     record_dates = training_record_dates()
     form = _metrics_form(request, record_dates)
     context = {'form': form, 'record_dates': record_dates, 'training_description': TRAINING_DESCRIPTION}
     if not form.is_valid():
-        return render(request, 'console/training_stats.html', context, status=400)
+        # The snapshots don't depend on the dates, so keep showing them
+        return render(request, 'console/training_stats.html', {
+            **context, 'queue': review_queue(), 'expiry': expiry_summary()}, status=400)
     start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
     reports = {'monthly': submission_trend, 'approvals': approval_trend, 'review-time': review_time_trend,
                'types': type_summary}

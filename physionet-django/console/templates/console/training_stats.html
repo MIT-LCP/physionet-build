@@ -31,8 +31,8 @@
 </section>
 
 <section id="training-snapshot" aria-labelledby="training-snapshot-heading">
-  {% if queue %}
   <h2 class="h5 mb-3" id="training-snapshot-heading">Current snapshot</h2>
+  {% if queue %}
   {% include 'console/metrics_bar_card.html' with item=queue csv_query='export=queue' %}
   {% include 'console/metrics_bar_card.html' with item=expiry csv_query='export=expiry' %}
   {% endif %}

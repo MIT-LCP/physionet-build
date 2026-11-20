@@ -1,9 +1,11 @@
 """Training submissions, approvals, review times, the review queue and upcoming expirations."""
 from collections import Counter
+from datetime import timedelta
 from statistics import median
 
 from django.core.cache import cache
-from django.db.models import Case, CharField, Count, Max, Min, Q, Value, When
+from django.db.models import (Case, CharField, Count, DateTimeField, ExpressionWrapper, F, Max, Min, OuterRef, Q,
+                              Subquery, Value, When)
 from django.db.models.functions import TruncMonth
 from django.utils import timezone
 
@@ -127,13 +129,13 @@ def type_summary(start_date, end_date):
     start, end = date_bounds(start_date, end_date)
     rows = []
     for row in (Training.objects.filter(OFF_PLATFORM, application_datetime__gte=start, application_datetime__lt=end)
-                .order_by().values('training_type__name').annotate(
+                .order_by().values('training_type_id', 'training_type__name').annotate(
                     submitted=Count('pk'),
                     accepted=Count('pk', filter=Q(status=TrainingStatus.ACCEPTED)),
                     rejected=Count('pk', filter=Q(status=TrainingStatus.REJECTED)),
                     withdrawn=Count('pk', filter=Q(status=TrainingStatus.WITHDRAWN)),
                     review=Count('pk', filter=Q(status=TrainingStatus.REVIEW)))
-                .order_by('-submitted', 'training_type__name')):
+                .order_by('-submitted', 'training_type__name', 'training_type_id')):
         decided = row['accepted'] + row['rejected']
         rows.append([row['training_type__name'], row['submitted'], row['accepted'], row['rejected'],
                      row['withdrawn'], row['review'], round(100 * row['accepted'] / decided, 1) if decided else None])
@@ -158,7 +160,7 @@ def review_queue(now=None):
     ).values_list('application_datetime', flat=True)]
     rows = [[label, sum(1 for age in ages if age >= low and (high is None or age < high))]
             for label, low, high in QUEUE_BANDS]
-    summary = f'Snapshot: {_stamp(now)}. {len(ages)} trainings awaiting review.'
+    summary = f'Snapshot: {_stamp(now)}. {len(ages)} training{"" if len(ages) == 1 else "s"} awaiting review.'
     if ages:
         summary += f' Median wait {median(ages):.1f} days; oldest {max(ages):.1f} days.'
     return {
@@ -172,44 +174,55 @@ def review_queue(now=None):
     }
 
 
-def _expiry_band(expires, now):
-    if expires is None:
-        return 'Does not expire'
-    days = (expires - now).total_seconds() / 86400
-    if days < 0:
-        return 'Expired'
-    return EXPIRY_BANDS[1 + min(int(days // 30), 3)]
+def _expiry_filters(now):
+    """
+    Filters for EXPIRY_BANDS, using the same rule as TrainingQuerySet.get_valid and get_expired: a training
+    type without a validity period never expires; otherwise a training expires at its acceptance date plus the
+    course's validity (on-platform) or the type's. A missing course validity counts as expired, as get_valid
+    does not treat those trainings as valid.
+    """
+    never = Q(training_type__valid_duration__isnull=True)
+    expires = [Q(expires__gte=now + timedelta(days=days)) for days in (0, 30, 60, 90)]
+    return [
+        ~never & (Q(expires__isnull=True) | ~expires[0]),
+        ~never & expires[0] & ~expires[1],
+        ~never & expires[1] & ~expires[2],
+        ~never & expires[2] & ~expires[3],
+        ~never & expires[3],
+        never,
+    ]
 
 
 def expiry_summary(now=None):
     """Each active person's latest accepted training of each type, by when it expires."""
     now = now or timezone.now()
-    latest = {}
-    accepted = Training.objects.filter(status=TrainingStatus.ACCEPTED, user__is_active=True,
-                                       process_datetime__isnull=False)
-    for user, training_type, name, required, processed, type_duration, course_duration in accepted.values_list(
-            'user_id', 'training_type_id', 'training_type__name', 'training_type__required_field',
-            'process_datetime', 'training_type__valid_duration', 'course__valid_duration').iterator():
-        duration = course_duration if required == RequiredField.PLATFORM else type_duration
-        expires = processed + duration if duration else None
-        key = (user, training_type)
-        if key not in latest or latest[key][1] is not None and (expires is None or expires > latest[key][1]):
-            latest[key] = (name, expires)
-    by_type = {}
-    for name, expires in latest.values():
-        by_type.setdefault(name, Counter())[_expiry_band(expires, now)] += 1
+    accepted = Training.objects.filter(status=TrainingStatus.ACCEPTED, process_datetime__isnull=False)
+    # The latest accepted training per person and type
+    latest = (accepted.filter(user=OuterRef('user'), training_type=OuterRef('training_type'))
+              .order_by('-process_datetime', '-pk').values('pk')[:1])
+    duration = Case(When(training_type__required_field=RequiredField.PLATFORM, then=F('course__valid_duration')),
+                    default=F('training_type__valid_duration'))
+    by_type = (accepted.filter(user__is_active=True, pk=Subquery(latest))
+               .annotate(expires=ExpressionWrapper(F('process_datetime') + duration, output_field=DateTimeField()))
+               .values('training_type_id', 'training_type__name')
+               .annotate(**{f'band_{index}': Count('pk', filter=band)
+                            for index, band in enumerate(_expiry_filters(now))})
+               .order_by('training_type__name', 'training_type_id'))
+    rows = [[row['training_type__name'], *[row[f'band_{index}'] for index in range(len(EXPIRY_BANDS))]]
+            for row in by_type]
     totals = Counter()
-    for counts in by_type.values():
-        totals.update(counts)
-    rows = [[name, *[counts[band] for band in EXPIRY_BANDS]] for name, counts in sorted(by_type.items())]
+    for row in rows:
+        totals.update(dict(zip(EXPIRY_BANDS, row[1:])))
     return {
         'id': 'training-expiry', 'title': 'Upcoming training expirations', 'snapshot': now,
         'summary': f'Snapshot: {_stamp(now)}. {sum(totals.values())} person–training type pairs.',
         'description': ('Current snapshot, independent of the selected dates. Each active person counts once per '
                         'training type, using their latest accepted training of that type, so renewed trainings '
-                        'are not counted as expired. Expiry is the acceptance date plus the validity of the '
-                        'training type, or of the course for on-platform trainings, which counts from the course '
-                        'start. Bands use 30-day periods.'),
+                        'are not counted as expired. Expiry follows the same rule as the rest of the site: '
+                        'training types without a validity period do not expire; otherwise expiry is the '
+                        'acceptance date plus the validity of the course for on-platform trainings, which counts '
+                        'from the course start, or of the training type for the rest. On-platform trainings whose '
+                        'course has no validity period are counted as expired. Bands use 30-day periods.'),
         'headers': ['Training type', *EXPIRY_BANDS], 'rows': rows,
         'chart': {'type': 'horizontal-bar', 'integer': True, 'legend': False, 'row_height': 40,
                   'labels': list(EXPIRY_BANDS),
