@@ -138,6 +138,7 @@ urlpatterns = [
     path('usage/training/stats/', views.training_stats, name='training_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
     path('usage/users/stats/', views.user_stats, name='user_stats'),
+    path('usage/downloads/stats/', views.download_stats, name='download_stats'),
     path('downloads/', views.downloads, name='downloads'),
     path('download/users/', views.download_users, name='download_users'),
     path('download/projects/', views.download_projects, name='download_projects'),

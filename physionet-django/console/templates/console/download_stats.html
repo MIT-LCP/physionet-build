@@ -1,0 +1,91 @@
+{% extends "console/base_console.html" %}
+{% load static %}
+
+{% block title %}AWS downloads metrics{% endblock %}
+
+{% block content %}
+<div data-metrics-start="{{ form.start_date.value|date:'Y-m-d'|default:form.start_date.value }}" data-metrics-end="{{ form.end_date.value|date:'Y-m-d'|default:form.end_date.value }}">
+<div class="card mb-3">
+  <div class="card-header">Dataset downloads from AWS (Amazon S3){% include 'console/metrics_help.html' with title="Dataset downloads from AWS (Amazon S3)" description=download_description %}</div>
+  <div class="card-body">
+    <p>How many times each dataset version was downloaded from AWS (Amazon S3), including downloads from physionet.org that are redirected to S3, by whole calendar months (UTC).</p>
+    <noscript><p>{{ download_description }}</p></noscript>
+    {% if record_dates.first %}
+    <p class="text-muted mb-2">Imported logs: {{ record_dates.first|date:"M Y" }} – {{ record_dates.last|date:"M j, Y" }}.</p>
+    {% else %}<p class="text-muted mb-2">No S3 access logs have been imported yet.</p>{% endif %}
+    {% include 'console/usage_period_filters.html' %}
+    {% if coverage %}
+    <p class="small text-muted">Imported days in the selected months:
+      {% for row in coverage %}{{ row.bucket }} {{ row.days }} of {{ row.total }}{% if not forloop.last %}; {% endif %}{% endfor %}.
+      Months with missing days undercount downloads.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% if report %}
+{% include 'console/metrics_trend.html' with report=report.downloads_monthly trend_export_query=total_export_query %}
+{% include 'console/metrics_trend.html' with report=report.clients_monthly trend_export_query=clients_export_query %}
+{% include 'console/metrics_trend.html' with report=report.volume_monthly trend_export_query=volume_export_query %}
+
+<div class="card mb-3">
+  <div class="card-header">{{ report.by_bucket.title }}{% include 'console/metrics_help.html' with title=report.by_bucket.title description=report.by_bucket.description %}</div>
+  <div class="card-body">
+    {% if report.by_bucket.rows %}
+    <div class="row">
+      {% for chart in report.by_bucket.charts %}
+      <div class="col-lg-6">
+        <div class="font-weight-bold mb-2">{{ chart.title }}</div>
+        <div data-metrics-chart="{{ chart.id }}" data-title="{{ chart.title }}" data-label="{{ chart.title }}. Exact values are in the table below."></div>
+        {{ chart.chart|json_script:chart.id }}
+        {% include 'console/metrics_chart_downloads.html' with chart_id=chart.id csv_query=bucket_export_query %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}<p>No downloads recorded in the selected months.</p>{% endif %}
+    <details>
+      <summary>Show bucket table</summary>
+      <div class="table-responsive"><table class="table table-bordered table-sm">
+        <thead><tr>{% for header in report.by_bucket.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in report.by_bucket.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+      </table></div>
+    </details>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">{{ report.trend.title }}{% include 'console/metrics_help.html' with title=report.trend.title description=report.trend.description %}</div>
+  <div class="card-body">
+    <p class="small text-muted">Top 10, fixed across months. Select items in the legend to show or hide their lines.</p>
+    {% if report.trend.has_series %}
+    <div data-metrics-chart="{{ report.trend.id }}" data-title="{{ report.trend.title }}" data-label="{{ report.trend.title }}. Exact monthly values are in the table below."></div>
+    {{ report.trend.chart|json_script:report.trend.id }}
+    <p class="small text-muted"><span class="metrics-partial-mark">*</span> Partial month</p>
+    {% include 'console/metrics_chart_downloads.html' with chart_id=report.trend.id csv_query=trend_export_query %}
+    {% else %}<p>No downloads recorded in the selected months.</p>{% endif %}
+    <details>
+      <summary>Show monthly table</summary>
+      <div class="table-responsive"><table class="table table-bordered">
+        <thead><tr>{% for header in report.trend.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in report.trend.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+      </table></div>
+    </details>
+  </div>
+</div>
+
+<div class="card mb-3">
+  <div class="card-header">Most downloaded dataset versions{% include 'console/metrics_help.html' with title="Most downloaded dataset versions" description=download_description %}</div>
+  <div class="card-body">
+    <p class="small text-muted">Top 10 versions; the CSV lists every version. Counts are per month and summed over the selected months; the same client is counted once in each month it downloaded. Anonymous downloads are estimates. Versions without a reliable recorded size show “Size unknown” and are listed after the others.</p>
+    <div class="table-responsive"><table class="table table-bordered table-sm">
+      <thead><tr>{% for header in report.ranking.headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for row in report.ranking.rows|slice:":10" %}<tr>{% for cell in row %}<td>{% if cell is None %}Size unknown{% else %}{{ cell }}{% endif %}</td>{% endfor %}</tr>
+      {% empty %}<tr><td colspan="{{ report.ranking.headers|length }}">No downloads recorded in the selected months.</td></tr>{% endfor %}</tbody>
+    </table></div>
+    {% if report.ranking.rows %}<div class="metrics-chart-downloads"><a class="btn btn-sm metrics-download" href="?{{ export_query|force_escape }}">Download all versions (CSV)</a></div>{% endif %}
+  </div>
+</div>
+{% endif %}
+</div>
+{% endblock %}
+
+{% block local_js_bottom %}<script src="{% static 'custom/js/enable-popover.js' %}?v=3" defer></script><script src="{% static 'console/js/metrics-trend.js' %}?v=4" defer></script><script src="{% static 'console/js/metrics-chart-export.js' %}" defer></script>{% endblock %}
