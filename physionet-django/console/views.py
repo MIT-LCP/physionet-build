@@ -18,6 +18,10 @@ from console.credential_metrics import (
 )
 from console.editorial_metrics import editorial_annual_stats, editorial_trend
 from console.submission_profiles import CONTRIBUTOR_DEFINITION, submission_profile_sections
+from console.training_metrics import (
+    TRAINING_DESCRIPTION, approval_trend, expiry_summary, review_queue, review_time_trend, submission_trend,
+    training_record_dates, type_summary,
+)
 from console.reporting import (
     access_pending_summary,
     access_pending_summary_csv,
@@ -5478,4 +5482,34 @@ def access_request_stats(request):
         'access_account_age_sections': [s for s in sections if s.get('pie_chart')],
         'report': report, 'date_query': urlencode({'start_date': start.isoformat(), 'end_date': end.isoformat()}),
         **_access_queue_context(request, queue, now),
+    })
+
+
+@console_permission_required('project.can_view_stats')
+def training_stats(request):
+    export = request.GET.get('export')
+    # The review queue and expirations are current snapshots, independent of the selected dates.
+    snapshots = {'queue': review_queue, 'expiry': expiry_summary}
+    if export in snapshots:
+        summary = snapshots[export]()
+        return report_csv({'id': summary['id'], 'headers': ['Snapshot', *summary['headers']],
+                           'rows': [[timezone.localtime(summary['snapshot']).isoformat(), *row]
+                                    for row in summary['rows']]})
+    record_dates = training_record_dates()
+    form = _metrics_form(request, record_dates)
+    context = {'form': form, 'record_dates': record_dates, 'training_description': TRAINING_DESCRIPTION}
+    if not form.is_valid():
+        # The snapshots don't depend on the dates, so keep showing them
+        return render(request, 'console/training_stats.html', {
+            **context, 'queue': review_queue(), 'expiry': expiry_summary()}, status=400)
+    start, end = form.cleaned_data['start_date'], form.cleaned_data['end_date']
+    reports = {'monthly': submission_trend, 'approvals': approval_trend, 'review-time': review_time_trend,
+               'types': type_summary}
+    if export in reports:
+        return report_csv(reports[export](start, end))
+    return render(request, 'console/training_stats.html', {
+        **context, 'queue': review_queue(), 'expiry': expiry_summary(),
+        'trends': [(build(start, end), _export_query(start, end, key)) for key, build in reports.items()
+                   if key != 'types'],
+        'types': type_summary(start, end), 'types_query': _export_query(start, end, 'types'),
     })

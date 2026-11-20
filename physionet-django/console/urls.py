@@ -135,6 +135,7 @@ urlpatterns = [
     path('usage/access-requests/stats/', views.access_request_stats, name='access_request_stats'),
     path('usage/editorial/stats/', views.editorial_stats, name='editorial_stats'),
     path('usage/credentialing/stats/', views.credentialing_stats, name='credentialing_stats'),
+    path('usage/training/stats/', views.training_stats, name='training_stats'),
     path('usage/submission/stats/', views.submission_stats, name='submission_stats'),
     path('downloads/', views.downloads, name='downloads'),
     path('download/users/', views.download_users, name='download_users'),
