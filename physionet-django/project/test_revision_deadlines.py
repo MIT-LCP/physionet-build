@@ -104,6 +104,9 @@ class TestRevisionDeadlineModel(RevisionDeadlineTestMixin):
             self.project.reopen_for_revisions(days_from_now(30))
 
         self.project.archive_reason = ArchiveReason.REVISION_DEADLINE_PASSED
+        # Archives created before archive_submission_status was introduced
+        # were all reopenable to the revisions workflow.
+        self.project.archive_submission_status = None
         self.project.save()
         self.assertTrue(self.project.is_reopenable())
         self.project.reopen_for_revisions(days_from_now(60))
@@ -425,7 +428,7 @@ class TestConsoleRevisionDeadline(RevisionDeadlineTestMixin):
         self.client.login(username='amitupreti', password=PASSWORD)
 
         response = self.client.get(self.url())
-        self.assertContains(response, 'Reopen for Revisions')
+        self.assertContains(response, 'Reopen Project')
 
         new_date = timezone.localdate() + datetime.timedelta(days=30)
         self.client.post(self.url(), {'reopen_for_revisions': '', 'revision_deadline': new_date.isoformat()})

@@ -3,7 +3,11 @@
 
 Dear {{ name }},
 
+{% if reopened %}
+Your project entitled "{{ project.title }}" has been reopened and is awaiting your approval. To proceed with publication, please approve the project using the following link:
+{% else %}
 We are pleased to say that copyediting of your project entitled "{{ project.title }}" is now complete. To proceed with publication, you must now approve the project using the following link:
+{% endif %}
 
 {{ url_prefix }}{% url 'project_submission' project.slug %}
 

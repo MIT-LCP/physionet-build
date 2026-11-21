@@ -219,6 +219,7 @@
               <td>{{ project.editor_accept_datetime|date }}</td>
               <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'copyedit_submission' project.slug %}" role="button">Copyedit Project</a>
+                <a href="{% url 'submission_info' project.slug %}?tab=archive" class="btn btn-warning btn-sm ml-2" role="button">Archive</a>
                 {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
               </td>
             </tr>
@@ -263,6 +264,7 @@
               <td>{{ project.latest_reminder|date }}</td>
               <td>
                 <a class="btn btn-primary btn-sm" href="{% url 'awaiting_authors' project.slug %}" role="button">View</a>
+                <a href="{% url 'submission_info' project.slug %}?tab=archive" class="btn btn-warning btn-sm ml-2" role="button">Archive</a>
                 {% include 'console/includes/hold_toggle_button.html' with project=project action='on_hold' button_class='btn btn-outline-secondary btn-sm ml-2' %}
               </td>
             </tr>

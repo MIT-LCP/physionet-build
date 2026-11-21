@@ -113,8 +113,8 @@ class ArchiveReason(models.IntegerChoices):
         """
         Reasons for which an editor may reopen an archived project.
 
-        Projects archived for these reasons were awaiting author
-        revisions when they were archived, and their files were kept.
+        Projects archived for these reasons retain their files and can be
+        restored to the submission status recorded when they were archived.
         """
         return (cls.ARCHIVED_BY_EDITOR, cls.REVISION_DEADLINE_PASSED)
 
@@ -229,6 +229,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     on_hold_datetime = models.DateTimeField(null=True, blank=True)
     archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
     archive_reason_text = models.TextField(null=True, blank=True)
+    archive_submission_status = models.PositiveSmallIntegerField(null=True, blank=True)
 
     # Deadline for the authors to resubmit, while awaiting revisions.
     revision_deadline = models.DateTimeField(null=True, blank=True)
@@ -468,17 +469,35 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def reopen_for_revisions(self, deadline):
         """
-        Return an archived project to the authors for revisions, with a new
-        revision deadline.
+        Reopen an archived project. Retained for callers that reopen projects
+        which were archived while awaiting revisions.
         """
+        return self.reopen(deadline)
+
+    def reopen(self, deadline=None):
+        """Restore an archived project to the submission status it had when archived."""
         if not self.is_reopenable():
             raise Exception('ActiveProject cannot be reopened')
-        self.submission_status = SubmissionStatus.NEEDS_RESUBMISSION
+
+        # Archives created before archive_submission_status was introduced
+        # were only reopenable from the revisions workflow.
+        restored_status = self.archive_submission_status or SubmissionStatus.NEEDS_RESUBMISSION
+        if restored_status == SubmissionStatus.NEEDS_RESUBMISSION:
+            if deadline is None:
+                raise Exception('A revision deadline is required when reopening for revisions')
+            self.set_revision_deadline(deadline)
+        else:
+            self.revision_deadline = None
+            self.revision_reminders_sent = 0
+            self.revision_reminder_retry_emails = []
+
+        self.submission_status = restored_status
         self.archive_reason = None
         self.archive_reason_text = None
         self.archive_datetime = None
-        self.set_revision_deadline(deadline)
+        self.archive_submission_status = None
         self.save()
+        return restored_status
 
     def submission_status_label(self):
         return ActiveProject.SUBMISSION_STATUS_LABELS[self.submission_status]
@@ -508,6 +527,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
         """
         Archive the project. Sets the status of the project to "Archived" object.
         """
+        self.archive_submission_status = self.submission_status
         self.submission_status = SubmissionStatus.ARCHIVED
         self.archive_reason = archive_reason
         self.archive_reason_text = archive_reason_text
