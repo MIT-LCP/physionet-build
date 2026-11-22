@@ -6,20 +6,17 @@ import uuid
 
 from django.utils.crypto import get_random_string
 from django.conf import settings
-from django.contrib import messages
 # from django.contrib.auth. import user_logged_in
 from django.contrib.auth import signals
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission, Group
 from django.core import signing
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.core.validators import EmailValidator, FileExtensionValidator
-from django.db import DatabaseError, models, transaction
+from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db.models import CharField, Q
 from django.db.models.functions import Lower
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.crypto import constant_time_compare
@@ -33,7 +30,6 @@ from user import validators
 from user.userfiles import UserFiles
 from user.enums import TrainingStatus, RequiredField
 from user.managers import TrainingQuerySet
-from training.models import Course
 
 logger = logging.getLogger(__name__)
 
@@ -1162,16 +1158,13 @@ class CredentialApplication(models.Model):
         """
         Reject a credentialing application.
         """
-        try:
-            with transaction.atomic():
-                self._apply_decision(self.Status.ACCEPTED, responder)
-                # update the user credentials
-                user = self.user
-                user.is_credentialed = True
-                user.credential_datetime = timezone.now()
-                user.save()
-        except DatabaseError:
-            messages.error(request, 'Database error. Please try again.')
+        with transaction.atomic():
+            self._apply_decision(self.Status.ACCEPTED, responder)
+            # update the user credentials
+            user = self.user
+            user.is_credentialed = True
+            user.credential_datetime = timezone.now()
+            user.save()
 
     def withdraw(self, responder):
         """

@@ -1,18 +1,12 @@
-import json
 from django.utils import timezone
 from datetime import timedelta
 
 from project.models import PublishedProject, AccessPolicy, ProjectType, CoreProject
 from annotation.models import AnnotationCollection, AnnotationType
-from annotation.views import AnnotationCreateAPIView
-from annotation.views import (
-    AnnotationCollectionCreateAPIView,
-    AnnotationTypeCreateAPIView,
-)
 from user.models import User
 
-from django.test import RequestFactory, TestCase
-from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
+from django.test import TestCase
+from rest_framework.test import APIRequestFactory, APIClient
 from oauth2_provider.models import get_access_token_model, get_application_model
 from oauth2_provider.settings import oauth2_settings
 from django.urls import reverse

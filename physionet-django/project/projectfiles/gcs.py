@@ -2,7 +2,7 @@ import os
 
 from django.conf import settings
 from django.shortcuts import redirect
-from google.cloud.exceptions import Conflict, NotFound
+from google.cloud.exceptions import NotFound
 from physionet.gcs import GCSObject, GCSObjectException, create_bucket, delete_bucket
 from project.projectfiles.base import BaseProjectFiles
 from project.quota import GCSQuotaManager

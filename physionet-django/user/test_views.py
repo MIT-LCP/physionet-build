@@ -3,7 +3,6 @@ import datetime
 import json
 import logging
 import os
-import pdb
 import re
 import shutil
 import time
@@ -41,9 +40,7 @@ from user.models import (
     TrainingType,
     User,
 )
-from user.views import (activate_user, edit_emails, edit_profile,
-    edit_password_complete, public_profile, register, user_settings,
-    verify_email)
+from user.views import edit_emails, edit_profile, edit_password_complete, public_profile, user_settings
 
 from unittest.mock import patch
 
@@ -348,7 +345,7 @@ class TestAuth(TestMixin):
         self.assertEqual(self.user.email, 'admin2@mit.edu')
 
         # Test 3: add email
-        response = self.client.post(reverse('edit_emails'), data={
+        self.client.post(reverse('edit_emails'), data={
             'add_email': [''], 'email': 'tester0@mit.edu'})
         self.assertIsNotNone(AssociatedEmail.objects.filter(email='tester0@mit.edu'))
 
@@ -366,7 +363,7 @@ class TestAuth(TestMixin):
             r'http://localhost:8000/verify/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{20})/',
             mail.outbox[0].body)[0]
 
-        request = self.client.get(reverse('verify_email', args=(uidb64, token)))
+        self.client.get(reverse('verify_email', args=(uidb64, token)))
         self.assertTrue(AssociatedEmail.objects.get(email='tester0@mit.edu').is_verified)
 
     def test_email_limit(self):
@@ -595,7 +592,7 @@ class TrainingTestCase(TestCase):
         }
 
     def setUp(self):
-        pdf_content = b'%PDF-1.3\n%\x93\x8c\x8b\x9e ReportLab Generated PDF document http://www.reportlab.com\n1 0 obj\n<<\n/F1 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font\n>>\nendobj\n3 0 obj\n<<\n/Contents 7 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 6 0 R /Resources <<\n/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]\n>> /Rotate 0 /Trans <<\n\n>> \n  /Type /Page\n>>\nendobj\n4 0 obj\n<<\n/PageMode /UseNone /Pages 6 0 R /Type /Catalog\n>>\nendobj\n5 0 obj\n<<\n/Author (anonymous) /CreationDate (D:20221219130742+05\'00\') /Creator (ReportLab PDF Library - www.reportlab.com) /Keywords () /ModDate (D:20221219130742+05\'00\') /Producer (ReportLab PDF Library - www.reportlab.com) \n  /Subject (unspecified) /Title (untitled) /Trapped /False\n>>\nendobj\n6 0 obj\n<<\n/Count 1 /Kids [ 3 0 R ] /Type /Pages\n>>\nendobj\n7 0 obj\n<<\n/Filter [ /ASCII85Decode /FlateDecode ] /Length 104\n>>\nstream\nGapQh0E=F,0U\\H3T\\pNYT^QKk?tc>IP,;W#U1^23ihPEM_M(M8&8HllJH6UCj=4hfUupb!lR8"\\(ZhG@C+=mI.>2AcPUg\\R!\'_YE[f~>endstream\nendobj\nxref\n0 8\n0000000000 65535 f \n0000000073 00000 n \n0000000104 00000 n \n0000000211 00000 n \n0000000414 00000 n \n0000000482 00000 n \n0000000778 00000 n \n0000000837 00000 n \ntrailer\n<<\n/ID \n[<cb45d718ea09b37c9695ca3758dbd4ba><cb45d718ea09b37c9695ca3758dbd4ba>]\n% ReportLab generated PDF document -- digest (http://www.reportlab.com)\n\n/Info 5 0 R\n/Root 4 0 R\n/Size 8\n>>\nstartxref\n1031\n%%EOF\n' # noqa
+        pdf_content = b'%PDF-1.3\n%\x93\x8c\x8b\x9e ReportLab Generated PDF document http://www.reportlab.com\n1 0 obj\n<<\n/F1 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font\n>>\nendobj\n3 0 obj\n<<\n/Contents 7 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 6 0 R /Resources <<\n/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]\n>> /Rotate 0 /Trans <<\n\n>> \n  /Type /Page\n>>\nendobj\n4 0 obj\n<<\n/PageMode /UseNone /Pages 6 0 R /Type /Catalog\n>>\nendobj\n5 0 obj\n<<\n/Author (anonymous) /CreationDate (D:20221219130742+05\'00\') /Creator (ReportLab PDF Library - www.reportlab.com) /Keywords () /ModDate (D:20221219130742+05\'00\') /Producer (ReportLab PDF Library - www.reportlab.com) \n  /Subject (unspecified) /Title (untitled) /Trapped /False\n>>\nendobj\n6 0 obj\n<<\n/Count 1 /Kids [ 3 0 R ] /Type /Pages\n>>\nendobj\n7 0 obj\n<<\n/Filter [ /ASCII85Decode /FlateDecode ] /Length 104\n>>\nstream\nGapQh0E=F,0U\\H3T\\pNYT^QKk?tc>IP,;W#U1^23ihPEM_M(M8&8HllJH6UCj=4hfUupb!lR8"\\(ZhG@C+=mI.>2AcPUg\\R!\'_YE[f~>endstream\nendobj\nxref\n0 8\n0000000000 65535 f \n0000000073 00000 n \n0000000104 00000 n \n0000000211 00000 n \n0000000414 00000 n \n0000000482 00000 n \n0000000778 00000 n \n0000000837 00000 n \ntrailer\n<<\n/ID \n[<cb45d718ea09b37c9695ca3758dbd4ba><cb45d718ea09b37c9695ca3758dbd4ba>]\n% ReportLab generated PDF document -- digest (http://www.reportlab.com)\n\n/Info 5 0 R\n/Root 4 0 R\n/Size 8\n>>\nstartxref\n1031\n%%EOF\n'  # noqa: E501
         self.training_report = SimpleUploadedFile(name='training-report.pdf', content=pdf_content,
                                                   content_type='application/pdf')
         self.training_payload_valid = {

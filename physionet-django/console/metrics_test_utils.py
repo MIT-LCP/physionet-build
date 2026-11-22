@@ -1,21 +1,15 @@
 import copy
-import csv
 from datetime import date, datetime
-from io import StringIO
 from uuid import uuid4
 
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from django.db import connection
 from django.test import TestCase
-from django.test.utils import CaptureQueriesContext
-from django.urls import reverse
 from django.utils import timezone
 
 from django.core.cache import cache
 
 from console.credential_metrics import ANNUAL_STATS_CACHE_KEY
-from console.usage import usage_metrics, usage_sections
+from console.usage import usage_metrics
 from project.models import AccessLog, ActiveProject, Author, DataAccessRequest, PublishedAuthor, PublishedProject
 from user.models import CredentialApplication, User
 

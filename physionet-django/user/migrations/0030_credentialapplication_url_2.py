@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 
 from user.trainingreport import (find_training_report_url,
                                  TrainingCertificateError)

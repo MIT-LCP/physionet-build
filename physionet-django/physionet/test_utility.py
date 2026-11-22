@@ -86,11 +86,6 @@ class TestGeoIP(TestCase):
     Test GeoIP functionality using the MaxMind test database.
     """
 
-    def setUp(self):
-        # Ensure the test database exists
-        test_db_path = os.path.join(os.path.dirname(__file__), '..', '..',
-                                    'demo-files', 'geoip', 'GeoLite2-Country.mmdb')
-
     def test_localhost_ips(self):
         """
         Test that localhost IPs return 'localhost'.

@@ -23,7 +23,6 @@ from django.urls import reverse
 from django.utils import timezone
 from oauth2_provider.models import AccessToken, Application
 from project.cloud.s3 import PROJECT_ZIP_FILE, public_s3_download_url
-from project.forms import ContentForm
 from project.models import (
     AccessLog,
     AccessPolicy,
@@ -32,13 +31,11 @@ from project.models import (
     AuthorInvitation,
     CitingWork,
     CitingWorksRefresh,
-    CoreProject,
     DataAccessRequest,
     DataAccessRequestReviewer,
     DUASignature,
     License,
     Log,
-    ProjectType,
     PublishedAuthor,
     PublishedProject,
     PublishedPublication,
@@ -1900,7 +1897,7 @@ class TestState(TestMixin):
         abstract = project.abstract
 
         # 'Delete' (archive) the project
-        response = self.client.post(reverse('project_overview',
+        self.client.post(reverse('project_overview',
             args=(project.slug,)), data={'delete_project':''})
 
         # The ActiveProject model should be set to "Archived" status
@@ -1928,7 +1925,7 @@ class TestState(TestMixin):
         self.client.login(username='rgmark@mit.edu', password='Tester11!')
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')
         self.assertFalse(project.under_submission())
-        response = self.client.post(reverse(
+        self.client.post(reverse(
             'project_submission', args=(project.slug,)),
             data={'submit_project':''})
         project = ActiveProject.objects.get(title='MIT-BIH Arrhythmia Database')

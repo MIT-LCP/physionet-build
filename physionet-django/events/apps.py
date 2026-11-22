@@ -7,4 +7,4 @@ class EventsConfig(AppConfig):
 
     def ready(self):
         if ENABLE_CLOUD_RESEARCH_ENVIRONMENTS:
-            import environment.signals
+            import environment.signals  # noqa: F401

@@ -1,5 +1,4 @@
 from django.test import TestCase
-from django.urls import reverse
 
 from user.forms import (AssociatedEmailChoiceForm, AddEmailForm,
     LoginForm, ProfileForm, RegistrationForm)

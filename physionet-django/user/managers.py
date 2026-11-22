@@ -1,9 +1,8 @@
 from django.db.models import (DateTimeField, ExpressionWrapper, QuerySet, F, Q,
-                              OuterRef, Subquery, Case, When)
+                              Case, When)
 from django.utils import timezone
 
 from user.enums import TrainingStatus, RequiredField
-from training.models import Course
 
 class TrainingQuerySet(QuerySet):
     def get_review(self):

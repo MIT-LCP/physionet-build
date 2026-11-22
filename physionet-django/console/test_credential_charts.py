@@ -1,5 +1,5 @@
 import csv
-from datetime import date, datetime
+from datetime import date
 from io import StringIO
 
 from django.urls import reverse

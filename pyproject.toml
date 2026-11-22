@@ -59,6 +59,12 @@ dev = [
     "requests-mock>=1.7.0,<2",
     "selenium>=3.141.0,<4",
 ]
+lint = [
+    "flake8>=7.5.0,<8",
+    "flake8-noqa>=1.5.0,<2",
+    "pycodestyle>=2.15.0,<3",
+    "pyflakes>=4.1.0,<5",
+]
 
 [tool.uv]
 # This is a Django site, not an installable package.

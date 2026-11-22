@@ -37,7 +37,6 @@ which have not yet been verified, and will send a second email saying:
 """
 
 import datetime
-import os
 
 from django.db import transaction
 from django.conf import settings

@@ -1,7 +1,6 @@
 import re
 
 from django.core.exceptions import ValidationError
-from django.utils.translation import gettext as _
 from packaging.version import Version
 
 MAX_FILENAME_LENGTH = 100

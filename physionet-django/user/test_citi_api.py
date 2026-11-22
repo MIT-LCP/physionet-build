@@ -25,7 +25,6 @@ from user.citi_training_module import (
 )
 from user.enums import RequiredField, TrainingStatus
 from user.models import (
-    AssociatedEmail,
     CITIGroupMapping,
     CITIVerification,
     Profile,

@@ -5,17 +5,11 @@ from io import StringIO
 from uuid import uuid4
 from unittest.mock import patch
 
-from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
-from django.db import connection
-from django.test import TestCase
-from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
-from console.usage import usage_metrics, usage_sections
-from project.models import AccessLog, ActiveProject, Author, DataAccessRequest, PublishedAuthor, PublishedProject
-from user.models import CredentialApplication, User
+from project.models import DataAccessRequest, PublishedProject
+from user.models import CredentialApplication
 
 
 from console.metrics_test_utils import MetricsTestCase

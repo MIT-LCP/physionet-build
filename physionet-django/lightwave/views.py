@@ -6,7 +6,7 @@ import subprocess
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.urls import reverse
 from project.authorization.access import can_view_project_files
 from project.models import AccessPolicy, PublishedProject

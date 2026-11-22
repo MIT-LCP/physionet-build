@@ -1,4 +1,13 @@
 [flake8]
 max-line-length = 119
-ignore = F401, F403, W503
+ignore = W503
 noqa-require-code = true
+extend-exclude =
+    .venv,
+    demo-files
+per-file-ignores =
+    # Settings modules extend a base module via star imports.
+    physionet-django/physionet/settings/*: F401, F403, F405
+    # Aggregate modules that re-export models from their components.
+    physionet-django/project/models.py: F401, F403
+    physionet-django/search/models.py: F401, F403

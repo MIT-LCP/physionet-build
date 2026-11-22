@@ -6,7 +6,8 @@ from django.utils import timezone
 import pytz
 
 from project.fields import SafeHTMLField
-from project.modelcomponents.coreproject import CoreProject, ProjectType
+from project.modelcomponents.coreproject import CoreProject
+from project.modelcomponents.projecttype import ProjectType
 from project.modelcomponents.license import License
 from project.modelcomponents.metadata import PublishedPublication, Contact
 from project.modelcomponents.publishedproject import PublishedProject

@@ -4,7 +4,6 @@ import os
 from collections import OrderedDict
 from datetime import datetime
 from itertools import chain
-from statistics import StatisticsError, median
 from urllib.parse import urlencode
 
 import notification.utility as notification
@@ -43,14 +42,14 @@ from console.user_metrics import USER_DESCRIPTION, last_login_summary, user_reco
 from dal import autocomplete
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.redirects.models import Redirect
 from django.db import transaction
-from django.db.models import Count, DurationField, F, Min, OuterRef, Q, Prefetch, Subquery
-from django.db.models.functions import Cast, TruncDate
+from django.db.models import Count, F, OuterRef, Q, Prefetch, Subquery
+from django.db.models.functions import TruncDate
 from django.forms import Select, Textarea, modelformset_factory, inlineformset_factory
 from django.forms.models import model_to_dict
 from django.http import Http404, HttpResponse, JsonResponse, HttpResponseRedirect, StreamingHttpResponse
@@ -78,14 +77,12 @@ from project.models import (
     AccessPolicy,
     ActiveProject,
     Affiliation,
-    AnonymousAccess,
     Author,
     DataAccess,
     DUA,
     DataAccessRequest,
     DUASignature,
     EditLog,
-    ExternalReview,
     License,
     Publication,
     PublishedAuthor,
@@ -102,7 +99,6 @@ from project.models import (
     exists_project_slug,
     InternalNote
 )
-from project.authorization.access import can_view_project_files
 import project.tasks as project_tasks
 from project.utility import readable_size
 from project.validators import MAX_PROJECT_SLUG_LENGTH
@@ -119,21 +115,25 @@ from user.models import (
     TrainingType,
     TrainingQuestion,
     CITIGroupMapping,
-    CITIVerification,
     CodeOfConduct,
     CloudInformation
 )
-from search.models import FederatedSite, FederationSyncLog, FederatedProject
+from search.models import FederatedSite, FederatedProject
 from physionet.enums import LogCategory
 from user.citi_training_module import parse_completions_xml, parse_member_profile_xml
 from user.enums import TrainingStatus
 from console import forms, utility, services
 from console.forms import ProjectFilterForm, UserFilterForm
+from project.cloud.gcp import (
+    add_email_bucket_access,
+    bucket_info,
+    check_bucket_exists,
+    create_bucket,
+    upload_files,
+)
 from project.cloud.s3 import (
-    create_s3_bucket,
     upload_project_to_S3,
     get_bucket_name,
-    check_s3_bucket_exists,
     has_s3_credentials,
     delete_project_files_from_s3,
     disable_project_access_in_s3,
@@ -1417,9 +1417,9 @@ def send_files_to_gcp(pid):
     to GCP. It only requires the Project ID.
     """
     project = PublishedProject.objects.get(id=pid)
-    exists = utility.check_bucket_exists(project.slug, project.version)
+    exists = check_bucket_exists(project.slug, project.version)
     if exists:
-        utility.upload_files(project)
+        upload_files(project)
         project.gcp.sent_files = True
         project.gcp.finished_datetime = timezone.now()
         if project.compressed_storage_size:
@@ -1757,24 +1757,24 @@ def gcp_bucket_management(request, project, user):
     if project.access_policy == AccessPolicy.OPEN:
         is_private = False
 
-    bucket_name, group = utility.bucket_info(project.slug, project.version)
+    bucket_name, group = bucket_info(project.slug, project.version)
 
     try:
-        gcp_object = GCP.objects.get(bucket_name=bucket_name)
+        GCP.objects.get(bucket_name=bucket_name)
         messages.success(request, "The bucket already exists. Resending the \
             files for the project {0}.".format(project))
     except GCP.DoesNotExist:
-        if utility.check_bucket_exists(project.slug, project.version):
+        if check_bucket_exists(project.slug, project.version):
             LOGGER.info("The bucket {0} already exists, skipping bucket and \
                 group creation".format(bucket_name))
         else:
-            utility.create_bucket(project.slug, project.version, project.title, is_private)
+            create_bucket(project.slug, project.version, project.title, is_private)
             messages.success(request, "The GCP bucket for project {0} was \
                 successfully created.".format(project))
         GCP.objects.create(project=project, bucket_name=bucket_name,
                            managed_by=user, is_private=is_private, access_group=group)
         if is_private:
-            granted = utility.add_email_bucket_access(project, group, True)
+            granted = add_email_bucket_access(project, group, True)
             DataAccess.objects.create(project=project, platform=3, location=group)
             if not granted:
                 error = "The GCP bucket for project {0} was successfully created, \
@@ -2915,9 +2915,9 @@ def featured_content(request):
     if 'add' in request.POST:
         featured = PublishedProject.objects.filter(featured__isnull=False)
         mx = max(featured.values_list('featured', flat=True), default=1)
-        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=mx + 1)
+        PublishedProject.objects.filter(id=request.POST['id']).update(featured=mx + 1)
     elif 'remove' in request.POST:
-        project = PublishedProject.objects.filter(id=request.POST['id']).update(featured=None)
+        PublishedProject.objects.filter(id=request.POST['id']).update(featured=None)
     elif 'up' in request.POST:
         # Get project to be moved
         idx = int(request.POST['up'])

@@ -18,7 +18,6 @@ from django.db.models import Count, Q
 from django.forms import ModelForm, inlineformset_factory, modelformset_factory
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template import loader
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
@@ -45,7 +44,6 @@ from project.models import (
     DataAccessRequestReviewer,
     DUASignature,
     GCPLog,
-    DUA,
     Funding,
     Publication,
     PublishedAuthor,
@@ -71,7 +69,6 @@ from project.modelcomponents.review import ReviewerInvitation
 from project.authorization.access import (
     can_access_project, can_view_project_files, has_required_trainings, is_region_blocked,
 )
-from project.projectfiles import ProjectFiles
 from project.validators import validate_filename, validate_gcs_bucket_object
 from user.forms import AssociatedEmailChoiceForm
 from user.models import AssociatedEmail, CloudInformation, CredentialApplication, Training
@@ -83,7 +80,6 @@ from project.cloud.s3 import (
     public_s3_download_url,
     PROJECT_ZIP_FILE,
 )
-from django.db.models import F, DateTimeField, ExpressionWrapper
 from user.awsverification import aws_verification_available
 
 LOGGER = logging.getLogger(__name__)
@@ -903,7 +899,7 @@ def project_access(request, project_slug, **kwargs):
     Page to edit project access policy
 
     """
-    user, project, passphrase = kwargs['user'], kwargs['project'], ''
+    project = kwargs['project']
     is_submitting = kwargs['is_submitting']
 
     if is_submitting and project.author_editable():

@@ -21,7 +21,6 @@ from botocore.exceptions import (
 )
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Q
 from project.authorization.access import can_view_project_files
 from project.models import PublishedProject, AWS, AccessPolicy, AWSAccessPoint, AWSAccessPointUser
 from user.models import (

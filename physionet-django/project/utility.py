@@ -5,18 +5,16 @@ import html.parser
 import json
 import logging
 import os
-import pdb
 import re
 import shutil
 import urllib.parse
-import uuid
 
 import requests
-from console.utility import create_directory_service
+from project.cloud.gcp import create_directory_service
 from django.conf import settings
-from django.contrib import auth, messages
+from django.contrib import auth
 from django.contrib.sites.shortcuts import get_current_site
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.http import Http404, HttpResponse
 from django.utils.crypto import constant_time_compare

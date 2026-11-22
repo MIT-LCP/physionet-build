@@ -15,7 +15,7 @@ from project.fields import SafeHTMLField
 from project.modelcomponents.anonymousaccess import AnonymousAccess
 from project.modelcomponents.authors import Affiliation
 from project.reference_citations import order_references
-from project.utility import LinkFilter, get_directory_info, get_file_info, list_items
+from project.utility import LinkFilter
 from project.validators import (
     CITATION_YEAR_REGEX,
     DOI_IN_TEXT_REGEX,

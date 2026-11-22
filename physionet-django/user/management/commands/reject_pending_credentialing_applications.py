@@ -6,7 +6,7 @@ from django.db import transaction
 from django.http import HttpRequest
 
 import notification.utility as notification
-from user.models import CredentialApplication, User
+from user.models import CredentialApplication
 from user.management.commands.utility import get_credential_awaiting_reference
 
 LOGGER = logging.getLogger(__name__)
