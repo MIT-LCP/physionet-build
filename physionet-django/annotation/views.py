@@ -1,10 +1,8 @@
-from rest_framework import generics, permissions, status
+from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-import json
 
 from annotation.models import Annotation, AnnotationCollection, AnnotationType
-from project.modelcomponents.publishedproject import PublishedProject
 from .serializers import (
     AnnotationSerializer,
     AnnotationCollectionSerializer,

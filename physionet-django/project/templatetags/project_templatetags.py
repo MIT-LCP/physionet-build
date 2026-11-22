@@ -14,7 +14,6 @@ from project.authorization.access import can_view_project_files as can_view_proj
 from project.models import AccessPolicy
 from project.reference_citations import link_citations as link_citations_func
 from notification.utility import mailto_url
-from datetime import timedelta
 
 
 register = template.Library()

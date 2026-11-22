@@ -1,6 +1,4 @@
 import logging
-import os
-import pdb
 from contextlib import nullcontext
 from datetime import datetime, date, timedelta
 from collections import defaultdict
@@ -19,8 +17,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.db import DatabaseError, IntegrityError, transaction
-from django.forms import CheckboxInput, HiddenInput, inlineformset_factory
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template import loader
 from django.urls import reverse, reverse_lazy
@@ -55,7 +52,7 @@ from physionet.middleware.maintenance import (
 )
 from physionet.models import Section
 from physionet.settings.base import StorageTypes
-from project.models import Author, DUASignature, DUA, PublishedProject
+from project.models import Author, DUASignature, PublishedProject
 from training.forms import CourseForm
 from training.models import Course
 from requests_oauthlib import OAuth2Session

@@ -1,6 +1,5 @@
 from django.urls import path
 from training import views
-from user.views import edit_training
 
 
 urlpatterns = [

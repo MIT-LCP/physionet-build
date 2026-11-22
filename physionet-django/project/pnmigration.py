@@ -1,7 +1,4 @@
 import datetime
-import os
-import pdb
-import pytz
 import requests
 from urllib.request import urlopen
 
@@ -44,7 +41,7 @@ def create_legacy_projects():
                 print('{} does not exist'.format(slug))
                 continue
         content = load_legacy_html(slug=slug)
-        p = LegacyProject.objects.create(title=title, slug=slug,
+        LegacyProject.objects.create(title=title, slug=slug,
             full_description=content, publish_date=datetime.datetime.strptime(pubdate.strip(), '%d %B %Y'))
 
 
@@ -63,7 +60,7 @@ def write_legacy_fixtures(resource_type=None):
         file = ['project/fixtures/pbank.json', 'project/fixtures/ptools.json',
                 'project/fixtures/challenge.json'][rt]
         with open(file, 'w') as f:
-            data = serializers.serialize('json', LegacyProject.objects.filter(
+            serializers.serialize('json', LegacyProject.objects.filter(
                 resource_type=rt), stream=f, indent=2)
 
 

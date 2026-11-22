@@ -1,6 +1,5 @@
 from enum import IntEnum, Enum
 
-from django.db import models
 
 
 class TrainingStatus(IntEnum):

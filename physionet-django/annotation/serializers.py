@@ -1,6 +1,5 @@
 from rest_framework import serializers
 import jsonschema
-import json
 from annotation.models import (
     Annotation,
     AnnotationCollection,
@@ -12,10 +11,6 @@ from annotation.models import (
     AllowedLocationType,
 )
 from project.models import PublishedProject
-from oauth2_provider.views.generic import (
-    ProtectedResourceView,
-    ScopedProtectedResourceView,
-)
 import uuid
 
 

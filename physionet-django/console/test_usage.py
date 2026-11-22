@@ -1,20 +1,16 @@
-import copy
 import csv
 from unittest.mock import patch
 from datetime import date, datetime
 from io import StringIO
-from uuid import uuid4
 
-from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
-from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
 from console.usage import usage_metrics, usage_sections
-from project.models import AccessLog, ActiveProject, Author, DataAccessRequest, PublishedAuthor, PublishedProject
+from project.models import AccessLog, PublishedProject
 from user.models import CredentialApplication, User
 
 
@@ -182,7 +178,6 @@ class TestUsageMetrics(MetricsTestCase):
 
     def test_usage_tables_paginate_independently_and_export_all_rows(self):
         from unittest.mock import patch
-        from urllib.parse import parse_qs, urlsplit
         sections = [
             {'key': key, 'title': title, 'description': '', 'rows': [
                 {'label': f'{prefix}-{index}', 'count': index + 1, 'percentage': None}

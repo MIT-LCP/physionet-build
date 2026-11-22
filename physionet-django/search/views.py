@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Case, Count, IntegerField, OuterRef, Q, Subquery, Sum, Value, When
 from django.db.models.functions import Concat
 from django.http import Http404
-from django.shortcuts import redirect, render, reverse
+from django.shortcuts import redirect, render
 from django.templatetags.static import static
 from physionet.utility import paginate
 from project.models import PublishedAuthor, PublishedProject, PublishedTopic, ProjectType

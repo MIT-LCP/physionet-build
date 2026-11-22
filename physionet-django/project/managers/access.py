@@ -1,5 +1,4 @@
 from django.db.models import QuerySet, F, Q, Manager, ExpressionWrapper, DateTimeField
-from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 

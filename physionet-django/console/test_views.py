@@ -4,7 +4,6 @@ import datetime
 import json
 import logging
 import os
-import pdb
 from types import SimpleNamespace
 from unittest import mock
 
@@ -18,7 +17,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
 from django.core import mail
 from django.test import TestCase, override_settings
-from django.test.utils import get_runner
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
@@ -33,16 +31,13 @@ from project.models import (
     ActiveProject,
     AnonymousAccess,
     Author,
-    AuthorInvitation,
     DUASignature,
     ExternalReview,
     Funding,
-    License,
     PublishedProject,
     Reference,
     ReviewerInvitation,
     RevisionType,
-    StorageRequest,
     SubmissionStatus,
     UploadAgreement,
     DepositTermsAcceptance,
@@ -594,7 +589,7 @@ class TestState(TestMixin):
         project.save()
         self.client.login(username='admin', password='Tester11!')
         # Reject submission
-        response = self.client.post(reverse(
+        self.client.post(reverse(
             'edit_submission', args=(project.slug,)), data={
             'soundly_produced':0, 'well_described':0, 'open_format':1,
             'data_machine_readable':0, 'reusable':1, 'no_phi':0,
@@ -1135,7 +1130,7 @@ class TestState(TestMixin):
         for version in versions[1:]:
             self.client.login(username=self.AUTHOR,
                               password=self.AUTHOR_PASSWORD)
-            response = self.client.post(
+            self.client.post(
                 reverse('new_project_version', args=(self.PROJECT_SLUG,)),
                 data={'version': version})
 

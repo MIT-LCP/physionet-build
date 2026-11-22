@@ -7,7 +7,6 @@ def migrate_forward(apps, schema_editor):
     # version's total size.  (This may not be accurate, but gives
     # existing projects the benefit of the doubt.)
 
-    PublishedProject = apps.get_model('project', 'PublishedProject')
     CoreProject = apps.get_model('project', 'CoreProject')
     for core in CoreProject.objects.all():
         previous_size = 0

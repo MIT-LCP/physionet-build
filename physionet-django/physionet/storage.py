@@ -1,4 +1,3 @@
-import datetime as dt
 
 from django.conf import settings
 from storages.backends.gcloud import GoogleCloudStorage

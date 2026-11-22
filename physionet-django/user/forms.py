@@ -19,7 +19,6 @@ from django.utils.translation import gettext_lazy
 from physionet.exceptions import HtmlValidationError
 from physionet.utility import validate_pdf_file_type
 from user.awsverification import (
-    AWSVerificationFailed,
     get_aws_verification_command,
     check_aws_verification_url,
     parse_aws_user_arn,

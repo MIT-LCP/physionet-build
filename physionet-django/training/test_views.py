@@ -1,16 +1,12 @@
 import os
 import json
-import shutil
 
 from django.conf import settings
 
-from lightwave.views import DBCAL_FILE, ORIGINAL_DBCAL_FILE
-from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
-from training.models import Course, ContentBlock, Quiz, QuizChoice
-from user.models import Training
+from training.models import Course
 
 
 class TestPlatformTraining(TestCase):

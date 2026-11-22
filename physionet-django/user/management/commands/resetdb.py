@@ -19,8 +19,6 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
 from lightwave.views import DBCAL_FILE
-from project.models import ActiveProject, PublishedProject
-from user.models import User, CredentialApplication
 
 
 class Command(BaseCommand):

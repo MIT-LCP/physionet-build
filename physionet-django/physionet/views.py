@@ -1,22 +1,14 @@
-from collections import OrderedDict
 from os import path
-from re import fullmatch
 from urllib.parse import urljoin
-from datetime import datetime
 
-import notification.utility as notification
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.core.exceptions import RequestDataTooBig, TooManyFieldsSent, TooManyFilesSent
-from django.db.models import Q
 from django.db.models.functions import Lower
-from django.http import Http404, HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
+from django.shortcuts import render, get_object_or_404
 from notification.models import News
 from physionet.models import FrontPageButton, Section, StaticPage
-from physionet.middleware.maintenance import allow_post_during_maintenance
-from project.models import AccessPolicy, DUA, License, ProjectType, PublishedProject
+from project.models import AccessPolicy, DUA, License, PublishedProject
 from project.modelcomponents.depositterms import (
     DepositTermsUnavailable,
     DepositTermsVersion,

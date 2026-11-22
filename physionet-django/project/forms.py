@@ -1,6 +1,5 @@
 import json
 import os
-import uuid
 from collections import OrderedDict
 
 from dal import autocomplete
@@ -11,8 +10,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.files.base import ContentFile
 from django.db.models.functions import Lower
 from django.forms.utils import ErrorList
-from django.forms.widgets import HiddenInput
-from django.template.defaultfilters import slugify
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -51,7 +48,7 @@ from project.models import (
     DERIVED_DATA_FORM_LABEL,
     HUMAN_SUBJECTS_DEIDENTIFIED_LABEL,
 )
-from user.models import COUNTRIES, User, TrainingType
+from user.models import COUNTRIES, User
 from user.validators import validate_affiliation
 from django.forms import ModelMultipleChoiceField
 
@@ -545,7 +542,7 @@ class NewProjectVersionForm(forms.ModelForm):
 
         # Other related objects
         for number, p_reference in enumerate(p_references, start=1):
-            reference = Reference.objects.create(
+            Reference.objects.create(
                 description=p_reference.description,
                 doi=p_reference.doi,
                 key=p_reference.key,
@@ -554,7 +551,7 @@ class NewProjectVersionForm(forms.ModelForm):
             )
 
         for p_publication in self.latest_project.publications.all():
-            publication = Publication.objects.create(
+            Publication.objects.create(
                 citation=p_publication.citation, url=p_publication.url,
                 project=project)
 
@@ -664,8 +661,7 @@ class ContentForm(forms.ModelForm):
          'methods': (
              '* Details on the technical implementation. '
              'ie. the development process, and the underlying algorithms.'
-         ),
-         'usage_notes': '* How the software is to be used. List some example function calls or specify the demo file(s).'},
+         )},
     )
 
     class Meta:

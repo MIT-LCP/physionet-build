@@ -1,5 +1,5 @@
 from django import forms
-from django.db.models import Max, F, OuterRef
+from django.db.models import Max, F
 
 from training.models import Course
 from user.models import TrainingType

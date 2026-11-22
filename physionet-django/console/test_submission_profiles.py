@@ -1,6 +1,5 @@
 import copy
 import csv
-from datetime import date
 from io import StringIO
 from uuid import uuid4
 

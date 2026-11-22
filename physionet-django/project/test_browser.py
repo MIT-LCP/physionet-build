@@ -4,7 +4,6 @@ Module with full browser tests.
 """
 import time
 import os
-import pdb
 import shutil
 
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
@@ -14,12 +13,10 @@ from django.test import tag, TestCase
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.webdriver import WebDriver
-from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from user.test_views import TestMixin
-from project.models import ActiveProject, PublishedProject, StorageRequest
-from user.models import User
 
 
 class BaseSeleniumTest(StaticLiveServerTestCase, TestCase):

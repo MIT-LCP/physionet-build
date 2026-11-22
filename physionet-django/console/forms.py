@@ -9,7 +9,6 @@ from django.conf import settings
 from django.core.validators import URLValidator, validate_email, validate_integer
 from django.db import transaction
 from django.utils import timezone
-from google.cloud import storage
 from notification.models import News
 from physionet.models import FrontPageButton, Section, StaticPage
 from project.models import (
@@ -35,7 +34,7 @@ from project.modelcomponents.activeproject import end_of_day
 from project.utility import normalize_project_content
 from search.models import FederatedSite
 import project.tasks as project_tasks
-from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_doi, validate_slug
+from project.validators import MAX_PROJECT_SLUG_LENGTH, validate_slug
 from user.models import CodeOfConduct, CredentialApplication, CredentialReview, User, TrainingQuestion
 
 

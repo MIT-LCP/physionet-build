@@ -13,30 +13,32 @@ jobs:
     name: Style
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          pip install \
-              flake8==5.0.4 \
-              flake8-noqa==1.5.0 \
-              mccabe==0.7.0 \
-              pycodestyle==2.9.1 \
-              pyflakes==2.5.0
-
       - name: Check out pull request
         uses: actions/checkout@v7
         with:
           fetch-depth: 2
 
-      - name: Run code style check on files modified in pull request
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.6"
+
+      - name: Install linters
+        run: uv sync --locked --only-group lint
+
+      # pyflakes checks for faulty or suspicious logic (unused or undefined
+      # names, etc.).  The whole code base must be free of these errors.
+      - name: Run pyflakes check on all files
+        run: uv run --no-sync flake8 --select F,NQA
+
+      # pycodestyle checks formatting.  Only lines modified in the pull
+      # request are checked.
+      - name: Run code style check on lines modified in pull request
         shell: bash
         run: |
           set -o pipefail
-          git diff -U0 HEAD^ HEAD | \
-              flake8 --diff | \
+          git diff -U0 HEAD^ HEAD -- '*.py' | \
+              uv run --no-sync pycodestyle --diff --max-line-length=119 --ignore=W503 | \
               perl -ne '
                 print; if (/^([^:]+):(\d+):(\d+):/) {
                   $path = $1; $line = $2; $col = $3;

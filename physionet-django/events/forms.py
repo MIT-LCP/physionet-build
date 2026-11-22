@@ -4,7 +4,6 @@ import logging
 from events.widgets import DatePickerInput
 from events.models import Event, EventApplication, EventAgreement, EventDataset, CohostInvitation
 from project.models import PublishedProject
-from user.models import CredentialApplication
 
 INVITATION_CHOICES = (
     (1, 'Accept'),
