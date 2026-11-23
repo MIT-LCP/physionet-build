@@ -101,7 +101,7 @@ class TestRevisionDeadlineModel(RevisionDeadlineTestMixin):
         self.project.archive(archive_reason=ArchiveReason.REJECTED)
         self.assertFalse(self.project.is_reopenable())
         with self.assertRaises(Exception):
-            self.project.reopen_for_revisions(days_from_now(30))
+            self.project.reopen(days_from_now(30))
 
         self.project.archive_reason = ArchiveReason.REVISION_DEADLINE_PASSED
         # Archives created before archive_submission_status was introduced
@@ -109,12 +109,39 @@ class TestRevisionDeadlineModel(RevisionDeadlineTestMixin):
         self.project.archive_submission_status = None
         self.project.save()
         self.assertTrue(self.project.is_reopenable())
-        self.project.reopen_for_revisions(days_from_now(60))
+        self.project.reopen(days_from_now(60))
         self.project.refresh_from_db()
         self.assertEqual(self.project.submission_status, SubmissionStatus.NEEDS_RESUBMISSION)
         self.assertIsNone(self.project.archive_reason)
         self.assertIsNone(self.project.archive_datetime)
         self.assertIsNotNone(self.project.revision_deadline)
+
+    def test_reopen_requires_a_deadline_when_restoring_revisions(self):
+        self.await_revisions(days_from_now(30))
+        self.project.archive(archive_reason=ArchiveReason.REVISION_DEADLINE_PASSED)
+
+        with self.assertRaisesRegex(Exception, 'revision deadline is required'):
+            self.project.reopen()
+
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.submission_status, SubmissionStatus.ARCHIVED)
+
+    def test_archive_does_not_overwrite_a_concurrent_status_change(self):
+        self.project.submission_status = SubmissionStatus.NEEDS_APPROVAL
+        self.project.save()
+        stale_project = ActiveProject.objects.get(pk=self.project.pk)
+        approval_datetime = timezone.now()
+        ActiveProject.objects.filter(pk=self.project.pk).update(
+            submission_status=SubmissionStatus.NEEDS_PUBLICATION,
+            author_approval_datetime=approval_datetime,
+        )
+
+        self.assertFalse(
+            stale_project.archive(archive_reason=ArchiveReason.ARCHIVED_BY_EDITOR))
+
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.submission_status, SubmissionStatus.NEEDS_PUBLICATION)
+        self.assertEqual(self.project.author_approval_datetime, approval_datetime)
 
 
 @override_settings(REVISION_REMINDER_DAYS=(30, 7))
@@ -431,7 +458,7 @@ class TestConsoleRevisionDeadline(RevisionDeadlineTestMixin):
         self.assertContains(response, 'Reopen Project')
 
         new_date = timezone.localdate() + datetime.timedelta(days=30)
-        self.client.post(self.url(), {'reopen_for_revisions': '', 'revision_deadline': new_date.isoformat()})
+        self.client.post(self.url(), {'reopen_project': '', 'revision_deadline': new_date.isoformat()})
         self.project.refresh_from_db()
         self.assertEqual(self.project.submission_status, SubmissionStatus.NEEDS_RESUBMISSION)
         self.assertEqual(timezone.localdate(self.project.revision_deadline), new_date)
@@ -442,7 +469,7 @@ class TestConsoleRevisionDeadline(RevisionDeadlineTestMixin):
         self.project.reject()
         self.client.login(username=EDITOR, password=PASSWORD)
         new_date = timezone.localdate() + datetime.timedelta(days=30)
-        self.client.post(self.url(), {'reopen_for_revisions': '', 'revision_deadline': new_date.isoformat()})
+        self.client.post(self.url(), {'reopen_project': '', 'revision_deadline': new_date.isoformat()})
         self.project.refresh_from_db()
         self.assertEqual(self.project.submission_status, SubmissionStatus.ARCHIVED)
 

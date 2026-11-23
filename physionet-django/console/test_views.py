@@ -2875,6 +2875,11 @@ class TestArchivePermission(TestMixin):
             project.save()
             mail.outbox.clear()
 
+            if status == SubmissionStatus.NEEDS_APPROVAL:
+                approved_author = project.authors.order_by('display_order').first()
+                approved_author.approval_datetime = timezone.now()
+                approved_author.save(update_fields=['approval_datetime'])
+
             response = self.client.get(url)
             self.assertContains(response, 'id="archive-tab"')
             archive_url = f'{url}?tab=archive'
@@ -2907,6 +2912,21 @@ class TestArchivePermission(TestMixin):
                 ))
             else:
                 self.assertEqual(mail.outbox, [])
+
+    def test_project_editor_cannot_archive_unarchivable_statuses(self):
+        project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')
+        self.client.login(username='tompollard', password='Tester11!')
+        url = reverse('submission_info', args=(project.slug,))
+
+        for status in (SubmissionStatus.NEEDS_DECISION, SubmissionStatus.NEEDS_PUBLICATION):
+            project.submission_status = status
+            project.save()
+
+            response = self.client.post(url, {'archive_project': ''})
+
+            self.assertRedirects(response, f'{url}?tab=archive', fetch_redirect_response=False)
+            project.refresh_from_db()
+            self.assertEqual(project.submission_status, status)
 
     def test_non_editor_without_permission_cannot_archive(self):
         project = ActiveProject.objects.get(title='Demo software for parsing clinical notes')

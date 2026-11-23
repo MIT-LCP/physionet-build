@@ -226,6 +226,7 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     on_hold_datetime = models.DateTimeField(null=True, blank=True)
     archive_reason = models.PositiveSmallIntegerField(choices=ArchiveReason.choices, null=True, blank=True)
     archive_reason_text = models.TextField(null=True, blank=True)
+    # Submission status at the time of archiving; used to restore the project on reopen
     archive_submission_status = models.PositiveSmallIntegerField(null=True, blank=True)
 
     # Deadline for the authors to resubmit, while awaiting revisions.
@@ -458,27 +459,26 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
     def is_reopenable(self):
         """
-        Whether an editor may return the archived project to the authors
-        for revisions.
+        Whether an editor may restore an archived project to the
+        submission status it had when archived
         """
         return (self.submission_status == SubmissionStatus.ARCHIVED
                 and self.archive_reason in ArchiveReason.reopenable())
 
-    def reopen_for_revisions(self, deadline):
-        """
-        Reopen an archived project. Retained for callers that reopen projects
-        which were archived while awaiting revisions.
-        """
-        return self.reopen(deadline)
+    def reopen_status(self):
+        """Return the submission status that reopening will restore."""
+        # Archives created before archive_submission_status was introduced
+        # were only reopenable from the revisions workflow.
+        if self.archive_submission_status is None:
+            return SubmissionStatus.NEEDS_RESUBMISSION
+        return self.archive_submission_status
 
     def reopen(self, deadline=None):
         """Restore an archived project to the submission status it had when archived."""
         if not self.is_reopenable():
             raise Exception('ActiveProject cannot be reopened')
 
-        # Archives created before archive_submission_status was introduced
-        # were only reopenable from the revisions workflow.
-        restored_status = self.archive_submission_status or SubmissionStatus.NEEDS_RESUBMISSION
+        restored_status = self.reopen_status()
         if restored_status == SubmissionStatus.NEEDS_RESUBMISSION:
             if deadline is None:
                 raise Exception('A revision deadline is required when reopening for revisions')
@@ -523,13 +523,29 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
     def archive(self, archive_reason, archive_reason_text='', clear_files=False):
         """
         Archive the project. Sets the status of the project to "Archived" object.
+
+        Returns False if the submission status changed since this instance was
+        loaded, so a concurrent workflow update is never overwritten.
         """
-        self.archive_submission_status = self.submission_status
+        archived_status = self.submission_status
+        archive_datetime = timezone.now()
+        updated = type(self).objects.filter(
+            pk=self.pk, submission_status=archived_status
+        ).update(
+            archive_submission_status=archived_status,
+            submission_status=SubmissionStatus.ARCHIVED,
+            archive_reason=archive_reason,
+            archive_reason_text=archive_reason_text,
+            archive_datetime=archive_datetime,
+        )
+        if not updated:
+            return False
+
+        self.archive_submission_status = archived_status
         self.submission_status = SubmissionStatus.ARCHIVED
         self.archive_reason = archive_reason
         self.archive_reason_text = archive_reason_text
-        self.archive_datetime = timezone.now()
-        self.save()
+        self.archive_datetime = archive_datetime
 
         # Reviewers should no longer be able to see the project
         self.anonymous.all().delete()
@@ -537,6 +553,8 @@ class ActiveProject(Metadata, UnpublishedProject, SubmissionInfo):
 
         if clear_files:
             self.clear_files()
+
+        return True
 
     def place_on_hold(self):
         """Place the submission on hold without changing its status."""

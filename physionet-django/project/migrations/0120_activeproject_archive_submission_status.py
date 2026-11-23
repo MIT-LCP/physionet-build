@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('project', '0118_managing_editor_archive_permission'),
+        ('project', '0119_s3_download_metrics'),
     ]
 
     operations = [
