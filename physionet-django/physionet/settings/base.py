@@ -817,6 +817,8 @@ HOMEPAGE_BANNER_IMAGE = config('HOMEPAGE_BANNER_IMAGE', default='') or 'images/b
 
 SITE_DESCRIPTION = config('SITE_DESCRIPTION', default=None)
 EMAIL_SIGNATURE = config('EMAIL_SIGNATURE')
+# Seconds to wait for the SMTP server before failing, instead of blocking the request
+EMAIL_TIMEOUT = config('EMAIL_TIMEOUT', default=10, cast=int)
 FOOTER_MANAGED_BY = config('FOOTER_MANAGED_BY')
 FOOTER_SUPPORTED_BY = config('FOOTER_SUPPORTED_BY')
 FOOTER_ACCESSIBILITY_PAGE = config('FOOTER_ACCESSIBILITY_PAGE', default=None)
